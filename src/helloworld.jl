@@ -11,23 +11,24 @@ A0=randn(n,n);
 A1=randn(n,n);
 I=eye(n,n);
 tau=1;
+
 # short-hand definition of functions
-M(lambda)=-lambda*I+A0+A1*exp(-tau*lambda)
-Mp(lambda)=-I-tau*A1*exp(-tau*lambda)
+M(λ)=-λ*I+A0+A1*exp(-tau*λ)
+Mp(λ)=-I-tau*A1*exp(-tau*λ)
 
 
 v=randn(n,1);
-c=v; lambda=0;
+c=v; λ=0;
 for k=1:10
-    println("Iteration:",k," resnorm:",norm(M(lambda)*v))
+    println("Iteration:",k," resnorm:",norm(M(λ)*v))
 
     # Note: Julia has no comma in matrices
-    J=[M(lambda) Mp(lambda)*v; c' 0];
-    F=[M(lambda)*v; c'*v-1];
+    J=[M(λ) Mp(λ)*v; c' 0];
+    F=[M(λ)*v; c'*v-1];
     delta=-J\F;
     # Note: Submatrix indexing with [] not with ()
     v=v+delta[1:n];
-    lambda=lambda+delta[n+1];
+    λ=λ+delta[n+1];
     
 end
 
