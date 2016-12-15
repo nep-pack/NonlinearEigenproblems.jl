@@ -6,7 +6,7 @@ println("hello world from NEP-pack")
 
 n=5;
 
-
+srand(0) # reset the random seed
 A0=randn(n,n);
 A1=randn(n,n);
 I=eye(n,n);
