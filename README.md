@@ -7,5 +7,5 @@ i
 
 
 See the GIT usage under the wiki page
-https://gitr.sys.kth.se/nep-pack/firsttestbranch/wiki
+https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki
 
