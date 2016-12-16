@@ -1,6 +1,6 @@
 module NEPSolver
   using NEPCore
-  export newtonraphson
+  export newton_raphson
   
   function newton_raphson(nep::NEP;
                          errmeasure=NaN,
