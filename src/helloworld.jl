@@ -25,9 +25,20 @@ end
 nep=NEP(n,DEP_Md);
 #println(nep)
 
-λ,x =newtonraphson(nep);
+λ=NaN;
+x=NaN
+try
+    λ,x =newtonraphson(nep,
+                       displaylevel=1);
+catch e
+    # Only catch NoConvergence 
+    isa(e, NoConvergenceException) || rethrow(e)  
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λ=e.λ
+    x=e.v
+end
 println(nep.resnorm(λ,x))
-println("hello")
 
 
 

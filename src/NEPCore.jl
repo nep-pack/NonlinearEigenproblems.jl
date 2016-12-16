@@ -1,6 +1,7 @@
 module NEPCore
 
 export NEP
+export NoConvergenceException
 
 type NEP
     n::Int
@@ -23,8 +24,14 @@ type NEP
 end
 
 
-#NEP() = NEP(4,NaN)
-#NEP(n,Md) = NEP(n,Md,default_error_measure)
+# In case an iterative method does not converge
+type NoConvergenceException <: Exception
+    λ
+    v
+    errmeasure
+    msg
+end
+
 
 
 end
