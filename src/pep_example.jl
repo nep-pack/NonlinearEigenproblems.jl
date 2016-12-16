@@ -3,6 +3,7 @@ workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
+#using PyPlot
 
 n=200; # mat size
 p=10; # Poly degree
@@ -15,13 +16,14 @@ end
 
 # Create the derivative function for the PEP
 function PEP_Md(λ,i=0)
+    # Only workds for i=0 or i=1
     if (i==0)
         M=zeros(n,n)
         for i=1:p
             M+=λ^(i-1)*A[:,:,i]
         end
         return M
-    else
+    else 
         Mp=zeros(n,n)
         for i=2:p
             Mp += (i-1)*(λ^(i-2)*A[:,:,i])
@@ -42,14 +44,14 @@ end
 
 # 
 
-λ,x =newtonraphson(nep,maxit=30,errmeasure=myerrmeasure);
+λ,x =newton_raphson(nep,maxit=30,errmeasure=myerrmeasure);
 
 
 println("Resnorm of computed solution: ",norm(nep.Md(λ)*x))
 
-# Plot the iteration history
-Pkg.add("PyPlot")
-using PyPlot
-semilogy(ev[2:end])
-ylabel("resnorm")
-xlabel("iteration")
+## Plot the iteration history
+#Pkg.add("PyPlot")
+#using PyPlot
+#semilogy(ev[2:end])
+#ylabel("resnorm");
+#xlabel("iteration");

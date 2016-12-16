@@ -2,7 +2,7 @@ module NEPSolver
   using NEPCore
   export newtonraphson
   
-  function newtonraphson(nep::NEP;
+  function newton_raphson(nep::NEP;
                          errmeasure=NaN,
                          tolerance=eps()*100,
                          maxit=10,
