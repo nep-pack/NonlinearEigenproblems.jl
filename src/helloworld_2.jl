@@ -1,6 +1,6 @@
 #  This is the first code in NEP-pack
 workspace()
-push!(LOAD_PATH, pwd())	# look for modules in the current directory
+push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 

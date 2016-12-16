@@ -97,7 +97,6 @@ module NEPSolver
               # Compute eigenvalue update
 	      Δλ=-(c'*(M*v))/(c'*(Md*v));
               Δλ=reshape(Δλ,1)[1];	# convert Δλ to a scalar
-              #println("\n \n correction= ",Δλ);
 
               # Update eigenvalue
               λ=λ+Δλ;

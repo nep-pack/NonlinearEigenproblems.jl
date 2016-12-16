@@ -45,7 +45,7 @@ end
 # 
 
 λ,x =newton_raphson(nep,maxit=30,errmeasure=myerrmeasure);
-
+#λ,x =res_inv(nep,maxit=100,errmeasure=myerrmeasure);	# decrease n, e.g., n=20
 
 println("Resnorm of computed solution: ",norm(nep.Md(λ)*x))
 
