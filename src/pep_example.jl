@@ -33,11 +33,10 @@ end
 nep=NEP(n,PEP_Md);
 
 # Saving the errors in an array
-ev=[inf]
+ev=[Inf]
 myerrmeasure=function (λ,v)
     e=nep.relresnorm(λ,v)
     global ev=[ev e]
-    println(e)
     return e
 end
 
