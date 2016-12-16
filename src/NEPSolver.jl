@@ -4,13 +4,13 @@ module NEPSolver
   
   function newtonraphson(nep::NEP;
                          errmeasure=NaN,
-                         tolerance=1e-10,
+                         tolerance=eps()*100,
                          maxit=10,
                          λ=0,
                          v=randn(nep.n,1),
                          c=v,
                          displaylevel=0)
-      if (isnan(errmeasure))
+      if (~isa(errmeasure,Function))
           # If no relresnorm available use resnorm
           if (isdefined(nep, :relresnorm))
               errmeasure=nep.relresnorm;
