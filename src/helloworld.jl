@@ -29,7 +29,8 @@ nep=NEP(n,DEP_Md);
 λ=NaN;
 x=NaN
 try
-    λ,x =newtonraphson(nep,displaylevel=1);
+    λ,x =newtonraphson(nep,
+                       displaylevel=1);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  

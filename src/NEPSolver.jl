@@ -1,26 +1,17 @@
 module NEPSolver
   using NEPCore
-  export newtonraphson
+  export newton_raphson
   
-  function newtonraphson(nep::NEP;
-                         errmeasure=NaN,
-                         tolerance=1e-10,
+
+  function newton_raphson(nep::NEP;
+                         errmeasure::Function = default_errmeasure(nep::NEP, displaylevel),
+                         tolerance=eps()*100,
                          maxit=10,
                          λ=0,
                          v=randn(nep.n,1),
                          c=v,
                          displaylevel=0)
-      if (isnan(errmeasure))
-          # If no relresnorm available use resnorm
-          if (isdefined(nep, :relresnorm))
-              errmeasure=nep.relresnorm;
-          else
-              errmeasure=nep.resnorm;
-              if (displaylevel>0)
-                  println("Using resnorm")
-              end
-          end
-      end
+      
       err=Inf;
       v=v/(c'*v);
       try 
@@ -69,6 +60,20 @@ module NEPSolver
       throw(NoConvergenceException(λ,v,err,msg))
   end
 
+
+
+
+  function default_errmeasure(nep::NEP, displaylevel)
+      # If no relresnorm available use resnorm
+      if (isdefined(nep, :relresnorm))
+          return nep.relresnorm;
+      else
+          if (displaylevel>0)
+              println("Using resnorm")
+          end
+          return nep.resnorm;
+      end
+  end
       
 end
 
