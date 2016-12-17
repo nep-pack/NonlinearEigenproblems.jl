@@ -64,7 +64,15 @@ x0=round(x*10)/10;       # Start vector
 
 println("Resnorm of computed solution: ",norm(nep.Md(λ)*x))
 
-## Plot the iteration history (buggy on ubuntu)
+
+# Slow first time it
+Pkg.add("Winston")
+using Winston
+semilogy(ev)
+hold(true)
+semilogy(ev2,"r")
+
+# Corresponding code in PyPlot
 #Pkg.add("PyPlot")
 #using PyPlot
 #semilogy(ev[2:end])
