@@ -19,7 +19,7 @@ module NEPSolver
           for k=1:maxit
               err=errmeasure(λ,v)
               if (displaylevel>0)
-                  println("Iteration:",k," resnorm:",err)
+                  println("Iteration:",k," errmeasure:",err)
               end
               if (err< tolerance)
                   return (λ,v)
@@ -69,18 +69,20 @@ module NEPSolver
                          displaylevel=0)
 
       σ=λ;
-
+      
       # Compute NEP matrix
       # TODO: OPTIMIZE WITH LU FACTORIZATION OR SOMETHING LIKE THAT
       Mσ=nep.Md(σ);
       
       err=Inf;
-      v=v/(c'*v);
       try 
           for k=1:maxit
+              # Normalize 
+              v=v/(c'*v);
+
               err=errmeasure(λ,v)
               if (displaylevel>0)
-                  println("Iteration:",k," resnorm:",err)
+                  println("Iteration:",k," errmeasure:",err)
               end
               if (err< tolerance)
                   return (λ,v)
@@ -90,7 +92,7 @@ module NEPSolver
               M=nep.Md(λ)
               Md=nep.Md(λ,1)
 
-              # Compute eigenvalue update
+              # Compute eigenvalue update (one step of scalar newton )
 	      Δλ=-(c'*(M*v))/(c'*(Md*v));
               Δλ=reshape(Δλ,1)[1];	# convert Δλ to a scalar
 
