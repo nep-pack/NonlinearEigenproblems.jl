@@ -5,13 +5,14 @@ module NEPSolver
   
 
   function newton_raphson(nep::NEP;
-                         errmeasure::Function = default_errmeasure(nep::NEP, displaylevel),
-                         tolerance=eps()*100,
-                         maxit=10,
-                         λ=0,
-                         v=randn(nep.n),
-                         c=v,
-                         displaylevel=0)
+                          errmeasure::Function =
+                             default_errmeasure(nep::NEP, displaylevel),
+                          tolerance=eps()*100,
+                          maxit=10,
+                          λ=0,
+                          v=randn(nep.n),
+                          c=v,
+                          displaylevel=0)
       
       err=Inf;
       v=v/(c'*v);
@@ -60,19 +61,21 @@ module NEPSolver
   end
 
   function res_inv(nep::NEP;
-                         errmeasure::Function = default_errmeasure(nep::NEP, displaylevel),
-                         tolerance=eps()*100,
-                         maxit=100,
-                         λ=0,
-                         v=randn(nep.n),
-                         c=v,
-                         displaylevel=0)
+                   errmeasure::Function =
+                       default_errmeasure(nep::NEP, displaylevel),
+                   tolerance=eps()*100,
+                   maxit=100,
+                   λ=0,
+                   v=randn(nep.n),
+                   c=v,
+                   displaylevel=0)
 
       σ=λ;
       
       # Compute NEP matrix
       # TODO: OPTIMIZE WITH LU FACTORIZATION OR SOMETHING LIKE THAT
-      Mσ=nep.Md(σ);
+      # Compute a (julia-selected) factorization of M(σ)
+      Mσ=factorize(nep.Md(σ));
       
       err=Inf;
       try 
@@ -103,10 +106,10 @@ module NEPSolver
               M=nep.Md(λ)
 
               # Compute eigenvector update
-	      Δv=-Mσ\(M*v);
+	      Δv=Mσ\(M*v);
 
               # Update the eigvector
-              v=v+Δv;
+              v=v-Δv;
 
               
           end
