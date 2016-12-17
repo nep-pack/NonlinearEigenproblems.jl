@@ -9,7 +9,7 @@ module NEPSolver
                          tolerance=eps()*100,
                          maxit=10,
                          λ=0,
-                         v=randn(nep.n,1),
+                         v=randn(nep.n),
                          c=v,
                          displaylevel=0)
       
@@ -17,12 +17,10 @@ module NEPSolver
       v=v/(c'*v);
       try 
           for k=1:maxit
-              if (displaylevel>0)
-                  println("Iteration:",k,
-                          " resnorm:",
-                          errmeasure(λ,v))
-              end
               err=errmeasure(λ,v)
+              if (displaylevel>0)
+                  println("Iteration:",k," resnorm:",err)
+              end
               if (err< tolerance)
                   return (λ,v)
               end
@@ -66,7 +64,7 @@ module NEPSolver
                          tolerance=eps()*100,
                          maxit=100,
                          λ=0,
-                         v=randn(nep.n,1),
+                         v=randn(nep.n),
                          c=v,
                          displaylevel=0)
 
@@ -80,12 +78,10 @@ module NEPSolver
       v=v/(c'*v);
       try 
           for k=1:maxit
-              if (displaylevel>0)
-                  println("Iteration:",k,
-                          " resnorm:",
-                          errmeasure(λ,v))
-              end
               err=errmeasure(λ,v)
+              if (displaylevel>0)
+                  println("Iteration:",k," resnorm:",err)
+              end
               if (err< tolerance)
                   return (λ,v)
               end
