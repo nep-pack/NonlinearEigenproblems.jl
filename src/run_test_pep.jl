@@ -3,10 +3,12 @@ workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
+using PolynomialRoots
+#using Polynomial
 #using PyPlot
 
 n=200; # mat size
-p=10; # Poly degree
+p=3; # Poly degree
 
 A=Array{Float64}(n,n,p)
 srand(0)
@@ -34,6 +36,18 @@ end
 
 nep=NEP(n,PEP_Md);
 
+nep.rf=function (x; y=x,
+                 target=0,
+                 λ0=target)
+    c=zeros(p)
+    for k=1:p
+        c[k]=dot(y,A[:,:,k]*x);
+    end
+    r=roots(c);
+    x,index=findmin(abs(r-target))
+    return r[index]
+end
+
 # Saving the errors in an array
 ev=zeros(0)
 myerrmeasure=function (λ,v)
@@ -51,7 +65,7 @@ println("Running Newton Raphson")
 ev2=zeros(0)
 abserrmeasure=function (λ,v)
     e=abs(λ-λ_exact) # Error measure: abs error in λ 
-    global ev2=[ev2;e]
+    global ev2=[ev2;nep.resnorm(λ,v)]
     return e
 end
 println("Running residual inverse iteration")
@@ -65,15 +79,15 @@ x0=round(x*10)/10;       # Start vector
 println("Resnorm of computed solution: ",norm(nep.Md(λ)*x))
 
 
-# Slow first time it
-Pkg.add("Winston")
-using Winston
-semilogy(ev)
-hold(true)
-semilogy(ev2,"r")
-
-# Corresponding code in PyPlot
-#Pkg.add("PyPlot")
+## Slow first time it
+#Pkg.add("Winston")
+#using Winston
+#semilogy(ev)
+#hold(true)
+#semilogy(ev2,"r")
+#
+## Corresponding code in PyPlot
+ #Pkg.add("PyPlot")
 #using PyPlot
 #semilogy(ev[2:end])
 #semilogy(ev2[:])

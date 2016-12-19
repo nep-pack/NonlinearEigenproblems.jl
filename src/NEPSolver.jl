@@ -15,7 +15,7 @@ module NEPSolver
                           displaylevel=0)
       
       err=Inf;
-      v=v/(c'*v);
+      v=v/dot(c,v);
       try 
           for k=1:maxit
               err=errmeasure(λ,v)
@@ -52,7 +52,7 @@ module NEPSolver
           if (errmeasure(λ,v)>tolerance)
               # We need to compute an eigvec somehow
               v=(nep.Md(λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
-              v=v/(c'*v)
+              v=v/dot(c,v)
           end
           return (λ,v)
       end          
@@ -68,20 +68,20 @@ module NEPSolver
                    λ=0,
                    v=randn(nep.n),
                    c=v,
-                   displaylevel=0)
+                   displaylevel=0,
+                   linsolver=LinSolver(nep.Md(λ))
+                   )
 
       σ=λ;
-      
-      # Compute NEP matrix
-      # TODO: OPTIMIZE WITH LU FACTORIZATION OR SOMETHING LIKE THAT
       # Compute a (julia-selected) factorization of M(σ)
-      Mσ=factorize(nep.Md(σ));
+      #Mσ=factorize(nep.Md(σ));
+      #linsolver=LinSolver(nep.Md(σ))
       
       err=Inf;
       try 
           for k=1:maxit
               # Normalize 
-              v=v/(c'*v);
+              v=v/dot(c,v);
 
               err=errmeasure(λ,v)
               if (displaylevel>0)
@@ -91,23 +91,19 @@ module NEPSolver
                   return (λ,v)
               end
 
-              # Compute NEP matrix and derivative 
-              M=nep.Md(λ)
-              Md=nep.Md(λ,1)
 
-              # Compute eigenvalue update (one step of scalar newton )
-	      Δλ=-(c'*(M*v))/(c'*(Md*v));
-              Δλ=reshape(Δλ,1)[1];	# convert Δλ to a scalar
-
-              # Update eigenvalue
-              λ=λ+Δλ;
-
+              # Compute eigenvalue update
+              
+              λ=nep.rf(v,y=c,λ0=λ,target=σ)
+              
               # Re-compute NEP matrix and derivative 
               M=nep.Md(λ)
 
               # Compute eigenvector update
-	      Δv=Mσ\(M*v);
-
+	      # Δv=Mσ\nep.Mlincomb(λ,v) #M*v);
+              tol=eps()
+	      Δv=linsolver.solve(nep.Mlincomb(λ,v),tol=tol) #M*v);              
+              
               # Update the eigvector
               v=v-Δv;
 
