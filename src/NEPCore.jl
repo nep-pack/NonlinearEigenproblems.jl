@@ -30,12 +30,10 @@ type NEP
         this.relresnorm=function (λ,v)
             return this.resnorm(λ,v)/norm(Md(λ,0));
         end
-        this.rf=function(x; y=x,
-                         target=0,
-                         λ0=target)
+        this.rf=function(x; y=x, target=0, λ0=target)
             # One step of scalar Newton's method
             λ=λ0;
-            for k=1:100
+            for k=1:10
                 M=this.Md(λ,0);
                 Md=this.Md(λ,1);
                 Δλ=-dot(y,M*x)/dot(y,Md*x);
