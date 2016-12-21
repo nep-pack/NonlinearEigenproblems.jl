@@ -62,7 +62,9 @@ module NEPSolver
 
   function res_inv(nep::NEP;
                    errmeasure::Function =
-                       default_errmeasure(nep::NEP, displaylevel),
+                             default_errmeasure(nep::NEP, displaylevel),
+                   rf::Function =
+                             default_rf(nep::NEP, displaylevel),
                    tolerance=eps()*100,
                    maxit=100,
                    λ=0,
@@ -83,7 +85,10 @@ module NEPSolver
               # Normalize 
               v=v/dot(c,v);
 
+              
               err=errmeasure(λ,v)
+              
+
               if (displaylevel>0)
                   println("Iteration:",k," errmeasure:",err)
               end
@@ -91,11 +96,14 @@ module NEPSolver
                   return (λ,v)
               end
 
-
               # Compute eigenvalue update
-              
-              λ=nep.rf(v,y=c,λ0=λ,target=σ)
-              
+              errmeasure(λ,v)
+              println("test1")
+              λ=rf(v,y=c,λ0=λ,target=σ)
+              println("ll=",λ)
+              errmeasure(0.0,v)
+              println("test2")
+
               # Re-compute NEP matrix and derivative 
               M=nep.Md(λ)
 
@@ -107,8 +115,8 @@ module NEPSolver
               # Update the eigvector
               v=v-Δv;
 
-              
           end
+
       catch e
           isa(e, Base.LinAlg.SingularException) || rethrow(e)  
           # This should not cast an error since it means that λ is
@@ -119,7 +127,7 @@ module NEPSolver
           if (errmeasure(λ,v)>tolerance)
               # We need to compute an eigvec somehow
               v=(nep.Md(λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
-              v=v/(c'*v)
+              v=v/dot(c,v)
           end
           return (λ,v)
       end          
@@ -128,6 +136,11 @@ module NEPSolver
   end
 
 
+  function default_rf(nep::NEP, displaylevel)
+	# one step of Newton method as default
+        return (x; y=x, target=0, λ0=target)->
+                λ0-dot(y,nep.Mlincomb(λ0,x))/dot(y,nep.Mlincomb(λ0,[x x]))
+  end
 
 
   function default_errmeasure(nep::NEP, displaylevel)
