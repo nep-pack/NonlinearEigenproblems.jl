@@ -4,8 +4,8 @@ push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 
-println("hello world from NEP-pack")
-println("Hello again")
+println("Test MSLP")
+
 n=5;
 srand(0) # reset the random seed
 A0=randn(n,n);
@@ -24,8 +24,6 @@ function DEP_Md(λ,i=0)
 end
 
 nep=NEP(n,DEP_Md);
-#println(nep)
-
 
 
 λ=NaN;

@@ -4,6 +4,7 @@ module NEPSolver
   export res_inv
   export successive_linear_problems
 
+
 #############################################################################
   function newton_raphson(nep::NEP;
                           errmeasure::Function =
@@ -60,6 +61,7 @@ module NEPSolver
       msg="Number of iterations exceeded. maxit=$(maxit)."
       throw(NoConvergenceException(λ,v,err,msg))
   end
+
 
 #############################################################################
   function res_inv(nep::NEP;
@@ -132,23 +134,6 @@ module NEPSolver
       throw(NoConvergenceException(λ,v,err,msg))
   end
 
-#############################################################################
-  function default_rf(nep::NEP, displaylevel)
-        return nep.rf;
-  end
-
-#############################################################################
-  function default_errmeasure(nep::NEP, displaylevel)
-      # If no relresnorm available use resnorm
-      if (isdefined(nep, :relresnorm))
-          return nep.relresnorm;
-      else
-          if (displaylevel>0)
-              println("Using resnorm")
-          end
-          return nep.resnorm;
-      end
-  end
 
 #############################################################################
   function successive_linear_problems(nep::NEP;
@@ -217,5 +202,24 @@ module NEPSolver
       throw(NoConvergenceException(λ,v,err,msg))
   end
 
+
+#############################################################################
+  function default_rf(nep::NEP, displaylevel)
+        return nep.rf;
+  end
+
+
+#############################################################################
+  function default_errmeasure(nep::NEP, displaylevel)
+      # If no relresnorm available use resnorm
+      if (isdefined(nep, :relresnorm))
+          return nep.relresnorm;
+      else
+          if (displaylevel>0)
+              println("Using resnorm")
+          end
+          return nep.resnorm;
+      end
+  end
       
 end #End module
