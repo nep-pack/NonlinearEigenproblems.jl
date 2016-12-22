@@ -20,28 +20,27 @@ type NEP
     Mlincomb::Function
     
     function NEP(n,Md)
-    # 
         this=new()
         this.n=n
         this.Md=Md
+
         this.resnorm=function (λ,v)
             return norm(this.Md(λ,0)*v)
         end
+
         this.relresnorm=function (λ,v)
             return this.resnorm(λ,v)/norm(Md(λ,0));
         end
+
         this.rf=function(x; y=x, target=0, λ0=target)
-            # One step of scalar Newton's method
+            # Ten steps of scalar Newton's method
             λ=λ0;
             for k=1:10
-                M=this.Md(λ,0);
-                Md=this.Md(λ,1);
-                Δλ=-dot(y,M*x)/dot(y,Md*x);
+                Δλ=-dot(y,this.Md(λ,0)*x)/dot(y,this.Md(λ,1)*x);
                 λ=λ+Δλ
             end
             return λ
         end
-        #
 
         this.Mlincomb=function (λ,V;a=ones(size(V,2)))
             z=zeros(this.n)
@@ -65,17 +64,19 @@ type NoConvergenceException <: Exception
 end
 
 
-
-    type LinSolver
-        solve::Function
-        Afact
-        function LinSolver(A)
-            this=new()
-            this.Afact=factorize(A)
-            this.solve=function foo(x;tol=eps())
-                return this.Afact\x
-            end
-            return this;
-        end   
-    end
+# To slove linear systems
+type LinSolver
+    solve::Function
+    Afact
+    function LinSolver(A)
+        this=new()
+        this.Afact=factorize(A)
+        this.solve=function foo(x;tol=eps())
+            return this.Afact\x
+        end
+        return this;
+    end   
 end
+
+
+end  # End Module

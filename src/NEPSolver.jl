@@ -4,6 +4,7 @@ module NEPSolver
   export res_inv
   export successive_linear_problems
 
+#############################################################################
   function newton_raphson(nep::NEP;
                           errmeasure::Function =
                              default_errmeasure(nep::NEP, displaylevel),
@@ -60,6 +61,7 @@ module NEPSolver
       throw(NoConvergenceException(λ,v,err,msg))
   end
 
+#############################################################################
   function res_inv(nep::NEP;
                    errmeasure::Function =
                              default_errmeasure(nep::NEP, displaylevel),
@@ -130,16 +132,12 @@ module NEPSolver
       throw(NoConvergenceException(λ,v,err,msg))
   end
 
-# TODO: rf is already defined in NEPCore but we cannot call it
+#############################################################################
   function default_rf(nep::NEP, displaylevel)
-	# one step of Newton method as default
-        return (x; y=x, target=0, λ0=target)->
-                λ0-dot(y,nep.Mlincomb(λ0,x))/dot(y,nep.Mlincomb(λ0,[x x]))
-#	TODO: the following should work
-#        return nep.rf
+        return nep.rf;
   end
 
-
+#############################################################################
   function default_errmeasure(nep::NEP, displaylevel)
       # If no relresnorm available use resnorm
       if (isdefined(nep, :relresnorm))
@@ -152,6 +150,7 @@ module NEPSolver
       end
   end
 
+#############################################################################
   function successive_linear_problems(nep::NEP;
                    errmeasure::Function =
                              default_errmeasure(nep::NEP, displaylevel),
@@ -167,9 +166,6 @@ module NEPSolver
                    )
 
       σ=λ;
-      # Compute a (julia-selected) factorization of M(σ)
-      #Mσ=factorize(nep.Md(σ));
-      #linsolver=LinSolver(nep.Md(σ))
       
       err=Inf;
       try 
@@ -222,5 +218,4 @@ module NEPSolver
   end
 
       
-end
-
+end #End module
