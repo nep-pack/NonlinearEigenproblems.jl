@@ -29,7 +29,9 @@ type NEP
         end
 
         this.relresnorm=function (λ,v)
-            return this.resnorm(λ,v)/norm(Md(λ,0));
+             # Giampaolo: I changed to 1-norm in order to expand 
+             # to sparse matrices
+            return this.resnorm(λ,v)/norm(Md(λ,0),1);
         end
 
         this.rf=function(x; y=x, target=0, λ0=target)

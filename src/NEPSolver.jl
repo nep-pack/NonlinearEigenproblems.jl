@@ -3,7 +3,7 @@ module NEPSolver
   export newton_raphson
   export res_inv
   export successive_linear_problems
-
+  using MATLAB # remove when julia--eigs will work
 
 #############################################################################
   function newton_raphson(nep::NEP;
@@ -169,17 +169,56 @@ module NEPSolver
                   return (λ,v)
               end
 
-              # Solve the linear eigenvalue problem
-              D, V=eig(nep.Md(λ,0), nep.Md(λ,1));
+              if issparse(nep.Md(λ,0))
 
-              # Find closest eigenvalue to λ
-              xx,idx=findmin(abs(D-λ))
+# TODO
+######################SPARSE CASE SHOULD BE AS BELOW ###########
+################################################################
+#### SERIOUS BUG OF JULIA: eigs does not work.  ################
+#### See the file bugs/test_eigs.jl             ################
+                    # Solve the linear eigenvalue problem and
+                    # find closest eigenvalue to λ
+#                    D,V=
+#                    eigs(nep.Md(λ,0),nep.Md(λ,1),
+#                    sigma=λ, v0=v,
+#                    nev=6,  
+#                    tol=0.0, maxiter=10)
+#                    d=D[1]
+#                    
+#                    # update eigenvector
+#                    v=V[:,1]
+#################################################################
+       
+#################### MATLAB--TURNAROUND #########################
+                     aa=mxarray(nep.Md(λ,0))
+                     bb=mxarray(nep.Md(λ,1))
+                     s=mxarray(λ)
+
+                     @mput aa bb s
+                     @matlab begin
+                       s=double(s);
+                       aa=double(aa);
+                       bb=double(bb);
+                       (v,d)=eigs(aa,bb,1,s);                     
+                     end  
+                     @mget d v
+#################### END MATLAB--TURNAROUND #######################
+                     
+              else
               
-              # update eigenvalue
-              λ=λ-D[idx]
+                    # Solve the linear eigenvalue problem
+                    D, V=eig(nep.Md(λ,0), nep.Md(λ,1));
 
-              # update eigenvector
-              v=V[:,idx]
+                    # Find closest eigenvalue to λ
+                    xx,idx=findmin(abs(D-λ))
+                    d=D[idx]
+                    
+                    # update eigenvector
+                    v=V[:,idx]
+              end
+              # update eigenvalue
+              λ=λ-d
+              
 
 
           end
@@ -187,7 +226,7 @@ module NEPSolver
       catch e
           isa(e, Base.LinAlg.SingularException) || rethrow(e)  
           # This should not cast an error since it means that λ is
-          # already an eigenvalue.
+          # already an eigenvalue
           if (displaylevel>0)
               println("We have an exact eigenvalue.")
           end
