@@ -1,5 +1,6 @@
 # TEST: eigs with JULIA and with MATLAB
 # with JULIA eigs does not work
+# the eigenvector is very often zero
 # see also https://github.com/JuliaInterop/MATLAB.jl
 
 workspace()
