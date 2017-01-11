@@ -4,13 +4,13 @@ push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 
-println("Test Newton")
+println("Testing Augmented Newton")
 
 n=5;
 srand(0) # reset the random seed
-A0=sparse(randn(n,n));
-A1=sparse(randn(n,n));
-I=sparse(eye(n,n));
+A0=randn(n,n);
+A1=randn(n,n);
+I=eye(n,n);
 tau=1;
 
 #nep.n=n;
@@ -29,7 +29,7 @@ nep=NEP(n,DEP_Md);
 λ=NaN;
 x=NaN
 try
-    λ,x =newton_raphson(nep,displaylevel=1);
+    λ,x =aug_newton(nep,displaylevel=1);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  
@@ -39,10 +39,3 @@ catch e
     x=e.v
 end
 println(nep.resnorm(λ,x))
-
-
-
-
-
-
-
