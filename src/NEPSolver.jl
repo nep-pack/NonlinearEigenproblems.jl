@@ -15,10 +15,10 @@ module NEPSolver
                           v=randn(nep.n),
                           c=v,
                           displaylevel=0)
-      
+
       err=Inf;
       v=v/dot(c,v);
-      try 
+      try
           for k=1:maxit
               err=errmeasure(λ,v)
               if (displaylevel>0)
@@ -28,7 +28,7 @@ module NEPSolver
                   return (λ,v)
               end
 
-              # Compute NEP matrix and derivative 
+              # Compute NEP matrix and derivative
               M=nep.Md(λ)
               Md=nep.Md(λ,1)
 
@@ -42,10 +42,10 @@ module NEPSolver
               # Update eigenvalue and eigvec
               v=v+delta[1:nep.n];
               λ=λ+delta[nep.n+1];
-              
+
           end
       catch e
-          isa(e, Base.LinAlg.SingularException) || rethrow(e)  
+          isa(e, Base.LinAlg.SingularException) || rethrow(e)
           # This should not cast an error since it means that λ is
           # already an eigenvalue.
           if (displaylevel>0)
@@ -57,7 +57,7 @@ module NEPSolver
               v=v/dot(c,v)
           end
           return (λ,v)
-      end          
+      end
       msg="Number of iterations exceeded. maxit=$(maxit)."
       throw(NoConvergenceException(λ,v,err,msg))
   end
@@ -82,16 +82,16 @@ module NEPSolver
       # Compute a (julia-selected) factorization of M(σ)
       #Mσ=factorize(nep.Md(σ));
       #linsolver=LinSolver(nep.Md(σ))
-      
+
       err=Inf;
-      try 
+      try
           for k=1:maxit
-              # Normalize 
+              # Normalize
               v=v/dot(c,v);
 
-              
+
               err=errmeasure(λ,v)
-              
+
 
               if (displaylevel>0)
                   println("Iteration:",k," errmeasure:",err)
@@ -102,22 +102,22 @@ module NEPSolver
 
               # Compute eigenvalue update
               λ=rf(v,y=c,λ0=λ,target=σ)
-              
-              # Re-compute NEP matrix and derivative 
+
+              # Re-compute NEP matrix and derivative
               M=nep.Md(λ)
 
               # Compute eigenvector update
 	      # Δv=Mσ\nep.Mlincomb(λ,v) #M*v);
               tol=eps()
-	      Δv=linsolver.solve(nep.Mlincomb(λ,v),tol=tol) #M*v);              
-              
+	      Δv=linsolver.solve(nep.Mlincomb(λ,v),tol=tol) #M*v);
+
               # Update the eigvector
               v=v-Δv;
 
           end
 
       catch e
-          isa(e, Base.LinAlg.SingularException) || rethrow(e)  
+          isa(e, Base.LinAlg.SingularException) || rethrow(e)
           # This should not cast an error since it means that λ is
           # already an eigenvalue.
           if (displaylevel>0)
@@ -129,7 +129,7 @@ module NEPSolver
               v=v/dot(c,v)
           end
           return (λ,v)
-      end          
+      end
       msg="Number of iterations exceeded. maxit=$(maxit)."
       throw(NoConvergenceException(λ,v,err,msg))
   end
@@ -145,20 +145,21 @@ module NEPSolver
                    v=randn(nep.n),
                    c=v,
                    displaylevel=0,
-                   linsolver=LinSolver(nep.Md(λ))
+                   linsolver=LinSolver(nep.Md(λ)),
+                   eigsolver="eig"
                    )
 
       σ=λ;
-      
+
       err=Inf;
-      try 
+      try
           for k=1:maxit
-              # Normalize 
+              # Normalize
               v=v/dot(c,v);
 
-              
+
               err=errmeasure(λ,v)
-              
+
 
               if (displaylevel>0)
                   println("Iteration:",k," errmeasure:",err)
@@ -168,6 +169,7 @@ module NEPSolver
               end
 
               if issparse(nep.Md(λ,0))
+
 
 # TODO
 ######################SPARSE CASE SHOULD BE AS BELOW ###########
@@ -179,50 +181,55 @@ module NEPSolver
 #                    D,V=
 #                    eigs(nep.Md(λ,0),nep.Md(λ,1),
 #                    sigma=λ, v0=v,
-#                    nev=6,  
+#                    nev=6,
 #                    tol=0.0, maxiter=10)
 #                    d=D[1]
-#                    
+#
 #                    # update eigenvector
 #                    v=V[:,1]
 #################################################################
-       
-#################### MATLAB--TURNAROUND #########################
-                     aa=mxarray(nep.Md(λ,0))
-                     bb=mxarray(nep.Md(λ,1))
-                     s=mxarray(λ)
 
-                     @mput aa bb s
-                     @matlab begin
-                       s=double(s);
-                       aa=double(aa);
-                       bb=double(bb);
-                       (v,d)=eigs(aa,bb,1,s);                     
-                     end  
-                     @mget d v
+#################### MATLAB--TURNAROUND #########################
+                  if(eigsolver = "matlab_eigs")
+
+                      d,v = matlab_eigs(nep,λ);
+
+                  elseif(eigsolver = "eig")
+
+                      # Solve the linear eigenvalue problem
+                      D, V=eig(nep.Md(λ,0), nep.Md(λ,1));
+
+                      # Find closest eigenvalue to λ
+                      xx,idx=findmin(abs(D-λ))
+                      d=D[idx]
+
+                      # update eigenvector
+                      v=V[:,idx]
+
+                 end
 #################### END MATLAB--TURNAROUND #######################
-                     
+
               else
-              
+
                     # Solve the linear eigenvalue problem
                     D, V=eig(nep.Md(λ,0), nep.Md(λ,1));
 
                     # Find closest eigenvalue to λ
                     xx,idx=findmin(abs(D-λ))
                     d=D[idx]
-                    
+
                     # update eigenvector
                     v=V[:,idx]
               end
               # update eigenvalue
               λ=λ-d
-              
+
 
 
           end
 
       catch e
-          isa(e, Base.LinAlg.SingularException) || rethrow(e)  
+          isa(e, Base.LinAlg.SingularException) || rethrow(e)
           # This should not cast an error since it means that λ is
           # already an eigenvalue
           if (displaylevel>0)
@@ -234,7 +241,7 @@ module NEPSolver
               v=v/dot(c,v)
           end
           return (λ,v)
-      end          
+      end
       msg="Number of iterations exceeded. maxit=$(maxit)."
       throw(NoConvergenceException(λ,v,err,msg))
   end
@@ -258,5 +265,27 @@ module NEPSolver
           return nep.resnorm;
       end
   end
-      
+
+
+
+#############################################################################
+#Call MATLAB eigs for Ax = λBx
+  function matlab_eigs(nep::NEP,λ = 0)
+
+      aa=mxarray(nep.Md(λ,0))
+      bb=mxarray(nep.Md(λ,1))
+      s=mxarray(λ)
+
+      @mput aa bb s
+      @matlab begin
+        s=double(s);
+        aa=double(aa);
+        bb=double(bb);
+        (v,d)=eigs(aa,bb,1,s);
+      end
+      @mget d v
+
+      return d,v;
+  end
+
 end #End module

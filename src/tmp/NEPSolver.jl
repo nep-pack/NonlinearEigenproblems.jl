@@ -266,7 +266,7 @@ module NEPSolver
       end
   end
 
-end #End module
+
 
 #############################################################################
 #Call MATLAB eigs for Ax = λBx
@@ -287,3 +287,5 @@ end #End module
 
       return d,v;
   end
+
+end #End module
