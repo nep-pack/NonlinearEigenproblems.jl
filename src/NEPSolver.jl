@@ -150,9 +150,29 @@ module NEPSolver
                    linsolver=LinSolver(nep.Md(λ)),
                    eigsolver="eig")
 
-      σ=λ;
-
+      σ=λ;     
       err=Inf;
+
+      #Decide which solver will be called for the successive linear problems
+      local eigsolverfunc::Function; 
+      if(eigsolver == "eig")
+          eigsolverfunc = julia_eig;
+
+      elseif(eigsolver == "eigs")#Won't work correctly because of bugs in Julia eigs()
+          eigsolverfunc = julia_eigs;
+
+      elseif(eigsolver == "matlab_eigs")
+          eigsolverfunc = matlab_eigs;
+
+      else
+          if(issparse(nep.Md(λ,0)))
+                eigsolverfunc = matlab_eigs;
+
+          else
+                eigsolverfunc = julia_eig;
+          end
+      end
+      
       try
           for k=1:maxit
               # Normalize
@@ -169,35 +189,9 @@ module NEPSolver
                   return (λ,v)
               end
 
-              #Apply the type of eig_solver specified in the arguements
-              if(eigsolver == "eig")
-                  d,v = julia_eig(nep,λ);
-
-              elseif(eigsolver == "eigs")#Won't work correctly because of bugs in Julia eigs()
-                    D,V = eigs(nep.Md(λ,0),nep.Md(λ,1),
-                            sigma=λ, v0=v,nev=6,
-                            tol=0.0, maxiter=10)
-
-                    d=D[1]
-                    
-                    # update eigenvector
-                    v=V[:,1]
-
-              elseif(eigsolver == "matlab_eigs")
-                  d,v = matlab_eigs(nep,λ);
-
-              else
-                  if(issparse(nep.Md(λ,0)))
-                    d,v = matlab_eigs(nep,λ);
-
-                  else
-                    d,v = julia_eig(nep,λ);
-                  end
-              end
+              d,v = eigsolverfunc(nep,λ,v);
               # update eigenvalue
               λ=λ-d
-
-
 
           end
 
@@ -294,8 +288,8 @@ end
 
 
 #############################################################################
-#Call MATLAB eigs for Ax = λBx
-  function matlab_eigs(nep::NEP,λ = 0)
+#Call MATLAB eigs() 
+  function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
       aa=mxarray(nep.Md(λ,0))
       bb=mxarray(nep.Md(λ,1))
@@ -314,8 +308,8 @@ end
   end
 
 #############################################################################
-#Call Julia eigs for Ax = λBx
-  function julia_eig(nep::NEP,λ = 0)
+#Call Julia eig()
+  function julia_eig(nep::NEP,λ = 0,v0=randn(nep.n))
       # Solve the linear eigenvalue problem
       D,V = eig(nep.Md(λ,0), nep.Md(λ,1));
 
@@ -328,4 +322,21 @@ end
 
       return d,v;     
   end
+
+#############################################################################
+#Call Julia eigs() 
+  function julia_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
+
+      D,V = eigs(nep.Md(λ,0),nep.Md(λ,1),
+                sigma=λ, v0,nev=6,
+                tol=eps()*1000, maxiter=10)
+
+      d=D[1]
+                    
+      # update eigenvector
+      v=V[:,1]
+
+      return d,v;     
+  end
+
 end #End module
