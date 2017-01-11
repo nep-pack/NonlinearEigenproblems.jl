@@ -4,13 +4,13 @@ push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 
-println("Test MSLP")
+println("Test Newton")
 
 n=5;
 srand(0) # reset the random seed
-A0=sparse(randn(n,n));
-A1=sparse(randn(n,n));
-I=sparse(eye(n,n));
+A0=randn(n,n);
+A1=randn(n,n);
+I=eye(n,n);
 tau=1;
 
 #nep.n=n;
@@ -28,17 +28,11 @@ nep=NEP(n,DEP_Md);
 
 λ=NaN;
 x=NaN
-try
-    λ,x =successive_linear_problems(nep,displaylevel=1,eigsolver="default");
-catch e
-    # Only catch NoConvergence 
-    isa(e, NoConvergenceException) || rethrow(e)  
-    println("No convergence because:"*e.msg)
-    # still access the approximations
-    λ=e.λ
-    x=e.v
-end
-println(nep.resnorm(λ,x))
+
+    v = aug_newton(nep);
+    v
+
+
 
 
 

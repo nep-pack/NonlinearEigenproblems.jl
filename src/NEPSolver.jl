@@ -3,6 +3,7 @@ module NEPSolver
   export newton_raphson
   export res_inv
   export successive_linear_problems
+  export aug_newton
   using MATLAB # remove when julia--eigs will work
 
 #############################################################################
@@ -18,6 +19,7 @@ module NEPSolver
 
       err=Inf;
       v=v/dot(c,v);
+
       try
           for k=1:maxit
               err=errmeasure(λ,v)
@@ -146,8 +148,7 @@ module NEPSolver
                    c=v,
                    displaylevel=0,
                    linsolver=LinSolver(nep.Md(λ)),
-                   eigsolver="eig"
-                   )
+                   eigsolver="eig")
 
       σ=λ;
 
@@ -168,58 +169,30 @@ module NEPSolver
                   return (λ,v)
               end
 
-              if issparse(nep.Md(λ,0))
+              #Apply the type of eig_solver specified in the arguements
+              if(eigsolver == "eig")
+                  d,v = julia_eig(nep,λ);
 
+              elseif(eigsolver == "eigs")#Won't work correctly because of bugs in Julia eigs()
+                    D,V = eigs(nep.Md(λ,0),nep.Md(λ,1),
+                            sigma=λ, v0=v,nev=6,
+                            tol=0.0, maxiter=10)
 
-# TODO
-######################SPARSE CASE SHOULD BE AS BELOW ###########
-################################################################
-#### SERIOUS BUG OF JULIA: eigs does not work.  ################
-#### See the file bugs/test_eigs.jl             ################
-                    # Solve the linear eigenvalue problem and
-                    # find closest eigenvalue to λ
-#                    D,V=
-#                    eigs(nep.Md(λ,0),nep.Md(λ,1),
-#                    sigma=λ, v0=v,
-#                    nev=6,
-#                    tol=0.0, maxiter=10)
-#                    d=D[1]
-#
-#                    # update eigenvector
-#                    v=V[:,1]
-#################################################################
+                    d=D[1]
+                    
+                    # update eigenvector
+                    v=V[:,1]
 
-#################### MATLAB--TURNAROUND #########################
-                  if(eigsolver = "matlab_eigs")
-
-                      d,v = matlab_eigs(nep,λ);
-
-                  elseif(eigsolver = "eig")
-
-                      # Solve the linear eigenvalue problem
-                      D, V=eig(nep.Md(λ,0), nep.Md(λ,1));
-
-                      # Find closest eigenvalue to λ
-                      xx,idx=findmin(abs(D-λ))
-                      d=D[idx]
-
-                      # update eigenvector
-                      v=V[:,idx]
-
-                 end
-#################### END MATLAB--TURNAROUND #######################
+              elseif(eigsolver == "matlab_eigs")
+                  d,v = matlab_eigs(nep,λ);
 
               else
+                  if(issparse(nep.Md(λ,0)))
+                    d,v = matlab_eigs(nep,λ);
 
-                    # Solve the linear eigenvalue problem
-                    D, V=eig(nep.Md(λ,0), nep.Md(λ,1));
-
-                    # Find closest eigenvalue to λ
-                    xx,idx=findmin(abs(D-λ))
-                    d=D[idx]
-
-                    # update eigenvector
-                    v=V[:,idx]
+                  else
+                    d,v = julia_eig(nep,λ);
+                  end
               end
               # update eigenvalue
               λ=λ-d
@@ -245,6 +218,60 @@ module NEPSolver
       msg="Number of iterations exceeded. maxit=$(maxit)."
       throw(NoConvergenceException(λ,v,err,msg))
   end
+
+#############################################################################
+function aug_newton(nep::NEP,
+                    errmeasure::Function = default_errmeasure(nep::NEP,displaylevel),
+                    tolerance=eps()*100,
+                    maxit=10,
+                    λ=0,
+                    v=randn(nep.n),
+                    c=v,
+                    displaylevel=0)
+      
+      
+      try
+        err=errmeasure(λ,v)
+        if (displaylevel>0)
+            println("Iteration:",k," errmeasure:",err)
+        end
+        if (err< tolerance)
+            return (λ,v)
+        end
+
+        # Compute NEP matrix and derivative
+        M=nep.Md(λ)
+        Md=nep.Md(λ,1)
+
+        # Create jacobian
+        J=[M Md*v; c' 0];
+        F=[M*v; c'*v-1];
+
+        # Compute update
+        delta=-J\F;
+
+        # Update eigenvalue and eigvec
+        v=v+delta[1:nep.n];
+        λ=λ+delta[nep.n+1];
+
+
+      catch e
+          isa(e, Base.LinAlg.SingularException) || rethrow(e)
+          # This should not cast an error since it means that λ is
+          # already an eigenvalue.
+          if (displaylevel>0)
+              println("We have an exact eigenvalue.")
+          end
+          if (errmeasure(λ,v)>tolerance)
+              # We need to compute an eigvec somehow
+              v=(nep.Md(λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
+              v=v/dot(c,v)
+          end
+          return (λ,v)
+      end
+      msg="Number of iterations exceeded. maxit=$(maxit)."
+      throw(NoConvergenceException(λ,v,err,msg))
+end
 
 
 #############################################################################
@@ -288,4 +315,19 @@ module NEPSolver
       return d,v;
   end
 
+#############################################################################
+#Call Julia eigs for Ax = λBx
+  function julia_eig(nep::NEP,λ = 0)
+      # Solve the linear eigenvalue problem
+      D,V = eig(nep.Md(λ,0), nep.Md(λ,1));
+
+      # Find closest eigenvalue to λ
+      xx,idx=findmin(abs(D-λ))
+      d=D[idx]
+
+      # update eigenvector
+      v=V[:,idx] 
+
+      return d,v;     
+  end
 end #End module
