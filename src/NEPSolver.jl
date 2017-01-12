@@ -147,7 +147,6 @@ module NEPSolver
                    v=randn(nep.n),
                    c=v,
                    displaylevel=0,
-                   linsolver=LinSolver(nep.Md(λ)),
                    eigsolver="default")
 
       σ=λ;     
