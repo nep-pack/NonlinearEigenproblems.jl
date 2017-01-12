@@ -13,7 +13,7 @@ nep=nep_gallery("dep0")
 λ=NaN;
 x=NaN
 try
-    λ,x =newton_raphson(nep,displaylevel=1);
+    λ,x =newton(nep,displaylevel=1);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  

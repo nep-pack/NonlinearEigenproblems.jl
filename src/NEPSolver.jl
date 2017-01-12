@@ -1,13 +1,14 @@
 module NEPSolver
   using NEPCore
   using MATLAB  # Dependence required for successive linear problems
-  export newton_raphson
+  export newton
   export res_inv
   export mslp
   export aug_newton
 
 #############################################################################
-  function newton_raphson(nep::NEP;
+# Newton raphsons method on nonlinear equation with (n+1) unknowns
+    function newton(nep::NEP;
                           errmeasure::Function =
                              default_errmeasure(nep::NEP, displaylevel),
                           tolerance=eps()*100,
