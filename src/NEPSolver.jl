@@ -3,7 +3,7 @@ module NEPSolver
   using MATLAB  # Dependence required for successive linear problems
   export newton_raphson
   export res_inv
-  export successive_linear_problems
+  export mslp
   export aug_newton
 
 #############################################################################
@@ -138,7 +138,8 @@ module NEPSolver
 
 
 #############################################################################
-  function successive_linear_problems(nep::NEP;
+  # Method of successive linear problems
+  function mslp(nep::NEP;
                    errmeasure::Function =
                              default_errmeasure(nep::NEP, displaylevel),
                    tolerance=eps()*100,

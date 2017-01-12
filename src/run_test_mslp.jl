@@ -11,7 +11,7 @@ nep=nep_gallery("dep0_sparse")
 λ=NaN;
 x=NaN
 try
-    λ,x =successive_linear_problems(nep,displaylevel=1,eigsolver="matlab_eigs");
+    λ,x =mslp(nep,displaylevel=1,eigsolver="matlab_eigs");
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  
