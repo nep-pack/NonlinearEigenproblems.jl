@@ -3,10 +3,9 @@ workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
-using PolynomialRoots
 using Gallery
-#using Polynomial
-#using PyPlot
+
+
 nep=nep_gallery("pep0")
 
 # Saving the errors in an array
