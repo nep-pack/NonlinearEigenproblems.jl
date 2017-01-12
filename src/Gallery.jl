@@ -31,13 +31,16 @@ module Gallery
                       M+=λ^(i-1)*A[:,:,i]
                   end
                   return M
-              else 
+              elseif (i==1)
                   Mp=zeros(n,n)
                   for i=2:p
                       Mp += (i-1)*(λ^(i-2)*A[:,:,i])
                   end
                   return Mp
+              else
+                  error("PEP higher derivatives not yet implemented")
               end
+              
           end
 
           nep=NEP(n,PEP_Md);
@@ -63,13 +66,14 @@ module Gallery
           I=eye(n,n);
           tau=1;
 
-          #nep.n=n;
+          # Derivative function for DEPs 
           DEP_Md=function DEP_Md(λ,i=0)
-              # short-hand definition of functions
               if (i==0)
                   return -λ*I+A0+A1*exp(-tau*λ)
-              else
+              elseif (i==1)
                   return -I-tau*A1*exp(-tau*λ)
+              else
+                  return ((-tau)^i)*A1*exp(-tau*λ)
               end
           end
           nep=NEP(n,DEP_Md);
@@ -84,13 +88,14 @@ module Gallery
           I=sparse(eye(n,n));
           tau=1;
 
-          #nep.n=n;
+          # Derivative function for DEPs
           function DEP_Md_sparse(λ,i=0)
-              # short-hand definition of functions
               if (i==0)
                   return -λ*I+A0+A1*exp(-tau*λ)
-              else
+              elseif (i==1)
                   return -I-tau*A1*exp(-tau*λ)
+              else
+                  return ((-tau)^i)*A1*exp(-tau*λ)
               end
           end
           nep=NEP(n,DEP_Md_sparse);
