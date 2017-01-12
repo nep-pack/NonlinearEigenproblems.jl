@@ -19,7 +19,7 @@ end
 # 
 
 println("Running Newton Raphson")
-λ,x =newton_raphson(nep,maxit=30,errmeasure=myerrmeasure,displaylevel=1);
+λ,x =newton(nep,maxit=30,errmeasure=myerrmeasure,displaylevel=1);
 
 λ_exact=λ
 ev2=zeros(0)
