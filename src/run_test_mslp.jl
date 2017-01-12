@@ -6,21 +6,25 @@ using NEPCore
 using Gallery
 println("Test MSLP")
 
+#
+println("Running MSLP sparse dep (with default eigsolver)")
 nep=nep_gallery("dep0_sparse")
-
-λ=NaN;
-x=NaN
-try
-    λ,x =mslp(nep,displaylevel=1,eigsolver="matlab_eigs");
-catch e
-    # Only catch NoConvergence 
-    isa(e, NoConvergenceException) || rethrow(e)  
-    println("No convergence because:"*e.msg)
-    # still access the approximations
-    λ=e.λ
-    x=e.v
-end
+λ,x =mslp(nep,displaylevel=1);
 println(nep.resnorm(λ,x))
+
+# Buggy julia eigs
+# λ,x =mslp(nep,displaylevel=1,eigsolver="eigs");
+
+
+println("Running MSLP full dep (with eigsolver=eig)")
+nep=nep_gallery("dep0")
+λ,x =mslp(nep,displaylevel=1);
+println(nep.resnorm(λ,x))
+
+
+
+
+
 
 
 
