@@ -1,10 +1,10 @@
 module NEPSolver
   using NEPCore
+  using MATLAB  # Dependence required for successive linear problems
   export newton_raphson
   export res_inv
   export successive_linear_problems
   export aug_newton
-  using MATLAB # remove when julia--eigs will work
 
 #############################################################################
   function newton_raphson(nep::NEP;
@@ -148,7 +148,7 @@ module NEPSolver
                    c=v,
                    displaylevel=0,
                    linsolver=LinSolver(nep.Md(λ)),
-                   eigsolver="eig")
+                   eigsolver="default")
 
       σ=λ;     
       err=Inf;
@@ -158,7 +158,8 @@ module NEPSolver
       if(eigsolver == "eig")
           eigsolverfunc = julia_eig;
 
-      elseif(eigsolver == "eigs")#Won't work correctly because of bugs in Julia eigs()
+      elseif(eigsolver == "eigs") 
+          println("Warning: Using eigsolver julia's eigs, which is not complete for generalized eigenvalue problems. See issue #1. ") # Issue #1
           eigsolverfunc = julia_eigs;
 
       elseif(eigsolver == "matlab_eigs")
@@ -166,49 +167,34 @@ module NEPSolver
 
       else
           if(issparse(nep.Md(λ,0)))
-                eigsolverfunc = matlab_eigs;
+                eigsolverfunc = matlab_eigs; # Default to matlab due to issue #1
 
           else
                 eigsolverfunc = julia_eig;
           end
       end
-      
-      try
-          for k=1:maxit
-              # Normalize
-              v=v/dot(c,v);
+          
+      # Main loop
+      for k=1:maxit
+          # Normalize
+          v=v/dot(c,v);
 
+          err=errmeasure(λ,v)
 
-              err=errmeasure(λ,v)
-
-
-              if (displaylevel>0)
-                  println("Iteration:",k," errmeasure:",err)
-              end
-              if (err< tolerance)
-                  return (λ,v)
-              end
-
-              d,v = eigsolverfunc(nep,λ,v);
-              # update eigenvalue
-              λ=λ-d
-
-          end
-
-      catch e
-          isa(e, Base.LinAlg.SingularException) || rethrow(e)
-          # This should not cast an error since it means that λ is
-          # already an eigenvalue
           if (displaylevel>0)
-              println("We have an exact eigenvalue.")
+              println("Iteration:",k," errmeasure:",err)
           end
-          if (errmeasure(λ,v)>tolerance)
-              # We need to compute an eigvec somehow
-              v=(nep.Md(λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
-              v=v/dot(c,v)
+          if (err< tolerance)
+              return (λ,v)
           end
-          return (λ,v)
+
+          # solve generalized eigenvalue problem
+          d,v = eigsolverfunc(nep,λ,v);
+          # update eigenvalue
+          λ=λ-d
+
       end
+
       msg="Number of iterations exceeded. maxit=$(maxit)."
       throw(NoConvergenceException(λ,v,err,msg))
   end
@@ -291,6 +277,7 @@ end
 #Call MATLAB eigs() 
   function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
+
       aa=mxarray(nep.Md(λ,0))
       bb=mxarray(nep.Md(λ,1))
       s=mxarray(λ)
@@ -328,7 +315,7 @@ end
   function julia_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
       D,V = eigs(nep.Md(λ,0),nep.Md(λ,1),
-                sigma=λ, v0,nev=6,
+                sigma=λ, v0=v0,nev=2,
                 tol=eps()*1000, maxiter=10)
 
       d=D[1]
