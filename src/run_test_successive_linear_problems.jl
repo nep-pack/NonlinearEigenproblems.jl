@@ -3,33 +3,15 @@ workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
-
+using Gallery
 println("Test MSLP")
 
-n=5;
-srand(0) # reset the random seed
-A0=sparse(randn(n,n));
-A1=sparse(randn(n,n));
-I=sparse(eye(n,n));
-tau=1;
-
-#nep.n=n;
-function DEP_Md(λ,i=0)
-    # short-hand definition of functions
-    if (i==0)
-       return -λ*I+A0+A1*exp(-tau*λ)
-    else
-       return -I-tau*A1*exp(-tau*λ)
-    end
-end
-
-nep=NEP(n,DEP_Md);
-
+nep=nep_gallery("dep0_sparse")
 
 λ=NaN;
 x=NaN
 try
-    λ,x =successive_linear_problems(nep,displaylevel=1,eigsolver="default");
+    λ,x =successive_linear_problems(nep,displaylevel=1,eigsolver="matlab_eigs");
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  
