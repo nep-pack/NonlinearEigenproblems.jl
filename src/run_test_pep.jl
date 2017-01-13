@@ -22,20 +22,19 @@ nep=nep_gallery("pep0");
 println("Running Newton Raphson")
 λ,x =newton(nep,maxit=30,displaylevel=1);
 #
-#λ_exact=λ
+λ_exact=λ
 #ev2=zeros(0)
 #abserrmeasure=function (λ,v)
 #    e=abs(λ-λ_exact) # Error measure: abs error in λ 
 #    global ev2=[ev2;nep.resnorm(λ,v)]
 #    return e
 #end
-#println("Running residual inverse iteration")
+println("Running residual inverse iteration")
 #
 #
-#λ0=round(λ_exact*10)/10; # Start value
-#x0=round(x*10)/10;       # Start vector
-#λ,x =res_inv(nep,λ=λ0,v=x0,
-#             errmeasure=abserrmeasure,displaylevel=1);	
+λ0=round(λ_exact*10)/10; # Start value
+x0=round(x*10)/10;       # Start vector
+λ,x =res_inv(nep,λ=λ0,v=x0,displaylevel=1);	
 #
 #println("Resnorm of computed solution: ",norm(nep.Md(λ)*x))
 #

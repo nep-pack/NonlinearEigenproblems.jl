@@ -14,7 +14,7 @@ export compute_MM
 
 # NEP-functions
 export compute_resnorm
-
+export compute_rf
 
 # Helper functions
 export compute_Mlincomb_from_MM
@@ -98,6 +98,18 @@ function compute_resnorm(nep::NEP_new,λ,v)
     return norm(compute_Mlincomb(nep,λ,reshape(v,nep.n,1)))
 end
 
+
+function compute_rf(nep::NEP_new,x; y=x, target=0, λ0=target)
+    # Ten steps of scalar Newton's method
+    λ=λ0;
+    for k=1:10
+        z1=compute_Mlincomb(nep,λ,reshape(x,nep.n,1))
+        z2=compute_Mlincomb(nep,λ,x*ones(1,2),a=[0,1])
+        Δλ=-dot(y,z1)/dot(y,z2);
+        λ=λ+Δλ
+    end
+    return λ
+end
 
 
 # Overload size function. Note: All NEPs must have a field: n.
