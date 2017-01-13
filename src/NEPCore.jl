@@ -16,8 +16,10 @@ export compute_MM
 export compute_resnorm
 export compute_rf
 
+
 # Helper functions
 export compute_Mlincomb_from_MM
+export compute_Mlincomb_from_Mder
 
 
 import Base.size  # Overload for nonlinear eigenvalue problems
@@ -51,6 +53,7 @@ function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
 end
 
 function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
+    # determine a default behavior (may lead to loss of performance) 
     if (@method_concretely_defined(compute_MM,nep))
         return compute_Mlincomb_from_MM(nep,λ,V,a)
     elseif (@method_concretely_defined(compute_Mder,nep))
@@ -78,19 +81,19 @@ function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
     end
     W=V*diagm(b)
     z=compute_MM(nep,S,W)*eye(k,1)
-    ## activate for debugging (verify that Mder is equivalent)
+    ## activate following for debugging (verify that Mder is equivalent)
     # z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
     # println("should be zero:",norm(z2-z))
     return z
 end
 
 function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
-        #println("Using poor-man's compute_MM -> compute_Mlincomb")
-        z=zeros(size(nep,1))
-        for i=1:size(a,1)
-            z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
-        end
-        return z
+    #println("Using poor-man's compute_MM -> compute_Mlincomb")
+    z=zeros(size(nep,1))
+    for i=1:size(a,1)
+        z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
+    end
+    return z
 end
 
 
@@ -128,8 +131,8 @@ end
 """
 type DEP <: NEP
     n::Integer
-    A   # A can be a full or sparse matrix
-    tauv::Array{Float64,1}
+    A     # An array of matrices (full or sparse matrices)
+    tauv::Array{Float64,1} # the delays
     function DEP(AA,tauv=[0,1.0])
         n=size(AA[1],1)
         this=new(n,AA,tauv);
@@ -173,6 +176,9 @@ function compute_MM(nep::DEP,S,V)
 end
 #
 
+"""
+    Polynomial eigenvalue problem
+"""
 
 type PEP <: NEP
     n::Integer
@@ -202,6 +208,7 @@ function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
     end
     return Z
 end
+
 
 # In case an iterative method does not converge
 type NoConvergenceException <: Exception
