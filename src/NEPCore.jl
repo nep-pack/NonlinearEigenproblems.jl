@@ -1,6 +1,6 @@
 module NEPCore
 
-export NEP_new
+export NEP
 export DEP
 export PEP
 export size
@@ -33,24 +33,24 @@ macro method_concretely_defined(methodname,s)
 end
 
 
-abstract NEP_new;
+abstract NEP;
 
 
 ############################################
 # Default NEP functions
 #
 """
-    compute_Mder(nep::NEP_new,λ::Number,i::Integer=0)    
+    compute_Mder(nep::NEP,λ::Number,i::Integer=0)    
  Computes the ith derivative of NEP evaluated in λ\\
  Usage:\\
    compute_Mder(nep,λ)  # Evaluate NEP in λ
 """
-function compute_Mder(nep::NEP_new,λ::Number,i::Integer=0)
+function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
     error("You need to provide an implementation of Mder for this NEP")
     return 0;
 end
 
-function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
+function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
     if (@method_concretely_defined(compute_MM,nep))
         return compute_Mlincomb_from_MM(nep,λ,V,a)
     elseif (@method_concretely_defined(compute_Mder,nep))
@@ -60,7 +60,7 @@ function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
     end
 end
 
-function compute_MM(nep::NEP_new,S,V)
+function compute_MM(nep::NEP,S,V)
     error("No procedure to compute MM")
 end
 
@@ -68,7 +68,7 @@ end
 
 
 ## Helper functions 
-function compute_Mlincomb_from_MM(nep::NEP_new,λ::Number,V,a)
+function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
     #println("Using poor-man's compute_MM -> compute_Mlincomb")
     k=size(V,2)
     S=jordan_matrix(k,λ).'
@@ -84,7 +84,7 @@ function compute_Mlincomb_from_MM(nep::NEP_new,λ::Number,V,a)
     return z
 end
 
-function compute_Mlincomb_from_Mder(nep::NEP_new,λ::Number,V,a)
+function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_MM -> compute_Mlincomb")
         z=zeros(size(nep,1))
         for i=1:size(a,1)
@@ -94,12 +94,12 @@ function compute_Mlincomb_from_Mder(nep::NEP_new,λ::Number,V,a)
 end
 
 
-function compute_resnorm(nep::NEP_new,λ,v)
+function compute_resnorm(nep::NEP,λ,v)
     return norm(compute_Mlincomb(nep,λ,reshape(v,nep.n,1)))
 end
 
 
-function compute_rf(nep::NEP_new,x; y=x, target=0, λ0=target)
+function compute_rf(nep::NEP,x; y=x, target=0, λ0=target)
     # Ten steps of scalar Newton's method
     λ=λ0;
     for k=1:10
@@ -113,7 +113,7 @@ end
 
 
 # Overload size function. Note: All NEPs must have a field: n.
-function size(nep::NEP_new,dim=-1)
+function size(nep::NEP,dim=-1)
     if (dim==-1)
         return (nep.n,nep.n)
     else
@@ -126,7 +126,7 @@ end
 """
     Delay eigenvalue problem
 """
-type DEP <: NEP_new
+type DEP <: NEP
     n::Integer
     A   # A can be a full or sparse matrix
     tauv::Array{Float64,1}
@@ -174,7 +174,7 @@ end
 #
 
 
-type PEP <: NEP_new
+type PEP <: NEP
     n::Integer
     A::Array   # Monomial coefficients of PEP 
     function PEP(AA)

@@ -9,9 +9,9 @@ module NEPSolver
 
 #############################################################################
 # Newton raphsons method on nonlinear equation with (n+1) unknowns
-    function newton(nep::NEP_new;
+    function newton(nep::NEP;
                           errmeasure::Function =
-                             default_errmeasure(nep::NEP_new),
+                             default_errmeasure(nep::NEP),
                           tolerance=eps()*100,
                           maxit=10,
                           λ=0,
@@ -68,9 +68,9 @@ module NEPSolver
 
 
 ############################################################################
-  function res_inv(nep::NEP_new;
+  function res_inv(nep::NEP;
                    errmeasure::Function =
-                             default_errmeasure(nep::NEP_new),
+                             default_errmeasure(nep::NEP),
                    tolerance=eps()*100,
                    maxit=100,
                    λ=0,
@@ -140,9 +140,9 @@ module NEPSolver
 
 #############################################################################
   # Method of successive linear problems
-  function mslp(nep::NEP_new;
+  function mslp(nep::NEP;
                    errmeasure::Function =
-                             default_errmeasure(nep::NEP_new),
+                             default_errmeasure(nep::NEP),
                    tolerance=eps()*100,
                    maxit=100,
                    λ=0,
@@ -202,8 +202,8 @@ module NEPSolver
 
 
 # New aug_newton 
-function aug_newton(nep::NEP_new;
-                    errmeasure::Function = default_errmeasure(nep::NEP_new),
+function aug_newton(nep::NEP;
+                    errmeasure::Function = default_errmeasure(nep::NEP),
                     tolerance=eps()*100,
                     maxit=30,
                     λ=0,
@@ -274,7 +274,7 @@ end
 #      end
 #  end
 #
-  function default_errmeasure(nep::NEP_new)
+  function default_errmeasure(nep::NEP)
       f=function (λ,v);
           compute_resnorm(nep,λ,v)
       end
@@ -285,7 +285,7 @@ end
 
 #############################################################################
 #Call MATLAB eigs() 
-  function matlab_eigs(nep::NEP_new,λ = 0,v0=randn(nep.n))
+  function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
 
       aa=mxarray(compute_Mder(nep,λ,0))
@@ -306,7 +306,7 @@ end
 
 #############################################################################
 #Call Julia eig()
-  function julia_eig(nep::NEP_new,λ = 0,v0=randn(nep.n))
+  function julia_eig(nep::NEP,λ = 0,v0=randn(nep.n))
       # Solve the linear eigenvalue problem
       D,V = eig(compute_Mder(nep,λ,0), compute_Mder(nep,λ,1));
 
@@ -322,7 +322,7 @@ end
 
 #############################################################################
 #Call Julia eigs() 
-  function julia_eigs(nep::NEP_new,λ = 0,v0=randn(nep.n))
+  function julia_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
       D,V = eigs(compute_Mder(nep,λ,0),nep,compute_Mder(nep,λ,1),
                 sigma=λ, v0=v0,nev=2,
