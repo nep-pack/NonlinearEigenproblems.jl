@@ -20,6 +20,17 @@ module Gallery
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
+      elseif (name == "dep0_sparse")
+          # A delay eigenvalue problem with sparse matrices
+          n=5;
+          srand(0) # reset the random seed
+          A0=sparse(randn(n,n));
+          A1=sparse(randn(n,n));
+          I=sparse(eye(n,n));
+          tau=1;
+          nep=DEP([A0,A1],[0,tau])
+          return nep
       end
+      
   end 
 end

@@ -8,7 +8,7 @@ using Gallery
 println("Testing Augmented Newton")
 
 # Load a delay eigenvalue problem
-nep=nep_gallery("dep0")
+nep=nep_gallery("dep0_sparse")
 
 #
 λ=NaN;

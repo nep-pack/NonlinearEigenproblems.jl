@@ -141,9 +141,9 @@ module NEPSolver
 
 #############################################################################
   # Method of successive linear problems
-  function mslp(nep::NEP;
+  function mslp(nep::NEP_new;
                    errmeasure::Function =
-                             default_errmeasure(nep::NEP, displaylevel),
+                             default_errmeasure(nep::NEP_new),
                    tolerance=eps()*100,
                    maxit=100,
                    λ=0,
@@ -168,7 +168,7 @@ module NEPSolver
           eigsolverfunc = matlab_eigs;
 
       else
-          if(issparse(nep.Md(λ,0)))
+          if issparse(compute_Mder(nep,λ,0)) 
                 eigsolverfunc = matlab_eigs; # Default to matlab due to issue #1
 
           else
@@ -181,7 +181,7 @@ module NEPSolver
           # Normalize
           v=v/dot(c,v);
 
-          err=errmeasure(λ,v)
+          err=errmeasure(nep,λ,v)
 
           if (displaylevel>0)
               println("Iteration:",k," errmeasure:",err)
@@ -335,11 +335,11 @@ end
 
 #############################################################################
 #Call MATLAB eigs() 
-  function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
+  function matlab_eigs(nep::NEP_new,λ = 0,v0=randn(nep.n))
 
 
-      aa=mxarray(nep.Md(λ,0))
-      bb=mxarray(nep.Md(λ,1))
+      aa=mxarray(compute_Mder(nep,λ,0))
+      bb=mxarray(compute_Mder(nep,λ,1))
       s=mxarray(λ)
 
       @mput aa bb s
@@ -356,9 +356,9 @@ end
 
 #############################################################################
 #Call Julia eig()
-  function julia_eig(nep::NEP,λ = 0,v0=randn(nep.n))
+  function julia_eig(nep::NEP_new,λ = 0,v0=randn(nep.n))
       # Solve the linear eigenvalue problem
-      D,V = eig(nep.Md(λ,0), nep.Md(λ,1));
+      D,V = eig(compute_Mder(nep,λ,0), compute_Mder(nep,λ,1));
 
       # Find closest eigenvalue to λ
       xx,idx=findmin(abs(D-λ))
@@ -372,9 +372,9 @@ end
 
 #############################################################################
 #Call Julia eigs() 
-  function julia_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
+  function julia_eigs(nep::NEP_new,λ = 0,v0=randn(nep.n))
 
-      D,V = eigs(nep.Md(λ,0),nep.Md(λ,1),
+      D,V = eigs(compute_Mder(nep,λ,0),nep,compute_Mder(nep,λ,1),
                 sigma=λ, v0=v0,nev=2,
                 tol=eps()*1000, maxiter=10)
 
