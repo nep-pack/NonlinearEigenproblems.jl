@@ -1,8 +1,8 @@
 module NEPCore
 
-export NEP
 export NEP_new
 export DEP
+export PEP
 export size
 export NoConvergenceException
 export LinSolver
@@ -76,8 +76,8 @@ function compute_Mlincomb_from_MM(nep::NEP_new,λ::Number,V,a)
     for i=1:k
         b[i]=a[i]*factorial(i-1)
     end
-    V=V*diagm(b)
-    z=compute_MM(nep,S,V)*eye(k,1)
+    W=V*diagm(b)
+    z=compute_MM(nep,S,W)*eye(k,1)
     ## activate for debugging (verify that Mder is equivalent)
     # z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
     # println("should be zero:",norm(z2-z))
@@ -162,61 +162,34 @@ end
 #
 
 
-
-### Old stuff
-
-type NEP
-    n::Int
-    Md
-    resnorm
-    relresnorm
-
-
-    # Rayleigh functional:
-    # Compute λ s.g. y^TM(λ)x=0
-    rf::Function
-
-    # Linear combination of derivatives
-    # compute a[1]*M^{(0)}(s)V[:,1]+...+a[p]*M^{(p-1)}(s)V[:,p]
-    Mlincomb::Function
-    
-    function NEP(n,Md)
-        this=new()
-        this.n=n
-        this.Md=Md
-
-        this.resnorm=function (λ,v)
-            return norm(this.Md(λ,0)*v)
-        end
-
-        this.relresnorm=function (λ,v)
-             # Giampaolo: I changed to 1-norm in order to expand 
-             # to sparse matrices
-            return this.resnorm(λ,v)/norm(Md(λ,0),1);
-        end
-
-        this.rf=function(x; y=x, target=0, λ0=target)
-            # Ten steps of scalar Newton's method
-            λ=λ0;
-            for k=1:10
-                Δλ=-dot(y,this.Md(λ,0)*x)/dot(y,this.Md(λ,1)*x);
-                λ=λ+Δλ
-            end
-            return λ
-        end
-
-        this.Mlincomb=function (λ,V;a=ones(size(V,2)))
-            z=zeros(this.n)
-            for k=1:size(V,2)
-                z+=this.Md(λ,k-1)*V[:,k]*a[k]
-            end
-            return z
-        end
-        return this
-            
+type PEP <: NEP_new
+    n::Integer
+    A::Array   # Monomial coefficients of PEP 
+    function PEP(AA)
+        n=size(AA[1],1)
+        return new(n,AA)
     end
 end
 
+function compute_MM(nep::PEP,S,V)
+    Z=zeros(size(V))
+    Si=eye(size(S,1))
+    for i=1:size(nep.A,1)
+        Z+=nep.A[i]*V*Si;
+        Si=Si*S;
+    end
+    return Z
+end
+
+
+function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
+    Z=zeros(size(nep));
+    for j=(i+1):size(nep.A,1)
+        # Derivatives of monimials
+        Z+= nep.A[j]*(λ^(j-i-1)*factorial(j-1)/factorial(j-i-1))
+    end
+    return Z
+end
 
 # In case an iterative method does not converge
 type NoConvergenceException <: Exception

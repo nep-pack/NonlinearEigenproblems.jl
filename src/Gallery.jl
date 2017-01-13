@@ -30,6 +30,18 @@ module Gallery
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
+      elseif (name== "pep0")
+          # A polynomial eigenvalue problem          
+          n=200; # mat size
+
+          srand(0)
+          A0=randn(n,n)
+          A1=randn(n,n)
+          A2=randn(n,n)
+          A=[A0,A1,A2]
+          nep=PEP(A)
+
+
       end
       
   end 

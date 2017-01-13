@@ -2,7 +2,7 @@
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
-using NEPCore
+using NEPCore_old
 using Gallery_old
 
 println("Test Res-Inv")
