@@ -3,7 +3,7 @@ workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
-using Gallery
+using Gallery_old
 
 println("Test Newton")
 

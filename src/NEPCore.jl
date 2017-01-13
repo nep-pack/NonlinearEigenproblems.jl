@@ -10,6 +10,8 @@ export compute_Mder
 export compute_Mlincomb
 export compute_MM
 
+export compute_resnorm
+
 import Base.size  # Overload for nonlinear eigenvalue problems
 #using Combinatorics; 
 
@@ -68,6 +70,10 @@ function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
     else
         error("No procedure to compute Mlincomb")
     end
+end
+
+function compute_resnorm(nep::NEP_new,λ,v)
+    return norm(compute_Mlincomb(nep,λ,reshape(v,nep.n,1)))
 end
 
 function compute_MM(nep::NEP_new,S,V)

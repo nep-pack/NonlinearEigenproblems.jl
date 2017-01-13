@@ -256,7 +256,7 @@ end
 
 # New aug_newton 
 function aug_newton2(nep::NEP_new;
-#                    errmeasure::Function = default_errmeasure(nep::NEP_new,displaylevel),
+                    errmeasure::Function = default_errmeasure(nep::NEP_new),
                     tolerance=eps()*100,
                     maxit=30,
                     λ=0,
@@ -269,7 +269,7 @@ function aug_newton2(nep::NEP_new;
       try
         for k=1:maxit
             #err=errmeasure(λ,v)
-          err=norm(compute_Mlincomb(nep,λ,reshape(v,nep.n)))
+          err=errmeasure(nep,λ,reshape(v,nep.n))
           if (displaylevel>0)
              println("Iteration:",k," errmeasure:",err)
           end
@@ -327,6 +327,10 @@ end
       end
   end
 
+  function default_errmeasure(nep::NEP_new)
+      return compute_resnorm
+  end
+          
 
 
 #############################################################################

@@ -3,7 +3,7 @@ workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
-using Gallery
+using Gallery_new
 
 
 nep=nep_gallery("pep0")
