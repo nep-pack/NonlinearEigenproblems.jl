@@ -7,6 +7,7 @@ export size
 export NoConvergenceException
 export LinSolver
 export compute_Mder
+export compute_Mlincomb
 
 import Base.size  # Overload for nonlinear eigenvalue problems
 
@@ -33,7 +34,17 @@ abstract NEP_new;
    compute_Mder(nep,λ)  # Evaluate NEP in λ
 """
 function compute_Mder(nep::NEP_new,λ::Number,i::Integer=0)
-    return 3
+    return 0;
+end
+
+function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
+    if (@method_concretely_defined(compute_Mder,nep))
+        println("Mder is concretely defined. Using the naive procedure Mlincomb procedure")
+        z=zeros(size(nep,1))
+        for i=1:size(a,2)
+            z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
+        end
+    end
 end
 
 # Overload size function. Note: All NEPs must have a field n.
@@ -80,6 +91,7 @@ function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
     end
     return M
 end
+
 
 
 
