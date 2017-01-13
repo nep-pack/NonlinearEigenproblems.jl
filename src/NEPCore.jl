@@ -8,8 +8,10 @@ export NoConvergenceException
 export LinSolver
 export compute_Mder
 export compute_Mlincomb
+export compute_MM
 
 import Base.size  # Overload for nonlinear eigenvalue problems
+#using Combinatorics; 
 
 """
 Determines if a method is defined for the concrete class.
@@ -34,20 +36,47 @@ abstract NEP_new;
    compute_Mder(nep,λ)  # Evaluate NEP in λ
 """
 function compute_Mder(nep::NEP_new,λ::Number,i::Integer=0)
+    error("No Mder implemented")
     return 0;
 end
 
 function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
-    if (@method_concretely_defined(compute_Mder,nep))
-        println("Mder is concretely defined. Using the naive procedure Mlincomb procedure")
+    if (@method_concretely_defined(compute_MM,nep))
+        println("Using default: compute_MM -> compute_Mlincomb")
+        k=size(V,2)
+        S=jordan_matrix(k,λ).'
+        b=zeros(size(a));
+        for i=1:k
+            b[i]=a[i]*factorial(i-1)
+        end
+        V=V*diagm(b)
+        z=compute_MM(nep,S,V)*eye(k,1)
+        if (false) # activate for debugging (verify that Mder is equivalent)
+           z2=zeros(size(nep,1))
+           for i=1:size(a,1)
+               z2+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
+           end
+           println("should be zero:",norm(z2-z))
+        end
+        return z
+    elseif (@method_concretely_defined(compute_Mder,nep))
+        # Naive Mlincomb
+        println("Using default: compute_MM -> compute_Mlincomb")
         z=zeros(size(nep,1))
-        for i=1:size(a,2)
+        for i=1:size(a,1)
             z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
         end
+    else
+        error("No procedure to compute Mlincomb")
     end
 end
 
-# Overload size function. Note: All NEPs must have a field n.
+function compute_MM(nep::NEP_new,S,V)
+    error("No procedure to compute MM")
+end
+
+
+# Overload size function. Note: All NEPs must have a field: n.
 function size(nep::NEP_new,dim=-1)
     if (dim==-1)
         return (nep.n,nep.n)
@@ -71,6 +100,7 @@ type DEP <: NEP_new
         return this;
     end
 end
+
 """
     compute_Mder(nep::DEP,λ::Number,i::Integer=0)
  Compute the ith derivative of a DEP
@@ -94,6 +124,18 @@ end
 
 
 
+"""
+    compute_Mder(nep::DEP,λ::Number,i::Integer=0)
+ Compute the ith derivative of a DEP
+"""
+function compute_MM(nep::DEP,S,V)
+    Z=-V*S;
+    for j=1:size(nep.A,1)
+        Z+=nep.A[j]*V*expm(-nep.tauv[j]*S)
+    end
+    return Z
+end
+#
 
 
 
@@ -176,4 +218,8 @@ type LinSolver
 end
 
 
+    function jordan_matrix(n::Integer,λ::Number)
+        Z=λ*eye(n)+diagm(ones(n-1),1);
+    end
+    
 end  # End Module
