@@ -5,6 +5,7 @@ module NEPSolver
   export res_inv
   export mslp
   export aug_newton
+  export aug_newton2
 
 #############################################################################
 # Newton raphsons method on nonlinear equation with (n+1) unknowns
@@ -252,6 +253,60 @@ function aug_newton(nep::NEP;
       throw(NoConvergenceException(λ,v,err,msg))
 end
 
+
+# New aug_newton 
+function aug_newton2(nep::NEP_new;
+#                    errmeasure::Function = default_errmeasure(nep::NEP_new,displaylevel),
+                    tolerance=eps()*100,
+                    maxit=30,
+                    λ=0,
+                    v=randn(nep.n),
+                    c=v,
+                    displaylevel=0)
+      
+      err=Inf;
+      v=v/dot(c,v);
+      try
+        for k=1:maxit
+            #err=errmeasure(λ,v)
+          err=norm(compute_Mlincomb(nep,λ,reshape(v,nep.n)))
+          if (displaylevel>0)
+             println("Iteration:",k," errmeasure:",err)
+          end
+          if (err< tolerance)
+              return (λ,v)
+          end
+          # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
+          # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
+          z=compute_Mlincomb(nep,λ,v*ones(1,2),a=[0,1])
+          tempvec = compute_Mder(nep,λ)\z
+          α = 1.0/dot(c,tempvec);
+
+          λ = λ - α;
+
+          v = α*tempvec;
+
+        end
+
+      catch e
+          isa(e, Base.LinAlg.SingularException) || rethrow(e)
+          # This should not cast an error since it means that λ is
+          # already an eigenvalue.
+          if (displaylevel>0)
+              println("We have an exact eigenvalue.")
+          end
+          if (errmeasure(λ,v)>tolerance)
+              # We need to compute an eigvec somehow
+              v=(nep.Md(λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
+              v=v/dot(c,v)
+          end
+          return (λ,v)
+      end
+
+      msg="Number of iterations exceeded. maxit=$(maxit)."
+      throw(NoConvergenceException(λ,v,err,msg))
+end
+          
 
 #############################################################################
   function default_rf(nep::NEP, displaylevel)

@@ -36,13 +36,13 @@ abstract NEP_new;
    compute_Mder(nep,λ)  # Evaluate NEP in λ
 """
 function compute_Mder(nep::NEP_new,λ::Number,i::Integer=0)
-    error("No Mder implemented")
+    error("You need to provide an implementation of Mder for this NEP")
     return 0;
 end
 
 function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
     if (@method_concretely_defined(compute_MM,nep))
-        println("Using default: compute_MM -> compute_Mlincomb")
+        #println("Using poor-man's compute_MM -> compute_Mlincomb")
         k=size(V,2)
         S=jordan_matrix(k,λ).'
         b=zeros(size(a));
@@ -60,8 +60,7 @@ function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
         end
         return z
     elseif (@method_concretely_defined(compute_Mder,nep))
-        # Naive Mlincomb
-        println("Using default: compute_MM -> compute_Mlincomb")
+        #println("Using poor-man's compute_MM -> compute_Mlincomb")
         z=zeros(size(nep,1))
         for i=1:size(a,1)
             z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
