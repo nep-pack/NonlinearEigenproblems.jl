@@ -4,8 +4,8 @@ module NEPSolver
   export newton
   export res_inv
   export mslp
+  export aug_newton_old
   export aug_newton
-  export aug_newton2
 
 #############################################################################
 # Newton raphsons method on nonlinear equation with (n+1) unknowns
@@ -202,7 +202,7 @@ module NEPSolver
   end
 
 #############################################################################
-function aug_newton(nep::NEP;
+function aug_newton_old(nep::NEP;
                     errmeasure::Function = default_errmeasure(nep::NEP,displaylevel),
                     tolerance=eps()*100,
                     maxit=30,
@@ -255,7 +255,7 @@ end
 
 
 # New aug_newton 
-function aug_newton2(nep::NEP_new;
+function aug_newton(nep::NEP_new;
                     errmeasure::Function = default_errmeasure(nep::NEP_new),
                     tolerance=eps()*100,
                     maxit=30,

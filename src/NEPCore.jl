@@ -6,11 +6,19 @@ export DEP
 export size
 export NoConvergenceException
 export LinSolver
+
+# Core interfaces
 export compute_Mder
 export compute_Mlincomb
 export compute_MM
 
+# NEP-functions
 export compute_resnorm
+
+
+# Helper functions
+export compute_Mlincomb_from_MM
+
 
 import Base.size  # Overload for nonlinear eigenvalue problems
 #using Combinatorics; 
@@ -44,41 +52,52 @@ end
 
 function compute_Mlincomb(nep::NEP_new,λ::Number,V;a=ones(size(V,2)))
     if (@method_concretely_defined(compute_MM,nep))
-        #println("Using poor-man's compute_MM -> compute_Mlincomb")
-        k=size(V,2)
-        S=jordan_matrix(k,λ).'
-        b=zeros(size(a));
-        for i=1:k
-            b[i]=a[i]*factorial(i-1)
-        end
-        V=V*diagm(b)
-        z=compute_MM(nep,S,V)*eye(k,1)
-        if (false) # activate for debugging (verify that Mder is equivalent)
-           z2=zeros(size(nep,1))
-           for i=1:size(a,1)
-               z2+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
-           end
-           println("should be zero:",norm(z2-z))
-        end
-        return z
+        return compute_Mlincomb_from_MM(nep,λ,V,a)
     elseif (@method_concretely_defined(compute_Mder,nep))
-        #println("Using poor-man's compute_MM -> compute_Mlincomb")
-        z=zeros(size(nep,1))
-        for i=1:size(a,1)
-            z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
-        end
+        return compute_Mlincomb_from_Mder(nep,λ,V,a)
     else
         error("No procedure to compute Mlincomb")
     end
 end
 
+function compute_MM(nep::NEP_new,S,V)
+    error("No procedure to compute MM")
+end
+
+
+
+
+## Helper functions 
+function compute_Mlincomb_from_MM(nep::NEP_new,λ::Number,V,a)
+    #println("Using poor-man's compute_MM -> compute_Mlincomb")
+    k=size(V,2)
+    S=jordan_matrix(k,λ).'
+    b=zeros(size(a));
+    for i=1:k
+        b[i]=a[i]*factorial(i-1)
+    end
+    V=V*diagm(b)
+    z=compute_MM(nep,S,V)*eye(k,1)
+    ## activate for debugging (verify that Mder is equivalent)
+    # z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
+    # println("should be zero:",norm(z2-z))
+    return z
+end
+
+function compute_Mlincomb_from_Mder(nep::NEP_new,λ::Number,V,a)
+        #println("Using poor-man's compute_MM -> compute_Mlincomb")
+        z=zeros(size(nep,1))
+        for i=1:size(a,1)
+            z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
+        end
+        return z
+end
+
+
 function compute_resnorm(nep::NEP_new,λ,v)
     return norm(compute_Mlincomb(nep,λ,reshape(v,nep.n,1)))
 end
 
-function compute_MM(nep::NEP_new,S,V)
-    error("No procedure to compute MM")
-end
 
 
 # Overload size function. Note: All NEPs must have a field: n.

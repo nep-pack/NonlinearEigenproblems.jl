@@ -14,7 +14,7 @@ nep=nep_gallery("dep0")
 λ=NaN;
 x=NaN
 try
-    λ,x =aug_newton(nep,displaylevel=1);
+    λ,x =aug_newton_old(nep,displaylevel=1);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  
