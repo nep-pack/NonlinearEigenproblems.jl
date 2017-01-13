@@ -9,9 +9,9 @@ module NEPSolver
 
 #############################################################################
 # Newton raphsons method on nonlinear equation with (n+1) unknowns
-    function newton(nep::NEP;
+    function newton(nep::NEP_new;
                           errmeasure::Function =
-                             default_errmeasure(nep::NEP, displaylevel),
+                             default_errmeasure(nep::NEP_new),
                           tolerance=eps()*100,
                           maxit=10,
                           λ=0,
@@ -33,8 +33,8 @@ module NEPSolver
               end
 
               # Compute NEP matrix and derivative
-              M=nep.Md(λ)
-              Md=nep.Md(λ,1)
+              M=compute_Mder(nep,λ)
+              Md=compute_Mder(nep,λ,1)
 
               # Create jacobian
               J=[M Md*v; c' 0];
@@ -181,7 +181,7 @@ module NEPSolver
           # Normalize
           v=v/dot(c,v);
 
-          err=errmeasure(nep,λ,v)
+          err=errmeasure(λ,v)
 
           if (displaylevel>0)
               println("Iteration:",k," errmeasure:",err)
@@ -269,7 +269,7 @@ function aug_newton(nep::NEP_new;
       try
         for k=1:maxit
             #err=errmeasure(λ,v)
-          err=errmeasure(nep,λ,reshape(v,nep.n))
+          err=errmeasure(λ,reshape(v,nep.n))
           if (displaylevel>0)
              println("Iteration:",k," errmeasure:",err)
           end
@@ -328,7 +328,10 @@ end
   end
 
   function default_errmeasure(nep::NEP_new)
-      return compute_resnorm
+      f=function (λ,v);
+          compute_resnorm(nep,λ,v)
+      end
+      return f
   end
           
 

@@ -3,7 +3,7 @@ workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
-using Gallery_old
+using Gallery
 
 println("Test Newton")
 
@@ -22,7 +22,7 @@ catch e
     λ=e.λ
     x=e.v
 end
-println(nep.resnorm(λ,x))
+println("Resnorm:",compute_resnorm(nep,λ,x))
 
 
 
