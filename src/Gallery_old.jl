@@ -1,4 +1,4 @@
-module Gallery
+module Gallery_old
   using NEPCore
   using PolynomialRoots
   export nep_gallery
