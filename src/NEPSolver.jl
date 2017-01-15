@@ -256,11 +256,6 @@ module NEPSolver
     end
         
 
-    #############################################################################
-    #  function default_rf(nep::NEP, displaylevel)
-    #        return nep.rf;
-    #  end
-
 
     ##############################################################################
     #  function default_errmeasure(nep::NEP, displaylevel)
