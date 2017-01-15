@@ -12,7 +12,7 @@ nep=nep_gallery("dep0_sparse")
 λ,x =mslp(nep,displaylevel=1);
 println(compute_resnorm(nep,λ,x))
 
-# Buggy julia eigs
+# Buggy julia eigs generates error 
 # λ,x =mslp(nep,displaylevel=1,eigsolver="eigs");
 
 
