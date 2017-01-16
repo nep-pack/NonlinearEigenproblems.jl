@@ -21,6 +21,7 @@ module NEPCore
     export compute_Mlincomb_from_MM
     export compute_Mlincomb_from_Mder
 
+    export default_errmeasure
 
     import Base.size  # Overload for nonlinear eigenvalue problems
     #using Combinatorics; 
@@ -234,6 +235,14 @@ abstract superclass of s.
 
     function jordan_matrix(n::Integer,λ::Number)
         Z=λ*eye(n)+diagm(ones(n-1),1);
+    end
+
+
+    function default_errmeasure(nep::NEP)
+        f=function (λ,v);
+            compute_resnorm(nep,λ,v)
+        end
+        return f
     end
 
 end  # End Module
