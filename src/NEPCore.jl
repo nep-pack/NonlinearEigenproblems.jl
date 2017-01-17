@@ -75,7 +75,7 @@ abstract superclass of s.
     function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_MM -> compute_Mlincomb")
         k=size(V,2)
-        S=jordan_matrix(k,λ).'
+        S=jordan_matrix(k,λ,T=typeof(V[1])).'
         b=zeros(size(a));
         for i=1:k
             b[i]=a[i]*factorial(i-1)
@@ -85,7 +85,7 @@ abstract superclass of s.
         ## activate following for debugging (verify that Mder is equivalent)
         # z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
         # println("should be zero:",norm(z2-z))
-        return z
+        return reshape(z,size(z,1))
     end
 
     function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
@@ -202,7 +202,7 @@ abstract superclass of s.
 
 
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
-        Z=zeros(size(nep));
+        Z=zeros(size(nep,1),size(nep,1));
         for j=(i+1):size(nep.A,1)
             # Derivatives of monimials
             Z+= nep.A[j]*(λ^(j-i-1)*factorial(j-1)/factorial(j-i-1))
@@ -233,8 +233,8 @@ abstract superclass of s.
         end   
     end
 
-    function jordan_matrix(n::Integer,λ::Number)
-        Z=λ*eye(n)+diagm(ones(n-1),1);
+    function jordan_matrix(n::Integer,λ::Number;T::Type=Float64)
+        Z=λ*eye(T,n)+diagm(ones(T,n-1),1);
     end
 
 
