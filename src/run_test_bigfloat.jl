@@ -7,10 +7,10 @@ using Gallery
 
 
 println("Test NEP-test with BigFloat")
-A0=Array{BigFloat,2}(ones(4,4)-eye(4,4))
-u=1:4; v=u-2;
-A1=Array{BigFloat,2}(u*v');
-A2=Array{BigFloat,2}(eye(4,4));
+A0=ones(BigFloat,4,4)-eye(BigFloat,4,4)
+u=Array{BigFloat,1}(1:4); v=u-2;
+A1=u*v';
+A2=eye(BigFloat,4,4);
 A2[2,1]=BigFloat(pi);
 
 
