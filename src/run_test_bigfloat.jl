@@ -17,7 +17,7 @@ A2[2,1]=BigFloat(pi);
 nep=PEP([A0,A1,A2]);
 
 # start values need to be bigfloats as well
-v0=Array{BigFloat,1}(ones(4));
+v0=ones(BigFloat,4);
 λ0=BigFloat(0)
 # 
 λ,v=aug_newton(nep,v=v0,λ=λ0,
