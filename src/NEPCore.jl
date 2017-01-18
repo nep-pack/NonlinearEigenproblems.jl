@@ -103,10 +103,14 @@ abstract superclass of s.
     end
 
 
-    function compute_rf(nep::NEP,x; y=x, target=0, λ0=target)
+    function compute_rf(nep::NEP,x; y=x, target=0, λ0=target,
+                        TOL=1e-12,max_iter=10)
         # Ten steps of scalar Newton's method
         λ=λ0;
-        for k=1:10
+        Δλ=Inf
+        count=0
+        while (abs(Δλ)>TOL) & (count<max_iter)
+            count=count+1
             z1=compute_Mlincomb(nep,λ,reshape(x,nep.n,1))
             z2=compute_Mlincomb(nep,λ,x*ones(1,2),a=[0,1])
             Δλ=-dot(y,z1)/dot(y,z2);

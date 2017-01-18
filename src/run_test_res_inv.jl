@@ -2,8 +2,8 @@
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
-using NEPCore_old
-using Gallery_old
+using NEPCore
+using Gallery
 
 println("Test Res-Inv")
 
@@ -23,7 +23,7 @@ catch e
     λ=e.λ
     x=e.v
 end
-println(nep.resnorm(λ,x))
+println(compute_resnorm(nep,λ,x))
 
 
 
