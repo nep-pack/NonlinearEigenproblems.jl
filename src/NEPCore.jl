@@ -43,7 +43,7 @@ abstract superclass of s.
     # Default NEP functions
     #
     """
-    compute_Mder(nep::NEP,λ::Number,i::Integer=0)    
+    compute_Mder(nep::NEP,λ::Number,i::Integer=0)
  Computes the ith derivative of NEP evaluated in λ\\
  Usage:\\
    compute_Mder(nep,λ)  # Evaluate NEP in λ
@@ -53,6 +53,11 @@ abstract superclass of s.
         return 0;
     end
 
+    """
+    compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
+ Computes the linear combination of derivatives\\
+ Σ_i a_i M^{(i)}(λ) v_i
+"""
     function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
         # determine a default behavior (may lead to loss of performance) 
         if (@method_concretely_defined(compute_MM,nep))
@@ -64,6 +69,10 @@ abstract superclass of s.
         end
     end
 
+    """
+    compute_MM(nep::NEP,S,V)
+ Computes the sum Σ_i M_i V f_i(S)
+"""
     function compute_MM(nep::NEP,S,V)
         error("No procedure to compute MM")
     end
@@ -169,8 +178,8 @@ abstract superclass of s.
 
 
     """
-    compute_Mder(nep::DEP,λ::Number,i::Integer=0)
- Compute the ith derivative of a DEP
+    compute_MM(nep::DEP,S,V)
+ Computes the sum Σ_i M_i V f_i(S)
 """
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
