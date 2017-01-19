@@ -196,6 +196,9 @@ abstract superclass of s.
 
     """
     Polynomial eigenvalue problem
+  A PEP is defined by the sum the sum  Σ_i A_i λ^i,\\
+  where i = 0,1,2,..., and  all of the matrices are of size n times n\\
+  Constructor: PEP(AA) where AA is an array of the matrices A_i
 """
 
     type PEP <: NEP
