@@ -43,7 +43,7 @@ module Gallery
           A0 = [ 0    1    0;  0    0    1;  -a3  -a2  -a1];
           A1 = [ 0    0    0;  0    0    0;  -b3  -b2  -b1];
 
-          tau=-1;
+          tau=1;
           nep=DEP([A0,A1,],[0,tau])
           return nep
       elseif (name== "pep0")

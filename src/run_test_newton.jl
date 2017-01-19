@@ -14,8 +14,8 @@ x=NaN
 try
     λ,x =newton(nep,displaylevel=1);
 catch e
-    # Only catch NoConvergence 
-    isa(e, NoConvergenceException) || rethrow(e)  
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
     println("No convergence because:"*e.msg)
     # still access the approximations
     λ=e.λ
@@ -23,10 +23,19 @@ catch e
 end
 println("Resnorm:",compute_resnorm(nep,λ,x))
 
-
-println("Running Newton on dep with double eigenvalue")
+println("\nRunning Newton on dep with double eigenvalue")
 nep=nep_gallery("dep_double")
-λ,x =newton(nep,displaylevel=1, λ=8im);
+try
+    λ,x =newton(nep,displaylevel=1, λ=8.5im, maxit=100);
+catch e
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λ=e.λ
+    x=e.v
+end
+
 println(λ)
 println(compute_resnorm(nep,λ,x))
 
