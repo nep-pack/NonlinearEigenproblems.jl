@@ -16,7 +16,6 @@ module Gallery
           srand(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);
-          I=eye(n,n);
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
@@ -26,9 +25,26 @@ module Gallery
           srand(0) # reset the random seed
           A0=sparse(randn(n,n));
           A1=sparse(randn(n,n));
-          I=sparse(eye(n,n));
           tau=1;
           nep=DEP([A0,A1],[0,tau])
+          return nep
+      elseif (name == "dep_double")
+          # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
+          # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
+          n=3;
+
+          denom = 8+5*pi;
+          a1 = 2/5 *(65*pi + 32)/(denom);
+          a2 = 9*pi^2*(13+5*pi)/(denom);
+          a3 = 324/5 *pi^2*(5*pi+4)/(denom);
+          b1 = (260*pi + 128 + 225*pi^2)/(10*denom);
+          b2 = 45*pi^2/denom;
+          b3 = 81*pi^2*(40*pi + 32 + 25*pi^2)/(10*denom);
+          A0 = [ 0    1    0;  0    0    1;  -a3  -a2  -a1];
+          A1 = [ 0    0    0;  0    0    0;  -b3  -b2  -b1];
+
+          tau=-1;
+          nep=DEP([A0,A1,],[0,tau])
           return nep
       elseif (name== "pep0")
           # A polynomial eigenvalue problem          

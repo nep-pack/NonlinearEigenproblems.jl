@@ -5,10 +5,9 @@ using NEPSolver
 using NEPCore
 using Gallery
 
-println("Test Newton")
 
+println("Running Newton on random dep")
 nep=nep_gallery("dep0")
-
 
 λ=NaN;
 x=NaN
@@ -25,6 +24,11 @@ end
 println("Resnorm:",compute_resnorm(nep,λ,x))
 
 
+println("Running Newton on dep with double eigenvalue")
+nep=nep_gallery("dep_double")
+λ,x =newton(nep,displaylevel=1, λ=8im);
+println(λ)
+println(compute_resnorm(nep,λ,x))
 
 
 
