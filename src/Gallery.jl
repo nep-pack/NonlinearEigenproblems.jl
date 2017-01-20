@@ -44,7 +44,7 @@ module Gallery
           A1 = [ 0    0    0;  0    0    0;  -b3  -b2  -b1];
 
           tau=1;
-          nep=DEP([A0,A1,],[0,tau])
+          nep=DEP([A0,A1],[0,tau])
           return nep
       elseif (name== "pep0")
           # A polynomial eigenvalue problem          
@@ -56,9 +56,8 @@ module Gallery
           A2=randn(n,n)
           A=[A0,A1,A2]
           nep=PEP(A)
+          return nep
 
-
-      end
-      
+      end    
   end 
 end
