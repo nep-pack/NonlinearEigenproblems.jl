@@ -30,7 +30,6 @@ println(x1)
 x2=NaN
 println("\nRunning Newton on interpolated dep")
 intpoints = [λ1-1, λ1, λ1+1.5]
-#intpoints = [λ-1 λ-0.5 λ λ+0.5 λ+1 λ+0.5im λ+1im λ-0.5im λ-1im]
 pep = interpolate(nep, intpoints)
 try
     λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
@@ -50,7 +49,8 @@ println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
 println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 println("\nRunning Newton on interpolated dep (higher degree of interpolating pep)")
-intpoints = [λ1-7, λ1-5, λ1-2, λ1-1, λ1, λ1+1, λ1+2, λ1+5, λ1+7]
+#intpoints = [λ1-7, λ1-5, λ1-2, λ1-1, λ1, λ1+1, λ1+2, λ1+5, λ1+7]
+intpoints = [λ1-5, λ1-1, λ1, λ1+5, λ1+1, λ1+5im, λ1+1im, λ1-5im, λ1-1im]
 pep = interpolate(nep, intpoints)
 try
     λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));

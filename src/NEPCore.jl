@@ -279,14 +279,14 @@ abstract superclass of s.
     interpolate(nep::NEP, intpoints)
  Interpolates a NEP in the points intpoints and returns a PEP
 """
-    function interpolate(nep::NEP, intpoints::Array{Float64,1})
+    function interpolate{T<:Number}(nep::NEP, intpoints::Array{T,1})
         n = size(nep, 1)
         d = length(intpoints)
-        b = Array{Float64}(n*d,n)
+        b = Array{T}(n*d,n)
         for i = 1:d
             b[(1:n)+(i-1)*n,:] = compute_Mder(nep,intpoints[i])
         end
-        V = Array{Float64}(d,d)
+        V = Array{T}(d,d)
         pwr = ones(d,1)
         for i = 1:d
             V[:,i] = pwr
@@ -297,7 +297,7 @@ abstract superclass of s.
         V = kron(V,I)
         A = \(V,b)
 
-        AA = Array{Array{Float64,2}}(d)
+        AA = Array{Array{T,2}}(d)
         for i = 1:d
           AA[i] = A[(1:n)+(i-1)*n,:]
         end
