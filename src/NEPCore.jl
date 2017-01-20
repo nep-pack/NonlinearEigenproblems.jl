@@ -6,6 +6,7 @@ module NEPCore
     export size
     export NoConvergenceException
     export LinSolver
+    export interpolate
 
     # Core interfaces
     export compute_Mder
@@ -26,6 +27,8 @@ module NEPCore
     import Base.size  # Overload for nonlinear eigenvalue problems
     #using Combinatorics; 
 
+
+
     """
 Determines if a method is defined for the concrete class.
 False will be returned if methodname is only defined for the
@@ -36,12 +39,13 @@ abstract superclass of s.
     end
 
 
-    abstract NEP;
-
-
     ############################################
     # Default NEP functions
     #
+
+    abstract NEP;
+
+
     """
     compute_Mder(nep::NEP,λ::Number,i::Integer=0)
  Computes the ith derivative of NEP evaluated in λ\\
@@ -59,7 +63,7 @@ abstract superclass of s.
  Σ_i a_i M^{(i)}(λ) v_i
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
-        # determine a default behavior (may lead to loss of performance) 
+        # determine a default behavior (may lead to loss of performance)
         if (@method_concretely_defined(compute_MM,nep))
             return compute_Mlincomb_from_MM(nep,λ,V,a)
         elseif (@method_concretely_defined(compute_Mder,nep))
@@ -99,7 +103,7 @@ abstract superclass of s.
     end
 
     function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
-        #println("Using poor-man's compute_MM -> compute_Mlincomb")
+        #println("Using poor-man's compute_Mder -> compute_Mlincomb")
         z=zeros(size(nep,1))
         for i=1:size(a,1)
             z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
@@ -109,7 +113,7 @@ abstract superclass of s.
 
 
     function compute_resnorm(nep::NEP,λ,v)
-        return norm(compute_Mlincomb(nep,λ,reshape(v,nep.n,1)))
+        return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
     end
 
 
@@ -271,6 +275,40 @@ abstract superclass of s.
         end
     end
 
+"""
+    interpolate(nep::NEP, intpoints)
+ Interpolates a NEP in the points intpoints and returns a PEP
+"""
+    function interpolate(nep::NEP, intpoints::Array{Float64,1})
+        n = size(nep, 1)
+        d = length(intpoints)
+        b = Array{Float64}(n*d,n)
+        for i = 1:d
+            b[(1:n)+(i-1)*n,:] = compute_Mder(nep,intpoints[i])
+        end
+        V = Array{Float64}(d,d)
+        pwr = ones(d,1)
+        for i = 1:d
+            V[:,i] = pwr
+            pwr = pwr.*intpoints
+        end
+
+        I = speye(n,n)
+        V = kron(V,I)
+        A = \(V,b)
+
+        AA = Array{Array{Float64,2}}(d)
+        for i = 1:d
+          AA[i] = A[(1:n)+(i-1)*n,:]
+        end
+
+        return PEP(AA)
+    end
+
+
+    ############################################
+    # Misc helpers
+    #
 
     """
     NoConvergenceException
