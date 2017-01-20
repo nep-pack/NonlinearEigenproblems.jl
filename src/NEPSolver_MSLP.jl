@@ -18,7 +18,6 @@ module NEPSolver_MSLP
                   maxit=100,
                   λ=0,
                   v=randn(nep.n),
-                  c=v,
                   displaylevel=0,
                   eigsolver="default")
 
@@ -50,7 +49,7 @@ module NEPSolver_MSLP
         # Main loop
         for k=1:maxit
             # Normalize
-            v=v/dot(c,v);
+            v=v/norm(v);
 
             err=errmeasure(λ,v)
 

@@ -105,7 +105,7 @@ println("It worked.")
 
 
 # Approximate eigenvalue of gun problem from Liao, Bai, Lee, Ko
-λ0=((1.4948 + 0.000021)*1e2)^2
+λ0=((1.495 + 0.000021)*1e2)^2
 
 v0=ones(size(nep,1))
 
