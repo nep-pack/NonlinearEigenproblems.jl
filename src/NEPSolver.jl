@@ -13,7 +13,7 @@ module NEPSolver
                     tolerance=eps()*100,
                     maxit=10,
                     λ=0,
-                    v=randn(nep.n),
+                    v=randn(size(nep,1)),
                     c=v,
                     displaylevel=0)
 
