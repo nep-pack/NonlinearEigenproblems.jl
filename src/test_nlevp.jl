@@ -8,7 +8,8 @@ using NEPCore
 using NEPSolver
 using NEPSolver_MSLP
 # We have to explicitly specify functions that we want "overload"
-import NEPCore.compute_Mder 
+import NEPCore.compute_Mder
+import NEPCore.size
 
 
 
@@ -20,8 +21,10 @@ type NLEVP_NEP <: NEP
     n::Integer
     name::String
     Ai::Array
-    function NLEVP_NEP(name;nlevp_path::String="/home/jarl/jobb/src/nlevp3")
-
+    function NLEVP_NEP(name;nlevp_path::String="../../nlevp3")
+        if (~isfile(joinpath(nlevp_path,"nlevp.m")))
+            error("nlevp.m not found. You need to install the Berlin-Manchester collection (http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) and specify a nlevp_path.")
+        end
         @mput name nlevp_path
         @matlab begin
             addpath(nlevp_path)
@@ -82,6 +85,13 @@ function call_current_fun(lambda)
     return f,fp
 end
 
+function size(nep::NLEVP_NEP,dim=-1)
+    if (dim==-1)
+        return (nep.n,nep.n)
+    else
+        return nep.n
+    end
+end
 
 
 nep_name="gun"
