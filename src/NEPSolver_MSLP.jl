@@ -36,7 +36,8 @@ module NEPSolver_MSLP
 
         elseif(eigsolver == "matlab_eigs")
             eigsolverfunc = matlab_eigs;
-
+        elseif(eigsolver == "inv_it")
+            eigsolverfunc = inv_it
         else
             if issparse(compute_Mder(nep,λ,0)) 
                 eigsolverfunc = matlab_eigs; # Default to matlab due to issue #1
@@ -64,7 +65,6 @@ module NEPSolver_MSLP
             d,v = eigsolverfunc(nep,λ,v);
             # update eigenvalue
             λ=λ-d
-
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
@@ -113,16 +113,29 @@ module NEPSolver_MSLP
     function julia_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
         D,V = eigs(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1),
-                   sigma=λ, v0=v0,nev=2,
+                   sigma=0,nev=2,
                    tol=eps()*1000, maxiter=10)
 
         d=D[1]
-        
+
         # update eigenvector
         v=V[:,1]
 
         return d,v;     
     end
 
+    # A naive implementation of inverse iteration of generalized
+    # linear eigenvalue problems
+    function inv_it(nep::NEP,λ=0,v0=randn(nep.n),iters=2)
+        Mp=compute_Mder(nep,λ,1);
+        M=compute_Mder(nep,λ)
+        local w=copy(v0)
+        for i=1:iters
+            w=M\(Mp*w)
+            w=w/norm(w)
+        end
+        Δ=dot(w,M*w)/dot(w,Mp*w) # Comp delta with Rayleigh Quotient
+        return Δ,w
+    end
 
 end
