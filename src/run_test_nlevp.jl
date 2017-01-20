@@ -15,7 +15,7 @@ import NEPCore.size
 
 """
      NLEVP_NEP represents a NEP in the NLEVP-toolbox
-Example usage: nep=NLEVP_NEP('gun')
+Example usage: nep=NLEVP_NEP("gun")
 """
 type NLEVP_NEP <: NEP
     n::Integer
@@ -120,6 +120,25 @@ println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
 println("Running MSLP")
 λ,v=mslp(nep,λ=λ0,
-         displaylevel=2,maxit=30,tolerance=1e-5,eigsolver="inv_it")
+         displaylevel=2,maxit=30,tolerance=1e-4,eigsolver="inv_it")
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
+
+
+println("Running one step of MSLP and then aug_newton")
+λ1=λ0
+v1=copy(v0)
+try 
+    λ1,v1=mslp(nep,λ=λ0,
+               displaylevel=2,maxit=1,tolerance=-1,
+               eigsolver="inv_it")
+catch e
+    λ1=e.λ
+    v1=copy(e.v)
+end
+v1=v1/norm(v1)
+#println("sqrt(λ1)=",sqrt(λ1))
+λ,v=aug_newton(nep,λ=λ1,v=v1,c=v0,
+               displaylevel=2,maxit=30,tolerance=1e-6)
+
+println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
