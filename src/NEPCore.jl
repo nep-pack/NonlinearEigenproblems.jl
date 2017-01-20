@@ -71,7 +71,8 @@ abstract superclass of s.
 
     """
     compute_MM(nep::NEP,S,V)
- Computes the sum Σ_i M_i V f_i(S)
+ Computes the sum Σ_i M_i V f_i(S) for a NEP,\\
+ where S and V are matrices.
 """
     function compute_MM(nep::NEP,S,V)
         error("No procedure to compute MM")
@@ -129,16 +130,20 @@ abstract superclass of s.
     end
 
 
-    # Overload size function. Note: All NEPs must have a field: n.
+"""
+    size(nep::NEP,dim=-1)
+ Overloads the size functions for NEP.\\
+ Note: All NEPs must implement this function.
+"""
     function size(nep::NEP,dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
+        error("You need to provide an implementation of size for this NEP")
+        return 0;
     end
 
 
+    ############################################
+    # Delay eigenvalue problem - DEP
+    #
 
     """
     Delay eigenvalue problem
@@ -183,7 +188,7 @@ abstract superclass of s.
 
     """
     compute_MM(nep::DEP,S,V)
- Computes the sum Σ_i M_i V f_i(S)
+ Computes the sum Σ_i M_i V f_i(S) for a DEP
 """
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
@@ -192,6 +197,22 @@ abstract superclass of s.
         end
         return Z
     end
+
+"""
+    size(nep::DEP,dim=-1)
+ Overloads the size functions for a DEP.
+"""
+    function size(nep::DEP,dim=-1)
+        if (dim==-1)
+            return (nep.n,nep.n)
+        else
+            return nep.n
+        end
+    end
+
+
+    ############################################
+    # Polynomial eigenvalue problem - PEP
     #
 
     """
@@ -210,6 +231,10 @@ abstract superclass of s.
         end
     end
 
+    """
+    compute_MM(nep::DEP,S,V)
+ Computes the sum Σ_i M_i V f_i(S) for a DEP
+"""
     function compute_MM(nep::PEP,S,V)
         Z=zeros(size(V))
         Si=eye(size(S,1))
@@ -220,7 +245,10 @@ abstract superclass of s.
         return Z
     end
 
-
+    """
+    compute_Mder(nep::PEP,λ::Number,i::Integer=0)
+ Compute the ith derivative of a PEP
+"""
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
         Z=zeros(size(nep,1),size(nep,1));
         for j=(i+1):size(nep.A,1)
@@ -230,7 +258,28 @@ abstract superclass of s.
         return Z
     end
 
-    # In case an iterative method does not converge
+
+"""
+    size(nep::PEP,dim=-1)
+ Overloads the size functions for a DEP.
+"""
+    function size(nep::PEP,dim=-1)
+        if (dim==-1)
+            return (nep.n,nep.n)
+        else
+            return nep.n
+        end
+    end
+
+
+    """
+    NoConvergenceException
+ Exeption thrown in case an iterative method does not converge\\
+ λ = current eigenvalue approximation\\
+ v = current eigenvector approximation\\
+ errmeasure = The error measure of the current eigenpair approximation\\
+ msg
+"""
     type NoConvergenceException <: Exception
         λ
         v
