@@ -1,7 +1,13 @@
 module Gallery
-  using NEPCore
+    using NEPCore
+    using MATLAB
   using PolynomialRoots
-  export nep_gallery
+    export nep_gallery
+    export nlevp_gallery
+    # We have to explicitly specify functions that we want "overload"
+    import NEPCore.compute_Mder
+    import NEPCore.size
+    
   """
   Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. name decides which NEP. \\
   Usage:\\
@@ -59,5 +65,100 @@ module Gallery
           return nep
 
       end    
-  end 
+  end
+
+    """
+    nlevp_gallery(name)
+Loads a NEP from the Berlin-Manchester collection of nonlinear
+eigenvalue problems
+"""
+    function nlevp_gallery(name::String,nlevp_path::String="../../nlevp3")
+        nep=NLEVP_NEP(name,nlevp_path)
+        return nep
+    end
+  
+    """
+         NLEVP_NEP represents a NEP in the NLEVP-toolbox
+    Example usage: nep=NLEVP_NEP("gun")
+    """
+    type NLEVP_NEP <: NEP
+        n::Integer
+        name::String
+        Ai::Array
+        function NLEVP_NEP(name,nlevp_path)
+            if (~isfile(joinpath(nlevp_path,"nlevp.m")))
+                error("nlevp.m not found. You need to install the Berlin-Manchester collection (http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) and specify a nlevp_path.")
+            end
+            @mput name nlevp_path
+            @matlab begin
+                addpath(nlevp_path)
+                Ai,funs=nlevp(name)
+            @matlab end
+            @mget Ai # fetch and store the matrices
+            this=new(size(Ai[1],1),name,Ai);
+        end
+    end
+    
+    function compute_Mder(nep::NLEVP_NEP,λ::Number,i::Integer=0)
+        if (i==0 || i==1)        
+            lambda=Complex{Float64}(λ)  # avoid type conversion problems
+            #println("type",typeof(lambda))
+            ## The following commented code is calling nlevp("eval",...)
+            ## directly and does not work. We use functions instead
+    #        nep_name::String=nep.name
+    #        @mput lambda nep_name
+    #        if (i==0)
+    #            println(λ)
+    #            @matlab begin
+    #                ll=1+0.1i
+    #                M=nlevp("eval",nep_name,lambda
+    #            @matlab end
+    #            @mget M
+    #            return M
+    #        else
+    #            @matlab begin
+    #                (M,Mp)=nlevp("eval",nep_name,lambda)
+    #            @matlab end
+    #            @mget Mp
+    #            return Mp
+    #        end
+    #    return f,fp
+            (fv,fpv)=call_current_fun(lambda)
+            M=zeros(nep.Ai[1]);
+            if (i==0)
+                f=fv;
+            else
+                f=fpv
+            end
+            for i=1:length(nep.Ai)
+                #println("value:",i," is ",abs(f[i]))
+                M=M+nep.Ai[i]*f[i]
+            end
+            return M
+        else
+            error("Higher order derivatives not implemented")
+        end
+    end
+    
+    # Return function and derivative if the current matlab function funs
+    function call_current_fun(lambda)
+        lambda=Complex64(lambda)  # avoid type problems
+        @mput lambda
+        @matlab begin
+            (f,fp)=funs(lambda)
+        @matlab end
+        @mget f fp
+        return f,fp
+    end
+    
+    # size for NLEVP_NEPs
+    function size(nep::NLEVP_NEP,dim=-1)
+        if (dim==-1)
+            return (nep.n,nep.n)
+        else
+            return nep.n
+        end
+    end
+    
+    
 end
