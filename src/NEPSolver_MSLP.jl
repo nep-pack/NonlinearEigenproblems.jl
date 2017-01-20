@@ -112,7 +112,7 @@ module NEPSolver_MSLP
     #Call Julia eigs() 
     function julia_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
-        D,V = eigs(compute_Mder(nep,λ,0),nep,compute_Mder(nep,λ,1),
+        D,V = eigs(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1),
                    sigma=λ, v0=v0,nev=2,
                    tol=eps()*1000, maxiter=10)
 
