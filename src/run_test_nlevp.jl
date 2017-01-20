@@ -11,7 +11,7 @@ using Gallery
 ## Init
 nep_name="gun"
 println("Loading \"",nep_name,"\" from Berlin-Manchester collection")
-nep=nlevp_gallery(nep_name)
+nep=nlevp_gallery_import(nep_name)
 println("Loading completed. Size of problem n=",nep.n)
 println("Testing some basic operations on the nep")
 M=compute_Mder(nep,160^2+3im)

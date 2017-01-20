@@ -3,7 +3,7 @@ module Gallery
     using MATLAB
   using PolynomialRoots
     export nep_gallery
-    export nlevp_gallery
+    export nlevp_gallery_import
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
@@ -72,7 +72,7 @@ module Gallery
 Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems
 """
-    function nlevp_gallery(name::String,nlevp_path::String="../../nlevp3")
+    function nlevp_gallery_import(name::String,nlevp_path::String="../../nlevp3")
         nep=NLEVP_NEP(name,nlevp_path)
         return nep
     end
