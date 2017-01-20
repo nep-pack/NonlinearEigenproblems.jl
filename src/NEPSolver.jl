@@ -4,6 +4,7 @@ module NEPSolver
     export res_inv
     export aug_newton_old
     export aug_newton
+    export iar
 
     #############################################################################
     # Newton raphsons method on nonlinear equation with (n+1) unknowns
@@ -192,9 +193,77 @@ module NEPSolver
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,v,err,msg))
     end
+      
+    #Infinite Arnoldi for a given number of max iterations(No error measure yet)  
+    function iar(nep::NEP,maxit=30)
+
+        n = nep.n;            
+
+        m = maxit;
+
+        #####Pre-allocating the necessary matrices and vectors######
+        V = zeros(n*(m+1),m+1);#Krylov subspace
+
+        H = zeros(m+1,m);#Hessenberg matrix
+
+        Bv = zeros(n,m+1);#For storing y0,y1,y2,.....,y_{k+1} at the kth iteration,
+                        #where V_{k+1} = vec(y0,y1,y2,....,y_{k+1})
+
+        α = [0;ones(m)];#Coefficients for the LC: 0*M(0)*y0+∑M^{i}(0)*y_i
+
+        W = zeros(n,m+1);#For storing W[:,1:k+1] = (0,y1,2*y2,3*y3,.......,k*y_k)
+
+        M0inv = LinSolver(compute_Mder(nep,0.0));#For computing the action of M(0)^{-1} later by M0inv.solve()
+
+        V[1:n,1]=rand(n,1)/norm(randn(n,1));#Initializing the basis
+
+        for k=1:m
+            ########## Compute action of the operator B in Bv #########
+
+            #Compute y0 = Bv[1:n,1]  
+            W[:,2:k+1] = reshape(V[1:n*k,k],n,k);#Extract v_{k+1} and reshape it into a matrix   
+            Bv[1:n,1] = compute_Mlincomb_from_Mder(nep,0.0,W,α[1:k+1]);
+            Bv[1:n,1] = -M0inv.solve(Bv[1:n,1]);
+
+            #Compute y1,y2,......y_k
+            for j=2:k+1
+                Bv[:,j]=W[:,j]/j; #Vectorizable 
+            end
+ 
+            #vv = V_{k+1} = vec(y0,y1,y2,....,y_{k+1}
+            vv=reshape(Bv[:,1:k+1],(k+1)*n,1);
+
+            # double GS-orthogonalization
+            h,vv = doubleGS(V,vv,k,n);
+            H[1:k,k]=h;
+
+            beta=norm(vv);
+
+            H[k+1,k]=beta;
+
+            V[1:(k+1)*n,k+1]=vv/beta;
+        end
+
+
+        D,V=eig(H[1:m,1:m]);
         
+        D=1./D;
 
+        return D,V
+    end
 
+    function doubleGS(V,vv,k,n)
+
+            h=V[1:(k+1)*n,1:k]'*vv;
+
+            vv=vv-V[1:(k+1)*n,1:k]*h;
+ 
+            g=V[1:(k+1)*n,1:k]'*vv;
+            vv=vv-V[1:(k+1)*n,1:k]*g;
+
+            h = h+g;
+            return h,vv;
+    end
     ##############################################################################
     #  function default_errmeasure(nep::NEP, displaylevel)
     #      # If no relresnorm available use resnorm
