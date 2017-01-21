@@ -92,7 +92,7 @@ abstract superclass of s.
         S=jordan_matrix(k,λ,T=typeof(V[1])).'
         b=zeros(size(a));
         for i=1:k
-            b[i]=a[i]*factorial(i-1)
+            b[i]=a[i]*factorial(Float64(i-1))
         end
         W=V*diagm(b)
         z=compute_MM(nep,S,W)*eye(k,1)
