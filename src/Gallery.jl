@@ -1,9 +1,11 @@
 module Gallery
     using NEPCore
     using MATLAB
-  using PolynomialRoots
+    using PolynomialRoots
+    
     export nep_gallery
     export nlevp_gallery_import
+    export call_current_fun
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
@@ -100,11 +102,10 @@ eigenvalue problems
     end
     
     function compute_Mder(nep::NLEVP_NEP,λ::Number,i::Integer=0)
-        if (i==0 || i==1)        
-            lambda=Complex{Float64}(λ)  # avoid type conversion problems
-            #println("type",typeof(lambda))
-            ## The following commented code is calling nlevp("eval",...)
-            ## directly and does not work. We use functions instead
+        lambda=Complex{Float64}(λ)  # avoid type conversion problems
+        #println("type",typeof(lambda))
+        ## The following commented code is calling nlevp("eval",...)
+        ## directly and does not work. We use functions instead
     #        nep_name::String=nep.name
     #        @mput lambda nep_name
     #        if (i==0)
@@ -123,34 +124,30 @@ eigenvalue problems
     #            return Mp
     #        end
     #    return f,fp
-            (fv,fpv)=call_current_fun(lambda)
-            M=zeros(nep.Ai[1]);
-            if (i==0)
-                f=fv;
-            else
-                f=fpv
-            end
-            for i=1:length(nep.Ai)
-                #println("value:",i," is ",abs(f[i]))
-                M=M+nep.Ai[i]*f[i]
-            end
-            return M
-        else
-            error("Higher order derivatives not implemented")
+        D=call_current_fun(lambda,i)
+        f=D[i+1,:]
+        M=zeros(nep.Ai[1]);
+        for i=1:length(nep.Ai)
+            M=M+nep.Ai[i]*f[i]
         end
+        return M
     end
     
-    # Return function and derivative if the current matlab function funs
-    function call_current_fun(lambda)
-        lambda=Complex64(lambda)  # avoid type problems
-        @mput lambda
-        @matlab begin
-            (f,fp)=funs(lambda)
-        @matlab end
-        @mget f fp
-        return f,fp
+    # Return function values and derivative's if the current matlab function session funs
+    # The returned matrix containing derivatives has (maxder+1) rows 
+    function call_current_fun(lambda,maxder::Integer=0)        
+        l::Complex64=Complex64(lambda)  # avoid type problems
+        @mput l maxder
+        eval_string("C=cell(maxder+1,1);")
+        eval_string("[C{:}]=funs(l);")
+        #eval_string("l")        
+        eval_string("D=cell2mat(C);")
+        @mget D
+        #println(size(D))
+        return D
     end
-    
+
+
     # size for NLEVP_NEPs
     function size(nep::NLEVP_NEP,dim=-1)
         if (dim==-1)
