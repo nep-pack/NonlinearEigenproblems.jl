@@ -1,13 +1,16 @@
 module NEPSolver
     using NEPCore
+
+    ## NEP-Methods
     export newton
     export res_inv
-    export aug_newton_old
     export aug_newton
     export iar
 
     #############################################################################
-    # Newton raphsons method on nonlinear equation with (n+1) unknowns
+"""
+    Newton raphsons method on nonlinear equation with (n+1) unknowns
+"""
     function newton(nep::NEP;
                     errmeasure::Function =
                     default_errmeasure(nep::NEP),
@@ -67,6 +70,9 @@ module NEPSolver
 
 
     ############################################################################
+"""
+    Residual inverse iteration method for nonlinear eigenvalue problems.
+"""
     function res_inv(nep::NEP;
                      errmeasure::Function =
                      default_errmeasure(nep::NEP),
@@ -140,7 +146,10 @@ module NEPSolver
        
 
 
-    # New aug_newton 
+    # New aug_newton
+"""
+    Augmented Newton's method. Equivalent to newton() but works only with operations on vectors of length n, instead of n+1.
+"""
     function aug_newton(nep::NEP;
                         errmeasure::Function = default_errmeasure(nep::NEP),
                         tolerance=eps()*100,
@@ -194,7 +203,10 @@ module NEPSolver
         throw(NoConvergenceException(λ,v,err,msg))
     end
       
-    #Infinite Arnoldi for a given number of max iterations(No error measure yet)  
+    #Infinite Arnoldi for a given number of max iters (No error measure yet) 
+"""
+    The Infinite Arnoldi method 
+"""
     function iar(nep::NEP,maxit=30)
 
         n = nep.n;            
@@ -264,6 +276,8 @@ module NEPSolver
             h = h+g;
             return h,vv;
     end
+
+    ### Moved to NEPCore.jl
     ##############################################################################
     #  function default_errmeasure(nep::NEP, displaylevel)
     #      # If no relresnorm available use resnorm
