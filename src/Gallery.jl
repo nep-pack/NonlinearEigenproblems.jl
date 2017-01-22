@@ -5,7 +5,6 @@ module Gallery
     
     export nep_gallery
     export nlevp_gallery_import
-    export call_current_fun
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
@@ -133,17 +132,14 @@ eigenvalue problems
         return M
     end
     
-    # Return function values and derivative's if the current matlab function session funs
+    # Return function values and derivatives of the current matlab session "funs"
+    # stemming from a previous call to [Ai,funs]=nlevp(nepname).
     # The returned matrix containing derivatives has (maxder+1) rows 
     function call_current_fun(lambda,maxder::Integer=0)        
         l::Complex64=Complex64(lambda)  # avoid type problems
         @mput l maxder
-        eval_string("C=cell(maxder+1,1);")
-        eval_string("[C{:}]=funs(l);")
-        #eval_string("l")        
-        eval_string("D=cell2mat(C);")
+        eval_string("C=cell(maxder+1,1); [C{:}]=funs(l); D=cell2mat(C);")
         @mget D
-        #println(size(D))
         return D
     end
 

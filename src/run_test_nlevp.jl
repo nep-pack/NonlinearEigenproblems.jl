@@ -66,3 +66,4 @@ println("Running resinv")
 λ,v=res_inv(nep,λ=λ0,
                displaylevel=2,maxit=20,tolerance=1e-4)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
+
