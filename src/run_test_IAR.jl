@@ -5,16 +5,24 @@ using NEPSolver
 using NEPCore
 using Gallery
 
+# explicit import needed for overloading
+# functions from packages
+import NEPCore.compute_Mlincomb
 
 println("Load dep0")
 nep=nep_gallery("dep0")
 
+function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
+
+    return compute_Mlincomb_from_Mder(nep,λ,V,a)
+end
 
 ################# NEWTON #########################3
 
 println("Running Newton on random dep")
 
 λ=NaN;
+
 x=NaN
 try
     λ,x =newton(nep,displaylevel=1);

@@ -234,7 +234,7 @@ module NEPSolver
 
             #Compute y0 = Bv[1:n,1]  
             W[:,2:k+1] = reshape(V[1:n*k,k],n,k);#Extract v_{k+1} and reshape it into a matrix   
-            Bv[1:n,1] = compute_Mlincomb_from_Mder(nep,0.0,W,α[1:k+1]);
+            Bv[1:n,1] = compute_Mlincomb(nep,0.0,W,a=α[1:k+1]);
             Bv[1:n,1] = -M0inv.solve(Bv[1:n,1]);
 
             #Compute y1,y2,......y_k
