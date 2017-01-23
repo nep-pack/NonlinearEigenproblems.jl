@@ -33,7 +33,6 @@ dep=DEP([A,B],[0,tau])
 # Setup a the coeff vector
 m=10;
 alphav=(0.6).^(1:m)
-alphav=ones(m)
 X=randn(n,m)
 V,R=qr(X)
 
@@ -49,7 +48,6 @@ println("Error:",Float64(norm(x-xx)/norm(xx)))
 # Setup a the coeff vector
 m=30;
 alphav=(0.6).^(1:m)
-alphav=ones(m)
 X=randn(n,m)
 V,R=qr(X)
 
