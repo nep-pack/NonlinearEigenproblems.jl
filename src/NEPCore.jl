@@ -283,6 +283,10 @@ abstract superclass of s.
     function interpolate{T<:Number}(nep::NEP, intpoints::Array{T,1})
         n = size(nep, 1)
         d = length(intpoints)
+        if (T != Complex64)
+            intpoints=Array{Complex64}(intpoints)
+        end
+
         b = Array{T}(n*d,n)
         for i = 1:d
             b[(1:n)+(i-1)*n,:] = compute_Mder(nep,intpoints[i])
