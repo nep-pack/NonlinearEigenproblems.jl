@@ -3,6 +3,7 @@ workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
+using NEPTypes
 using Gallery
 #using Winston # For plotting
 
@@ -54,3 +55,9 @@ println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))
 #semilogy(ev2[:])
 #ylabel("resnorm");
 #xlabel("iteration");
+
+
+## Pkg.add("Plots")
+using Plots
+plotly()
+plot(log10(ev[2:end]))

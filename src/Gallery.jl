@@ -1,5 +1,6 @@
 module Gallery
     using NEPCore
+    using NEPTypes
     using MATLAB
     using PolynomialRoots
     
