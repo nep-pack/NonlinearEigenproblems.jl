@@ -3,6 +3,7 @@ workspace();
 push!(LOAD_PATH, pwd())	
 push!(LOAD_PATH, ".." )	
 using NEPCore
+using NEPTypes
 
 
 function DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
