@@ -158,18 +158,23 @@ module NEPTypes
     interpolate(nep::NEP, intpoints)
  Interpolates a NEP in the points intpoints and returns a PEP
 """
-    function interpolate{T<:Number}(nep::NEP, intpoints::Array{T,1})
+    function interpolate(nep::NEP, intpoints::Array, TT::DataType=Complex64)
+        
         n = size(nep, 1)
         d = length(intpoints)
-        if (T != Complex64)
-            intpoints=Array{Complex64}(intpoints)
-        end
 
-        b = Array{T}(n*d,n)
-        for i = 1:d
-            b[(1:n)+(i-1)*n,:] = compute_Mder(nep,intpoints[i])
+        if (issparse(nep))
+            b = spzeros(TT,n*d,n)     # function evaluation matrix
+            AA = Array{AbstractSparseArray{TT,Int64,2}}(d) # Coeff matrix 
+        else
+            b = Array{TT}(n*d,n)      # function evaluation matrix
+            AA = Array{Array{TT,2}}(d) # Coeff matrix
         end
-        V = Array{T}(d,d)
+        
+        for i = 1:d
+            b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[i])
+        end
+        V = Array{TT}(d,d)
         pwr = ones(d,1)
         for i = 1:d
             V[:,i] = pwr
@@ -180,7 +185,6 @@ module NEPTypes
         V = kron(V,I)
         A = \(V,b)
 
-        AA = Array{Array{T,2}}(d)
         for i = 1:d
           AA[i] = A[(1:n)+(i-1)*n,:]
         end
