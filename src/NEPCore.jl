@@ -50,7 +50,7 @@ abstract superclass of s.
     compute_Mder(nep::NEP,λ::Number,i::Integer=0)
  Computes the ith derivative of NEP evaluated in λ\\
  Usage:\\
-   compute_Mder(nep,λ)  # Evaluate NEP in λ
+   `compute_Mder(nep,λ)`  # Evaluate NEP in λ
 """
     function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
         error("You need to provide an implementation of Mder for this NEP")
@@ -60,7 +60,7 @@ abstract superclass of s.
     """
     compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
  Computes the linear combination of derivatives\\
- Σ_i a_i M^{(i)}(λ) v_i
+ ``Σ_i a_i M^{(i)}(λ) v_i``
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
         # determine a default behavior (may lead to loss of performance)
@@ -75,8 +75,8 @@ abstract superclass of s.
 
     """
     compute_MM(nep::NEP,S,V)
- Computes the sum Σ_i M_i V f_i(S) for a NEP,\\
- where S and V are matrices.
+ Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP,\\
+ where `S` and `V` are matrices.
 """
     function compute_MM(nep::NEP,S,V)
         error("No procedure to compute MM")
@@ -154,16 +154,19 @@ abstract superclass of s.
     #
 
     """
-    NoConvergenceException
+ ### NoConvergenceException
  Exeption thrown in case an iterative method does not converge\\
- λ = current eigenvalue approximation\\
- v = current eigenvector approximation\\
- errmeasure = The error measure of the current eigenpair approximation\\
- msg
+ `λ` = current eigenvalue approximation\\
+ `v` = current eigenvector approximation\\
+ `errmeasure` = The error measure of the current eigenpair approximation\\
+ `msg`
 """
     type NoConvergenceException <: Exception
+        "current eigenvalue approximation"
         λ
+        "current eigenvector approximation"
         v
+        "The error measure of the current eigenpair approximation"
         errmeasure
         msg
     end

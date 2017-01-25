@@ -29,8 +29,8 @@ module NEPTypes
     #
 
     """
-    Delay eigenvalue problem
-  A DEP is defined by the sum the sum  -λI + Σ_i A_i exp(-tau_i λ)\\
+### Delay eigenvalue problem
+  A DEP is defined by the sum the sum  ``-λI + Σ_i A_i exp(-tau_i λ)``\\
   where all of the matrices are of size n times n\\
   Constructor: DEP(AA,tauv) where AA is an array of the\\
   matrices A_i, and tauv is a vector of the values tau_i
@@ -71,7 +71,7 @@ module NEPTypes
 
     """
     compute_MM(nep::DEP,S,V)
- Computes the sum Σ_i M_i V f_i(S) for a DEP
+ Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
 """
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
@@ -99,8 +99,8 @@ module NEPTypes
     #
 
     """
-    Polynomial eigenvalue problem
-  A PEP is defined by the sum the sum  Σ_i A_i λ^i,\\
+### Polynomial eigenvalue problem
+  A PEP is defined by the sum the sum ``Σ_i A_i λ^i``,\\
   where i = 0,1,2,..., and  all of the matrices are of size n times n\\
   Constructor: PEP(AA) where AA is an array of the matrices A_i
 """
@@ -116,7 +116,7 @@ module NEPTypes
 
     """
     compute_MM(nep::DEP,S,V)
- Computes the sum Σ_i M_i V f_i(S) for a DEP
+ Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
 """
     function compute_MM(nep::PEP,S,V)
         Z=zeros(size(V))
@@ -155,8 +155,9 @@ module NEPTypes
     end
 
 """
-    interpolate(nep::NEP, intpoints)
- Interpolates a NEP in the points intpoints and returns a PEP
+    interpolate(nep::NEP, intpoints::Array{T,1})
+ Interpolates a NEP in the points intpoints and returns a PEP.\\
+`T` is a subclass of `Number`
 """
     function interpolate(nep::NEP, intpoints::Array, TT::DataType=Complex64)
         
