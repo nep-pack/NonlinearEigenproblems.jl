@@ -4,6 +4,7 @@ module NEPCore
     export NEP
     # 
     export size
+    export issparse
     export NoConvergenceException
     export LinSolver
     export interpolate
@@ -26,6 +27,7 @@ module NEPCore
     export default_errmeasure
 
     import Base.size  # Overload for nonlinear eigenvalue problems
+    import Base.issparse  # Overload for nonlinear eigenvalue problems
 
 
 
@@ -143,6 +145,19 @@ abstract superclass of s.
     function size(nep::NEP,dim=-1)
         error("You need to provide an implementation of size for this NEP")
         return 0;
+    end
+
+
+"""
+    issparse(nep::NEP)
+ Overloads the issparse functions for NEP.\\
+ Issparse returns `true` if the undelying type of the NEP is\\
+ sparse, and `false` if it is dense.\\
+ Default behaviour: Check sparsity of `compute_Mder(nep,0)`
+
+"""
+    function issparse(nep::NEP)
+        issparse(compute_Mder(nep,0))
     end
 
 

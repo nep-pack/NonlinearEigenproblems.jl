@@ -37,7 +37,7 @@ module NEPTypes
 """
     type DEP <: NEP
         n::Integer
-        A     # An array of matrices (full or sparse matrices)
+        A::Array     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
