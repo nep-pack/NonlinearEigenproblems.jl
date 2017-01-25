@@ -11,12 +11,17 @@ module NEPTypes
     import NEPCore.compute_Mder
     import NEPCore.compute_Mlincomb
     import NEPCore.compute_MM
+    import NEPCore.compute_resnorm
+    import NEPCore.compute_rf
+    
     import Base.size
 
 
     export compute_Mder
     export compute_Mlincomb
     export compute_MM
+    export compute_resnorm
+    export compute_rf    
     export size
     
     ############################################
