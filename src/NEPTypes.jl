@@ -194,6 +194,6 @@ module NEPTypes
     end
 
 
-    interpolate(nep::NEP, intpoints::Array) = interpolate(Complex64, nep, intpoints)
+    interpolate(nep::NEP, intpoints::Array) = interpolate(Complex128, nep, intpoints)
 
 end

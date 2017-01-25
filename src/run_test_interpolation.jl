@@ -131,29 +131,6 @@ println("Resnorm: ",compute_resnorm(nep,λ1,x1))
 println(λ1)
 #println(x1)
 
-println("\nRunning Newton on interpolated pep (interpolation of degree 2)")
-intpoints = [λ1-1, λ1, λ1+1]
-
-pep = interpolate(Float64, nep, intpoints)
-try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1),1));
-catch e
-    # Only catch NoConvergence
-    isa(e, NoConvergenceException) || rethrow(e)
-    println("No convergence because:"*e.msg)
-    # still access the approximations
-    λ2=e.λ
-    x2=e.v
-end
-println("Resnorm: ",compute_resnorm(pep,λ2,x2))
-println(λ2)
-#println(x2)
-println("\nCoefficient matrix differences (monomes): ")
-println(norm(nep.A[1]-pep.A[1]))
-println(norm(nep.A[2]-pep.A[2]))
-println(norm(nep.A[3]-pep.A[3]))
-
-
 println("\nRunning Newton on interpolated pep (interpolation of degree 2) in Complex arithmetics")
 intpoints = [λ1-1, λ1, λ1+1]
 pep = interpolate(nep, intpoints)
@@ -181,7 +158,7 @@ println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 
 
-println("\nRunning Newton on interpolated pep (interpolation of degree 4)")
+println("\nRunning Newton on interpolated pep (interpolation of degree 4) (in real arithmetics)")
 intpoints = [λ1-3, λ1-1, λ1, λ1+1, λ1+3]
 
 pep = interpolate(Float64, nep, intpoints)
