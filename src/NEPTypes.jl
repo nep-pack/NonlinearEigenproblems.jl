@@ -155,18 +155,18 @@ module NEPTypes
     end
 
 """
-    interpolate(nep::NEP, intpoints::Array, T::DataType=Complex64)
+    interpolate([T::DataType=Complex64,] nep::NEP, intpoints::Array)
  Interpolates a NEP in the points intpoints and returns a PEP.\\
  `T` is the DataType in which the PEP should be defined.
 """
-    function interpolate(nep::NEP, intpoints::Array, T::DataType=Complex64)
+    function interpolate(T::DataType, nep::NEP, intpoints::Array)
 
         n = size(nep, 1)
         d = length(intpoints)
 
         if (issparse(nep))
             b = spzeros(T,n*d,n)     # function evaluation matrix
-            AA = Array{AbstractSparseArray{TT,Int64,2}}(d) # Coeff matrix 
+            AA = Array{AbstractSparseArray{T,Int64,2}}(d) # Coeff matrix 
         else
             b = Array{T}(n*d,n)      # function evaluation matrix
             AA = Array{Array{T,2}}(d) # Coeff matrix
@@ -193,5 +193,7 @@ module NEPTypes
         return PEP(AA)
     end
 
+
+    interpolate(nep::NEP, intpoints::Array) = interpolate(Complex64, nep, intpoints)
 
 end
