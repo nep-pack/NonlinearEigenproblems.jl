@@ -84,9 +84,8 @@ The default implementation of this is slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
     function compute_Mlincomb(nep::NEP,λ,V,a::Array,startder::Integer)
-        # This is a slow implementation. 
         aa=[zeros(startder);a];
-        VV=[zeros(size(nep,1),startder) V];
+        VV=[zeros(size(nep,1),startder) V]; # This is typically slow since copy is needed
         return compute_Mlincomb(nep,λ,VV,a=aa)
     end
     
@@ -133,7 +132,11 @@ if you want efficiency (for aug_newton, IAR, ..).
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
     end
 
-
+"""
+    compute_rf(nep::NEP,x; y=x, target=0, λ0=target,TOL=1e-12,max_iter=10)
+Computes the rayleigh functional of nep, i.e., computes λ such that
+   y^TM(λ)x=0.
+"""
     function compute_rf(nep::NEP,x; y=x, target=0, λ0=target,
                         TOL=1e-12,max_iter=10)
         # Ten steps of scalar Newton's method
@@ -143,7 +146,7 @@ if you want efficiency (for aug_newton, IAR, ..).
         while (abs(Δλ)>TOL) & (count<max_iter)
             count=count+1
             z1=compute_Mlincomb(nep,λ,reshape(x,nep.n,1))
-            z2=compute_Mlincomb(nep,λ,x*ones(1,2),a=[0,1])
+            z2=compute_Mlincomb(nep,λ,reshape(x,nep.n,1),[1],1)
             Δλ=-dot(y,z1)/dot(y,z2);
             λ=λ+Δλ
         end
