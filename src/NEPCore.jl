@@ -75,6 +75,21 @@ abstract superclass of s.
         end
     end
 
+"""
+    compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
+Computes linear combination starting with derivative startder, i.e., first
+column of V is multiplied by derivative startder.
+
+The default implementation of this is slow. Overload for specific NEP
+if you want efficiency (for aug_newton, IAR, ..).
+"""
+    function compute_Mlincomb(nep::NEP,λ,V,a::Array,startder::Integer)
+        # This is a slow implementation. 
+        aa=[zeros(startder);a];
+        VV=[zeros(size(nep,1),startder) V];
+        return compute_Mlincomb(nep,λ,VV,a=aa)
+    end
+    
     """
     compute_MM(nep::NEP,S,V)
  Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP,\\

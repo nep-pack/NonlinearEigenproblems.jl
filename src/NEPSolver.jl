@@ -173,7 +173,8 @@ module NEPSolver
                 end
                 # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
                 # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
-                z=compute_Mlincomb(nep,λ,v*ones(1,2),a=[0,1])
+                
+                z=compute_Mlincomb(nep,λ,v,[1.0],1)                
 
                 tempvec = compute_Mder(nep,λ)\z
                 α = 1.0/dot(c,tempvec);
