@@ -164,32 +164,34 @@ module NEPTypes
         n = size(nep, 1)
         d = length(intpoints)
 
-        if (issparse(nep))
+        if (issparse(nep)) #If Sparse, do elementwise interpolation
             b = spzeros(T,n*d,n)     # function evaluation matrix
             AA = Array{AbstractSparseArray{T,Int64,2}}(d) # Coeff matrix 
-        else
+            # TODO: Do spare, elementwise interpolation
+
+        else # If dense, use Vandermonde
             b = Array{T}(n*d,n)      # function evaluation matrix
             AA = Array{Array{T,2}}(d) # Coeff matrix
+
+            for i = 1:d
+                b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[i])
+            end
+            V = Array{T}(d,d)
+            pwr = ones(d,1)
+            for i = 1:d
+                V[:,i] = pwr
+                pwr = pwr.*intpoints
+            end
+
+            I = speye(n,n)
+            V = kron(V,I)
+            A = \(V,b)
+
+            for i = 1:d
+                AA[i] = A[(1:n)+(i-1)*n,:]
+            end
         end
         
-        for i = 1:d
-            b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[i])
-        end
-        V = Array{T}(d,d)
-        pwr = ones(d,1)
-        for i = 1:d
-            V[:,i] = pwr
-            pwr = pwr.*intpoints
-        end
-
-        I = speye(n,n)
-        V = kron(V,I)
-        A = \(V,b)
-
-        for i = 1:d
-          AA[i] = A[(1:n)+(i-1)*n,:]
-        end
-
         return PEP(AA)
     end
 
