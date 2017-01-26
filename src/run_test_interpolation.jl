@@ -11,6 +11,7 @@ using Gallery
 # BigFloat matrices. OBS: This becomes EXTREMELY time consuming for large scale problems!
 import Base.\
 function \(A::SparseMatrixCSC{BigFloat}, b::Array{BigFloat})
+    AA = full(A)
     return \(AA,b)
 end
 #########################################################################################
