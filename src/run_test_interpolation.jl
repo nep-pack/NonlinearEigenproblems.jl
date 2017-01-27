@@ -10,7 +10,7 @@ using Gallery
 # In order to do BigFloat arithmetics since is seems as if \ is not implemented for sparse
 # BigFloat matrices. OBS: This becomes EXTREMELY time consuming for large scale problems!
 import Base.\
-function \(A::SparseMatrixCSC{BigFloat}, b::Array{BigFloat})
+function \(A::Union{SparseMatrixCSC{BigFloat},SparseMatrixCSC{Complex{BigFloat}}}, b::Union{Array{BigFloat},Array{Complex{BigFloat}}})
     AA = full(A)
     return \(AA,b)
 end
