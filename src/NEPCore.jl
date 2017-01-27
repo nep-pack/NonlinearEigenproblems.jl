@@ -219,6 +219,8 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
         end   
     end
 
+""" Returns a Jordan matrix """
+
     function jordan_matrix(n::Integer,λ::Number;T::Type=Float64)
         Z=λ*eye(T,n)+diagm(ones(T,n-1),1);
     end
