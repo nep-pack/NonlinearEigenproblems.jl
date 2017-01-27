@@ -205,7 +205,7 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
     end
 
 
-    # To slove linear systems
+    # To slove linear systems (This probably needs to become an abstract class)
     type LinSolver
         solve::Function
         Afact
