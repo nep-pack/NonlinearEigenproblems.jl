@@ -20,7 +20,7 @@ module NEPCore
     export compute_rf
 
 
-    # Helper functions 
+    # Helper functions  (avoid using these directly in NEP-methods)
     export compute_Mlincomb_from_MM
     export compute_Mlincomb_from_Mder
 
