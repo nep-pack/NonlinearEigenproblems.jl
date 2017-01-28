@@ -4,6 +4,7 @@ module NEPTypes
     export PEP
 
     export interpolate
+    export interpolate_cheb
     
     using NEPCore
 
@@ -198,4 +199,15 @@ module NEPTypes
 
     interpolate(nep::NEP, intpoints::Array) = interpolate(Complex128, nep, intpoints)
 
+
+    """
+     interpolate_cheb(nep::NEP,a::Real,b::Real)
+  Interpolation in an interval using Chebyshev distribution. Returns a PEP.
+  Following Effenberger, Cedric, and Daniel Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
+"""
+    function interpolate_cheb(nep::NEP,a::Real,b::Real)
+        # Not yet implemented
+        # Note: PEP should probably be separated into Mono_PEP and
+        # Cheb_PEP depending which inherit from PEP.
+    end
 end
