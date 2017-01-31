@@ -19,9 +19,14 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 end
 
 
-D,V,err = iar(nep,maxit=100,Neig=2);
+λ,Q,err = iar(nep,maxit=100,Neig=1);
 
 for i=1:100
  semilogy(1:100, err[1:100,i], color="red", linewidth=2.0, linestyle="--")
+end
+
+errormeasure=default_errmeasure(nep);
+for i=1:length(λ)
+ println("Residual ",i," eigenpair = ",errormeasure(λ[i],Q[:,i]))
 end
 

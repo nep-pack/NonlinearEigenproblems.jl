@@ -208,10 +208,11 @@ module NEPSolver
 """
     The Infinite Arnoldi method 
 """
-    function iar(nep::NEP;maxit=30,linsolver=LinSolver,tol=1e-12,Neig=maxit)
+    function iar(nep::NEP;maxit=30,
+	linsolver=LinSolver,tol=1e-12,Neig=maxit,                                  
+        errmeasure::Function = default_errmeasure(nep::NEP))
 
         n = nep.n;            
-
         m = maxit;
 
         #####Pre-allocating the necessary matrices and vectors######
@@ -229,10 +230,13 @@ module NEPSolver
         M0inv = linsolver(compute_Mder(nep,0.0));#For computing the action of M(0)^{-1} later by M0inv.solve()
 
 	err = zeros(m,m); # error history
+        λ=zeros(m);
+        Q=zeros(n,m);
 
         V[1:n,1]=rand(n,1)/norm(randn(n,1));#Initializing the basis
 
-        for k=1:m
+        k=1; conv_eig=0;
+        while (k <= m)&(conv_eig<=Neig)
             ########## Compute action of the operator B in Bv #########
 
             #Compute y0 = Bv[1:n,1]  
@@ -263,24 +267,21 @@ module NEPSolver
 
             conv_eig=0;
             for s=1:k
-             err[k,s]=norm(compute_Mlincomb(nep,D[s],V[1:n,1:k]*Z[:,s]));
+             err[k,s]=errmeasure(D[s],V[1:n,1:k]*Z[:,s]);
              if err[k,s]<tol
               conv_eig=conv_eig+1;
+              Q[:,conv_eig]=V[1:n,1:k]*Z[:,s]; λ[conv_eig]=D[s];
              end
             end
 
-            if conv_eig>=Neig
-             break
-           end
-
+        k=k+1;
         end
 
+	# extract the converged Ritzpairs
+        λ=λ[1:min(length(λ),conv_eig)];
+        Q=Q[:,1:min(size(Q,2),conv_eig)];
 
-        D,Z=eig(H[1:m,1:m]);	D=1./D;
-
-	# extract the converged Ritzpairs: TODO
-
-        return D,V[1:n,1:m]*Z,err
+        return λ,Q,err
     end
 
     function doubleGS(V,vv,k,n)
