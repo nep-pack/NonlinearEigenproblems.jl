@@ -208,7 +208,7 @@ module NEPSolver
 """
     The Infinite Arnoldi method 
 """
-    function iar(nep::NEP,maxit=30)
+    function iar(nep::NEP;maxit=30,linsolver=LinSolver,tol=1e-12,Neig=maxit)
 
         n = nep.n;            
 
@@ -220,13 +220,15 @@ module NEPSolver
         H = zeros(m+1,m);#Hessenberg matrix
 
         Bv = zeros(n,m+1);#For storing y0,y1,y2,.....,y_{k+1} at the kth iteration,
-                        #where V_{k+1} = vec(y0,y1,y2,....,y_{k+1})
+                          #where V_{k+1} = vec(y0,y1,y2,....,y_{k+1})
 
         α = [0;ones(m)];#Coefficients for the LC: 0*M(0)*y0+∑M^{i}(0)*y_i
 
         W = zeros(n,m+1);#For storing W[:,1:k+1] = (0,y1,2*y2,3*y3,.......,k*y_k)
 
-        M0inv = LinSolver(compute_Mder(nep,0.0));#For computing the action of M(0)^{-1} later by M0inv.solve()
+        M0inv = linsolver(compute_Mder(nep,0.0));#For computing the action of M(0)^{-1} later by M0inv.solve()
+
+	err = zeros(m,m); # error history
 
         V[1:n,1]=rand(n,1)/norm(randn(n,1));#Initializing the basis
 
@@ -235,7 +237,7 @@ module NEPSolver
 
             #Compute y0 = Bv[1:n,1]  
             W[:,2:k+1] = reshape(V[1:n*k,k],n,k);#Extract v_{k+1} and reshape it into a matrix   
-            Bv[1:n,1] = compute_Mlincomb(nep,0.0,W,a=α[1:k+1]);
+            Bv[1:n,1] =  compute_Mlincomb(nep,0.0,W,a=α[1:k+1]);
             Bv[1:n,1] = -M0inv.solve(Bv[1:n,1]);
 
             #Compute y1,y2,......y_k
@@ -255,14 +257,30 @@ module NEPSolver
             H[k+1,k]=beta;
 
             V[1:(k+1)*n,k+1]=vv/beta;
+
+            # compute error history
+            D,Z=eig(H[1:k,1:k]); D=1./D;
+
+            conv_eig=0;
+            for s=1:k
+             err[k,s]=norm(compute_Mlincomb(nep,D[s],V[1:n,1:k]*Z[:,s]));
+             if err[k,s]<tol
+              conv_eig=conv_eig+1;
+             end
+            end
+
+            if conv_eig>=Neig
+             break
+           end
+
         end
 
 
-        D,V=eig(H[1:m,1:m]);
-        
-        D=1./D;
+        D,Z=eig(H[1:m,1:m]);	D=1./D;
 
-        return D,V
+	# extract the converged Ritzpairs: TODO
+
+        return D,V[1:n,1:m]*Z,err
     end
 
     function doubleGS(V,vv,k,n)
