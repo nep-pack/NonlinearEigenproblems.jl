@@ -157,7 +157,7 @@ module NEPTypes
             return nep.n
         end
     end
-    function issparse(nep::DEP)
+    function issparse(nep::PEP)
         return nep.issparse
     end
 
