@@ -16,7 +16,7 @@ module NEPTypes
     import NEPCore.compute_rf
     
     import Base.size
-
+    import NEPCore.issparse
 
     export compute_Mder
     export compute_Mlincomb
@@ -40,9 +40,10 @@ module NEPTypes
         n::Integer
         A::Array     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
+        issparse::Bool
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
-            this=new(n,AA,tauv);
+            this=new(n,AA,tauv,issparse(AA[1]));
             return this;
         end
     end
@@ -93,8 +94,9 @@ module NEPTypes
             return nep.n
         end
     end
-
-
+    function issparse(nep::DEP)
+        return nep.issparse
+    end
     ############################################
     # Polynomial eigenvalue problem - PEP
     #
@@ -108,10 +110,11 @@ module NEPTypes
 
     type PEP <: NEP
         n::Integer
-        A::Array   # Monomial coefficients of PEP 
+        A::Array   # Monomial coefficients of PEP
+        issparse::Bool
         function PEP(AA)
             n=size(AA[1],1)
-            return new(n,AA)
+            return new(n,AA,issparse(AA[1]))
         end
     end
 
@@ -153,6 +156,9 @@ module NEPTypes
         else
             return nep.n
         end
+    end
+    function issparse(nep::DEP)
+        return nep.issparse
     end
 
 """
