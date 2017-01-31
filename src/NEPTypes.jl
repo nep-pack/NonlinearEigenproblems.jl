@@ -170,24 +170,46 @@ module NEPTypes
 
         n = size(nep, 1)
         d = length(intpoints)
+        
+        V = Array{T}(d,d) #Vandermonde matrix
+        pwr = ones(d,1)
+        for i = 1:d
+            V[:,i] = pwr
+            pwr = pwr.*intpoints
+        end
 
         if (issparse(nep)) #If Sparse, do elementwise interpolation
-            b = spzeros(T,n*d,n)     # function evaluation matrix
-            AA = Array{AbstractSparseArray{T,Int64,2}}(d) # Coeff matrix 
-            # TODO: Do spare, elementwise interpolation
+            b = Array{SparseMatrixCSC{T},1}(d)
+            AA = Array{SparseMatrixCSC{T},1}(d)
+            V = factorize(V) # Will be used multiple times, factorize
+
+            for i=1:d
+                b[i] = compute_Mder(nep, intpoints[i])
+            end
+            
+            # OBS: The following lines and hence the  following method assumes that Sparsity-structure is the same!
+            nnz_AA = nnz(b[1])
+            for i=1:d
+                AA[i] = spones(b[1])
+            end
+            
+            f = zeros(d,1)
+            for i = 1:nnz_AA
+                for j = 1:d
+                    f[j] = b[j].nzval[i]
+                end
+                a = \(V,f)
+                for j = 1:d
+                    AA[j].nzval[i] = a[j]
+                end
+            end
 
         else # If dense, use Vandermonde
-            b = Array{T}(n*d,n)      # function evaluation matrix
-            AA = Array{Array{T,2}}(d) # Coeff matrix
+            b = Array{T}(n*d,n)
+            AA = Array{Array{T,2}}(d)
 
             for i = 1:d
                 b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[i])
-            end
-            V = Array{T}(d,d)
-            pwr = ones(d,1)
-            for i = 1:d
-                V[:,i] = pwr
-                pwr = pwr.*intpoints
             end
 
             I = speye(n,n)
