@@ -16,7 +16,7 @@ module NEPTypes
     import NEPCore.compute_rf
     
     import Base.size
-    import NEPCore.issparse
+    import Base.issparse
 
     export compute_Mder
     export compute_Mlincomb
@@ -24,7 +24,7 @@ module NEPTypes
     export compute_resnorm
     export compute_rf    
     export size
-    
+
     ############################################
     # Delay eigenvalue problem - DEP
     #
