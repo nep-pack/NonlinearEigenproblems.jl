@@ -125,7 +125,7 @@ module NEPTypes
 """
     function compute_MM(nep::PEP,S,V)
         if(issparse(nep))
-            Z=spzeros(size(V))
+            Z=spzeros(size(V,1),size(V,2))
             Si=speye(size(S,1))
         else
             Z=zeros(size(V))
@@ -217,14 +217,17 @@ module NEPTypes
         else # If dense, use Vandermonde
             b = Array{T}(n*d,n)
             AA = Array{Array{T,2}}(d)
-
-            for i = 1:d
-                b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[i])
-            end
+            (L, U, p) = lu(V)
 
             I = speye(n,n)
-            V = kron(V,I)
-            A = \(V,b)
+            LL = kron(L,I)
+            UU = kron(U,I)
+
+            for i = 1:d
+                b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[p[i]])
+            end
+
+            A = \(UU, \(LL,b))
 
             for i = 1:d
                 AA[i] = A[(1:n)+(i-1)*n,:]

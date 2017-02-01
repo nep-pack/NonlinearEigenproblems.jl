@@ -46,7 +46,7 @@ println(λ1)
 println(x1)
 
 
-println("\nRunning Newton on interpolated dep")
+println("\nRunning Newton on interpolated dep (interpolating pep of degree 2)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
 try
@@ -67,7 +67,7 @@ println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
 println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 
-println("\nRunning Newton on interpolated dep (higher degree of interpolating pep)")
+println("\nRunning Newton on interpolated dep (interpolating pep of degree 8)")
 #intpoints = [λ1-7, λ1-5, λ1-2, λ1-1, λ1, λ1+1, λ1+2, λ1+5, λ1+7]
 intpoints = [λ1-5, λ1-1, λ1, λ1+5, λ1+1, λ1+5im, λ1+1im, λ1-5im, λ1-1im]
 pep = interpolate(nep, intpoints)
@@ -89,7 +89,7 @@ println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
 println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 
-println("\nRunning Newton on interpolated dep (BigFloat arithmetic)")
+println("\nRunning Newton on interpolated dep (BigFloat arithmetic, degree 2)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try
@@ -105,6 +105,9 @@ end
 println("Resnorm: ",compute_resnorm(pep,λ2,x2))
 println(λ2)
 println(x2)
+
+println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
+println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 
 #########################################################################################
@@ -193,7 +196,7 @@ println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 
 
-println("\nRunning Newton on interpolated pep (interpolation of degree 4) (in real arithmetics)")
+println("\nRunning Newton on interpolated pep (interpolation of degree 4) in real arithmetics")
 intpoints = [λ1-3, λ1-1, λ1, λ1+1, λ1+3]
 
 pep = interpolate(Float64, nep, intpoints)
