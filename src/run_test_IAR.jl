@@ -12,14 +12,14 @@ using PyPlot
 import NEPCore.compute_Mlincomb
 
 println("Load dep0")
-#nep=nep_gallery("dep0")
-nep=nep_gallery("pep0");
+nep=nep_gallery("dep0")
+#nep=nep_gallery("pep0");
 
-function compute_Mlincomb(nep::PEP,λ::Number,V;a=ones(size(V,2)))
+function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
     return compute_Mlincomb_from_Mder(nep,λ,V,a)
 end
 
-m=30;
+m=100;
 λ,Q,err = iar(nep,maxit=m,Neig=m,σ=0.0);
 
 for i=1:m

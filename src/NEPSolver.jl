@@ -208,87 +208,64 @@ module NEPSolver
 """
     The Infinite Arnoldi method 
 """
-    function iar(nep::NEP;maxit=30,	           
-        linsolver=LinSolver,tol=1e-12,Neig=maxit,                                  
-        errmeasure::Function = default_errmeasure(nep::NEP),
-	σ=0.0)
+    function iar(
+     nep::NEP;maxit=30,	           
+     linsolver=LinSolver,tol=1e-12,Neig=maxit,                                  
+     errmeasure::Function = default_errmeasure(nep::NEP),
+     σ=0.0)
 
+     n = nep.n; m = maxit;
+     # initialization
+     V = zeros(n*(m+1),m+1);
+     H = zeros(m+1,m);
+     y = zeros(n,m+1);
+     α = [0;ones(m)];
+     M0inv = linsolver(compute_Mder(nep,σ));
+     err = zeros(m,m); # error history
+     λ=zeros(m); Q=zeros(n,m);
 
-        n = nep.n;            
-        m = maxit;
+     V[1:n,1]=rand(n,1)/norm(randn(n,1));
 
-        #####Pre-allocating the necessary matrices and vectors######
-        V = zeros(n*(m+1),m+1);#Krylov subspace
+     k=1; conv_eig=0;
+     while (k <= m)&(conv_eig<=Neig)
+      y[:,2:k+1] = reshape(V[1:n*k,k],n,k);  
+      for j=2:k+1	
+       y[:,j]=y[:,j]/j; #Vectorizable 
+      end
+      y[:,1] = 0;
+      y[:,1] =  compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+      y[:,1] =  -M0inv.solve(y[:,1]);
 
-        H = zeros(m+1,m);#Hessenberg matrix
+      vv=reshape(y[:,1:k+1],(k+1)*n,1);
+      # orthogonalization
+      h,vv = doubleGS(V,vv,k,n);
+      H[1:k,k]=h;
+      beta=norm(vv);
 
-        Bv = zeros(n,m+1);#For storing y0,y1,y2,.....,y_{k+1} at the kth iteration,
-                          #where V_{k+1} = vec(y0,y1,y2,....,y_{k+1})
-        
-        #Coefficients for the LC: 0*M(0)*y0+∑M^{i}(0)*y_i
-        α = [0;ones(m)];
-	for k=2:m
-		α[k]=α[k]/(k-1);
-        end
+      H[k+1,k]=beta;
+      V[1:(k+1)*n,k+1]=vv/beta;
 
-        #W[:,1:k+1] = (0,y1,2*y2,3*y3,.......,k*y_k)
-        W = zeros(n,m+1);
-        M0inv = linsolver(compute_Mder(nep,σ));
+      # compute error history
+      D,Z=eig(H[1:k,1:k]); D=σ+1./D;
 
-	err = zeros(m,m); # error history
-        λ=zeros(m);
-        Q=zeros(n,m);
+      conv_eig=0;
+      for s=1:k
+       err[k,s]=errmeasure(D[s],V[1:n,1:k]*Z[:,s]);
+       #if err[k,s]>1; err[k,s]=1; end
+       if err[k,s]<tol
+        conv_eig=conv_eig+1;
+        Q[:,conv_eig]=V[1:n,1:k]*Z[:,s]; λ[conv_eig]=D[s];
+       end
+      end
 
-        V[1:n,1]=rand(n,1)/norm(randn(n,1));#Initializing the basis
+      k=k+1;
+      end
 
-        k=1; conv_eig=0;
-        while (k <= m)&(conv_eig<=Neig)
-            ########## Compute action of the operator B in Bv #########
+      # extract the converged Ritzpairs
+      λ=λ[1:min(length(λ),conv_eig)];
+      Q=Q[:,1:min(size(Q,2),conv_eig)];
 
-            #Compute y0 = Bv[1:n,1]  
-             #Extract v_{k+1} and reshape it into a matrix 
-             W[:,2:k+1] = reshape(V[1:n*k,k],n,k);  
-             Bv[1:n,1] =  compute_Mlincomb(nep,σ,W,a=α[1:k+1]);
-             Bv[1:n,1] =  -M0inv.solve(Bv[1:n,1]);
-
-            #Compute y1,y2,......y_k
-            for j=1:k	# TODO: very wired, check it again
-                Bv[:,j+1]=W[:,j+1]/j; #Vectorizable 
-            end
- 
-            #vv = V_{k+1} = vec(y0,y1,y2,....,y_{k+1}
-            vv=reshape(Bv[:,1:k+1],(k+1)*n,1);
-
-            # double GS-orthogonalization
-            h,vv = doubleGS(V,vv,k,n);
-            H[1:k,k]=h;
-
-            beta=norm(vv);
-
-            H[k+1,k]=beta;
-
-            V[1:(k+1)*n,k+1]=vv/beta;
-
-            # compute error history
-            D,Z=eig(H[1:k,1:k]); D=-σ+1./D;
-
-            conv_eig=0;
-            for s=1:k
-             err[k,s]=errmeasure(D[s],V[1:n,1:k]*Z[:,s]);
-             if err[k,s]<tol
-              conv_eig=conv_eig+1;
-              Q[:,conv_eig]=V[1:n,1:k]*Z[:,s]; λ[conv_eig]=D[s];
-             end
-            end
-
-        k=k+1;
-        end
-
-	# extract the converged Ritzpairs
-        λ=λ[1:min(length(λ),conv_eig)];
-        Q=Q[:,1:min(size(Q,2),conv_eig)];
-
-        return λ,Q,err
+      return λ,Q,err
     end
 
     function doubleGS(V,vv,k,n)
