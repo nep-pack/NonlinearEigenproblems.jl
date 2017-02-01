@@ -11,18 +11,19 @@ using PyPlot
 # functions from packages
 import NEPCore.compute_Mlincomb
 
-println("Load dep0")
-nep=nep_gallery("dep0")
+#println("Load dep0")
+#nep=nep_gallery("dep0")
+nep=nep_gallery("pep0");
 
-function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
+function compute_Mlincomb(nep::PEP,λ::Number,V;a=ones(size(V,2)))
     return compute_Mlincomb_from_Mder(nep,λ,V,a)
 end
 
+m=30;
+λ,Q,err = iar(nep,maxit=m,Neig=m,σ=1.0);
 
-λ,Q,err = iar(nep,maxit=100,Neig=1);
-
-for i=1:100
- semilogy(1:100, err[1:100,i], color="red", linewidth=2.0, linestyle="--")
+for i=1:m
+ semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
 end
 
 errormeasure=default_errmeasure(nep);

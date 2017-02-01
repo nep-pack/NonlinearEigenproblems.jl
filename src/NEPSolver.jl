@@ -208,9 +208,11 @@ module NEPSolver
 """
     The Infinite Arnoldi method 
 """
-    function iar(nep::NEP;maxit=30,
-	linsolver=LinSolver,tol=1e-12,Neig=maxit,                                  
-        errmeasure::Function = default_errmeasure(nep::NEP))
+    function iar(nep::NEP;maxit=30,	           
+        linsolver=LinSolver,tol=1e-12,Neig=maxit,                                  
+        errmeasure::Function = default_errmeasure(nep::NEP),
+	σ=0.0)
+
 
         n = nep.n;            
         m = maxit;
@@ -227,7 +229,7 @@ module NEPSolver
 
         W = zeros(n,m+1);#For storing W[:,1:k+1] = (0,y1,2*y2,3*y3,.......,k*y_k)
 
-        M0inv = linsolver(compute_Mder(nep,0.0));#For computing the action of M(0)^{-1} later by M0inv.solve()
+        M0inv = linsolver(compute_Mder(nep,-σ));#For computing the action of M(0)^{-1} later by M0inv.solve()
 
 	err = zeros(m,m); # error history
         λ=zeros(m);
@@ -241,11 +243,11 @@ module NEPSolver
 
             #Compute y0 = Bv[1:n,1]  
             W[:,2:k+1] = reshape(V[1:n*k,k],n,k);#Extract v_{k+1} and reshape it into a matrix   
-            Bv[1:n,1] =  compute_Mlincomb(nep,0.0,W,a=α[1:k+1]);
-            Bv[1:n,1] = -M0inv.solve(Bv[1:n,1]);
+            Bv[1:n,1] =  compute_Mlincomb(nep,-σ,W,a=α[1:k+1]);
+            Bv[1:n,1] =  -M0inv.solve(Bv[1:n,1]);
 
             #Compute y1,y2,......y_k
-            for j=2:k+1
+            for j=2:k+1	# TODO: very wired, check it again
                 Bv[:,j]=W[:,j]/j; #Vectorizable 
             end
  
@@ -263,7 +265,7 @@ module NEPSolver
             V[1:(k+1)*n,k+1]=vv/beta;
 
             # compute error history
-            D,Z=eig(H[1:k,1:k]); D=1./D;
+            D,Z=eig(H[1:k,1:k]); D=-σ+1./D;
 
             conv_eig=0;
             for s=1:k

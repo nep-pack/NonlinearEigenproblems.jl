@@ -52,6 +52,7 @@ module NEPTypes
     compute_Mder(nep::DEP,λ::Number,i::Integer=0)
  Compute the ith derivative of a DEP
 """
+     # TODO: this function compute only the first 2 derivatives. Extend.
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
         local M,I;
         if issparse(nep.A[1])
