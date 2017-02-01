@@ -55,7 +55,7 @@ module NEPTypes
      # TODO: this function compute only the first 2 derivatives. Extend.
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
         local M,I;
-        if issparse(nep.A[1])
+        if issparse(nep)
             M=spzeros(nep.n,nep.n)
             I=speye(nep.n,nep.n)
         else
@@ -124,8 +124,13 @@ module NEPTypes
  Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
 """
     function compute_MM(nep::PEP,S,V)
-        Z=zeros(size(V))
-        Si=eye(size(S,1))
+        if(issparse(nep))
+            Z=spzeros(size(V))
+            Si=speye(size(S,1))
+        else
+            Z=zeros(size(V))
+            Si=eye(size(S,1))
+        end
         for i=1:size(nep.A,1)
             Z+=nep.A[i]*V*Si;
             Si=Si*S;
@@ -138,7 +143,11 @@ module NEPTypes
  Compute the ith derivative of a PEP
 """
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
-        Z=zeros(size(nep,1),size(nep,1));
+        if(issparse(nep))
+            Z=spzeros(size(nep,1),size(nep,1));
+        else
+            Z=zeros(size(nep,1),size(nep,1));
+        end
         for j=(i+1):size(nep.A,1)
             # Derivatives of monimials
             Z+= nep.A[j]*(λ^(j-i-1)*factorial(j-1)/factorial(j-i-1))
