@@ -224,12 +224,16 @@ module NEPSolver
 
         Bv = zeros(n,m+1);#For storing y0,y1,y2,.....,y_{k+1} at the kth iteration,
                           #where V_{k+1} = vec(y0,y1,y2,....,y_{k+1})
+        
+        #Coefficients for the LC: 0*M(0)*y0+∑M^{i}(0)*y_i
+        α = [0;ones(m)];
+	for k=2:m
+		α[k]=α[k]/(k-1);
+        end
 
-        α = [0;ones(m)];#Coefficients for the LC: 0*M(0)*y0+∑M^{i}(0)*y_i
-
-        W = zeros(n,m+1);#For storing W[:,1:k+1] = (0,y1,2*y2,3*y3,.......,k*y_k)
-
-        M0inv = linsolver(compute_Mder(nep,-σ));#For computing the action of M(0)^{-1} later by M0inv.solve()
+        #W[:,1:k+1] = (0,y1,2*y2,3*y3,.......,k*y_k)
+        W = zeros(n,m+1);
+        M0inv = linsolver(compute_Mder(nep,σ));
 
 	err = zeros(m,m); # error history
         λ=zeros(m);
@@ -242,13 +246,14 @@ module NEPSolver
             ########## Compute action of the operator B in Bv #########
 
             #Compute y0 = Bv[1:n,1]  
-            W[:,2:k+1] = reshape(V[1:n*k,k],n,k);#Extract v_{k+1} and reshape it into a matrix   
-            Bv[1:n,1] =  compute_Mlincomb(nep,-σ,W,a=α[1:k+1]);
-            Bv[1:n,1] =  -M0inv.solve(Bv[1:n,1]);
+             #Extract v_{k+1} and reshape it into a matrix 
+             W[:,2:k+1] = reshape(V[1:n*k,k],n,k);  
+             Bv[1:n,1] =  compute_Mlincomb(nep,σ,W,a=α[1:k+1]);
+             Bv[1:n,1] =  -M0inv.solve(Bv[1:n,1]);
 
             #Compute y1,y2,......y_k
-            for j=2:k+1	# TODO: very wired, check it again
-                Bv[:,j]=W[:,j]/j; #Vectorizable 
+            for j=1:k	# TODO: very wired, check it again
+                Bv[:,j+1]=W[:,j+1]/j; #Vectorizable 
             end
  
             #vv = V_{k+1} = vec(y0,y1,y2,....,y_{k+1}

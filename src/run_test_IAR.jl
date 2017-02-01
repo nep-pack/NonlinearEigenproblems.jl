@@ -11,7 +11,7 @@ using PyPlot
 # functions from packages
 import NEPCore.compute_Mlincomb
 
-#println("Load dep0")
+println("Load dep0")
 #nep=nep_gallery("dep0")
 nep=nep_gallery("pep0");
 
@@ -20,7 +20,7 @@ function compute_Mlincomb(nep::PEP,λ::Number,V;a=ones(size(V,2)))
 end
 
 m=30;
-λ,Q,err = iar(nep,maxit=m,Neig=m,σ=1.0);
+λ,Q,err = iar(nep,maxit=m,Neig=m,σ=0.0);
 
 for i=1:m
  semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
