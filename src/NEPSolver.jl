@@ -299,6 +299,14 @@ module NEPSolver
             return h,vv;
     end
 
+    function singleGS(V,vv,k,n)
+
+            h=V[1:(k+1)*n,1:k]'*vv;
+
+            vv=vv-V[1:(k+1)*n,1:k]*h;
+
+            return h,vv;
+    end
     ### Moved to NEPCore.jl
     ##############################################################################
     #  function default_errmeasure(nep::NEP, displaylevel)
