@@ -224,3 +224,48 @@ println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
 
 
 
+#########################################################################################
+println("\n\n\n\n-------------------------------------------")
+println("\n\n\n\nRunning Newton on random sparse pep")
+nep=nep_gallery("pep0_sparse_003")
+
+try
+    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+catch e
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λ1=e.λ
+    x1=e.v
+end
+println("Resnorm: ",compute_resnorm(nep,λ1,x1))
+println(λ1)
+#println(x1)
+
+
+println("\nRunning Newton on interpolated sparse pep (with BigFloat arithmetics)")
+intpoints = [λ1-1, λ1, λ1+1.5]
+pep = interpolate(BigFloat, nep, intpoints)
+try
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+catch e
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λ2=e.λ
+    x2=e.v
+end
+println("Resnorm: ",compute_resnorm(pep,λ2,x2))
+println(λ2)
+#println(x2)
+
+println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
+println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+
+println("\nCoefficient matrix differences (monomes): ")
+println(norm(nep.A[1]-pep.A[1], Inf))
+println(norm(nep.A[2]-pep.A[2], Inf))
+println(norm(nep.A[3]-pep.A[3], Inf))
+

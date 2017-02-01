@@ -27,6 +27,7 @@ module Gallery
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
+
       elseif (name == "dep0_sparse")
           # A delay eigenvalue problem with sparse matrices
           n=5;
@@ -36,6 +37,7 @@ module Gallery
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
+
       elseif (name == "dep_double")
           # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
           # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
@@ -54,14 +56,27 @@ module Gallery
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
+
       elseif (name== "pep0")
-          # A polynomial eigenvalue problem          
+          # A polynomial eigenvalue problem
           n=200; # mat size
 
           srand(0)
           A0=randn(n,n)
           A1=randn(n,n)
           A2=randn(n,n)
+          A=[A0,A1,A2]
+          nep=PEP(A)
+          return nep
+
+       elseif (name== "pep0_sparse_003")
+          # A sparse polynomial eigenvalue problem
+          n=200; # mat size
+
+          srand(0)
+          A0=sprandn(n,n,0.03)
+          A1=sprandn(n,n,0.03)
+          A2=sprandn(n,n, 0.03)
           A=[A0,A1,A2]
           nep=PEP(A)
           return nep
