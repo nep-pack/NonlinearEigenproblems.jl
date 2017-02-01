@@ -19,8 +19,8 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
     return compute_Mlincomb_from_Mder(nep,λ,V,a)
 end
 
-m=100;
-λ,Q,err = iar(nep,maxit=m,Neig=m,σ=0.0);
+m=50;
+λ,Q,err = iar(nep,maxit=m,Neig=m,σ=1.0);
 
 for i=1:m
  semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")

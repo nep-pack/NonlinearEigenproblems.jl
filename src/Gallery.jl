@@ -20,7 +20,7 @@ module Gallery
   function nep_gallery(name,params...)
       if (name == "dep0")
           # A delay eigenvalue problem
-          n=5;
+          n=100;
           srand(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);

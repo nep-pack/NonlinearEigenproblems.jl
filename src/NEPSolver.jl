@@ -222,19 +222,20 @@ module NEPSolver
      α = [0;ones(m)];
      M0inv = linsolver(compute_Mder(nep,σ));
      err = zeros(m,m); # error history
-     λ=zeros(m); Q=zeros(n,m);
+     λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
      V[1:n,1]=rand(n,1)/norm(randn(n,1));
 
      k=1; conv_eig=0;
      while (k <= m)&(conv_eig<=Neig)
+
       y[:,2:k+1] = reshape(V[1:n*k,k],n,k);  
-      for j=2:k+1	
-       y[:,j]=y[:,j]/j; #Vectorizable 
+      for j=1:k	
+       y[:,j+1]=y[:,j+1]/j;  
       end
-      y[:,1] = 0;
-      y[:,1] =  compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-      y[:,1] =  -M0inv.solve(y[:,1]);
+
+      y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+      y[:,1] = -M0inv.solve(y[:,1]);
 
       vv=reshape(y[:,1:k+1],(k+1)*n,1);
       # orthogonalization
@@ -251,7 +252,7 @@ module NEPSolver
       conv_eig=0;
       for s=1:k
        err[k,s]=errmeasure(D[s],V[1:n,1:k]*Z[:,s]);
-       #if err[k,s]>1; err[k,s]=1; end
+       if err[k,s]>10; err[k,s]=1; end	# artificial fix
        if err[k,s]<tol
         conv_eig=conv_eig+1;
         Q[:,conv_eig]=V[1:n,1:k]*Z[:,s]; λ[conv_eig]=D[s];
