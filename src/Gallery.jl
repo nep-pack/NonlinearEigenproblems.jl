@@ -87,6 +87,39 @@ module Gallery
           nep=PEP(A)
           return nep
 
+      elseif (name== "real_quadratic")
+          # Create a quadratic problem with real eigenvalues          
+          n=4; # mat size
+	   
+	  A0 = [4     0     1     1;
+    		0     2     1     1;
+   		1     1     6    -2;
+    		1     1    -2     3];
+
+
+	A1 = [167  -140    95  -131;
+	     -140   327    54    85;
+ 	       95    54   235   -81;
+ 	     -131    85   -81   181];
+
+
+	A2 =  [2     1    -1    -1;
+  	       1     5    -3     2;
+  	      -1    -3     3     0;
+	      -1     2     0     3];
+
+	# Four smallest eigenvalues of the problem:
+	# 1.0e+03 *
+	# -2.051741417993845
+  	# -0.182101627437811
+  	# -0.039344930222838
+  	# -0.004039879577113
+
+
+          A=[A0,A1,A2]
+          nep=PEP(A)
+          return nep
+
       end    
   end
 
