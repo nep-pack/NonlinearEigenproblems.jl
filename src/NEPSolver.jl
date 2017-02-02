@@ -229,7 +229,9 @@ module NEPSolver
      k=1; conv_eig=0;
      while (k <= m)&(conv_eig<=Neig)
 
-      y[:,2:k+1] = reshape(V[1:n*k,k],n,k);  
+      #y[:,2:k+1] = reshape(V[1:n*k,k],n,k);  
+      y[:,2:k+1] = reshape(view(V,1:1:n*k,k),n,k);
+      # no improvement, just sperimenting. 
       for j=1:k	
        y[:,j+1]=y[:,j+1]/j;  
       end
