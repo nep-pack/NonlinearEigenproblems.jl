@@ -24,6 +24,7 @@ module NEPTypes
     export compute_resnorm
     export compute_rf    
     export size
+    export companion
 
     ############################################
     # Delay eigenvalue problem - DEP
@@ -250,5 +251,46 @@ module NEPTypes
         # Not yet implemented
         # Note: PEP should probably be separated into Mono_PEP and
         # Cheb_PEP depending which inherit from PEP.
+    end
+
+
+"""
+    Return the most commonly used companion linearization(as in "Non-linear eigenvalue problems, a challenge for modern eigenvalue methods", by Mehrmann and Voss)
+    of a PEP. For a k-th degree PEP with n-by-n coefficient matrices, this returns E and A, both kn-by-kn, such that the linear pencil L(λ) = λE-A
+"""
+    function companion(pep::PEP)
+
+        n = size(pep,1);#Size of monomial coefficient matrices
+
+        d = size(pep.A,1)-1;#Degree of pep
+        
+        #n-by-n matrices required for companion construction
+        In = eye(n);
+
+        ##### Construct E #####
+
+        E = zeros(d*n,d*n);
+
+        E[1:n,1:n] = pep.A[d+1];
+        for i=2:d
+            E[(i-1)*n+1:i*n,(i-1)*n+1:i*n] = In;
+        end
+
+        #####Construct A #####
+
+        A = zeros(n*d,n*d);
+
+        #First row block of A
+        for i=1:d
+           A[1:n,(i-1)*n+1:i*n] = pep.A[d-i+1];
+        end
+
+        for i=2:d
+            A[(i-1)*n+1:i*n,(i-2)*n+1:(i-1)*n] = -In;
+        end
+
+        return E,A
+
+
     end
 end
