@@ -28,7 +28,7 @@ module NEPTypes
     export companion
 
     ###########################################################
-    # Polynomial eigenvalue problem - PEP
+    # Delay eigenvalue problems - DEP
     #
 
     """
