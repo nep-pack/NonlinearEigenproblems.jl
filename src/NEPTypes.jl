@@ -2,6 +2,7 @@ module NEPTypes
     # Specializalized NEPs 
     export DEP
     export PEP
+    export REP
 
     export interpolate
     export interpolate_cheb
@@ -26,8 +27,8 @@ module NEPTypes
     export size
     export companion
 
-    ############################################
-    # Delay eigenvalue problem - DEP
+    ###########################################################
+    # Polynomial eigenvalue problem - PEP
     #
 
     """
@@ -99,7 +100,7 @@ module NEPTypes
     function issparse(nep::DEP)
         return nep.issparse
     end
-    ############################################
+    ###########################################################
     # Polynomial eigenvalue problem - PEP
     #
 
@@ -295,4 +296,95 @@ module NEPTypes
 
 
     end
+
+    ###########################################################
+    # Rational eigenvalue problem - REP
+        
+    """
+### Rational eigenvalue problem
+  A Rep is defined by the sum the sum ``Σ_i A_i s_i(λ)/q_i(λ)``,\\
+  where i = 0,1,2,..., all of the matrices are of size n times n
+  and s_i and q_i are polynomials\\
+  Constructor: REP(AA) where AA is an array of the matrices A_i
+"""
+
+    type REP <: NEP
+        n::Integer
+        A::Array   # Monomial coefficients of REP
+        si::Array  # numerator polynomials
+        qi::Array  # demonimator polynomials
+        issparse::Bool
+        # Initiate with order zero numerators and order one denominators
+        # with poles given by poles[]
+        function REP(AA,poles::Array)
+
+            n=size(AA[1],1)
+            # numerators
+            si=Array{Array{Number,1},1}(length(poles))
+            for i =1:size(poles,1)
+                si[i]=[1];
+            end
+            # denominators
+            qi=Array{Array{Number,1}}(length(poles))            
+            for i =1:size(poles,1)
+                if poles[i]!=0
+                    qi[i]=[1,-poles[i]];
+                else
+                    qi[i]=[1];                    
+                end
+            end
+            return new(n,AA,si,qi,issparse(AA[1]))
+        end
+    end
+    function issparse(nep::REP)
+        return nep.issparse;
+    end
+
+    function compute_MM(nep::REP,S,V)
+        if(issparse(nep))
+            Z=spzeros(size(V,1),size(V,2))
+            Si=speye(size(S,1))
+        else
+            Z=zeros(size(V))
+            Si=eye(size(S,1))
+        end
+        # Sum all the elements            
+        for i=1:size(nep.A,1)
+            # compute numerator
+            Snum=copy(Si);
+            Spowj=copy(Si);
+            for j=1:length(nep.si[i])
+                Snum+=Spowj*nep.si[i][j]
+                Spowj=Spowj*S;
+            end
+
+            # compute denominator
+            Sden=copy(Si);
+            Spowj=copy(Si);
+            for j=1:length(nep.qi[i])
+                Sden+=Spowj*nep.qi[i][j]
+                Spowj=Spowj*S;
+            end
+            
+            # Sum it up 
+            Z+=nep.A[i]*V*(Sden\Snum)
+        end
+        return Z
+    end
+    function size(nep::REP,dim=-1)
+        if (dim==-1)
+            return (nep.n,nep.n)
+        else
+            return nep.n
+        end
+    end
+    function compute_Mder(rep::REP,λ::Number,i::Integer=0)
+        if (i!=0) # Todo
+            error("Higher order derivatives of REP's not implemented")
+        end
+        S=eye(rep.n)*λ # this is very slow
+        V=eye(rep.n);
+        return compute_MM(rep,S,V)
+    end
 end
+
