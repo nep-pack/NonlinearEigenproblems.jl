@@ -18,16 +18,18 @@ x = Vc[(d-1)*n+1:d*n,1];
 V = Vc[:,1]; 
 λ = Dc[1,1]
 
+print("Computed eigenvalue is: ")
+print(λ)
+print("\n")
 
-#This residual is of the order 10-12
-lin_res = norm((λ*E-A)*V)#Norm of the residual of the linearized eigenvalue
+lin_res = norm((λ*E-A)*V);#Norm of the residual of the linearized eigenvalue
+print("Residual norm of the linearized eigenvalue problem: ")
+print(lin_res)
+print("\n")
 
-#Gives a very large residual
-
-#Mλ = pep.A[1];
-#for i=2:d+1
-#    Mλ = Mλ + pep.A[i]*λ^(i-1);
-#end
+print("Residual norm of the original PEP: ")
+print(norm(compute_Mlincomb(pep,λ,x)))
+print("\n")
 
 
-#nlin_res = norm(Mλ*x);#Norm of the residual of the original PEP
+

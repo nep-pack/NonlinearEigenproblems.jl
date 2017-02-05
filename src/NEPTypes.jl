@@ -255,8 +255,7 @@ module NEPTypes
 
 
 """
-    Return the most commonly used companion linearization(as in "Non-linear eigenvalue problems, a challenge for modern eigenvalue methods", by Mehrmann and Voss)
-    of a PEP. For a k-th degree PEP with n-by-n coefficient matrices, this returns E and A, both kn-by-kn, such that the linear pencil L(λ) = λE-A
+    Return the most commonly used companion linearization(as in "Non-linear eigenvalue problems, a challenge for modern eigenvalue methods", by Mehrmann and Voss) of a PEP. For a k-th degree PEP with n-by-n coefficient matrices, this returns E and A, both kn-by-kn, the linearized problem is Ax = λEx
 """
     function companion(pep::PEP)
 
@@ -289,7 +288,7 @@ module NEPTypes
             A[(i-1)*n+1:i*n,(i-2)*n+1:(i-1)*n] = -In;
         end
 
-        return E,A
+        return E,-A
 
 
     end
