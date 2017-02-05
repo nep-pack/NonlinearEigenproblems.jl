@@ -27,6 +27,9 @@ module NEPTypes
     export size
     export companion
 
+
+
+    
     ###########################################################
     # Delay eigenvalue problems - DEP
     #
@@ -86,17 +89,6 @@ module NEPTypes
         return Z
     end
 
-"""
-    size(nep::DEP,dim=-1)
- Overloads the size functions for a DEP.
-"""
-    function size(nep::DEP,dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
-    end
     function issparse(nep::DEP)
         return nep.issparse
     end
@@ -158,17 +150,6 @@ module NEPTypes
     end
 
 
-"""
-    size(nep::PEP,dim=-1)
- Overloads the size functions for a DEP.
-"""
-    function size(nep::PEP,dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
-    end
     function issparse(nep::PEP)
         return nep.issparse
     end
@@ -371,13 +352,6 @@ module NEPTypes
         end
         return Z
     end
-    function size(nep::REP,dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
-    end
     function compute_Mder(rep::REP,λ::Number,i::Integer=0)
         if (i!=0) # Todo
             error("Higher order derivatives of REP's not implemented")
@@ -386,5 +360,24 @@ module NEPTypes
         V=eye(rep.n);
         return compute_MM(rep,S,V)
     end
+
+
+
+   #######################################################
+   ### Functions in common for many NEPs in NEPTypes
+
+   #
+"""
+    size(nep::NEP,dim=-1)
+ Overloads the size functions for NEPs storing size in nep.n
+"""
+    function size(nep::Union{DEP,PEP,REP},dim=-1)
+        if (dim==-1)
+            return (nep.n,nep.n)
+        else
+            return nep.n
+        end
+    end
+        
 end
 
