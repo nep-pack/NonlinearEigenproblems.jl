@@ -271,6 +271,8 @@ module NEPTypes
         E = zeros(d*n,d*n);
 
         E[1:n,1:n] = pep.A[d+1];
+
+        #Can be replaced by a krocker product 
         for i=2:d
             E[(i-1)*n+1:i*n,(i-1)*n+1:i*n] = In;
         end
@@ -284,6 +286,7 @@ module NEPTypes
            A[1:n,(i-1)*n+1:i*n] = pep.A[d-i+1];
         end
 
+        #Can be replaced by a kronecker product
         for i=2:d
             A[(i-1)*n+1:i*n,(i-2)*n+1:(i-1)*n] = -In;
         end

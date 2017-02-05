@@ -1,6 +1,7 @@
 workspace()
 push!(LOAD_PATH, pwd()) # looks for modules in the current directory
 using NEPSolver
+using NEPSolver_MSLP 	
 using NEPCore
 using NEPTypes
 using Gallery
@@ -10,6 +11,7 @@ pep = nep_gallery("pep0");
 E,A = companion(pep);
 
 Dc,Vc = eig(A,E);
+Dc
 
 d = size(pep.A,1)-1;
 n = size(pep,1);
@@ -18,18 +20,32 @@ x = Vc[(d-1)*n+1:d*n,1];
 V = Vc[:,1]; 
 λ = Dc[1,1]
 
-print("Computed eigenvalue is: ")
-print(λ)
-print("\n")
+λa=NaN;
+xa=NaN;
+try
+    λa,xa =newton(pep,maxit=30,displaylevel=0);
+catch e
+    # Only catch NoConvergence 
+    isa(e, NoConvergenceException) || rethrow(e)  
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λa=e.λ
+    xa=e.v
+end
 
-lin_res = norm((λ*E-A)*V);#Norm of the residual of the linearized eigenvalue
-print("Residual norm of the linearized eigenvalue problem: ")
-print(lin_res)
-print("\n")
+#println(norm(compute_Mlincomb(pep,λa,xa)))
+print("Eigenvalue computed by newton: ",λa,"\n\n")
 
-print("Residual norm of the original PEP: ")
-print(norm(compute_Mlincomb(pep,λ,x)))
-print("\n")
+ind = 1;
+for i=1:400
+	if(norm(λa-Dc[i]) < 1e-12)
+		ind = i
+	end
+end
+
+print("Closest eigenvalue computed from companion linearization: ")
+print(Dc[ind])
+	
 
 
 
