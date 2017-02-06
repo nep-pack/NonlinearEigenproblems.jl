@@ -45,10 +45,9 @@ module NEPTypes
         n::Integer
         A::Array     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
-        issparse::Bool
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
-            this=new(n,AA,tauv,issparse(AA[1]));
+            this=new(n,AA,tauv);
             return this;
         end
     end
@@ -89,9 +88,6 @@ module NEPTypes
         return Z
     end
 
-    function issparse(nep::DEP)
-        return nep.issparse
-    end
     ###########################################################
     # Polynomial eigenvalue problem - PEP
     #
@@ -106,10 +102,9 @@ module NEPTypes
     type PEP <: NEP
         n::Integer
         A::Array   # Monomial coefficients of PEP
-        issparse::Bool
         function PEP(AA)
             n=size(AA[1],1)
-            return new(n,AA,issparse(AA[1]))
+            return new(n,AA)
         end
     end
 
@@ -150,9 +145,6 @@ module NEPTypes
     end
 
 
-    function issparse(nep::PEP)
-        return nep.issparse
-    end
 
 """
     interpolate([T::DataType=Complex64,] nep::NEP, intpoints::Array)
@@ -294,7 +286,6 @@ module NEPTypes
         A::Array   # Monomial coefficients of REP
         si::Array  # numerator polynomials
         qi::Array  # demonimator polynomials
-        issparse::Bool
         # Initiate with order zero numerators and order one denominators
         # with poles given by poles[]
         function REP(AA,poles::Array)
@@ -314,11 +305,8 @@ module NEPTypes
                     qi[i]=[1];                    
                 end
             end
-            return new(n,AA,si,qi,issparse(AA[1]))
+            return new(n,AA,si,qi)
         end
-    end
-    function issparse(nep::REP)
-        return nep.issparse;
     end
 
     function compute_MM(nep::REP,S,V)
@@ -377,6 +365,14 @@ module NEPTypes
         else
             return nep.n
         end
+    end
+
+"""
+    issparse(nep)
+Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
+"""
+    function issparse(nep::Union{DEP,PEP,REP})
+        return issparse(nep.A[1])   
     end
         
 end
