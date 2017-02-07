@@ -20,6 +20,6 @@ nep=nep_gallery("real_quadratic");
 
 
 λ_init = -100;
-λ,x = sg_iteration(nep,tol_outer=1e-4,tol_inner=1e-6,λ_approx=λ_init,λ_nr=1,displaylevel=1)
+λ,x = sg_iteration(nep,tol_outer=1e-4,tol_inner=1e-4,λ_approx=λ_init,displaylevel=1,eigsolver="eig")
 println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))
 

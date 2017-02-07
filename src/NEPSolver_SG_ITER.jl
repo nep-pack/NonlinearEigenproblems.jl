@@ -17,43 +17,69 @@ module NEPSolver_SG_ITER
                   tol_outer = 1e-2,
 	  	  tol_inner = 1e-8,
                   λ_approx=0,
-                  λ_nr=1,
+		  v=randn(nep.n),
                   displaylevel=0,
-		  max_it = 10)
+		  max_it = 10,
+		  eigsolver="default")
 
-	#The main loop
+
+
+
+	#Decide which solver will be called for the successive linear problems
+        local eigsolverfunc::Function; 
+        if(eigsolver == "eig")
+            eigsolverfunc = julia_eig;
+        elseif(eigsolver == "matlab_eigs")
+            eigsolverfunc = matlab_eigs;
+        else
+            if issparse(compute_Mder(nep,λ,0)) 
+                eigsolverfunc = matlab_eigs; # Default to matlab due to issue #1
+            else
+                eigsolverfunc = julia_eig;
+            end
+        end
+
+
+
+
+
+
+
+	#The main program
 
 	println("Running safeguarded iteration, initial approximation of λ: ",λ_approx)
-
 	λ_m = λ_approx
-
 	M = compute_Mder(nep,λ_m,0);
-
-	d,v_m = julia_eig(M);
-
+	v_m = v;
+	d,v_m = eigsolverfunc(nep,λ_m);
 	residual = M*v_m;
-	quotient_m = dot(v_m,(M*v_m));
-
 
 	for k=1:max_it
 
 		quotient_m = dot(v_m,(M*v_m));
 
-		#Newton as an inner loop (for the Rayleigh quotient)
-		while (abs(quotient_m) > tol_inner)
-			Md = compute_Mder(nep,λ_m,1);
-			dλ = dot(v_m,(M*v_m))/dot(v_m,Md*v_m);
-			println("dλ :",dλ)
-			λ_m = λ_m - dλ;
-			M = compute_Mder(nep,λ_m,0);
-			quotient_m = dot(v_m,(M*v_m));
-		end
+		#Newton as an inner loop for the Rayleigh quotient
+		println("k: ",k,"λ_m: ",λ_m);
+		λ_m = compute_rf(nep,v_m,y=v_m, λ0=λ_m,TOL=tol_inner);
+		println("k: ",k,"λ_m: ",λ_m);
 
-		M = compute_Mder(nep,λ_m,0);
+		#old inner loop
+		#dλ=1.0;
+		#while (abs(dλ) > tol_inner)
+		#	Md = compute_Mder(nep,λ_m,1);
+		#	dλ = dot(v_m,(M*v_m))/dot(v_m,Md*v_m);
+		#	println("dλ :",dλ)
+		#	λ_m = λ_m - dλ;
+		#	M = compute_Mder(nep,λ_m,0);
+		#	quotient_m = dot(v_m,(M*v_m));
+		#end
+
 		# Find closest eigenvalue to λ
         	# and the corresponding eigenvector
-		d,v_m = julia_eig(M);
+		d,v_m = eigsolverfunc(nep,λ_m)
 
+		# This to be changed ("errmeasure")		
+		M = compute_Mder(nep,λ_m,0);
 		residual = M*v_m;
 
 		if (norm(residual) < tol_outer)
@@ -68,9 +94,9 @@ module NEPSolver_SG_ITER
 		
 	end
         		
- 	err=errmeasure(approx_m,approx_v)
+ 	err=errmeasure(λ_m,v_m)
 	msg="Number of iterations exceeded. maxit=$(max_it)."
-        throw(NoConvergenceException(approx_m,approx_v,err,msg))
+        throw(NoConvergenceException(λ_m,v_m,err,msg))
 
     end
 
@@ -78,10 +104,10 @@ module NEPSolver_SG_ITER
 
     #############################################################################
     #Call MATLAB eigs() 
-    function matlab_eigs(A,λ = 0)
+    function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 
 
-        aa=mxarray(A)
+        aa=mxarray(compute_Mder(nep,λ,0))
         s=mxarray(λ)
 
         @mput aa bb s
@@ -98,9 +124,9 @@ module NEPSolver_SG_ITER
 
 
     #Call Julia eig()
-    function julia_eig(A,λ = 0)
+    function julia_eig(nep::NEP,λ = 0,v0=randn(nep.n))
         # Solve the linear eigenvalue problem
-        D,V = eig(A);
+        D,V = eig(compute_Mder(nep,λ,0));
 
         # Find closest eigenvalue to λ
         xx,idx=findmin(abs(D-λ))
