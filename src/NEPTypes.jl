@@ -344,9 +344,9 @@ module NEPTypes
         if (i!=0) # Todo
             error("Higher order derivatives of REP's not implemented")
         end
-        S=eye(rep.n)*λ # this is very slow
-        V=eye(rep.n);
-        return compute_MM(rep,S,V)
+        S=speye(rep.n)*λ 
+        V=speye(rep.n);
+        return compute_MM(rep,S,V)  # This call can be slow
     end
 
 
