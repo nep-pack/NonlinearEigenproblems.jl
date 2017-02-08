@@ -1,11 +1,13 @@
 """
-    Module with Method of successive linear problems
+    Module with Method of successive linear problems and linearized PEP
 """
 module NEPSolver_MSLP
 
     using NEPCore
+    using NEPTypes
     using MATLAB  # Dependence required for successive linear problems
     export mslp
+
 
 
 
@@ -70,8 +72,7 @@ module NEPSolver_MSLP
         throw(NoConvergenceException(λ,v,err,msg))
     end
 
-
-            #############################################################################
+    #############################################################################
     #Call MATLAB eigs() 
     function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
 

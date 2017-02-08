@@ -1,11 +1,13 @@
 module NEPSolver
     using NEPCore
-
+    using NEPTypes
+    using MATLAB
     ## NEP-Methods
     export newton
     export res_inv
     export aug_newton
     export iar
+    export compsolve #Wrapper around the solver for a linearized PEP pencil
 
     #############################################################################
 """
@@ -269,6 +271,52 @@ module NEPSolver
       Q=Q[:,1:min(size(Q,2),conv_eig)];
 
       return λ,Q,err
+    end
+
+    #############################################################################
+    #Solve the linearized companion of the PEP
+    function compsolve(pep::PEP)
+
+        #Linearize to Ax = λEx
+        E,A = companion(pep);
+
+        #Choose eigensolver
+        local eigsolverfunc::Function;
+        
+        if(issparse(pep))
+            eigsolverfunc = matlab_eigs_PEP;
+        else
+            eigsolverfunc = julia_eig_PEP;
+        end
+
+        D,V = eigsolverfunc(A,E);
+
+        return D,V
+    end
+
+    #############################################################################
+    #Call MATLAB eigs() for the linearized PEP
+    function matlab_eigs_PEP(A,E)
+        AA=mxarray(A)
+        EE=mxarray(E)
+        num = mxarray(size(A)[1]);
+
+        @mput AA EE num
+        @matlab begin
+            n = num(1);
+
+            (V,D) = eigs(AA,EE,n);
+        end
+        @mget D V
+
+        return diag(D),V
+    end
+
+    #############################################################################
+    #Call Julia eig() for the linearized PEP 
+    function julia_eig_PEP(A,E)
+        D,V = eig(A,E);
+        return D,V;
     end
 
     function doubleGS(V,vv,k,n)

@@ -239,23 +239,31 @@ module NEPTypes
 
         T = eltype(pep.A[1]);#Deduce the tyle of elements in the PEP matrices
         
-        #(d-1)n-by-(d-1)n matrix (Used to construct both E and A)
-        Iblock = kron(eye(T,d-1),eye(T,n));
+        
 
-        ##### Construct E #####
-
-        E = zeros(T,d*n,d*n);
+        ##### Check sparsity of the problem and allocate memory accordingly #####
+        if(issparse(pep))
+            E = spzeros(T,d*n,d*n);
+            A = spzeros(T,n*d,n*d);
+            
+            #(d-1)n-by-(d-1)n matrix (Used to construct both E and A)
+            Iblock = sparse(kron(eye(T,d-1),eye(T,n)));
+        else
+            E = zeros(T,d*n,d*n);
+            A = zeros(T,n*d,n*d);
+            
+            Iblock = kron(eye(T,d-1),eye(T,n));
+        end
+        
         E[1:n,1:n] = pep.A[d+1];#Fill block (1,1)
         E[n+1:d*n,n+1:d*n] = Iblock;#Fill all blocks on the diagonal with eye(n)
 
         #####Construct A #####
-
-        A = zeros(T,n*d,n*d);
+        
         #First row block of A
         for i=1:d
            A[1:n,(i-1)*n+1:i*n] = pep.A[d-i+1];
         end
-
         #Lower part of A
         A[n+1:d*n,1:(d-1)*n] = T(-1.0)*Iblock 
 
