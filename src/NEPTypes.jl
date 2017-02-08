@@ -236,34 +236,28 @@ module NEPTypes
         n = size(pep,1);#Size of monomial coefficient matrices
 
         d = size(pep.A,1)-1;#Degree of pep
+
+        T = eltype(pep.A[1]);#Deduce the tyle of elements in the PEP matrices
         
-        #n-by-n matrices required for companion construction
-        In = eye(n);
+        #(d-1)n-by-(d-1)n matrix (Used to construct both E and A)
+        Iblock = kron(eye(T,d-1),eye(T,n));
 
         ##### Construct E #####
 
-        E = zeros(d*n,d*n);
-
-        E[1:n,1:n] = pep.A[d+1];
-
-        #Can be replaced by a krocker product 
-        for i=2:d
-            E[(i-1)*n+1:i*n,(i-1)*n+1:i*n] = In;
-        end
+        E = zeros(T,d*n,d*n);
+        E[1:n,1:n] = pep.A[d+1];#Fill block (1,1)
+        E[n+1:d*n,n+1:d*n] = Iblock;#Fill all blocks on the diagonal with eye(n)
 
         #####Construct A #####
 
-        A = zeros(n*d,n*d);
-
+        A = zeros(T,n*d,n*d);
         #First row block of A
         for i=1:d
            A[1:n,(i-1)*n+1:i*n] = pep.A[d-i+1];
         end
 
-        #Can be replaced by a kronecker product
-        for i=2:d
-            A[(i-1)*n+1:i*n,(i-2)*n+1:(i-1)*n] = -In;
-        end
+        #Lower part of A
+        A[n+1:d*n,1:(d-1)*n] = T(-1.0)*Iblock 
 
         return E,-A
 
