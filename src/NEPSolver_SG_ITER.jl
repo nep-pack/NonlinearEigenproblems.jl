@@ -48,6 +48,7 @@ module NEPSolver_SG_ITER
 	#The main program
 
 	println("Running safeguarded iteration, initial approximation of λ: ",λ_approx)
+	err=Inf;
 	λ_m = λ_approx
 	M = compute_Mder(nep,λ_m,0);
 	v_m = v;
@@ -63,17 +64,6 @@ module NEPSolver_SG_ITER
 		λ_m = compute_rf(nep,v_m,y=v_m, λ0=λ_m,TOL=tol_inner);
 		println("k: ",k,"λ_m: ",λ_m);
 
-		#old inner loop
-		#dλ=1.0;
-		#while (abs(dλ) > tol_inner)
-		#	Md = compute_Mder(nep,λ_m,1);
-		#	dλ = dot(v_m,(M*v_m))/dot(v_m,Md*v_m);
-		#	println("dλ :",dλ)
-		#	λ_m = λ_m - dλ;
-		#	M = compute_Mder(nep,λ_m,0);
-		#	quotient_m = dot(v_m,(M*v_m));
-		#end
-
 		# Find closest eigenvalue to λ
         	# and the corresponding eigenvector
 		d,v_m = eigsolverfunc(nep,λ_m)
@@ -81,8 +71,10 @@ module NEPSolver_SG_ITER
 		# This to be changed ("errmeasure")		
 		M = compute_Mder(nep,λ_m,0);
 		residual = M*v_m;
-
-		if (norm(residual) < tol_outer)
+		
+		# Stopping criterion using err_measure()
+		err=errmeasure(λ_m,v_m);
+		if (err < tol_outer)
 			println("Solution found at step ",k);
 			println("λ = ",λ_m);
 			return (λ_m,v_m)
