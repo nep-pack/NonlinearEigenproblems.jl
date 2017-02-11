@@ -274,7 +274,7 @@ module NEPSolver
     end
 
     #############################################################################
-    #Solve the linearized companion of the PEP
+    #Solve the linearized companion of a PEP
     function compsolve(pep::PEP)
 
         #Linearize to Ax = λEx
@@ -283,13 +283,16 @@ module NEPSolver
         #Choose eigensolver
         local eigsolverfunc::Function;
         
+        levsolver = LinEigSolver();
+
         if(issparse(pep))
             eigsolverfunc = matlab_eigs_PEP;
         else
             eigsolverfunc = julia_eig_PEP;
         end
 
-        D,V = eigsolverfunc(A,E);
+        #D,V = eigsolverfunc(A,E);
+        D,V = levsolver.solve(A,B=E,λ_t=1.0);
 
         return D,V
     end

@@ -23,27 +23,7 @@ module NEPSolver_SG_ITER
 		  eigsolver="default")
 
 
-
-
-	#Decide which solver will be called for the successive linear problems
-        local eigsolverfunc::Function; 
-        if(eigsolver == "eig")
-            eigsolverfunc = julia_eig;
-        elseif(eigsolver == "matlab_eigs")
-            eigsolverfunc = matlab_eigs;
-        else
-            if issparse(compute_Mder(nep,λ,0)) 
-                eigsolverfunc = matlab_eigs; # Default to matlab due to issue #1
-            else
-                eigsolverfunc = julia_eig;
-            end
-        end
-
-
-
-
-
-
+    levsolver = LinEigSolver();
 
 	#The main program
 
@@ -52,7 +32,7 @@ module NEPSolver_SG_ITER
 	λ_m = λ_approx
 	M = compute_Mder(nep,λ_m,0);
 	v_m = v;
-	d,v_m = eigsolverfunc(nep,λ_m);
+	d,v_m = levsolver.solve(compute_Mder(nep,λ_m,0),λ_t=λ_m,nev=1)
 	residual = M*v_m;
 
 	for k=1:max_it
@@ -66,7 +46,8 @@ module NEPSolver_SG_ITER
 
 		# Find closest eigenvalue to λ
         	# and the corresponding eigenvector
-		d,v_m = eigsolverfunc(nep,λ_m)
+		#d,v_m = eigsolverfunc(nep,λ_m)
+        d,v_m = levsolver.solve(compute_Mder(nep,λ_m,0),λ_t=λ_m,nev=1);
 
 		# This to be changed ("errmeasure")		
 		M = compute_Mder(nep,λ_m,0);
@@ -91,45 +72,6 @@ module NEPSolver_SG_ITER
         throw(NoConvergenceException(λ_m,v_m,err,msg))
 
     end
-
-
-
-    #############################################################################
-    #Call MATLAB eigs() 
-    function matlab_eigs(nep::NEP,λ = 0,v0=randn(nep.n))
-
-
-        aa=mxarray(compute_Mder(nep,λ,0))
-        s=mxarray(λ)
-
-        @mput aa bb s
-        @matlab begin
-            s=double(s);
-            aa=double(aa);
-            (v,d)=eigs(aa,1,s);
-        end
-        @mget d v
-
-        return d,v;
-    end
-    #############################################################################
-
-
-    #Call Julia eig()
-    function julia_eig(nep::NEP,λ = 0,v0=randn(nep.n))
-        # Solve the linear eigenvalue problem
-        D,V = eig(compute_Mder(nep,λ,0));
-
-        # Find closest eigenvalue to λ
-        xx,idx=findmin(abs(D-λ))
-        d=D[idx]
-
-        # update eigenvector
-        v=V[:,idx] 
-
-        return d,v;     
-    end
-
     
 
 end
