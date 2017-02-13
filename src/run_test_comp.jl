@@ -79,6 +79,39 @@ for i=1:d*n
 end
 print("Closest eigenvalue computed from companion linearization: ",Dc[ind],"\n\n")
 
+#################################################################################
+#################################################################################
+
+println("Testing companion linearization with BigFloat");
+A0=(Array{BigFloat,2}([1 2; 3 4]));
+A1=(Array{BigFloat,2}([1 44; 3 4]));
+A2=(Array{BigFloat,2}([1 44; -3 100]));
+    
+pep3=PEP([A0,A1,A2])
+E,A = companion(pep3);
+# Power method for testing (since eig does not work for BigFloats)
+
+z=ones(BigFloat,size(A,1));
+local evp::BigFloat
+local evp_old::BigFloat
+local d::BigFloat
+TOL=big"1e-50"
+d=Inf; evp=Inf
+k=0;
+while abs(d)>TOL
+    k=k+1
+    z=z/norm(z);
+    z2=E\A*z
+    evp_old=evp
+    evp=dot(z,z2)
+    d=evp-evp_old
+    println("Iteration ",k,", λ=",Float64(evp), " Δ = ",Float64(d))
+    z=z2
+end
+
+println("Solving same problem with res_inv")
+λ,v=res_inv(pep3,λ=(BigFloat(evp)+0.1),v=z[1:size(pep3,1)],tolerance=TOL)
+#Dc,Vc = compsolve(pep3);
 
 
-
+println("Difference btw companion solver and res_inv for bigfloats:",abs(λ-evp))
