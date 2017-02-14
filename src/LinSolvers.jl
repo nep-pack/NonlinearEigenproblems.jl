@@ -1,9 +1,9 @@
-"""
-   Linear system solvers
-"""
 module LinSolvers
-    abstract type LinSolver;
-
+    export LinSolver
+    export DefaultLinSolver
+    export lin_solve
+    
+    abstract LinSolver;
 
     """
         The linear solver associated with julia factorize()
@@ -18,7 +18,7 @@ module LinSolvers
         end
     end
 
-    function lin_solve(solver::DefaultLinSolver,x::Array)
+    function lin_solve(solver::DefaultLinSolver,x::Array;tol=eps())
         return solver.Afact\x
     end
 end

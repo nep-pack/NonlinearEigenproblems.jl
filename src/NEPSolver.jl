@@ -2,6 +2,7 @@ module NEPSolver
     using NEPCore
     using NEPTypes
     using MATLAB
+    using LinSolvers
     ## NEP-Methods
     export newton
     export res_inv
@@ -70,7 +71,6 @@ module NEPSolver
         throw(NoConvergenceException(λ,v,err,msg))
     end
 
-
     ############################################################################
 """
     Residual inverse iteration method for nonlinear eigenvalue problems.
@@ -84,13 +84,10 @@ module NEPSolver
                      v=randn(nep.n),
                      c=v,
                      displaylevel=0,
-                     linsolver=LinSolver(compute_Mder(nep,λ))
-                     )
+                     linsolvertype::DataType=DefaultLinSolver)
 
+        linsolver=linsolvertype(compute_Mder(nep,λ))
         σ=λ;
-        # Compute a (julia-selected) factorization of M(σ)
-        #Mσ=factorize(nep.Md(σ));
-        #linsolver=LinSolver(nep.Md(σ))
 
         err=Inf;
         try
@@ -118,7 +115,7 @@ module NEPSolver
                 # Compute eigenvector update
 	        # Δv=Mσ\nep.Mlincomb(λ,v) #M*v);
                 tol=eps()
-	        Δv=linsolver.solve(compute_Mlincomb(nep,λ,reshape(v,nep.n,1)),
+	        Δv=lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,nep.n,1)),
                                    tol=tol) #M*v);
 
                 # Update the eigvector
@@ -212,7 +209,7 @@ module NEPSolver
 """
     function iar(
      nep::NEP;maxit=30,	           
-     linsolver=LinSolver,tol=1e-12,Neig=maxit,                                  
+     linsolvertype::DataType=DefaultLinSolver,tol=1e-12,Neig=maxit,                                  
      errmeasure::Function = default_errmeasure(nep::NEP),
      σ=0.0)
 
@@ -222,7 +219,7 @@ module NEPSolver
      H = zeros(m+1,m);
      y = zeros(n,m+1);
      α = [0;ones(m)];
-     M0inv = linsolver(compute_Mder(nep,σ));
+     M0inv = linsolvertype(compute_Mder(nep,σ));
      err = zeros(m,m); # error history
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
@@ -239,7 +236,7 @@ module NEPSolver
       end
 
       y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-      y[:,1] = -M0inv.solve(y[:,1]);
+      y[:,1] = -lin_solve(M0inv,y[:,1]);
 
       vv=reshape(y[:,1:k+1],(k+1)*n,1);
       # orthogonalization

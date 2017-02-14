@@ -6,7 +6,6 @@ module NEPCore
     export size
     export issparse
     export NoConvergenceException
-    export LinSolver
     export LinEigSolver
     export interpolate
 
@@ -206,19 +205,6 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
     end
 
 
-    # To slove linear systems (This probably needs to become an abstract class)
-    type LinSolver
-        solve::Function
-        Afact
-        function LinSolver(A)
-            this=new()
-            this.Afact=factorize(A)
-            this.solve=function foo(x;tol=eps())
-                return this.Afact\x
-            end
-            return this;
-        end   
-    end
 
 
     #To solve linear generalized EPs
