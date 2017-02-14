@@ -57,7 +57,13 @@ abstract superclass of s.
    `compute_Mder(nep,λ)`  # Evaluate NEP in λ
 """
     function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
-        error("You need to provide an implementation of Mder for this NEP, or choose to use compute_Mder_from_MM().")
+
+        extra_msg=""
+        if (@method_concretely_defined(compute_MM,nep))
+            extra_msg=", or choose to call the compute_Mder_from_MM, which can be slow"
+        end
+        
+        error("You need to provide an implementation of Mder for this NEP, or choose to use compute_Mder_from_MM"*extra_msg*".")
         return 0;
     end
 
@@ -133,7 +139,7 @@ Computes the Mder function from MM using the fact that MM of
 a jordan block becomes derivatives
 """
     function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
-        J=jordan_matrix(i+1,λ,T=typeof(λ)).'
+        J=sparse(jordan_matrix(i+1,λ,T=typeof(λ)).')
         n=size(nep,1);
         S=kron(J,speye(n))
         V=factorial(i)*kron(speye(1,i+1)[:,end:-1:1],speye(n))

@@ -6,6 +6,7 @@ module Gallery
     
     export nep_gallery
     export nlevp_gallery_import
+    export nlevp_make_native
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
@@ -151,6 +152,7 @@ eigenvalue problems
                 Ai,funs=nlevp(name)
             @matlab end
             @mget Ai # fetch and store the matrices
+
             this=new(size(Ai[1],1),name,Ai);
         end
     end
@@ -207,6 +209,23 @@ eigenvalue problems
             return nep.n
         end
     end
-    
+
+"""
+   nlevp_make_native(nep::NLEVP_NEP)
+Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
+"""
+    function nlevp_make_native(nep::NLEVP_NEP)
+        if (nep.name == "gun")
+            minusop= S-> -S
+            oneop= S -> eye(size(S,1),size(S,2))
+            sqrt1op= S -> 1im*sqrtm(full(S))
+            sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+            nep2=SPMF_NEP(nep.Ai,[oneop,minusop,sqrt1op,sqrt2op])
+            return nep2
+        else
+            error("Unable to make NEP native")
+        end
+
+    end
     
 end

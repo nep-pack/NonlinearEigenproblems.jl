@@ -359,20 +359,55 @@ module NEPTypes
          n::Integer
          A::Array   # Array of Array of matrices
          fi::Array  # Array of functions
+
+         # Sparse zero matrix to be used for sparse matrix creation
+         Zero::SparseMatrixCSC  
          function SPMF_NEP(AA,fii::Array)
              n=size(AA[1],1);
-             this=new(n,AA,fii);
+             if (issparse(AA[1]))
+                 Zero=spones(AA[1]);                 
+                 for i=2:length(AA)
+                     Zero=Zero+spones(AA[i]);
+                 end
+                 Zero=(Zero*1im)*0
+             else
+                 Zero=zeros(n,n);
+             end
+             this=new(n,AA,fii,Zero);
              return this
          end       
     end
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
-            Z=spzeros(size(V,1),size(V,2))
+            if (size(V)==size(nep))
+                Z=copy(nep.Zero)
+            else
+                Z=spzeros(size(V,1),size(V,2))
+            end
         else
             Z=zeros(size(V))
         end
+        # Sum together all the terms in the SPMF:
         for i=1:length(nep.A)
-            Z=Z+nep.A[i]*(V*nep.fi[i](S));
+            # Compute Fi=f_i(S)
+
+            if (isdiag(S)) # optimize if S is diagonal
+                Sd=diag(S);
+                if (norm(Sd-Sd[1])==0) # Optimize further if S is a
+                                       # multiple of identity
+                    Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
+                else  # Diagonal but not constant
+                    Fid=zeros(Complex128,size(S,1))
+                    for j=1:size(S,1)
+                        Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
+                    end                    
+                end
+                Fi=spdiagm(Fid);
+            else  # Otherwise just compute the matrix function operation
+                Fi=nep.fi[i](S)
+            end
+            # Sum it up
+            Z=Z+nep.A[i]*(V*Fi);
         end
         return Z
     end
