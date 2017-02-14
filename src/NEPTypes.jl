@@ -412,8 +412,17 @@ module NEPTypes
         return Z
     end
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
-        # This is typically slow for i>1 (can be optimized)
-        return compute_Mder_from_MM(nep,λ,i) 
+        if (i==0)
+            Z=copy(nep.Zero)
+            for i=1:length(nep.A)
+                Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
+            end
+            return Z
+        else
+            # This is typically slow for i>1 (can be optimized)
+            return compute_Mder_from_MM(nep,λ,i)
+        end
+        
     end
 
   
