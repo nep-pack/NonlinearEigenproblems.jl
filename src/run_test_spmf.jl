@@ -7,6 +7,7 @@ using NEPCore
 using NEPTypes
 
 n=5;
+srand(1)
 A0=randn(5,5);
 A1=randn(5,5);
 
@@ -28,3 +29,9 @@ V=randn(n,3);
 n2=norm(compute_MM(nep0,S,V)-compute_MM(nep1,S,V))
 println("Test 2:",n2)
 
+
+v0=randn(n)
+println("Resinv test 0")
+res_inv(nep0,displaylevel=1,v=v0)
+println("Resinv test 1")
+res_inv(nep1,displaylevel=1,v=v0)
