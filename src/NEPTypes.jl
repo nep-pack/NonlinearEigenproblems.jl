@@ -84,7 +84,7 @@ module NEPTypes
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
         for j=1:size(nep.A,1)
-            Z+=nep.A[j]*V*expm(-nep.tauv[j]*S)
+            Z+=nep.A[j]*V*expm(full(-nep.tauv[j]*S))
         end
         return Z
     end
@@ -376,13 +376,8 @@ module NEPTypes
         end
         return Z
     end
-    function compute_Mder(rep::SPMF_NEP,λ::Number,i::Integer=0)
-        if (i!=0) # Todo
-            error("Higher order derivatives of SPMF_NEP's not implemented")
-        end
-        S=speye(rep.n)*λ 
-        V=speye(rep.n);
-        return compute_MM(rep,S,V)  # This call can be slow
+    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
+        return compute_Mder_from_MM(nep,λ,i) 
     end
 
   

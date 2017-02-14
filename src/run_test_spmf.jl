@@ -10,12 +10,12 @@ n=5;
 srand(1)
 A0=randn(5,5);
 A1=randn(5,5);
-
-nep0=DEP([A0,A1])
+t=3
+nep0=DEP([A0,A1],[0,t])
 
 minusop= S-> -S
 oneop= S -> eye(S)
-expmop= S -> expm(full(-S))
+expmop= S -> expm(full(-t*S))
 fi=[minusop, oneop, expmop];
 
 nep1=SPMF_NEP([eye(n),A0,A1],fi)
@@ -35,3 +35,10 @@ println("Resinv test 0")
 res_inv(nep0,displaylevel=1,v=v0)
 println("Resinv test 1")
 res_inv(nep1,displaylevel=1,v=v0)
+
+
+n3=norm(compute_Mder(nep0,-1,5)-compute_Mder_from_MM(nep1,-1,5))
+println("Test 3: comparing nep0 with nep1 norm=",n3)
+λ=1+0.3im
+n4=norm(compute_Mder(nep0,λ,10)-compute_Mder_from_MM(nep0,λ,10))
+println("Test 4: comparing Mder with Mder_from_MM nep0. norm=",n4)

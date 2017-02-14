@@ -23,7 +23,9 @@ module NEPCore
     # Helper functions  (avoid using these directly in NEP-methods)
     export compute_Mlincomb_from_MM
     export compute_Mlincomb_from_Mder
+    export compute_Mder_from_MM
 
+    
     export default_errmeasure
 
     import Base.size  # Overload for nonlinear eigenvalue problems
@@ -55,7 +57,7 @@ abstract superclass of s.
    `compute_Mder(nep,λ)`  # Evaluate NEP in λ
 """
     function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
-        error("You need to provide an implementation of Mder for this NEP")
+        error("You need to provide an implementation of Mder for this NEP, or choose to use compute_Mder_from_MM().")
         return 0;
     end
 
@@ -105,7 +107,7 @@ if you want efficiency (for aug_newton, IAR, ..).
     function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_MM -> compute_Mlincomb")
         k=size(V,2)
-        S=jordan_matrix(k,λ,T=typeof(V[1])).'
+        S=jordan_matrix(k,λ,T=eltype(V)).'
         b=zeros(size(a));
         for i=1:k
             b[i]=a[i]*factorial(Float64(i-1))
@@ -126,7 +128,18 @@ if you want efficiency (for aug_newton, IAR, ..).
         end
         return z
     end
-
+"""
+Computes the Mder function from MM using the fact that MM of
+a jordan block becomes derivatives
+"""
+    function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
+        J=jordan_matrix(i+1,λ,T=typeof(λ)).'
+        n=size(nep,1);
+        S=kron(J,speye(n))
+        V=factorial(i)*kron(speye(1,i+1)[:,end:-1:1],speye(n))
+        W=compute_MM(nep,S,V)
+        return W[1:n,1:n]
+    end
 
     function compute_resnorm(nep::NEP,λ,v)
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
@@ -161,7 +174,7 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
  Note: All NEPs must implement this function.
 """
     function size(nep::NEP,dim=-1)
-        error("You need to provide an implementation of size for this NEP")
+        error("You need to provide an implementation of size for this NEP.")
         return 0;
     end
 
