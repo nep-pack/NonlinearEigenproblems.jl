@@ -113,7 +113,7 @@ module NEPTypes
  Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
 """
     function compute_MM(nep::PEP,S,V)
-        if(issparse(nep))
+        if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
             Si=speye(size(S,1))
         else
@@ -132,7 +132,7 @@ module NEPTypes
  Compute the ith derivative of a PEP
 """
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
-        if(issparse(nep))
+        if (issparse(nep))
             Z=spzeros(size(nep,1),size(nep,1));
         else
             Z=zeros(size(nep,1),size(nep,1));
@@ -242,7 +242,7 @@ module NEPTypes
         
 
         ##### Check sparsity of the problem and allocate memory accordingly #####
-        if(issparse(pep))
+        if (issparse(pep))
             E = spzeros(T,d*n,d*n);
             A = spzeros(T,n*d,n*d);
             
@@ -312,7 +312,7 @@ module NEPTypes
     end
 
     function compute_MM(nep::REP,S,V)
-        if(issparse(nep))
+        if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
             Si=speye(size(S,1))
         else
@@ -352,7 +352,22 @@ module NEPTypes
     end
 
 
-
+   ####################################################### 
+   ### Sum of matrices and functions
+   type SMF_NEP <: NEP
+        n::Integer
+        A::Array   # Array of Array of matrices
+        fi::Array  # Array of functions
+        function SMF_NEP(AA,fii::Array)
+            n=size(AA[1],1);
+            this=new(n,AA,fii);
+            return this
+        end
+       
+   end
+            
+  
+         
    #######################################################
    ### Functions in common for many NEPs in NEPTypes
 
