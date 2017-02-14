@@ -3,6 +3,7 @@ module NEPTypes
     export DEP
     export PEP
     export REP
+    export SPMF_NEP    
 
     export interpolate
     export interpolate_cheb
@@ -352,20 +353,38 @@ module NEPTypes
     end
 
 
-   ####################################################### 
-   ### Sum of matrices and functions
-   type SMF_NEP <: NEP
-        n::Integer
-        A::Array   # Array of Array of matrices
-        fi::Array  # Array of functions
-        function SMF_NEP(AA,fii::Array)
-            n=size(AA[1],1);
-            this=new(n,AA,fii);
-            return this
+    ####################################################### 
+    ### Sum of products matrices and functions
+    type SPMF_NEP <: NEP
+         n::Integer
+         A::Array   # Array of Array of matrices
+         fi::Array  # Array of functions
+         function SPMF_NEP(AA,fii::Array)
+             n=size(AA[1],1);
+             this=new(n,AA,fii);
+             return this
+         end       
+    end
+    function compute_MM(nep::SPMF_NEP,S,V)
+        if (issparse(V))
+            Z=spzeros(size(V,1),size(V,2))
+        else
+            Z=zeros(size(V))
         end
-       
-   end
-            
+        for i=1:length(nep.A)
+            Z=Z+nep.A[i]*(V*nep.fi[i](S));
+        end
+        return Z
+    end
+    function compute_Mder(rep::SPMF_NEP,λ::Number,i::Integer=0)
+        if (i!=0) # Todo
+            error("Higher order derivatives of SPMF_NEP's not implemented")
+        end
+        S=speye(rep.n)*λ 
+        V=speye(rep.n);
+        return compute_MM(rep,S,V)  # This call can be slow
+    end
+
   
          
    #######################################################
@@ -376,7 +395,7 @@ module NEPTypes
     size(nep::NEP,dim=-1)
  Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP},dim=-1)
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim=-1)
         if (dim==-1)
             return (nep.n,nep.n)
         else
@@ -388,7 +407,7 @@ module NEPTypes
     issparse(nep)
 Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 """
-    function issparse(nep::Union{DEP,PEP,REP})
+    function issparse(nep::Union{DEP,PEP,REP,SPMF_NEP})
         return issparse(nep.A[1])   
     end
         
