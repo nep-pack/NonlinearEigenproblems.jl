@@ -86,7 +86,7 @@ module NEPSolver
                      displaylevel=0,
                      linsolvertype::DataType=DefaultLinSolver)
 
-        linsolver=linsolvertype(compute_Mder(nep,λ))
+        local linsolver::LinSolver=linsolvertype(compute_Mder(nep,λ))
         σ=λ;
 
         err=Inf;
@@ -219,7 +219,7 @@ module NEPSolver
      H = zeros(m+1,m);
      y = zeros(n,m+1);
      α = [0;ones(m)];
-     M0inv = linsolvertype(compute_Mder(nep,σ));
+     local M0inv::LinSolver = linsolvertype(compute_Mder(nep,σ));
      err = zeros(m,m); # error history
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
