@@ -19,14 +19,15 @@ println("Testing some basic operations on the nep")
 M=compute_Mder(nep,160^2+3im)
 Mp=compute_Mder(nep,160^2+3im,1)
 println("It worked.")
-
 print("Makeing it native NEP-PACK. ")
 nep1=nlevp_make_native(nep)
 println("It worked.")
 ## Run it
 
 # Approximate eigenvalue of gun problem from Liao, Bai, Lee, Ko
-λ0=((1.495 + 0.000021)*1e2)^2
+λ0=((1.7 + 0.0000)*1e2)^2
+#λ0=((1.495 + 0.000021)*1e2)^2
+
 
 v0=ones(size(nep,1))
 
@@ -73,13 +74,13 @@ v0=ones(size(nep,1))
 #
 #
 println("Running resinv (with factorize())")
-@time λ,v=res_inv(nep1,λ=λ0,
+@time λ,v=res_inv(nep1,λ=λ0,v=v0,
                displaylevel=2,maxit=20,tolerance=1e-4)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
 
 println("Running resinv (with backslash no pre-factorization)")
-@time λ,v=res_inv(nep1,λ=λ0,
+@time λ,v=res_inv(nep1,λ=λ0,v=v0,
                   displaylevel=2,maxit=20,tolerance=1e-4,
                   linsolvertype=BackslashLinSolver)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
