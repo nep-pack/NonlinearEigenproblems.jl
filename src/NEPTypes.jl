@@ -371,7 +371,7 @@ module NEPTypes
                  end
                  Zero=(Zero*1im)*0
              else
-                 Zero=zeros(n,n);
+                 Zero=zeros(n,n) 
              end
              this=new(n,AA,fii,Zero);
              return this
@@ -380,7 +380,10 @@ module NEPTypes
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
             if (size(V)==size(nep))
-                Z=copy(nep.Zero)
+                # Initialize with zero sparse matrix which 
+                # has sparsity pattern already consistent
+                # with sparsity pattern of M() for optimization
+                Z=copy(nep.Zero) 
             else
                 Z=spzeros(size(V,1),size(V,2))
             end
@@ -389,8 +392,7 @@ module NEPTypes
         end
         # Sum together all the terms in the SPMF:
         for i=1:length(nep.A)
-            # Compute Fi=f_i(S)
-
+            ## Compute Fi=f_i(S) in an optimized way
             if (isdiag(S)) # optimize if S is diagonal
                 Sd=diag(S);
                 if (norm(Sd-Sd[1])==0) # Optimize further if S is a
@@ -406,7 +408,7 @@ module NEPTypes
             else  # Otherwise just compute the matrix function operation
                 Fi=nep.fi[i](S)
             end
-            # Sum it up
+            ## Sum it up
             Z=Z+nep.A[i]*(V*Fi);
         end
         return Z
@@ -419,10 +421,10 @@ module NEPTypes
             end
             return Z
         else
-            # This is typically slow for i>1 (can be optimized)
+            # This is typically slow for i>1 (can be optimized by
+            # treating the SPMF-terms individually)
             return compute_Mder_from_MM(nep,λ,i)
         end
-        
     end
 
   
