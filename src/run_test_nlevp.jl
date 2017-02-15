@@ -7,6 +7,7 @@ using NEPCore
 using NEPTypes
 using NEPSolver
 using NEPSolver_MSLP
+using LinSolvers
 using Gallery
 
 ## Init
@@ -29,12 +30,12 @@ println("It worked.")
 
 v0=ones(size(nep,1))
 
-println("Running aug newton")
-@time λ,v=aug_newton(nep,λ=λ0,v=v0,
-                     displaylevel=2,maxit=30,tolerance=1e-6)
-println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
-
-
+#println("Running aug newton")
+#@time λ,v=aug_newton(nep,λ=λ0,v=v0,
+#                     displaylevel=2,maxit=30,tolerance=1e-6)
+#println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
+#
+#
 #println("Running newton")
 #λ,v=newton(nep1,λ=λ0,v=v0,
 #               displaylevel=2,maxit=30,tolerance=1e-6)
@@ -71,10 +72,18 @@ println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 #
 #
 #
-println("Running resinv")
+println("Running resinv (with factorize())")
 @time λ,v=res_inv(nep1,λ=λ0,
                displaylevel=2,maxit=20,tolerance=1e-4)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
+
+
+println("Running resinv (with backslash no pre-factorization)")
+@time λ,v=res_inv(nep1,λ=λ0,
+                  displaylevel=2,maxit=20,tolerance=1e-4,
+                  linsolvertype=BackslashLinSolver)
+println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
+
 
 
 
