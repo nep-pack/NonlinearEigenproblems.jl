@@ -104,9 +104,6 @@
                 # Compute eigenvalue update
                 λ=compute_rf(nep,v,y=c,λ0=λ,target=σ)
 
-                # Re-compute NEP matrix and derivative
-                M=compute_Mder(nep,λ);
-
                 # Compute eigenvector update
 	        # Δv=Mσ\nep.Mlincomb(λ,v) #M*v);
                 tol=eps()
