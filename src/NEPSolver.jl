@@ -9,7 +9,7 @@ module NEPSolver
     include("method_iar.jl")
     include("method_mslp.jl")
     include("method_companion.jl")
-
+    include("method_nlar.jl")
 
     ### Moved to NEPCore.jl
     ##############################################################################
