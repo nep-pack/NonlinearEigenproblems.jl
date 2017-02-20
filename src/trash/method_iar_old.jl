@@ -1,16 +1,13 @@
-    export iar
+    export iar_old
     #Infinite Arnoldi for a given number of max iters (No error measure yet) 
 """
     The Infinite Arnoldi method 
 """
-    function iar(
-     nep::NEP;maxit=30,	                             
-     linsolvertype::DataType=DefaultLinSolver,
-     tol=1e-12,
-     Neig=maxit,                                  
+    function iar_old(
+     nep::NEP;maxit=30,	           
+     linsolvertype::DataType=DefaultLinSolver,tol=1e-12,Neig=maxit,                                  
      errmeasure::Function = default_errmeasure(nep::NEP),
-     σ=0.0,
-     γ=1)
+     σ=0.0,γ=1)
 
      n = nep.n; m = maxit;
      # initialization
@@ -18,21 +15,20 @@
      H = zeros(m+1,m);
      y = zeros(n,m+1);
      α = [0;ones(m)];
-     # rescaled coefficients(TODO: integrate in compute_Mlincomb)
-     for i=2:m+1; α[i]=γ^(i-1); end 
+     for i=2:m+1; α[i]=γ^(i-1); end	# rescaled coefficients
      local M0inv::LinSolver = linsolvertype(compute_Mder(nep,σ));
-     err = zeros(m,m); 			
+     err = zeros(m,m); # error history
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
-     vv=view(V,1:1:n,1); # next vector V[:,k+1]
-     vv[:]=rand(n,1); vv[:]=vv[:]/norm(vv);
+     V[1:n,1]=rand(n,1)/norm(randn(n,1));
 
      k=1; conv_eig=0;
      while (k <= m)&(conv_eig<=Neig)
-      VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
-      vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
-      y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k);
+      #y[:,2:k+1] = reshape(V[1:n*k,k],n,k);
+  
+      y[:,2:k+1] = reshape(view(V,1:1:n*k,k),n,k);
+      # no improvement, just sperimenting. 
       for j=1:k	
        y[:,j+1]=y[:,j+1]/j;  
       end
@@ -40,25 +36,25 @@
       y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
       y[:,1] = -lin_solve(M0inv,y[:,1]);
 
-      vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
+      vv=reshape(y[:,1:k+1],(k+1)*n,1);
       # orthogonalization
-      h,vv[:] = doubleGS(VV,vv,k,n);
+      h,vv = doubleGS(V,vv,k,n);
       H[1:k,k]=h;
       beta=norm(vv);
 
       H[k+1,k]=beta;
-      vv[:]=vv[:]/beta;
+      V[1:(k+1)*n,k+1]=vv/beta;
 
       # compute error history
       D,Z=eig(H[1:k,1:k]); D=σ+γ./D;
-      VV=view(V,1:1:n,1:k);	# extract proper subarray 
+
       conv_eig=0;
       for s=1:k
-       err[k,s]=errmeasure(D[s],VV*Z[:,s]);
+       err[k,s]=errmeasure(D[s],V[1:n,1:k]*Z[:,s]);
        if err[k,s]>10; err[k,s]=1; end	# artificial fix
        if err[k,s]<tol
         conv_eig=conv_eig+1;
-        Q[:,conv_eig]=VV*Z[:,s]; λ[conv_eig]=D[s];
+        Q[:,conv_eig]=V[1:n,1:k]*Z[:,s]; λ[conv_eig]=D[s];
        end
       end
 
@@ -73,14 +69,14 @@
     end
 
 
-    function doubleGS(VV,vv,k,n)
+    function doubleGS(V,vv,k,n)
 
-            h=VV'*vv;
+            h=V[1:(k+1)*n,1:k]'*vv;
 
-            vv=vv-VV*h;
+            vv=vv-V[1:(k+1)*n,1:k]*h;
  
-            g=VV'*vv;
-            vv=vv-VV*g;
+            g=V[1:(k+1)*n,1:k]'*vv;
+            vv=vv-V[1:(k+1)*n,1:k]*g;
 
             h = h+g;
             return h,vv;
