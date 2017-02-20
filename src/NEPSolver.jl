@@ -9,6 +9,7 @@ module NEPSolver
 
     include("method_newton.jl")
     include("method_iar.jl")
+    include("method_mslp.jl")
 
 """
     Return the most commonly used companion linearization(as in "Non-linear eigenvalue problems, a challenge for modern eigenvalue methods", by Mehrmann and Voss) of a PEP. For a k-th degree PEP with n-by-n coefficient matrices, this returns E and A, both kn-by-kn, the linearized problem is Ax = λEx
