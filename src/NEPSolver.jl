@@ -8,6 +8,7 @@ module NEPSolver
 
     include("method_newton.jl")
     include("method_iar.jl")
+    include("method_mslp.jl")
 
     #############################################################################
     #Solve the linearized companion of a PEP

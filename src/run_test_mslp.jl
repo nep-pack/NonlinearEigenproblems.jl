@@ -1,7 +1,7 @@
 #  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using NEPSolver_MSLP
+using NEPSolver
 using NEPCore
 using NEPTypes
 using LinSolvers
