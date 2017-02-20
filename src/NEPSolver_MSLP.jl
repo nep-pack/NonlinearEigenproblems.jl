@@ -5,7 +5,7 @@ module NEPSolver_MSLP
 
     using NEPCore
     using NEPTypes
-    using MATLAB  # Dependence required for successive linear problems
+    using LinSolvers
     export mslp
 
 
@@ -21,12 +21,12 @@ module NEPSolver_MSLP
                   λ=0,
                   v=randn(nep.n),
                   displaylevel=0,
-                  eigsolver="default")
+                  eigsolvertype::DataType=DefaultEigSolver)
 
         σ=λ;     
         err=Inf;
 
-        levsolver = LinEigSolver();
+        #levsolver = LinEigSolver();
             
         # Main loop
         for k=1:maxit
@@ -43,8 +43,9 @@ module NEPSolver_MSLP
             end
 
             # solve generalized eigenvalue problem
-            d,v = levsolver.solve(compute_Mder(nep,λ,0),B=compute_Mder(nep,λ,1),λ_t=λ,nev=1);
-
+            #d,v = levsolver.solve(compute_Mder(nep,λ,0),B=compute_Mder(nep,λ,1),λ_t=λ,nev=1);
+            solver::EigSolver=eigsolvertype(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1));
+            d,v = eig_solve(solver,target=λ,nev=1);
             # update eigenvalue
             λ=λ-d
         end

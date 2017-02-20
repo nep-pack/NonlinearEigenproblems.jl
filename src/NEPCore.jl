@@ -268,7 +268,7 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
             end
 
             this.matlab_eigs = function(A,B,λ_t,n)
-            
+
                 aa=mxarray(A)
                 bb=mxarray(B)
                 sigma=mxarray(λ_t)
