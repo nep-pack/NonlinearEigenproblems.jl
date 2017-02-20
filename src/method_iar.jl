@@ -7,7 +7,7 @@
      nep::NEP;maxit=30,	           
      linsolvertype::DataType=DefaultLinSolver,tol=1e-12,Neig=maxit,                                  
      errmeasure::Function = default_errmeasure(nep::NEP),
-     σ=0.0)
+     σ=0.0,γ=1)
 
      n = nep.n; m = maxit;
      # initialization
@@ -15,6 +15,7 @@
      H = zeros(m+1,m);
      y = zeros(n,m+1);
      α = [0;ones(m)];
+     for i=2:m+1; α[i]=γ^(i-1); end	# rescaled coefficients
      local M0inv::LinSolver = linsolvertype(compute_Mder(nep,σ));
      err = zeros(m,m); # error history
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
@@ -44,7 +45,7 @@
       V[1:(k+1)*n,k+1]=vv/beta;
 
       # compute error history
-      D,Z=eig(H[1:k,1:k]); D=σ+1./D;
+      D,Z=eig(H[1:k,1:k]); D=σ+γ./D;
 
       conv_eig=0;
       for s=1:k
