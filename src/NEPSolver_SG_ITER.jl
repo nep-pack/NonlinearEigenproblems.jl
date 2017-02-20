@@ -4,7 +4,7 @@
 module NEPSolver_SG_ITER
 
     using NEPCore
-    using MATLAB   
+    using LinSolvers
     export sg_iteration
 
 
@@ -12,18 +12,18 @@ module NEPSolver_SG_ITER
     #############################################################################
     # Safeguarded iteration
     function sg_iteration(nep::NEP;
-                  errmeasure::Function =
-                  default_errmeasure(nep::NEP),
-                  tol_outer = 1e-2,
-	  	  tol_inner = 1e-8,
-                  λ_approx=0,
-		  v=randn(nep.n),
-                  displaylevel=0,
-		  max_it = 10,
-		  eigsolver="default")
+                        errmeasure::Function =
+                        default_errmeasure(nep::NEP),
+                        tol_outer = 1e-2,
+	  	                tol_inner = 1e-8,
+                        λ_approx=0,
+		                v=randn(nep.n),
+                        displaylevel=0,
+		                max_it = 10,
+		                eigsolvertype::DataType=DefaultEigSolver)
 
 
-    levsolver = LinEigSolver();
+
 
 	#The main program
 
@@ -32,7 +32,9 @@ module NEPSolver_SG_ITER
 	λ_m = λ_approx
 	M = compute_Mder(nep,λ_m,0);
 	v_m = v;
-	d,v_m = levsolver.solve(compute_Mder(nep,λ_m,0),λ_t=λ_m,nev=1)
+
+    solver::EigSolver = eigsolvertype(compute_Mder(nep,λ_m,0));
+	d,v_m = eig_solve(solver,target=λ_m,nev=1)
 	residual = M*v_m;
 
 	for k=1:max_it
@@ -47,7 +49,8 @@ module NEPSolver_SG_ITER
 		# Find closest eigenvalue to λ
         	# and the corresponding eigenvector
 		#d,v_m = eigsolverfunc(nep,λ_m)
-        d,v_m = levsolver.solve(compute_Mder(nep,λ_m,0),λ_t=λ_m,nev=1);
+        solver = eigsolvertype(compute_Mder(nep,λ_m,0));
+        d,v_m = eig_solve(solver,target=λ_m,nev=1);
 
 		# This to be changed ("errmeasure")		
 		M = compute_Mder(nep,λ_m,0);

@@ -42,7 +42,10 @@ module LinSolvers
         return solver.A\x
     end
     
-        
+"""
+    Sparse linear EP solver which calls eigs() or the  matlab version of eigs()
+    depending on if the problem is a generalized EP 
+"""   
     type SpEigSolver <: EigSolver
         A
         B
@@ -86,11 +89,14 @@ module LinSolvers
         return D,V
     end
 
+"""
+    Default linear EP solver which calls eig(A) or eig(A,B)
+""" 
     type DefaultEigSolver <: EigSolver
         A
         B
 
-        function DefaultEigSolver(A,B=eye(eletype(A),size(A)[1]))
+        function DefaultEigSolver(A,B=eye(eltype(A),size(A)[1]))
             this = new()
             this.A = A
             this.B = B

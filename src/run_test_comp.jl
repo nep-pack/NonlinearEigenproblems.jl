@@ -3,6 +3,7 @@ push!(LOAD_PATH, pwd()) # looks for modules in the current directory
 using NEPSolver
 using NEPSolver_MSLP 	
 using NEPCore
+using LinSolvers
 using NEPTypes
 using Gallery
 
@@ -26,10 +27,7 @@ end
 print("##### Results for the problem pep0 #####\n")
 print("Eigenvalue computed by newton: ",λa,"\n")
 
-E,A = companion(pep);
-
-s = LinEigSolver()
-Dc,Vc = s.solve(A,B=E,λ_t=0,nev=d*n);
+Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
 for i=1:d*n
@@ -65,10 +63,7 @@ end
 print("##### Results for the problem pep0_sparse_003 #####\n")
 print("Eigenvalue computed by newton: ",λa,"\n")
 
-
-E,A = companion(pep);
-
-Dc,Vc = s.solve(A,B=E,λ_t=1,nev=d*n);
+Dc,Vc = polyeig(pep,SpEigSolver);
 
 ind = 1;
 for i=1:d*n
