@@ -185,7 +185,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(compute_Mder(nep,λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
+                v= compute_eigvec_from_eigval(nep,λ,v=v)
                 v=v/dot(c,v)
             end
             return (λ,v)
