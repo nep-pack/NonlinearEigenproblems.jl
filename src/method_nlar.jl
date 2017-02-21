@@ -48,7 +48,8 @@ export nlar
             pep_proj = PEP(AA);
 
             #Solve the projected problem
-            ν,y =res_inv(pep_proj,maxit=30,displaylevel=1);
+            ν,y =iar(pep_proj,maxit=30,displaylevel=1,Neig=1);
+
             print("\n\n")
         
             if(k == 1)
@@ -56,10 +57,11 @@ export nlar
             end
             #Determine ritz vector and residual
             u = Vk*y; 
-            res = compute_Mder(nep,ν,0)*u;
+            res = compute_Mlincomb(nep,ν,u);
 
             #Check for convergence of one of the eigenvalues
             err = errmeasure(ν,u);
+            print("Error:",err,"\n")
             if(err < tol)
                 if(displaylevel == 1)
                     println("Eigenvalue: ",λ," errmeasure:",err)
