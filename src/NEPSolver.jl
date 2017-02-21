@@ -26,6 +26,7 @@ module NEPSolver
         A=compute_Mder(nep,λ); # This requires matrix access
         δ=1/sqrt(norm(A,1));
         # Do a couple of steps of inverse iteration
+        local rv
         for k=1:10
             rv=A*v;
             if (norm(rv)<tol)
