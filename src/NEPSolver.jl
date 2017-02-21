@@ -25,7 +25,7 @@ module NEPSolver
         # Still not sure how to do this in an efficient way
         A=compute_Mder(nep,λ); # This requires matrix access
         δ=1/sqrt(norm(A,1));
-        println("Norm0:",norm(A*v));
+        # Do a couple of steps of inverse iteration
         for k=1:10
             rv=A*v;
             if (norm(rv)<tol)
