@@ -11,6 +11,15 @@ module NEPSolver
     include("method_companion.jl")
     include("method_nlar.jl")
 
+"""
+     Computes an eigenvector approximation from an
+     eigenvalue approximation (with very little
+     computational effort).
+"""
+    function compute_eigvec_from_eigval(nep::NEP,λ)
+        compute_Mder(nep,λ)
+        # Not sure how to do this
+    end
     ### Moved to NEPCore.jl
     ##############################################################################
     #  function default_errmeasure(nep::NEP, displaylevel)
