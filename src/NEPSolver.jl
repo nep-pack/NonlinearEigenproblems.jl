@@ -35,7 +35,7 @@ module NEPSolver
             v=(A-δ*speye(size(A,1),size(A,2)))\v
             v=v/norm(v);
         end
-        warn("No sufficiently accurate eigenvector found. Norm:"*norm(rv))
+        warn("No sufficiently accurate eigenvector found. Norm:"*string(norm(rv)))
         return v;
     end
     
