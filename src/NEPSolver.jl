@@ -27,12 +27,12 @@ module NEPSolver
         δ=1/sqrt(norm(A,1));
         println("Norm0:",norm(A*v));
         for k=1:10
-            v=(A-δ*speye(size(A,1),size(A,2)))\v
-            v=v/norm(v);
             rv=A*v;
             if (norm(rv)<tol)
                 return v # Sufficiently accurate
             end
+            v=(A-δ*speye(size(A,1),size(A,2)))\v
+            v=v/norm(v);
         end
         warn("No sufficiently accurate eigenvector found. Norm:"*norm(rv))
         return v;
