@@ -181,7 +181,6 @@ eigenvalue problems
     #        end
     #    return f,fp
         D=call_current_fun(lambda,i)
-        println(D)
         f=D[i+1,:]
         M=zeros(nep.Ai[1]);
         for i=1:length(nep.Ai)
