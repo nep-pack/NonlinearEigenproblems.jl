@@ -105,6 +105,7 @@ module NEPTypes
         A::Array   # Monomial coefficients of PEP
         function PEP(AA)
             n=size(AA[1],1)
+            AA=reshape(AA,length(AA))
             return new(n,AA)
         end
     end

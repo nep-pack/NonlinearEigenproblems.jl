@@ -181,6 +181,7 @@ eigenvalue problems
     #        end
     #    return f,fp
         D=call_current_fun(lambda,i)
+        println(D)
         f=D[i+1,:]
         M=zeros(nep.Ai[1]);
         for i=1:length(nep.Ai)
@@ -212,6 +213,7 @@ eigenvalue problems
 
 """
    nlevp_make_native(nep::NLEVP_NEP)
+
 Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
 """
     function nlevp_make_native(nep::NLEVP_NEP)
@@ -222,6 +224,8 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
             sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
             nep2=SPMF_NEP(nep.Ai,[oneop,minusop,sqrt1op,sqrt2op])
             return nep2
+        elseif (nep.name == "cd_player")
+            return PEP(nep.Ai);
         else
             error("Unable to make NEP native")
         end
