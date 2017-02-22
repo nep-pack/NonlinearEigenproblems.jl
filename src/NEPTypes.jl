@@ -138,7 +138,7 @@ module NEPTypes
         else
             Z=zeros(size(nep,1),size(nep,1));
         end
-        for j=(i+1):size(nep.A,1)
+        for j=(i+1):length(nep.A)
             # Derivatives of monimials
             Z+= nep.A[j]*(λ^(j-i-1)*factorial(j-1)/factorial(j-i-1))
         end
