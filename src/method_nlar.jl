@@ -18,6 +18,10 @@ export nlar
 
         σ = λ; #Initial pole 
 
+        if (maxit>size(nep,1))
+            warning("Maximum iteration count maxit="*maxit*" larger than problem size n="*size(nep,1)*" reducing")
+            maxit=size(nep,1);
+        end
         #Initialize the basis V_1
         V = zeros(Complex128,nep.n,maxit);
         X = zeros(Complex128,nep.n,nev);
@@ -29,6 +33,9 @@ export nlar
         m = 0;#Number of converged eigenvalues
         k = 1;
 
+
+        qrmethod_orth=true;  # 
+        
         local linsolver::LinSolver=linsolvertype(compute_Mder(nep,σ,0));
  
         num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
@@ -52,10 +59,8 @@ export nlar
             dd,vv = polyeig(pep_proj);
 
             ii = sortperm(abs(dd-σ));
-            
+
             ν = dd[ii[m+1]];
-
-
             y = vv[:,ii[m+1]];
 
             if(k == 1)
@@ -68,13 +73,13 @@ export nlar
             u = normalize(u);
             res = compute_Mlincomb(nep,ν,u);
 
-
+           
             #Check for convergence of one of the eigenvalues
             err = errmeasure(ν,u);
-            println("Error:",err,"Eigval :",ν)
+            println(k," Error:",err," Eigval :",ν)
             if(err < tol)
                 if(displaylevel == 1)
-                    println("\n\n******  Converged to eigenvalue: ",ν," errmeasure:",err,"  ******\n")
+                    println("\n\n****** ",m+1,"th converged to eigenvalue: ",ν," errmeasure:",err,"  ******\n")
                 end
                 D[m+1] = ν;
                 X[:,m+1] = u;
@@ -93,20 +98,33 @@ export nlar
             end
 
             #Compute new vector Δv to add to the search space V(k+1) = (Vk,Δv)
-            
+
             Δv=lin_solve(linsolver,res)
 
             #Orthogonalize and normalize
-            h = V[:,1:k]'*Δv;
-            V_k1 = Δv-V[:,1:k]*h;
-            g = V[:,1:k]'*V_k1;
-            V_k1 = V_k1-V[:,1:k]*g;
-            V_k1 = normalize(V_k1) 
+            if (qrmethod_orth)
 
+                # Orthogonalize the entire basis matrix
+                # together with Δv using QR-method.
+                # Slow but robust.
+                Q,R=qr(hcat(Vk,Δv),thin=true)
+                Vk=Q
+                V[:,1:k+1]=Q;
+                #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
+                #println("Size:",size(Vk), " N: ",norm(Vk[:,k+1]), " d:",norm(Δv))
+            else
 
-            #Expand
-            V[:,k+1] = V_k1;
-            Vk = V[:,1:k+1];
+                # Do our own (double) Gram-Schmidt
+                h = V[:,1:k]'*Δv;
+                V_k1 = Δv-V[:,1:k]*h;
+                g = V[:,1:k]'*V_k1;
+                V_k1 = V_k1-V[:,1:k]*g;
+                V_k1 = normalize(V_k1)
+               
+                #Expand
+                V[:,k+1] = V_k1;
+                Vk = V[:,1:k+1];
+            end
 
             #Check orthogonalization
             if(k < 100)
