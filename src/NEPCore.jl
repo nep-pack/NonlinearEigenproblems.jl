@@ -234,7 +234,7 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
 
     function default_errmeasure(nep::NEP)
         f=function (λ,v);
-            compute_resnorm(nep,λ,v)
+            compute_resnorm(nep,λ,v)/norm(v)
         end
         return f
     end
