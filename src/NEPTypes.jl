@@ -48,7 +48,7 @@ module NEPTypes
         tauv::Array{Float64,1} # the delays
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
-            this=new(n,AA,tauv);
+            this=new(n,reshape(AA,length(AA)),tauv);   # allow for 1xn matrices 
             return this;
         end
     end
@@ -253,6 +253,7 @@ module NEPTypes
         function REP(AA,poles::Array)
 
             n=size(AA[1],1)
+            AA=reshape(AA,length(AA)) # allow for 1xn matrices 
             # numerators
             si=Array{Array{Number,1},1}(length(poles))
             for i =1:size(poles,1)
