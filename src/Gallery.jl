@@ -7,9 +7,13 @@ module Gallery
     export nep_gallery
     export nlevp_gallery_import
     export nlevp_make_native
+    export distributed_kernel
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
+
+
+    include("gallery_extra/distributed_example.jl")
     
   """
   Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. name decides which NEP. \\
@@ -121,8 +125,12 @@ module Gallery
           nep=PEP(A)
           return nep
 
-      end    
+      elseif (name== "dep_distributed")
+          return gallery_dep_distributed();
+      end
+      
   end
+        
 
     """
     nlevp_gallery(name)
