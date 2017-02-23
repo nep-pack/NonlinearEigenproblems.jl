@@ -7,7 +7,7 @@ module Gallery
     export nep_gallery
     export nlevp_gallery_import
     export nlevp_make_native
-    export distributed_kernel
+
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
