@@ -56,5 +56,5 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
         solver::EigSolver = eigsolvertype(A,E);
         D,V = eig_solve(solver,target=1.0,nev=size(A)[1]);
 
-        return D,V
+        return D,V[1:pep.n,:]
     end

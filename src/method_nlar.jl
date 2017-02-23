@@ -8,7 +8,7 @@ export nlar
                 nev=10,#Number of eigenvalues required
                 errmeasure::Function =
                 default_errmeasure(nep::NEP),
-                tol=1e-6,
+                tol=1e-12,
                 maxit=100,
                 λ=0,
                 v=randn(nep.n),
@@ -56,25 +56,25 @@ export nlar
             ν = dd[ii[m+1]];
 
 
-            y = vv[1:k,ii[m+1]];
-
-
+            y = vv[:,ii[m+1]];
 
             if(k == 1)
-                y = y[1];
+                y = y[1]
             end
+            
             #Determine ritz vector and residual
             u = Vk*y; 
+
             u = normalize(u);
             res = compute_Mlincomb(nep,ν,u);
 
 
             #Check for convergence of one of the eigenvalues
             err = errmeasure(ν,u);
-            println("Error:",err,"and nu is :",ν)
+            println("Error:",err,"Eigval :",ν)
             if(err < tol)
                 if(displaylevel == 1)
-                    println("Converged to eigenvalue: ",ν," errmeasure:",err)
+                    println("\n\n******  Converged to eigenvalue: ",ν," errmeasure:",err,"  ******\n")
                 end
                 D[m+1] = ν;
                 X[:,m+1] = u;
@@ -84,7 +84,7 @@ export nlar
 
                 #Compute residual again
                 ν1 = dd[ii[m+4]];
-                y1 = vv[1:k,ii[m+4]]
+                y1 = vv[:,ii[m+4]]
                 u1 = Vk*y1; 
                 u1 = normalize(u1);
                 res = compute_Mlincomb(nep,ν1,u1);
@@ -110,7 +110,7 @@ export nlar
 
             #Check orthogonalization
             if(k < 100)
-                println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+               #println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
                 #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n") 
             end
             k = k+1; 
