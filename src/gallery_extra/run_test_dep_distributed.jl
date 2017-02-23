@@ -13,9 +13,13 @@ nep=nep_gallery("dep_distributed");
 #
 #println(Z)
 
-λ,v= aug_newton(nep,λ=complex(3.0),v=ones(3));
+λ,v= aug_newton(nep,λ=complex(3.0),v=ones(3),displaylevel=1);
 
+λ_iar,v_iar=iar(nep,displaylevel=1);
 
 exact=2.726146249832675
 
 println("reference error:", abs(λ-exact))
+
+
+
