@@ -72,7 +72,7 @@ module Gallery
           A0=randn(n,n)
           A1=randn(n,n)
           A2=randn(n,n)
-          A=[A0,A1,A2]
+          A=[A0+A0',A1+A1',A2+A2']
           nep=PEP(A)
           return nep
 

@@ -2,14 +2,14 @@
 
 export nlar
 
-###########################################################################################################
+################################################################################################################
 
     function nlar(nep::NEP;
-                nev=1,#Number of eigenvalues required
+                nev=10,#Number of eigenvalues required
                 errmeasure::Function =
                 default_errmeasure(nep::NEP),
-                tol=eps()*100,
-                maxit=30,
+                tol=1e-6,
+                maxit=100,
                 λ=0,
                 v=randn(nep.n),
                 displaylevel=0,
@@ -19,25 +19,26 @@ export nlar
         σ = λ; #Initial pole 
 
         #Initialize the basis V_1
-        V = zeros(nep.n,maxit);
-        X = zeros(nep.n,nev);
-        V[:,1] = ones(nep.n,1);
-        V[:,1] = normalize(V[:,1]);
+        V = zeros(Complex128,nep.n,maxit);
+        X = zeros(Complex128,nep.n,nev);
+        V[:,1] = normalize(ones(nep.n));
         Vk = V[:,1];
 
-        D = zeros(nev,1);#To store the converged eigenvalues
+        D = zeros(Complex128,nev);#To store the converged eigenvalues
 
         m = 0;#Number of converged eigenvalues
         k = 1;
-        iter = 0;
+
+        local linsolver::LinSolver=linsolvertype(compute_Mder(nep,σ,0));
+ 
         num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
-        while m < nev && iter < maxit 
+        while m < nev 
             ### Construct the small projected PEP projected problem (V^H)T(λ)Vx = 0 using nl_eigsolvertype....(Currently works
             ### only for PEP) #####
             
-            AA = Array{typeof(zeros(k,k))}(num_t);            
+            AA = Array{typeof(zeros(Complex128,k,k))}(num_t);            
             for i=1:num_t
-                AA[i] = zeros(k,k);
+                AA[i] = zeros(Complex128,k,k);
                 if(k != 1)
                     AA[i] = Vk'*nep.A[i]*Vk;
                 else
@@ -48,48 +49,71 @@ export nlar
             pep_proj = PEP(AA);
 
             #Solve the projected problem
-            ν,y =iar(pep_proj,maxit=30,displaylevel=1,Neig=1);
+            dd,vv = polyeig(pep_proj);
 
-            print("\n\n")
-        
+            ii = sortperm(abs(dd-σ));
+            
+            ν = dd[ii[m+1]];
+
+
+            y = vv[1:k,ii[m+1]];
+
+
+
             if(k == 1)
                 y = y[1];
             end
             #Determine ritz vector and residual
             u = Vk*y; 
+            u = normalize(u);
             res = compute_Mlincomb(nep,ν,u);
+
 
             #Check for convergence of one of the eigenvalues
             err = errmeasure(ν,u);
-            print("Error:",err,"\n")
+            println("Error:",err,"and nu is :",ν)
             if(err < tol)
                 if(displaylevel == 1)
-                    println("Eigenvalue: ",λ," errmeasure:",err)
+                    println("Converged to eigenvalue: ",ν," errmeasure:",err)
                 end
                 D[m+1] = ν;
                 X[:,m+1] = u;
+
+                #Change the pole
+                #σ = 2.0*ν;
+
+                #Compute residual again
+                ν1 = dd[ii[m+4]];
+                y1 = vv[1:k,ii[m+4]]
+                u1 = Vk*y1; 
+                u1 = normalize(u1);
+                res = compute_Mlincomb(nep,ν1,u1);
+
                 m = m+1; 
-                k = 0;
             end
 
             #Compute new vector Δv to add to the search space V(k+1) = (Vk,Δv)
-            local linsolver::LinSolver=linsolvertype(compute_Mder(nep,σ));
-            Δv=lin_solve(linsolver,res,tol=1e-16)
-            V[:,k+1] = Δv;
+            
+            Δv=lin_solve(linsolver,res)
 
-            #Orthogonalize
-            if(k != 0)
-                h = V[:,1:k]'*Δv;
-                V_k1 = Δv-V[:,1:k]*h;
-                V[:,k+1] = V_k1;
-            end
+            #Orthogonalize and normalize
+            h = V[:,1:k]'*Δv;
+            V_k1 = Δv-V[:,1:k]*h;
+            g = V[:,1:k]'*V_k1;
+            V_k1 = V_k1-V[:,1:k]*g;
+            V_k1 = normalize(V_k1) 
+
 
             #Expand
+            V[:,k+1] = V_k1;
             Vk = V[:,1:k+1];
 
+            #Check orthogonalization
+            if(k < 100)
+                println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+                #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n") 
+            end
             k = k+1; 
-
-            iter = iter+1;
         end
 
         return D,X;
