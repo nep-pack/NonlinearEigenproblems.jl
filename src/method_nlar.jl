@@ -8,7 +8,7 @@ export nlar
                 nev=10,#Number of eigenvalues required
                 errmeasure::Function =
                 default_errmeasure(nep::NEP),
-                tol=1e-12,
+                tol=1e-6,
                 maxit=100,
                 λ=0,
                 v=randn(nep.n),
@@ -83,8 +83,8 @@ export nlar
                 #σ = 2.0*ν;
 
                 #Compute residual again
-                ν1 = dd[ii[m+4]];
-                y1 = vv[:,ii[m+4]]
+                ν1 = dd[ii[m+2]];
+                y1 = vv[:,ii[m+2]]
                 u1 = Vk*y1; 
                 u1 = normalize(u1);
                 res = compute_Mlincomb(nep,ν1,u1);
