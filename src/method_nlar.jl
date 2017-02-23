@@ -19,7 +19,7 @@ export nlar
         σ = λ; #Initial pole 
 
         if (maxit>size(nep,1))
-            warning("Maximum iteration count maxit="*maxit*" larger than problem size n="*size(nep,1)*" reducing")
+            warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
             maxit=size(nep,1);
         end
         #Initialize the basis V_1
