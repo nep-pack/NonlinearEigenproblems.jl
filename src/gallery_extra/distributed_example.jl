@@ -1,4 +1,11 @@
+export gauss_legendre_weights;   # For debugging only
+export distributed_kernel_trapezoidal;    # For debugging only
+export distributed_kernel_gauss_legendre; # For debugging only
 
+"
+#Creates the NEP associated with example in E. Jarlebring and
+#W. Michiels and K. Meerbergen, The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays, Delay Systems - Methods, Applications and New Trends, 2012
+"
 function gallery_dep_distributed()
     # E. Jarlebring and W. Michiels and K. Meerbergen},
     # The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays,
@@ -20,7 +27,6 @@ function gallery_dep_distributed()
     # 
 
     
-    N=1000
     
     A0=-eye(3);
     A1=[2.5    2.8   -0.5
@@ -35,12 +41,16 @@ function gallery_dep_distributed()
     idop= S -> S
     oneop= S -> eye(size(S,1),size(S,2))
     f1= S -> expm(-full(S))
-    f2= S -> distributed_kernel(full(S),N)
+    N=10; 
+    f2= S -> distributed_kernel_gauss_legendre(full(S),N)
+    #N=1000;  
+    #f2= S -> distributed_kernel_trapezoidal(full(S),N)    
     return SPMF_NEP([A0,A1,A2,A3],[idop,oneop,f1,f2])
 end    
 
 
-function distributed_kernel(S,N0)
+function distributed_kernel_trapezoidal(S,N0)
+
     function fS(x); return expm(x*S)*(exp((x+0.5)^2)-exp(1/4)); end
 
     F=zeros(eltype(S),size(S,1),size(S,2));
@@ -55,4 +65,71 @@ function distributed_kernel(S,N0)
         end
     end
     return F
+end
+
+function distributed_kernel_gauss_legendre(S,N)
+    function fS(x); return expm(x*S)*(exp((x+0.5)^2)-exp(1/4)); end
+
+    F=zeros(eltype(S),size(S,1),size(S,2));
+
+    xv,wv=gauss_legendre_weights(N,-1,0);
+    for i=1:length(xv)
+        F=F+fS(xv[i])*wv[i];
+    end
+    return F
+end
+
+
+
+
+function  gauss_legendre_weights(N,a,b)
+
+    N1=N; N2=N+1;
+    xu=linspace(-1,1,N1);
+
+    # L will be the Legendre-Gauss Vandermonde Matrix
+    L=zeros(N1,N2);
+
+    
+
+    # "Derivative" of L
+    Lp=zeros(N1,N2);
+    
+
+    # Starting values of Newton's method
+    y=cos((2*(0:(N-1))+1)*pi/(2*(N-1)+2))+(0.27/N1)*sin(pi*xu*(N-1)/N2);    y0=2;
+    
+
+    local Lp0
+    # Newton's method to decide points
+    # Iterate until new points are uniformly within epsilon of old points
+    
+    while maximum(abs(y-y0))>eps()
+        
+        
+        
+        L[:,1]=ones(size(L,1));
+        Lp[:,1]=zeros(size(Lp,1));
+
+        L[:,2]=y;
+        Lp[:,2]=ones(size(Lp,1));
+
+        # Recurrence
+        for k=2:N1
+            L[:,k+1]=( (2*k-1)*(y).*L[:,k]-(k-1)*L[:,k-1] )/k;
+        end
+        
+        Lp0=(N2)*( L[:,N1]-(y).*L[:,N2] )./(1-y.^2);   
+        
+        y0=y;
+        y=y0-L[:,N2]./Lp0;
+    end
+
+    # Linear map from[-1,1] to [a,b]
+    x=(a*(1-y)+b*(1+y))/2;
+
+    # Compute the weights
+    w=(b-a)./((1-y.^2).*Lp0.^2)*(N2/N1)^2;
+
+    return x,w
 end
