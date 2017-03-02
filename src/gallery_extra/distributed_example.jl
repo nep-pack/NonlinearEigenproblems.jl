@@ -66,15 +66,35 @@ function distributed_kernel_trapezoidal(S,N0)
     end
     return F
 end
-
+"""
+Computes distributed kernel matrix function using
+Gauss-Legender quadrature.
+"""
 function distributed_kernel_gauss_legendre(S,N)
-    function fS(x); return expm(x*S)*(exp((x+0.5)^2)-exp(1/4)); end
-
-    F=zeros(eltype(S),size(S,1),size(S,2));
-
+    f=x-> (exp((x+0.5)^2)-exp(1/4))
+    F=zeros(eltype(S),size(S,1),size(S,1))
     xv,wv=gauss_legendre_weights(N,-1,0);
+    local E=eye(eltype(S),size(S,1),size(S,1));
+
+    accumulative_expm_comp=true
     for i=1:length(xv)
-        F=F+fS(xv[i])*wv[i];
+        if (accumulative_expm_comp)
+            # An accumulative way to compute E=expm(xv[i]*S) which is 
+            # faster due to the fact that scaling and squaring 
+            # for expm((xv[i]-xv[i-1])*S) is faster than
+            # expm(xv[i]*S)
+            if (i==1)
+                E=expm(xv[1]*S);
+            else
+                E=E*expm((xv[i]-xv[i-1])*S)
+            end
+        else
+            E=expm(xv[i]*S);
+
+        end
+        
+        fSw=E*(f(xv[i])*wv[i]);
+        F=F+fSw;
     end
     return F
 end
