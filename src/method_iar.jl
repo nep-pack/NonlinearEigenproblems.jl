@@ -10,9 +10,11 @@
      Neig=maxit,                                  
      errmeasure::Function = default_errmeasure(nep::NEP),
      σ=0.0,
-     γ=1)
+        γ=1,
+        displaylevel=0
+    )
 
-     n = nep.n; m = maxit;
+     n = size(nep,1); m = maxit;
      # initialization
      V = zeros(n*(m+1),m+1);
      H = zeros(m+1,m);
@@ -28,7 +30,10 @@
      vv[:]=rand(n,1); vv[:]=vv[:]/norm(vv);
 
      k=1; conv_eig=0;
-     while (k <= m)&(conv_eig<=Neig)
+        while (k <= m)&(conv_eig<=Neig)
+            if (displaylevel>0)
+                println(k)
+                end
       VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
       vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
