@@ -44,8 +44,8 @@
                 delta=-J\F;
 
                 # Update eigenvalue and eigvec
-                v=v+delta[1:nep.n];
-                λ=λ+delta[nep.n+1];
+                v=v+delta[1:size(nep,1)];
+                λ=λ+delta[size(nep,1)+1];
 
             end
         catch e
@@ -57,7 +57,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(compute_Mder(nep,λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
+                v=(compute_Mder(nep,λ,0)+eps()*speye(size(nep,1)))\v; # Requires matrix access
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -76,7 +76,7 @@
                      tolerance=eps()*100,
                      maxit=100,
                      λ=0,
-                     v=randn(nep.n),
+                     v=randn(size(nep,1)),
                      c=v,
                      displaylevel=0,
                      linsolvertype::DataType=DefaultLinSolver)
@@ -107,7 +107,7 @@
                 # Compute eigenvector update
 	        # Δv=Mσ\nep.Mlincomb(λ,v) #M*v);
                 tol=eps()
-	        Δv=lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,nep.n,1)),
+	        Δv=lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)),
                                    tol=tol) #M*v);
 
                 # Update the eigvector
@@ -124,7 +124,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(nep.Md(λ,0)+eps()*speye(nep.n))\v; # Requires matrix access
+                v=(nep.Md(λ,0)+eps()*speye(size(nep,1)))\v; # Requires matrix access
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -146,7 +146,7 @@
                         tolerance=eps()*100,
                         maxit=30,
                         λ=0,
-                        v=randn(nep.n),
+                        v=randn(size(nep,1)),
                         c=v,
                         displaylevel=0)
         
@@ -155,7 +155,7 @@
         try
             for k=1:maxit
                 #err=errmeasure(λ,v)
-                err=errmeasure(λ,reshape(v,nep.n))
+                err=errmeasure(λ,reshape(v,size(nep,1)))
                 if (displaylevel>0)
                     println("Iteration:",k," errmeasure:",err)
                 end
