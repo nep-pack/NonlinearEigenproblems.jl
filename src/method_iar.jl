@@ -16,9 +16,9 @@
 
      n = size(nep,1); m = maxit;
      # initialization
-     V = zeros(n*(m+1),m+1);
-     H = zeros(m+1,m);
-     y = zeros(n,m+1);
+     V = zeros(Complex128,n*(m+1),m+1);
+     H = zeros(Complex128,m+1,m);
+     y = zeros(Complex128,n,m+1);
      α = [0;ones(m)];
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
      for i=2:m+1; α[i]=γ^(i-1); end 
