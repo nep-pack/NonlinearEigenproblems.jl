@@ -42,5 +42,16 @@ println(compute_resnorm(nep,λ,x))
 
 
 
+println("Running Newton on random dep with Float32 arithmetic only")
+nep=nep_gallery("dep0")
+
+
+λ,x =newton(Float32,nep,displaylevel=1);
+
+println("Solution:",(λ,x))
+println("Resnorm:",compute_resnorm(nep,λ,x))
+
+
+
 
 

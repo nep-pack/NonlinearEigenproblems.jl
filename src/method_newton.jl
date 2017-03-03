@@ -9,19 +9,23 @@
 """
     Newton raphsons method on nonlinear equation with (n+1) unknowns
 """
-    function newton(nep::NEP;
+    newton(nep::NEP;params...)=newton(Complex128,nep;params...)
+    function newton(T::DataType,nep::NEP;
                     errmeasure::Function =
                     default_errmeasure(nep::NEP),
                     tolerance=eps()*100,
-                    maxit=10,
-                    λ=0,
-                    v=randn(size(nep,1)),
+                    maxit=10, λ=0,
+                    v=randn(real(T),size(nep,1)),
                     c=v,
                     displaylevel=0)
 
         err=Inf;
         v=v/dot(c,v);
 
+        # Ensure types λ and v are of type T
+        λ=T(λ)
+        v=Array{T,1}(v)
+        c=Array{T,1}(c)        
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
