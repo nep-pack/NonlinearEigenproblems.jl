@@ -439,7 +439,8 @@ corresponding the NEP: W'nep.orgnep(s)Vz=0.
     # Use delagation to the nep_proj
     compute_MM(nep::Proj_NEP,par...)=compute_MM(nep.nep_proj,par...)
     #compute_Mlincomb(nep::Proj_NEP,par...)=compute_Mlincomb(nep.nep_proj,par...) # does not work yet
-    compute_Mder(nep::Proj_NEP,par...)=compute_Mder(nep.nep_proj,par...)
+    compute_Mder(nep::Proj_NEP,λ::Number)=compute_Mder(nep.nep_proj,λ,0)
+    compute_Mder(nep::Proj_NEP,λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
     function size(nep::Proj_NEP,dim=-1)
         n=size(nep.W,2);

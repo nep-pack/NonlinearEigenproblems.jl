@@ -48,3 +48,7 @@ x1=Q*z1; x1=x1/x1[1];
 # should be small since the eigenvector is in the subspace
 println("Difference of solution from projected problem:", norm(x/x[1]-x1))
 
+println("Running IAR for projected problem (no special starting value)");
+λv,X=iar(pnep,σ=complex(0.0),displaylevel=1,maxit=20)
+
+println("Difference of solution from projected problem:",minimum(abs(λv-λ_exact)))
