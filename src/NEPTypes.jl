@@ -3,10 +3,13 @@ module NEPTypes
     export DEP
     export PEP
     export REP
-    export SPMF_NEP    
+    export SPMF_NEP
+    export Proj_NEP;
 
     export interpolate
     export interpolate_cheb
+    
+    export set_projectmatrices!;
     
     using NEPCore
 
@@ -27,6 +30,7 @@ module NEPTypes
     export compute_rf    
     export size
     export companion
+
 
 
 
@@ -388,7 +392,63 @@ module NEPTypes
     end
 
   
-         
+        
+    #######################################################
+    ### Represents a projected NEP
+"""
+Proj_NEP represents a projected NEP
+"""
+    type Proj_NEP <: NEP
+        nep::NEP
+        V
+        W
+        A::Array;
+        Aproj::Array;
+        nep_proj::NEP; # Sometimes create a projected NEP
+        function Proj_NEP(nep::PEP) # Only PEPs so far
+            this=new(nep);
+            this.A=nep.A;
+            return this
+        end
+    end
+"""
+    set_projectmatrices!(nep::Proj_NEP,W,V)
+Set the projection matrices for the NEP to W and V, i.e.,
+corresponding the NEP: W'nep.orgnep(s)Vz=0.
+"""
+    function set_projectmatrices!(nep::Proj_NEP,W,V)        
+        ## Sets the left and right projected basis
+        k=size(W,2);
+        m=size(nep.A,1);
+        B = Array{Array{eltype(W),2}}(m);            
+        for i=1:m
+            B[i]=W'*nep.A[i]*V;
+        end
+        nep.W=W;
+        nep.V=V
+        nep.nep_proj=PEP(B);
+    end
+
+    # Use delagation to the nep_proj
+    compute_MM(nep::Proj_NEP,par...)=compute_MM(nep.nep_proj,par...)
+    #compute_Mlincomb(nep::Proj_NEP,par...)=compute_Mlincomb(nep.nep_proj,par...) # does not work yet
+    compute_Mder(nep::Proj_NEP,par...)=compute_Mder(nep.nep_proj,par...)
+
+    function size(nep::Proj_NEP,dim=-1)
+        n=size(nep.W,2);
+        if (dim==-1)
+            return (n,n)
+        else
+            return n
+        end
+    end
+
+    function issparse(nep::Proj_NEP)
+        return false; # projected NEP is (essentially) never sparse
+    end
+
+
+
    #######################################################
    ### Functions in common for many NEPs in NEPTypes
 
@@ -412,6 +472,8 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     function issparse(nep::Union{DEP,PEP,REP,SPMF_NEP})
         return issparse(nep.A[1])   
     end
-        
+
+
+
 end
 
