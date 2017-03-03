@@ -399,15 +399,13 @@ module NEPTypes
 Proj_NEP represents a projected NEP
 """
     type Proj_NEP <: NEP
-        nep::NEP
+        orgnep::NEP
         V
         W
-        A::Array;
         Aproj::Array;
         nep_proj::NEP; # Sometimes create a projected NEP
-        function Proj_NEP(nep::PEP) # Only PEPs so far
+        function Proj_NEP(nep::Union{PEP,SPMF_NEP}) # Only PEPs so far
             this=new(nep);
-            this.A=nep.A;
             return this
         end
     end
@@ -417,16 +415,25 @@ Set the projection matrices for the NEP to W and V, i.e.,
 corresponding the NEP: W'nep.orgnep(s)Vz=0.
 """
     function set_projectmatrices!(nep::Proj_NEP,W,V)        
-        ## Sets the left and right projected basis
+        ## Sets the left and right projected basis and computes
+        ## the underlying projected NEP
         k=size(W,2);
-        m=size(nep.A,1);
+        m=size(nep.orgnep.A,1);
         B = Array{Array{eltype(W),2}}(m);            
         for i=1:m
-            B[i]=W'*nep.A[i]*V;
+            B[i]=W'*nep.orgnep.A[i]*V;
         end
-        nep.W=W;
-        nep.V=V
-        nep.nep_proj=PEP(B);
+        nep.W=W;  
+        nep.V=V;
+        if (isa(nep.orgnep,PEP))
+            nep.nep_proj=PEP(B);
+        elseif (isa(nep.orgnep,SPMF_NEP))
+            # Keep the sequence of functions for SPMFs
+            nep.nep_proj=SPMF_NEP(B,nep.orgnep.fi)
+        else
+            error("Unknown type")
+        end
+        
     end
 
     # Use delagation to the nep_proj
@@ -444,7 +451,7 @@ corresponding the NEP: W'nep.orgnep(s)Vz=0.
     end
 
     function issparse(nep::Proj_NEP)
-        return false; # projected NEP is (essentially) never sparse
+        return false; # A projected NEP is (essentially) never sparse
     end
 
 
