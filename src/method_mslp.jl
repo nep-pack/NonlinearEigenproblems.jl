@@ -16,7 +16,7 @@ function mslp(nep::NEP;
               λ=0,
               v=randn(nep.n),
               displaylevel=0,
-              eigsolvertype::DataType=DefaultEigSolver)
+              eigsolvertype::DataType=JuliaEig)
 
     σ=λ;     
     err=Inf;

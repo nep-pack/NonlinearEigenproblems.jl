@@ -50,7 +50,7 @@ module NEPSolver_SG_ITER
         	# and the corresponding eigenvector
 		#d,v_m = eigsolverfunc(nep,λ_m)
         solver = eigsolvertype(compute_Mder(nep,λ_m,0));
-        d,v_m = eig_solve(solver,target=λ_m,nev=1);
+        d,v_m = eig_solve(solver;nev=1,target=λ_m);
 
 		# This to be changed ("errmeasure")		
 		M = compute_Mder(nep,λ_m,0);
