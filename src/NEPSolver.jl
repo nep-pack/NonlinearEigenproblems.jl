@@ -11,7 +11,9 @@ module NEPSolver
     include("method_mslp.jl")
     include("method_companion.jl")
     include("method_nlar.jl")
-
+    include("method_sg.jl")
+    include("method_jd_lin.jl")
+    include("method_jd_quad.jl")
     
 """
      Computes an eigenvector approximation from an

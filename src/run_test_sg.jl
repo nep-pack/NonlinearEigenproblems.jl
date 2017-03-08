@@ -5,9 +5,8 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using LinSolvers
-using NEPSolver_SG_ITER
 using Gallery
-#using Winston # For plotting
+
 
 nep=nep_gallery("real_quadratic");
 

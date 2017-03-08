@@ -1,16 +1,15 @@
-"""
-    Module with the Safeguarded Iteration
-"""
-module NEPSolver_SG_ITER
 
-    using NEPCore
-    using LinSolvers
+
+
+
     export sg_iteration
 
 
 
     #############################################################################
     # Safeguarded iteration
+    #############################################################################
+
     function sg_iteration(nep::NEP;
                         errmeasure::Function =
                         default_errmeasure(nep::NEP),
@@ -33,7 +32,7 @@ module NEPSolver_SG_ITER
 	M = compute_Mder(nep,λ_m,0);
 	v_m = v;
 
-    solver::EigSolver = eigsolvertype(compute_Mder(nep,λ_m,0));
+    	solver::EigSolver = eigsolvertype(compute_Mder(nep,λ_m,0));
 	d,v_m = eig_solve(solver,target=λ_m,nev=1)
 	residual = M*v_m;
 
@@ -77,4 +76,4 @@ module NEPSolver_SG_ITER
     end
     
 
-end
+
