@@ -10,7 +10,7 @@ using Gallery
 peptest=true
 local nep::NEP
 if (peptest)
-    nep=nep_gallery("pep0");
+    nep=nep_gallery("pep0_sparse_003");
 else
     
     n=5;
@@ -36,7 +36,7 @@ println("Running Newton Raphson")
 λ_exact=λ
 ev2=zeros(0)
 
-pnep=Proj_NEP(nep);
+pnep=create_proj_NEP(nep);
 V=randn(size(nep,1),2)
 Q,R=qr(hcat(V,x)) # Make the eigenspace a part of the projection subspace
 set_projectmatrices!(pnep,Q,Q);

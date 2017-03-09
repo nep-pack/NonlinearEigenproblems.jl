@@ -4,7 +4,11 @@ module NEPTypes
     export PEP
     export REP
     export SPMF_NEP
+
     export Proj_NEP;
+    export Proj_PEP;    
+    export Proj_SPMF_NEP;    
+    export create_proj_NEP;
 
     export interpolate
     export interpolate_cheb
@@ -398,22 +402,50 @@ module NEPTypes
 """
 Proj_NEP represents a projected NEP
 """
-    type Proj_NEP <: NEP
-        orgnep::NEP
+    abstract Proj_NEP <: NEP
+
+"""
+Creates a NEP representing a projected problem. Use
+set_projectionmatrices() to specify projection matrices.
+"""
+    function create_proj_NEP(orgnep::Union{PEP,SPMF_NEP})
+        if (isa(orgnep,PEP))
+            return Proj_PEP(orgnep);
+        elseif (isa(orgnep,SPMF_NEP))
+            return Proj_SPMF_NEP(orgnep);
+        else
+            error("Projection of this NEP is not available");
+        end
+    end
+    # concrete types for projection of NEPs and PEPs
+    type Proj_PEP <: Proj_NEP
+        orgnep::PEP
         V
         W
-        nep_proj::NEP; # Sometimes create a projected NEP
-        function Proj_NEP(nep::Union{PEP,SPMF_NEP}) # Only PEPs so far
+        nep_proj::PEP; # An instance of the projected NEP
+        function Proj_PEP(nep::PEP) 
             this=new(nep);
             return this
         end
     end
+
+    type Proj_SPMF_NEP <: Proj_NEP
+        orgnep::SPMF_NEP
+        V
+        W
+        nep_proj::SPMF_NEP; # An instance of the projected NEP
+        function Proj_SPMF_NEP(nep::SPMF_NEP) 
+            this=new(nep);
+            return this
+        end
+    end
+
 """
     set_projectmatrices!(nep::Proj_NEP,W,V)
 Set the projection matrices for the NEP to W and V, i.e.,
 corresponding the NEP: W'nep.orgnep(s)Vz=0.
 """
-    function set_projectmatrices!(nep::Proj_NEP,W,V)        
+    function set_projectmatrices!(nep::Union{Proj_PEP,Proj_SPMF_NEP},W,V)        
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         k=size(W,2);
@@ -435,11 +467,12 @@ corresponding the NEP: W'nep.orgnep(s)Vz=0.
         
     end
 
+
     # Use delagation to the nep_proj
-    compute_MM(nep::Proj_NEP,par...)=compute_MM(nep.nep_proj,par...)
+    compute_MM(nep::Union{Proj_PEP,Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
     #compute_Mlincomb(nep::Proj_NEP,par...)=compute_Mlincomb(nep.nep_proj,par...) # does not work yet
-    compute_Mder(nep::Proj_NEP,λ::Number)=compute_Mder(nep.nep_proj,λ,0)
-    compute_Mder(nep::Proj_NEP,λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
+    compute_Mder(nep::Union{Proj_PEP,Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
+    compute_Mder(nep::Union{Proj_PEP,Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
     function size(nep::Proj_NEP,dim=-1)
         n=size(nep.W,2);
