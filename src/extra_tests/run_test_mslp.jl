@@ -11,7 +11,7 @@ println("Test MSLP")
 #
 println("Running MSLP sparse dep (with default eigsolver)")
 nep=nep_gallery("dep0_sparse")
-λ,x =mslp(nep,displaylevel=1,eigsolvertype=SpEigSolver);
+λ,x =mslp(nep,displaylevel=1,eigsolvertype=MatlabEigSSolver);
 println(compute_resnorm(nep,λ,x))
 
 # Buggy julia eigs generates error 
@@ -20,7 +20,7 @@ println(compute_resnorm(nep,λ,x))
 
 println("Running MSLP full dep (with eigsolver=eig)")
 nep=nep_gallery("dep0")
-λ,x =mslp(nep,displaylevel=1,eigsolvertype=DefaultEigSolver);
+λ,x =mslp(nep,displaylevel=1,eigsolvertype=JuliaEigSolver);
 println(compute_resnorm(nep,λ,x))
 
 
