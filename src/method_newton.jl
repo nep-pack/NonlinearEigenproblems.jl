@@ -17,7 +17,8 @@
                     maxit=10, λ=0,
                     v=randn(real(T),size(nep,1)),
                     c=v,
-                    displaylevel=0)
+                    displaylevel=0,
+                    linsolvertype::DataType=BackslashLinSolver)
 
         err=Inf;
         v=v/dot(c,v);
@@ -45,7 +46,8 @@
                 F=[M*v; c'*v-1];
 
                 # Compute update
-                delta=-J\F;
+                local linsolver::LinSolver = linsolvertype(J)
+                delta = -lin_solve(linsolver, F, tol=tolerance);
 
                 # Update eigenvalue and eigvec
                 v=v+delta[1:size(nep,1)];
@@ -152,7 +154,8 @@
                         λ=0,
                         v=randn(size(nep,1)),
                         c=v,
-                        displaylevel=0)
+                        displaylevel=0,
+                        linsolvertype::DataType=BackslashLinSolver)
         
         err=Inf;
         v=v/dot(c,v);
@@ -171,7 +174,9 @@
                 
                 z=compute_Mlincomb(nep,λ,v,[1.0],1)                
 
-                tempvec = compute_Mder(nep,λ)\z
+                local linsolver::LinSolver = linsolvertype(compute_Mder(nep,λ))
+                tempvec = lin_solve(linsolver, z, tol=tolerance);
+
                 α = 1.0/dot(c,tempvec);
 
                 λ = λ - α;
