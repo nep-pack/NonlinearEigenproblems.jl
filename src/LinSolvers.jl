@@ -1,10 +1,12 @@
 module LinSolvers
     using MATLAB
+    # Linear system of equation solvers
     export LinSolver
     export DefaultLinSolver
     export BackslashLinSolver    
     export lin_solve
 
+    # Eigenvalue solvers
     export EigSolver
     export SpEigSolver
     export JuliaEigSolver
