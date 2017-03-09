@@ -113,7 +113,7 @@ module LinSolvers
         if(nev == 1)
             return D[1],V[:,1]
         end
-        
+
         return D,V
     end
 
@@ -178,6 +178,7 @@ module LinSolvers
     Default linear EP solver which calls checks for sparsity and accordingly assigns an appropriate solver
 """ 
     type DefaultEigSolver <: EigSolver
+        A
         subsolver::EigSolver
 
         function DefaultEigSolver(A,B=zeros(eltype(A),0))
@@ -197,7 +198,7 @@ module LinSolvers
 
     function eig_solve(solver::DefaultEigSolver;nev=size(solver.subsolver.A,1),target=0)
         
-        return eig_solve(solver,nev=nev,target=target)
+        return eig_solve(solver.subsolver,nev=nev,target=target)
 
     end
 end

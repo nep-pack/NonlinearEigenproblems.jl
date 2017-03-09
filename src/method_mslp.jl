@@ -39,7 +39,8 @@ function mslp(nep::NEP;
 
         # solve generalized eigenvalue problem
         #d,v = levsolver.solve(compute_Mder(nep,λ,0),B=compute_Mder(nep,λ,1),λ_t=λ,nev=1);
-        solver::EigSolver=eigsolvertype(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1));
+        solver=eigsolvertype(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1));
+
         d,v = eig_solve(solver,target=λ,nev=1);
         # update eigenvalue
         λ=λ-d
