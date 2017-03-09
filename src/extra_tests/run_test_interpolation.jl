@@ -32,7 +32,7 @@ nep=nep_gallery("dep0")
 
 
 try
-    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(Complex128,size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -50,7 +50,7 @@ println("\nRunning Newton on interpolated dep (interpolating pep of degree 2)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -72,7 +72,7 @@ println("\nRunning Newton on interpolated dep (interpolating pep of degree 8)")
 intpoints = [λ1-5, λ1-1, λ1, λ1+5, λ1+1, λ1+5im, λ1+1im, λ1-5im, λ1-1im]
 pep = interpolate(nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -93,7 +93,7 @@ println("\nRunning Newton on interpolated dep (BigFloat arithmetic, degree 2)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -116,7 +116,7 @@ println("\n\n\n\nRunning Newton on random sparse dep")
 nep=nep_gallery("dep0_sparse")
 
 try
-    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -134,7 +134,7 @@ println("\nRunning Newton on interpolated sparse dep (with BigFloat arithmetics)
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -156,7 +156,7 @@ println("\n\n\n\n-------------------------------------------")
 println("\n\n\n\nRunning Newton on random pep (original pep of degree 2)")
 nep=nep_gallery("pep0")
 try
-    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1),1));
+    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -173,7 +173,7 @@ println("\nRunning Newton on interpolated pep (interpolation of degree 2) in Com
 intpoints = [λ1-1, λ1, λ1+1]
 pep = interpolate(nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -201,7 +201,7 @@ intpoints = [λ1-3, λ1-1, λ1, λ1+1, λ1+3]
 
 pep = interpolate(Float64, nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -233,7 +233,7 @@ println("\n\n\n\nRunning Newton on random sparse pep")
 nep=nep_gallery("pep0_sparse_003")
 
 try
-    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -251,7 +251,7 @@ println("\nRunning Newton on interpolated sparse pep (with BigFloat arithmetics)
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1),1));
+    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
