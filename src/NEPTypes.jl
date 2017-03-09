@@ -402,7 +402,6 @@ Proj_NEP represents a projected NEP
         orgnep::NEP
         V
         W
-        Aproj::Array;
         nep_proj::NEP; # Sometimes create a projected NEP
         function Proj_NEP(nep::Union{PEP,SPMF_NEP}) # Only PEPs so far
             this=new(nep);
