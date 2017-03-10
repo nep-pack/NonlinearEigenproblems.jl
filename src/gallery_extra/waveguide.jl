@@ -23,7 +23,7 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
     # Generate the matrices for the sought waveguide
     if discretization == "FD"
         K, hx, hz = generate_wavenumber_fd( nx, nz, waveguide, delta)
-       # Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
+        Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
     elseif discretization == "FEM"
         error("FEM discretization of WEP is not implemented yet.")
         #K = generate_wavenumber_fem( nx, nz, waveguide, delta)
@@ -54,6 +54,57 @@ Sum of products of matrices and functions (SPMF)
 function assemble_waveguide_spmf( )
     #return SPMF_NEP(AA,fii::Array)
 end    
+
+###########################################################
+# Generate discretization matrices for FINITE DIFFERENCE
+    """
+ Genearate the discretization matrices for Finite Difference.
+"""
+function generate_fd_matrices( nx, nz, hx, hz)
+    ex = ones(nx)
+    ez = ones(nz)
+
+    # DISCRETIZATION OF THE SECOND DERIVATIVE
+    Dxx = spdiagm((ex[1:end-1], -2*ex, ex[1:end-1]), (-1, 0, 1), nx, nx)
+    Dzz = spdiagm((ez[1:end-1], -2*ez, ez[1:end-1]), (-1, 0, 1), nz, nz)
+    #IMPOSE PERIODICITY IN Z-DIRECTION
+    Dzz[1, end] = 1;
+    Dzz[end, 1] = 1;
+
+    Dxx = Dxx/(hx^2);
+    Dzz = Dzz/(hz^2);
+
+    # DISCRETIZATION OF THE FIRST DERIVATIVE
+    Dz  = spdiagm((-ez[1:end-1], ez[1:end-1]), (-1, 1), nz, nz);
+
+    #IMPOSE PERIODICITY
+    Dz[1, end] = -1;
+    Dz[end, 1] = 1;
+
+    Dz = Dz/(2*hz);
+
+    # BUILD THE SECOND BLOCK C1
+    e1 = spzeros(1,nx)
+    e1[1] = 1
+    en = spzeros(1,nx)
+    en[end] = 1
+    Iz = speye(nz,nz)
+    C1 = [kron(e1,Iz) kron(en,Iz)]/(hx^2);
+
+
+    # BUILD THE THIRD BLOCK C2^T
+    d1 = 2/hx;
+    d2 = -1/(2*hx);
+    vm = spzeros(1,nx);
+    vm[1] = d1;
+    vm[2] = d2;
+    vp = spzeros(1,nx);
+    vp[end] = d1;
+    vp[end-1] = d2;
+    C2T = [kron(vm,Iz); kron(vp,Iz)];
+
+    return Dxx, Dzz, Dz, C1, C2T
+end
 
 
 ###########################################################
@@ -130,6 +181,7 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta)
     # Domain (First generate including the boundary)
     X = collect(linspace(xm, xp, nx+2));
     Z = collect(linspace(zm, zp, nz+1));
+
     # Removing the boundary
     X = X[2:end-1];
     Z = Z[2:end];
