@@ -27,7 +27,7 @@ for k = 1:2
     if( k == 1)
         path = pwd()
     elseif( k == 2)
-        path = path * "extra_tests/"
+        path = pwd() * "/extra_tests/"
     end
 
     file_list = readdir(path)
