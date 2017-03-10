@@ -19,6 +19,7 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
     NEP_format_type = uppercase(NEP_format_type)
     discretization = uppercase(discretization)
 
+
     # Generate the matrices for the sought waveguide
     if discretization == "FD"
         K, hx, hz = generate_wavenumber_fd( nx, nz, waveguide, delta)
@@ -30,7 +31,16 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
         error("The discretization '", discretization, "' is not supported.")
     end
 
-    return K
+
+    # Formulate the problem is the sought format
+    if NEP_format_type == "SPMF"
+        nep = K #TODO: This is a Placeholder!
+    else
+        error("The NEP-format '", NEP_format_type, "' is not supported.")
+    end
+
+
+    return nep
 end 
 
 ###########################################################
