@@ -50,9 +50,8 @@
                 delta = -lin_solve(linsolver, F, tol=tolerance);
 
                 # Update eigenvalue and eigvec
-                v=v+delta[1:size(nep,1)];
-                λ=λ+delta[size(nep,1)+1];
-
+                v[:] += delta[1:size(nep,1)];
+                λ=λ+T(delta[size(nep,1)+1]);
             end
         catch e
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
