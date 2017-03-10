@@ -12,9 +12,11 @@ println("===========================")
 
 
 
-nep = nep_gallery("waveguide", 10, 11, "JaRLeBring", "fD", "SPMF", 0.1)
+nep1 = nep_gallery("waveguide", 10, 11, "TAUSCH", "fD", "SPMF", 0.1)
 
-nep
+
+nep2 = nep_gallery("waveguide", 10, 11, "jArleBRIng", "fD", "SpmF", 0.1)
+
 
 
 
