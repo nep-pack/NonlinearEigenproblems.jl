@@ -49,7 +49,7 @@ n = size(pep,1);
 λa=NaN;
 xa=NaN;
 try
-    λa,xa =newton(pep,maxit=30,λ=-0.75,v=ones(size(pep,1),1),displaylevel=1);
+    λa,xa =newton(pep,maxit=30,λ=-0.75,v=ones(size(pep,1)),displaylevel=1);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  
@@ -62,7 +62,7 @@ end
 print("##### Results for the problem pep0_sparse_003 #####\n")
 print("Eigenvalue computed by newton: ",λa,"\n")
 
-Dc,Vc = polyeig(pep,SpEigSolver);
+Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
 for i=1:d*n
