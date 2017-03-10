@@ -10,6 +10,7 @@ module Gallery
 
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/nlevp_interface.jl")
+    include("gallery_extra/waveguide.jl")
     
   """
   Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. name decides which NEP. \\
@@ -123,6 +124,9 @@ module Gallery
 
       elseif (name== "dep_distributed")
           return gallery_dep_distributed();
+
+     elseif (name== "waveguide")
+          return gallery_waveguide(params...);
       end
       
   end
