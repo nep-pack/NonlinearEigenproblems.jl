@@ -46,7 +46,7 @@ WEP_path = "../matlab/WEP"
 println(norm(K_t-nep1))
 
 
-nep2 = nep_gallery("waveguide", 10, 11, "jArleBRIng", "fD", "SpmF", 0.1)
+nep2 = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
 
 
 println(norm(K_j-nep2))
