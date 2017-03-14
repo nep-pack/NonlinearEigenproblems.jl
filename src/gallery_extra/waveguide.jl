@@ -1,6 +1,7 @@
 
 
 export gallery_waveguide
+export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
 
 "
 Creates the NEP associated with example in
@@ -18,18 +19,23 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
     waveguide = uppercase(waveguide)
     NEP_format_type = uppercase(NEP_format_type)
     discretization = uppercase(discretization)
-
+    if !isodd(nz)
+        error("Variable nz must be odd! You have used nz = ", nz, ".")
+    end
 
     # Generate the matrices for the sought waveguide
     if discretization == "FD"
-        K, hx, hz = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
         Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
     elseif discretization == "FEM"
         error("FEM discretization of WEP is not implemented yet.")
-        #K = generate_wavenumber_fem( nx, nz, waveguide, delta)
+        #K, hx, hz = generate_wavenumber_fem( nx, nz, waveguide, delta)
+        # generate_fem_matrices(nx, nz, hx, hz)
     else
         error("The discretization '", discretization, "' is not supported.")
     end
+
+    P, p_P = generate_P_matrix(nz, hx, k)
 
 
     # Formulate the problem is the sought format
@@ -43,6 +49,7 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
     return nep
 end 
 
+
 ###########################################################
 # Waveguide eigenvalue problem (WEP)
 # Sum of products of matrices and functions (SPMF)
@@ -54,6 +61,7 @@ Sum of products of matrices and functions (SPMF)
 function assemble_waveguide_spmf( )
     #return SPMF_NEP(AA,fii::Array)
 end    
+
 
 ###########################################################
 # Generate discretization matrices for FINITE DIFFERENCE
@@ -84,9 +92,9 @@ function generate_fd_matrices( nx, nz, hx, hz)
     Dz = Dz/(2*hz);
 
     # BUILD THE SECOND BLOCK C1
-    e1 = spzeros(1,nx)
+    e1 = spzeros(nx,1)
     e1[1] = 1
-    en = spzeros(1,nx)
+    en = spzeros(nx,1)
     en[end] = 1
     Iz = speye(nz,nz)
     C1 = [kron(e1,Iz) kron(en,Iz)]/(hx^2);
@@ -129,7 +137,7 @@ described by TAUSCH.
 """
 function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
     xm = 0;
-    xp = 2/pi + 0.4;
+    xp = (2/pi) + 0.4;
     zm = 0;
     zp = 1;
 
@@ -137,14 +145,16 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
     xp = xp + delta;
 
     # Domain (First generate including the boundary)
-    X = collect(linspace(xm, xp, nx+2));
-    Z = collect(linspace(zm, zp, nz+1));
+    X = linspace(xm, xp, nx+2);
+    hx = step(X);
+    X = collect(X);
+    Z =linspace(zm, zp, nz+1);
+    hz = step(Z);
+    Z = collect(Z);
     # Removing the boundary
     X = X[2:end-1];
     Z = Z[2:end];
 
-    hx = X[2]-X[1];
-    hz = Z[2]-Z[1];
 
     # The actual wavenumber
     k1 = sqrt(2.3)*pi;
@@ -161,7 +171,7 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
 
     K = k(X', Z).^2;
 
-    return K, hx, hz
+    return K, hx, hz, k
 end
 
 
@@ -209,7 +219,17 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta)
         end
 
     K = k(X', Z).^2;
-    return K, hx, hz
+    return K, hx, hz, k
+end
+
+
+###########################################################
+# Generate discretization matrices for FINITE ELEMENT
+    """
+ Genearate the discretization matrices for Finite Difference.
+"""
+function generate_fem_matrices( nx, nz, hx, hz)
+        error("FEM discretization currently not supported.")
 end
 
 
@@ -219,11 +239,145 @@ end
  Genearate a wavenumber for Finite Element.
 """
 function generate_wavenumber_fem( nx::Integer, nz::Integer, wg::String, delta)
-    # Use early-bailout principle. If a supported waveguide is found, compute and return. Otherwise end up here and throw and error
+    # Use early-bailout principle. If a supported waveguide is found, compute and return. Otherwise end up here and throw and error (see FD implementation)
     error("No wavenumber loaded: The given Waveguide '", wg ,"' is not supported in 'FEM' discretization.")
 end
 
 
+###########################################################
+# Generate P-matrix
+function generate_P_matrix(nz, hx, k)
+    # The scaled FFT-matrix R
+    p = (nz-1)/2;
+    bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
+    F = plan_fft(ones(Float64, nz), 1 , flags = FFTW.MEASURE)
+    function R(X)
+        return flipdim(bb .* (fft(X)), 1);
+    end
+    bbinv = 1./bb; # scaling to do before inverse FFT
+    function Rinv(X)
+        return ifft(bbinv .* flipdim(X,1));
+    end
+
+    # Constants from the problem
+    Km = k(-Inf, 1/2)[1];
+    Kp = k(Inf, 1/2)[1];
+    d0 = -3/(2*hx);
+    a = ones(Complex128,nz,1);
+    b = 4*pi*1im * (-p:p);
+    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+
+
+    betaM = γ -> a*γ^2 + b*γ + cM;
+    betaP = γ -> a*γ^2 + b*γ + cP;
+
+    signM = 1im*sign(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
+    signP = 1im*sign(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
+
+    sM = γ -> signM.*sqrt(betaM(γ))+d0;
+    sP = γ -> signP.*sqrt(betaP(γ))+d0;
+
+    p_sM = γ -> signM.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cM));
+    p_sP = γ -> signP.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cP));
+
+    # BUILD THE FOURTH BLOCK P
+    function P(γ,x)
+        return [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
+                R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ];
+    end
+
+    # BUILD THE DERIVATIVE OF P
+    function p_P(γ,x)
+        return [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
+                R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ];
+    end
+
+    return P, p_P
+end
+
+
+
+######################## DEBUG ############################
+###########################################################
+# DEBUG: Test the generated matrices against MATLAB code
+using MATLAB
+function matlab_debug_WEP_FD(nx, nz, delta)
+    if(nx > 200 || nz > 200)
+        warn("This debug is 'naive' and might be slow for the discretization used.")
+    end
+
+    #The error observed likely comes from difference in linspace-implementation.
+    #include("../bugs/test_linspace.jl")
+
+
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+    println("Testing waveguide: ", waveguide)
+
+    K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+    Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
+    P, p_P = generate_P_matrix(nz, hx, k)
+
+    γ = -rand() - 1im*rand()
+    gamma = γ
+
+    if waveguide == "JARLEBRING"
+        waveguide_str = "CHALLENGE"
+    else
+        waveguide_str = waveguide
+    end
+
+    println("  -- Matlab printouts start --")
+    WEP_path = "../matlab/WEP"
+    @mput nx nz delta WEP_path waveguide_str gamma
+    @matlab begin
+        addpath(WEP_path)
+        nxx = double(nx)
+        nzz = double(nz)
+        options = struct
+        options.delta = delta
+        options.wg = waveguide_str
+        matlab_nep = nep_wg_generator(nxx, nzz, options)
+
+        P_m = NaN(2*nz, 2*nz);
+        Iz = eye(2*nz);
+        eval("for i = 1:2*nz;   P_m(:,i) = matlab_nep.P(gamma, Iz(:,i));    end")
+        C1_m = matlab_nep.C1;
+        C2T_m = matlab_nep.C2T;
+        K_m = matlab_nep.K;
+        hx_m = matlab_nep.hx;
+        hz_m = matlab_nep.hz;
+
+    @matlab end
+    @mget K_m C2T_m C1_m hx_m hz_m P_m
+    println("  -- Matlab printouts end --")
+
+    P_j = zeros(Complex128, 2*nz,2*nz)
+    Iz = eye(2*nz, 2*nz)
+    for i = 1:2*nz
+        P_j[:,i] = P(γ, Iz[:,i])
+    end
+
+
+    println("Difference hx_m - hx = ", abs(hx_m-hx))
+    println("Relative difference (hx_m - hx)/hx = ", abs(hx_m-hx)/abs(hx))
+    println("Difference hz_m - hz = ", abs(hz_m-hz))
+    println("Difference K_m  -K = ", norm(K_m-K))
+    println("Difference C1_m - C1 = ", norm(full(C1_m-C1)))
+    println("Relative difference norm(C1_m - C1)/norm(C1) = ", norm(full(C1_m-C1))/norm(full(C1)))
+    println("Difference C1_m[1,1] - C1[,1] = ", abs(C1_m[1,1]-C1[1,1]))
+    println("Relative difference (C1_m[1,1] - C1[,1])/C1[1,1] = ", abs(C1_m[1,1]-C1[1,1])/abs(C1[1,1]))
+    println("C1_m[1,1] = ", C1_m[1,1])
+    println("C1[1,1]   = ", C1[1,1])
+    println("Difference C2T_m - C2T = ", norm(full(C2T_m-C2T)))
+    println("Relative difference norm(C2T-m - C2T)/norm(C2T) = ", norm(full(C2T_m-C2T))/norm(full(C2T)))
+    println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
+    println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
+
+    println("")
+    println("")
+    end
+end
 
 
 
