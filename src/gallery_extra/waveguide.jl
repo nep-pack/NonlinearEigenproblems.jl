@@ -15,7 +15,7 @@ E. Jarlebring, and G. Mele, and O. Runborg
 The waveguide eigenvalue problem and the tensor infinite Arnoldi method
 SIAM J. Sci. Comput., 2017
 "
-function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide::String = "TAUSCH", discretization::String = "FD", NEP_format_type::String = "SPMF",  delta = 0.1)
+function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide::String = "TAUSCH", discretization::String = "FD", NEP_format_type::String = "SPMF",  delta::Number = 0.1)
     waveguide = uppercase(waveguide)
     NEP_format_type = uppercase(NEP_format_type)
     discretization = uppercase(discretization)
@@ -120,7 +120,7 @@ end
     """
  Genearate a wavenumber for Finite Difference.
 """
-function generate_wavenumber_fd( nx::Integer, nz::Integer, wg::String, delta)
+function generate_wavenumber_fd( nx::Integer, nz::Integer, wg::String, delta::Number)
     if wg == "TAUSCH"
         return generate_wavenumber_fd_tausch( nx, nz, delta)
     elseif wg == "JARLEBRING"
@@ -135,7 +135,7 @@ end
  Genearate the wavenumber in FD discretization for the waveguide
 described by TAUSCH.
 """
-function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
+function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
     xm = 0;
     xp = (2/pi) + 0.4;
     zm = 0;
@@ -146,10 +146,10 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
 
     # Domain (First generate including the boundary)
     X = linspace(xm, xp, nx+2);
-    hx = step(X);
+    const hx = step(X);
     X = collect(X);
     Z =linspace(zm, zp, nz+1);
-    hz = step(Z);
+    const hz = step(Z);
     Z = collect(Z);
     # Removing the boundary
     X = X[2:end-1];
@@ -157,9 +157,9 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
 
 
     # The actual wavenumber
-    k1 = sqrt(2.3)*pi;
-    k2 = sqrt(3)*pi;
-    k3 = pi;
+    const k1 = sqrt(2.3)*pi;
+    const k2 = sqrt(3)*pi;
+    const k3 = pi;
     k = function(x,z)
             z_ones = ones(size(z)) #Placeholder of ones to expand x-vector
             k1*(x .<= 0) .* z_ones +
@@ -169,7 +169,7 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta)
             k3*(x.>(2/pi+0.4)) .* z_ones;
         end
 
-    K = k(X', Z).^2;
+    const K = k(X', Z).^2;
 
     return K, hx, hz, k
 end
@@ -179,7 +179,7 @@ end
  Genearate the wavenumber in FD discretization for the waveguide
 described by JARLEBRING.
 """
-function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta)
+function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Number)
     xm = -1;
     xp = 1;
     zm = 0;
@@ -189,21 +189,22 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta)
     xp = xp + delta;
 
     # Domain (First generate including the boundary)
-    X = collect(linspace(xm, xp, nx+2));
-    Z = collect(linspace(zm, zp, nz+1));
-
+    X = linspace(xm, xp, nx+2);
+    const hx = step(X);
+    X = collect(X);
+    Z =linspace(zm, zp, nz+1);
+    const hz = step(Z);
+    Z = collect(Z);
     # Removing the boundary
     X = X[2:end-1];
     Z = Z[2:end];
 
-    hx = X[2]-X[1];
-    hz = Z[2]-Z[1];
 
     # The actual wavenumber
-    k1 = sqrt(2.3)*pi;
-    k2 = 2*sqrt(3)*pi;
-    k3 = 4*sqrt(3)*pi;
-    k4 = pi;
+    const k1 = sqrt(2.3)*pi;
+    const k2 = 2*sqrt(3)*pi;
+    const k3 = 4*sqrt(3)*pi;
+    const k4 = pi;
     k = function(x,z)
             z_ones = ones(size(z)) #Placeholder of ones to expand x-vector
             x_ones = ones(size(x)) #Placeholder of ones to expand z-vector
@@ -218,7 +219,7 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta)
             k2 *(x.>-1) .* (x.<=(-1+1)) .* (z.<=0.5) .* (z.*x_ones+(x.*z_ones)/2.<=0);
         end
 
-    K = k(X', Z).^2;
+    const K = k(X', Z).^2;
     return K, hx, hz, k
 end
 
@@ -238,7 +239,7 @@ end
     """
  Genearate a wavenumber for Finite Element.
 """
-function generate_wavenumber_fem( nx::Integer, nz::Integer, wg::String, delta)
+function generate_wavenumber_fem( nx::Integer, nz::Integer, wg::String, delta::Number)
     # Use early-bailout principle. If a supported waveguide is found, compute and return. Otherwise end up here and throw and error (see FD implementation)
     error("No wavenumber loaded: The given Waveguide '", wg ,"' is not supported in 'FEM' discretization.")
 end
@@ -246,34 +247,39 @@ end
 
 ###########################################################
 # Generate P-matrix
-function generate_P_matrix(nz, hx, k)
+function generate_P_matrix(nz::Integer, hx, k::Function)
     # The scaled FFT-matrix R
-    p = (nz-1)/2;
-    bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
-    F = plan_fft(ones(Float64, nz), 1 , flags = FFTW.MEASURE)
+    const p = (nz-1)/2;
+    const bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
+    const F = plan_fft(ones(Complex128, nz), 1 , flags = FFTW.ESTIMATE)
     function R(X)
-        return flipdim(bb .* (fft(X)), 1);
+        return flipdim(bb .* (F*X), 1);
     end
     bbinv = 1./bb; # scaling to do before inverse FFT
+    const Finv = plan_ifft(ones(Complex128, nz), 1 , flags = FFTW.ESTIMATE)
     function Rinv(X)
-        return ifft(bbinv .* flipdim(X,1));
+        return Finv*(bbinv .* flipdim(X,1));
     end
 
     # Constants from the problem
-    Km = k(-Inf, 1/2)[1];
-    Kp = k(Inf, 1/2)[1];
-    d0 = -3/(2*hx);
-    a = ones(Complex128,nz,1);
-    b = 4*pi*1im * (-p:p);
-    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+    const Km = k(-Inf, 1/2)[1];
+    const Kp = k(Inf, 1/2)[1];
+    const d0 = -3/(2*hx);
+    const a = ones(Complex128,nz);
+    const b = 4*pi*1im * (-p:p);
+    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
 
-    betaM = γ -> a*γ^2 + b*γ + cM;
-    betaP = γ -> a*γ^2 + b*γ + cP;
+    function betaM(γ)
+        return a*γ^2 + b*γ + cM
+    end
+    function betaP(γ)
+        a*γ^2 + b*γ + cP
+    end
 
-    signM = 1im*sign(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
-    signP = 1im*sign(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
+    const signM = 1im*sign(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
+    const signP = 1im*sign(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
 
     sM = γ -> signM.*sqrt(betaM(γ))+d0;
     sP = γ -> signP.*sqrt(betaP(γ))+d0;
@@ -282,13 +288,13 @@ function generate_P_matrix(nz, hx, k)
     p_sP = γ -> signP.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cP));
 
     # BUILD THE FOURTH BLOCK P
-    function P(γ,x)
+    function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
         return [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
                 R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ];
     end
 
     # BUILD THE DERIVATIVE OF P
-    function p_P(γ,x)
+    function p_P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
         return [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
                 R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ];
     end
@@ -302,7 +308,7 @@ end
 ###########################################################
 # DEBUG: Test the generated matrices against MATLAB code
 using MATLAB
-function matlab_debug_WEP_FD(nx, nz, delta)
+function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     if(nx > 200 || nz > 200)
         warn("This debug is 'naive' and might be slow for the discretization used.")
     end
@@ -310,16 +316,17 @@ function matlab_debug_WEP_FD(nx, nz, delta)
     #The error observed likely comes from difference in linspace-implementation.
     #include("../bugs/test_linspace.jl")
 
+    γ = -rand() - 1im*rand()
+    gamma = γ
+
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
+    println("\n")
     println("Testing waveguide: ", waveguide)
 
     K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
     Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
     P, p_P = generate_P_matrix(nz, hx, k)
-
-    γ = -rand() - 1im*rand()
-    gamma = γ
 
     if waveguide == "JARLEBRING"
         waveguide_str = "CHALLENGE"
@@ -358,7 +365,6 @@ function matlab_debug_WEP_FD(nx, nz, delta)
         P_j[:,i] = P(γ, Iz[:,i])
     end
 
-
     println("Difference hx_m - hx = ", abs(hx_m-hx))
     println("Relative difference (hx_m - hx)/hx = ", abs(hx_m-hx)/abs(hx))
     println("Difference hz_m - hz = ", abs(hz_m-hz))
@@ -374,8 +380,6 @@ function matlab_debug_WEP_FD(nx, nz, delta)
     println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
     println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
 
-    println("")
-    println("")
     end
 end
 
