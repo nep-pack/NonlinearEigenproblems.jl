@@ -24,7 +24,7 @@ nep=PEP(A);
 
 
 
-λ,u =jd_quad(nep,tolerance=1e-10,maxit=80);
+λ,u =jd_quad(nep,tolerance=1e-5,maxit=80);
 
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
 println("\n Smallest eigevalue found: \n λ: ",λ)

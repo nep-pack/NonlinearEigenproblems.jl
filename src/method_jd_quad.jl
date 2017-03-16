@@ -57,11 +57,16 @@ function jd_quad(nep::NEP;
 
 	u = V*s;
 
-	P = (eye(nep.n) - u*u');
 	M = compute_Mder(nep,theta,0);
+	Md = compute_Mder(nep,theta,1);
+
+	P1 = eye(nep.n) - (Md*u)*u'/(u'*Md*u);
+	P2 = eye(nep.n) - u*u';	
+#	P1 = P2;
+
 	r = M*u;
 
-        X= (P*(M)*P);
+        X= P1*(M*P2);
 
 	# Least squares, -pseudo_inv(X)*r
 	Q,R = qr(X);	
