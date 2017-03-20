@@ -10,16 +10,17 @@
     Newton raphsons method on nonlinear equation with (n+1) unknowns
 """
     newton(nep::NEP;params...)=newton(Complex128,nep;params...)
-    function newton{T}(::Type{T},nep::NEP;
-                    errmeasure::Function =
-                    default_errmeasure(nep::NEP),
-                    tolerance=eps(real(T))*100,
-                    maxit=10,
-                    λ=0,
-                    v=randn(real(T),size(nep,1)),
-                    c=v,
-                    displaylevel=0,
-                    linsolvertype::DataType=BackslashLinSolver)
+    function newton{T}(::Type{T},
+                       nep::NEP;
+                       errmeasure::Function =
+                       default_errmeasure(nep::NEP),
+                       tolerance=eps(real(T))*100,
+                       maxit=10,
+                       λ=0,
+                       v=randn(real(T),size(nep,1)),
+                       c=v,
+                       displaylevel=0,
+                       linsolvertype::DataType=BackslashLinSolver)
 
         err=Inf;
         v=v/dot(c,v);
@@ -27,7 +28,8 @@
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
-        c=Array{T,1}(c)        
+        c=Array{T,1}(c)
+
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -63,7 +65,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(compute_Mder(nep,λ,0)+eps()*speye(size(nep,1)))\v; # Requires matrix access
+                v=(compute_Mder(nep,λ,0)+eps(real(T))*speye(size(nep,1)))\v; # Requires matrix access
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -79,24 +81,29 @@
     res_inv(nep::NEP;params...)=res_inv(Complex128,nep;params...)
     function res_inv{T}(::Type{T},
                         nep::NEP;
-                     errmeasure::Function =
-                     default_errmeasure(nep::NEP),
-                     tolerance=eps(real(T))*100,
-                     maxit=100,
-                     λ=0,
-                     v=randn(size(nep,1)),
-                     c=v,
-                     displaylevel=0,
-                     linsolvertype::DataType=DefaultLinSolver)
+                        errmeasure::Function =
+                        default_errmeasure(nep::NEP),
+                        tolerance=eps(real(T))*100,
+                        maxit=100,
+                        λ=0,
+                        v=randn(size(nep,1)),
+                        c=v,
+                        displaylevel=0,
+                        linsolvertype::DataType=DefaultLinSolver)
 
         local linsolver::LinSolver=linsolvertype(compute_Mder(nep,λ))
-        σ=λ;
+        # Ensure types λ and v are of type T
+        λ=T(λ)
+        v=Array{T,1}(v)
+        c=Array{T,1}(c)
 
+        σ=λ;
         err=Inf;
+
         try
             for k=1:maxit
                 # Normalize
-                v=v/dot(c,v);
+                v = v/dot(c,v);
 
 
                 err=errmeasure(λ,v)
@@ -110,16 +117,13 @@
                 end
 
                 # Compute eigenvalue update
-                λ=compute_rf(nep,v,y=c,λ0=λ,target=σ)
+                λ = compute_rf(nep,v,y=c,λ0=λ,target=σ)
 
                 # Compute eigenvector update
-	        # Δv=Mσ\nep.Mlincomb(λ,v) #M*v);
-                tol=eps()
-	        Δv=lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)),
-                                   tol=tol) #M*v);
+	              Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
 
                 # Update the eigvector
-                v=v-Δv;
+                v[:] += -Δv;
 
             end
 
@@ -132,7 +136,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(nep.Md(λ,0)+eps()*speye(size(nep,1)))\v; # Requires matrix access
+                v=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\v; # Requires matrix access
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -152,20 +156,24 @@
     aug_newton(nep::NEP;params...)=aug_newton(Complex128,nep;params...)
     function aug_newton{T}(::Type{T},
                            nep::NEP;
-                        errmeasure::Function = default_errmeasure(nep::NEP),
-                        tolerance=eps(real(T))*100,
-                        maxit=30,
-                        λ=0,
-                        v=randn(size(nep,1)),
-                        c=v,
-                        displaylevel=0,
-                        linsolvertype::DataType=BackslashLinSolver)
-        
+                           errmeasure::Function = default_errmeasure(nep::NEP),
+                           tolerance=eps(real(T))*100,
+                           maxit=30,
+                           λ=0,
+                           v=randn(size(nep,1)),
+                           c=v,
+                           displaylevel=0,
+                           linsolvertype::DataType=BackslashLinSolver)
+        # Ensure types λ and v are of type T
+        λ=T(λ)
+        v=Array{T,1}(v)
+        c=Array{T,1}(c)
+
         err=Inf;
         v=v/dot(c,v);
+
         try
             for k=1:maxit
-                #err=errmeasure(λ,v)
                 err=errmeasure(λ,reshape(v,size(nep,1)))
                 if (displaylevel>0)
                     println("Iteration:",k," errmeasure:",err)
@@ -176,16 +184,16 @@
                 # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
                 # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
                 
-                z=compute_Mlincomb(nep,λ,v,[1.0],1)                
+                z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
                 local linsolver::LinSolver = linsolvertype(compute_Mder(nep,λ))
                 tempvec = lin_solve(linsolver, z, tol=tolerance);
 
-                α = 1.0/dot(c,tempvec);
+                α = T(1)/ dot(c,tempvec);
 
                 λ = λ - α;
 
-                v = α*tempvec;
+                v[:] = α*tempvec;
 
             end
 

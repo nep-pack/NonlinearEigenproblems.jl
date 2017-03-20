@@ -104,7 +104,7 @@ while abs(d)>TOL
 end
 
 println("Solving same problem with res_inv")
-λ,v=res_inv(pep3,λ=(BigFloat(evp)+0.1),v=z[1:size(pep3,1)],tolerance=TOL)
+λ,v=res_inv(BigFloat, pep3,λ=(BigFloat(evp)+0.1),v=z[1:size(pep3,1)],tolerance=TOL)
 #Dc,Vc = compsolve(pep3);
 
 
