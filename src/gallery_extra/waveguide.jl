@@ -15,9 +15,9 @@ E. Jarlebring, and G. Mele, and O. Runborg
 The waveguide eigenvalue problem and the tensor infinite Arnoldi method
 SIAM J. Sci. Comput., 2017
 "
-function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide::String = "TAUSCH", discretization::String = "FD", NEP_format_type::String = "SPMF",  delta::Number = 0.1)
+function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide::String = "TAUSCH", discretization::String = "FD", NEP_format::String = "SPMF",  delta::Number = 0.1)
     waveguide = uppercase(waveguide)
-    NEP_format_type = uppercase(NEP_format_type)
+    NEP_format = uppercase(NEP_format)
     discretization = uppercase(discretization)
     if !isodd(nz)
         error("Variable nz must be odd! You have used nz = ", nz, ".")
@@ -39,10 +39,10 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
 
 
     # Formulate the problem is the sought format
-    if NEP_format_type == "SPMF"
-        nep = K #assemble_waveguide_spmf TODO: This is a Placeholder!
+    if (NEP_format == "SPMF") && (discretization == "FD")
+        nep = assemble_waveguide_spmf_fd(nx, nz, Dxx, Dzz, Dz, C1, C2T, K, P)
     else
-        error("The NEP-format '", NEP_format_type, "' is not supported.")
+        error("The NEP-format '", NEP_format, "' is not supported for the discretization '", discretization, "'.")
     end
 
 
@@ -58,8 +58,34 @@ end
  Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
-function assemble_waveguide_spmf( )
-    #return SPMF_NEP(AA,fii::Array)
+function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, P::Function)
+    Ix = speye(nx,nx)
+    Iz = speye(nz,nz)
+    Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
+    Q1 = kron(Ix, 2*Dz)
+    Q2 = kron(Ix, Iz)
+
+    A = Array(SparseMatrixCSC,3+4*nz^2)
+    A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(2*nz, 2*nz) )
+    A[2] = hvcat((2,2), Q1, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
+    A[3] = hvcat((2,2), Q2, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
+
+    f = Array(Function, 3+4*nz^2)
+    f[1] = λ -> 1
+    f[2] = λ -> λ
+    f[3] = λ -> λ.^2
+
+    const Izz = speye(2*nz,2*nz)
+    const Izzz = eye(2*nz,2*nz)
+    idx = (i,j) -> (i-1)*2*nz + j + 3
+    for i = 1:2*nz
+        for j = 1:2*nz
+            f[idx(i,j)] = λ -> Izzz[:,j]' * P(λ, Izzz[:,i])
+            A[idx(i,j)] = hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), Izz[:,i]*Izz[:,j]')
+        end
+    end
+#return PEP(A)
+    return SPMF_NEP(A,f)
 end    
 
 
@@ -251,14 +277,12 @@ function generate_P_matrix(nz::Integer, hx, k::Function)
     # The scaled FFT-matrix R
     const p = (nz-1)/2;
     const bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
-    const F = plan_fft(ones(Complex128, nz), 1 , flags = FFTW.ESTIMATE)
     function R(X)
-        return flipdim(bb .* (F*X), 1);
+        return flipdim(bb .* fft(X), 1);
     end
     bbinv = 1./bb; # scaling to do before inverse FFT
-    const Finv = plan_ifft(ones(Complex128, nz), 1 , flags = FFTW.ESTIMATE)
     function Rinv(X)
-        return Finv*(bbinv .* flipdim(X,1));
+    return ifft(bbinv .* flipdim(X,1));
     end
 
     # Constants from the problem
@@ -272,6 +296,7 @@ function generate_P_matrix(nz::Integer, hx, k::Function)
 
 
     function betaM(γ)
+println(typeof(γ),"\n",size(γ), "\n", size(cM))
         return a*γ^2 + b*γ + cM
     end
     function betaP(γ)
