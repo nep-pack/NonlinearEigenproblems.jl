@@ -30,3 +30,14 @@ cc = cc1 + 1i*cc2
 disp(cc)
 
 end
+
+
+D = rand(10,10)+1im*rand(10,10)
+println(D)
+dd = mxarray(D)
+
+@mput dd
+@matlab begin
+disp(dd)
+
+end
