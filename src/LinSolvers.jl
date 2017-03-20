@@ -21,28 +21,31 @@ module LinSolvers
     """
         The linear solver associated with julia factorize()
     """
-    type DefaultLinSolver <: LinSolver
-        A
-        Afact
-        function DefaultLinSolver(A)
-            this=new()
-            this.Afact=factorize(A)
-            return this
-        end
+    type DefaultLinSolver{T_num<:Number, T_mat<:AbstractMatrix, T_fact_mat<:Factorization
+} <: LinSolver
+        A::T_mat
+        Afact::T_fact_mat
     end
+
+    function DefaultLinSolver{T_num<:Number}(A::AbstractMatrix{T_num})
+        Afact=factorize(A)
+        return DefaultLinSolver{T_num,typeof(A),typeof(Afact)}(A, Afact)
+    end
+
     function lin_solve(solver::DefaultLinSolver,x::Array;tol=eps())
         return solver.Afact\x
     end
+
+
+
 """
       A linear solver which calls backslash directly (no pre-factorization)
 """
-    type BackslashLinSolver <: LinSolver
-        A
-        function BackslashLinSolver(A)
-            this=new(A)
-            return this
-        end
+    type BackslashLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
+        A::T_mat
+        BackslashLinSolver(A::AbstractMatrix{T_num}) = new(A)
     end
+    BackslashLinSolver(A::AbstractMatrix) = BackslashLinSolver{eltype(A), typeof(A)}(A)
 
     function lin_solve(solver::BackslashLinSolver,x::Array;tol=eps())
         return solver.A\x
