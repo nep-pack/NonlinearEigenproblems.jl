@@ -147,12 +147,10 @@ module LinSolvers
         aa_real = mxarray(real(solver.A))
         aa_complex = mxarray(imag(solver.A))
 
-        if(solver.B != zeros(eltype(solver.A),0))
-            bb_real = mxarray(real(solver.B))
-        else 
+        if(solver.B == zeros(eltype(solver.A),0))
             solver.B = speye(eltype(solver.A),size(solver.A,1))
-            bb_real = mxarray(real(solver.B))
         end
+        bb_real = mxarray(real(solver.B))
         bb_complex = mxarray(imag(solver.B))
 
         n = mxarray(nev)
