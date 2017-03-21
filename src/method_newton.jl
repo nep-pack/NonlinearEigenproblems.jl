@@ -22,13 +22,13 @@
                        displaylevel=0,
                        linsolvertype::DataType=BackslashLinSolver)
 
-        err=Inf;
-        v=v/dot(c,v);
-
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
         c=Array{T,1}(c)
+
+        err=Inf;
+        v=v/dot(c,v);
 
         try
             for k=1:maxit
