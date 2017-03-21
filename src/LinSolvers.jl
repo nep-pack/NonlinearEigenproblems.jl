@@ -139,29 +139,32 @@ module LinSolvers
 
     
     function eig_solve(solver::MatlabEigSSolver;nev=6,target=0)
+        #TODO: The real/complex partition is because of MATLAB.jl limitation in sparse-complex matrices
+        eltype_A = eltype(solver.A)
+        if !( eltype_A <: Union{Float64, Complex128} )
+            error("This implementation only supports matrices of type 'Float64' and 'Complex128', you have supplied a matrix of type '", eltype_A,"'.")
+        end
+        aa_real = mxarray(real(solver.A))
+        aa_complex = mxarray(imag(solver.A))
 
-        aa = mxarray(solver.A)
-
-        #is_gep = mxarray(0);
         if(solver.B != zeros(eltype(solver.A),0))
-            bb = mxarray(solver.B)
-            #is_gep = mxarray(1);
+            bb_real = mxarray(real(solver.B))
         else 
             solver.B = speye(eltype(solver.A),size(solver.A,1))
-            bb = mxarray(solver.B)        
+            bb_real = mxarray(real(solver.B))
         end
+        bb_complex = mxarray(imag(solver.B))
 
         n = mxarray(nev)
         t = mxarray(target)
 
-        @mput aa bb n t 
+        @mput aa_real aa_complex bb_real bb_complex n t
         @matlab begin
             n = double(n);
-            aa = double(aa);
-            bb = double(bb);
+            aa = double(aa_real) + 1i*double(aa_complex);
+            bb = double(bb_real) + 1i*double(bb_complex);
 
             t = double(t);
-            #is_gep = double(is_gep);
             
             (V,D) = eigs(aa,bb,n,t); 
         end
