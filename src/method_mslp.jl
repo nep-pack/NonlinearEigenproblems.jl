@@ -8,18 +8,25 @@ export mslp
      mslp(nep,..)
    Method of successive linear problems
 """
-function mslp(nep::NEP;
-              errmeasure::Function =
-              default_errmeasure(nep::NEP),
-              tolerance=eps()*100,
-              maxit=100,
-              λ=0,
-              v=randn(nep.n),
-              displaylevel=0,
-              eigsolvertype::DataType=DefaultEigSolver)
+mslp(nep::NEP;params...)=mslp(Complex128,nep;params...)
+function mslp{T}(::Type{T},
+                 nep::NEP;
+                 errmeasure::Function =
+                 default_errmeasure(nep::NEP),
+                 tolerance=eps(real(T))*100,
+                 maxit=100,
+                 λ=zero(T),
+                 v=randn(nep.n),
+                 displaylevel=0,
+                 eigsolvertype::DataType=DefaultEigSolver)
+
+    # Ensure types λ and v are of type T
+    λ = T(λ)
+    v = Array{T,1}(v)
 
     σ=λ;     
     err=Inf;
+
 
     #levsolver = LinEigSolver();
         
@@ -43,7 +50,7 @@ function mslp(nep::NEP;
 
         d,v = eig_solve(solver,target=λ,nev=1);
         # update eigenvalue
-        λ=λ-d
+        λ += -d
     end
 
     msg="Number of iterations exceeded. maxit=$(maxit)."
