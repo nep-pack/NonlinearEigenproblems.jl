@@ -51,7 +51,7 @@ nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
 #println("Eigenvalue: ", λ_jar)
 #println("Eigenvector norm: ", norm(x_jar))
 
-
+debug_sqrtm_schur(281)
 
 matlab_debug_WEP_FD(nx, nz, delta)
 

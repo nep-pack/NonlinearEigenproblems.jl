@@ -2,6 +2,7 @@
 
 export gallery_waveguide
 export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
+export debug_sqrtm_schur #ONLY FOR DEBUGGING
 
 "
 Creates the NEP associated with example in
@@ -73,7 +74,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, Dxx::SparseMatrixC
     f = Array(Function, 3+4*nz^2)
     f[1] = λ -> 1
     f[2] = λ -> λ
-    f[3] = λ -> λ.^2
+    f[3] = λ -> λ^2
 
     const Izz = speye(2*nz,2*nz)
     const Izzz = eye(2*nz,2*nz)
@@ -296,7 +297,6 @@ function generate_P_matrix(nz::Integer, hx, k::Function)
 
 
     function betaM(γ)
-println(typeof(γ),"\n",size(γ), "\n", size(cM))
         return a*γ^2 + b*γ + cM
     end
     function betaP(γ)
@@ -327,6 +327,28 @@ println(typeof(γ),"\n",size(γ), "\n", size(cM))
     return P, p_P
 end
 
+
+###########################################################
+# Compute the matrix square root on the "correct branch",
+# that is, with positive imaginary part
+function sqrtm_schur_pos_imag(A::Matrix)
+    n = size(A,1);
+    (T, Q, ) = schur(complex(A))
+    U = zeros(Complex128,n,n);
+    for i = 1:n
+        U[i,i] = sign(imag(T[i,i]))*sqrt(T[i,i])
+    end
+    for j = 2:n
+        for i = (j-1):-1:1
+            temp = 0
+            for k = (i+1):(j-1)
+                temp = temp + U[i,k]*U[k,j]
+            end
+            U[i,j] = (T[i,j] - temp)/(U[i,i]+U[j,j])
+        end
+    end
+    return Q*U*Q'
+end
 
 
 ######################## DEBUG ############################
@@ -409,5 +431,57 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 end
 
 
+###########################################################
+# Compute the matrix square root
+# (only reference implementation, see sqrtm_schur_pos_imag)
+function sqrtm_schur(A::Matrix)
+    n = size(A,1);
+    (T, Q) = schur(complex(A))
+    U = zeros(Complex128,n,n);
+    for i = 1:n
+        U[i,i] = sqrt(T[i,i])
+    end
+    for j = 2:n
+        for i = (j-1):-1:1
+            temp = 0
+            for k = (i+1):(j-1)
+                temp = temp + U[i,k]*U[k,j]
+            end
+            U[i,j] = (T[i,j] - temp)/(U[i,i]+U[j,j])
+        end
+    end
+    return Q*U*Q'
+end
+
+
+function debug_sqrtm_schur(n::Integer)
+    println("\n\n--- Debugging square root implementations ---\n")
+    A = rand(n,n) + 0.1im*rand(n,n);
+    sqrtA = sqrtm(A);
+    sqrtA2 = sqrtm_schur(A);
+
+    println("Relative error between sqrtm and Schur-fact: ", norm(sqrtA-sqrtA2)/norm(sqrtA))
+    println("Relative error between Schur-fact² and A: ", norm(A - sqrtA2^2)/norm(A))
+
+    sqrtA3 = sqrtm_schur_pos_imag(A);
+    println("Relative error between Schur-fact-pos-imag² and A: ", norm(A - sqrtA3^2)/norm(A))
+    (v,) = eig(sqrtA3)
+    test_var = zeros(n)
+    TOL = 1e-15;
+    for i = 1:n
+        test_var[i] = (sign(imag(v[i])) > 0) || abs(imag(v[i])) < TOL
+    end
+    if sum(test_var) == n
+        println("All eigenvalues has negative real part or absolut value smaller than ", TOL)
+    else
+        println("Eigenvalues with negative real part and absolut value larger than ", TOL, " :")
+        for i = 1:n
+            if (test_var[i] == 0)
+                println("   ", v[i])
+            end
+        end
+    end
+    println("\n--- End square root implementations ---\n")
+end
 
 
