@@ -368,10 +368,10 @@ function generate_S_function(nz::Integer, hx, k::Function)
     const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
     function betaM(γ::AbstractArray, j::Integer)
-        return γ^2 + b[j]*γ + cM[j]
+        return γ^2 + b[j]*γ + cM[j]*speye(size(γ,1))
     end
     function betaP(γ::AbstractArray, j::Integer)
-        γ^2 + b[j]*γ + cP[j]
+        γ^2 + b[j]*γ + cP[j]*speye(size(γ,1))
     end
 
     function sM(γ::AbstractArray, j::Integer)
@@ -398,9 +398,9 @@ end
 ###########################################################
 # Compute the matrix square root on the "correct branch",
 # that is, with positive imaginary part
-function sqrtm_schur_pos_imag(A::Matrix)
+function sqrtm_schur_pos_imag(A)
     n = size(A,1);
-    (T, Q, ) = schur(complex(A))
+    (T, Q, ) = schur(full(complex(A)))
     U = zeros(Complex128,n,n);
     for i = 1:n
         U[i,i] = sign(imag(T[i,i]))*sqrt(T[i,i])
