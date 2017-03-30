@@ -41,12 +41,12 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
 
     # Formulate the problem is the sought format
     if (NEP_format == "SPMF") && (discretization == "FD")
-        nep = assemble_waveguide_spmf_fd(nx, nz, Dxx, Dzz, Dz, C1, C2T, K, P)
+        nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, k)
     else
         error("The NEP-format '", NEP_format, "' is not supported for the discretization '", discretization, "'.")
     end
 
-
+    println("Waveguide generated")
     return nep
 end 
 
@@ -59,33 +59,42 @@ end
  Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
-function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, P::Function)
+function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, k::Function)
     Ix = speye(nx,nx)
     Iz = speye(nz,nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
-    A = Array(SparseMatrixCSC,3+4*nz^2)
+    A = Array(SparseMatrixCSC,3+2*nz)
     A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(2*nz, 2*nz) )
     A[2] = hvcat((2,2), Q1, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
     A[3] = hvcat((2,2), Q2, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
 
-    f = Array(Function, 3+4*nz^2)
+    f = Array(Function, 3+2*nz)
     f[1] = λ -> 1
     f[2] = λ -> λ
     f[3] = λ -> λ^2
 
-    const Izz = speye(2*nz,2*nz)
-    const Izzz = eye(2*nz,2*nz)
-    idx = (i,j) -> (i-1)*2*nz + j + 3
-    for i = 1:2*nz
-        for j = 1:2*nz
-            f[idx(i,j)] = λ -> Izzz[:,j]' * P(λ, Izzz[:,i])
-            A[idx(i,j)] = hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), Izz[:,i]*Izz[:,j]')
-        end
+    R, Rinv = generate_R_matrix(nz)
+    S = generate_S_function(nz, hx, k)
+
+    for j = 1:nz
+        f[j+3] = λ -> S(λ, j)
+        e_j = zeros(nz)
+        e_j[j] = 1
+        E_j = [R(e_j); spzeros(nz)]
+        E_j = E_j * E_j'
+        A[j+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
     end
-#return PEP(A)
+    for j = 1:nz
+        f[j+nz+3] = λ -> S(λ, j)
+        e_j = zeros(nz)
+        e_j[j] = 1
+        E_j = [spzeros(nz); R(e_j)]
+        E_j = E_j * E_j'
+        A[j+nz+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
+    end
     return SPMF_NEP(A,f)
 end    
 
@@ -275,16 +284,9 @@ end
 ###########################################################
 # Generate P-matrix
 function generate_P_matrix(nz::Integer, hx, k::Function)
-    # The scaled FFT-matrix R
+
+    R, Rinv = generate_R_matrix(nz::Integer)
     const p = (nz-1)/2;
-    const bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
-    function R(X)
-        return flipdim(bb .* fft(X), 1);
-    end
-    bbinv = 1./bb; # scaling to do before inverse FFT
-    function Rinv(X)
-    return ifft(bbinv .* flipdim(X,1));
-    end
 
     # Constants from the problem
     const Km = k(-Inf, 1/2)[1];
@@ -306,11 +308,19 @@ function generate_P_matrix(nz::Integer, hx, k::Function)
     const signM = 1im*sign(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
     const signP = 1im*sign(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
 
-    sM = γ -> signM.*sqrt(betaM(γ))+d0;
-    sP = γ -> signP.*sqrt(betaP(γ))+d0;
+    function sM(γ::Number)
+        return signM.*sqrt(betaM(γ))+d0;
+    end
+    function sP(γ::Number)
+        return signP.*sqrt(betaP(γ))+d0;
+    end
 
-    p_sM = γ -> signM.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cM));
-    p_sP = γ -> signP.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cP));
+    function p_sM(γ)
+        return signM.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cM));
+    end
+    function p_sP(γ)
+        return signP.*(2*a*γ+b)./(2*sqrt(a*γ^2+b*γ+cP));
+    end
 
     # BUILD THE FOURTH BLOCK P
     function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
@@ -325,6 +335,63 @@ function generate_P_matrix(nz::Integer, hx, k::Function)
     end
 
     return P, p_P
+end
+
+
+###########################################################
+# Generate R-matrix
+function generate_R_matrix(nz::Integer)
+    # The scaled FFT-matrix R
+    const p = (nz-1)/2;
+    const bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
+    function R(X)
+        return flipdim((bb*ones(size(X,2),1)') .* fft(X), 1);
+    end
+    bbinv = 1./bb; # scaling to do before inverse FFT
+    function Rinv(X)
+        return ifft((bbinv*ones(size(X,2),1)') .* flipdim(X,1));
+    end
+    return R, Rinv
+end
+
+
+###########################################################
+# Generate S-function for matrix argument
+function generate_S_function(nz::Integer, hx, k::Function)
+    # Constants from the problem
+    const p = (nz-1)/2;
+    const Km = k(-Inf, 1/2)[1];
+    const Kp = k(Inf, 1/2)[1];
+    const d0 = -3/(2*hx);
+    const b = 4*pi*1im * (-p:p);
+    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+
+    function betaM(γ::AbstractArray, j::Integer)
+        return γ^2 + b[j]*γ + cM[j]
+    end
+    function betaP(γ::AbstractArray, j::Integer)
+        γ^2 + b[j]*γ + cP[j]
+    end
+
+    function sM(γ::AbstractArray, j::Integer)
+        return sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(size(γ,1));
+    end
+    function sP(γ::AbstractArray, j::Integer)
+        return sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(size(γ,1));
+    end
+
+    function S(γ::AbstractArray, j::Integer)
+        if j <= nz
+            return sM(γ,j)
+        elseif j <= 2*nz
+            return sP(γ,(j-nz))
+        else
+            error("The chosen j = ", j, "but the setup nz = ", nz, ". Hence j>2nz.")
+        end
+    end
+
+    return S
 end
 
 
@@ -472,7 +539,7 @@ function debug_sqrtm_schur(n::Integer)
         test_var[i] = (sign(imag(v[i])) > 0) || abs(imag(v[i])) < TOL
     end
     if sum(test_var) == n
-        println("All eigenvalues has negative real part or absolut value smaller than ", TOL)
+        println("All eigenvalues have negative real part or absolut value smaller than ", TOL)
     else
         println("Eigenvalues with negative real part and absolut value larger than ", TOL, " :")
         for i = 1:n
