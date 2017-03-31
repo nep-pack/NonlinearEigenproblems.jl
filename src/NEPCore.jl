@@ -112,7 +112,7 @@ if you want efficiency (for aug_newton, IAR, ..).
     function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_MM -> compute_Mlincomb")
         k=size(V,2)
-        S=jordan_matrix(k,λ,T=eltype(V)).'
+        S=jordan_matrix(eltype(V),k,λ).'
         b=zeros(size(a));
         for i=1:k
             b[i]=a[i]*factorial(Float64(i-1))
@@ -138,7 +138,7 @@ Computes the Mder function from MM using the fact that MM of
 a jordan block becomes derivatives
 """
     function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
-        J=sparse(jordan_matrix(i+1,λ,T=typeof(λ)).')
+        J=sparse(jordan_matrix(typeof(λ),i+1,λ).')
         n=size(nep,1);
         S=kron(J,speye(n))
         V=factorial(i)*kron(speye(1,i+1)[:,end:-1:1],speye(n))
@@ -227,8 +227,9 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
 
 """ Returns a Jordan matrix """
 
-    function jordan_matrix(n::Integer,λ::Number;T::Type=Float64)
-        Z=λ*eye(T,n)+diagm(ones(T,n-1),1);
+    jordan_matrix(n,λ)=jordan_matrix(Complex128,n,λ)
+    function jordan_matrix{T<:Number}(::Type{T},n::Integer,λ::Number)
+        Z=T(λ)*eye(T,n)+diagm(ones(T,n-1),1);
     end
 
 

@@ -353,10 +353,10 @@ module NEPTypes
                 # with sparsity pattern of M() for optimization
                 Z=copy(nep.Zero) 
             else
-                Z=spzeros(size(V,1),size(V,2))
+                Z=spzeros(eltype(V),size(V,1),size(V,2))
             end
         else
-            Z=zeros(size(V))
+            Z=zeros(eltype(V),size(V))
         end
         # Sum together all the terms in the SPMF:
         for i=1:length(nep.A)
