@@ -375,10 +375,10 @@ function generate_S_function(nz::Integer, hx, k::Function)
     end
 
     function sM(γ::AbstractArray, j::Integer)
-        return sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(size(γ,1));
+        return  sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(Complex128, size(γ,1))
     end
     function sP(γ::AbstractArray, j::Integer)
-        return sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(size(γ,1));
+        return  sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(Complex128, size(γ,1))
     end
 
     function S(γ::AbstractArray, j::Integer)
@@ -387,7 +387,7 @@ function generate_S_function(nz::Integer, hx, k::Function)
         elseif j <= 2*nz
             return sP(γ,(j-nz))
         else
-            error("The chosen j = ", j, "but the setup nz = ", nz, ". Hence j>2nz.")
+            error("The chosen j = ", j, "but the setup nz = ", nz, ". Hence j>2nz which is illegal.")
         end
     end
 
@@ -398,23 +398,29 @@ end
 ###########################################################
 # Compute the matrix square root on the "correct branch",
 # that is, with positive imaginary part
-function sqrtm_schur_pos_imag(A)
+function sqrtm_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
-    (T, Q, ) = schur(full(complex(A)))
+    AA = full(complex(A))
+    (T, Q, ) = schur(AA)
     U = zeros(Complex128,n,n);
     for i = 1:n
         U[i,i] = sign(imag(T[i,i]))*sqrt(T[i,i])
     end
+    private_inner_loops_sqrt!(n, U, T)
+    return Q*U*Q'
+end
+ #Helper function executing the inner loop (more Juliaesque)
+function private_inner_loops_sqrt!(n, U, T)
+    temp = zero(Complex128);
     for j = 2:n
         for i = (j-1):-1:1
-            temp = 0
+            temp *= zero(Complex128);
             for k = (i+1):(j-1)
-                temp = temp + U[i,k]*U[k,j]
+                temp += U[i,k]*U[k,j]
             end
             U[i,j] = (T[i,j] - temp)/(U[i,i]+U[j,j])
         end
     end
-    return Q*U*Q'
 end
 
 
@@ -501,7 +507,7 @@ end
 ###########################################################
 # Compute the matrix square root
 # (only reference implementation, see sqrtm_schur_pos_imag)
-function sqrtm_schur(A::Matrix)
+function sqrtm_schur(A::AbstractMatrix)
     n = size(A,1);
     (T, Q) = schur(complex(A))
     U = zeros(Complex128,n,n);
@@ -510,9 +516,9 @@ function sqrtm_schur(A::Matrix)
     end
     for j = 2:n
         for i = (j-1):-1:1
-            temp = 0
+            temp = zero(Complex128)
             for k = (i+1):(j-1)
-                temp = temp + U[i,k]*U[k,j]
+                temp += U[i,k]*U[k,j]
             end
             U[i,j] = (T[i,j] - temp)/(U[i,i]+U[j,j])
         end
