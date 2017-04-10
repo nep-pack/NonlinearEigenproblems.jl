@@ -151,22 +151,24 @@ a jordan block becomes derivatives
     end
 
 """
-    compute_rf(nep::NEP,x; y=x, target=0, λ0=target,TOL=1e-12,max_iter=10)
+    compute_rf{T}(::Type{T},nep::NEP,x; y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3,max_iter=10)
 Computes the rayleigh functional of nep, i.e., computes λ such that
    y^TM(λ)x=0.
 """
-    function compute_rf(nep::NEP,x; y=x, target=0, λ0=target,
-                        TOL=1e-12,max_iter=10)
+    compute_rf(nep::NEP,x;params...) = compute_rf(Complex128,nep,x;params...)
+    function compute_rf{T}(::Type{T},nep::NEP,x; y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3,max_iter=10)
         # Ten steps of scalar Newton's method
-        λ=λ0;
-        Δλ=Inf
-        count=0
+        λ = T(λ0);
+        Δλ = T(Inf)
+        count = 0
         while (abs(Δλ)>TOL) & (count<max_iter)
             count=count+1
             z1=compute_Mlincomb(nep,λ,reshape(x,nep.n,1))
             z2=compute_Mlincomb(nep,λ,reshape(x,nep.n,1),[1],1)
-            Δλ=-dot(y,z1)/dot(y,z2);
-            λ=λ+Δλ
+            Δλ=- T(dot(y,z1)/dot(y,z2));
+            λ += Δλ
         end
         return λ
     end
