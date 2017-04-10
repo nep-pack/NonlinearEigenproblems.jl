@@ -2,6 +2,7 @@
 
 export gallery_waveguide
 export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
+export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
 
 "
@@ -88,7 +89,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         A[j+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
     end
     for j = 1:nz
-        f[j+nz+3] = λ -> S(λ, j)
+        f[j+nz+3] = λ -> S(λ, nz+j)
         e_j = zeros(nz)
         e_j[j] = 1
         E_j = [spzeros(nz); R(e_j)]
@@ -302,7 +303,7 @@ function generate_P_matrix(nz::Integer, hx, k::Function)
         return a*γ^2 + b*γ + cM
     end
     function betaP(γ)
-        a*γ^2 + b*γ + cP
+        return a*γ^2 + b*γ + cP
     end
 
     const signM = 1im*sign(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
@@ -375,10 +376,10 @@ function generate_S_function(nz::Integer, hx, k::Function)
     end
 
     function sM(γ::AbstractArray, j::Integer)
-        return  sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(Complex128, size(γ,1))
+        return  1im*speye(Complex128, size(γ,1)) * sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(Complex128, size(γ,1))
     end
     function sP(γ::AbstractArray, j::Integer)
-        return  sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(Complex128, size(γ,1))
+        return  1im*speye(Complex128, size(γ,1)) * sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(Complex128, size(γ,1))
     end
 
     function S(γ::AbstractArray, j::Integer)
@@ -441,65 +442,136 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
-    println("\n")
-    println("Testing waveguide: ", waveguide)
+        println("\n")
+        println("Testing waveguide: ", waveguide)
 
-    K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
-    Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
-    P, p_P = generate_P_matrix(nz, hx, k)
+        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
+        P, p_P = generate_P_matrix(nz, hx, k)
 
-    if waveguide == "JARLEBRING"
-        waveguide_str = "CHALLENGE"
-    else
-        waveguide_str = waveguide
+        R, Rinv = generate_R_matrix(nz)
+        S = generate_S_function(nz, hx, k)
+        P_j2 = zeros(Complex128, 2*nz,2*nz)
+        D1 = zeros(Complex128, nz,nz)
+        D2 = zeros(Complex128, nz,nz)
+        for j = 1:nz
+            D1[j,j] = S([γ]'',j)[1]
+        end
+        for j = 1:nz
+            D2[j,j] = S([γ]'',j+nz)[1]
+        end
+        Iz = eye(nz,nz);
+        P_j2[1:nz,1:nz] = R(D1*Rinv(Iz))
+        P_j2[(nz+1):(2*nz),(nz+1):(2*nz)] = R(D2*Rinv(Iz))
+
+
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+        else
+            waveguide_str = waveguide
+        end
+
+        println("  -- Matlab printouts start --")
+        WEP_path = "../matlab/WEP"
+        @mput nx nz delta WEP_path waveguide_str gamma
+        @matlab begin
+            addpath(WEP_path)
+            nxx = double(nx)
+            nzz = double(nz)
+            options = struct
+            options.delta = delta
+            options.wg = waveguide_str
+            matlab_nep = nep_wg_generator(nxx, nzz, options)
+
+            P_m = NaN(2*nzz, 2*nzz);
+            Iz = eye(2*nzz);
+            eval("for i = 1:2*nzz;   P_m(:,i) = matlab_nep.P(gamma, Iz(:,i));    end")
+            C1_m = matlab_nep.C1;
+            C2T_m = matlab_nep.C2T;
+            K_m = matlab_nep.K;
+            hx_m = matlab_nep.hx;
+            hz_m = matlab_nep.hz;
+
+        @matlab end
+        @mget K_m C2T_m C1_m hx_m hz_m P_m
+        println("  -- Matlab printouts end --")
+
+        P_j = zeros(Complex128, 2*nz,2*nz)
+        Iz = eye(2*nz, 2*nz)
+        for i = 1:2*nz
+            P_j[:,i] = P(γ, Iz[:,i])
+        end
+
+        println("Difference hx_m - hx = ", abs(hx_m-hx))
+        println("Relative difference (hx_m - hx)/hx = ", abs(hx_m-hx)/abs(hx))
+        println("Difference hz_m - hz = ", abs(hz_m-hz))
+        println("Difference K_m  -K = ", norm(K_m-K))
+        println("Difference C1_m - C1 = ", norm(full(C1_m-C1)))
+        println("Relative difference norm(C1_m - C1)/norm(C1) = ", norm(full(C1_m-C1))/norm(full(C1)))
+        println("Difference C1_m[1,1] - C1[,1] = ", abs(C1_m[1,1]-C1[1,1]))
+        println("Relative difference (C1_m[1,1] - C1[,1])/C1[1,1] = ", abs(C1_m[1,1]-C1[1,1])/abs(C1[1,1]))
+        println("C1_m[1,1] = ", C1_m[1,1])
+        println("C1[1,1]   = ", C1[1,1])
+        println("Difference C2T_m - C2T = ", norm(full(C2T_m-C2T)))
+        println("Relative difference norm(C2T-m - C2T)/norm(C2T) = ", norm(full(C2T_m-C2T))/norm(full(C2T)))
+        println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
+        println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
+        println("Difference P_m(γ) - P_2(γ) = ", norm(P_m-P_j2))
+        println("Relative difference norm(P_m(γ) - P_2(γ))/norm(P_2(γ)) = ", norm(P_m-P_j2)/norm(full(P_j2)))
+    end
+end
+
+# Test the full generated system-matrix against against MATLAB code
+using MATLAB
+function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
+    if(nx > 40 || nz > 40)
+        warn("This debug is 'naive' and might be slow for the discretization used.")
     end
 
-    println("  -- Matlab printouts start --")
-    WEP_path = "../matlab/WEP"
-    @mput nx nz delta WEP_path waveguide_str gamma
-    @matlab begin
-        addpath(WEP_path)
-        nxx = double(nx)
-        nzz = double(nz)
-        options = struct
-        options.delta = delta
-        options.wg = waveguide_str
-        matlab_nep = nep_wg_generator(nxx, nzz, options)
 
-        P_m = NaN(2*nz, 2*nz);
-        Iz = eye(2*nz);
-        eval("for i = 1:2*nz;   P_m(:,i) = matlab_nep.P(gamma, Iz(:,i));    end")
-        C1_m = matlab_nep.C1;
-        C2T_m = matlab_nep.C2T;
-        K_m = matlab_nep.K;
-        hx_m = matlab_nep.hx;
-        hz_m = matlab_nep.hz;
+    γ = -rand() - 1im*rand()
+    #γ = -1.45 - 1.92im
+    gamma = γ
 
-    @matlab end
-    @mget K_m C2T_m C1_m hx_m hz_m P_m
-    println("  -- Matlab printouts end --")
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+        println("\n")
+        println("Testing waveguide: ", waveguide)
 
-    P_j = zeros(Complex128, 2*nz,2*nz)
-    Iz = eye(2*nz, 2*nz)
-    for i = 1:2*nz
-        P_j[:,i] = P(γ, Iz[:,i])
-    end
+        nep_j = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpmF", delta)
+        M_j = compute_Mder(nep_j,γ)
 
-    println("Difference hx_m - hx = ", abs(hx_m-hx))
-    println("Relative difference (hx_m - hx)/hx = ", abs(hx_m-hx)/abs(hx))
-    println("Difference hz_m - hz = ", abs(hz_m-hz))
-    println("Difference K_m  -K = ", norm(K_m-K))
-    println("Difference C1_m - C1 = ", norm(full(C1_m-C1)))
-    println("Relative difference norm(C1_m - C1)/norm(C1) = ", norm(full(C1_m-C1))/norm(full(C1)))
-    println("Difference C1_m[1,1] - C1[,1] = ", abs(C1_m[1,1]-C1[1,1]))
-    println("Relative difference (C1_m[1,1] - C1[,1])/C1[1,1] = ", abs(C1_m[1,1]-C1[1,1])/abs(C1[1,1]))
-    println("C1_m[1,1] = ", C1_m[1,1])
-    println("C1[1,1]   = ", C1[1,1])
-    println("Difference C2T_m - C2T = ", norm(full(C2T_m-C2T)))
-    println("Relative difference norm(C2T-m - C2T)/norm(C2T) = ", norm(full(C2T_m-C2T))/norm(full(C2T)))
-    println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
-    println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+        else
+            waveguide_str = waveguide
+        end
 
+        println("  -- Matlab printouts start --")
+        WEP_path = "../matlab/WEP"
+        @mput nx nz delta WEP_path waveguide_str gamma
+        @matlab begin
+            addpath(WEP_path)
+            nxx = double(nx)
+            nzz = double(nz)
+            options = struct
+            options.delta = delta
+            options.wg = waveguide_str
+            matlab_nep = nep_wg_generator(nxx, nzz, options)
+
+            Ixz = eye(nxx*nzz+2*nzz);
+            M_m = NaN(nxx*nzz+2*nzz, nxx*nzz+2*nzz);
+            eval("for i = 1:(nxx*nzz+2*nzz);   M_m(:,i) = matlab_nep.M(gamma, Ixz(:,i));    end")
+
+
+        @matlab end
+        @mget M_m
+        println("  -- Matlab printouts end --")
+
+        println("MATLAB matrix:\n", sparse(M_m),"\n\n")
+        println("JULIA matrix:\n", sparse(M_j),"\n\n")
+        println("Difference matrix:\n", sparse(M_m-M_j),"\n\n")
+        println("Difference M_m(γ) - M(γ) = ", norm(full(M_m-M_j)))
+        println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_m-M_j))/norm(full(M_j)))
     end
 end
 

@@ -73,15 +73,15 @@ println("===========================")
 println("||   This is WEP-test    ||")
 println("===========================")
 
-nx = 15;
-nz = 11;
+nz = 15;
+nx = nz + 4;
 delta = 0.1;
-nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
+#nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
 
 λ_tausch=NaN;
 x_tausch=NaN
 try
-    λ_tausch,x_tausch =newton(nep_tausch, displaylevel=1, λ=-10-10im, maxit = 50, tolerance = 1e-10);
+#    λ_tausch,x_tausch =newton(nep_tausch, displaylevel=1, λ=-10-10im, maxit = 50, tolerance = 1e-10);
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -90,17 +90,18 @@ catch e
     λ_tausch=e.λ
     x_tausch=e.v
 end
-println("Resnorm: ",compute_resnorm(nep_tausch,λ_tausch,x_tausch))
-println("Eigenvalue: ", λ_tausch)
-println("Eigenvector norm: ", norm(x_tausch))
+#println("Resnorm: ",compute_resnorm(nep_tausch,λ_tausch,x_tausch))
+#println("Eigenvalue: ", λ_tausch)
+#println("Eigenvector norm: ", norm(x_tausch))
 
 
-nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
+#nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
 
 λ_jar=NaN;
 x_jar=NaN
 try
-    λ_jar,x_jar =newton(nep_jar,displaylevel=1, λ=-10-10im, maxit = 50, tolerance = 1e-10);
+#    λ_jar,x_jar =res_inv(nep_jar;displaylevel=1, λ=-0.52-0.37im, maxit = 50, tolerance = 1e-10)
+#    λ_jar,x_jar = newton(nep_jar,displaylevel=1, λ=-10-10im, maxit = 50, tolerance = 1e-10);
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -109,15 +110,17 @@ catch e
     λ_jar=e.λ
     x_jar=e.v
 end
-println("Resnorm: ",compute_resnorm(nep_jar,λ_jar,x_jar))
-println("Eigenvalue: ", λ_jar)
-println("Eigenvector norm: ", norm(x_jar))
+#println("Resnorm: ",compute_resnorm(nep_jar,λ_jar,x_jar))
+#println("Eigenvalue: ", λ_jar)
+#println("Eigenvector norm: ", norm(x_jar))
 
 
 
 debug_sqrtm_schur(281)
 
 matlab_debug_WEP_FD(nx, nz, delta)
+
+matlab_debug_full_matrix_WEP_FD_SPMF(7, 3, delta)
 
 
 
