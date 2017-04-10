@@ -85,7 +85,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         e_j = zeros(nz)
         e_j[j] = 1
         E_j = [R(e_j); spzeros(nz)]
-        E_j = E_j * E_j'
+        E_j = E_j * (E_j/nz)'
         A[j+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
     end
     for j = 1:nz
@@ -93,7 +93,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         e_j = zeros(nz)
         e_j[j] = 1
         E_j = [spzeros(nz); R(e_j)]
-        E_j = E_j * E_j'
+        E_j = E_j * (E_j/nz)'
         A[j+nz+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
     end
     return SPMF_NEP(A,f)
@@ -508,10 +508,10 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Difference K_m  -K = ", norm(K_m-K))
         println("Difference C1_m - C1 = ", norm(full(C1_m-C1)))
         println("Relative difference norm(C1_m - C1)/norm(C1) = ", norm(full(C1_m-C1))/norm(full(C1)))
-        println("Difference C1_m[1,1] - C1[,1] = ", abs(C1_m[1,1]-C1[1,1]))
-        println("Relative difference (C1_m[1,1] - C1[,1])/C1[1,1] = ", abs(C1_m[1,1]-C1[1,1])/abs(C1[1,1]))
-        println("C1_m[1,1] = ", C1_m[1,1])
-        println("C1[1,1]   = ", C1[1,1])
+#        println("Difference C1_m[1,1] - C1[,1] = ", abs(C1_m[1,1]-C1[1,1]))
+#        println("Relative difference (C1_m[1,1] - C1[,1])/C1[1,1] = ", abs(C1_m[1,1]-C1[1,1])/abs(C1[1,1]))
+#        println("C1_m[1,1] = ", C1_m[1,1])
+#        println("C1[1,1]   = ", C1[1,1])
         println("Difference C2T_m - C2T = ", norm(full(C2T_m-C2T)))
         println("Relative difference norm(C2T-m - C2T)/norm(C2T) = ", norm(full(C2T_m-C2T))/norm(full(C2T)))
         println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
@@ -530,12 +530,11 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
 
 
     γ = -rand() - 1im*rand()
-    #γ = -1.45 - 1.92im
     gamma = γ
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
-        println("Testing waveguide: ", waveguide)
+        println("Testing full matrix M for waveguide: ", waveguide)
 
         nep_j = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpmF", delta)
         M_j = compute_Mder(nep_j,γ)
@@ -567,9 +566,6 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         @mget M_m
         println("  -- Matlab printouts end --")
 
-        println("MATLAB matrix:\n", sparse(M_m),"\n\n")
-        println("JULIA matrix:\n", sparse(M_j),"\n\n")
-        println("Difference matrix:\n", sparse(M_m-M_j),"\n\n")
         println("Difference M_m(γ) - M(γ) = ", norm(full(M_m-M_j)))
         println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_m-M_j))/norm(full(M_j)))
     end
