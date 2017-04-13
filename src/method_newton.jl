@@ -117,7 +117,7 @@
                 end
 
                 # Compute eigenvalue update
-                λ = compute_rf(nep,v,y=c,λ0=λ,target=σ)
+                λ = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
 
                 # Compute eigenvector update
 	              Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
