@@ -1,8 +1,10 @@
-# This implements squrtm using Schur method.
 # Show the importance of correct typing from the start
 
 
 workspace()
+
+# Pkg.add("Benchmark")
+using BenchmarkTools;
 
 n = 300
 
@@ -29,10 +31,18 @@ function fast(n::Integer)
     end
 end
 
+println("Running slow...");
+b1=@benchmark slow(n)
+println(show(STDOUT, "text/plain", b1)) # Pretty print it
 
-@time slow(n)
+println("Running fast...");
+b2=@benchmark fast(n)
+println(show(STDOUT, "text/plain", b2)) # Pretty print it
 
-@time fast(n)
 
-print()
+println("\nCore of the problem is type-casting ...");
 
+z=0;
+println("z=0; typeof(z)=",typeof(z));
+z+=1+1im;
+println("z+=1+1im; typeof(z)=",typeof(z));
