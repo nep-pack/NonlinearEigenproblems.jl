@@ -33,14 +33,14 @@ end
 
 println("Running slow...");
 b1=@benchmark slow(n)
-println(show(STDOUT, "text/plain", b1)) # Pretty print it
+show(STDOUT, "text/plain", b1) # Pretty print it
 
-println("Running fast...");
+println("\n\nRunning fast...");
 b2=@benchmark fast(n)
-println(show(STDOUT, "text/plain", b2)) # Pretty print it
+show(STDOUT, "text/plain", b2) # Pretty print it
 
 
-println("\nCore of the problem is type-casting ...");
+println("\n\nCore of the problem is type-casting ...");
 
 z=0;
 println("z=0; typeof(z)=",typeof(z));
