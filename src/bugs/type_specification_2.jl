@@ -3,7 +3,7 @@
 
 workspace()
 
-# Pkg.add("Benchmark")
+# Pkg.add("BenchmarkTools")
 using BenchmarkTools;
 
 n = 300
