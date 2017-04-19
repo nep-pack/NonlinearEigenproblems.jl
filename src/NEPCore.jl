@@ -165,8 +165,8 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
         count = 0
         while (abs(Δλ)>TOL) & (count<max_iter)
             count=count+1
-            z1=compute_Mlincomb(nep,λ,reshape(x,nep.n,1))
-            z2=compute_Mlincomb(nep,λ,reshape(x,nep.n,1),[1],1)
+            z1=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1))
+            z2=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1),[1],1)
             Δλ=- T(dot(y,z1)/dot(y,z2));
             λ += Δλ
         end
