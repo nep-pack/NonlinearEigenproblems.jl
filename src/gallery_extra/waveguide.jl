@@ -5,6 +5,34 @@ export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
 export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
 
+# Specializalized NEPs
+export WEP_FD
+
+
+
+ # We overload these
+    import NEPCore.compute_Mder
+#    import NEPCore.compute_Mlincomb
+#    import NEPCore.compute_MM
+#    import NEPCore.compute_resnorm
+#    import NEPCore.compute_rf
+
+    import Base.size
+    import Base.issparse
+    import Base.*
+
+    export compute_Mder
+#    export compute_Mlincomb
+#    export compute_MM
+#    export compute_resnorm
+#    export compute_rf
+    export size
+    export issparse
+    export *
+
+
+
+
 "
 Creates the NEP associated with example in
 E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring, 
@@ -25,24 +53,21 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
         error("Variable nz must be odd! You have used nz = ", nz, ".")
     end
 
-    # Generate the matrices for the sought waveguide
-    if discretization == "FD"
-        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
-    elseif discretization == "FEM"
-        error("FEM discretization of WEP is not implemented yet.")
-        #K, hx, hz = generate_wavenumber_fem( nx, nz, waveguide, delta)
-        # generate_fem_matrices(nx, nz, hx, hz)
-    else
-        error("The discretization '", discretization, "' is not supported.")
-    end
 
-    P, p_P = generate_P_matrix(nz, hx, k)
-
-
-    # Formulate the problem is the sought format
+    # Generate the matrices and formulate the problem is the sought format
     if (NEP_format == "SPMF") && (discretization == "FD")
+        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        P, p_P = generate_P_matrix(nz, hx, k)
+        Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+        C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, k)
+
+    elseif (NEP_format == "WEP") && (discretization == "FD")
+        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        P, p_P = generate_P_matrix(nz, hx, k)
+        C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
+        nep = WEP_FD
+
     else
         error("The NEP-format '", NEP_format, "' is not supported for the discretization '", discretization, "'.")
     end
@@ -103,9 +128,9 @@ end
 ###########################################################
 # Generate discretization matrices for FINITE DIFFERENCE
     """
- Genearate the discretization matrices for Finite Difference.
+ Genearate the discretization matrices for the interior for  Finite Difference.
 """
-function generate_fd_matrices( nx, nz, hx, hz)
+function generate_fd_interion_mat( nx, nz, hx, hz)
     ex = ones(nx)
     ez = ones(nz)
 
@@ -128,6 +153,12 @@ function generate_fd_matrices( nx, nz, hx, hz)
 
     Dz = Dz/(2*hz);
 
+    return Dxx, Dzz, Dz
+end
+    """
+ Genearate the discretization matrices for Finite Difference.
+"""
+function generate_fd_boundary_mat( nx, nz, hx, hz)
     # BUILD THE SECOND BLOCK C1
     e1 = spzeros(nx,1)
     e1[1] = 1
@@ -148,7 +179,7 @@ function generate_fd_matrices( nx, nz, hx, hz)
     vp[end-1] = d2;
     C2T = [kron(vm,Iz); kron(vp,Iz)];
 
-    return Dxx, Dzz, Dz, C1, C2T
+    return C1, C2T
 end
 
 
@@ -425,6 +456,70 @@ function private_inner_loops_sqrt!(n, U, T)
 end
 
 
+
+
+###########################################################
+# Waveguide eigenvalue problem - WEP
+# A more optimized (native) implementation of the WEP with FD discretization
+
+    """
+### Waveguide eigenvalue problem
+  A more optimized implementation of the WEP for FD-discretization.\\
+  Closer to what is done in the article:
+    ''E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
+      Sylvester-based preconditioning for the waveguide eigenvalue problem,
+      Linear Algebra and its Applications, 2017''
+"""
+    type WEP_FD <: NEP
+        
+    end
+
+
+    function size(nep::WEP_FD)
+        return 0
+    end
+
+
+    function issparse(nep::WEP_FD)
+        return false
+    end
+
+
+    """
+    compute_Mder(nep::WEP_FD, λ::Number, i::Integer=0)
+ Gives an object that acts as a matrix-multiplication
+ for the WEP.
+ Higher order derivatives gives an error.
+"""
+     # TODO: This function compute only the 0:th and 1:st derivatives. Extend?
+    function compute_Mder(nep::WEP_FD, λ::Number, i::Integer=0)
+        if(i == 0)
+            return compute_WEP_matrix_object(nep, λ)
+        elseif( i == 1)
+            
+        else
+            error("Cannot compute derivative for higher order of WEP.")
+        end
+    end
+
+
+    function compute_WEP_matrix_object(nep::WEP_FD, λ::Number)
+        
+    end
+
+    """
+    An abstract matrix object from the WEP_FD.\\
+    Overload * to make it act like a normal matrix
+"""
+    type WEP_matrix_object{T} <: AbstractMatrix{T}
+        
+    end
+
+    function *(M::WEP_matrix_object, v::AbstractVector)
+        
+    end
+
+
 ######################## DEBUG ############################
 ###########################################################
 # DEBUG: Test the generated matrices against MATLAB code
@@ -446,7 +541,8 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Testing waveguide: ", waveguide)
 
         K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        Dxx, Dzz, Dz, C1, C2T = generate_fd_matrices( nx, nz, hx, hz)
+        Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+        C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         P, p_P = generate_P_matrix(nz, hx, k)
 
         R, Rinv = generate_R_matrix(nz)

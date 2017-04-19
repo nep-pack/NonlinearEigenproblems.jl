@@ -76,6 +76,12 @@ println("===========================")
 nz = 105;
 nx = nz + 4;
 delta = 0.1;
+
+
+nep = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
+
+
+
 nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
 
 λ_tausch=NaN;
@@ -90,9 +96,9 @@ catch e
     λ_tausch=e.λ
     x_tausch=e.v
 end
-println("Resnorm: ",compute_resnorm(nep_tausch,λ_tausch,x_tausch))
+println("Resnorm: ", compute_resnorm(nep_tausch,λ_tausch,x_tausch))
 println("Eigenvalue: ", λ_tausch)
-println("Eigenvector norm: ", norm(x_tausch))
+println("Eigenvector norm: ", norm(x_tausch), "\n")
 
 
 nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
@@ -109,9 +115,9 @@ catch e
     λ_jar=e.λ
     x_jar=e.v
 end
-println("Resnorm: ",compute_resnorm(nep_jar,λ_jar,x_jar))
+println("Resnorm: ", compute_resnorm(nep_jar,λ_jar,x_jar))
 println("Eigenvalue: ", λ_jar)
-println("Eigenvector norm: ", norm(x_jar))
+println("Eigenvector norm: ", norm(x_jar), "\n")
 
 
 
