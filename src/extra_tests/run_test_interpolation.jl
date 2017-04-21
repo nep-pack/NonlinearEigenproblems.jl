@@ -130,7 +130,7 @@ println(λ1)
 println(x1)
 
 
-println("\nRunning Newton on interpolated sparse dep (with BigFloat arithmetics)")
+println("\nRunning Newton on interpolated sparse dep (interpolation with with BigFloat arithmetics, Newton with Complex128)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try
@@ -247,11 +247,11 @@ println(λ1)
 #println(x1)
 
 
-println("\nRunning Newton on interpolated sparse pep (with BigFloat arithmetics)")
+println("\nRunning Newton on interpolated sparse pep (with BigFloat arithmetics in both interpolation and Newton)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try
-    λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
+    λ2,x2 =newton(BigFloat,pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)

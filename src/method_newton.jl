@@ -17,7 +17,7 @@
                        tolerance=eps(real(T))*100,
                        maxit=10,
                        λ=zero(T),
-                       v=randn(real(T),size(nep,1)),
+                       v=randn(size(nep,1)),
                        c=v,
                        displaylevel=0,
                        linsolvertype::DataType=BackslashLinSolver)
