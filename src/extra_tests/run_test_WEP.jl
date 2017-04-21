@@ -78,6 +78,9 @@ nx = nz + 4;
 delta = 0.1;
 
 
+fft_debug_mateq(431, 427, delta)
+
+
 nep = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
 
 

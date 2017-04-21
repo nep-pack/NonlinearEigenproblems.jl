@@ -4,6 +4,7 @@ export gallery_waveguide
 export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
 export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
+export fft_debug_mateq #ONLY FOR DEBUGGING
 
 # Specializalized NEPs
 export WEP_FD
@@ -509,15 +510,128 @@ end
 
     """
     An abstract matrix object from the WEP_FD.\\
-    Overload * to make it act like a normal matrix
+    Overload * and size() to make it act like a normal matrix
 """
-    type WEP_matrix_object{T} <: AbstractMatrix{T}
+    type WEP_matrix_object
         
     end
 
     function *(M::WEP_matrix_object, v::AbstractVector)
         
     end
+
+    function size(M::WEP_matrix_object)
+        
+    end
+
+
+
+    """
+    fft_wg( C, gamma, kk, hx, hz )
+ Solves the Sylvester equation for the WEP.
+"""
+#function X = fft_wg( C, gamma, kk, hx, hz )
+function solve_wg_sylvester_fft( C, λ, kk, hx, hz )
+
+    nz = size(C,1)
+    nx = size(C,2)
+
+    alpha = λ^2+kk;
+
+    #eigenvalues of A
+    v=zeros(nz);   v[1]=-2;    v[2]=1;     v[nz]=1;   v=v/(hz^2);
+    w=zeros(nz);   w[2]=1;     w[nz]=-1;   w=w*(λ/hz);
+    D=fft(v+w)+alpha;
+
+    # eigenvalues of B = Dxx
+    S = -(4/hx^2) * sin(pi*(1:nx)/(2*(nx+1))).^2
+#    S=S.'
+
+    # solve the diagonal matrix equation
+    Z=zeros(Complex128,nz,nx)
+
+    CC = Vh!( Wh(C')' )
+
+    for k=1:nx
+        Z[:,k] += CC[:,k]./(D+S[k])
+    end
+
+
+    # change variables
+    return V!((W(Z'))')
+
+end
+
+
+# Start: Auxiliary computations of eigenvector actions using FFT
+    function V!(X)
+    # Compute the action of the eigenvectors of A = Dzz + Dz + c*I
+        nx = size(X,2)
+        return fft!(X,1)/sqrt(nx)
+    end
+
+    function Vh!(X)
+    # Compute the action of the transpose of the eigenvectors of A = Dzz + Dz + c*I
+        nx = size(X,2)
+        return ifft!(X,1)*sqrt(nx)
+    end
+
+    function W( X )
+    #W Compute the action of the matrix W
+    #   W is the matrix of the eigenvectors of the second derivative Dxx
+    #   W*X can be computed with FFTs
+
+        WX = (1im/2)*(F(X)-Fh(X))
+
+        nz = size(X,1)
+        return WX/sqrt((nz+1)/2)
+
+    end
+
+    function Wh( X )
+    #Wh Compute the action of the matrix Wh
+    #   Wh is the transpose of the matrix of the eigenvectors of the second derivative Dxx
+    #   Wh*X can be computed with FFTs
+
+        WX = (Fh(X)-F(X))/(2im)
+
+        nz = size(X,1)
+        return WX/sqrt((nz+1)/2)
+
+    end
+
+    function F( v )
+    #F is an auxiliary function for W and Wh
+
+        m=size(v,2)
+
+        v=[zeros(1,m); v]
+        n=size(v,1)
+
+        pad = [v; zeros(eltype(v),n,m)]
+        v = fft!(pad,1)
+        return v[2:n,:]
+
+    end
+
+    function Fh( v )
+    #Fh is an auxiliary function for W and Wh
+
+        m=size(v,2)
+
+        v=[zeros(1,m); v]
+        n=size(v,1)
+
+        pad = [v; zeros(eltype(v),n,m)]
+        v = ifft!(pad,1)
+        return v[2:n,:]*2*n
+
+    end
+# End: Auxiliary computations of eigenvector actions using FFT
+
+
+
+
 
 
 ######################## DEBUG ############################
@@ -618,7 +732,6 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 end
 
 # Test the full generated system-matrix against against MATLAB code
-using MATLAB
 function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
     if(nx > 40 || nz > 40)
         warn("This debug is 'naive' and might be slow for the discretization used.")
@@ -665,6 +778,34 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         println("Difference M_m(γ) - M(γ) = ", norm(full(M_m-M_j)))
         println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_m-M_j))/norm(full(M_j)))
     end
+end
+
+
+# Test the full generated system-matrix against against MATLAB code
+function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
+
+    γ = -rand(Complex128)
+    gamma = γ
+    C = rand(Complex128, nz, nx);
+    waveguide = "JARLEBRING"
+
+
+    K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+    Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+
+    k_bar = mean(K)
+
+    A = full(Dzz + 2*γ*Dz + (γ^2+k_bar)*speye(Complex128, nz,nz))
+    B = complex(full(Dxx))
+
+    println("Built-in Sylvester solver")
+    XX = @time sylvester(A,B,-C)
+    println("Relative residual norm = ", norm(A*XX+XX*B-C)/norm(C))
+
+    println("FFT-based Sylvester solver for WG")
+    X = @time solve_wg_sylvester_fft( C, γ, k_bar, hx, hz )
+    println("Relative residual norm = ", norm(A*X+X*B-C)/norm(C))
+
 end
 
 
