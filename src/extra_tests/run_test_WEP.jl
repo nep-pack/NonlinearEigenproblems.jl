@@ -78,7 +78,7 @@ nx = nz + 4;
 delta = 0.1;
 
 
-fft_debug_mateq(431, 427, delta)
+
 
 
 nep = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
@@ -124,11 +124,12 @@ println("Eigenvector norm: ", norm(x_jar), "\n")
 
 
 
-debug_sqrtm_schur(281)
-
 matlab_debug_WEP_FD(119, 115, delta)
 
 matlab_debug_full_matrix_WEP_FD_SPMF(21, 17, delta)
 
+fft_debug_mateq(431, 427, delta)
 
+debug_sqrtm_schur(281)
 
+derivative = debug_sqrt_derivative()

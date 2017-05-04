@@ -5,6 +5,7 @@ export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
 export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
 export fft_debug_mateq #ONLY FOR DEBUGGING
+export debug_sqrt_derivative #ONLY FOR DEBUGGING
 
 # Specializalized NEPs
 export WEP_FD
@@ -13,7 +14,7 @@ export WEP_FD
 
  # We overload these
     import NEPCore.compute_Mder
-#    import NEPCore.compute_Mlincomb
+    import NEPCore.compute_Mlincomb
 #    import NEPCore.compute_MM
 #    import NEPCore.compute_resnorm
 #    import NEPCore.compute_rf
@@ -21,15 +22,17 @@ export WEP_FD
     import Base.size
     import Base.issparse
     import Base.*
+    import Base.norm
 
     export compute_Mder
-#    export compute_Mlincomb
+    export compute_Mlincomb
 #    export compute_MM
 #    export compute_resnorm
 #    export compute_rf
     export size
     export issparse
     export *
+    export norm
 
 
 
@@ -472,12 +475,18 @@ end
       Linear Algebra and its Applications, 2017''
 """
     type WEP_FD <: NEP
-        
+        nx::Integer
+        nz::Integer
     end
 
 
-    function size(nep::WEP_FD)
-        return 0
+    function size(nep::WEP_FD, dim=-1)
+        n = nep.nx * nep.nz + 2*nep.nz
+        if (dim==-1)
+            return (n,n)
+        else
+            return n
+        end
     end
 
 
@@ -524,13 +533,35 @@ end
         
     end
 
+    function norm(M::WEP_matrix_object, p::Real=1)
+        
+    end
+
+
+    """
+    compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(Complex128,size(V,2)))
+Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\\\\
+ Computes the linear combination of derivatives\\
+ ``Σ_i a_i M^{(i)}(λ) v_i``
+"""
+    function compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(Complex128,size(V,2)))
+        na = size(a)
+        nv, mv = size(V)
+        n_nep = size(nep,1)
+        if(na != mv)
+            error("Incompatible sizes: Number of coefficients = ", na, ", number of vectors = ", mv, ".")
+        end
+        if(nv != n_nep)
+            error("Incompatible sizes: Length of vectors = ", nv, ", size of NEP = ", n_nep, ".")
+        end
+    end
+
 
 
     """
     fft_wg( C, gamma, kk, hx, hz )
  Solves the Sylvester equation for the WEP.
 """
-#function X = fft_wg( C, gamma, kk, hx, hz )
 function solve_wg_sylvester_fft( C, λ, kk, hx, hz )
 
     nz = size(C,1)
@@ -718,10 +749,6 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Difference K_m  -K = ", norm(K_m-K))
         println("Difference C1_m - C1 = ", norm(full(C1_m-C1)))
         println("Relative difference norm(C1_m - C1)/norm(C1) = ", norm(full(C1_m-C1))/norm(full(C1)))
-#        println("Difference C1_m[1,1] - C1[,1] = ", abs(C1_m[1,1]-C1[1,1]))
-#        println("Relative difference (C1_m[1,1] - C1[,1])/C1[1,1] = ", abs(C1_m[1,1]-C1[1,1])/abs(C1[1,1]))
-#        println("C1_m[1,1] = ", C1_m[1,1])
-#        println("C1[1,1]   = ", C1[1,1])
         println("Difference C2T_m - C2T = ", norm(full(C2T_m-C2T)))
         println("Relative difference norm(C2T-m - C2T)/norm(C2T) = ", norm(full(C2T_m-C2T))/norm(full(C2T)))
         println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
@@ -862,4 +889,67 @@ function debug_sqrtm_schur(n::Integer)
     println("\n--- End square root implementations ---\n")
 end
 
+###########################################################
+# Compute derivative <d> of sqrt(ax^2 + bx + c) in <x>
+# (only reference implementation, compute_mlincomb)
+function sqrt_derivative(a,b,c, d, x)
+    if(d<0)
+        error("Cannot take negative derivative. d = ", d)
+    end
 
+    aa = a
+    bb = b + 2*a*x
+    cc = c + a*x^2 + b*x
+
+    yi = sqrt(cc)
+    if( d==0 )
+        return yi
+    end
+
+    yip1 = bb/(2*sqrt(cc))
+    fact = Float64(1)
+    if( d==1 )
+        return yip1 * fact
+    end
+
+    yip2 = zero(Complex128)
+    for i = 2:d
+        m = i - 2
+        yip2 = - (2*aa*(m-1)*yi  +  bb*(1+2*m)*yip1) / (2*cc*(2+m))
+        fact *= i
+
+        yi = yip1
+        yip1 = yip2
+    end
+    return yip2 * fact
+end
+
+function debug_sqrt_derivative()
+    println("\n\n--- Debugging derivatives of square root of polynomials ---\n")
+    a = rand()
+    b = rand()
+    c = rand()
+    d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
+    x = 25*rand()
+
+        WEP_path = "../matlab/WEP"
+        println("  -- Matlab printouts start --")
+        @mput a b c d_vec x WEP_path
+        @matlab begin
+            addpath(WEP_path)
+            der_val = sqrt_derivative_test(a,b,c, d_vec, x);
+        @matlab end
+        @mget der_val
+        println("  -- Matlab printouts end --")
+
+    for i = 1:size(d_vec,2)
+        d = d_vec[i]
+        println("Derivative number d = ", d)
+        println("  MATLAB symbolic = ", der_val[i])
+        julia_der = sqrt_derivative(a,b,c, d, x)
+        println("  Implemented recursion = ", julia_der)
+        println("  Relative error = ", abs(der_val[i]-julia_der)/abs(julia_der))
+    end
+
+    println("\n--- End derivatives of square root of polynomials ---\n")
+end
