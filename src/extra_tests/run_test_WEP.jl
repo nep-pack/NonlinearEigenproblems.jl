@@ -78,11 +78,7 @@ nx = nz + 4;
 delta = 0.1;
 
 
-
-matlab_debug_Mlincomb_FD_WEP(2, 3, delta)
-
-nep = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
-
+nep_WEP_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
 
 
 nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
@@ -132,4 +128,6 @@ fft_debug_mateq(431, 427, delta)
 
 debug_sqrtm_schur(281)
 
-derivative = debug_sqrt_derivative()
+debug_sqrt_derivative()
+
+debug_Mlincomb_FD_WEP(29, 31, delta)

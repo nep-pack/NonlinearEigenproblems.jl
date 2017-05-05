@@ -6,7 +6,7 @@ export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
 export fft_debug_mateq #ONLY FOR DEBUGGING
 export debug_sqrt_derivative #ONLY FOR DEBUGGING
-export matlab_debug_Mlincomb_FD_WEP #ONLY FOR DEBUGGING
+export debug_Mlincomb_FD_WEP #ONLY FOR DEBUGGING
 
 # Specializalized NEPs
 export WEP_FD
@@ -502,7 +502,7 @@ end
         p::Integer
         d0
         b
-        cMP # cM followe by cP in a vector
+        cMP # cM followed by cP in a vector (length = 2*nz)
         R::Function
         Rinv::Function
         function WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
@@ -621,36 +621,38 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         nz = nep.nz
         max_d = na - 1 #Start on 0:th derivative
 
-        V1_mat = reshape(V[1:nx*nz,:], nz, nx, na)
+        V1 = view(V, 1:nx*nz, :)
+        V1_mat = reshape(V1, nz, nx, na)
         V2 = view(V, nx*nz+1:n_nep, :)
 
+        # Compute the top part (nx*nz)
         y1_mat = zeros(Complex128, nz, nx)
         y1_mat += nep.A(λ) * V1_mat[:,:,1]  +  V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1]
         for d = 1:min(max_d,3)
             y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1]
         end
         y1 = y1_mat[:]
-        y1_mat = 0 # Clear memory
         y1 += nep.C1 * V2[:,1]
 
+        # Compute the bottom part (2*nz)
         y2 = zeros(Complex128, 2*nz)
-        y2 += nep.C2T * V[1:nx*nz,1]
         D = zeros(Complex128, 2*nz, na)
         for j = 1:2*nz
             a = 1
             b = nep.b[rem(j-1,nz)+1]
             c = nep.cMP[j]
             der_coeff = 1im*sqrt_derivative(a, b, c, max_d, λ)
-            for d = 1:na
-                D[j, d] = der_coeff[d]
+            for jj = 1:na
+                D[j, jj] = der_coeff[jj]
             end
         end
 
-        y2 += (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" (4.6)
+        y2 += (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" TIAR-(4.6)
         for jj = 2:na
-            y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" (4.6)
+            y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" TIAR-(4.6)
         end
         y2 = [nep.R(y2[1:nz]); nep.R(y2[nz+1:2*nz])]
+        y2 += nep.C2T * V1[:,1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
         return [y1;y2]
     end
@@ -903,6 +905,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     println("\n--- End Matrices FD against MATLAB ---\n")
 end
 
+
 # Test the full generated system-matrix against against MATLAB code
 function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Full Matrix FD SPMF against MATLAB ---\n")
@@ -1043,7 +1046,7 @@ end
 function debug_sqrt_derivative()
     println("\n\n--- Debugging derivatives of square root of polynomials ---\n")
     a = 2*rand()
-    b = 2*pi*rand()
+    b = 2*pi*rand(Complex128)
     c = 1.67*rand()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
@@ -1071,9 +1074,11 @@ function debug_sqrt_derivative()
     println("\n--- End derivatives of square root of polynomials ---\n")
 end
 
-# Test the full generated system-matrix against against MATLAB code
-function matlab_debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
-    println("\n\n--- Debugging Full Matrix FD WEP-opt-format- gainst SPMF ---\n")
+
+###########################################################
+# Test the full generated native-WEP system-matrix against the SPMF-matrix (Mlincomb)
+function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
+    println("\n\n--- Debugging Mlincomb (Full Matrix FD WEP-native-format against SPMF) ---\n")
     if(nx > 40 || nz > 40)
         warn("This debug is 'naive' and might be slow for the discretization used.")
     end
@@ -1082,55 +1087,39 @@ function matlab_debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
     γ = -rand() - 1im*rand()
     gamma = γ
     n = nx*nz+2*nz
+    V = rand(Complex128, n, 4)
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
         println("Testing full matrix M for waveguide: ", waveguide)
 
         nep_j = nep_gallery("waveguide", nx, nz, waveguide, "fD", "weP", delta)
-        M_j = zeros(Complex128, n, n)
-        for i = 1:n
-            V = zeros(Complex128, n)
-            V[i] = 1
-            M_j[:,i] += compute_Mlincomb(nep_j, γ, V)
-        end
-
-        if waveguide == "JARLEBRING"
-            waveguide_str = "CHALLENGE"
-        else
-            waveguide_str = waveguide
-        end
-
-#        println("  -- Matlab printouts start --")
-#        WEP_path = "../matlab/WEP"
-#        @mput nx nz delta WEP_path waveguide_str gamma
-#        @matlab begin
-#            addpath(WEP_path)
-#            nxx = double(nx)
-#            nzz = double(nz)
-#            options = struct
-#            options.delta = delta
-#            options.wg = waveguide_str
-#            matlab_nep = nep_wg_generator(nxx, nzz, options)
-
-#            Ixz = eye(nxx*nzz+2*nzz);
-#            M_m = NaN(nxx*nzz+2*nzz, nxx*nzz+2*nzz);
-#            eval("for i = 1:(nxx*nzz+2*nzz);   M_m(:,i) = matlab_nep.M(gamma, Ixz(:,i));    end")
-
-
-#        @matlab end
-#        @mget M_m
-#        println("  -- Matlab printouts end --")
-
         nep_SPMF = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpmF", delta)
-        M_SPMF = compute_Mder(nep_SPMF,γ)
 
-        println("Difference M_SPMF(γ) - M(γ) = ", norm(full(M_SPMF-M_j)))
-        println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_SPMF-M_j))/norm(full(M_j)))
-#println(sparse(M_j))
-#println(M_SPMF)
-#println(sparse(M_j-M_SPMF))
+        for d = [0 1 2 5]
+            M_j = zeros(Complex128, n, n)
+            for i = 1:n
+                V = zeros(Complex128, n)
+                V[i] = 1
+                M_j[:,i] += compute_Mlincomb(nep_j, γ, V, [1], d)
+            end
+
+            M_SPMF = zeros(Complex128, n, n)
+            for i = 1:n
+                V = zeros(Complex128, n)
+                V[i] = 1
+                M_SPMF[:,i] += compute_Mlincomb(nep_SPMF, γ, V, [1], d)
+            end
+            println("Derivative d = ", d)
+            println("    Difference M_SPMF(γ) - M(γ) = ", norm(full(M_SPMF-M_j)))
+            println("    Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_SPMF-M_j))/norm(full(M_j)))
+
+            v_j = compute_Mlincomb(nep_j, γ, V)
+            v_SPMF = compute_Mlincomb(nep_SPMF, γ, V)
+            println("    Relative difference on random set of 4 vectors = ", norm(v_j - v_SPMF)/norm(v_j))
+        end
+
 
     end
-    println("\n--- End Full Matrix FD WEP-opt-format- gainst SPMF ---\n")
+    println("\n--- End Mlincomb (Full Matrix FD WEP-native-format against SPMF) ---\n")
 end
