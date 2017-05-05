@@ -60,17 +60,18 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
 
     # Generate the matrices and formulate the problem is the sought format
     if (NEP_format == "SPMF") && (discretization == "FD")
-        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        P, p_P = generate_P_matrix(nz, hx, k)
+        K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        P, p_P = generate_P_matrix(nz, hx, Km, Kp)
         Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, k)
+        nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
 
     elseif (NEP_format == "WEP") && (discretization == "FD")
-        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        P, p_P = generate_P_matrix(nz, hx, k)
+        K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        P, p_P = generate_P_matrix(nz, hx, Km, Kp)
+        Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        nep = WEP_FD
+        nep = WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
 
     else
         error("The NEP-format '", NEP_format, "' is not supported for the discretization '", discretization, "'.")
@@ -89,7 +90,7 @@ end
  Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
-function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, k::Function)
+function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, Km, Kp)
     Ix = speye(nx,nx)
     Iz = speye(nz,nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
@@ -107,7 +108,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
     f[3] = λ -> λ^2
 
     R, Rinv = generate_R_matrix(nz)
-    S = generate_S_function(nz, hx, k)
+    S = generate_S_function(nz, hx, Km, Kp)
 
     for j = 1:nz
         f[j+3] = λ -> S(λ, j)
@@ -242,8 +243,9 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
         end
 
     const K = k(X', Z).^2;
-
-    return K, hx, hz, k
+    const Km = k(-Inf, 1/2)[1];
+    const Kp = k(Inf, 1/2)[1];
+    return K, hx, hz, Km, Kp
 end
 
 
@@ -292,7 +294,9 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Num
         end
 
     const K = k(X', Z).^2;
-    return K, hx, hz, k
+    const Km = k(-Inf, 1/2)[1];
+    const Kp = k(Inf, 1/2)[1];
+    return K, hx, hz, Km, Kp
 end
 
 
@@ -319,14 +323,12 @@ end
 
 ###########################################################
 # Generate P-matrix
-function generate_P_matrix(nz::Integer, hx, k::Function)
+function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     R, Rinv = generate_R_matrix(nz::Integer)
     const p = (nz-1)/2;
 
     # Constants from the problem
-    const Km = k(-Inf, 1/2)[1];
-    const Kp = k(Inf, 1/2)[1];
     const d0 = -3/(2*hx);
     const a = ones(Complex128,nz);
     const b = 4*pi*1im * (-p:p);
@@ -393,11 +395,9 @@ end
 
 ###########################################################
 # Generate S-function for matrix argument
-function generate_S_function(nz::Integer, hx, k::Function)
+function generate_S_function(nz::Integer, hx, Km, Kp)
     # Constants from the problem
     const p = (nz-1)/2;
-    const Km = k(-Inf, 1/2)[1];
-    const Kp = k(Inf, 1/2)[1];
     const d0 = -3/(2*hx);
     const b = 4*pi*1im * (-p:p);
     const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
@@ -477,11 +477,40 @@ end
     type WEP_FD <: NEP
         nx::Integer
         nz::Integer
+        A::Function
+        B::Function
+        C1
+        C2T
+        k_bar
+        K
+        function WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
+            n = nx*nz + 2*nz
+            k_bar = mean(K)
+            A = function(λ, d)
+                if(d == 0)
+                    return Dzz + 2*λ*Dz + λ^2*speye(Complex128, nz, nz) + k_bar*speye(Complex128, nz, nz)
+                elseif(d == 1)
+                    return 2*Dz + 2*λ*speye(Complex128, nz, nz)
+                elseif(d == 2)
+                    return 2*speye(Complex128, nz, nz)
+                else
+                    return spzeros(Complex128, nz, nz)
+                end
+            end
+            B = function(λ, d)
+                if(d == 0)
+                    return Dxx
+                else
+                    return spzeros(Complex128, nx, nx)
+                end
+            end
+            this = new(nx, nz, A, B, C1, C2T, k_bar, K-k_bar*ones(Complex128,nz,nx))
+        end
     end
 
 
     function size(nep::WEP_FD, dim=-1)
-        n = nep.nx * nep.nz + 2*nep.nz
+        n = nep.nx*nep.nz + 2*nep.nz
         if (dim==-1)
             return (n,n)
         else
@@ -491,7 +520,7 @@ end
 
 
     function issparse(nep::WEP_FD)
-        return false
+        return true
     end
 
 
@@ -504,7 +533,7 @@ end
      # TODO: This function compute only the 0:th and 1:st derivatives. Extend?
     function compute_Mder(nep::WEP_FD, λ::Number, i::Integer=0)
         if(i == 0)
-            return compute_WEP_matrix_object(nep, λ)
+            
         elseif( i == 1)
             
         else
@@ -557,17 +586,16 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
 
-
     """
-    fft_wg( C, gamma, kk, hx, hz )
+    fft_wg( C, λ, k_bar, hx, hz )
  Solves the Sylvester equation for the WEP.
 """
-function solve_wg_sylvester_fft( C, λ, kk, hx, hz )
+function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
 
     nz = size(C,1)
     nx = size(C,2)
 
-    alpha = λ^2+kk;
+    alpha = λ^2+k_bar;
 
     #eigenvalues of A
     v=zeros(nz);   v[1]=-2;    v[2]=1;     v[nz]=1;   v=v/(hz^2);
@@ -685,13 +713,13 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("\n")
         println("Testing waveguide: ", waveguide)
 
-        K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+        K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
         Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        P, p_P = generate_P_matrix(nz, hx, k)
+        P, p_P = generate_P_matrix(nz, hx, Km, Kp)
 
         R, Rinv = generate_R_matrix(nz)
-        S = generate_S_function(nz, hx, k)
+        S = generate_S_function(nz, hx, Km, Kp)
         P_j2 = zeros(Complex128, 2*nz,2*nz)
         D1 = zeros(Complex128, nz,nz)
         D2 = zeros(Complex128, nz,nz)
@@ -817,7 +845,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     waveguide = "JARLEBRING"
 
 
-    K, hx, hz, k = generate_wavenumber_fd( nx, nz, waveguide, delta)
+    K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
     Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
 
     k_bar = mean(K)
@@ -901,15 +929,19 @@ function sqrt_derivative(a,b,c, d, x)
     bb = b + 2*a*x
     cc = c + a*x^2 + b*x
 
+    derivatives = zeros(Complex128,d+1)
+
     yi = sqrt(cc)
+    derivatives[1] = yi
     if( d==0 )
-        return yi
+        return derivatives
     end
 
     yip1 = bb/(2*sqrt(cc))
     fact = Float64(1)
+    derivatives[2] = yip1 * fact
     if( d==1 )
-        return yip1 * fact
+        return derivatives
     end
 
     yip2 = zero(Complex128)
@@ -920,8 +952,10 @@ function sqrt_derivative(a,b,c, d, x)
 
         yi = yip1
         yip1 = yip2
+
+        derivatives[i+1] = yip2 * fact
     end
-    return yip2 * fact
+    return derivatives
 end
 
 function debug_sqrt_derivative()
@@ -942,13 +976,14 @@ function debug_sqrt_derivative()
         @mget der_val
         println("  -- Matlab printouts end --")
 
+    julia_der_vec = sqrt_derivative(a,b,c, maximum(d_vec), x)
     for i = 1:size(d_vec,2)
         d = d_vec[i]
         println("Derivative number d = ", d)
-        println("  MATLAB symbolic = ", der_val[i])
-        julia_der = sqrt_derivative(a,b,c, d, x)
-        println("  Implemented recursion = ", julia_der)
-        println("  Relative error = ", abs(der_val[i]-julia_der)/abs(julia_der))
+        println("    MATLAB symbolic = ", der_val[i])
+        julia_der = julia_der_vec[d+1]
+        println("    Implemented recursion = ", julia_der)
+        println("    Relative error = ", abs(der_val[i]-julia_der)/abs(julia_der))
     end
 
     println("\n--- End derivatives of square root of polynomials ---\n")
