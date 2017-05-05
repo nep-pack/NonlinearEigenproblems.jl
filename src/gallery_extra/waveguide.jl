@@ -6,6 +6,7 @@ export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
 export fft_debug_mateq #ONLY FOR DEBUGGING
 export debug_sqrt_derivative #ONLY FOR DEBUGGING
+export matlab_debug_Mlincomb_FD_WEP #ONLY FOR DEBUGGING
 
 # Specializalized NEPs
 export WEP_FD
@@ -39,6 +40,7 @@ export WEP_FD
 
 "
 Creates the NEP associated with example in
+
 E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring, 
 Sylvester-based preconditioning for the waveguide eigenvalue problem,
 Linear Algebra and its Applications, 2017
@@ -403,21 +405,21 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
     const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
     const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
-    function betaM(γ::AbstractArray, j::Integer)
+    const betaM = function(γ::AbstractArray, j::Integer)
         return γ^2 + b[j]*γ + cM[j]*speye(size(γ,1))
     end
-    function betaP(γ::AbstractArray, j::Integer)
-        γ^2 + b[j]*γ + cP[j]*speye(size(γ,1))
+    const betaP = function(γ::AbstractArray, j::Integer)
+        return γ^2 + b[j]*γ + cP[j]*speye(size(γ,1))
     end
 
-    function sM(γ::AbstractArray, j::Integer)
+    const sM = function(γ::AbstractArray, j::Integer)
         return  1im*speye(Complex128, size(γ,1)) * sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(Complex128, size(γ,1))
     end
-    function sP(γ::AbstractArray, j::Integer)
+    const sP = function(γ::AbstractArray, j::Integer)
         return  1im*speye(Complex128, size(γ,1)) * sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(Complex128, size(γ,1))
     end
 
-    function S(γ::AbstractArray, j::Integer)
+    const S = function(γ::AbstractArray, j::Integer)
         if j <= nz
             return sM(γ,j)
         elseif j <= 2*nz
@@ -432,15 +434,18 @@ end
 
 
 ###########################################################
-# Compute the matrix square root on the "correct branch",
-# that is, with positive imaginary part
+    """
+    sqrtm_schur_pos_imag(A::AbstractMatrix)
+ Computes the matrix square root on the 'correct branch',
+ that is, with positivt imaginary part.
+"""
 function sqrtm_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
     AA = full(complex(A))
     (T, Q, ) = schur(AA)
     U = zeros(Complex128,n,n);
     for i = 1:n
-        U[i,i] = sign(imag(T[i,i]))*sqrt(T[i,i])
+        U[i,i] = sqrt_pos_imag(T[i,i])
     end
     private_inner_loops_sqrt!(n, U, T)
     return Q*U*Q'
@@ -460,6 +465,17 @@ function private_inner_loops_sqrt!(n, U, T)
 end
 
 
+    """
+    sqrt_pos_imag(a::Complex128) and sqrt_pos_imag(a::Float64)
+ Helper function: Computes the scalar square root on the 'correct branch',
+ that is, with positivt imaginary part.
+"""
+function sqrt_pos_imag(a::Complex128)
+    return sign(imag(a))*sqrt(a)
+end
+function sqrt_pos_imag(a::Float64)
+    return sqrt(a)
+end
 
 
 ###########################################################
@@ -467,7 +483,7 @@ end
 # A more optimized (native) implementation of the WEP with FD discretization
 
     """
-### Waveguide eigenvalue problem
+    Waveguide eigenvalue problem
   A more optimized implementation of the WEP for FD-discretization.\\
   Closer to what is done in the article:
     ''E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
@@ -483,10 +499,18 @@ end
         C2T
         k_bar
         K
+        p::Integer
+        d0
+        b
+        cMP # cM followe by cP in a vector
+        R::Function
+        Rinv::Function
         function WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
             k_bar = mean(K)
-            A = function(λ, d)
+            K_scaled = K-k_bar*ones(Complex128,nz,nx)
+
+            A = function(λ, d=0)
                 if(d == 0)
                     return Dzz + 2*λ*Dz + λ^2*speye(Complex128, nz, nz) + k_bar*speye(Complex128, nz, nz)
                 elseif(d == 1)
@@ -497,14 +521,23 @@ end
                     return spzeros(Complex128, nz, nz)
                 end
             end
-            B = function(λ, d)
+            B = function(λ, d=0)
                 if(d == 0)
                     return Dxx
                 else
                     return spzeros(Complex128, nx, nx)
                 end
             end
-            this = new(nx, nz, A, B, C1, C2T, k_bar, K-k_bar*ones(Complex128,nz,nx))
+
+            p = (nz-1)/2
+            d0 = -3/(2*hx)
+            b = 4*pi*1im * (-p:p)
+            cM = Km^2 - 4*pi^2 * ((-p:p).^2)
+            cP = Kp^2 - 4*pi^2 * ((-p:p).^2)
+            cMP = [cM; cP]
+
+            R, Rinv = generate_R_matrix(nz)
+            this = new(nx, nz, A, B, C1, C2T, k_bar, K_scaled, p, d0, b, cMP, R, Rinv)
         end
     end
 
@@ -574,8 +607,9 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
     function compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(Complex128,size(V,2)))
-        na = size(a)
-        nv, mv = size(V)
+        na = size(a,1)
+        nv = size(V,1)
+        mv = size(V,2)
         n_nep = size(nep,1)
         if(na != mv)
             error("Incompatible sizes: Number of coefficients = ", na, ", number of vectors = ", mv, ".")
@@ -583,7 +617,88 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         if(nv != n_nep)
             error("Incompatible sizes: Length of vectors = ", nv, ", size of NEP = ", n_nep, ".")
         end
+        nx = nep.nx
+        nz = nep.nz
+        max_d = na - 1 #Start on 0:th derivative
+
+        V1_mat = reshape(V[1:nx*nz,:], nz, nx, na)
+        V2 = view(V, nx*nz+1:n_nep, :)
+
+        y1_mat = zeros(Complex128, nz, nx)
+        y1_mat += nep.A(λ) * V1_mat[:,:,1]  +  V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1]
+        for d = 1:min(max_d,3)
+            y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1]
+        end
+        y1 = y1_mat[:]
+        y1_mat = 0 # Clear memory
+        y1 += nep.C1 * V2[:,1]
+
+        y2 = zeros(Complex128, 2*nz)
+        y2 += nep.C2T * V[1:nx*nz,1]
+        D = zeros(Complex128, 2*nz, na)
+        for j = 1:2*nz
+            a = 1
+            b = nep.b[rem(j-1,nz)+1]
+            c = nep.cMP[j]
+            der_coeff = 1im*sqrt_derivative(a, b, c, max_d, λ)
+            for d = 1:na
+                D[j, d] = der_coeff[d]
+            end
+        end
+
+        y2 += (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" (4.6)
+        for jj = 2:na
+            y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" (4.6)
+        end
+        y2 = [nep.R(y2[1:nz]); nep.R(y2[nz+1:2*nz])]
+
+        return [y1;y2]
     end
+
+
+    """
+    sqrt_derivative(a,b,c, d=0, x=0)
+ Computes all d derivatives of sqrt(a*z^2 + b*z + c)
+ in the point z = x.
+ Returns a d+1 vector with all numerical values
+"""
+function sqrt_derivative(a,b,c, d=0, x=0)
+    if(d<0)
+        error("Cannot take negative derivative. d = ", d)
+    end
+
+    aa = a
+    bb = b + 2*a*x
+    cc = c + a*x^2 + b*x
+
+    derivatives = zeros(Complex128,d+1)
+
+    yi = sqrt_pos_imag(cc)
+    derivatives[1] = yi
+    if( d==0 )
+        return derivatives
+    end
+
+    yip1 = bb/(2*sqrt_pos_imag(cc))
+    fact = Float64(1)
+    derivatives[2] = yip1 * fact
+    if( d==1 )
+        return derivatives
+    end
+
+    yip2 = zero(Complex128)
+    for i = 2:d
+        m = i - 2
+        yip2 = - (2*aa*(m-1)*yi  +  bb*(1+2*m)*yip1) / (2*cc*(2+m))
+        fact *= i
+
+        yi = yip1
+        yip1 = yip2
+
+        derivatives[i+1] = yip2 * fact
+    end
+    return derivatives
+end
 
 
     """
@@ -698,6 +813,7 @@ end
 # DEBUG: Test the generated matrices against MATLAB code
 using MATLAB
 function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
+    println("\n\n--- Debugging Matrices FD against MATLAB ---\n")
     if(nx > 200 || nz > 200)
         warn("This debug is 'naive' and might be slow for the discretization used.")
     end
@@ -784,10 +900,12 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Difference P_m(γ) - P_2(γ) = ", norm(P_m-P_j2))
         println("Relative difference norm(P_m(γ) - P_2(γ))/norm(P_2(γ)) = ", norm(P_m-P_j2)/norm(full(P_j2)))
     end
+    println("\n--- End Matrices FD against MATLAB ---\n")
 end
 
 # Test the full generated system-matrix against against MATLAB code
 function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
+    println("\n\n--- Debugging Full Matrix FD SPMF against MATLAB ---\n")
     if(nx > 40 || nz > 40)
         warn("This debug is 'naive' and might be slow for the discretization used.")
     end
@@ -833,12 +951,13 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         println("Difference M_m(γ) - M(γ) = ", norm(full(M_m-M_j)))
         println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_m-M_j))/norm(full(M_j)))
     end
+    println("\n--- End Full Matrix FD SPMF against MATLAB ---\n")
 end
 
 
-# Test the full generated system-matrix against against MATLAB code
+# Test the FFT-based Sylvester solver against naive solver
 function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
-
+    println("\n\n--- Debugging FFT-Sylvester ---\n")
     γ = -rand(Complex128)
     gamma = γ
     C = rand(Complex128, nz, nx);
@@ -860,6 +979,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("FFT-based Sylvester solver for WG")
     X = @time solve_wg_sylvester_fft( C, γ, k_bar, hx, hz )
     println("Relative residual norm = ", norm(A*X+X*B-C)/norm(C))
+    println("\n--- End FFT-Sylvester ---\n")
 
 end
 
@@ -917,52 +1037,14 @@ function debug_sqrtm_schur(n::Integer)
     println("\n--- End square root implementations ---\n")
 end
 
+
 ###########################################################
-# Compute derivative <d> of sqrt(ax^2 + bx + c) in <x>
-# (only reference implementation, compute_mlincomb)
-function sqrt_derivative(a,b,c, d, x)
-    if(d<0)
-        error("Cannot take negative derivative. d = ", d)
-    end
-
-    aa = a
-    bb = b + 2*a*x
-    cc = c + a*x^2 + b*x
-
-    derivatives = zeros(Complex128,d+1)
-
-    yi = sqrt(cc)
-    derivatives[1] = yi
-    if( d==0 )
-        return derivatives
-    end
-
-    yip1 = bb/(2*sqrt(cc))
-    fact = Float64(1)
-    derivatives[2] = yip1 * fact
-    if( d==1 )
-        return derivatives
-    end
-
-    yip2 = zero(Complex128)
-    for i = 2:d
-        m = i - 2
-        yip2 = - (2*aa*(m-1)*yi  +  bb*(1+2*m)*yip1) / (2*cc*(2+m))
-        fact *= i
-
-        yi = yip1
-        yip1 = yip2
-
-        derivatives[i+1] = yip2 * fact
-    end
-    return derivatives
-end
-
+# Test computation of derivative <d> of sqrt(ax^2 + bx + c) in <x>
 function debug_sqrt_derivative()
     println("\n\n--- Debugging derivatives of square root of polynomials ---\n")
-    a = rand()
-    b = rand()
-    c = rand()
+    a = 2*rand()
+    b = 2*pi*rand()
+    c = 1.67*rand()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
 
@@ -987,4 +1069,68 @@ function debug_sqrt_derivative()
     end
 
     println("\n--- End derivatives of square root of polynomials ---\n")
+end
+
+# Test the full generated system-matrix against against MATLAB code
+function matlab_debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
+    println("\n\n--- Debugging Full Matrix FD WEP-opt-format- gainst SPMF ---\n")
+    if(nx > 40 || nz > 40)
+        warn("This debug is 'naive' and might be slow for the discretization used.")
+    end
+
+
+    γ = -rand() - 1im*rand()
+    gamma = γ
+    n = nx*nz+2*nz
+
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+        println("\n")
+        println("Testing full matrix M for waveguide: ", waveguide)
+
+        nep_j = nep_gallery("waveguide", nx, nz, waveguide, "fD", "weP", delta)
+        M_j = zeros(Complex128, n, n)
+        for i = 1:n
+            V = zeros(Complex128, n)
+            V[i] = 1
+            M_j[:,i] += compute_Mlincomb(nep_j, γ, V)
+        end
+
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+        else
+            waveguide_str = waveguide
+        end
+
+#        println("  -- Matlab printouts start --")
+#        WEP_path = "../matlab/WEP"
+#        @mput nx nz delta WEP_path waveguide_str gamma
+#        @matlab begin
+#            addpath(WEP_path)
+#            nxx = double(nx)
+#            nzz = double(nz)
+#            options = struct
+#            options.delta = delta
+#            options.wg = waveguide_str
+#            matlab_nep = nep_wg_generator(nxx, nzz, options)
+
+#            Ixz = eye(nxx*nzz+2*nzz);
+#            M_m = NaN(nxx*nzz+2*nzz, nxx*nzz+2*nzz);
+#            eval("for i = 1:(nxx*nzz+2*nzz);   M_m(:,i) = matlab_nep.M(gamma, Ixz(:,i));    end")
+
+
+#        @matlab end
+#        @mget M_m
+#        println("  -- Matlab printouts end --")
+
+        nep_SPMF = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpmF", delta)
+        M_SPMF = compute_Mder(nep_SPMF,γ)
+
+        println("Difference M_SPMF(γ) - M(γ) = ", norm(full(M_SPMF-M_j)))
+        println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_SPMF-M_j))/norm(full(M_j)))
+#println(sparse(M_j))
+#println(M_SPMF)
+#println(sparse(M_j-M_SPMF))
+
+    end
+    println("\n--- End Full Matrix FD WEP-opt-format- gainst SPMF ---\n")
 end

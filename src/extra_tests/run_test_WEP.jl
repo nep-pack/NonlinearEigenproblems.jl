@@ -79,7 +79,7 @@ delta = 0.1;
 
 
 
-
+matlab_debug_Mlincomb_FD_WEP(2, 3, delta)
 
 nep = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
 
