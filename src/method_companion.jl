@@ -48,13 +48,19 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
 
     #############################################################################
     #Solve the linearized companion of a PEP
-    function polyeig(pep::PEP,eigsolvertype::DataType=DefaultEigSolver)
+
+    polyeig(pep::PEP,eigsolvertype)=polyeig(Complex128,pep,eigsolvertype)
+
+    function polyeig{T}(::Type{T},pep::PEP,eigsolvertype::DataType=DefaultEigSolver)
 
         #Linearize to Ax = λEx
         E,A = companion(pep);
 
         solver::EigSolver = eigsolvertype(A,E);
-        D,V = eig_solve(solver,target=1.0,nev=size(A)[1]);
+        D,V = eig_solve(solver,target=one(T),nev=size(A)[1]);
+
+        D = Array{T,1}(D)
+        V = Array{T,2}(V)
 
         return D,V[1:pep.n,:]
     end

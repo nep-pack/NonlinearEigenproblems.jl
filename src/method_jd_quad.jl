@@ -4,24 +4,27 @@
 
 export jd_quad
 
+jd_quad(nep::NEP;params...) = jd_quad(Complex128,nep;params...)
+function jd_quad{T}(::Type{T},
+                    nep::NEP;
+                    errmeasure::Function =
+                    default_errmeasure(nep::NEP),
+                    tolerance=eps(real(T))*100,
+                    maxit=100,
+                    λ=zero(T),
+                    v0=randn(nep.n),
+                    displaylevel=0,
+                    eigsolvertype::DataType=DefaultEigSolver)
 
-function jd_quad(nep::NEP;
-              errmeasure::Function =
-              default_errmeasure(nep::NEP),
-              tolerance=eps()*100,
-              maxit=100,
-              λ=0,
-              v0=randn(nep.n),
-              displaylevel=0,
-              eigsolvertype::DataType=DefaultEigSolver)
 
-
-   v = v0/norm(v0);
+   λ::T = T(λ)
+   v0 = Array{T,1}(v0)
+   v::Array{T,1} = v0/norm(v0);
    
-   V = zeros(nep.n,1);
+   V::Array{T,2} = zeros(T,size(nep,1),1);
    V[:,1] = v;
-   u=v; 
-   theta = λ; 
+   u::Array{T,1} = v; 
+   theta::T = λ; 
 
    #loop...
 
@@ -29,12 +32,12 @@ function jd_quad(nep::NEP;
     
     	err=errmeasure(theta,u)
 
-    	if (displaylevel>0)
-      		println("Iteration:",k," errmeasure:",err)
+    if (displaylevel>0)
+      println("Iteration:",k," errmeasure:",err)
    	end
-    	if (err< tolerance)
-        	return (theta,u)
-        end		
+  	if (err< tolerance)
+      	return (theta,u)
+    end		
 
 	# Projected matrices
 	Ap0 = 	V'*(nep.A[1]*V);
@@ -47,7 +50,7 @@ function jd_quad(nep::NEP;
 
 	Ap = [Ap0,Ap1,Ap2];
 	pep_temp = PEP(Ap);
-	Dc,Vc = polyeig(pep_temp,DefaultEigSolver);
+	Dc,Vc = polyeig(T,pep_temp,DefaultEigSolver);
 	c = sortperm(abs(Dc));
 
 
@@ -57,32 +60,33 @@ function jd_quad(nep::NEP;
 
 	u = V*s;
 
-	M = compute_Mder(nep,theta,0);
-	Md = compute_Mder(nep,theta,1);
+  Mdu::Array{T,1} = compute_Mlincomb(nep,theta,u,[1],1)
+  P1 = eye(T,nep.n) - Mdu*u'/(u'*Mdu);
+  P2 = eye(T,nep.n) - u*u';
 
-	P1 = eye(nep.n) - (Md*u)*u'/(u'*Md*u);
-	P2 = eye(nep.n) - u*u';	
-#	P1 = P2;
+  r = compute_Mlincomb(nep,theta,u)
 
-	r = M*u;
-
-        X= P1*(M*P2);
+  MP2 = zeros(T,size(nep,1),size(P2,2))
+  for ii = 1:size(P2,2)
+      MP2[:,ii] = compute_Mlincomb(nep,theta,P2[:,ii],[1],0)
+  end
+  X = P1*MP2
 
 	# Least squares, -pseudo_inv(X)*r
 	Q,R = qr(X);	
 	t = -R\(Q'*r);
   
-    	#Modified Gram-Schmidt
-    	for ii=1:kk
-    	    temp = dot(V[:,ii],t);
-    	    t = t - temp*V[:,ii];
-    	end
-    	# reorthogonalization 
-    	for ii=1:kk
-    	      temp = dot(V[:,ii],t);
-    	      t = t - temp*V[:,ii];
-    	end
-    	v = t/norm(t);
+	#Modified Gram-Schmidt
+	for ii=1:kk
+	    temp = dot(V[:,ii],t);
+	    t += - temp*V[:,ii];
+	end
+	# reorthogonalization
+	for ii=1:kk
+	      temp = dot(V[:,ii],t);
+	      t += - temp*V[:,ii];
+	end
+	v = t/norm(t);
 
 
 	# Update the search space V
@@ -91,8 +95,9 @@ function jd_quad(nep::NEP;
     	
 	println("Iteration: ",kk," norm of residual:", compute_resnorm(nep,theta,u))
 
-    end
+  end
 
+    err=errmeasure(theta,u)
     msg="Number of iterations exceeded. maxit=$(maxit)."
     throw(NoConvergenceException(λ,v,err,msg))
 end

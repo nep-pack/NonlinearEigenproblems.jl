@@ -36,3 +36,16 @@ c = sortperm(abs(Dc));
 println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1:5]]);
 
 
+println("\n Testing in only Complex64 precision (32 bit in real and 32 bit in imaginary)")
+λ,u =jd_quad(Complex64,nep,tolerance=1e-5,maxit=80);
+
+println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
+println("\n Smallest eigevalue found: \n λ: ",λ)
+
+
+
+Dc,Vc = polyeig(Complex64,nep,DefaultEigSolver);
+c = sortperm(abs(Dc));
+println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1:5]]);
+
+
