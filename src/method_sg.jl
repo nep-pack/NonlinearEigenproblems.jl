@@ -13,12 +13,12 @@
     function sg_iteration{T}(::Type{T}, nep::NEP;
                         errmeasure::Function =
                         default_errmeasure(nep::NEP),
-                        tol_outer = 1e-2,
-                        tol_inner = 1e-8,
-                        λ_approx=zero(T),
-                        v=randn(nep.n),
+                        tolerance_outer = eps(real(T))*10000,
+                        tolerance_inner = tolerance_outer/100,
+                        λ = zero(T),
+                        v = randn(nep.n),
                         displaylevel=0,
-                        max_it = 10,
+                        maxit = 10,
                         eigsolvertype::DataType=DefaultEigSolver)
 
 
@@ -26,16 +26,16 @@
 
     #The main program
 
-    println("Running safeguarded iteration, initial approximation of λ: ",λ_approx)
-    λ_m::T = T(λ_approx)
+    println("Running safeguarded iteration, initial approximation of λ: ",λ)
+    λ_m::T = T(λ)
     v_m::Array{T,1} = Array{T,1}(v)
 
 
-    for k=1:max_it
+    for k=1:maxit
 
         #Newton as an inner loop for the Rayleigh quotient
         println("k: ",k,"λ_m: ",λ_m);
-        λ_m = compute_rf(nep,v_m,y=v_m, λ0=λ_m,TOL=tol_inner);
+        λ_m = compute_rf(nep,v_m,y=v_m, λ0=λ_m,TOL=tolerance_inner);
         println("k: ",k,"λ_m: ",λ_m);
 
         # Find closest eigenvalue to λ
@@ -46,7 +46,7 @@
         
         # Stopping criterion using err_measure()
         err=errmeasure(λ_m,v_m);
-        if (err < tol_outer)
+        if (err < tolerance_outer)
             println("Solution found at step ",k);
             println("λ = ",λ_m);
             return (λ_m,v_m)
@@ -59,7 +59,7 @@
     end
                 
     err=errmeasure(λ_m,v_m)
-    msg="Number of iterations exceeded. maxit=$(max_it)."
+    msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ_m,v_m,err,msg))
 
 end
