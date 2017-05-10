@@ -36,7 +36,7 @@ export nlar
 
         qrmethod_orth=true;  # 
         
-        local linsolver::LinSolver=linsolvertype(compute_Mder(nep,σ,0));
+        local linsolver::LinSolver=linsolvertype(nep,σ);
  
         num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
         while m < nev 

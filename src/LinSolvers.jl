@@ -1,5 +1,7 @@
 module LinSolvers
     using MATLAB
+    using NEPCore
+    
     # Linear system of equation solvers
     export LinSolver
     export DefaultLinSolver
@@ -27,9 +29,10 @@ module LinSolvers
         Afact::T_fact_mat
     end
 
-    function DefaultLinSolver{T_num<:Number}(A::AbstractMatrix{T_num})
+    function DefaultLinSolver(nep::NEP,λ::Number)
+        A=compute_Mder(nep,λ)
         Afact=factorize(A)
-        return DefaultLinSolver{T_num,typeof(A),typeof(Afact)}(A, Afact)
+        return DefaultLinSolver{eltype(A),typeof(A),typeof(Afact)}(A, Afact)
     end
 
     function lin_solve(solver::DefaultLinSolver,x::Array;tol=eps())
@@ -45,7 +48,10 @@ module LinSolvers
         A::T_mat
         BackslashLinSolver(A::AbstractMatrix{T_num}) = new(A)
     end
-    BackslashLinSolver(A::AbstractMatrix) = BackslashLinSolver{eltype(A), typeof(A)}(A)
+    function BackslashLinSolver(nep::NEP,λ::Number)
+        A=compute_Mder(nep,λ)
+        return BackslashLinSolver{eltype(A), typeof(A)}(A)
+    end
 
     function lin_solve(solver::BackslashLinSolver,x::Array;tol=eps())
         return solver.A\x

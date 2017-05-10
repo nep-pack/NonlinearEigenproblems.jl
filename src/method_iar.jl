@@ -22,7 +22,7 @@
      α = [0;ones(m)];
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
      for i=2:m+1; α[i]=γ^(i-1); end 
-     local M0inv::LinSolver = linsolvertype(compute_Mder(nep,σ));
+     local M0inv::LinSolver = linsolvertype(nep,σ);
      err = zeros(m,m); 			
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
@@ -32,7 +32,7 @@
      k=1; conv_eig=0;
         while (k <= m)&(conv_eig<=Neig)
             if (displaylevel>0)
-                println(k)
+                println("Iteration:",k)
                 end
       VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
       vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]

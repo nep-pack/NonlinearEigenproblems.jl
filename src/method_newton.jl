@@ -49,8 +49,7 @@
                 F = [M*v; c'*v-1];
 
                 # Compute update
-                local linsolver::LinSolver = linsolvertype(J)
-                delta = -lin_solve(linsolver, F, tol=tolerance);
+                delta=-J\F;  # Hardcoded backslash
 
                 # Update eigenvalue and eigvec
                 v[:] += delta[1:size(nep,1)];
@@ -91,7 +90,7 @@
                         displaylevel=0,
                         linsolvertype::DataType=DefaultLinSolver)
 
-        local linsolver::LinSolver=linsolvertype(compute_Mder(nep,λ))
+        local linsolver::LinSolver=linsolvertype(nep,λ)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -186,7 +185,7 @@
                 
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-                local linsolver::LinSolver = linsolvertype(compute_Mder(nep,λ))
+                local linsolver::LinSolver = linsolvertype(nep,λ)
                 tempvec = lin_solve(linsolver, z, tol=tolerance);
 
                 α = T(1)/ dot(c,tempvec);
