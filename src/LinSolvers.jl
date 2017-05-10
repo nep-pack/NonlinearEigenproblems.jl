@@ -188,7 +188,6 @@ module LinSolvers
     Default linear EP solver which calls checks for sparsity and accordingly assigns an appropriate solver
 """ 
     type DefaultEigSolver <: EigSolver
-        A
         subsolver::EigSolver
 
         function DefaultEigSolver(A,B=zeros(eltype(A),0))
@@ -204,6 +203,11 @@ module LinSolvers
                 subsolver = JuliaEigSolver(A,B);
             end
         end
+    end
+
+    # Additional constructor that allows for calling the default linear eigensolver with a NEP rather than an explicit matrix
+    function DefaultEigSolver(nep::NEP,λ::Number)
+        return DefaultEigSolver(compute_Mder(nep,λ))
     end
 
     function eig_solve(solver::DefaultEigSolver;nev=size(solver.subsolver.A,1),target=0)
