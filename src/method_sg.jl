@@ -29,6 +29,7 @@
     println("Running safeguarded iteration, initial approximation of λ: ",λ)
     λ_m::T = T(λ)
     v_m::Array{T,1} = Array{T,1}(v)
+    err = T(Inf)
 
 
     for k=1:maxit
