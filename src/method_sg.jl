@@ -6,13 +6,16 @@
     #############################################################################
     # Safeguarded iteration
     #############################################################################
-
-    function sg_iteration(nep::NEP;
+    sg_iteration(nep::NEP;params...)=sg_iteration(Complex128,nep;params...)
+"""
+    Safeguarded iteration
+"""
+    function sg_iteration{T}(::Type{T}, nep::NEP;
                         errmeasure::Function =
                         default_errmeasure(nep::NEP),
                         tol_outer = 1e-2,
                         tol_inner = 1e-8,
-                        λ_approx=0,
+                        λ_approx=zero(T),
                         v=randn(nep.n),
                         displaylevel=0,
                         max_it = 10,
@@ -24,18 +27,11 @@
     #The main program
 
     println("Running safeguarded iteration, initial approximation of λ: ",λ_approx)
-    err=Inf;
-    λ_m = λ_approx
-    M = compute_Mder(nep,λ_m,0);
-    v_m = v;
+    λ_m::T = T(λ_approx)
+    v_m::Array{T,1} = Array{T,1}(v)
 
-        solver::EigSolver = eigsolvertype(compute_Mder(nep,λ_m,0));
-    d,v_m = eig_solve(solver,target=λ_m,nev=1)
-    residual = M*v_m;
 
     for k=1:max_it
-
-        quotient_m = dot(v_m,(M*v_m));
 
         #Newton as an inner loop for the Rayleigh quotient
         println("k: ",k,"λ_m: ",λ_m);
@@ -44,13 +40,9 @@
 
         # Find closest eigenvalue to λ
             # and the corresponding eigenvector
-        #d,v_m = eigsolverfunc(nep,λ_m)
-            solver = eigsolvertype(compute_Mder(nep,λ_m,0));
-            d,v_m = eig_solve(solver,target=λ_m,nev=1);
+        solver = eigsolvertype(nep,λ_m);
+        d,v_m = eig_solve(solver,target=λ_m,nev=1);
 
-        # This to be changed ("errmeasure")     
-        M = compute_Mder(nep,λ_m,0);
-        residual = M*v_m;
         
         # Stopping criterion using err_measure()
         err=errmeasure(λ_m,v_m);
@@ -60,7 +52,7 @@
             return (λ_m,v_m)
         end
 
-        println("Norm of residual at step ",k," = ",norm(residual));
+        println("Error measure at step ",k," = ", err);
         
         abs(d - λ_m)
         

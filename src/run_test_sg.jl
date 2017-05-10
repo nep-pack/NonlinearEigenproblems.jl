@@ -22,3 +22,8 @@ nep=nep_gallery("real_quadratic");
 λ_init = -100;
 λ,x = sg_iteration(nep,tol_outer=1e-4,tol_inner=1e-4,λ_approx=λ_init,displaylevel=1,eigsolvertype=DefaultEigSolver)
 println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))
+
+
+
+λ,x = sg_iteration(Float64, nep,tol_outer=1e-4,tol_inner=1e-4,λ_approx=λ_init,displaylevel=1,eigsolvertype=DefaultEigSolver)
+println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))
