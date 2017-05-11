@@ -859,7 +859,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = "../matlab/WEP"
+        WEP_path = pwd() * "/../matlab/WEP"
         @mput nx nz delta WEP_path waveguide_str gamma
         @matlab begin
             addpath(WEP_path)
@@ -931,7 +931,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = "../matlab/WEP"
+        WEP_path = pwd() * "/../matlab/WEP"
         @mput nx nz delta WEP_path waveguide_str gamma
         @matlab begin
             addpath(WEP_path)
@@ -1051,7 +1051,7 @@ function debug_sqrt_derivative()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
 
-        WEP_path = "../matlab/WEP"
+        WEP_path = pwd() * "/../matlab/WEP"
         println("  -- Matlab printouts start --")
         @mput a b c d_vec x WEP_path
         @matlab begin
