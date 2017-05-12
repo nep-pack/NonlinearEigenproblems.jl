@@ -1,11 +1,13 @@
 module LinSolvers
     using MATLAB
     using NEPCore
+    using IterativeSolvers
     
     # Linear system of equation solvers
     export LinSolver
     export DefaultLinSolver
-    export BackslashLinSolver    
+    export BackslashLinSolver
+    export GMRESLinSolver
     export lin_solve
 
     # Eigenvalue solvers
@@ -18,6 +20,14 @@ module LinSolvers
 
     abstract LinSolver;
     abstract EigSolver;
+
+    import Base.eltype
+    export eltype
+    import Base.size
+    export size
+    import Base.*
+    export *
+
 
 ##############################################################################
     """
@@ -35,7 +45,7 @@ module LinSolvers
         return DefaultLinSolver{eltype(A),typeof(A),typeof(Afact)}(A, Afact)
     end
 
-    function lin_solve(solver::DefaultLinSolver,x::Array;tol=eps())
+    function lin_solve{T_num}(solver::DefaultLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
         return solver.Afact\x
     end
 
@@ -53,12 +63,59 @@ module LinSolvers
         return BackslashLinSolver{eltype(A), typeof(A)}(A)
     end
 
-    function lin_solve(solver::BackslashLinSolver,x::Array;tol=eps())
+    function lin_solve{T_num}(solver::BackslashLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
         return solver.A\x
     end
 
 
-############################################################################## 
+##############################################################################
+    type Mlincomb_matrix_object{T_num<:Number, T_nep<:NEP}
+        nep::T_nep
+        λ::T_num
+    end
+
+    function Mlincomb_matrix_object{T_num, T_nep}(nep::T_nep, λ::T_num)
+        return Mlincomb_matrix_object{T_num,T_nep}(nep, λ)
+    end
+
+    function *(M::Mlincomb_matrix_object, v::AbstractVector)
+        return compute_Mlincomb(M.nep, M.λ, v, a=[1])
+    end
+
+    function size(M::Mlincomb_matrix_object, dim=-1)
+        return size(M.nep, dim)
+    end
+
+    function eltype(M::Mlincomb_matrix_object)
+        return eltype(M.λ)
+    end
+
+#    function norm(M::Mlincomb_matrix_object, p::Real=1)
+#
+#    end
+
+
+"""
+      A linear solver based on GMRES
+"""
+    type GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
+        A::Mlincomb_matrix_object{T_num, T_nep}
+        kwargs
+    end
+
+    function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num; kwargs...)
+        A = Mlincomb_matrix_object{T_num, T_nep}(nep, λ)
+        return GMRESLinSolver{T_num, T_nep}(A, kwargs)
+    end
+
+
+
+    function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array)
+        return gmres(solver.A, x; solver.kwargs...)
+    end
+
+
+##############################################################################
 """
     A linear EP solver that calls Julia's in-built eig() 
 """
