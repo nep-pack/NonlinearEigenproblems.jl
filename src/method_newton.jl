@@ -19,8 +19,7 @@
                        λ=zero(T),
                        v=randn(size(nep,1)),
                        c=v,
-                       displaylevel=0,
-                       linsolvertype::DataType=BackslashLinSolver)
+                       displaylevel=0)
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -88,9 +87,10 @@
                         v=randn(size(nep,1)),
                         c=v,
                         displaylevel=0,
-                        linsolvertype::DataType=DefaultLinSolver)
+                        linsolvertype::DataType=DefaultLinSolver,
+                        linsolverkwargs = [])
 
-        local linsolver::LinSolver=linsolvertype(nep,λ)
+        local linsolver::LinSolver=linsolvertype(nep,λ;linsolverkwargs...)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -162,7 +162,8 @@
                            v=randn(size(nep,1)),
                            c=v,
                            displaylevel=0,
-                           linsolvertype::DataType=BackslashLinSolver)
+                           linsolvertype::DataType=BackslashLinSolver,
+                           linsolverkwargs = [])
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -185,7 +186,7 @@
                 
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-                local linsolver::LinSolver = linsolvertype(nep,λ)
+                local linsolver::LinSolver = linsolvertype(nep,λ;linsolverkwargs...)
                 tempvec = lin_solve(linsolver, z, tol=tolerance);
 
                 α = T(1)/ dot(c,tempvec);

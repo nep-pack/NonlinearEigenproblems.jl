@@ -14,7 +14,8 @@ export nlar
                 v=randn(nep.n),
                 displaylevel=0,
                 nl_eigsolvertype=Union{AbstractString,Function},
-                linsolvertype::DataType=DefaultLinSolver)
+                linsolvertype::DataType=DefaultLinSolver,
+                linsolverkwargs = [])
 
         σ = λ; #Initial pole 
 
@@ -36,7 +37,7 @@ export nlar
 
         qrmethod_orth=true;  # 
         
-        local linsolver::LinSolver=linsolvertype(nep,σ);
+        local linsolver::LinSolver=linsolvertype(nep,σ;linsolverkwargs...);
  
         num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
         while m < nev 

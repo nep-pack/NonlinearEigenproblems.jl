@@ -4,14 +4,16 @@
     The Infinite Arnoldi method 
 """
     function iar(
-     nep::NEP;maxit=30,	                             
+     nep::NEP;
+     maxit=30,
      linsolvertype::DataType=DefaultLinSolver,
+     linsolverkwargs = [],
      tol=1e-12,
      Neig=maxit,                                  
      errmeasure::Function = default_errmeasure(nep::NEP),
      σ=0.0,
-        γ=1,
-        displaylevel=0
+     γ=1,
+     displaylevel=0
     )
 
      n = size(nep,1); m = maxit;
@@ -22,7 +24,7 @@
      α = [0;ones(m)];
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
      for i=2:m+1; α[i]=γ^(i-1); end 
-     local M0inv::LinSolver = linsolvertype(nep,σ);
+     local M0inv::LinSolver = linsolvertype(nep,σ;linsolverkwargs...);
      err = zeros(m,m); 			
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 

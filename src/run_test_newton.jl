@@ -5,6 +5,7 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
+using LinSolvers
 
 
 println("Running Newton on random dep")
@@ -50,6 +51,24 @@ nep=nep_gallery("dep0")
 
 println("Solution:",(λ,x))
 println("Resnorm:",compute_resnorm(nep,λ,x))
+
+
+
+println("Running ResInv with GMRES as solver")
+nep=nep_gallery("dep0", 50)
+λ,x =res_inv(nep, displaylevel=1, linsolvertype=GMRESLinSolver, linsolverkwargs = ((:maxiter,50), (:restart,50)));
+
+println("Resnorm:",compute_resnorm(nep,λ,x))
+
+
+println("Running Aug-Newton")
+nep=nep_gallery("dep0", 50)
+
+
+λ,x =aug_newton(nep, displaylevel=1);
+
+println("Resnorm:",compute_resnorm(nep,λ,x))
+
 
 
 

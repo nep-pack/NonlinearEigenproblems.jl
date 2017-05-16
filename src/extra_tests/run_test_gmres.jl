@@ -20,13 +20,15 @@ nep = nep_gallery("pep0_sparse_003")
 
 λ = rand(Complex128)
 
-
-solver = GMRESLinSolver(nep, λ, maxiter=1, restart=200)
+gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true))
+solver = GMRESLinSolver(nep, λ; gmres_kwargs...)
 println("  type = ", typeof(solver))
 
 b = rand(Complex128, 200)
 
-x, conv_history = lin_solve(solver, b)
+x,conv = lin_solve(solver, b)
+
+println(conv[:resnorm])
 
 A = compute_Mder(nep ,λ, 0)
 x2 = A\b
