@@ -64,14 +64,14 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
     if (NEP_format == "SPMF") && (discretization == "FD")
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
-        Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+        Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
 
     elseif (NEP_format == "WEP") && (discretization == "FD")
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
-        Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+        Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         nep = WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
 
@@ -137,7 +137,7 @@ end
     """
  Genearate the discretization matrices for the interior for  Finite Difference.
 """
-function generate_fd_interion_mat( nx, nz, hx, hz)
+function generate_fd_interior_mat( nx, nz, hx, hz)
     ex = ones(nx)
     ez = ones(nz)
 
@@ -325,6 +325,7 @@ end
 
 ###########################################################
 # Generate P-matrix
+# Is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
 function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     R, Rinv = generate_R_matrix(nz::Integer)
@@ -380,6 +381,7 @@ end
 
 ###########################################################
 # Generate R-matrix
+# Part of defining the P-matrix, see above, Jarlebring-(1.6) and Ringh-(2.8) and Remark 1
 function generate_R_matrix(nz::Integer)
     # The scaled FFT-matrix R
     const p = (nz-1)/2;
@@ -397,6 +399,7 @@ end
 
 ###########################################################
 # Generate S-function for matrix argument
+# Part of defining the P-matrix, see above, Jarlebring-(2.4) and Ringh-(2.8)(2.3)
 function generate_S_function(nz::Integer, hx, Km, Kp)
     # Constants from the problem
     const p = (nz-1)/2;
@@ -558,49 +561,6 @@ end
 
 
     """
-    compute_Mder(nep::WEP_FD, λ::Number, i::Integer=0)
- Gives an object that acts as a matrix-multiplication
- for the WEP.
- Higher order derivatives gives an error.
-"""
-     # TODO: This function compute only the 0:th and 1:st derivatives. Extend?
-    function compute_Mder(nep::WEP_FD, λ::Number, i::Integer=0)
-        if(i == 0)
-            
-        elseif( i == 1)
-            
-        else
-            error("Cannot compute derivative for higher order of WEP.")
-        end
-    end
-
-
-    function compute_WEP_matrix_object(nep::WEP_FD, λ::Number)
-        
-    end
-
-    """
-    An abstract matrix object from the WEP_FD.\\
-    Overload * and size() to make it act like a normal matrix
-"""
-    type WEP_matrix_object
-        
-    end
-
-    function *(M::WEP_matrix_object, v::AbstractVector)
-        
-    end
-
-    function size(M::WEP_matrix_object)
-        
-    end
-
-    function norm(M::WEP_matrix_object, p::Real=1)
-        
-    end
-
-
-    """
     compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(Complex128,size(V,2)))
 Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\\\\
  Computes the linear combination of derivatives\\
@@ -647,9 +607,9 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             end
         end
 
-        y2 += (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" TIAR-(4.6)
+        y2 += (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         for jj = 2:na
-            y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" TIAR-(4.6)
+            y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         end
         y2 = [nep.R(y2[1:nz]); nep.R(y2[nz+1:2*nz])]
         y2 += nep.C2T * V1[:,1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
@@ -707,6 +667,7 @@ end
     fft_wg( C, λ, k_bar, hx, hz )
  Solves the Sylvester equation for the WEP.
 """
+#Ringh - Section 5.3
 function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
 
     nz = size(C,1)
@@ -740,6 +701,7 @@ end
 
 
 # Start: Auxiliary computations of eigenvector actions using FFT
+#Connects to the solving of the Sylvester equation by FFT-diagonalization
     function V!(X)
     # Compute the action of the eigenvectors of A = Dzz + Dz + c*I
         nx = size(X,2)
@@ -832,7 +794,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Testing waveguide: ", waveguide)
 
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+        Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
 
@@ -968,7 +930,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
 
 
     K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
-    Dxx, Dzz, Dz = generate_fd_interion_mat( nx, nz, hx, hz)
+    Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
 
     k_bar = mean(K)
 
