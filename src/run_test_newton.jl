@@ -56,12 +56,14 @@ println("Resnorm:",compute_resnorm(nep,λ,x))
 
 println("Running ResInv with GMRES as solver")
 
-import LinSolvers.GMRESLinSolver
+#SETUP GMRES AS LINEAR SOLVER WITH SOME GIVEN PARAMETERS
 linsolverkwargs = ((:maxiter,50), (:restart,50))
-GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num) = GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num, linsolverkwargs)
+function my_gmres_linsolvercreator(nep::NEP, λ)
+    return gmres_linsolvercreator(nep, λ, linsolverkwargs)
+end
 
 nep=nep_gallery("dep0", 50)
-λ,x =res_inv(nep, displaylevel=1, linsolvertype=GMRESLinSolver);
+λ,x =res_inv(nep, displaylevel=1, linsolvercreator=my_gmres_linsolvercreator);
 
 println("Resnorm:",compute_resnorm(nep,λ,x))
 

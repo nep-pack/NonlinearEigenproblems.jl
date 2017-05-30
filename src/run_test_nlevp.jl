@@ -41,7 +41,7 @@ println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 println("Running resinv (with backslash no pre-factorization)")
 @time λ,v=res_inv(nep1,λ=λ0,v=v0,
                   displaylevel=2,maxit=20,tolerance=1e-4,
-                  linsolvertype=BackslashLinSolver)
+                  linsolvercreator=backslash_linsolvercreator)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
 

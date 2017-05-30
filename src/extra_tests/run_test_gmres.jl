@@ -21,9 +21,11 @@ nep = nep_gallery("pep0_sparse_003")
 
 import LinSolvers.GMRESLinSolver
 gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true))
-GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num) = GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num, gmres_kwargs)
+function my_gmres_linsolvercreator(nep::NEP, λ)
+    return gmres_linsolvercreator(nep, λ, gmres_kwargs)
+end
 
-solver = GMRESLinSolver(nep, λ)
+solver = my_gmres_linsolvercreator(nep, λ)
 println("  type = ", typeof(solver))
 
 b = rand(Complex128, 200)
@@ -35,6 +37,6 @@ println(conv[:resnorm])
 A = compute_Mder(nep ,λ, 0)
 x2 = A\b
 
-println("GMRES relative residual norm = ", norm(compute_Mlincomb(nep,λ,x, a=[1]) - b)/norm(b))
+println("GMRES relative residual norm = ", norm(compute_Mlincomb(nep, λ, x, a=[1]) - b)/norm(b))
 println("Relative error = ", norm(x-x2)/norm(x2))
 

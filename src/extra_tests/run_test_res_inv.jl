@@ -16,7 +16,7 @@ nep=nep_gallery("dep0")
 λ=NaN;
 x=NaN
 try
-    λ,x =res_inv(nep,displaylevel=1,linsolvertype=BackslashLinSolver);
+    λ,x =res_inv(nep,displaylevel=1,linsolvercreator=backslash_linsolvercreator);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  

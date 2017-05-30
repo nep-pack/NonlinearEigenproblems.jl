@@ -10,6 +10,10 @@ module LinSolvers
     export GMRESLinSolver
     export lin_solve
 
+    export default_linsolvercreator
+    export backslash_linsolvercreator
+    export gmres_linsolvercreator
+
     # Eigenvalue solvers
     export EigSolver
     export JuliaEigSolver
@@ -41,7 +45,7 @@ module LinSolvers
         DefaultLinSolver(A::AbstractMatrix{T_num},Afact::Factorization{T_num}) = new(A, Afact)
     end
 
-    function DefaultLinSolver(nep::NEP,λ::Number)
+    function DefaultLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
         Afact=factorize(A)
         return DefaultLinSolver{eltype(A),typeof(A),typeof(Afact)}(A, Afact)
@@ -51,6 +55,13 @@ module LinSolvers
         return solver.Afact\x
     end
 
+"""
+   default_linsolvercreator(nep::NEP, λ)\n
+      Creates a linear solver of type 'DefaultLinSolver'.
+"""
+    function default_linsolvercreator(nep::NEP, λ)
+        return DefaultLinSolver(nep, λ)
+    end
 
 
 """
@@ -60,7 +71,7 @@ module LinSolvers
         A::T_mat
         BackslashLinSolver(A::AbstractMatrix{T_num}) = new(A)
     end
-    function BackslashLinSolver(nep::NEP,λ::Number)
+    function BackslashLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
         return BackslashLinSolver{eltype(A), typeof(A)}(A)
     end
@@ -69,8 +80,20 @@ module LinSolvers
         return solver.A\x
     end
 
+"""
+   backslash_linsolvercreator(nep::NEP, λ)\n
+      Creates a linear solver of type 'BackslashLinSolver'.
+"""
+    function backslash_linsolvercreator(nep::NEP, λ)
+        return BackslashLinSolver(nep, λ)
+    end
+
 
 ##############################################################################
+"""
+      A wrapper that, given a NEP, computes the matrix-vector-product
+      using the compute_Mlincomb(...) function for NEPs.
+"""
     type Mlincomb_matvec{T_num<:Number, T_nep<:NEP}
         nep::T_nep
         λ::T_num
@@ -93,7 +116,7 @@ module LinSolvers
 
 
 """
-      A linear solver based on GMRES
+      A linear solver based on GMRES (built into Julia)
 """
     type GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
         A::Mlincomb_matvec{T_num, T_nep}
@@ -105,10 +128,17 @@ module LinSolvers
         end
     end
 
-    GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num) = GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, ())
+    function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
+        return gmres(solver.A, x; tol=tol, solver.kwargs...)
+    end
 
-    function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array)
-        return gmres(solver.A, x; solver.kwargs...)
+"""
+   gmres_linsolvercreator(nep::NEP, λ, kwargs=())\n
+      Creates a linear solver of type 'GMRESLinSolver'.
+      Accepts kwargs which are passed to Julia-built-in-GMRES.
+"""
+    function gmres_linsolvercreator(nep::NEP, λ, kwargs=())
+        return GMRESLinSolver{typeof(λ), typeof(nep)}(nep, λ, kwargs)
     end
 
 
