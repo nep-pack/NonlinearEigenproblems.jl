@@ -13,6 +13,6 @@ export infbilanczos
         σ=0.0,
         γ=1,
         displaylevel=0)   
-       return 0;
+       return 0,0,0;
     end
 
