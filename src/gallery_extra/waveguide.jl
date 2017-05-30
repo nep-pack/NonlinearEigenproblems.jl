@@ -8,6 +8,7 @@ export debug_sqrtm_schur #ONLY FOR DEBUGGING
 export fft_debug_mateq #ONLY FOR DEBUGGING
 export debug_sqrt_derivative #ONLY FOR DEBUGGING
 export debug_Mlincomb_FD_WEP #ONLY FOR DEBUGGING
+export debug_Sylvester_SMW_WEP #ONLY FOR DEBUGGING
 
 # Specializalized NEPs
 export WEP_FD
@@ -23,6 +24,8 @@ export WEP_FD
     import Base.*
     import Base.norm
 
+    import IterativeSolvers.solve
+
 
     export compute_Mder
     export compute_Mlincomb
@@ -32,6 +35,8 @@ export WEP_FD
     export *
     export norm
 
+    export solve
+
 
 
 
@@ -40,7 +45,7 @@ Creates the NEP associated with example in
 
 E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring, 
 Sylvester-based preconditioning for the waveguide eigenvalue problem,
-Linear Algebra and its Applications, 2017
+Linear Algebra and its Applications
 
 and
 
@@ -70,7 +75,7 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
         Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        nep = WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
+        nep = WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
 
     else
         error("The NEP-format '", NEP_format, "' is not supported for the discretization '", discretization, "'.")
@@ -488,11 +493,13 @@ end
   Closer to what is done in the article:
     ''E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
       Sylvester-based preconditioning for the waveguide eigenvalue problem,
-      Linear Algebra and its Applications, 2017''
+      Linear Algebra and its Applications''
 """
     type WEP_FD <: NEP
         nx::Integer
         nz::Integer
+        hx
+        hz
         A::Function
         B::Function
         C1
@@ -501,11 +508,13 @@ end
         K
         p::Integer
         d0
+        d1
+        d2
         b
         cMP # cM followed by cP in a vector (length = 2*nz)
         R::Function
         Rinv::Function
-        function WEP_FD(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
+        function WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
             k_bar = mean(K)
             K_scaled = K-k_bar*ones(Complex128,nz,nx)
@@ -530,14 +539,18 @@ end
             end
 
             p = (nz-1)/2
+
             d0 = -3/(2*hx)
+            d1 = 2/hx
+            d2 = -1/(2*hx)
+
             b = 4*pi*1im * (-p:p)
             cM = Km^2 - 4*pi^2 * ((-p:p).^2)
             cP = Kp^2 - 4*pi^2 * ((-p:p).^2)
             cMP = [cM; cP]
 
             R, Rinv = generate_R_matrix(nz)
-            this = new(nx, nz, A, B, C1, C2T, k_bar, K_scaled, p, d0, b, cMP, R, Rinv)
+            this = new(nx, nz, hx, hz, A, B, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cMP, R, Rinv)
         end
     end
 
@@ -592,7 +605,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         y1 += nep.C1 * V2[:,1]
 
         # Compute the bottom part (2*nz)
-        y2 = zeros(Complex128, 2*nz)
+        y2 = zeros(Complex128, 2*nz, 1) #Make a (2*nz,1) since application of R returns on that format
         D = zeros(Complex128, 2*nz, na)
         for j = 1:2*nz
             a = 1
@@ -608,7 +621,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         for jj = 2:na
             y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         end
-        y2 = [nep.R(y2[1:nz]); nep.R(y2[nz+1:2*nz])]
+        y2 = vec([nep.R(y2[1:nz]); nep.R(y2[nz+1:2*nz])]) #Make a vector, since in Julia the types (2*nz,) and (2*nz,1) are different
         y2 += nep.C2T * V1[:,1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
         return [y1;y2]
@@ -660,6 +673,9 @@ function sqrt_derivative(a,b,c, d=0, x=0)
 end
 
 
+###########################################################
+# Sylvester based preconditioner for the Waveguide eigenvalue problem
+# Implementing the Preconditioner in the optimized way described in Ringh et al.
     """
     fft_wg( C, λ, k_bar, hx, hz )
  Solves the Sylvester equation for the WEP.
@@ -765,6 +781,129 @@ end
 # End: Auxiliary computations of eigenvector actions using FFT
 
 
+# Sylvester SMW
+# Ringh - Section 4
+function generate_smw_matrix( nep::WEP_FD, N::Integer, σ )
+
+    const nz::Integer = nep.nz
+    const nx::Integer = nep.nx
+
+    const n::Integer = nz          # OBS: n = nz, and nz = nx + 4;
+    const L::Integer = n/N             # Number of points in one dimanesion of the regions
+    const LL::Integer = L*L            # Number of points in the "square interior regions"
+    const mm::Integer = (N^2 + 4*N)    # Number of elements in SMW-matrix
+
+    dd1 = nep.d1/nep.hx^2;
+    dd2 = nep.d2/nep.hx^2;
+
+    # block extract index
+    II = function (i) # z-direction, always equal
+        (i-1)*L+1:i*L
+    end
+    JJ = function(j) #x-direction, different if boundary or interior
+        ((j-3)*L+1:(j-2)*L) + 2
+    end
+    JJ_2 = function(j)
+        (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
+    end
+
+    # convert a single index k to two indeces
+    # reading the matrix X by rows; left to right and top to down
+    k2ij = function( k, N )
+        j::Integer = rem(k,N+4)+(rem(k,N+4)==0)*(N+4);
+        i::Integer = (k-j)/(N+4)+1;
+        return(i,j)
+    end
+
+    # Sylvester solver
+    function Linv(C)
+        return solve_wg_sylvester_fft( C, σ, nep.k_bar, nep.hx, nep.hz )
+    end
+
+    # Pm and Pp, the boundary operators
+    Pm = function(v)
+        return - nep.R(nep.Rinv(v) ./ (nep.d0 + nep.cMP[1:nz])) 
+    end
+    Pp = function(v)
+        return - nep.R(nep.Rinv(v) ./ (nep.d0 + nep.cMP[(nz+1):(2*nz)])) 
+    end
+
+    # compute matrix M
+    M = zeros(Complex128, mm, mm)
+
+    EEk = zeros(Complex128, nz, nx)
+    ek = zeros(Complex128, nz, 1)
+
+    for k=1:mm
+
+        i,j = k2ij(k,N);
+
+        # Ek tilde
+        EEk = 0*EEk;
+        if (j==1)
+            EEk[II(i), JJ_2(j)] = nep.K[II(i), JJ_2(j)]
+            ek = 0*ek
+            ek[II(i)] = dd1
+            EEk[:, 1] = EEk[:, 1] + Pm(ek)
+        elseif (j==2)
+            EEk[II(i), JJ_2(j)] = nep.K[II(i), JJ_2(j)]
+            ek = 0*ek
+            ek[II(i)] = dd2
+            EEk[:, 1] = EEk[:, 1] + Pm(ek)
+        elseif (j==N+4)
+            EEk[II(i),JJ_2(j)] = nep.K[II(i),JJ_2(j)]
+            ek = 0*ek
+            ek[II(i)] = dd1
+            EEk[:, nx] = EEk[:, nx] + Pp(ek)
+        elseif (j==N+3)
+            EEk[II(i), JJ_2(j)] = nep.K[II(i), JJ_2(j)]
+            ek = 0*ek
+            ek[II(i)] = dd2
+            EEk[:, nx] = EEk[:, nx] + Pp(ek)
+        else
+            EEk[II(i), JJ(j)] = nep.K[II(i), JJ(j)]
+        end
+
+        # Sylvester solve of E tilde
+        Fk = Linv(EEk);
+
+        # Build this matrix element
+
+        for kk=1:mm
+            i,j = k2ij(kk,N);
+            # evaluate the linear functional
+            if((j==1)||(j==2)||(j==N+3)||(j==N+4))
+                M[kk, k] = sum(sum(Fk[II(i), JJ_2(j)] ))/L
+            else
+                M[kk, k] = sum(sum(Fk[II(i), JJ(j)] ))/LL
+            end
+        end
+    end
+
+    M = M + eye(Complex128, mm)
+
+    return factorize(M)
+
+end
+
+
+
+
+
+"""
+      A wrapper that applies the preconditioner to a vector when\n
+      called with the function 'solve()', which is used in GMRES
+"""
+    type WEP_precond_matvec
+        M
+        λ
+
+        WEP_precond_matvec(nep, λ) = new(nep, λ)
+    end
+
+    function solve(A::WEP_precond_matvec, b::AbstractVector)
+        return xyz
+    end
 
 
 
@@ -1077,6 +1216,34 @@ function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
             v_SPMF = compute_Mlincomb(nep_SPMF, γ, V)
             println("    Relative difference on random set of 4 vectors = ", norm(v_j - v_SPMF)/norm(v_j))
         end
+
+
+    end
+    println("\n--- End Mlincomb (Full Matrix FD WEP-native-format against SPMF) ---\n")
+end
+
+
+###########################################################
+# Test the full generated native-WEP system-matrix against the SPMF-matrix (Mlincomb)
+function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Integer)
+    println("\n\n--- Debugging Sylvester SMW for WEP ---\n")
+
+    γ = -rand() - 1im*rand()
+    gamma = γ
+    σ = γ
+
+    n = nx*nz+2*nz
+    V = rand(Complex128, n, 4)
+
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+        println("\n")
+        println("Testing Sylvester SMW for waveguide: ", waveguide)
+
+        nep = nep_gallery("waveguide", nx, nz, waveguide, "fD", "weP", delta)
+
+        M = generate_smw_matrix( nep, N, σ)
+
+
 
 
     end

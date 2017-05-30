@@ -5,6 +5,7 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
+using LinSolvers
 
 
 ### DEBUGG ###
@@ -73,16 +74,55 @@ println("===========================")
 println("||   This is WEP-test    ||")
 println("===========================")
 
+
 nz = 105;
 nx = nz + 4;
 delta = 0.1;
 
+N = 7;
+
+#debug_Sylvester_SMW_WEP(nx, nz, delta, N)
+
+
+
+
 ##################################################################################################################
+nz = 11;
+nx = nz + 4;
+delta = 0.1;
+
 println("\n     Test Tausch FD WEP-format\n")
-nep_WEP_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
+nep_jar_wep = nep_gallery("waveguide", nx, nz, "Jarlebring", "fD", "weP", delta)
+
+gmres_kwargs = ((:maxiter,187), (:restart,187), (:log,false))
+function wep_gmres_linsolvercreator(nep::NEP, λ)
+    return gmres_linsolvercreator(nep, λ, gmres_kwargs)
+end
+
+
+λ_jar_wep=NaN;
+x_jar_wep=NaN
+try
+    λ_jar_wep,x_jar_wep =res_inv(nep_jar_wep, displaylevel=1, λ=-0.5-0.4im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), linsolvercreator=wep_gmres_linsolvercreator)
+catch e
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λ_jar_wep = e.λ
+    x_jar_wep = e.v
+end
+println("Resnorm: ", compute_resnorm(nep_jar_wep, λ_jar_wep, x_jar_wep))
+println("Eigenvalue: ", λ_jar_wep)
+println("Eigenvector norm: ", norm(x_jar_wep), "\n")
+
 
 
 ##################################################################################################################
+nz = 105;
+nx = nz + 4;
+delta = 0.1;
+
 println("\n     Test Tausch FD SPFM\n")
 nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
 
@@ -104,6 +144,10 @@ println("Eigenvector norm: ", norm(x_tausch), "\n")
 
 
 ##################################################################################################################
+nz = 105;
+nx = nz + 4;
+delta = 0.1;
+
 println("\n     Test Jarlebring FD SPFM\n")
 nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
 
@@ -125,6 +169,8 @@ println("Eigenvector norm: ", norm(x_jar), "\n")
 
 
 ##################################################################################################################
+delta = 0.1;
+
 println("\n     Different DEBUG-tests\n")
 
 matlab_debug_WEP_FD(119, 115, delta)
