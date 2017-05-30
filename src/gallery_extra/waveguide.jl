@@ -1,6 +1,7 @@
 
 
 export gallery_waveguide
+
 export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
 export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
 export debug_sqrtm_schur #ONLY FOR DEBUGGING
@@ -16,20 +17,16 @@ export WEP_FD
  # We overload these
     import NEPCore.compute_Mder
     import NEPCore.compute_Mlincomb
-#    import NEPCore.compute_MM
-#    import NEPCore.compute_resnorm
-#    import NEPCore.compute_rf
 
     import Base.size
     import Base.issparse
     import Base.*
     import Base.norm
 
+
     export compute_Mder
     export compute_Mlincomb
-#    export compute_MM
-#    export compute_resnorm
-#    export compute_rf
+
     export size
     export issparse
     export *

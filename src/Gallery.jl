@@ -1,3 +1,7 @@
+  """
+  Module containing a gallery of examples of nonlinear eigenvalue problems.\\
+  Look at the function 'nep_gallery()' for further instructions.
+  """
 module Gallery
     using NEPCore
     using NEPTypes
@@ -13,20 +17,83 @@ module Gallery
     include("gallery_extra/waveguide.jl")
     
   """
-  Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. name decides which NEP. \\
-  Usage:\\
+**Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems.**\\
+    The parameter 'name' decides which NEP.\\
+\\
+  **Usage:**\\
      nep=nep_gallery(name)\\
-     or
-     nep=nep_gallery(name,params)
+     or\\
+     nep=nep_gallery(name,params)\\
+\\
+  **Supported 'name' and 'params':**\\
+     'dep0'\\
+      Create a random delay eiganvalue problem with one delay tau = 1\\
+      * one optional parameter determining the size (default = 5)\\
+\\
+     'dep0_sparse'\\
+      Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1\\
+      * one optional parameter determining the size (default = 5)\\
+\\
+     'dep_double'\\
+      Create problem with a double non-semisimple eigenvalue in λ=3πi\\
+      Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012\\
+\\
+     'pep0'\\
+     Create a random polynomial eigenvalue problem\\
+     * one optional parameter determining the size (default = 200)\\
+\\
+     'pep0_sparse_003'\\
+     Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
+     * one optional parameter determining the size (default = 200)\\\\
+\\
+     'real_quadratic'\\
+     Create a quadratic problem with real eigenvalues\\
+          Four smallest eigenvalues of the problem:\\
+          -2051.741417993845\\
+          -182.101627437811\\
+          -39.344930222838\\
+          -4.039879577113\\
+\\
+     'dep_distributed'\\
+     Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,\\
+     The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays,\\
+     Delay Systems - Methods, Applications and New Trends, 2012\\
+         Some correct eigenvalues:\\
+         -0.400236388049641 + 0.970633098237807i\\
+         -0.400236388049641 - 0.970633098237807i\\
+          2.726146249832675 + 0.000000000000000i\\
+         -1.955643591177653 + 3.364550574688863i\\
+         -1.955643591177653 - 3.364550574688863i\\
+          4.493937056300693 + 0.000000000000000i\\
+         -1.631513006819252 + 4.555484848248613i\\
+         -1.631513006819252 - 4.555484848248613i\\
+         -1.677320660400946 + 7.496870451838560i\\
+         -1.677320660400946 - 7.496870451838560i\\
+\\
+     'waveguide'\\
+     Create the NEP associated with example in both\\
+     E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,\\
+     Sylvester-based preconditioning for the waveguide eigenvalue problem, LAA\\
+     and\\
+     E. Jarlebring, and G. Mele, and O. Runborg\\
+     The waveguide eigenvalue problem and the tensor infinite Arnoldi method\\
+     SIAM J. Sci. Comput., 2017\\
+     * required parameters:\\
+                            # nx = 3 * 5 * 7,   disctretization points in x-direction\\
+                            # nz = 3 * 5 * 7,   disctretization points in x-direction\\
+                            # waveguide = 'TAUSCH',   which waveguide (TAUSCH, JARLEBRING)\\
+                            # discretization::String = 'FD',   which discretization (FD)\\
+                            # NEP_format::String = 'SPMF',   NEP-format (SPMF, WEP) later format recommended\\
+                            # delta = 0.1,   Slack from the absorbing boundary conditions
   """
   function nep_gallery(name,params...)
+      local n
       if (name == "dep0")
           # A delay eigenvalue problem
-          local n
-          if (length(params)>0) 
+          if (length(params)>0)
               n=params[1]
           else
-              n=5; # Default size if 
+              n=5; # Default size
           end
 
           srand(0) # reset the random seed
@@ -38,7 +105,11 @@ module Gallery
 
       elseif (name == "dep0_sparse")
           # A delay eigenvalue problem with sparse matrices
-          n=5;
+          if (length(params)>0)
+              n=params[1]
+          else
+              n=5; # Default size
+          end
           srand(0) # reset the random seed
           A0=sparse(randn(n,n));
           A1=sparse(randn(n,n));
@@ -67,7 +138,11 @@ module Gallery
 
       elseif (name== "pep0")
           # A polynomial eigenvalue problem
-          n=200; # mat size
+          if (length(params)>0)
+              n=params[1]
+          else
+              n=200; # Default size
+          end
 
           srand(0)
           A0=randn(n,n)
@@ -79,7 +154,11 @@ module Gallery
 
        elseif (name== "pep0_sparse_003")
           # A sparse polynomial eigenvalue problem
-          n=200; # mat size
+          if (length(params)>0)
+              n=params[1]
+          else
+              n=200; # Default size
+          end
 
           srand(0)
           A0=sprandn(n,n,0.03)
