@@ -1,5 +1,7 @@
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+using Suppressor # Pkg.add("Suppressor");
+@suppress_err begin
 using NEPSolver
 using NEPCore
 using NEPTypes
@@ -40,3 +42,4 @@ x2 = A\b
 println("GMRES relative residual norm = ", norm(compute_Mlincomb(nep, λ, x, a=[1]) - b)/norm(b))
 println("Relative error = ", norm(x-x2)/norm(x2))
 
+end
