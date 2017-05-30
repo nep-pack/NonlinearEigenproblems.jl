@@ -8,6 +8,7 @@ module NEPSolver
    
     include("method_newton.jl")
     include("method_iar.jl")
+    include("method_infbilanczos.jl")
     include("method_mslp.jl")
     include("method_companion.jl")
     include("method_nlar.jl")
