@@ -17,11 +17,13 @@ println("===========================")
 
 
 nep = nep_gallery("pep0_sparse_003")
-
 λ = rand(Complex128)
 
+import LinSolvers.GMRESLinSolver
 gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true))
-solver = GMRESLinSolver(nep, λ; gmres_kwargs...)
+GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num) = GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num, gmres_kwargs)
+
+solver = GMRESLinSolver(nep, λ)
 println("  type = ", typeof(solver))
 
 b = rand(Complex128, 200)

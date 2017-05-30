@@ -37,6 +37,8 @@ module LinSolvers
 } <: LinSolver
         A::T_mat
         Afact::T_fact_mat
+
+        DefaultLinSolver(A::AbstractMatrix{T_num},Afact::Factorization{T_num}) = new(A, Afact)
     end
 
     function DefaultLinSolver(nep::NEP,λ::Number)
@@ -69,46 +71,41 @@ module LinSolvers
 
 
 ##############################################################################
-    type Mlincomb_matrix_object{T_num<:Number, T_nep<:NEP}
+    type Mlincomb_matvec{T_num<:Number, T_nep<:NEP}
         nep::T_nep
         λ::T_num
+
+        Mlincomb_matvec{T_num, T_nep}(nep::T_nep, λ::T_num) = new{T_num,T_nep}(nep, λ)
     end
 
-    function Mlincomb_matrix_object{T_num, T_nep}(nep::T_nep, λ::T_num)
-        return Mlincomb_matrix_object{T_num,T_nep}(nep, λ)
-    end
-
-    function *(M::Mlincomb_matrix_object, v::AbstractVector)
+    function *(M::Mlincomb_matvec, v::AbstractVector)
         return compute_Mlincomb(M.nep, M.λ, v, a=[1])
     end
 
-    function size(M::Mlincomb_matrix_object, dim=-1)
+    function size(M::Mlincomb_matvec, dim=-1)
         return size(M.nep, dim)
     end
 
-    function eltype(M::Mlincomb_matrix_object)
+    function eltype(M::Mlincomb_matvec)
         return eltype(M.λ)
     end
 
-#    function norm(M::Mlincomb_matrix_object, p::Real=1)
-#
-#    end
 
 
 """
       A linear solver based on GMRES
 """
     type GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
-        A::Mlincomb_matrix_object{T_num, T_nep}
+        A::Mlincomb_matvec{T_num, T_nep}
         kwargs
+
+        function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs)
+            A = Mlincomb_matvec{T_num, T_nep}(nep, λ)
+            new{T_num, T_nep}(A, kwargs)
+        end
     end
 
-    function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num; kwargs...)
-        A = Mlincomb_matrix_object{T_num, T_nep}(nep, λ)
-        return GMRESLinSolver{T_num, T_nep}(A, kwargs)
-    end
-
-
+    GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num) = GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, ())
 
     function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array)
         return gmres(solver.A, x; solver.kwargs...)

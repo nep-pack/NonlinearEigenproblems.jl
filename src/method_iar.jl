@@ -7,7 +7,6 @@
      nep::NEP;
      maxit=30,
      linsolvertype::DataType=DefaultLinSolver,
-     linsolverkwargs = [],
      tol=1e-12,
      Neig=maxit,                                  
      errmeasure::Function = default_errmeasure(nep::NEP),
@@ -24,7 +23,7 @@
      α = [0;ones(m)];
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
      for i=2:m+1; α[i]=γ^(i-1); end 
-     local M0inv::LinSolver = linsolvertype(nep,σ;linsolverkwargs...);
+     local M0inv::LinSolver = linsolvertype(nep,σ);
      err = zeros(m,m); 			
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 

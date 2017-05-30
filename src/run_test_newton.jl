@@ -55,10 +55,16 @@ println("Resnorm:",compute_resnorm(nep,λ,x))
 
 
 println("Running ResInv with GMRES as solver")
+
+import LinSolvers.GMRESLinSolver
+linsolverkwargs = ((:maxiter,50), (:restart,50))
+GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num) = GMRESLinSolver{T_num, T_nep}(nepp::T_nep, λl::T_num, linsolverkwargs)
+
 nep=nep_gallery("dep0", 50)
-λ,x =res_inv(nep, displaylevel=1, linsolvertype=GMRESLinSolver, linsolverkwargs = ((:maxiter,50), (:restart,50)));
+λ,x =res_inv(nep, displaylevel=1, linsolvertype=GMRESLinSolver);
 
 println("Resnorm:",compute_resnorm(nep,λ,x))
+
 
 
 println("Running Aug-Newton")
