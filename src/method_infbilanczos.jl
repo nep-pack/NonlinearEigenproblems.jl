@@ -7,7 +7,7 @@ export infbilanczos
                           nept::NEP;  # Transposed NEP
                           maxit=30,
                           linsolvercreator::Function=default_linsolvercreator,
-                          linsolvertcreator::Function=default_linsolvercreator,                          
+                          linsolvertcreator::Function=linsolvercreator,                          
                           tol=1e-12,
                           Neig=maxit,                                  
                           errmeasure::Function = default_errmeasure(nep::NEP),
@@ -37,13 +37,16 @@ export infbilanczos
         Q1=zeros(n,m); # Needed?
         Qt1=zeros(n,m); # Needed?
 
-        
+
+        # Vectors storing the diagonals
         alpha=zeros(m);               
         beta=zeros(m);
         gamma=zeros(m);
-        itertime=zeros(m);
 
+        # Linear systems solver for both M(σ) and M(σ)^H
 
+        # Shift σ \neq 0 not implemented
+        
         local M0inv::LinSolver = linsolvercreator(nep,σ);
         local M0Tinv::LinSolver = linsolvertcreator(nept,σ);        
         
@@ -129,7 +132,7 @@ export infbilanczos
 
         @printf("done \n");
         
-        T = spdiagm((beta[1:m-1],alpha[1:m-1],[0;gamma[1:m-2]]), -1:1);
+        T = full(spdiagm((beta[1:m-1],alpha[1:m-1],[0;gamma[1:m-2]]), -1:1));
         
         
         
