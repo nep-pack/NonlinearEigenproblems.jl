@@ -77,10 +77,13 @@ nz = 105;
 nx = nz + 4;
 delta = 0.1;
 
-
+##################################################################################################################
+println("\n     Test Tausch FD WEP-format\n")
 nep_WEP_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "weP", delta)
 
 
+##################################################################################################################
+println("\n     Test Tausch FD SPFM\n")
 nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
 
 λ_tausch=NaN;
@@ -100,6 +103,8 @@ println("Eigenvalue: ", λ_tausch)
 println("Eigenvector norm: ", norm(x_tausch), "\n")
 
 
+##################################################################################################################
+println("\n     Test Jarlebring FD SPFM\n")
 nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
 
 λ_jar=NaN;
@@ -119,6 +124,8 @@ println("Eigenvalue: ", λ_jar)
 println("Eigenvector norm: ", norm(x_jar), "\n")
 
 
+##################################################################################################################
+println("\n     Different DEBUG-tests\n")
 
 matlab_debug_WEP_FD(119, 115, delta)
 
