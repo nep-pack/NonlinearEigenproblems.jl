@@ -17,10 +17,20 @@ export infbilanczos
 
         
         n=size(nep,1);
-#        
+
+        # Linear systems solver for both M(σ) and M(σ)^H
+
+        # Shift σ \neq 0 not implemented
+        
+        local M0inv::LinSolver = linsolvercreator(nep,σ);
+        local M0Tinv::LinSolver = linsolvertcreator(nept,σ);        
+
+        #        
         m=maxit;
+        qt=lin_solve(M0Tinv,ones(n));
         q=ones(n);
-        qt=ones(n);
+        q=q/dot(qt,compute_Mlincomb(nep,σ,q,ones(1),1));
+        
         Q0=zeros(n,m);                  # represents Q_{k-1}
         Qt0=zeros(n,m);                 # represents \til{Q}_{k-1}
         R1=zeros(n,m); R1[:,1]=q;       # represents R_{k}
@@ -43,13 +53,8 @@ export infbilanczos
         beta=zeros(m);
         gamma=zeros(m);
 
-        # Linear systems solver for both M(σ) and M(σ)^H
 
-        # Shift σ \neq 0 not implemented
-        
-        local M0inv::LinSolver = linsolvercreator(nep,σ);
-        local M0Tinv::LinSolver = linsolvertcreator(nept,σ);        
-        
+        @printf("%e %e\n",norm(q), norm(qt));
 
         k=1;
 
@@ -67,6 +72,9 @@ export infbilanczos
             Q1[:,1:k]=R1[:,1:k]/beta[k];
             Qt1[:,1:k]=Rt1[:,1:k]/conj(gamma[k]);
 
+            #@printf("\n%e %e\n", Q1[1,1],Qt1[1,1]);
+            
+            
             # Extra step, to compute Ritz vectors eventually
             Q_basis[:,k] = Q1[:,1];
             Qt_basis[:,k] = Qt1[:,1];        
@@ -132,9 +140,7 @@ export infbilanczos
 
         @printf("done \n");
         
-        T = full(spdiagm((beta[1:m-1],alpha[1:m-1],[0;gamma[1:m-2]]), -1:1));
-        
-        
+        T = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
         
         return 0,0,T;
     end
