@@ -20,7 +20,7 @@ nept=DEP([nep.A[1]',nep.A[2]'],nep.tauv)
 
 
 
-m=50;
+m=10;
 λ,Q,err = infbilanczos(nep,nept,maxit=m,Neig=m,σ=2.0,γ=2);
 #
 ##for i=1:m
