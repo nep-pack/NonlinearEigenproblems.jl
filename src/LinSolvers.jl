@@ -129,7 +129,9 @@ module LinSolvers
     end
 
     function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
-        return gmres(solver.A, x; tol=tol, solver.kwargs...)
+        x,convhist=gmres(solver.A, x; tol=tol, solver.kwargs...)
+        # return only the solution
+        return x
     end
 
 """

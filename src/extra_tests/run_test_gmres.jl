@@ -32,9 +32,9 @@ println("  type = ", typeof(solver))
 
 b = rand(Complex128, 200)
 
-x,conv = lin_solve(solver, b)
+x = lin_solve(solver, b)
 
-println(conv[:resnorm])
+#println(conv[:resnorm])
 
 A = compute_Mder(nep ,λ, 0)
 x2 = A\b
