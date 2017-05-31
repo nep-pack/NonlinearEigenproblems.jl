@@ -31,7 +31,7 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
     # solve the diagonal matrix equation
     Z=zeros(Complex128,nz,nx)
 
-    CC = Vh!( Wh(C')' )
+    CC = Vh!( Wh(C' )' )
 
     for k=1:nx
         Z[:,k] += CC[:,k]./(D+S[k])
@@ -64,10 +64,10 @@ end
     #   W is the matrix of the eigenvectors of the second derivative Dxx
     #   W*X can be computed with FFTs
 
-        WX = (1im/2)*(F(X)-Fh(X))
+        WX = (1.0im/2.0)*(F(X)-Fh(X))
 
         nz = size(X,1)
-        return WX/sqrt((nz+1)/2)
+        return WX/sqrt((nz+1)/2.0)
 
     end
 
@@ -76,10 +76,10 @@ end
     #   Wh is the transpose of the matrix of the eigenvectors of the second derivative Dxx
     #   Wh*X can be computed with FFTs
 
-        WX = (Fh(X)-F(X))/(2im)
+        WX = (Fh(X)-F(X))/(2.0im)
 
         nz = size(X,1)
-        return WX/sqrt((nz+1)/2)
+        return WX/sqrt((nz+1)/2.0)
 
     end
 
@@ -118,13 +118,13 @@ end
 # Ringh - Section 4
     """
     generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, Pm, Pp, K)
- Computes the SMW matrix for the Sylvester SMW for WEP, with n points in z-direction, n+4 points in x-direction,\\
+ Computes the SMW matrix for the Sylvester SMW on rectangular domains, with n points in z-direction, n+4 points in x-direction,\\
  N domains in z-direction, N+4 domains in x-direction.
  and fixed shift.
 """
-function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, Pm, Pp, K)
+function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, Pm::Function, Pp::Function, K)
 
-    # OBS: n = nz, and nz = nx + 4;
+    # OBS: n = nz, and nz = nx + 4
     const nz::Integer = n
     const nx::Integer = n + 4
 
@@ -134,33 +134,33 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
     const mm::Integer = (N^2 + 4*N)    # Number of elements in SMW-matrix
 
     # block extract index
-    II = function (i) # z-direction, always equal
+    II = function (i::Integer) # z-direction, always equal
         (i-1)*L+1:i*L
     end
-    JJ = function(j) #x-direction, different if boundary or interior
+    JJ = function(j::Integer) #x-direction, different if boundary or interior
         ((j-3)*L+1:(j-2)*L) + 2
     end
-    JJ_2 = function(j)
+    JJ_2 = function(j::Integer)
         (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
     end
 
     # convert a single index k to two indeces
     # reading the matrix X by rows; left to right and top to down
-    k2ij = function( k, N )
-        j::Integer = rem(k,N+4)+(rem(k,N+4)==0)*(N+4);
-        i::Integer = (k-j)/(N+4)+1;
+    k2ij = function(k::Integer)
+        j::Integer = rem(k,N+4)+(rem(k,N+4)==0)*(N+4)
+        i::Integer = (k-j)/(N+4)+1
         return(i,j)
     end
 
     # compute matrix M
-    M = zeros(Complex128, mm, mm)
+    M::Array{Complex128,2} = zeros(Complex128, mm, mm)
 
-    EEk = zeros(Complex128, nz, nx)
-    ek = zeros(Complex128, nz, 1)
+    EEk::Array{Complex128,2} = zeros(Complex128, nz, nx)
+    ek::Array{Complex128,1} = zeros(Complex128, nz)
 
     for k=1:mm
 
-        i,j = k2ij(k,N);
+        i,j = k2ij(k);
 
         # Ek tilde
         EEk = 0*EEk;
@@ -168,22 +168,22 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
             ek = 0*ek
             ek[II(i)] = dd1
-            EEk[:, 1] = EEk[:, 1] + Pm(ek)
+            EEk[:, 1] += Pm(ek)
         elseif (j==2)
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
             ek = 0*ek
             ek[II(i)] = dd2
-            EEk[:, 1] = EEk[:, 1] + Pm(ek)
+            EEk[:, 1] += Pm(ek)
         elseif (j==N+4)
             EEk[II(i),JJ_2(j)] = K[II(i),JJ_2(j)]
             ek = 0*ek
             ek[II(i)] = dd1
-            EEk[:, nx] = EEk[:, nx] + Pp(ek)
+            EEk[:, nx] += Pp(ek)
         elseif (j==N+3)
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
             ek = 0*ek
             ek[II(i)] = dd2
-            EEk[:, nx] = EEk[:, nx] + Pp(ek)
+            EEk[:, nx] += Pp(ek)
         else
             EEk[II(i), JJ(j)] = K[II(i), JJ(j)]
         end
@@ -194,7 +194,7 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
         # Build this matrix element
 
         for kk=1:mm
-            i,j = k2ij(kk,N);
+            i,j = k2ij(kk);
             # evaluate the linear functional
             if((j==1)||(j==2)||(j==N+3)||(j==N+4))
                 M[kk, k] = sum(sum(Fk[II(i), JJ_2(j)] ))/L
@@ -204,12 +204,104 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
         end
     end
 
-    M = M + eye(Complex128, mm)
+    M += eye(Complex128, mm)
 
     return factorize(M)
 
 end
 
+
+
+    """
+    solve_smw( M, C, Linv::Function, dd1, dd2, Pm, Pp, K)
+ Solves the matrix equation SMW system and computes the solution, on rectangular domains.\n
+ With SMW-system matrix M, right hand side C, and matrix equation solver Linv which was used to compute M.
+"""
+function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Function, Pp::Function, K)
+
+    const mm::Integer = size(M,1)
+    const N::Integer = sqrt(mm+4)-2      #OBS: N^2 + 4N = length(M)
+
+    const nz::Integer = size(C,1)
+    const nx::Integer = size(C,2)
+    const n::Integer = nz
+    const L::Integer = nz/N
+    const LL::Integer = L*L
+
+    # block extract index
+    II = function (i::Integer) # z-direction, always equal
+        (i-1)*L+1:i*L
+    end
+    JJ = function(j::Integer) #x-direction, different if boundary or interior
+        ((j-3)*L+1:(j-2)*L) + 2
+    end
+    JJ_2 = function(j::Integer)
+        (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
+    end
+
+    # convert a single index k to two indeces
+    # reading the matrix X by rows; left to right and top to down
+    k2ij = function(k::Integer)
+        j::Integer = rem(k,N+4)+(rem(k,N+4)==0)*(N+4)
+        i::Integer = (k-j)/(N+4)+1
+        return(i,j)
+    end
+
+    # compute the right hand side
+    LinvC = Linv(C)
+    b=zeros(Complex128,mm)
+    for k=1:mm
+        i, j = k2ij(k)
+        # evaluate the linear functional
+        if((j==1)||(j==2)||(j==N+3)||(j==N+4))
+            b[k] = sum(sum( LinvC[II(i), JJ_2(j)] ))/L
+        else
+            b[k] = sum(sum( LinvC[II(i), JJ(j)] ))/LL
+        end
+    end
+    LinvC = 0 #Clean up memory, let GC work if needed
+
+    # solve for the coefficients
+    const alpha = M\b;
+
+    # build the solution
+    Y::Array{Complex128,2} = zeros(Complex128, nz, nx);
+    ek::Array{Complex128,1} = zeros(Complex128, nz);
+    for k=1:mm
+
+        i, j = k2ij(k);
+
+        # Ek tilde implicitly created
+        if (j==1)
+            Y[II(i), 1] += alpha[k]*K[II(i), 1]
+            ek = 0*ek
+            ek[II(i)] = dd1
+            Y[:, 1] += alpha[k]*Pm(ek)
+        elseif (j==2)
+            Y[II(i), 2] += Y[II(i),2] + alpha[k]*K[II(i), 2]
+            ek = 0*ek
+            ek[II(i)] = dd2
+            Y[:, 1] += alpha[k]*Pm(ek)
+        elseif (j==N+4)
+            Y[II(i), nx] += alpha[k]*K[II(i), nx]
+            ek = 0*ek
+            ek[II(i)] = dd1
+            Y[:, nx] += alpha[k]*Pp(ek)
+        elseif (j==N+3)
+            Y[II(i), nx-1] += alpha[k]*K[II(i), nx-1]
+            ek = 0*ek
+            ek[II(i)] = dd2
+            Y[:, nx] += alpha[k]*Pp(ek)
+        else
+            Y[II(i),JJ(j)] += alpha[k]*K[II(i), JJ(j)]
+        end
+
+    end
+
+    X=Linv(C-Y)
+    return X
+
+end
 
 
 

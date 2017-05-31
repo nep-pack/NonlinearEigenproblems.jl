@@ -371,6 +371,36 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     waveguide = "JARLEBRING"
 
 
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+        else
+            waveguide_str = waveguide
+        end
+        println("  -- Matlab printouts start --")
+        WEP_path = pwd() * "/../matlab/WEP"
+        @mput nx nz delta WEP_path waveguide_str gamma C
+        @matlab begin
+            addpath(WEP_path)
+            nxx = double(nx)
+            nzz = double(nz)
+            options = struct
+            options.delta = double(delta)
+            options.wg = waveguide_str
+            nep = nep_wg_generator(nxx, nzz, options)
+
+            CC = double(C)
+            sigma = double(gamma)
+
+            kk = mean(nep.K(:));
+            K = nep.K - kk;
+
+            X_m = fft_wg( CC, sigma, kk, nep.hx, nep.hz );
+
+        @matlab end
+        @mget X_m
+        println("  -- Matlab printouts end --")
+
+
     K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
     Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
 
@@ -379,15 +409,22 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     A = full(Dzz + 2*γ*Dz + (γ^2+k_bar)*speye(Complex128, nz,nz))
     B = complex(full(Dxx))
 
-    println("Built-in Sylvester solver")
-    XX = @time sylvester(A,B,-C)
-    println("Relative residual norm = ", norm(A*XX+XX*B-C)/norm(C))
+    println("\nBuilt-in Sylvester solver (X_jj)")
+    X_jj = @time sylvester(A,B,-C)
+    println("Relative residual norm = ", norm(A*X_jj+X_jj*B-C)/norm(C))
 
-    println("FFT-based Sylvester solver for WG")
-    X = @time solve_wg_sylvester_fft( C, γ, k_bar, hx, hz )
-    println("Relative residual norm = ", norm(A*X+X*B-C)/norm(C))
+    println("FFT-based Sylvester solver for WG (X_j)")
+    X_j = @time solve_wg_sylvester_fft( C, γ, k_bar, hx, hz )
+    println("Relative residual norm = ", norm(A*X_j+X_j*B-C)/norm(C))
+
+    println("MATLAB implemented FFT-based Sylvester solver for WG")
+    println("Relative residual norm = ", norm(A*X_m+X_m*B-C)/norm(C))
+
+    println("\nRelative difference norm(X_m - X_j)/norm(X_j) = ", norm(X_m - X_j)/norm(X_j))
+    println("Relative difference norm(X_m - X_jj)/norm(X_jj) = ", norm(X_m - X_jj)/norm(X_jj))
+    println("Relative difference norm(X_j - X_jj)/norm(X_j) = ", norm(X_j - X_jj)/norm(X_j))
+
     println("\n--- End FFT-Sylvester ---\n")
-
 end
 
 
@@ -400,14 +437,18 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
     gamma = γ
     σ = γ
 
+    C = rand(Float64, nz, nx)
+
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
         println("Testing Sylvester SMW for waveguide: ", waveguide)
 
         nep = nep_gallery("waveguide", nx, nz, waveguide, "fD", "weP", delta)
 
-        M_j = @time generate_smw_matrix( nep, N, σ)
+        M_j = @time generate_smw_matrix(nep, N, σ)
         M_jj = full(M_j)
+
+        X_j = @time solve_smw(nep, M_j, C, σ)
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
@@ -417,13 +458,14 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nx nz N delta WEP_path waveguide_str gamma
+        @mput nx nz N delta WEP_path waveguide_str gamma C
         @matlab begin
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
             nn = nz
             NN = double(N)
+            CC = double(C)
             options = struct
             options.delta = double(delta)
             options.wg = waveguide_str
@@ -445,12 +487,17 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
             dd2 = nep.d2/nep.hx^2;
             M_m = generate_smw_matrix( nn, NN, Linv, dd1, dd2, Pm_inv, Pp_inv, K, false );
 
+            X_m = solve_smw( M_m, CC, Linv, dd1, dd2, Pm_inv, Pp_inv, K );
+
         @matlab end
-        @mget M_m
+        @mget M_m X_m
         println("  -- Matlab printouts end --")
 
-        println("    Difference SMW_matrix_m - SMW_matrix_j = ", norm(full(M_m - M_jj)))
+        println("    Difference SMW_matrix_m - SMW_matrix_j = ", norm(M_m - M_jj))
         println("    Relative difference norm(SMW_matrix_m - SMW_matrix_j)/norm(SMW_matrix_j) = ", norm(M_m - M_jj)/norm(M_jj))
+        println("\n    X is the solution to a Sylvester-SMW system")
+        println("    Difference X_m - X_j = ", norm(X_m - X_j))
+        println("    Relative difference norm(X_m - X_j)/norm(X_j) = ", norm(X_m - X_j)/norm(X_j))
 
 
 

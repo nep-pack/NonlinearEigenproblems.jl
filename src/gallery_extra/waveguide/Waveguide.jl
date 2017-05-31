@@ -379,7 +379,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
  Given a nep of type WEP_FD, this computes the Sylvester-SMW matrix with N domains in z-direction\\
  and for fixed shift σ.
 """
-    function generate_smw_matrix( nep::WEP_FD, N::Integer, σ)
+    function generate_smw_matrix(nep::WEP_FD, N::Integer, σ)
         # OBS: n = nz, and nz = nx + 4;
         if( (nep.nz+4) != nep.nx)
             error("This implementation requires nz = nx + 4. Provided NEP has nz = ", nep.nz, " and nx = ", nep.nx)
@@ -395,27 +395,63 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
         # Sylvester solver
         Linv = function(C)
-            return solve_wg_sylvester_fft( C, σ, nep.k_bar, nep.hx, nep.hz )
+            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz )
         end
 
-        # Pm and Pp, the boundary operators
-        # OBS: The minus sign!
+        P_inv_m, P_inv_p = generate_minus_Pm_and_Pp_inverses(nep, σ)
+
+        return generate_smw_matrix(nz, N, Linv, dd1, dd2, P_inv_m, P_inv_p, nep.K )
+    end
+
+
+    """
+    solve_smw( nep::WEP_FD, M, C, σ)
+ Given a nep of type WEP_FD, an SMW-system matrix M computed with shift σ, and a right hand side C,\\
+ This computes the solution to the SMW-matrix equation.
+"""
+    function solve_smw(nep::WEP_FD, M, C, σ)
+
+        C = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
+
+        const dd1 = nep.d1/nep.hx^2;
+        const dd2 = nep.d2/nep.hx^2;
+
+        # Sylvester solver
+        Linv = function(CC)
+            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz )
+        end
+
+        P_inv_m, P_inv_p = generate_minus_Pm_and_Pp_inverses(nep, σ)
+
+        return solve_smw(M, C, Linv, dd1, dd2, P_inv_m, P_inv_p, nep.K)
+    end
+
+
+    #Helper function: Generates function to compute MINUS the boundary operators, Ringh - (2.8)
+    #To be used in the SMW-context. OBS: MINUS sign as in Ringh - (4.10)
+    function generate_minus_Pm_and_Pp_inverses(nep::WEP_FD, σ)
+
+        const nz::Integer = nep.nz
+
+        # S_k(σ) + d_0, as in Ringh - (2.3a)
         coeffs = zeros(Complex128, 2*nz)
+            a = 1.0
         for j = 1:2*nz
-            a = 1
             b = nep.b[rem(j-1,nz)+1]
             c = nep.cMP[j]
             coeffs[j] = 1im*sqrt_derivative(a, b, c, 0, σ) + nep.d0
         end
 
-        Pm = function(v)
-            return - nep.R(nep.Rinv(v) ./ (coeffs[1:nz]))
+        # P_inv_m and P_inv_p, the boundary operators
+        # OBS: The minus sign!
+        P_inv_m = function(v)
+            return - nep.R(nep.Rinv(v) ./ coeffs[1:nz])
         end
-        Pp = function(v)
-            return - nep.R(nep.Rinv(v) ./ (coeffs[(nz+1):(2*nz)]))
+        P_inv_p = function(v)
+            return - nep.R(nep.Rinv(v) ./ coeffs[(nz+1):(2*nz)])
         end
 
-        return generate_smw_matrix(nz, N, Linv, dd1, dd2, Pm, Pp, nep.K )
+        return P_inv_m, P_inv_p
     end
 
 
