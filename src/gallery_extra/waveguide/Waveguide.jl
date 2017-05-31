@@ -388,7 +388,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             error("This implementation is uniform in the blocking and therefore requires nz/N tobe an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )
         end
 
-        const n::Integer = nep.nz  
+        const nz::Integer = nep.nz
 
         const dd1 = nep.d1/nep.hx^2;
         const dd2 = nep.d2/nep.hx^2;
@@ -400,14 +400,22 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
         # Pm and Pp, the boundary operators
         # OBS: The minus sign!
-        Pm = function(v)
-            return - nep.R(nep.Rinv(v) ./ (nep.d0 + nep.cMP[1:nz])) 
-        end
-        Pp = function(v)
-            return - nep.R(nep.Rinv(v) ./ (nep.d0 + nep.cMP[(nz+1):(2*nz)])) 
+        coeffs = zeros(Complex128, 2*nz)
+        for j = 1:2*nz
+            a = 1
+            b = nep.b[rem(j-1,nz)+1]
+            c = nep.cMP[j]
+            coeffs[j] = 1im*sqrt_derivative(a, b, c, 0, σ) + nep.d0
         end
 
-        return generate_smw_matrix(n, N, Linv, dd1, dd2, Pm, Pp, nep.K, σ )
+        Pm = function(v)
+            return - nep.R(nep.Rinv(v) ./ (coeffs[1:nz]))
+        end
+        Pp = function(v)
+            return - nep.R(nep.Rinv(v) ./ (coeffs[(nz+1):(2*nz)]))
+        end
+
+        return generate_smw_matrix(nz, N, Linv, dd1, dd2, Pm, Pp, nep.K )
     end
 
 
@@ -434,7 +442,7 @@ function sqrt_derivative(a,b,c, d=0, x=0)
     yi = sqrt_pos_imag(cc)
     derivatives[1] = yi
     if( d==0 )
-        return derivatives
+        return derivatives[1] #OBS: If only function is sought, return it as an integer and not array
     end
 
     yip1 = bb/(2*sqrt_pos_imag(cc))

@@ -85,7 +85,7 @@ delta = 0.1;
 
 N = 7;
 
-#debug_Sylvester_SMW_WEP(nx, nz, delta, N)
+debug_Sylvester_SMW_WEP(nx, nz, delta, N)
 
 
 

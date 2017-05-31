@@ -400,20 +400,61 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
     gamma = γ
     σ = γ
 
-    n = nx*nz+2*nz
-    V = rand(Complex128, n, 4)
-
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
         println("Testing Sylvester SMW for waveguide: ", waveguide)
 
         nep = nep_gallery("waveguide", nx, nz, waveguide, "fD", "weP", delta)
 
-        M = generate_smw_matrix( nep, N, σ)
+        M_j = @time generate_smw_matrix( nep, N, σ)
+        M_jj = full(M_j)
+
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+        else
+            waveguide_str = waveguide
+        end
+
+        println("  -- Matlab printouts start --")
+        WEP_path = pwd() * "/../matlab/WEP"
+        @mput nx nz N delta WEP_path waveguide_str gamma
+        @matlab begin
+            addpath(WEP_path)
+            nxx = double(nx)
+            nzz = double(nz)
+            nn = nz
+            NN = double(N)
+            options = struct
+            options.delta = double(delta)
+            options.wg = waveguide_str
+            nep = nep_wg_generator(nxx, nzz, options)
+
+            sigma = double(gamma)
+
+            #OBS: The below (MATLAB) code is copied from 'main.m' in the public code
+            # CONSTRUCT THE PRECONDITIONER
+            kk = mean(nep.K(:));
+            K = nep.K - kk;
+
+
+            eval("Linv=@(X) fft_wg( X, sigma, kk, nep.hx, nep.hz );")
+            eval("Pm_inv=@(x) -nep.Pm_inv(sigma, x);              %OBS! The minus sign!")
+            eval("Pp_inv=@(x) -nep.Pp_inv(sigma, x);              %OBS! The minus sign!")
+
+            dd1 = nep.d1/nep.hx^2;
+            dd2 = nep.d2/nep.hx^2;
+            M_m = generate_smw_matrix( nn, NN, Linv, dd1, dd2, Pm_inv, Pp_inv, K, false );
+
+        @matlab end
+        @mget M_m
+        println("  -- Matlab printouts end --")
+
+        println("    Difference SMW_matrix_m - SMW_matrix_j = ", norm(full(M_m - M_jj)))
+        println("    Relative difference norm(SMW_matrix_m - SMW_matrix_j)/norm(SMW_matrix_j) = ", norm(M_m - M_jj)/norm(M_jj))
 
 
 
 
     end
-    println("\n--- End Mlincomb (Full Matrix FD WEP-native-format against SPMF) ---\n")
+    println("\n--- End Debugging Sylvester SMW for WEP ---\n")
 end

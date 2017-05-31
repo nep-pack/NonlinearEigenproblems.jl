@@ -126,7 +126,7 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
 
     # OBS: n = nz, and nz = nx + 4;
     const nz::Integer = n
-    const nx::Integer = n
+    const nx::Integer = n + 4
 
         
     const L::Integer = n/N             # Number of points in one dimanesion of the regions
