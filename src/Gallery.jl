@@ -12,9 +12,13 @@ module Gallery
 
 
 
+    push!(LOAD_PATH, pwd()*"/gallery_extra/waveguide")	# looks for modules in the correct path
+    using Waveguide
+
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/nlevp_interface.jl")
-    include("gallery_extra/waveguide.jl")
+
+
     
   """
 **Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems.**\\

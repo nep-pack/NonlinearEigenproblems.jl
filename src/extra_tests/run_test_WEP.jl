@@ -7,6 +7,10 @@ using NEPTypes
 using Gallery
 using LinSolvers
 
+#OBS: Only needed to run the debug
+push!(LOAD_PATH, pwd()*"/../gallery_extra/waveguide")	# looks for modules in the correct directory
+using Waveguide
+
 
 ### DEBUGG ###
 #import NEPCore.compute_Mder_from_MM
@@ -177,10 +181,10 @@ matlab_debug_WEP_FD(119, 115, delta)
 
 matlab_debug_full_matrix_WEP_FD_SPMF(21, 17, delta)
 
-fft_debug_mateq(431, 427, delta)
-
 debug_sqrtm_schur(281)
 
 debug_sqrt_derivative()
 
 debug_Mlincomb_FD_WEP(29, 31, delta)
+
+fft_debug_mateq(431, 427, delta)
