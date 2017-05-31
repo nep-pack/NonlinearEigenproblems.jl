@@ -121,16 +121,24 @@ module LinSolvers
     type GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
         A::Mlincomb_matvec{T_num, T_nep}
         kwargs
+        gmres_log::Bool
 
         function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs)
             A = Mlincomb_matvec{T_num, T_nep}(nep, λ)
-            new{T_num, T_nep}(A, kwargs)
+            gmres_log = false
+            for elem in kwargs
+                gmres_log |= (elem[1] == :log)
+            end
+            new{T_num, T_nep}(A, kwargs, gmres_log)
         end
     end
 
     function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
-        x,convhist=gmres(solver.A, x; tol=tol, solver.kwargs...)
-        # return only the solution
+        if( solver.gmres_log )
+            x, convhist = gmres(solver.A, x; tol=tol, solver.kwargs...)
+        else
+            x = gmres(solver.A, x; tol=tol, solver.kwargs...)
+        end
         return x
     end
 
