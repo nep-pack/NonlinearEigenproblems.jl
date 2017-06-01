@@ -119,8 +119,8 @@
                 end                
                 
                 if (displaylevel>0)
-                    println("Iteration:",k," errmeasure:",err,
-                            " with v_as_rf_vector=",use_v_as_rf_vector)
+                    @printf("Iteration: %2d errmeasure:%.18e ",k, err);
+                    println(" v_as_rf_vector=",use_v_as_rf_vector);
                 end
                 
                 if (err< tolerance)
