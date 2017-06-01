@@ -107,7 +107,7 @@ end
 λ_jar_wep=NaN;
 x_jar_wep=NaN
 try
-    λ_jar_wep,x_jar_wep =res_inv(nep_jar_wep, displaylevel=1, λ=-0.5-0.4im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), linsolvercreator=wep_gmres_linsolvercreator)
+    λ_jar_wep,x_jar_wep =resinv(nep_jar_wep, displaylevel=1, λ=-0.5-0.4im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), linsolvercreator=wep_gmres_linsolvercreator)
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -133,7 +133,7 @@ nep_tausch = nep_gallery("waveguide", nx, nz, "TAUSCH", "fD", "SPMF", delta)
 λ_tausch=NaN;
 x_tausch=NaN
 try
-    λ_tausch,x_tausch =res_inv(nep_tausch;displaylevel=1, λ=-0.015-5.1im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz))
+    λ_tausch,x_tausch =resinv(nep_tausch;displaylevel=1, λ=-0.015-5.1im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz))
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -158,7 +158,7 @@ nep_jar = nep_gallery("waveguide", nx, nz, "jArleBRIng", "fD", "SpmF", delta)
 λ_jar=NaN;
 x_jar=NaN
 try
-    λ_jar,x_jar =res_inv(nep_jar;displaylevel=1, λ=-0.5-0.4im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz))
+    λ_jar,x_jar =resinv(nep_jar;displaylevel=1, λ=-0.5-0.4im, maxit = 50, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz))
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)

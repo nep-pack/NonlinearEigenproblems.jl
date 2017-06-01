@@ -21,7 +21,7 @@ nep=PEP([A0,A1,A2]);
 v0=ones(BigFloat,4);
 λ0=BigFloat(0)
 # 
-λ,v=aug_newton(Complex{BigFloat}, nep,v=v0,λ=λ0,
+λ,v=augnewton(Complex{BigFloat}, nep,v=v0,λ=λ0,
                tolerance=BigFloat(1e-60),displaylevel=1)
 
 norm(compute_Mlincomb(nep,λ,v))

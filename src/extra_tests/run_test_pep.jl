@@ -35,7 +35,7 @@ println("Running residual inverse iteration")
 #
 λ0=round(λ_exact*10)/10; # Start value
 x0=round(x*10)/10;       # Start vector
-λ,x =res_inv(nep,λ=λ0,v=x0,displaylevel=1,errmeasure=abserrmeasure);	
+λ,x =resinv(nep,λ=λ0,v=x0,displaylevel=1,errmeasure=abserrmeasure);	
 
 println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))
 

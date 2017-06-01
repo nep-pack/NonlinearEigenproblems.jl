@@ -2,8 +2,8 @@
 # Newton-like methods for NEPs
 
     export newton
-    export res_inv
-    export aug_newton
+    export resinv
+    export augnewton
 
 #############################################################################
 """
@@ -76,8 +76,8 @@
 """
     Residual inverse iteration method for nonlinear eigenvalue problems.
 """
-    res_inv(nep::NEP;params...)=res_inv(Complex128,nep;params...)
-    function res_inv{T}(::Type{T},
+    resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
+    function resinv{T}(::Type{T},
                         nep::NEP;
                         errmeasure::Function =
                         default_errmeasure(nep::NEP),
@@ -95,30 +95,44 @@
         v=Array{T,1}(v)
         c=Array{T,1}(c)
 
+        # If c is zero vector we take eigvec approx as left vector in
+        # generalized Rayleigh functional
+        use_v_as_rf_vector=false;
+        if (norm(c)==0)  
+            use_v_as_rf_vector=true;
+        end
+
+
         σ=λ;
         err=Inf;
 
         try
             for k=1:maxit
                 # Normalize
-                v = v/dot(c,v);
-
+                v = v/norm(v);
 
                 err=errmeasure(λ,v)
 
 
+                if (use_v_as_rf_vector)
+                    c=v;
+                end                
+                
                 if (displaylevel>0)
-                    println("Iteration:",k," errmeasure:",err)
+                    @printf("Iteration: %2d errmeasure:%.18e ",k, err);
+                    println(" v_as_rf_vector=",use_v_as_rf_vector);
                 end
+                
                 if (err< tolerance)
                     return (λ,v)
                 end
 
                 # Compute eigenvalue update
                 λ = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
+                    
 
                 # Compute eigenvector update
-	              Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
+	        Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
 
                 # Update the eigvector
                 v[:] += -Δv;
@@ -147,12 +161,12 @@
        
 
 
-    # New aug_newton
+    # New augnewton
 """
     Augmented Newton's method. Equivalent to newton() but works only with operations on vectors of length n, instead of n+1.
 """
-    aug_newton(nep::NEP;params...)=aug_newton(Complex128,nep;params...)
-    function aug_newton{T}(::Type{T},
+    augnewton(nep::NEP;params...)=augnewton(Complex128,nep;params...)
+    function augnewton{T}(::Type{T},
                            nep::NEP;
                            errmeasure::Function = default_errmeasure(nep::NEP),
                            tolerance=eps(real(T))*100,

@@ -1,3 +1,4 @@
+
 #  A Polynomial eigenvalue problem
 workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
@@ -19,6 +20,6 @@ v=ones(n,1);
 println("A test call to compute_Mlincomb")
 z=compute_Mlincomb(nep,λ,v);
 println("Running augnewton")
-λ,x =aug_newton(nep,displaylevel=1);
+λ,x =augnewton(nep,displaylevel=1);
 println("Computed solution to resnorm:",norm(compute_Mlincomb(nep,λ,x)))
 
