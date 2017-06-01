@@ -2,8 +2,8 @@
 # Newton-like methods for NEPs
 
     export newton
-    export res_inv
-    export aug_newton
+    export resinv
+    export augnewton
 
 #############################################################################
 """
@@ -76,8 +76,8 @@
 """
     Residual inverse iteration method for nonlinear eigenvalue problems.
 """
-    res_inv(nep::NEP;params...)=res_inv(Complex128,nep;params...)
-    function res_inv{T}(::Type{T},
+    resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
+    function resinv{T}(::Type{T},
                         nep::NEP;
                         errmeasure::Function =
                         default_errmeasure(nep::NEP),
@@ -161,12 +161,12 @@
        
 
 
-    # New aug_newton
+    # New augnewton
 """
     Augmented Newton's method. Equivalent to newton() but works only with operations on vectors of length n, instead of n+1.
 """
-    aug_newton(nep::NEP;params...)=aug_newton(Complex128,nep;params...)
-    function aug_newton{T}(::Type{T},
+    augnewton(nep::NEP;params...)=augnewton(Complex128,nep;params...)
+    function augnewton{T}(::Type{T},
                            nep::NEP;
                            errmeasure::Function = default_errmeasure(nep::NEP),
                            tolerance=eps(real(T))*100,

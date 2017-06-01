@@ -15,7 +15,7 @@ nep=nep_gallery("dep0_sparse")
 λ=NaN;
 x=NaN
 try
-    λ,x =aug_newton(nep,displaylevel=1);
+    λ,x =augnewton(nep,displaylevel=1);
 catch e
     # Only catch NoConvergence 
     isa(e, NoConvergenceException) || rethrow(e)  

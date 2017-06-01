@@ -34,12 +34,12 @@ println("It worked.")
 v0=ones(size(nep,1))
 
 println("Running resinv (with factorize())")
-@time λ,v=res_inv(nep1,λ=λ0,v=v0,
+@time λ,v=resinv(nep1,λ=λ0,v=v0,
                displaylevel=2,maxit=20,tolerance=1e-4)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
 println("Running resinv (with backslash no pre-factorization)")
-@time λ,v=res_inv(nep1,λ=λ0,v=v0,
+@time λ,v=resinv(nep1,λ=λ0,v=v0,
                   displaylevel=2,maxit=20,tolerance=1e-4,
                   linsolvercreator=backslash_linsolvercreator)
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
@@ -50,7 +50,7 @@ println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
 
 #println("Running aug newton")
-#@time λ,v=aug_newton(nep,λ=λ0,v=v0,
+#@time λ,v=augnewton(nep,λ=λ0,v=v0,
 #                     displaylevel=2,maxit=30,tolerance=1e-6)
 #println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 #
@@ -70,7 +70,7 @@ println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 #
 #
 #
-#println("Running one step of MSLP and then aug_newton")
+#println("Running one step of MSLP and then augnewton")
 #λ1=λ0
 #v1=copy(v0)
 #try 
@@ -83,7 +83,7 @@ println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 #end
 #v1=v1/norm(v1)
 ##println("sqrt(λ1)=",sqrt(λ1))
-#λ,v=aug_newton(nep,λ=λ1,v=v1,c=v0,
+#λ,v=augnewton(nep,λ=λ1,v=v1,c=v0,
 #               displaylevel=2,maxit=30,tolerance=1e-6)
 #
 #println("Found eigenvalue \sqrt{λ}=",sqrt(λ))

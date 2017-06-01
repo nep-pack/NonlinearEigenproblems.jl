@@ -63,7 +63,7 @@ function my_gmres_linsolvercreator(nep::NEP, λ)
 end
 
 nep=nep_gallery("dep0", 50)
-λ,x =res_inv(nep, displaylevel=1, linsolvercreator=my_gmres_linsolvercreator);
+λ,x =resinv(nep, displaylevel=1, linsolvercreator=my_gmres_linsolvercreator);
 
 println("Resnorm:",compute_resnorm(nep,λ,x))
 
@@ -73,7 +73,7 @@ println("Running Aug-Newton")
 nep=nep_gallery("dep0", 50)
 
 
-λ,x =aug_newton(nep, displaylevel=1);
+λ,x =augnewton(nep, displaylevel=1);
 
 println("Resnorm:",compute_resnorm(nep,λ,x))
 
