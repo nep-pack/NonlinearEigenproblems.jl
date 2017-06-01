@@ -58,10 +58,26 @@ export nlar
             #Solve the projected problem
             dd,vv = polyeig(pep_proj);
 
+            dist = zeros(size(dd)[1]);
+            #Select one from the many eigenvalues computed by polyeig
+            for i=1:size(dd)[1]
+                dist[i] = 1/sum(abs(dd[i]-D[1:m]))+abs(dd[i]-σ);
+            end
+            ii2 = sortperm(dist);
             ii = sortperm(abs(dd-σ));
-
             ν = dd[ii[m+1]];
             y = vv[:,ii[m+1]];
+
+
+            if m == 0
+                ν = dd[ii[m+1]];
+                y = vv[:,ii[m+1]];
+            else
+                #ν = dd[ii2[1]];
+                #y = vv[:,ii2[1]];
+                #ν = dd[ii2[convert(Int,(size(ii2)[1])/2)]];
+                #y = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]];
+            end
 
             if(k == 1)
                 y = y[1]
@@ -88,8 +104,8 @@ export nlar
                 #σ = 2.0*ν;
 
                 #Compute residual again
-                ν1 = dd[ii[m+2]];
-                y1 = vv[:,ii[m+2]]
+                ν1 = dd[ii2[convert(Int,(size(ii2)[1])/2)]];
+                y1 = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]]
                 u1 = Vk*y1; 
                 u1 = normalize(u1);
                 res = compute_Mlincomb(nep,ν1,u1);
