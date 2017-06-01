@@ -95,30 +95,44 @@
         v=Array{T,1}(v)
         c=Array{T,1}(c)
 
+        # If c is zero vector we take eigvec approx as left vector in
+        # generalized Rayleigh functional
+        use_v_as_rf_vector=false;
+        if (norm(c)==0)  
+            use_v_as_rf_vector=true;
+        end
+
+
         σ=λ;
         err=Inf;
 
         try
             for k=1:maxit
                 # Normalize
-                v = v/dot(c,v);
-
+                v = v/norm(v);
 
                 err=errmeasure(λ,v)
 
 
+                if (use_v_as_rf_vector)
+                    c=v;
+                end                
+                
                 if (displaylevel>0)
-                    println("Iteration:",k," errmeasure:",err)
+                    println("Iteration:",k," errmeasure:",err,
+                            " with v_as_rf_vector=",use_v_as_rf_vector)
                 end
+                
                 if (err< tolerance)
                     return (λ,v)
                 end
 
                 # Compute eigenvalue update
                 λ = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
+                    
 
                 # Compute eigenvector update
-	              Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
+	        Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
 
                 # Update the eigvector
                 v[:] += -Δv;
