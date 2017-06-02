@@ -32,9 +32,9 @@ println("Test 2:",n2)
 
 v0=randn(n)
 println("Resinv test 0")
-res_inv(nep0,displaylevel=1,v=v0)
+resinv(nep0,displaylevel=1,v=v0)
 println("Resinv test 1")
-res_inv(nep1,displaylevel=1,v=v0)
+resinv(nep1,displaylevel=1,v=v0)
 
 
 n3=norm(compute_Mder(nep0,-1,5)-compute_Mder_from_MM(nep1,-1,5))

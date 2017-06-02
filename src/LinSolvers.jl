@@ -101,15 +101,15 @@ module LinSolvers
         Mlincomb_matvec{T_num, T_nep}(nep::T_nep, λ::T_num) = new{T_num,T_nep}(nep, λ)
     end
 
-    function *(M::Mlincomb_matvec, v::AbstractVector)
+    function *{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep}, v::AbstractVector)
         return compute_Mlincomb(M.nep, M.λ, v, a=[1])
     end
 
-    function size(M::Mlincomb_matvec, dim=-1)
+    function size{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep}, dim=-1)
         return size(M.nep, dim)
     end
 
-    function eltype(M::Mlincomb_matvec)
+    function eltype{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep})
         return eltype(M.λ)
     end
 
@@ -127,13 +127,13 @@ module LinSolvers
             A = Mlincomb_matvec{T_num, T_nep}(nep, λ)
             gmres_log = false
             for elem in kwargs
-                gmres_log |= (elem[1] == :log)
+                gmres_log |= ((elem[1] == :log) && elem[2])
             end
             new{T_num, T_nep}(A, kwargs, gmres_log)
         end
     end
 
-    function lin_solve{T_num}(solver::GMRESLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
+    function lin_solve{T_num, T_nep}(solver::GMRESLinSolver{T_num, T_nep}, x::Array; tol=eps(real(T_num)))
         if( solver.gmres_log )
             x, convhist = gmres(solver.A, x; tol=tol, solver.kwargs...)
         else

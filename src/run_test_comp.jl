@@ -103,9 +103,9 @@ while abs(d)>TOL
     z=z2
 end
 
-println("Solving same problem with res_inv")
-λ,v=res_inv(BigFloat, pep3,λ=(BigFloat(evp)+0.1),v=z[1:size(pep3,1)],tolerance=TOL)
+println("Solving same problem with resinv")
+λ,v=resinv(BigFloat, pep3,λ=(BigFloat(evp)+0.1),v=z[1:size(pep3,1)],tolerance=TOL)
 #Dc,Vc = compsolve(pep3);
 
 
-println("Difference btw companion solver and res_inv for bigfloats:",abs(λ-evp))
+println("Difference btw companion solver and resinv for bigfloats:",abs(λ-evp))
