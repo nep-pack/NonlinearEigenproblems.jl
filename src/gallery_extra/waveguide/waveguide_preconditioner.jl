@@ -3,8 +3,82 @@
 # Sylvester based preconditioner for the Waveguide eigenvalue problem
 # Implementing the Preconditioner in the optimized way described in Ringh et al.
 
-import IterativeSolvers.solve
-export solve
+    """
+    generate_preconditioner( nep::WEP_FD, N::Integer, σ)
+ Given a nep of type WEP_FD, the number of domains in z-direction N, and a fixed shift σ,\\
+ this computes a function that acts as a Preconditioner for the WEP.
+"""
+# Ringh - Algorithm 2, step 10
+    function generate_preconditioner(nep::WEP_FD, N::Integer, σ)
+        M = generate_smw_matrix(nep, N, σ)
+
+        precond = function(c_vec)
+            C = reshape(c_vec, nep.nz, nep.nx)
+            return vec( solve_smw( nep, M, C, σ) )
+        end
+
+        return precond
+    end
+
+
+    """
+    generate_smw_matrix( nep::WEP_FD, N::Integer, σ)
+ Given a nep of type WEP_FD, this computes the Sylvester-SMW matrix with N domains in z-direction\\
+ and for fixed shift σ.
+"""
+    function generate_smw_matrix(nep::WEP_FD, N::Integer, σ)
+        # OBS: n = nz, and nz = nx + 4;
+        if( (nep.nz+4) != nep.nx)
+            error("This implementation requires nz = nx + 4. Provided NEP has nz = ", nep.nz, " and nx = ", nep.nx)
+        end
+        if( !isinteger(nep.nz/N) )
+            error("This implementation is uniform in the blocking and therefore requires nz/N tobe an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )
+        end
+
+        const nz::Integer = nep.nz
+
+        const dd1 = nep.d1/nep.hx^2;
+        const dd2 = nep.d2/nep.hx^2;
+
+        # Sylvester solver
+        Linv = function(C)
+            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz )
+        end
+
+        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
+        # OBS: MINUS sign as in Ringh - (4.10)
+        Pm(v) = -P_inv_m(v)
+        Pp(v) = -P_inv_p(v)
+
+        return generate_smw_matrix(nz, N, Linv, dd1, dd2, Pm, Pp, nep.K )
+    end
+
+
+    """
+    solve_smw( nep::WEP_FD, M, C, σ)
+ Given a nep of type WEP_FD, an SMW-system matrix M computed with shift σ, and a right hand side C,\\
+ This computes the solution to the SMW-matrix equation.
+"""
+    function solve_smw(nep::WEP_FD, M, C, σ)
+
+        C = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
+
+        const dd1 = nep.d1/nep.hx^2;
+        const dd2 = nep.d2/nep.hx^2;
+
+        # Sylvester solver
+        Linv = function(CC)
+            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz )
+        end
+
+        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
+        # OBS: MINUS sign as in Ringh - (4.10)
+        Pm(v) = -P_inv_m(v)
+        Pp(v) = -P_inv_p(v)
+
+        return solve_smw(M, C, Linv, dd1, dd2, Pm, Pp, nep.K)
+    end
+
 
 #FFT diagonalization and solution to WEP matrix equation.
 #Ringh - Section 5.3
@@ -302,25 +376,5 @@ function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Fun
     return X
 
 end
-
-
-
-
-"""
-      A wrapper that applies the preconditioner to a vector when\n
-      called with the function 'solve()', which is used in GMRES
-"""
-    type WEP_precond_matvec
-        M
-        λ
-
-        WEP_precond_matvec(nep, λ) = new(nep, λ)
-    end
-
-    function solve(A::WEP_precond_matvec, b::AbstractVector)
-        return xyz
-    end
-
-
 
 

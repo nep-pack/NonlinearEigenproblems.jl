@@ -14,6 +14,7 @@ module Gallery
 
     push!(LOAD_PATH, pwd()*"/gallery_extra/waveguide")	# looks for modules in the correct path
     using Waveguide
+    export generate_preconditioner
 
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/nlevp_interface.jl")

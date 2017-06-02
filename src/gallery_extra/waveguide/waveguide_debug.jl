@@ -2,16 +2,20 @@
 using MATLAB
 using Gallery
 
-#OBS: Need 'using Waveguide' in order to run the debug tests
-# Gallery is not exporting this module
 
-export matlab_debug_WEP_FD #ONLY FOR DEBUGGING
-export matlab_debug_full_matrix_WEP_FD_SPMF #ONLY FOR DEBUGGING
-export debug_sqrtm_schur #ONLY FOR DEBUGGING
-export fft_debug_mateq #ONLY FOR DEBUGGING
-export debug_sqrt_derivative #ONLY FOR DEBUGGING
-export debug_Mlincomb_FD_WEP #ONLY FOR DEBUGGING
-export debug_Sylvester_SMW_WEP #ONLY FOR DEBUGGING
+#OBS: BELOW EXPORTS ARE ONLY FOR DEBUGGING
+export matlab_debug_WEP_FD
+export matlab_debug_full_matrix_WEP_FD_SPMF
+export debug_sqrtm_schur
+export fft_debug_mateq
+export debug_sqrt_derivative
+export matlab_debug_Schur_WEP_FD_SPMF
+export debug_Mlincomb_FD_WEP
+export debug_Sylvester_SMW_WEP
+
+
+
+import LinSolvers.Mlincomb_matvec
 
 
 
@@ -59,14 +63,14 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     # BUILD THE FOURTH BLOCK P
     function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
-        return [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
-                R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ];
+        return vec( [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
+                     R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ])
     end
 
     # BUILD THE DERIVATIVE OF P
     function p_P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
-        return [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
-                R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ];
+        return vec( [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
+                     R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ])
     end
 
     return P, p_P
@@ -121,6 +125,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
+        Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
         P_j = zeros(Complex128, 2*nz,2*nz)
         Iz = eye(2*nz, 2*nz)
         for i = 1:2*nz
@@ -186,13 +191,15 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
         println("Difference P_m(γ) - P_2(γ) = ", norm(P_m-P_j2))
         println("Relative difference norm(P_m(γ) - P_2(γ))/norm(P_2(γ)) = ", norm(P_m-P_j2)/norm(full(P_j2)))
+        v = rand(Complex128,2*nz)
+        println("Relative difference norm(v - Pinv_j((γ))*P_j(γ)*v)/norm(v) = ", norm(v - Pinv(γ,P(γ,v)) )/norm(v))
     end
     println("\n--- End Matrices FD against MATLAB ---\n")
 end
 
 
 ###########################################################
-# Test the full generated system-matrix against against MATLAB code
+# Test the full generated system-matrix against MATLAB code
 function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Full Matrix FD SPMF against MATLAB ---\n")
     if(nx > 40 || nz > 40)
@@ -362,6 +369,66 @@ end
 
 
 ###########################################################
+# Test the Schur-complement of native-WEP against MATLAB code
+function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
+    println("\n\n--- Debugging Schur-complement of native-WEP against MATLAB ---\n")
+    if(nx > 50 || nz > 50)
+        warn("This debug is 'naive' and might be slow for the discretization used.")
+    end
+
+
+    γ = -rand() - 1im*rand()
+    gamma = γ
+    n = nx*nz;
+
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+        println("\n")
+        println("Testing Schur-complement for waveguide: ", waveguide)
+
+        nep_j = nep_gallery("waveguide", nx, nz, waveguide, "fD", "WeP", delta)
+        Schur_fun = Mlincomb_matvec{Complex128,WEP_FD}(nep_j, γ)
+        Schur_j = zeros(Complex128, n, n)
+        for i = 1:n
+            V = zeros(Complex128, n)
+            V[i] = 1
+            Schur_j[:,i] += Schur_fun* V
+        end
+
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+        else
+            waveguide_str = waveguide
+        end
+
+        println("  -- Matlab printouts start --")
+        WEP_path = pwd() * "/../matlab/WEP"
+        @mput nx nz delta WEP_path waveguide_str gamma
+        @matlab begin
+            addpath(WEP_path)
+            nxx = double(nx)
+            nzz = double(nz)
+            options = struct
+            options.delta = delta
+            options.wg = waveguide_str
+            matlab_nep = nep_wg_generator(nxx, nzz, options)
+
+            Ixz = eye(nxx*nzz);
+            Schur_m = NaN(nxx*nzz, nxx*nzz);
+            eval("for i = 1:(nxx*nzz);   Schur_m(:,i) = matlab_nep.S(gamma, Ixz(:,i));    end")
+
+
+        @matlab end
+        @mget Schur_m
+        println("  -- Matlab printouts end --")
+
+        norm_diff = norm(Schur_m-Schur_j)
+        println("Difference Schur_m(γ) - Schur_j(γ) = ", norm_diff)
+        println("Relative difference norm(Schur_m(γ) - Schur_j(γ))/norm(Schur_j(γ)) = ", norm_diff/norm(Schur_j))
+    end
+    println("\n--- End Schur-complement of native-WEP against MATLAB ---\n")
+end
+
+###########################################################
 # Test the FFT-based Sylvester solver against naive solver
 function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging FFT-Sylvester ---\n")
@@ -445,9 +512,11 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
 
         nep = nep_gallery("waveguide", nx, nz, waveguide, "fD", "weP", delta)
 
+        println("  Generate SMW-matrix")
         M_j = @time generate_smw_matrix(nep, N, σ)
         M_jj = full(M_j)
 
+        println("  Solve SMW-problem")
         X_j = @time solve_smw(nep, M_j, C, σ)
 
         if waveguide == "JARLEBRING"

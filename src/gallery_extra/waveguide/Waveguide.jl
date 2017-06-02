@@ -2,9 +2,12 @@ module Waveguide
 
 using NEPCore
 using NEPTypes
+using LinSolvers
+using IterativeSolvers
 
 
 export gallery_waveguide
+export generate_preconditioner
 
 
 
@@ -20,21 +23,22 @@ import NEPCore.compute_Mder
 export compute_Mder
 import NEPCore.compute_Mlincomb
 export compute_Mlincomb
+import LinSolvers.Mlincomb_matvec
+import LinSolvers.lin_solve
+export lin_solve
 
 import Base.size
 export size
 import Base.issparse
 export issparse
-#import Base.*
-#export *
-#import Base.norm
-#export norm
+import Base.*
+export *
 
 
 include("waveguide_debug.jl")
 include("waveguide_FD.jl")
 include("waveguide_FEM.jl")
-include("waveguide_preconditioner.jl")
+# OBS: include("waveguide_preconditioner.jl") is at the bottom so that needed types are declared before the include
 
 
 
@@ -260,6 +264,9 @@ end
         cMP # cM followed by cP in a vector (length = 2*nz)
         R::Function
         Rinv::Function
+        Pinv::Function
+        generate_Pm_and_Pp_inverses::Function
+
         function WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
             k_bar = mean(K)
@@ -296,7 +303,10 @@ end
             cMP = [cM; cP]
 
             R, Rinv = generate_R_matrix(nz)
-            this = new(nx, nz, hx, hz, A, B, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cMP, R, Rinv)
+            Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
+            generate_Pm_and_Pp_inverses(σ) =  helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
+
+            this = new(nx, nz, hx, hz, A, B, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cMP, R, Rinv, Pinv, generate_Pm_and_Pp_inverses)
         end
     end
 
@@ -312,7 +322,31 @@ end
 
 
     function issparse(nep::WEP_FD)
-        return true
+        return false
+    end
+
+
+    #Helper function: Generates function to compute iverse of the boundary operators, Ringh - (2.8)
+    #To be used in the Schur-complement- and SMW-context.
+    function helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
+        # S_k(σ) + d_0, as in Ringh - (2.3a)
+        coeffs = zeros(Complex128, 2*nz)
+            aa = 1.0
+        for j = 1:2*nz
+            bb = b[rem(j-1,nz)+1]
+            cc = cMP[j]
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + d0
+        end
+
+        # P_inv_m and P_inv_p, the boundary operators
+        P_inv_m = function(v)
+            return R(Rinv(v) ./ coeffs[1:nz])
+        end
+        P_inv_p = function(v)
+            return R(Rinv(v) ./ coeffs[(nz+1):(2*nz)])
+        end
+
+        return P_inv_m, P_inv_p
     end
 
 
@@ -374,85 +408,90 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
 
-    """
-    generate_smw_matrix( nep::WEP_FD, N::Integer, σ)
- Given a nep of type WEP_FD, this computes the Sylvester-SMW matrix with N domains in z-direction\\
- and for fixed shift σ.
-"""
-    function generate_smw_matrix(nep::WEP_FD, N::Integer, σ)
-        # OBS: n = nz, and nz = nx + 4;
-        if( (nep.nz+4) != nep.nx)
-            error("This implementation requires nz = nx + 4. Provided NEP has nz = ", nep.nz, " and nx = ", nep.nx)
-        end
-        if( !isinteger(nep.nz/N) )
-            error("This implementation is uniform in the blocking and therefore requires nz/N tobe an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )
-        end
 
-        const nz::Integer = nep.nz
+###########################################################
+#Special instances of function calls for Mlincomb_matvec and GMRES to take into account that
+#the linear system to solve is with SCHUR COMPLEMENT. Ringh - Algorithm 2, step 10
 
-        const dd1 = nep.d1/nep.hx^2;
-        const dd2 = nep.d2/nep.hx^2;
+    function *{T_num}(M::Mlincomb_matvec{T_num, WEP_FD}, v::AbstractVector)
+    # Ringh - (2.13)(3.3)
+        const λ = M.λ
+        const nep = M.nep
 
-        # Sylvester solver
-        Linv = function(C)
-            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz )
-        end
+        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
 
-        P_inv_m, P_inv_p = generate_minus_Pm_and_Pp_inverses(nep, σ)
+        X = reshape(v, nep.nz, nep.nx)
 
-        return generate_smw_matrix(nz, N, Linv, dd1, dd2, P_inv_m, P_inv_p, nep.K )
+        return vec(  vec( nep.A(λ)*X + X*nep.B(λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
+
+    end
+
+    function size{T_num}(M::Mlincomb_matvec{T_num, WEP_FD}, dim=-1)
+        return M.nep.nx * M.nep.nz
     end
 
 
-    """
-    solve_smw( nep::WEP_FD, M, C, σ)
- Given a nep of type WEP_FD, an SMW-system matrix M computed with shift σ, and a right hand side C,\\
- This computes the solution to the SMW-matrix equation.
-"""
-    function solve_smw(nep::WEP_FD, M, C, σ)
+    function lin_solve{T_num}(solver::GMRESLinSolver{T_num, WEP_FD}, x::Array; tol=eps(real(T_num)))
+    # Ringh - Proposition 2.1
+        const λ = solver.A.λ
+        const nep = solver.A.nep
 
-        C = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
+        const x_int = x[1:(nep.nx*nep.nz)]
+        const x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
 
-        const dd1 = nep.d1/nep.hx^2;
-        const dd2 = nep.d2/nep.hx^2;
+        rhs = vec(  x_int - nep.C1*nep.Pinv(λ, x_ext))
 
-        # Sylvester solver
-        Linv = function(CC)
-            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz )
+        if( solver.gmres_log )
+            q, convhist = gmres(solver.A, rhs; tol=tol, solver.kwargs...)
+        else
+            q = gmres(solver.A, rhs; tol=tol, solver.kwargs...)
         end
 
-        P_inv_m, P_inv_p = generate_minus_Pm_and_Pp_inverses(nep, σ)
+        x = [q; vec(nep.Pinv(λ, nep.C2T * q + x_ext))]
 
-        return solve_smw(M, C, Linv, dd1, dd2, P_inv_m, P_inv_p, nep.K)
+        return x
+    end
+
+# Generate P^{-1}-matrix
+# P is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
+function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
+
+    R, Rinv = generate_R_matrix(nz::Integer)
+    const p = (nz-1)/2;
+
+    # Constants from the problem
+    const d0 = -3/(2*hx);
+    const a = ones(Complex128,nz);
+    const b = 4*pi*1im * (-p:p);
+    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+
+
+    function betaM(γ)
+        return a*γ^2 + b*γ + cM
+    end
+    function betaP(γ)
+        return a*γ^2 + b*γ + cP
+    end
+
+    function sM(γ::Number)
+        bbeta = betaM(γ)
+        return 1im*sign(imag(bbeta)).*sqrt(bbeta)+d0;
+    end
+    function sP(γ::Number)
+        bbeta = betaP(γ)
+        return 1im*sign(imag(bbeta)).*sqrt(bbeta)+d0;
+    end
+
+    # BUILD THE INVERSE OF THE FOURTH BLOCK P
+    function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
+        return vec(  [R(Rinv(x[1:Int64(end/2)]) ./ sM(γ));
+                      R(Rinv(x[Int64(end/2)+1:end]) ./ sP(γ))  ]  )
     end
 
 
-    #Helper function: Generates function to compute MINUS the boundary operators, Ringh - (2.8)
-    #To be used in the SMW-context. OBS: MINUS sign as in Ringh - (4.10)
-    function generate_minus_Pm_and_Pp_inverses(nep::WEP_FD, σ)
-
-        const nz::Integer = nep.nz
-
-        # S_k(σ) + d_0, as in Ringh - (2.3a)
-        coeffs = zeros(Complex128, 2*nz)
-            a = 1.0
-        for j = 1:2*nz
-            b = nep.b[rem(j-1,nz)+1]
-            c = nep.cMP[j]
-            coeffs[j] = 1im*sqrt_derivative(a, b, c, 0, σ) + nep.d0
-        end
-
-        # P_inv_m and P_inv_p, the boundary operators
-        # OBS: The minus sign!
-        P_inv_m = function(v)
-            return - nep.R(nep.Rinv(v) ./ coeffs[1:nz])
-        end
-        P_inv_p = function(v)
-            return - nep.R(nep.Rinv(v) ./ coeffs[(nz+1):(2*nz)])
-        end
-
-        return P_inv_m, P_inv_p
-    end
+    return P
+end
 
 
 ###########################################################
@@ -502,5 +541,6 @@ function sqrt_derivative(a,b,c, d=0, x=0)
     return derivatives
 end
 
+include("waveguide_preconditioner.jl")
 
 end
