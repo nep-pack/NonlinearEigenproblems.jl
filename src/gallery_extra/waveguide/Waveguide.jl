@@ -20,8 +20,6 @@ export generate_smw_matrix
 
 
 # We overload these
-import NEPCore.compute_Mder
-export compute_Mder
 import NEPCore.compute_Mlincomb
 export compute_Mlincomb
 import LinSolvers.Mlincomb_matvec
@@ -425,7 +423,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     function *(M::SchurMatVec,v::AbstractVector)
         λ = M.λ
         nep = M.nep
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
+
         X = reshape(v, nep.nz, nep.nx)
         return vec(  vec( nep.A(λ)*X + X*nep.B(λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
     end
@@ -447,8 +445,6 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     # Special LinSolver for WEP that solves the system with the Schur-complement
     # and does transforming between that and the full system.
     # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
-
-
     type WEPLinSolver<:LinSolver
         schur_comp::SchurMatVec;
         kwargs
@@ -482,7 +478,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             q = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
         end
 
-        x = [q; vec(nep.Pinv(λ, nep.C2T * q + x_ext))]
+        x = [q; vec(nep.Pinv(λ, -nep.C2T * q + x_ext))]
 
         return x
     end
