@@ -9,6 +9,7 @@ using IterativeSolvers
 export gallery_waveguide
 export generate_preconditioner
 
+export wep_linsolvercreator
 
 
 # Specializalized NEPs
@@ -33,7 +34,8 @@ import Base.issparse
 export issparse
 import Base.*
 export *
-
+import Base.eltype
+export eltype    
 
 include("waveguide_debug.jl")
 include("waveguide_FD.jl")
@@ -409,34 +411,55 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return [y1;y2]
     end
 
-
-
-###########################################################
-#Special instances of function calls for Mlincomb_matvec and GMRES to take into account that
-#the linear system to solve is with SCHUR COMPLEMENT. Ringh - Algorithm 2, step 10
-
-    function *{T_num}(M::Mlincomb_matvec{T_num, WEP_FD}, v::AbstractVector)
-    # Ringh - (2.13)(3.3)
+    # Matrix vector operations for the Schur complement (to be used in GMRES call)
+    # the linear system to solve is with SCHUR COMPLEMENT. Ringh - Algorithm 2, step 10
+    type SchurMatVec
+        nep::WEP_FD
+        λ::Complex128
+        SchurMatVec(nep::WEP_FD, λ::Complex128) = new(nep, λ)
+    end
+    function *(M::SchurMatVec,v::AbstractVector)
         λ = M.λ
         nep = M.nep
-
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
-
         X = reshape(v, nep.nz, nep.nx)
-
         return vec(  vec( nep.A(λ)*X + X*nep.B(λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
-
+    end
+    function size(M::SchurMatVec, dim=-1)
+        n = M.nep.nx*M.nep.nz 
+        if (dim==-1)
+            return (n,n)
+        else
+            return n
+        end
+    end
+    function eltype(M::SchurMatVec)
+        return Complex128
     end
 
-    function size{T_num}(M::Mlincomb_matvec{T_num, WEP_FD}, dim=-1)
-        return M.nep.nx * M.nep.nz
+
+    type WEPLinSolver<:LinSolver
+        schur_comp::SchurMatVec;
+        kwargs
+        gmres_log::Bool
+        nep::WEP_FD
+        λ::Complex128
+        function WEPLinSolver(nep::WEP_FD,λ::Complex128,kwargs)
+            schur_comp=SchurMatVec(nep,λ);
+            gmres_log = false
+            for elem in kwargs
+                gmres_log |= ((elem[1] == :log) && elem[2])
+            end
+            return new(schur_comp, kwargs, gmres_log,nep,λ)            
+        end
+        
     end
 
 
-    function lin_solve{T_num}(solver::GMRESLinSolver{T_num, WEP_FD}, x::Array; tol=eps(real(T_num)))
+    function lin_solve(solver::WEPLinSolver, x::Array; tol=eps(Float64))
     # Ringh - Proposition 2.1
-        λ = solver.A.λ
-        nep = solver.A.nep
+        λ = solver.λ
+        nep = solver.nep
 
         x_int = x[1:(nep.nx*nep.nz)]
         x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
@@ -444,15 +467,23 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         rhs = vec(  x_int - nep.C1*nep.Pinv(λ, x_ext))
 
         if( solver.gmres_log )
-            q, convhist = gmres(solver.A, rhs; tol=tol, solver.kwargs...)
+            q, convhist = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
         else
-            q = gmres(solver.A, rhs; tol=tol, solver.kwargs...)
+            q = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
         end
 
         x = [q; vec(nep.Pinv(λ, nep.C2T * q + x_ext))]
 
         return x
     end
+
+function wep_linsolvercreator(nep::WEP_FD, λ, kwargs=())
+        println("kwargs:",kwargs)
+        return WEPLinSolver(nep, λ, kwargs)
+    end
+
+
+
 
 # Generate P^{-1}-matrix
 # P is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
