@@ -15,9 +15,6 @@ export debug_Sylvester_SMW_WEP
 
 
 
-import LinSolvers.Mlincomb_matvec
-
-
 
 ########### SOME REFERENCE IMPLEMENTATIONS ################
 ###########################################################
@@ -26,7 +23,7 @@ import LinSolvers.Mlincomb_matvec
 # Is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
 function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
-    R, Rinv = generate_R_matvec(nz::Integer)
+    R, Rinv = generate_R_matvecs(nz::Integer)
     const p = (nz-1)/2;
 
     # Constants from the problem
@@ -132,7 +129,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
             P_j[:,i] = P(γ, Iz[:,i])
         end
 
-        R, Rinv = generate_R_matvec(nz)
+        R, Rinv = generate_R_matvecs(nz)
         S = generate_S_function(nz, hx, Km, Kp)
         P_j2 = zeros(Complex128, 2*nz,2*nz)
         D1 = zeros(Complex128, nz,nz)
@@ -144,8 +141,10 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
             D2[j,j] = S([γ]'',j+nz)[1]
         end
         Iz = eye(nz,nz);
-        P_j2[1:nz,1:nz] = R(D1*Rinv(Iz))
-        P_j2[(nz+1):(2*nz),(nz+1):(2*nz)] = R(D2*Rinv(Iz))
+        for j = 1:nz
+            P_j2[1:nz,j] = R(D1*Rinv(Iz[:,j]))
+            P_j2[(nz+1):(2*nz),j+nz] = R(D2*Rinv(Iz[j,:]))
+        end
 
 
         if waveguide == "JARLEBRING"
@@ -386,7 +385,7 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
         println("Testing Schur-complement for waveguide: ", waveguide)
 
         nep_j = nep_gallery("waveguide", nx, nz, waveguide, "fD", "WeP", delta)
-        Schur_fun = Mlincomb_matvec{Complex128,WEP_FD}(nep_j, γ)
+        Schur_fun = SchurMatVec(nep_j, γ)
         Schur_j = zeros(Complex128, n, n)
         for i = 1:n
             V = zeros(Complex128, n)

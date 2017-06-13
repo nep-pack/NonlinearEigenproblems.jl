@@ -138,6 +138,7 @@ end
 ###########################################################
 # Generate R-matrix
 # Part of defining the P-matrix, see above, Jarlebring-(1.6) and Ringh-(2.8) and Remark 1
+# OBS: R' = nz * Rinv, as noted in Ringh between (2.8) and Remark 1
 function generate_R_matvecs(nz::Integer)
     # The scaled FFT-matrix R
     p = (nz-1)/2;
@@ -411,13 +412,16 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return [y1;y2]
     end
 
+
+###########################################################
     # Matrix vector operations for the Schur complement (to be used in GMRES call)
-    # the linear system to solve is with SCHUR COMPLEMENT. Ringh - Algorithm 2, step 10
+    # Matrix-vector product according to Ringh (2.13) and (3.3)
     type SchurMatVec
         nep::WEP_FD
         λ::Complex128
         SchurMatVec(nep::WEP_FD, λ::Complex128) = new(nep, λ)
     end
+
     function *(M::SchurMatVec,v::AbstractVector)
         λ = M.λ
         nep = M.nep
@@ -425,6 +429,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         X = reshape(v, nep.nz, nep.nx)
         return vec(  vec( nep.A(λ)*X + X*nep.B(λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
     end
+
     function size(M::SchurMatVec, dim=-1)
         n = M.nep.nx*M.nep.nz 
         if (dim==-1)
@@ -433,9 +438,15 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             return n
         end
     end
+
     function eltype(M::SchurMatVec)
         return Complex128
     end
+
+
+    # Special LinSolver for WEP that solves the system with the Schur-complement
+    # and does transforming between that and the full system.
+    # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
 
 
     type WEPLinSolver<:LinSolver
@@ -454,7 +465,6 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         end
         
     end
-
 
     function lin_solve(solver::WEPLinSolver, x::Array; tol=eps(Float64))
     # Ringh - Proposition 2.1
@@ -477,12 +487,9 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return x
     end
 
-function wep_linsolvercreator(nep::WEP_FD, λ, kwargs=())
-        println("kwargs:",kwargs)
+    function wep_linsolvercreator(nep::WEP_FD, λ, kwargs=())
         return WEPLinSolver(nep, λ, kwargs)
     end
-
-
 
 
 # Generate P^{-1}-matrix
