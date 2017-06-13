@@ -7,11 +7,11 @@ export nlar
     function nlar(nep::NEP;
                 nev=10,#Number of eigenvalues required
                 errmeasure::Function =
-                default_errmeasure(nep::NEP),
+                default_errmeasure(nep),
                 tol=1e-6,
                 maxit=100,
                 λ=0,
-                v=randn(nep.n),
+                v=randn(size(nep,1)),
                 displaylevel=0,
                 nl_eigsolvertype=Union{AbstractString,Function},
                 linsolvercreator::Function=default_linsolvercreator)
@@ -23,9 +23,9 @@ export nlar
             maxit=size(nep,1);
         end
         #Initialize the basis V_1
-        V = zeros(Complex128,nep.n,maxit);
-        X = zeros(Complex128,nep.n,nev);
-        V[:,1] = normalize(ones(nep.n));
+        V = zeros(Complex128, size(nep,1) ,maxit);
+        X = zeros(Complex128, size(nep,1) ,nev);
+        V[:,1] = normalize(ones(size(nep,1)));
         Vk = V[:,1];
 
         D = zeros(Complex128,nev);#To store the converged eigenvalues
@@ -39,7 +39,9 @@ export nlar
         local linsolver::LinSolver=linsolvercreator(nep,σ);
  
         num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
-        while m < nev 
+
+        ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
+        while (m < nev) && (k < maxit)
             ### Construct the small projected PEP projected problem (V^H)T(λ)Vx = 0 using nl_eigsolvertype....(Currently works
             ### only for PEP) #####
             
