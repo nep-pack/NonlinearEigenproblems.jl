@@ -94,40 +94,40 @@ end
 Sum of products of matrices and functions (SPMF)
 """
 function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, Km, Kp)
-    Ix = speye(nx,nx)
-    Iz = speye(nz,nz)
+    Ix = speye(Complex128,nx,nx)
+    Iz = speye(Complex128,nz,nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
     A = Array(SparseMatrixCSC,3+2*nz)
-    A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(2*nz, 2*nz) )
-    A[2] = hvcat((2,2), Q1, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
-    A[3] = hvcat((2,2), Q2, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
+    A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(Complex128,2*nz, 2*nz) )
+    A[2] = hvcat((2,2), Q1, spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), spzeros(Complex128,2*nz, 2*nz) )
+    A[3] = hvcat((2,2), Q2, spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), spzeros(Complex128,2*nz, 2*nz) )
 
     f = Array(Function, 3+2*nz)
-    f[1] = λ -> eye(λ)
+    f[1] = λ -> eye(Complex128,size(λ,1),size(λ,2))
     f[2] = λ -> λ
     f[3] = λ -> λ^2
 
-    R, Rinv = generate_R_matrix(nz)
+    R, Rinv = generate_R_matvecs(nz)
     S = generate_S_function(nz, hx, Km, Kp)
 
     for j = 1:nz
         f[j+3] = λ -> S(λ, j)
         e_j = zeros(nz)
         e_j[j] = 1
-        E_j = [R(e_j); spzeros(nz)]
+        E_j = [R(e_j); spzeros(Complex128,nz)]
         E_j = E_j * (E_j/nz)'
-        A[j+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
+        A[j+3] =  hvcat((2,2), spzeros(Complex128,nx*nz,nx*nz), spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), E_j)
     end
     for j = 1:nz
         f[j+nz+3] = λ -> S(λ, nz+j)
         e_j = zeros(nz)
         e_j[j] = 1
-        E_j = [spzeros(nz); R(e_j)]
+        E_j = [spzeros(Complex128,nz); R(e_j)]
         E_j = E_j * (E_j/nz)'
-        A[j+nz+3] =  hvcat((2,2), spzeros(nx*nz,nx*nz), spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), E_j)
+        A[j+nz+3] =  hvcat((2,2), spzeros(Complex128,nx*nz,nx*nz), spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), E_j)
     end
     return SPMF_NEP(A,f)
 end    
@@ -136,16 +136,16 @@ end
 ###########################################################
 # Generate R-matrix
 # Part of defining the P-matrix, see above, Jarlebring-(1.6) and Ringh-(2.8) and Remark 1
-function generate_R_matrix(nz::Integer)
+function generate_R_matvecs(nz::Integer)
     # The scaled FFT-matrix R
     p = (nz-1)/2;
     bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
-    function R(X)
-        return flipdim(bb .* fft(X), 1);
+    function R(X) # Note! Only works for vectors or one-dim matrices
+        return flipdim(bb .* fft(vec(X)), 1);
     end
     bbinv = 1./bb; # scaling to do before inverse FFT
     function Rinv(X)
-        return ifft(bbinv .* flipdim(X,1));
+        return ifft(bbinv .* flipdim(vec(X),1));
     end
     return R, Rinv
 end
@@ -304,7 +304,7 @@ end
             cP = Kp^2 - 4*pi^2 * ((-p:p).^2)
             cMP = [cM; cP]
 
-            R, Rinv = generate_R_matrix(nz)
+            R, Rinv = generate_R_matvecs(nz)
             Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
             generate_Pm_and_Pp_inverses(σ) =  helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
 
@@ -458,7 +458,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 # P is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
 function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
-    R, Rinv = generate_R_matrix(nz::Integer)
+    R, Rinv = generate_R_matvecs(nz::Integer)
     p = (nz-1)/2;
 
     # Constants from the problem

@@ -26,7 +26,7 @@ import LinSolvers.Mlincomb_matvec
 # Is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
 function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
-    R, Rinv = generate_R_matrix(nz::Integer)
+    R, Rinv = generate_R_matvec(nz::Integer)
     const p = (nz-1)/2;
 
     # Constants from the problem
@@ -132,7 +132,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
             P_j[:,i] = P(γ, Iz[:,i])
         end
 
-        R, Rinv = generate_R_matrix(nz)
+        R, Rinv = generate_R_matvec(nz)
         S = generate_S_function(nz, hx, Km, Kp)
         P_j2 = zeros(Complex128, 2*nz,2*nz)
         D1 = zeros(Complex128, nz,nz)
