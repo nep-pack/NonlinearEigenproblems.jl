@@ -31,9 +31,9 @@
      vv[:]=rand(n,1); vv[:]=vv[:]/norm(vv);
 
      k=1; conv_eig=0;
-        while (k <= m)&(conv_eig<=Neig)
+        while (k <= m)&(conv_eig<Neig)
             if (displaylevel>0)
-                println("Iteration:",k)
+                println("Iteration:",k, " conveig:",conv_eig)
                 end
       VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
       vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
