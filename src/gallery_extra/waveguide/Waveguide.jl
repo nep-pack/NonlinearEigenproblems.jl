@@ -106,7 +106,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
     A[3] = hvcat((2,2), Q2, spzeros(nx*nz, 2*nz), spzeros(2*nz, nx*nz), spzeros(2*nz, 2*nz) )
 
     f = Array(Function, 3+2*nz)
-    f[1] = λ -> 1
+    f[1] = λ -> eye(λ)
     f[2] = λ -> λ
     f[3] = λ -> λ^2
 
@@ -138,14 +138,14 @@ end
 # Part of defining the P-matrix, see above, Jarlebring-(1.6) and Ringh-(2.8) and Remark 1
 function generate_R_matrix(nz::Integer)
     # The scaled FFT-matrix R
-    const p = (nz-1)/2;
-    const bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
+    p = (nz-1)/2;
+    bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
     function R(X)
-        return flipdim((bb*ones(size(X,2),1)') .* fft(X), 1);
+        return flipdim(bb .* fft(X), 1);
     end
     bbinv = 1./bb; # scaling to do before inverse FFT
     function Rinv(X)
-        return ifft((bbinv*ones(size(X,2),1)') .* flipdim(X,1));
+        return ifft(bbinv .* flipdim(X,1));
     end
     return R, Rinv
 end
@@ -156,27 +156,28 @@ end
 # Part of defining the P-matrix, see above, Jarlebring-(2.4) and Ringh-(2.8)(2.3)
 function generate_S_function(nz::Integer, hx, Km, Kp)
     # Constants from the problem
-    const p = (nz-1)/2;
-    const d0 = -3/(2*hx);
-    const b = 4*pi*1im * (-p:p);
-    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+    p = (nz-1)/2;
+    d0 = -3/(2*hx);
+    b = 4*pi*1im * (-p:p);
+    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
-    const betaM = function(γ::AbstractArray, j::Integer)
-        return γ^2 + b[j]*γ + cM[j]*speye(size(γ,1))
+    betaM = function(γ, j::Integer)
+        return γ^2 + b[j]*γ + cM[j]*eye(Complex128,size(γ,1))
     end
-    const betaP = function(γ::AbstractArray, j::Integer)
-        return γ^2 + b[j]*γ + cP[j]*speye(size(γ,1))
-    end
-
-    const sM = function(γ::AbstractArray, j::Integer)
-        return  1im*speye(Complex128, size(γ,1)) * sqrtm_schur_pos_imag(betaM(γ, j)) + d0*speye(Complex128, size(γ,1))
-    end
-    const sP = function(γ::AbstractArray, j::Integer)
-        return  1im*speye(Complex128, size(γ,1)) * sqrtm_schur_pos_imag(betaP(γ, j)) + d0*speye(Complex128, size(γ,1))
+    betaP = function(γ, j::Integer)
+        return γ^2 + b[j]*γ + cP[j]*eye(Complex128,size(γ,1))
     end
 
-    const S = function(γ::AbstractArray, j::Integer)
+    sM = function(γ, j::Integer)
+        return  1im*sqrtm_schur_pos_imag(betaM(γ, j)) + d0*eye(Complex128, size(γ,1))
+    end
+    sP = function(γ, j::Integer)
+        return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + d0*eye(Complex128, size(γ,1))
+    end
+
+    
+    S = function(γ, j::Integer)
         if j <= nz
             return sM(γ,j)
         elseif j <= 2*nz
@@ -194,11 +195,12 @@ end
     """
     sqrtm_schur_pos_imag(A::AbstractMatrix)
  Computes the matrix square root on the 'correct branch',
- that is, with positivt imaginary part.
+ that is, with positivt imaginary part. Similar to Schur method
+ in Algorithm 6.3 in Higham matrix functions. 
 """
 function sqrtm_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
-    AA = full(complex(A))
+    AA = Array{Complex128,2}(A);
     (T, Q, ) = schur(AA)
     U = zeros(Complex128,n,n);
     for i = 1:n
@@ -207,7 +209,7 @@ function sqrtm_schur_pos_imag(A::AbstractMatrix)
     private_inner_loops_sqrt!(n, U, T)
     return Q*U*Q'
 end
- #Helper function executing the inner loop (more Juliaesque)
+#Helper function executing the inner loop (more Juliaesque)
 function private_inner_loops_sqrt!(n, U, T)
     temp = zero(Complex128);
     for j = 2:n
@@ -415,8 +417,8 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     function *{T_num}(M::Mlincomb_matvec{T_num, WEP_FD}, v::AbstractVector)
     # Ringh - (2.13)(3.3)
-        const λ = M.λ
-        const nep = M.nep
+        λ = M.λ
+        nep = M.nep
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
 
@@ -433,11 +435,11 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     function lin_solve{T_num}(solver::GMRESLinSolver{T_num, WEP_FD}, x::Array; tol=eps(real(T_num)))
     # Ringh - Proposition 2.1
-        const λ = solver.A.λ
-        const nep = solver.A.nep
+        λ = solver.A.λ
+        nep = solver.A.nep
 
-        const x_int = x[1:(nep.nx*nep.nz)]
-        const x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
+        x_int = x[1:(nep.nx*nep.nz)]
+        x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
 
         rhs = vec(  x_int - nep.C1*nep.Pinv(λ, x_ext))
 
@@ -457,14 +459,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
     R, Rinv = generate_R_matrix(nz::Integer)
-    const p = (nz-1)/2;
+    p = (nz-1)/2;
 
     # Constants from the problem
-    const d0 = -3/(2*hx);
-    const a = ones(Complex128,nz);
-    const b = 4*pi*1im * (-p:p);
-    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+    d0 = -3/(2*hx);
+    a = ones(Complex128,nz);
+    b = 4*pi*1im * (-p:p);
+    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
 
     function betaM(γ)
