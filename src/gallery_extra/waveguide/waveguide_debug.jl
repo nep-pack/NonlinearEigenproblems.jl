@@ -631,6 +631,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
         nep_j_WEPFD = nep_gallery("waveguide", nx, nz, waveguide, "fD", "WeP", delta)
         nep_j_SPMF  = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpMF", delta)
+        nep_j_SPMF_pre  = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpMF_prE", delta)
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
@@ -669,7 +670,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF = NaN
         eigvec_j_SPMF = NaN
         try
-            eigval_j_SPMF, eigvec_j_SPMF =resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -677,6 +678,20 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
             # still access the approximations
             eigval_j_SPMF = err.λ
             eigvec_j_SPMF = err.v
+        end
+
+        println("    Compute for SPMF (pre-Schur-fact)")
+        eigval_j_SPMF_pre = NaN
+        eigvec_j_SPMF_pre = NaN
+        try
+            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+        catch err
+            # Only catch NoConvergence
+            isa(err, NoConvergenceException) || rethrow(err)
+            println("No convergence because: ", err.msg)
+            # still access the approximations
+            eigval_j_SPMF_pre = err.λ
+            eigvec_j_SPMF_pre = err.v
         end
 
 
@@ -711,6 +726,13 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", abs(eigval_m - eigval_j_SPMF)/abs(eigval_m))
         println("    Difference between MATLAB and SPMF computed eigenvectors = ", norm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
         println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", norm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_m/eigvec_m[1]))
+        println("")
+        println("    Difference between SPMF and SPMF-pre computed eigenvalue = ", abs(eigval_j_SPMF_pre - eigval_j_SPMF))
+        println("    Relative difference between SPMF and SPMF-pre computed eigenvalue = ", abs(eigval_j_SPMF_pre - eigval_j_SPMF)/abs(eigval_j_SPMF))
+        println("    Difference between SPMF and SPMF-pre computed eigenvectors = ", norm(eigvec_j_SPMF_pre/eigvec_j_SPMF_pre[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Relative difference between SPMF and SPMF-pre computed eigenvalue = ", norm(eigvec_j_SPMF_pre/eigvec_j_SPMF_pre[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("")
+        println("    WEP_FD converged to the eigenvalue = ", eigval_j_WEPFD)
 
     end
     println("\n--- End eigenvalue computations of WEP_FD and SPMF against MATLAB ---\n")

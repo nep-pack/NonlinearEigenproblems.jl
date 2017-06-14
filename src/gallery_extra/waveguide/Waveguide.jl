@@ -65,11 +65,16 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
 
 
     # Generate the matrices and formulate the problem is the sought format
-    if (NEP_format == "SPMF") && (discretization == "FD")
+    if ((NEP_format == "SPMF") || (NEP_format == "SPMF_PRE")) && (discretization == "FD")
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
         Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
+        if(NEP_format == "SPMF_PRE")
+            pre_Schur_fact = true
+        else
+            pre_Schur_fact = false
+        end
+        nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp, pre_Schur_fact)
 
     elseif (NEP_format == "WEP") && (discretization == "FD")
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
@@ -93,7 +98,7 @@ end
  Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
-function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, Km, Kp)
+function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, Km, Kp, pre_Schur_fact::Bool)
     Ix = speye(Complex128,nx,nx)
     Iz = speye(Complex128,nz,nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
@@ -129,7 +134,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         E_j = E_j * (E_j/nz)'
         A[j+nz+3] =  hvcat((2,2), spzeros(Complex128,nx*nz,nx*nz), spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), E_j)
     end
-    return SPMF_NEP(A,f)
+    return SPMF_NEP(A,f,pre_Schur_fact)
 end    
 
 

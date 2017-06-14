@@ -89,7 +89,7 @@ module Gallery
                             # nz = 3 * 5 * 7,   disctretization points in x-direction\\
                             # waveguide = 'TAUSCH',   which waveguide (TAUSCH, JARLEBRING)\\
                             # discretization::String = 'FD',   which discretization (FD)\\
-                            # NEP_format::String = 'SPMF',   NEP-format (SPMF, WEP) later format recommended\\
+                            # NEP_format::String = 'SPMF',   NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
                             # delta = 0.1,   Slack from the absorbing boundary conditions
   """
   function nep_gallery(name,params...)

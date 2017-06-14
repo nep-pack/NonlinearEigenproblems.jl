@@ -15,9 +15,9 @@ println("===========================")
 
 delta = 0.1
 
-debug_WEP_FD_preconditioner(delta)
-
 matlab_debug_eigval_comp_WEP_FD_and_SPMF(105, 35, delta)
+
+debug_WEP_FD_preconditioner(delta)
 
 matlab_debug_WEP_FD(119, 115, delta)
 
