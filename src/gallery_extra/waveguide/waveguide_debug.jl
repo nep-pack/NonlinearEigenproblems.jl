@@ -592,7 +592,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
-            γ = -0.5-0.4im
+            γ = -3-3.5im
         else
             waveguide_str = waveguide
             γ = -0.015-5.1im
