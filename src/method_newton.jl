@@ -91,7 +91,7 @@
 
         local linsolver::LinSolver=linsolvercreator(nep,λ)
         # Ensure types λ and v are of type T
-        λ=T(λ)
+        λ::T=T(λ)
         v=Array{T,1}(v)
         c=Array{T,1}(c)
 
@@ -103,7 +103,7 @@
         end
 
 
-        σ=λ;
+        σ::T=λ;
         err=Inf;
 
         try
@@ -132,7 +132,7 @@
                     
 
                 # Compute eigenvector update
-	        Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1))) #M*v);
+                Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,v)) #M*v);
 
                 # Update the eigvector
                 v[:] += -Δv;
@@ -186,7 +186,7 @@
 
         try
             for k=1:maxit
-                err=errmeasure(λ,reshape(v,size(nep,1)))
+                err=errmeasure(λ,v)
                 if (displaylevel>0)
                     println("Iteration:",k," errmeasure:",err)
                 end
