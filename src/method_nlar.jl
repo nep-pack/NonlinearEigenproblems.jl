@@ -4,7 +4,35 @@ export nlar
 
 ################################################################################################################
 
-    function nlar(nep::NEP;
+function default_proj_solver(pnep::Proj_NEP)
+    if (isa(pnep,Proj_PEP))
+        return polyeig(pnep.nep_proj)
+    else
+        λ,Q,err=iar(pnep,Neig=2*nev+3,σ=σ,maxit=100)
+        return λ,Q
+    end
+end
+
+function  default_eigval_sorter(dd,vv,σ,D,mm)
+    R=0.01;
+    dd2=copy(dd);
+    for i=1:size(dd,1)
+        for j=1:size(D,1)
+            if (abs(dd2[i]-D[j])<R)
+                dd2[i]=Inf;
+            end
+        end
+    end            
+    ii = sortperm(abs(dd2-σ));
+
+    mm_max=min(mm,length(ii));
+    nu = dd2[ii[1:mm_max]];
+    y = vv[:,ii[1:mm_max]];
+    
+    return nu,y
+end
+
+function nlar(nep::NEP;
                 nev=10,#Number of eigenvalues required
                 errmeasure::Function =
                 default_errmeasure(nep),
@@ -14,7 +42,10 @@ export nlar
                 v=randn(size(nep,1)),
                 displaylevel=0,
                 nl_eigsolvertype=Union{AbstractString,Function},
-                linsolvercreator::Function=default_linsolvercreator)
+                  linsolvercreator::Function=default_linsolvercreator,
+                  proj_solve::Function = default_proj_solver,
+              eigval_sorter::Function = default_eigval_sorter,
+              qrfact_orth::Bool=false)
 
         local σ::Complex128 = λ; #Initial pole 
 
@@ -31,92 +62,62 @@ export nlar
 
         D = zeros(Complex128,nev);#To store the converged eigenvalues
 
-        m = 0;#Number of converged eigenvalues
-        k = 1;
+        m = 0; #Number of converged eigenvalues
+        k = 1; 
 
         proj_nep=create_proj_NEP(nep);
-
-
-        qrmethod_orth=true;  # 
         
         local linsolver::LinSolver=linsolvercreator(nep,σ);
  
-        num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
-
-        local proj_solve::Function
-        
-        if (isa(nep,PEP))
-            proj_solve(pnep) = polyeig(pnep.nep_proj)
-        else
-            proj_solve=function this_proj_solve(pnep)
-                λ,Q,err=iar(pnep,Neig=2*nev+3,σ=σ)
-                return λ,Q
-            end
-        end
-
 
         ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
         while (m < nev) && (k < maxit)
             ### Construct the small projected PEP projected problem (V^H)T(λ)Vx = 0 using nl_eigsolvertype....(Currently works
             ### only for PEP) #####
 
-            #println("Size:",size(Vk));
             set_projectmatrices!(proj_nep,Vk,Vk);
             
-            dd,vv = proj_solve(proj_nep);
+            dd,vv = proj_solve(proj_nep);            
 
-            dist = zeros(size(dd)[1]);
-            #Select one from the many eigenvalues computed by polyeig
-            for i=1:size(dd)[1]
-                dist[i] = 1/sum(abs(dd[i]-D[1:m]))+abs(dd[i]-σ);
-            end
-            ii2 = sortperm(dist);
-            ii = sortperm(abs(dd-σ));
+            nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
             
-            #println("m=",m," size(ii)=",size(ii), " size(dd)=",size(dd), " size(Vk)=",size(Vk));
-            ν = dd[ii[m+1]];
-            y = vv[:,ii[m+1]];
 
+            nu=nuv[1];
+            y=yv[:,1];
 
-            if m == 0
-                ν = dd[ii[m+1]];
-                y = vv[:,ii[m+1]];
-            else
-                #ν = dd[ii2[1]];
-                #y = vv[:,ii2[1]];
-                #ν = dd[ii2[convert(Int,(size(ii2)[1])/2)]];
-                #y = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]];
+            if (isinf(nu))
+                error("We did not find any (non-converged) eigenvalues to target")
             end
-
             
+
             #Determine ritz vector and residual
             u = Vk*y; # Note: y and u are vectors (not matrices)
 
             u = normalize(u);
-            res = compute_Mlincomb(nep,ν,u);
+            res = compute_Mlincomb(nep,nu,u);
 
            
             #Check for convergence of one of the eigenvalues
-            err = errmeasure(ν,u);
-            println(k," Error:",err," Eigval :",ν)
+            err = errmeasure(nu,u);
+            println(k," Error:",err," Eigval :",nu)
             if(err < tol)
                 if(displaylevel == 1)
-                    println("\n\n****** ",m+1,"th converged to eigenvalue: ",ν," errmeasure:",err,"  ******\n")
+                    println("\n\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n")
                 end
-                D[m+1] = ν;
+                D[m+1] = nu;
                 X[:,m+1] = u;
 
                 #Change the pole
                 #σ = 2.0*ν;
 
+                nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
+                nu1=nuv[1];
+                y1=yv[:,1];
+                
                 #Compute residual again
-                ν1 = dd[ii2[Int(round(size(ii2,1)/2))]];                
-                #ν1 = dd[ii2[convert(Int,(size(ii2)[1])/2)]];
-                y1 = vv[:,ii2[Int(round(size(ii2,1)/2))]];
-                #y1 = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]]
                 u1 = Vk*y1; 
                 u1 = normalize(u1);
-                res = compute_Mlincomb(nep,ν1,u1);
+                res = compute_Mlincomb(nep,nu1,u1);
 
                 m = m+1; 
             end
@@ -126,7 +127,7 @@ export nlar
             Δv=lin_solve(linsolver,res)
 
             #Orthogonalize and normalize
-            if (qrmethod_orth)
+            if (qrfact_orth)
 
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
