@@ -16,7 +16,7 @@ export nlar
                 nl_eigsolvertype=Union{AbstractString,Function},
                 linsolvercreator::Function=default_linsolvercreator)
 
-        σ = λ; #Initial pole 
+        local σ::Complex128 = λ; #Initial pole 
 
         if (maxit>size(nep,1))
             warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
@@ -26,12 +26,15 @@ export nlar
         V = zeros(Complex128, size(nep,1) ,maxit);
         X = zeros(Complex128, size(nep,1) ,nev);
         V[:,1] = normalize(ones(size(nep,1)));
-        Vk = V[:,1];
+        Vk = zeros(Complex128, size(nep,1) ,1);
+        Vk[:,1] = V[:,1];
 
         D = zeros(Complex128,nev);#To store the converged eigenvalues
 
         m = 0;#Number of converged eigenvalues
         k = 1;
+
+        proj_nep=create_proj_NEP(nep);
 
 
         qrmethod_orth=true;  # 
@@ -40,25 +43,27 @@ export nlar
  
         num_t = size(nep.A)[1]; #Number of monomial coefficients in the PEP = degree(PEP)+1
 
+        local proj_solve::Function
+        
+        if (isa(nep,PEP))
+            proj_solve(pnep) = polyeig(pnep.nep_proj)
+        else
+            proj_solve=function this_proj_solve(pnep)
+                λ,Q,err=iar(pnep,Neig=2*nev+3,σ=σ)
+                return λ,Q
+            end
+        end
+
+
         ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
         while (m < nev) && (k < maxit)
             ### Construct the small projected PEP projected problem (V^H)T(λ)Vx = 0 using nl_eigsolvertype....(Currently works
             ### only for PEP) #####
+
+            #println("Size:",size(Vk));
+            set_projectmatrices!(proj_nep,Vk,Vk);
             
-            AA = Array{typeof(zeros(Complex128,k,k))}(num_t);            
-            for i=1:num_t
-                AA[i] = zeros(Complex128,k,k);
-                if(k != 1)
-                    AA[i] = Vk'*nep.A[i]*Vk;
-                else
-                    AA[i][:] = Vk'*nep.A[i]*Vk;
-                end
-            end
-
-            pep_proj = PEP(AA);
-
-            #Solve the projected problem
-            dd,vv = polyeig(pep_proj);
+            dd,vv = proj_solve(proj_nep);
 
             dist = zeros(size(dd)[1]);
             #Select one from the many eigenvalues computed by polyeig
@@ -67,6 +72,8 @@ export nlar
             end
             ii2 = sortperm(dist);
             ii = sortperm(abs(dd-σ));
+            
+            #println("m=",m," size(ii)=",size(ii), " size(dd)=",size(dd), " size(Vk)=",size(Vk));
             ν = dd[ii[m+1]];
             y = vv[:,ii[m+1]];
 
@@ -81,12 +88,9 @@ export nlar
                 #y = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]];
             end
 
-            if(k == 1)
-                y = y[1]
-            end
             
             #Determine ritz vector and residual
-            u = Vk*y; 
+            u = Vk*y; # Note: y and u are vectors (not matrices)
 
             u = normalize(u);
             res = compute_Mlincomb(nep,ν,u);
@@ -106,8 +110,10 @@ export nlar
                 #σ = 2.0*ν;
 
                 #Compute residual again
-                ν1 = dd[ii2[convert(Int,(size(ii2)[1])/2)]];
-                y1 = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]]
+                ν1 = dd[ii2[Int(round(size(ii2,1)/2))]];                
+                #ν1 = dd[ii2[convert(Int,(size(ii2)[1])/2)]];
+                y1 = vv[:,ii2[Int(round(size(ii2,1)/2))]];
+                #y1 = vv[:,ii2[convert(Int,(size(ii2)[1])/2)]]
                 u1 = Vk*y1; 
                 u1 = normalize(u1);
                 res = compute_Mlincomb(nep,ν1,u1);
