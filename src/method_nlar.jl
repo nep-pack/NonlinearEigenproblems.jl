@@ -4,8 +4,8 @@ export nlar
 
 ################################################################################################################
 
-function default_proj_solver(pnep::Proj_NEP)
-    if (isa(pnep,Proj_PEP))
+function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
+    if (isa(pnep,Proj_PEP))   
         return polyeig(pnep.nep_proj)
     else
         λ,Q,err=iar(pnep,Neig=2*nev+3,σ=σ,maxit=100)
@@ -77,7 +77,7 @@ function nlar(nep::NEP;
 
             set_projectmatrices!(proj_nep,Vk,Vk);
             
-            dd,vv = proj_solve(proj_nep);            
+            dd,vv = proj_solve(proj_nep,nev,σ);            
 
             nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
             

@@ -6,17 +6,17 @@ using NEPTypes
 using LinSolvers
 using Gallery
 
-nep1 = nep_gallery("pep0");
-#nep = nep_gallery("dep0_sparse",200);
-#
-#t=1;
-#minusop= S-> -S
-#oneop= S -> eye(S)
-#expmop= S -> expm(full(-t*S))
-#fi=[minusop, oneop, expmop];
-#
-#nep1=SPMF_NEP([speye(size(nep,1)),nep.A[1],nep.A[2]],fi)
-#
+#nep1 = nep_gallery("pep0");
+nep = nep_gallery("dep0_sparse",200);
+
+t=1;
+minusop= S-> -S
+oneop= S -> eye(S)
+expmop= S -> expm(full(-t*S))
+fi=[minusop, oneop, expmop];
+
+nep1=SPMF_NEP([speye(size(nep,1)),nep.A[1],nep.A[2]],fi)
+
 
 print("############### Testing Non-Linear Arnoldi with the PEP: \"pep0\" #################\n");
 
