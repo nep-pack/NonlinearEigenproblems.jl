@@ -14,6 +14,7 @@ export matlab_debug_Schur_WEP_FD_SPMF
 export debug_Mlincomb_FD_WEP
 export debug_Sylvester_SMW_WEP
 export matlab_debug_eigval_comp_WEP_FD_and_SPMF
+export debug_WEP_FD_preconditioner
 
 
 
@@ -573,6 +574,47 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
 
     end
     println("\n--- End Debugging Sylvester SMW for WEP ---\n")
+end
+
+
+###########################################################
+# Test convergence for the preconditioner
+function debug_WEP_FD_preconditioner(delta::Number)
+    println("\n\n--- Debugging WEP_FD preconditioner ---\n")
+
+    nz = 3*3*5
+    nx = nz + 4
+
+    γ = -rand(Complex128)
+    gamma = γ
+
+
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+        println("\n")
+        println("Testing eigenvalue computations for waveguide: ", waveguide)
+
+        nep = nep_gallery("waveguide", nx, nz, waveguide, "fD", "WeP", delta)
+
+        b = rand(Complex128, nx*nz+2*nz)
+
+        for N = [1, 3, 9, 15, 45]
+            println("    Testing for n = ", nz, " and N = ", N)
+            precond = @time generate_preconditioner(nep, N, γ)
+
+            gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:plot,true), (:Pl,precond), (:tol, 1e-15), (:verbose,true))
+            wep_solver = wep_linsolvercreator(nep, γ, gmres_kwargs)
+
+            x = lin_solve(wep_solver, b)
+
+            println("    Relative residual norm = ", norm(compute_Mlincomb(nep, gamma, x) - b)/norm(b))
+
+        end
+
+
+
+
+    end
+    println("\n--- End WEP_FD preconditioner  ---\n")
 end
 
 

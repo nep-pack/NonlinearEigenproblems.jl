@@ -1,11 +1,7 @@
 #  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using NEPSolver
-using NEPCore
-using NEPTypes
 using Gallery
-using LinSolvers
 
 #OBS: Only needed to run the debug
 push!(LOAD_PATH, pwd()*"/../gallery_extra/waveguide")	# looks for modules in the correct directory
@@ -18,6 +14,8 @@ println("||   This is WEP-test    ||")
 println("===========================")
 
 delta = 0.1
+
+debug_WEP_FD_preconditioner(delta)
 
 matlab_debug_eigval_comp_WEP_FD_and_SPMF(105, 35, delta)
 
