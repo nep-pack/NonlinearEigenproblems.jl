@@ -157,7 +157,7 @@ module Gallery
           nep=PEP(A)
           return nep
 
-       elseif (name== "pep0_sparse_003")
+      elseif (name== "pep0_sparse_003")
           # A sparse polynomial eigenvalue problem
           if (length(params)>0)
               n=params[1]
@@ -209,8 +209,10 @@ module Gallery
       elseif (name== "dep_distributed")
           return gallery_dep_distributed();
 
-     elseif (name== "waveguide")
+      elseif (name== "waveguide")
           return gallery_waveguide(params...);
+      else
+          error("The name '", name, "' is not supported in NEP-Gallery.")
       end
       
   end
