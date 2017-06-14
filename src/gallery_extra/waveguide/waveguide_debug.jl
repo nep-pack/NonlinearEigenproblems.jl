@@ -1,6 +1,7 @@
 
 using MATLAB
 using Gallery
+using NEPSolver
 
 
 #OBS: BELOW EXPORTS ARE ONLY FOR DEBUGGING
@@ -12,7 +13,7 @@ export debug_sqrt_derivative
 export matlab_debug_Schur_WEP_FD_SPMF
 export debug_Mlincomb_FD_WEP
 export debug_Sylvester_SMW_WEP
-
+export matlab_debug_eigval_comp_WEP_FD_and_SPMF
 
 
 
@@ -573,3 +574,103 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
     end
     println("\n--- End Debugging Sylvester SMW for WEP ---\n")
 end
+
+
+###########################################################
+# Test to compute eigenvalues and eigenvectors. Test preconditioned RESINV as in Ringh for native-WEP and MATLAB code, and pre-factorized-matrix RESINV for SPMF.
+function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta::Number)
+    println("\n\n--- Debugging eigenvalue computations for WEP_FD and SPMF against MATLAB ---\n")
+
+    nx = nz + 4;
+
+    for waveguide = ["TAUSCH", "JARLEBRING"]
+        println("\n")
+        println("Testing eigenvalue computations for waveguide: ", waveguide)
+
+        nep_j_WEPFD = nep_gallery("waveguide", nx, nz, waveguide, "fD", "WeP", delta)
+        nep_j_SPMF  = nep_gallery("waveguide", nx, nz, waveguide, "fD", "SpMF", delta)
+
+        if waveguide == "JARLEBRING"
+            waveguide_str = "CHALLENGE"
+            γ = -0.5-0.4im
+        else
+            waveguide_str = waveguide
+            γ = -0.015-5.1im
+        end
+        gamma = γ
+
+
+        println("    Generating preconditioner")
+        precond = @time generate_preconditioner(nep_j_WEPFD, N, γ)
+
+        gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,false), (:Pl,precond), (:tol, 1e-13))
+        function wep_gmres_linsolvercreator(nep::NEP, λ)
+            return wep_linsolvercreator(nep, λ, gmres_kwargs)
+        end
+
+        println("    Compute for WEP_FD")
+        eigval_j_WEPFD = NaN
+        eigvec_j_WEPFD = NaN
+        try
+            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        catch err
+            # Only catch NoConvergence
+            isa(err, NoConvergenceException) || rethrow(err)
+            println("No convergence because: ", err.msg)
+            # still access the approximations
+            eigval_j_WEPFD = err.λ
+            eigvec_j_WEPFD = err.v
+        end
+
+
+        println("    Compute for SPMF")
+        eigval_j_SPMF = NaN
+        eigvec_j_SPMF = NaN
+        try
+            eigval_j_SPMF, eigvec_j_SPMF =resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+        catch err
+            # Only catch NoConvergence
+            isa(err, NoConvergenceException) || rethrow(err)
+            println("No convergence because: ", err.msg)
+            # still access the approximations
+            eigval_j_SPMF = err.λ
+            eigvec_j_SPMF = err.v
+        end
+
+
+        println("  -- Matlab printouts start --")
+        WEP_path = pwd() * "/../matlab/WEP"
+        @mput nz N delta WEP_path waveguide_str gamma
+        @matlab begin
+            addpath(WEP_path)
+
+            nzz = double(nz);
+            lambda = double(gamma);
+            NN = double(N);
+
+            eigval_m, eigvec_m = main_func_WEP(nzz, NN, lambda, delta, waveguide_str)
+
+
+        @matlab end
+        @mget eigval_m eigvec_m
+        println("  -- Matlab printouts end --")
+
+        println("    Difference between WEP_FD and SPMF computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_j_SPMF))
+        println("    Relative difference between WEP_FD and SPMF computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_j_SPMF)/abs(eigval_j_WEPFD))
+        println("    Difference between WEP_FD and SPMF computed eigenvectors = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Relative difference between WEP_FD and SPMF computed eigenvalue = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1]))
+        println("")
+        println("    Difference between WEP_FD and MATLAB computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_m))
+        println("    Relative difference between WEP_FD and MATLAB computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_m)/abs(eigval_m))
+        println("    Difference between WEP_FD and MATLAB computed eigenvectors = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_m/eigvec_m[1]))
+        println("    Relative difference between WEP_FD and MATLAB computed eigenvalue = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_m/eigvec_m[1])/norm(eigvec_m/eigvec_m[1]))
+        println("")
+        println("    Difference between MATLAB and SPMF computed eigenvalue = ", abs(eigval_m - eigval_j_SPMF))
+        println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", abs(eigval_m - eigval_j_SPMF)/abs(eigval_m))
+        println("    Difference between MATLAB and SPMF computed eigenvectors = ", norm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", norm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_m/eigvec_m[1]))
+
+    end
+    println("\n--- End eigenvalue computations of WEP_FD and SPMF against MATLAB ---\n")
+end
+
