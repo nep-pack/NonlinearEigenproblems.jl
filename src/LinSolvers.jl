@@ -58,8 +58,7 @@ module LinSolvers
    default_linsolvercreator(nep::NEP, λ)\n
       Creates a linear solver of type 'DefaultLinSolver'.
 """
-    function default_linsolvercreator(nep::NEP, λ::Complex128)
-        println("λ:",typeof(λ));
+    function default_linsolvercreator(nep::NEP, λ)
         return DefaultLinSolver(nep, λ)
     end
 
