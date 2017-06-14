@@ -37,18 +37,17 @@ module LinSolvers
     """
         The linear solver associated with julia factorize()
     """
-    type DefaultLinSolver{T_num<:Number, T_mat<:AbstractMatrix, T_fact_mat<:Factorization
-} <: LinSolver
+    type DefaultLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
         A::T_mat
-        Afact::T_fact_mat
+        Afact
 
-        DefaultLinSolver(A::AbstractMatrix{T_num},Afact::Factorization{T_num}) = new(A, Afact)
+        DefaultLinSolver(A::AbstractMatrix{T_num},Afact) = new(A, Afact)
     end
 
     function DefaultLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
         Afact=factorize(A)
-        return DefaultLinSolver{eltype(A),typeof(A),typeof(Afact)}(A, Afact)
+        return DefaultLinSolver{eltype(A),typeof(A)}(A, Afact)
     end
 
     function lin_solve{T_num}(solver::DefaultLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
@@ -59,7 +58,8 @@ module LinSolvers
    default_linsolvercreator(nep::NEP, λ)\n
       Creates a linear solver of type 'DefaultLinSolver'.
 """
-    function default_linsolvercreator(nep::NEP, λ)
+    function default_linsolvercreator(nep::NEP, λ::Complex128)
+        println("λ:",typeof(λ));
         return DefaultLinSolver(nep, λ)
     end
 
