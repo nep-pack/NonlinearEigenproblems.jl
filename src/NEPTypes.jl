@@ -323,15 +323,32 @@ module NEPTypes
 
     ####################################################### 
     ### Sum of products matrices and functions
+
+    """
+### Sum of products matrices and functions
+  An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,\\
+  where i = 0,1,2,..., all of the matrices are of size n times n
+  and f_i is a function. In particular, it must be possible to evaluate f_i with a matrix argument \\
+  Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and \\
+  fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
+  in the call of ``compute_MM(...)``.
+"""
+
     type SPMF_NEP <: NEP
          n::Integer
          A::Array   # Array of Array of matrices
          fi::Array  # Array of functions
+         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC  
-         function SPMF_NEP(AA,fii::Array)
+         function SPMF_NEP(AA, fii::Array, Schur_fact = false)
              n=size(AA[1],1);
+
+            if(length(AA) != length(fii))
+                error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
+            end
+
              if (issparse(AA[1]))
                  Zero=spones(AA[1]);                 
                  for i=2:length(AA)
@@ -341,7 +358,7 @@ module NEPTypes
              else
                  Zero=zeros(n,n) 
              end
-             this=new(n,AA,fii,Zero);
+             this=new(n,AA,fii,Schur_fact,Zero);
              return this
          end       
     end
@@ -359,6 +376,9 @@ module NEPTypes
             Z=zeros(eltype(V),size(V))
         end
         # Sum together all the terms in the SPMF:
+        if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
+            (T, Q, ) = schur(S)
+        end
         for i=1:length(nep.A)
             ## Compute Fi=f_i(S) in an optimized way
             if (isdiag(S)) # optimize if S is diagonal
@@ -374,7 +394,11 @@ module NEPTypes
                 end
                 Fi=spdiagm(Fid);
             else  # Otherwise just compute the matrix function operation
-                Fi=nep.fi[i](S)
+                if(nep.Schur_factorize_before)
+                    Fi= Q*nep.fi[i](T)*Q'
+                else
+                    Fi=nep.fi[i](S)
+                end
             end
             ## Sum it up
             Z=Z+nep.A[i]*(V*Fi);
