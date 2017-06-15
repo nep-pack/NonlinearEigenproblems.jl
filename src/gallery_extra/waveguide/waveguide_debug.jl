@@ -482,7 +482,8 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("Relative residual norm = ", norm(A*X_jj+X_jj*B-C)/norm(C))
 
     println("FFT-based Sylvester solver for WG (X_j)")
-    X_j = @time solve_wg_sylvester_fft( C, γ, k_bar, hx, hz )
+    X_j::Array{Complex128,2} = copy(C)
+    @time solve_wg_sylvester_fft!( X_j, γ, k_bar, hx, hz )
     println("Relative residual norm = ", norm(A*X_j+X_j*B-C)/norm(C))
 
     println("MATLAB implemented FFT-based Sylvester solver for WG")

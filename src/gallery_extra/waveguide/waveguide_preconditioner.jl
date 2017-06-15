@@ -44,8 +44,8 @@
         # Sylvester solver
         scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        Linv = function(rhs)
-            return solve_wg_sylvester_fft(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+        Linv! = function(rhs)
+            return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -53,7 +53,7 @@
         Pm(v) = -P_inv_m(v)
         Pp(v) = -P_inv_p(v)
 
-        return @time generate_smw_matrix(nz, N, Linv, dd1, dd2, Pm, Pp, nep.K )
+        return generate_smw_matrix(nz, N, Linv!, dd1, dd2, Pm, Pp, nep.K )
     end
 
 
@@ -64,7 +64,7 @@
 """
     function solve_smw(nep::WEP_FD, M, C, σ)
 
-        C::Array{Complex128,2} = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
+        C_copy::Array{Complex128,2} = copy(C) #Make sure it is complex since that is how FFT works. Also take copy since WG_FFT solver works in place.
 
         nz::Integer = nep.nz
         nx::Integer = nep.nx
@@ -75,8 +75,8 @@
         # Sylvester solver
         scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        Linv = function(rhs)
-            return solve_wg_sylvester_fft(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+        Linv! = function(rhs)
+            return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -84,7 +84,7 @@
         Pm(v) = -P_inv_m(v)
         Pp(v) = -P_inv_p(v)
 
-        return solve_smw(M, C, Linv, dd1, dd2, Pm, Pp, nep.K)
+        return solve_smw(M, C_copy, Linv!, dd1, dd2, Pm, Pp, nep.K)
     end
 
 
@@ -95,9 +95,9 @@
  Solves the Sylvester equation for the WEP, with C as right hand side.
  Last two arguments (scratch pad:s) are optional and there to allow reuse of memory allocation. They will be overwritten in the process!
 """
-solve_wg_sylvester_fft( C, λ, k_bar, hx, hz) = solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, zeros(Complex128, 2*(size(C,2)+1), size(C,1)), zeros(Complex128, size(C,2), size(C,1)))
+solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz) = solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, zeros(Complex128, 2*(size(C,2)+1), size(C,1)), zeros(Complex128, size(C,2), size(C,1)))
 
-function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
 
     nz = size(C,1)
     nx = size(C,2)
@@ -115,24 +115,23 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scra
 
     # solve the diagonal matrix equation
     Z::Array{Complex128,2} = zeros(Complex128,nz,nx)
-    CC::Array{Complex128,2} = zeros(Complex128,nz,nx)
 
     ctranspose!(scratch_pad_for_transpose, C)  # scratch_pad_for_transpose = C'
-    ctranspose!(CC, Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )) # CC = (Wh(C'))'
-    Vh!( CC )  #In effect: CC = Vh( Wh(C')' )
+    ctranspose!(C, Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )) # C = (Wh(C'))'
+    Vh!( C )  #In effect: C = Vh( Wh(C')' )
 
 
     for k=1:nx
-        Z[:,k] += CC[:,k]./(D+S[k])
+        Z[:,k] += C[:,k]./(D+S[k])
     end
 
 
     # change variables
     ctranspose!(scratch_pad_for_transpose, Z)  # scratch_pad_for_transpose = Z'
-    ctranspose!(CC, W(scratch_pad_for_transpose, scratch_pad_for_FFT ))  #CC = (W(Z'))'
-    V!( CC ) #In effect: CC = V( W(Z')' )
+    ctranspose!(C, W(scratch_pad_for_transpose, scratch_pad_for_FFT ))  #C = (W(Z'))'
+    V!( C ) #In effect: C = V( W(Z')' )
 
-    return CC
+    return C
 
 end
 
@@ -211,12 +210,12 @@ end
 # Sylvester SMW
 # Ringh - Section 4
     """
-    generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, Pm, Pp, K)
+    generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm, Pp, K)
  Computes the SMW matrix for the Sylvester SMW on rectangular domains, with n points in z-direction, n+4 points in x-direction,\\
- N domains in z-direction, N+4 domains in x-direction.
- and fixed shift.
+ N domains in z-direction, N+4 domains in x-direction, and fixed shift.\\
+ Obs: Linv! works in place on the matrix rhs
 """
-function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, Pm::Function, Pp::Function, K)
+function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K)
 
     # OBS: n = nz, and nz = nx + 4
     nz::Integer = n
@@ -251,14 +250,13 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
 
     EEk::Array{Complex128,2} = zeros(Complex128, nz, nx)
     ek::Array{Complex128,1} = zeros(Complex128, nz)
-    Fk::Array{Complex128,2} = zeros(Complex128, nz, nx)
 
     for k=1:mm
 
         i,j = k2ij(k);
 
         # Ek tilde
-        EEk[:,:] = 0.0im;
+        EEk[:,:] = 0.0im
         if (j==1)
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
             ek[:] = 0.0im
@@ -284,17 +282,17 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
         end
 
         # Sylvester solve of E tilde
-        Fk[:,:] = Linv(EEk);
+        Linv!(EEk) # In effect EEk = Linv!(EEk) = Fk
 
         # Build this matrix element
 
         for kk=1:mm
-            i,j = k2ij(kk);
+            i,j = k2ij(kk)
             # evaluate the linear functional
             if((j==1)||(j==2)||(j==N+3)||(j==N+4))
-                M[kk, k] = sum(sum(Fk[II(i), JJ_2(j)] ))/L
+                M[kk, k] = sum(sum(EEk[II(i), JJ_2(j)] ))/L
             else
-                M[kk, k] = sum(sum(Fk[II(i), JJ(j)] ))/LL
+                M[kk, k] = sum(sum(EEk[II(i), JJ(j)] ))/LL
             end
         end
     end
@@ -308,11 +306,12 @@ end
 
 
     """
-    solve_smw( M, C, Linv::Function, dd1, dd2, Pm, Pp, K)
+    solve_smw( M, C, Linv!::Function, dd1, dd2, Pm, Pp, K)
  Solves the matrix equation SMW system and computes the solution, on rectangular domains.\n
- With SMW-system matrix M, right hand side C, and matrix equation solver Linv which was used to compute M.
+ With SMW-system matrix M, right hand side C, and matrix equation solver Linv! which was used to compute M.
+ Obs: Linv! works in place on the matrix rhs
 """
-function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Function, Pp::Function, K)
+function solve_smw( M, C::Array{Complex128,2}, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K)
 
     mm::Integer = size(M,1)
     N::Integer = sqrt(mm+4)-2      #OBS: N^2 + 4N = length(M)
@@ -343,18 +342,18 @@ function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Fun
     end
 
     # compute the right hand side
-    LinvC = Linv(C)
+    Linv!(C) # Now C = LinvC
+
     b=zeros(Complex128,mm)
     for k=1:mm
         i, j = k2ij(k)
         # evaluate the linear functional
         if((j==1)||(j==2)||(j==N+3)||(j==N+4))
-            b[k] = sum(sum( LinvC[II(i), JJ_2(j)] ))/L
+            b[k] = sum(sum( C[II(i), JJ_2(j)] ))/L
         else
-            b[k] = sum(sum( LinvC[II(i), JJ(j)] ))/LL
+            b[k] = sum(sum( C[II(i), JJ(j)] ))/LL
         end
     end
-    LinvC = 0 #Clean up memory, let GC work if needed
 
     # solve for the coefficients
     alpha = M\b;
@@ -392,8 +391,9 @@ function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Fun
         end
 
     end
+    Linv!(Y) # Now Y = LinvY
 
-    return Linv(C - Y)
+    return C-Y # Which is LinvC - LinvY
 
 end
 
