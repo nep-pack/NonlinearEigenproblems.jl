@@ -44,8 +44,9 @@
         # Sylvester solver
         scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
+        scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
         Linv! = function(rhs)
-            return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+            return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -75,8 +76,9 @@
         # Sylvester solver
         scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
+        scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
         Linv! = function(rhs)
-            return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+            return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -93,11 +95,12 @@
     """
     solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose )
  Solves the Sylvester equation for the WEP, with C as right hand side.
- Last two arguments (scratch pad:s) are optional and there to allow reuse of memory allocation. They will be overwritten in the process!
+ OBS: Writes the solution to the varaible C.
+ Last three arguments (scratch pad:s) are optional and there to allow reuse of memory allocation. They will be overwritten in the process!
 """
-solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz) = solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, zeros(Complex128, 2*(size(C,2)+1), size(C,1)), zeros(Complex128, size(C,2), size(C,1)))
+solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz) = solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, zeros(Complex128, 2*(size(C,2)+1), size(C,1)), zeros(Complex128, size(C,2), size(C,1)), zeros(Complex128, size(C,1), size(C,2)))
 
-function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
 
     nz = size(C,1)
     nx = size(C,2)
@@ -113,21 +116,21 @@ function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scr
     S = -((4+0.0im)/hx^2) * sin(pi*(1:nx)/(2*(nx+1))).^2
 #    S=S.'
 
-    # solve the diagonal matrix equation
-    Z::Array{Complex128,2} = zeros(Complex128,nz,nx)
 
+    # change variables
     ctranspose!(scratch_pad_for_transpose, C)  # scratch_pad_for_transpose = C'
     ctranspose!(C, Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )) # C = (Wh(C'))'
     Vh!( C )  #In effect: C = Vh( Wh(C')' )
 
-
+    # solve the diagonal matrix equation
+    scratch_pad_for_Z[:,:] = 0.0im
     for k=1:nx
-        Z[:,k] += C[:,k]./(D+S[k])
+        scratch_pad_for_Z[:,k] += C[:,k]./(D+S[k])
     end
 
 
     # change variables
-    ctranspose!(scratch_pad_for_transpose, Z)  # scratch_pad_for_transpose = Z'
+    ctranspose!(scratch_pad_for_transpose, scratch_pad_for_Z)  # scratch_pad_for_transpose = Z'
     ctranspose!(C, W(scratch_pad_for_transpose, scratch_pad_for_FFT ))  #C = (W(Z'))'
     V!( C ) #In effect: C = V( W(Z')' )
 
