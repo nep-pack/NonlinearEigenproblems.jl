@@ -42,9 +42,10 @@
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
-        scratch_pad::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
+        scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
+        scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
         Linv = function(C)
-            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad)
+            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -72,9 +73,10 @@
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
-        scratch_pad::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
+        scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
+        scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
         Linv = function(CC)
-            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad)
+            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -92,7 +94,7 @@
     solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
  Solves the Sylvester equation for the WEP, with C as right hand side.
 """
-function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad)
+function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
 
     nz = size(C,1)
     nx = size(C,2)
@@ -111,7 +113,8 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad)
     # solve the diagonal matrix equation
     Z=zeros(Complex128,nz,nx)
 
-    CC = Vh!( Wh(C', scratch_pad )' )
+    ctranspose!(scratch_pad_for_transpose, C)  # scratch_pad_for_transpose = C'
+    CC = Vh!( Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )' )
 
     for k=1:nx
         Z[:,k] += CC[:,k]./(D+S[k])
@@ -119,7 +122,8 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad)
 
 
     # change variables
-    return V!((  W(Z', scratch_pad)  )')
+    ctranspose!(scratch_pad_for_transpose, Z)  # scratch_pad_for_transpose = Z'
+    return V!( W(scratch_pad_for_transpose, scratch_pad_for_FFT )' )
 
 end
 
