@@ -36,13 +36,15 @@
         end
 
         nz::Integer = nep.nz
+        nx::Integer = nep.nx
 
         dd1 = nep.d1/nep.hx^2;
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
+        scratch_pad::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         Linv = function(C)
-            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz )
+            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -50,7 +52,7 @@
         Pm(v) = -P_inv_m(v)
         Pp(v) = -P_inv_p(v)
 
-        return generate_smw_matrix(nz, N, Linv, dd1, dd2, Pm, Pp, nep.K )
+        return @time generate_smw_matrix(nz, N, Linv, dd1, dd2, Pm, Pp, nep.K )
     end
 
 
@@ -61,14 +63,18 @@
 """
     function solve_smw(nep::WEP_FD, M, C, σ)
 
-        C = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
+        C::Array{Complex128,2} = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
+
+        nz::Integer = nep.nz
+        nx::Integer = nep.nx
 
         dd1 = nep.d1/nep.hx^2;
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
+        scratch_pad::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         Linv = function(CC)
-            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz )
+            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -86,7 +92,7 @@
     solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
  Solves the Sylvester equation for the WEP, with C as right hand side.
 """
-function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
+function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad)
 
     nz = size(C,1)
     nx = size(C,2)
@@ -105,7 +111,7 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
     # solve the diagonal matrix equation
     Z=zeros(Complex128,nz,nx)
 
-    CC = Vh!( Wh(C' )' )
+    CC = Vh!( Wh(C', scratch_pad )' )
 
     for k=1:nx
         Z[:,k] += CC[:,k]./(D+S[k])
@@ -113,7 +119,7 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
 
 
     # change variables
-    return V!((  W(Z')  )')
+    return V!((  W(Z', scratch_pad)  )')
 
 end
 
@@ -133,52 +139,52 @@ end
         return ifft!(X,1)*sqrt(nx)
     end
 
-    function W(X::Array{Complex128,2})
+    function W(X::Array{Complex128,2}, scratch_pad::Array{Complex128,2})
     #W Compute the action of the matrix W
     #   W is the matrix of the eigenvectors of the second derivative Dxx
     #   W*X can be computed with FFTs
 
         nz::Complex128 = size(X,1)
-        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X)-Fh(X))
+        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X,scratch_pad)-Fh(X,scratch_pad))
 
         return WX/sqrt((nz+1)/2.0)
 
     end
 
-    function Wh(X::Array{Complex128,2})
+    function Wh(X::Array{Complex128,2}, scratch_pad::Array{Complex128,2})
     #Wh Compute the action of the matrix Wh
     #   Wh is the transpose of the matrix of the eigenvectors of the second derivative Dxx
     #   Wh*X can be computed with FFTs
 
         nz::Complex128 = size(X,1)
-        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X)-Fh(X))
+        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X,scratch_pad)-Fh(X,scratch_pad))
 
         return WX/sqrt((nz+1)/2.0)
 
     end
 
-    function F(v::Array{Complex128,2})
+    function F(v::Array{Complex128,2}, scratch_pad::Array{Complex128,2})
     #F is an auxiliary function for W and Wh
 
         m=size(v,2)
         n=size(v,1) + 1
 
-        pad = zeros(Complex128, 2*n, m)
-        pad[2:n,:] = v
-        fft!(pad,1)
-        return pad[2:n,:]
+        scratch_pad[:,:] = 0.0im
+        scratch_pad[2:n,:] = v
+        fft!(scratch_pad,1)
+        return scratch_pad[2:n,:]
     end
 
-    function Fh( v::Array{Complex128,2} )
+    function Fh( v::Array{Complex128,2}, scratch_pad::Array{Complex128,2})
     #Fh is an auxiliary function for W and Wh
 
         m=size(v,2)
         n=size(v,1) + 1
 
-        pad = zeros(Complex128, 2*n, m)
-        pad[2:n,:] = v
-        ifft!(pad,1)
-        return pad[2:n,:]*2*n
+        scratch_pad[:,:] = 0.0im
+        scratch_pad[2:n,:] = v
+        ifft!(scratch_pad,1)
+        return scratch_pad[2:n,:]*2*n
 
     end
 # End: Auxiliary computations of eigenvector actions using FFT
