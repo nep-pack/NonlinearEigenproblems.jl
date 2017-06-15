@@ -94,12 +94,12 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
     alpha = λ^2+k_bar;
 
     #eigenvalues of A
-    v=zeros(nz);   v[1]=-2;    v[2]=1;     v[nz]=1;   v=v/(hz^2);
-    w=zeros(nz);   w[2]=1;     w[nz]=-1;   w=w*(λ/hz);
+    v=zeros(Complex128, nz);   v[1]=-2;    v[2]=1;     v[nz]=1;   v=v/(hz^2);
+    w=zeros(Complex128, nz);   w[2]=1;     w[nz]=-1;   w=w*(λ/hz);
     D=fft(v+w)+alpha;
 
     # eigenvalues of B = Dxx
-    S = -(4/hx^2) * sin(pi*(1:nx)/(2*(nx+1))).^2
+    S = -((4+0.0im)/hx^2) * sin(pi*(1:nx)/(2*(nx+1))).^2
 #    S=S.'
 
     # solve the diagonal matrix equation
@@ -113,7 +113,7 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
 
 
     # change variables
-    return V!((W(Z'))')
+    return V!((  W(Z')  )')
 
 end
 
@@ -121,67 +121,64 @@ end
 # Start: Auxiliary computations of eigenvector actions using FFT
 #Connects to the solving of the Sylvester equation by FFT-diagonalization
 #Ringh - Section 5.3
-    function V!(X)
+    function V!(X::Array{Complex128,2})
     # Compute the action of the eigenvectors of A = Dzz + Dz + c*I
-        nx = size(X,2)
+        nx::Complex128 = size(X,2)
         return fft!(X,1)/sqrt(nx)
     end
 
-    function Vh!(X)
+    function Vh!(X::Array{Complex128,2})
     # Compute the action of the transpose of the eigenvectors of A = Dzz + Dz + c*I
-        nx = size(X,2)
+        nx::Complex128 = size(X,2)
         return ifft!(X,1)*sqrt(nx)
     end
 
-    function W( X )
+    function W(X::Array{Complex128,2})
     #W Compute the action of the matrix W
     #   W is the matrix of the eigenvectors of the second derivative Dxx
     #   W*X can be computed with FFTs
 
-        WX = (1.0im/2.0)*(F(X)-Fh(X))
+        nz::Complex128 = size(X,1)
+        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X)-Fh(X))
 
-        nz = size(X,1)
         return WX/sqrt((nz+1)/2.0)
 
     end
 
-    function Wh( X )
+    function Wh(X::Array{Complex128,2})
     #Wh Compute the action of the matrix Wh
     #   Wh is the transpose of the matrix of the eigenvectors of the second derivative Dxx
     #   Wh*X can be computed with FFTs
 
-        WX = (Fh(X)-F(X))/(2.0im)
+        nz::Complex128 = size(X,1)
+        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X)-Fh(X))
 
-        nz = size(X,1)
         return WX/sqrt((nz+1)/2.0)
 
     end
 
-    function F( v )
+    function F(v::Array{Complex128,2})
     #F is an auxiliary function for W and Wh
 
         m=size(v,2)
+        n=size(v,1) + 1
 
-        v=[zeros(1,m); v]
-        n=size(v,1)
-
-        pad = [v; zeros(eltype(v),n,m)]
-        v = fft!(pad,1)
-        return v[2:n,:]
-
+        pad = zeros(Complex128, 2*n, m)
+        pad[2:n,:] = v
+        fft!(pad,1)
+        return pad[2:n,:]
     end
 
-    function Fh( v )
+    function Fh( v::Array{Complex128,2} )
     #Fh is an auxiliary function for W and Wh
 
         m=size(v,2)
+        n=size(v,1) + 1
 
-        v=[zeros(1,m); v]
-        n=size(v,1)
-
-        pad = [v; zeros(eltype(v),n,m)]
-        v = ifft!(pad,1)
-        return v[2:n,:]*2*n
+        pad = zeros(Complex128, 2*n, m)
+        pad[2:n,:] = v
+        ifft!(pad,1)
+        return pad[2:n,:]*2*n
 
     end
 # End: Auxiliary computations of eigenvector actions using FFT
