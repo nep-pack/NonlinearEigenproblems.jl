@@ -35,10 +35,10 @@
             error("This implementation is uniform in the blocking and therefore requires nz/N tobe an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )
         end
 
-        const nz::Integer = nep.nz
+        nz::Integer = nep.nz
 
-        const dd1 = nep.d1/nep.hx^2;
-        const dd2 = nep.d2/nep.hx^2;
+        dd1 = nep.d1/nep.hx^2;
+        dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
         Linv = function(C)
@@ -63,8 +63,8 @@
 
         C = Array{Complex128,2}(C) #Cast to complex since that is how FFT works
 
-        const dd1 = nep.d1/nep.hx^2;
-        const dd2 = nep.d2/nep.hx^2;
+        dd1 = nep.d1/nep.hx^2;
+        dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
         Linv = function(CC)
@@ -196,23 +196,23 @@ end
 function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, Pm::Function, Pp::Function, K)
 
     # OBS: n = nz, and nz = nx + 4
-    const nz::Integer = n
-    const nx::Integer = n + 4
+    nz::Integer = n
+    nx::Integer = n + 4
 
         
-    const L::Integer = n/N             # Number of points in one dimanesion of the regions
-    const LL::Integer = L*L            # Number of points in the "square interior regions"
-    const mm::Integer = (N^2 + 4*N)    # Number of elements in SMW-matrix
+    L::Integer = n/N             # Number of points in one dimanesion of the regions
+    LL::Integer = L*L            # Number of points in the "square interior regions"
+    mm::Integer = (N^2 + 4*N)    # Number of elements in SMW-matrix
 
     # block extract index
     II = function (i::Integer) # z-direction, always equal
-        (i-1)*L+1:i*L
+        return (i-1)*L+1:i*L
     end
     JJ = function(j::Integer) #x-direction, different if boundary or interior
-        ((j-3)*L+1:(j-2)*L) + 2
+        return ((j-3)*L+1:(j-2)*L) + 2
     end
     JJ_2 = function(j::Integer)
-        (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
+        return (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
     end
 
     # convert a single index k to two indeces
@@ -228,31 +228,32 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
 
     EEk::Array{Complex128,2} = zeros(Complex128, nz, nx)
     ek::Array{Complex128,1} = zeros(Complex128, nz)
+    Fk::Array{Complex128,2} = zeros(Complex128, nz, nx)
 
     for k=1:mm
 
         i,j = k2ij(k);
 
         # Ek tilde
-        EEk = 0*EEk;
+        EEk[:,:] = 0.0im;
         if (j==1)
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd1
             EEk[:, 1] += Pm(ek)
         elseif (j==2)
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd2
             EEk[:, 1] += Pm(ek)
         elseif (j==N+4)
             EEk[II(i),JJ_2(j)] = K[II(i),JJ_2(j)]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd1
             EEk[:, nx] += Pp(ek)
         elseif (j==N+3)
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd2
             EEk[:, nx] += Pp(ek)
         else
@@ -260,7 +261,7 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv::Function, dd1, dd2, P
         end
 
         # Sylvester solve of E tilde
-        Fk = Linv(EEk);
+        Fk[:,:] = Linv(EEk);
 
         # Build this matrix element
 
@@ -290,24 +291,24 @@ end
 """
 function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Function, Pp::Function, K)
 
-    const mm::Integer = size(M,1)
-    const N::Integer = sqrt(mm+4)-2      #OBS: N^2 + 4N = length(M)
+    mm::Integer = size(M,1)
+    N::Integer = sqrt(mm+4)-2      #OBS: N^2 + 4N = length(M)
 
-    const nz::Integer = size(C,1)
-    const nx::Integer = size(C,2)
-    const n::Integer = nz
-    const L::Integer = nz/N
-    const LL::Integer = L*L
+    nz::Integer = size(C,1)
+    nx::Integer = size(C,2)
+    n::Integer = nz
+    L::Integer = nz/N
+    LL::Integer = L*L
 
     # block extract index
     II = function (i::Integer) # z-direction, always equal
-        (i-1)*L+1:i*L
+        return (i-1)*L+1:i*L
     end
     JJ = function(j::Integer) #x-direction, different if boundary or interior
-        ((j-3)*L+1:(j-2)*L) + 2
+        return ((j-3)*L+1:(j-2)*L) + 2
     end
     JJ_2 = function(j::Integer)
-        (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
+        return (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
     end
 
     # convert a single index k to two indeces
@@ -333,7 +334,7 @@ function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Fun
     LinvC = 0 #Clean up memory, let GC work if needed
 
     # solve for the coefficients
-    const alpha = M\b;
+    alpha = M\b;
 
     # build the solution
     Y::Array{Complex128,2} = zeros(Complex128, nz, nx);
@@ -345,22 +346,22 @@ function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Fun
         # Ek tilde implicitly created
         if (j==1)
             Y[II(i), 1] += alpha[k]*K[II(i), 1]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd1
             Y[:, 1] += alpha[k]*Pm(ek)
         elseif (j==2)
             Y[II(i), 2] += Y[II(i),2] + alpha[k]*K[II(i), 2]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd2
             Y[:, 1] += alpha[k]*Pm(ek)
         elseif (j==N+4)
             Y[II(i), nx] += alpha[k]*K[II(i), nx]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd1
             Y[:, nx] += alpha[k]*Pp(ek)
         elseif (j==N+3)
             Y[II(i), nx-1] += alpha[k]*K[II(i), nx-1]
-            ek = 0*ek
+            ek[:] = 0.0im
             ek[II(i)] = dd2
             Y[:, nx] += alpha[k]*Pp(ek)
         else
