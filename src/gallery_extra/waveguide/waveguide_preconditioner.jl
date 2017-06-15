@@ -44,8 +44,8 @@
         # Sylvester solver
         scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        Linv = function(C)
-            return solve_wg_sylvester_fft(C, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+        Linv = function(rhs)
+            return solve_wg_sylvester_fft(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -75,8 +75,8 @@
         # Sylvester solver
         scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
         scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        Linv = function(CC)
-            return solve_wg_sylvester_fft(CC, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
+        Linv = function(rhs)
+            return solve_wg_sylvester_fft(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
         end
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
@@ -91,9 +91,12 @@
 #FFT diagonalization and solution to WEP matrix equation.
 #Ringh - Section 5.3
     """
-    solve_wg_sylvester_fft( C, λ, k_bar, hx, hz )
+    solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose )
  Solves the Sylvester equation for the WEP, with C as right hand side.
+ Last two arguments (scratch pad:s) are optional and there to allow reuse of memory allocation. They will be overwritten in the process!
 """
+solve_wg_sylvester_fft( C, λ, k_bar, hx, hz) = solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, zeros(Complex128, 2*(size(C,2)+1), size(C,1)), zeros(Complex128, size(C,2), size(C,1)))
+
 function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose)
 
     nz = size(C,1)
@@ -111,10 +114,13 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scra
 #    S=S.'
 
     # solve the diagonal matrix equation
-    Z=zeros(Complex128,nz,nx)
+    Z::Array{Complex128,2} = zeros(Complex128,nz,nx)
+    CC::Array{Complex128,2} = zeros(Complex128,nz,nx)
 
     ctranspose!(scratch_pad_for_transpose, C)  # scratch_pad_for_transpose = C'
-    CC = Vh!( Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )' )
+    ctranspose!(CC, Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )) # CC = (Wh(C'))'
+    Vh!( CC )  #In effect: CC = Vh( Wh(C')' )
+
 
     for k=1:nx
         Z[:,k] += CC[:,k]./(D+S[k])
@@ -123,7 +129,10 @@ function solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scra
 
     # change variables
     ctranspose!(scratch_pad_for_transpose, Z)  # scratch_pad_for_transpose = Z'
-    return V!( W(scratch_pad_for_transpose, scratch_pad_for_FFT )' )
+    ctranspose!(CC, W(scratch_pad_for_transpose, scratch_pad_for_FFT ))  #CC = (W(Z'))'
+    V!( CC ) #In effect: CC = V( W(Z')' )
+
+    return CC
 
 end
 
@@ -134,13 +143,15 @@ end
     function V!(X::Array{Complex128,2})
     # Compute the action of the eigenvectors of A = Dzz + Dz + c*I
         nx::Complex128 = size(X,2)
-        return fft!(X,1)/sqrt(nx)
+        fft!(X,1)#/sqrt(nx)
+        scale!(X, (1+0.0im)/sqrt(nx))
     end
 
     function Vh!(X::Array{Complex128,2})
     # Compute the action of the transpose of the eigenvectors of A = Dzz + Dz + c*I
         nx::Complex128 = size(X,2)
-        return ifft!(X,1)*sqrt(nx)
+        ifft!(X,1)#* sqrt(nx)
+        scale!(X, (1+0.0im)*sqrt(nx))
     end
 
     function W(X::Array{Complex128,2}, scratch_pad::Array{Complex128,2})
@@ -149,9 +160,10 @@ end
     #   W*X can be computed with FFTs
 
         nz::Complex128 = size(X,1)
-        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X,scratch_pad)-Fh(X,scratch_pad))
+        WX::Array{Complex128,2} = F(X,scratch_pad)-Fh(X,scratch_pad)
 
-        return WX/sqrt((nz+1)/2.0)
+        scale!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
+        return WX
 
     end
 
@@ -161,9 +173,10 @@ end
     #   Wh*X can be computed with FFTs
 
         nz::Complex128 = size(X,1)
-        WX::Array{Complex128,2} = (1.0im/2.0)*(F(X,scratch_pad)-Fh(X,scratch_pad))
+        WX::Array{Complex128,2} = F(X,scratch_pad)-Fh(X,scratch_pad)
 
-        return WX/sqrt((nz+1)/2.0)
+        scale!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
+        return WX
 
     end
 
@@ -380,8 +393,7 @@ function solve_smw( M, C::Array{Complex128,2}, Linv::Function, dd1, dd2, Pm::Fun
 
     end
 
-    X=Linv(C-Y)
-    return X
+    return Linv(C - Y)
 
 end
 
