@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using Gallery
@@ -34,4 +33,3 @@ matlab_debug_Schur_WEP_FD_SPMF(49, 45, delta)
 fft_debug_mateq(431, 427, delta)
 
 debug_Sylvester_SMW_WEP(109, 105, delta, 7)
-

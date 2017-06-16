@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 push!(LOAD_PATH, ".." )	# looks for modules in the current directory
@@ -23,7 +22,3 @@ k=40;
 W=rand(n,k);
 
 compute_Mlincomb(nep,0.0,W);
-
-
-
-

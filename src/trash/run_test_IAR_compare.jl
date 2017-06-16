@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
@@ -28,5 +27,3 @@ toc()
 tic()
 λ,Q,err = iar_old(nep,maxit=m,Neig=m,σ=2.0,γ=0.5);
 toc()
-
-

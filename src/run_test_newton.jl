@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
@@ -76,9 +75,3 @@ nep=nep_gallery("dep0", 50)
 λ,x =augnewton(nep, displaylevel=1);
 
 println("Resnorm:",compute_resnorm(nep,λ,x))
-
-
-
-
-
-

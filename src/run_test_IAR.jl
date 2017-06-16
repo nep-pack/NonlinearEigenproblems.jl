@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
@@ -30,4 +29,3 @@ errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
  println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
-

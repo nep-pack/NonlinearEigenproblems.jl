@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
@@ -48,5 +47,3 @@ for k = 1:2
         end
     end
 end
-
-

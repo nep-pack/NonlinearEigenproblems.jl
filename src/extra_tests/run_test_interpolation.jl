@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
@@ -271,4 +270,3 @@ println("\nCoefficient matrix differences (monomes): ")
 println(norm(nep.A[1]-pep.A[1], Inf))
 println(norm(nep.A[2]-pep.A[2], Inf))
 println(norm(nep.A[3]-pep.A[3], Inf))
-

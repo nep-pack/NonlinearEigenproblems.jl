@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
@@ -17,8 +16,8 @@ x=NaN
 try
     λ,x =augnewton(nep,displaylevel=1);
 catch e
-    # Only catch NoConvergence 
-    isa(e, NoConvergenceException) || rethrow(e)  
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
     println("No convergence because:"*e.msg)
     # still access the approximations
     λ=e.λ

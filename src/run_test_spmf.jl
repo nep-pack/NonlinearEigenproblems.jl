@@ -1,4 +1,3 @@
-#  This is the first code in NEP-pack
 # Verify the code for SPMF= sum of products of matrices and functions
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
@@ -127,6 +126,3 @@ show(STDOUT, "text/plain", b1) # Pretty print it
 println("\n\n        Running with_fact...");
 b2=@benchmark with_fact(SS_alt)
 show(STDOUT, "text/plain", b2) # Pretty print it
-
-
-
