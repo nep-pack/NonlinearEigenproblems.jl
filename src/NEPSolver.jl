@@ -14,6 +14,7 @@ module NEPSolver
     include("method_companion.jl")
     include("method_nlar.jl")
     include("method_sg.jl")
+    include("method_rfi.jl")
 #    include("method_jd_lin.jl")
     include("method_jd_quad.jl")
     
