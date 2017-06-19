@@ -3,7 +3,8 @@ export rfi
 Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and
 Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 """
-function rfi(nep::NEP;
+function rfi(nep::NEP,
+            nept::NEP;
             errmeasure::Function=default_errmeasure(nep::NEP),
             tolerance = eps()*100,
             maxit=100,
@@ -19,6 +20,7 @@ function rfi(nep::NEP;
         v = v/norm(v);
         u = u/norm(u);
 
+
         try
             for k=1:maxit
                 err = errmeasure(λ,u);
@@ -31,15 +33,15 @@ function rfi(nep::NEP;
                     @printf("Iteration: %2d errmeasure:%.18e \n",k, err);
                 end
 
-                #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k)
                 local linsolver::LinSolver = linsolvercreator(nep,λ);
-                x = lin_solve(linsolver,compute_Mder(nep,λ,1)*u,tol = tolerance);
+                local linsolver_t::LinSolver = linsolvercreator(nept,λ);
+                
+                #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k) 
+                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[1],1),tol = tolerance);
                 u = x/norm(x);
 
                 #S2: (T(λ_k)^H)y_(k+1) = (T'(λ_k)^H)v_(k)
-                L = compute_Mder(nep,λ)';
-                R = compute_Mder(nep,λ,1)'*v;
-                y = L\R;#Hardcoded backslash
+                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tolerance);
                 v = y/norm(y);
 
                 λ =compute_rf(nep,u;y=v);
