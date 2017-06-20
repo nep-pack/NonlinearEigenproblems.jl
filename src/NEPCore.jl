@@ -72,6 +72,7 @@ abstract superclass of s.
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
+        #println(typeof(λ))
         # determine a default behavior (may lead to loss of performance)
         if (@method_concretely_defined(compute_MM,nep))
             return compute_Mlincomb_from_MM(nep,λ,V,a)
@@ -111,6 +112,7 @@ if you want efficiency (for aug_newton, IAR, ..).
     ## Helper functions 
     function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_MM -> compute_Mlincomb")
+        #println(typeof(λ))
         k=size(V,2)
         S=jordan_matrix(eltype(V),k,λ).'
         b=zeros(size(a));
@@ -147,6 +149,7 @@ a jordan block becomes derivatives
     end
 
     function compute_resnorm(nep::NEP,λ,v)
+        #println(typeof(λ))
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
     end
 
@@ -231,12 +234,14 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
 
     jordan_matrix(n::Integer,λ::Number)=jordan_matrix(Complex128,n,λ)
     function jordan_matrix{T<:Number}(::Type{T},n::Integer,λ::Number)
+        #println(typeof(λ)," ",Type{T})
         Z=T(λ)*eye(T,n)+diagm(ones(T,n-1),1);
     end
 
 
     function default_errmeasure(nep::NEP)
         f=function (λ,v);
+            #println(typeof(λ))
             compute_resnorm(nep,λ,v)/norm(v)
         end
         return f

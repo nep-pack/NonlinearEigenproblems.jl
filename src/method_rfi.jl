@@ -6,9 +6,9 @@ Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 function rfi(nep::NEP,
             nept::NEP;
             errmeasure::Function=default_errmeasure(nep::NEP),
-            tolerance = eps()*100,
+            tolerance = eps()*1000,
             maxit=100,
-            λ = 0.0,
+            λ = 0.0+0.0im,
             v = randn(nep.n),
             u = randn(nep.n),
             linsolvercreator::Function=default_linsolvercreator,
@@ -16,6 +16,10 @@ function rfi(nep::NEP,
 
         err = Inf;
 
+        #Ensure type coherence
+        T = typeof(λ);
+        v = Array{T,1}(v);
+        u = Array{T,1}(u);
         #Normalize v and u
         v = v/norm(v);
         u = u/norm(u);
