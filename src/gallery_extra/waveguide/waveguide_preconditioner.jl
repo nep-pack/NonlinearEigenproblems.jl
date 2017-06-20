@@ -12,9 +12,15 @@
     function generate_preconditioner(nep::WEP_FD, N::Integer, σ)
         M = generate_smw_matrix(nep, N, σ)
 
+        nz = nep.nz
+        nx = nep.nx
+        const scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
+        const scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
+        const scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
+
         precond = function(c_vec)
             C = reshape(c_vec, nep.nz, nep.nx)
-            return vec( solve_smw( nep, M, C, σ) )
+            return vec( solve_smw( nep, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z) )
         end
 
         return precond
@@ -42,9 +48,9 @@
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
-        scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
-        scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
+        const scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
+        const scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
+        const scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
         Linv! = function(rhs)
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
@@ -63,7 +69,7 @@
  Given a nep of type WEP_FD, an SMW-system matrix M computed with shift σ, and a right hand side C,\\
  This computes the solution to the SMW-matrix equation.
 """
-    function solve_smw(nep::WEP_FD, M, C, σ)
+    function solve_smw(nep::WEP_FD, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
 
         C_copy::Array{Complex128,2} = copy(C) #Make sure it is complex since that is how FFT works. Also take copy since WG_FFT solver works in place.
 
@@ -74,9 +80,6 @@
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
-        scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
-        scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
         Linv! = function(rhs)
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
@@ -218,13 +221,13 @@ end
  N domains in z-direction, N+4 domains in x-direction, and fixed shift.\\
  Obs: Linv! works in place on the matrix rhs
 """
-function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K)
+function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K::Union{Array{Complex128,2}, Array{Float64,2}})
 
     # OBS: n = nz, and nz = nx + 4
     nz::Integer = n
     nx::Integer = n + 4
 
-        
+
     L::Integer = n/N             # Number of points in one dimanesion of the regions
     LL::Integer = L*L            # Number of points in the "square interior regions"
     mm::Integer = (N^2 + 4*N)    # Number of elements in SMW-matrix
@@ -314,7 +317,7 @@ end
  With SMW-system matrix M, right hand side C, and matrix equation solver Linv! which was used to compute M.
  Obs: Linv! works in place on the matrix rhs
 """
-function solve_smw( M, C::Array{Complex128,2}, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K)
+function solve_smw( M, C::Array{Complex128,2}, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K::Union{Array{Complex128,2}, Array{Float64,2}})
 
     mm::Integer = size(M,1)
     N::Integer = sqrt(mm+4)-2      #OBS: N^2 + 4N = length(M)
@@ -399,5 +402,3 @@ function solve_smw( M, C::Array{Complex128,2}, Linv!::Function, dd1, dd2, Pm::Fu
     return C-Y # Which is LinvC - LinvY
 
 end
-
-

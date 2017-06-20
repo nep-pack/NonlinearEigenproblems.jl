@@ -33,7 +33,7 @@ export issparse
 import Base.*
 export *
 import Base.eltype
-export eltype    
+export eltype
 
 include("waveguide_debug.jl")
 include("waveguide_FD.jl")
@@ -45,7 +45,7 @@ include("waveguide_FEM.jl")
 "
 Creates the NEP associated with example in
 
-E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring, 
+E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
 Sylvester-based preconditioning for the waveguide eigenvalue problem,
 Linear Algebra and its Applications
 
@@ -88,7 +88,7 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
 
     println("Waveguide generated")
     return nep
-end 
+end
 
 
 ###########################################################
@@ -135,7 +135,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         A[j+nz+3] =  hvcat((2,2), spzeros(Complex128,nx*nz,nx*nz), spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), E_j)
     end
     return SPMF_NEP(A,f,pre_Schur_fact)
-end    
+end
 
 
 ###########################################################
@@ -182,7 +182,7 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
         return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + d0*eye(Complex128, size(γ,1))
     end
 
-    
+
     S = function(γ, j::Integer)
         if j <= nz
             return sM(γ,j)
@@ -202,7 +202,7 @@ end
     sqrtm_schur_pos_imag(A::AbstractMatrix)
  Computes the matrix square root on the 'correct branch',
  that is, with positivt imaginary part. Similar to Schur method
- in Algorithm 6.3 in Higham matrix functions. 
+ in Algorithm 6.3 in Higham matrix functions.
 """
 function sqrtm_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
@@ -254,10 +254,10 @@ end
       Linear Algebra and its Applications''
 """
     type WEP_FD <: NEP
-        nx::Integer
-        nz::Integer
-        hx
-        hz
+        nx::Int64
+        nz::Int64
+        hx::Float64
+        hz::Float64
         A::Function
         B::Function
         C1
@@ -265,9 +265,9 @@ end
         k_bar
         K
         p::Integer
-        d0
-        d1
-        d2
+        d0::Float64
+        d1::Float64
+        d2::Float64
         b
         cMP # cM followed by cP in a vector (length = 2*nz)
         R::Function
@@ -280,13 +280,15 @@ end
             k_bar = mean(K)
             K_scaled = K-k_bar*ones(Complex128,nz,nx)
 
+            eye_scratch_pad = speye(Complex128, nz, nz)
+
             A = function(λ, d=0)
                 if(d == 0)
-                    return Dzz + 2*λ*Dz + λ^2*speye(Complex128, nz, nz) + k_bar*speye(Complex128, nz, nz)
+                    return Dzz + 2*λ*Dz + λ^2*eye_scratch_pad + k_bar*eye_scratch_pad
                 elseif(d == 1)
-                    return 2*Dz + 2*λ*speye(Complex128, nz, nz)
+                    return 2*Dz + 2*λ*eye_scratch_pad
                 elseif(d == 2)
-                    return 2*speye(Complex128, nz, nz)
+                    return 2*eye_scratch_pad
                 else
                     return spzeros(Complex128, nz, nz)
                 end
@@ -308,7 +310,7 @@ end
             b = 4*pi*1im * (-p:p)
             cM = Km^2 - 4*pi^2 * ((-p:p).^2)
             cP = Kp^2 - 4*pi^2 * ((-p:p).^2)
-            cMP = [cM; cP]
+            cMP = vcat(cM, cP)
 
             R, Rinv = generate_R_matvecs(nz)
             Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
@@ -384,17 +386,15 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         V2 = view(V, nx*nz+1:n_nep, :)
 
         # Compute the top part (nx*nz)
-        y1_mat = zeros(Complex128, nz, nx)
-        y1_mat += nep.A(λ) * V1_mat[:,:,1]  +  V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1]
+        y1_mat::Array{Complex128,2} = nep.A(λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1]
         for d = 1:min(max_d,3)
             y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1]
         end
-        y1 = y1_mat[:]
+        y1::Array{Complex128,1} = y1_mat[:]
         y1 += nep.C1 * V2[:,1]
 
         # Compute the bottom part (2*nz)
-        y2 = zeros(Complex128, 2*nz, 1) #Make a (2*nz,1) since application of R returns on that format
-        D = zeros(Complex128, 2*nz, na)
+        D::Array{Complex128,2} = zeros(Complex128, 2*nz, na)
         for j = 1:2*nz
             a = 1
             b = nep.b[rem(j-1,nz)+1]
@@ -405,14 +405,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             end
         end
 
-        y2 += (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+        y2_temp::Array{Complex128,1} = (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         for jj = 2:na
-            y2 += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+            y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         end
-        y2 = vec([nep.R(y2[1:nz]); nep.R(y2[nz+1:2*nz])]) #Make a vector, since in Julia the types (2*nz,) and (2*nz,1) are different
+        y2::Array{Complex128,1} = [nep.R(y2_temp[1:nz,1]); nep.R(y2_temp[nz+1:2*nz,1])]
         y2 += nep.C2T * V1[:,1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
-        return [y1;y2]
+        return vcat(y1, y2)
     end
 
 
@@ -434,7 +434,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
     function size(M::SchurMatVec, dim=-1)
-        n = M.nep.nx*M.nep.nz 
+        n = M.nep.nx*M.nep.nz
         if (dim==-1)
             return (n,n)
         else
@@ -462,9 +462,9 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             for elem in kwargs
                 gmres_log |= ((elem[1] == :log) && elem[2])
             end
-            return new(schur_comp, kwargs, gmres_log,nep,λ)            
+            return new(schur_comp, kwargs, gmres_log,nep,λ)
         end
-        
+
     end
 
     function lin_solve(solver::WEPLinSolver, x::Array; tol=eps(Float64))
