@@ -1,7 +1,7 @@
 module NEPCore
     # Fundamental nonlinear eigenvalue problems
     export NEP
-    # 
+    #
     export size
     export issparse
     export NoConvergenceException
@@ -24,7 +24,7 @@ module NEPCore
     export compute_Mlincomb_from_Mder
     export compute_Mder_from_MM
 
-    
+
     export default_errmeasure
 
     import Base.size  # Overload for nonlinear eigenvalue problems
@@ -47,7 +47,7 @@ abstract superclass of s.
     #
 
     abstract NEP;
-    
+
 
     """
     compute_Mder(nep::NEP,λ::Number,i::Integer=0)
@@ -61,7 +61,7 @@ abstract superclass of s.
         if (@method_concretely_defined(compute_MM,nep))
             extra_msg=", or choose to call the compute_Mder_from_MM, which can be slow"
         end
-        
+
         error("You need to provide an implementation of Mder for this NEP, or choose to use compute_Mder_from_MM"*extra_msg*".")
         return 0;
     end
@@ -96,7 +96,7 @@ if you want efficiency (for aug_newton, IAR, ..).
         VV=[zeros(size(nep,1),startder) V]; # This is typically slow since copy is needed
         return compute_Mlincomb(nep,λ,VV,a=aa)
     end
-    
+
     """
     compute_MM(nep::NEP,S,V)
  Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP,\\
@@ -109,7 +109,7 @@ if you want efficiency (for aug_newton, IAR, ..).
 
 
 
-    ## Helper functions 
+    ## Helper functions
     function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_MM -> compute_Mlincomb")
         #println(typeof(λ))
@@ -135,7 +135,7 @@ if you want efficiency (for aug_newton, IAR, ..).
         end
         return z
     end
-"""
+  """
 Computes the Mder function from MM using the fact that MM of
 a jordan block becomes derivatives
 """
@@ -153,7 +153,7 @@ a jordan block becomes derivatives
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
     end
 
-"""
+  """
     compute_rf{T}(::Type{T},nep::NEP,x; y=x, target=zero(T), λ0=target,
                         TOL=eps(real(T))*1e3,max_iter=10)
 Computes the rayleigh functional of nep, i.e., computes λ such that
@@ -177,7 +177,7 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
     end
 
 
-"""
+   """
     size(nep::NEP,dim=-1)
  Overloads the size functions for NEP.\\
  Size returns the size of the matrix defining the NEP.
@@ -189,7 +189,7 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
     end
 
 
-"""
+   """
     issparse(nep::NEP)
  Overloads the issparse functions for NEP.\\
  Issparse returns `true` if the undelying type of the NEP is\\

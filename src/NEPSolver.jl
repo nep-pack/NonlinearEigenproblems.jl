@@ -5,7 +5,7 @@ module NEPSolver
 
     export compute_eigvec_from_eigval
     ## NEP-Methods
-   
+
     include("method_newton.jl")
     include("method_iar.jl")
     include("method_tiar.jl")
@@ -17,7 +17,7 @@ module NEPSolver
     include("method_rfi.jl")
 #    include("method_jd_lin.jl")
     include("method_jd_quad.jl")
-    
+
 """
      Computes an eigenvector approximation from an
      eigenvalue approximation (with very little
@@ -43,7 +43,7 @@ module NEPSolver
         warn("No sufficiently accurate eigenvector found. Norm:"*string(norm(rv)))
         return v;
     end
-    
+
 
 
 

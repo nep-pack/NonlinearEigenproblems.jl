@@ -98,7 +98,7 @@
         # If c is zero vector we take eigvec approx as left vector in
         # generalized Rayleigh functional
         use_v_as_rf_vector=false;
-        if (norm(c)==0)  
+        if (norm(c)==0)
             use_v_as_rf_vector=true;
         end
 
@@ -116,20 +116,20 @@
 
                 if (use_v_as_rf_vector)
                     c=v;
-                end                
-                
+                end
+
                 if (displaylevel>0)
                     @printf("Iteration: %2d errmeasure:%.18e ",k, err);
                     println(" v_as_rf_vector=",use_v_as_rf_vector);
                 end
-                
+
                 if (err< tolerance)
                     return (λ,v)
                 end
 
                 # Compute eigenvalue update
                 λ = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
-                    
+
 
                 # Compute eigenvector update
                 Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,v)) #M*v);
@@ -158,7 +158,7 @@
     end
 
 
-       
+
 
 
     # New augnewton
@@ -195,7 +195,7 @@
                 end
                 # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
                 # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
-                
+
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
                 local linsolver::LinSolver = linsolvercreator(nep,λ)

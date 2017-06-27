@@ -1,20 +1,20 @@
 module NEPTypes
-    # Specializalized NEPs 
+    # Specializalized NEPs
     export DEP
     export PEP
     export REP
     export SPMF_NEP
 
     export Proj_NEP;
-    export Proj_PEP;    
-    export Proj_SPMF_NEP;    
+    export Proj_PEP;
+    export Proj_SPMF_NEP;
     export create_proj_NEP;
 
     export interpolate
     export interpolate_cheb
-    
+
     export set_projectmatrices!;
-    
+
     using NEPCore
 
     # We overload these
@@ -23,7 +23,7 @@ module NEPTypes
     import NEPCore.compute_MM
     import NEPCore.compute_resnorm
     import NEPCore.compute_rf
-    
+
     import Base.size
     import Base.issparse
 
@@ -31,14 +31,14 @@ module NEPTypes
     export compute_Mlincomb
     export compute_MM
     export compute_resnorm
-    export compute_rf    
+    export compute_rf
     export size
     export companion
 
 
 
 
-    
+
     ###########################################################
     # Delay eigenvalue problems - DEP
     #
@@ -56,7 +56,7 @@ module NEPTypes
         tauv::Array{Float64,1} # the delays
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
-            this=new(n,reshape(AA,length(AA)),tauv);   # allow for 1xn matrices 
+            this=new(n,reshape(AA,length(AA)),tauv);   # allow for 1xn matrices
             return this;
         end
     end
@@ -73,7 +73,7 @@ module NEPTypes
             I=speye(nep.n,nep.n)
         else
             M=zeros(nep.n,nep.n)
-            I=eye(nep.n,nep.n)        
+            I=eye(nep.n,nep.n)
         end
         if i==0; M=-λ*I;  end
         if i==1; M=-I; end
@@ -165,7 +165,7 @@ module NEPTypes
 
         n = size(nep, 1)
         d = length(intpoints)
-        
+
         V = Array{T}(d,d) #Vandermonde matrix
         pwr = ones(d,1)
         for i = 1:d
@@ -181,13 +181,13 @@ module NEPTypes
             for i=1:d
                 b[i] = compute_Mder(nep, intpoints[i])
             end
-            
+
             # OBS: The following lines and hence the  following method assumes that Sparsity-structure is the same!
             nnz_AA = nnz(b[1])
             for i=1:d
                 AA[i] = spones(b[1])
             end
-            
+
             f = zeros(d,1)
             for i = 1:nnz_AA
                 for j = 1:d
@@ -218,7 +218,7 @@ module NEPTypes
                 AA[i] = A[(1:n)+(i-1)*n,:]
             end
         end
-        
+
         return PEP(AA)
     end
 
@@ -242,7 +242,7 @@ module NEPTypes
 
     ###########################################################
     # Rational eigenvalue problem - REP
-        
+
     """
 ### Rational eigenvalue problem
   A Rep is defined by the sum the sum ``Σ_i A_i s_i(λ)/q_i(λ)``,\\
@@ -261,19 +261,19 @@ module NEPTypes
         function REP(AA,poles::Array)
 
             n=size(AA[1],1)
-            AA=reshape(AA,length(AA)) # allow for 1xn matrices 
+            AA=reshape(AA,length(AA)) # allow for 1xn matrices
             # numerators
             si=Array{Array{Number,1},1}(length(poles))
             for i =1:size(poles,1)
                 si[i]=[1];
             end
             # denominators
-            qi=Array{Array{Number,1}}(length(poles))            
+            qi=Array{Array{Number,1}}(length(poles))
             for i =1:size(poles,1)
                 if poles[i]!=0
                     qi[i]=[1,-poles[i]];
                 else
-                    qi[i]=[1];                    
+                    qi[i]=[1];
                 end
             end
             return new(n,AA,si,qi)
@@ -288,7 +288,7 @@ module NEPTypes
             Z=zeros(size(V))
             Si=eye(size(S,1))
         end
-        # Sum all the elements            
+        # Sum all the elements
         for i=1:size(nep.A,1)
             # compute numerator
             Snum=copy(Si);
@@ -305,8 +305,8 @@ module NEPTypes
                 Sden+=Spowj*nep.qi[i][j]
                 Spowj=Spowj*S;
             end
-            
-            # Sum it up 
+
+            # Sum it up
             Z+=nep.A[i]*V*(Sden\Snum)
         end
         return Z
@@ -315,13 +315,13 @@ module NEPTypes
         if (i!=0) # Todo
             error("Higher order derivatives of REP's not implemented")
         end
-        S=speye(rep.n)*λ 
+        S=speye(rep.n)*λ
         V=speye(rep.n);
         return compute_MM(rep,S,V)  # This call can be slow
     end
 
 
-    ####################################################### 
+    #######################################################
     ### Sum of products matrices and functions
 
     """
@@ -341,7 +341,7 @@ module NEPTypes
          Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
          # Sparse zero matrix to be used for sparse matrix creation
-         Zero::SparseMatrixCSC  
+         Zero::SparseMatrixCSC
          function SPMF_NEP(AA, fii::Array, Schur_fact = false)
              n=size(AA[1],1);
 
@@ -350,25 +350,25 @@ module NEPTypes
             end
 
              if (issparse(AA[1]))
-                 Zero=spones(AA[1]);                 
+                 Zero=spones(AA[1]);
                  for i=2:length(AA)
                      Zero=Zero+spones(AA[i]);
                  end
                  Zero=(Zero*1im)*0
              else
-                 Zero=zeros(n,n) 
+                 Zero=zeros(n,n)
              end
              this=new(n,AA,fii,Schur_fact,Zero);
              return this
-         end       
+         end
     end
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
             if (size(V)==size(nep))
-                # Initialize with zero sparse matrix which 
+                # Initialize with zero sparse matrix which
                 # has sparsity pattern already consistent
                 # with sparsity pattern of M() for optimization
-                Z=copy(nep.Zero) 
+                Z=copy(nep.Zero)
             else
                 Z=spzeros(eltype(V),size(V,1),size(V,2))
             end
@@ -390,7 +390,7 @@ module NEPTypes
                     Fid=zeros(Complex128,size(S,1))
                     for j=1:size(S,1)
                         Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
-                    end                    
+                    end
                 end
                 Fi=spdiagm(Fid);
             else  # Otherwise just compute the matrix function operation
@@ -419,8 +419,8 @@ module NEPTypes
         end
     end
 
-  
-        
+
+
     #######################################################
     ### Represents a projected NEP
 """
@@ -447,7 +447,7 @@ set_projectionmatrices() to specify projection matrices.
         V
         W
         nep_proj::PEP; # An instance of the projected NEP
-        function Proj_PEP(nep::PEP) 
+        function Proj_PEP(nep::PEP)
             this=new(nep);
             return this
         end
@@ -458,7 +458,7 @@ set_projectionmatrices() to specify projection matrices.
         V
         W
         nep_proj::SPMF_NEP; # An instance of the projected NEP
-        function Proj_SPMF_NEP(nep::SPMF_NEP) 
+        function Proj_SPMF_NEP(nep::SPMF_NEP)
             this=new(nep);
             return this
         end
@@ -469,16 +469,16 @@ set_projectionmatrices() to specify projection matrices.
 Set the projection matrices for the NEP to W and V, i.e.,
 corresponding the NEP: W'nep.orgnep(s)Vz=0.
 """
-    function set_projectmatrices!(nep::Union{Proj_PEP,Proj_SPMF_NEP},W,V)        
+    function set_projectmatrices!(nep::Union{Proj_PEP,Proj_SPMF_NEP},W,V)
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         k=size(W,2);
         m=size(nep.orgnep.A,1);
-        B = Array{Array{eltype(W),2}}(m);            
+        B = Array{Array{eltype(W),2}}(m);
         for i=1:m
             B[i]=W'*nep.orgnep.A[i]*V;
         end
-        nep.W=W;  
+        nep.W=W;
         nep.V=V;
         if (isa(nep.orgnep,PEP))
             nep.nep_proj=PEP(B);
@@ -488,7 +488,7 @@ corresponding the NEP: W'nep.orgnep(s)Vz=0.
         else
             error("Unknown type")
         end
-        
+
     end
 
 
@@ -534,10 +534,9 @@ corresponding the NEP: W'nep.orgnep(s)Vz=0.
 Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 """
     function issparse(nep::Union{DEP,PEP,REP,SPMF_NEP})
-        return issparse(nep.A[1])   
+        return issparse(nep.A[1])
     end
 
 
 
 end
-
