@@ -31,7 +31,7 @@
      hh = zeros(Complex128,m+1);
 
      y  = zeros(Complex128,n,m+1);
-     α  = [0;ones(m)];
+     α  = [0+0.0im;ones(Complex128,m)];
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
      for i=2:m+1; α[i]=γ^(i-1); end
      local M0inv::LinSolver = linsolvercreator(nep,σ);
