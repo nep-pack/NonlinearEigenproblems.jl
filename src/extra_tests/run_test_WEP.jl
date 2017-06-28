@@ -3,8 +3,8 @@ push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using Gallery
 
 #OBS: Only needed to run the debug
-push!(LOAD_PATH, pwd()*"/../gallery_extra/waveguide")	# looks for modules in the correct directory
-using Waveguide
+push!(LOAD_PATH, pwd()*"/gallery_extra/waveguide")	# looks for modules in the correct directory
+using waveguide_debug
 
 
 
