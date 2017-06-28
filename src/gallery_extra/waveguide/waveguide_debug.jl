@@ -1,10 +1,14 @@
+module waveguide_debug
 
 using MATLAB
+
 using Gallery
 using NEPSolver
+using NEPCore
+using LinSolvers
+using Waveguide
 
 
-#OBS: BELOW EXPORTS ARE ONLY FOR DEBUGGING
 export matlab_debug_WEP_FD
 export matlab_debug_full_matrix_WEP_FD_SPMF
 export debug_sqrtm_schur
@@ -16,6 +20,19 @@ export debug_Sylvester_SMW_WEP
 export matlab_debug_eigval_comp_WEP_FD_and_SPMF
 export debug_WEP_FD_preconditioner
 
+#OBS: Explicit imports of non-exported functions
+import Waveguide.generate_wavenumber_fd
+import Waveguide.generate_fd_interior_mat
+import Waveguide.generate_fd_boundary_mat
+import Waveguide.generate_R_matvecs
+import Waveguide.generate_Pinv_matrix
+import Waveguide.generate_S_function
+import Waveguide.sqrtm_schur_pos_imag
+import Waveguide.sqrt_derivative
+import Waveguide.SchurMatVec
+import Waveguide.solve_wg_sylvester_fft!
+import Waveguide.generate_smw_matrix
+import Waveguide.solve_smw
 
 
 ########### SOME REFERENCE IMPLEMENTATIONS ################
@@ -739,3 +756,4 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
     println("\n--- End eigenvalue computations of WEP_FD and SPMF against MATLAB ---\n")
 end
 
+end

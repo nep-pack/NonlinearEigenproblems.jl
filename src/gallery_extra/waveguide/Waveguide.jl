@@ -15,10 +15,6 @@ export wep_linsolvercreator
 # Specializalized NEPs
 export WEP_FD
 
-# Preconditioner
-export generate_smw_matrix
-
-
 # We overload these
 import NEPCore.compute_Mlincomb
 export compute_Mlincomb
@@ -35,7 +31,6 @@ export *
 import Base.eltype
 export eltype
 
-include("waveguide_debug.jl")
 include("waveguide_FD.jl")
 include("waveguide_FEM.jl")
 # OBS: include("waveguide_preconditioner.jl") is at the bottom so that needed types are declared before the include

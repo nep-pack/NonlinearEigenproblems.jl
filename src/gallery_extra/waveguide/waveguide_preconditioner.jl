@@ -65,10 +65,12 @@
 
 
     """
-    solve_smw( nep::WEP_FD, M, C, σ)
+    solve_smw(nep::WEP_FD, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
  Given a nep of type WEP_FD, an SMW-system matrix M computed with shift σ, and a right hand side C,\\
  This computes the solution to the SMW-matrix equation.
 """
+    solve_smw(nep::WEP_FD, M, C, σ) = solve_smw(nep::WEP_FD, M, C, σ, zeros(Complex128, 2*(size(C,2)+1), size(C,1)), zeros(Complex128, size(C,2), size(C,1)), zeros(Complex128, size(C,1), size(C,2)))
+
     function solve_smw(nep::WEP_FD, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
 
         C_copy::Array{Complex128,2} = copy(C) #Make sure it is complex since that is how FFT works. Also take copy since WG_FFT solver works in place.
