@@ -417,7 +417,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     type SchurMatVec
         nep::WEP_FD
         λ::Complex128
-        SchurMatVec(nep::WEP_FD, λ::Complex128) = new(nep, λ)
+        SchurMatVec(nep::WEP_FD, λ::Union{Complex128,Float64}) = new(nep, λ)
     end
 
     function *(M::SchurMatVec,v::AbstractVector)
@@ -451,7 +451,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         gmres_log::Bool
         nep::WEP_FD
         λ::Complex128
-        function WEPLinSolver(nep::WEP_FD,λ::Complex128,kwargs)
+        function WEPLinSolver(nep::WEP_FD,λ::Union{Complex128,Float64},kwargs)
             schur_comp=SchurMatVec(nep,λ);
             gmres_log = false
             for elem in kwargs
