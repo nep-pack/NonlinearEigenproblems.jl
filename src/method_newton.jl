@@ -182,13 +182,20 @@
         c=Array{T,1}(c)
 
         err=Inf;
+        # If c is zero vector we take eigvec approx as normalization vector
+        use_v_as_normalization_vector=false;
+        if (norm(c)==0)
+            use_v_as_normalization_vector=true;
+            c = v /norm(v)^2
+        end
         v=v/dot(c,v);
 
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
                 if (displaylevel>0)
-                    println("Iteration:",k," errmeasure:",err)
+                    @printf("Iteration: %2d errmeasure:%.18e ",k, err);
+                    println(" v_as_normalization_vector=",use_v_as_normalization_vector);
                 end
                 if (err< tolerance)
                     return (λ,v)
@@ -201,6 +208,9 @@
                 local linsolver::LinSolver = linsolvercreator(nep,λ)
                 tempvec = lin_solve(linsolver, z, tol=tolerance);
 
+                if (use_v_as_normalization_vector)
+                    c = v /norm(v)^2
+                end
                 α = T(1)/ dot(c,tempvec);
 
                 λ = λ - α;

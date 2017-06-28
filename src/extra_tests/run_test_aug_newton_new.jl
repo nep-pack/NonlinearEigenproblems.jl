@@ -23,4 +23,18 @@ catch e
     λ=e.λ
     x=e.v
 end
+println(λ)
+println(compute_resnorm(nep,λ,x))
+
+try
+    λ,x =augnewton(nep,displaylevel=1, c=0);
+catch e
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
+    println("No convergence because:"*e.msg)
+    # still access the approximations
+    λ=e.λ
+    x=e.v
+end
+println(λ)
 println(compute_resnorm(nep,λ,x))
