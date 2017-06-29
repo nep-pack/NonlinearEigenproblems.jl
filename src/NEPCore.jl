@@ -114,19 +114,19 @@ if you want efficiency (for aug_newton, IAR, ..).
         # This function it is based on the evaluation of matrix function of a bidiagonal matrix
         # Should we document the methematical
 
-        k=size(V,2);
+        k=size(V,2); α=a;
 
         # we need to assume that the elements of a are is different than zero. Here there is a naive fix
         J=eye(k,k);
         for j=1:k
-            if a[j]==0
-                a[j]=1; J[j,j]=0;
+            if α[j]==0
+                α[j]=1; J[j,j]=0;
             end
         end
         W=V*J;
         # W=V*J is such that W[:,j]=V[:,j] if α[j]!=0 and W[:,j]=0 if α[j]=0
 
-        b=(a[2:k]./a[1:k-1]).*(1:k-1);
+        b=(α[2:k]./α[1:k-1]).*(1:k-1);
         S=diagm(λ*ones(eltype(V),k))+diagm(b,1); S=S.';
         z=compute_MM(nep,S,W)[:,1]; # Same: z=compute_MM(nep,S,V)*eye(k,1);
         ## activate following for debugging (verify that Mder is equivalent)
