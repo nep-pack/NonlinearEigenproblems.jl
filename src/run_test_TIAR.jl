@@ -13,7 +13,7 @@ import NEPCore.compute_Mlincomb
 println("Load dep0")
 nep=nep_gallery("dep0",100)
 #nep=nep_gallery("pep0");
-
+#
 #function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 #    return compute_Mlincomb_from_Mder(nep,λ,V,a)
 #end
