@@ -4,7 +4,7 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-#using PyPlot
+using PyPlot
 
 # explicit import needed for overloading
 # functions from packages
@@ -21,9 +21,9 @@ nep=nep_gallery("dep0",100)
 m=50;
 λ,Q,err = iar(nep,maxit=m,Neig=m,σ=2.0,γ=2);
 
-#for i=1:m
-# semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
-#end
+for i=1:m
+ semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
+end
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
