@@ -111,20 +111,25 @@ if you want efficiency (for aug_newton, IAR, ..).
 
     ## Helper functions
     function compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
-        #println("Using poor-man's compute_MM -> compute_Mlincomb")
-        #println(typeof(λ))
-        k=size(V,2)
-        S=jordan_matrix(eltype(V),k,λ).'
-        b=zeros(size(a));
-        for i=1:k
-            b[i]=a[i]*factorial(Float64(i-1))
+        # This function it is based on the evaluation of matrix function of a bidiagonal matrix
+        # Should we document the methematical
+
+        k=size(V,2);
+
+        # we need to assume that the elements of a are is different than zero. Here there is a naive fix
+        for j=1:k
+            if a[j]==0
+                a[j]=1; V[:,j]=0;
+            end
         end
-        W=V*diagm(b)
-        z=compute_MM(nep,S,W)*eye(k,1)
+
+        b=(a[2:k]./a[1:k-1]).*(1:k-1);
+        S=diagm(λ*ones(eltype(V),k))+diagm(b,1); S=S.';
+        z=compute_MM(nep,S,V)*eye(k,1);
         ## activate following for debugging (verify that Mder is equivalent)
-        # z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
-        # println("should be zero:",norm(z2-z))
-        return reshape(z,size(z,1))
+        #z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
+        #println("should be zero:",norm(z2-z))
+        return a[1]*reshape(z,size(z,1))
     end
 
     function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)

@@ -1,10 +1,14 @@
 # Illustrating scaling difficulties with compute_Mlincomb_from_MM
 workspace();
-push!(LOAD_PATH, pwd())	
-push!(LOAD_PATH, ".." )	
+push!(LOAD_PATH, pwd())
+push!(LOAD_PATH, ".." )
 using NEPCore
 using NEPTypes
 
+# manually clc
+for jj=1:20
+    println("\n")
+end
 
 function DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
     A=Array{BigFloat}(A);
@@ -21,7 +25,7 @@ function DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 end
 
 srand(0);
-# Setup the problem 
+# Setup the problem
 n=30
 A=randn(n,n)
 B=randn(n,n)
@@ -48,6 +52,36 @@ println("Error:",Float64(norm(x-xx)/norm(xx)))
 
 # Setup a the coeff vector
 m=30;
+alphav=(0.6).^(1:m)
+X=randn(n,m)
+V,R=qr(X)
+
+# Compute with default method
+x=compute_Mlincomb_from_MM(dep,0,V,alphav)
+xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+
+norm(x-xx)/norm(xx)
+println("m=",m)
+println("Error:",Float64(norm(x-xx)/norm(xx)))
+
+# Setup a the coeff vector
+m=100;
+alphav=(0.6).^(1:m)
+X=randn(n,m)
+V,R=qr(X)
+
+# Compute with default method
+x=compute_Mlincomb_from_MM(dep,0,V,alphav)
+xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+
+norm(x-xx)/norm(xx)
+println("m=",m)
+println("Error:",Float64(norm(x-xx)/norm(xx)))
+
+
+
+# Setup a the coeff vector
+m=500;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
