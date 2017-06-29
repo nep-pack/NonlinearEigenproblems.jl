@@ -117,15 +117,18 @@ if you want efficiency (for aug_newton, IAR, ..).
         k=size(V,2);
 
         # we need to assume that the elements of a are is different than zero. Here there is a naive fix
+        J=eye(k,k);
         for j=1:k
             if a[j]==0
-                a[j]=1; V[:,j]=0;
+                a[j]=1; J[j,j]=0;
             end
         end
+        W=V*J;
+        # W=V*J is such that W[:,j]=V[:,j] if α[j]!=0 and W[:,j]=0 if α[j]=0
 
         b=(a[2:k]./a[1:k-1]).*(1:k-1);
         S=diagm(λ*ones(eltype(V),k))+diagm(b,1); S=S.';
-        z=compute_MM(nep,S,V)[:,1]; # Same: z=compute_MM(nep,S,V)*eye(k,1);
+        z=compute_MM(nep,S,W)[:,1]; # Same: z=compute_MM(nep,S,V)*eye(k,1);
         ## activate following for debugging (verify that Mder is equivalent)
         #z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
         #println("should be zero:",norm(z2-z))
