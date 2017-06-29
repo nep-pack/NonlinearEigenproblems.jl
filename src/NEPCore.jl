@@ -125,7 +125,7 @@ if you want efficiency (for aug_newton, IAR, ..).
 
         b=(a[2:k]./a[1:k-1]).*(1:k-1);
         S=diagm(λ*ones(eltype(V),k))+diagm(b,1); S=S.';
-        z=compute_MM(nep,S,V)*eye(k,1);
+        z=compute_MM(nep,S,V)[:,1]; # Same: z=compute_MM(nep,S,V)*eye(k,1);
         ## activate following for debugging (verify that Mder is equivalent)
         #z2=compute_Mlincomb_from_Mder(nep,λ,V,a)
         #println("should be zero:",norm(z2-z))
