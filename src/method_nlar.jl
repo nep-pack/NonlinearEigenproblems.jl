@@ -13,6 +13,10 @@ function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
     end
 end
 
+## D = already computed eigenvalues
+## dd, vv eigenpairs of projected problem
+## σ target
+## returns at most mm values
 function  default_eigval_sorter(dd,vv,σ,D,mm)
     R=0.01;
     dd2=copy(dd);
@@ -25,9 +29,9 @@ function  default_eigval_sorter(dd,vv,σ,D,mm)
     end            
     ii = sortperm(abs(dd2-σ));
 
-    mm_max=min(mm,length(ii));
-    nu = dd2[ii[1:mm_max]];
-    y = vv[:,ii[1:mm_max]];
+    mm_min=min(mm,length(ii));
+    nu = dd2[ii[1:mm_min]];
+    y = vv[:,ii[1:mm_min]];
     
     return nu,y
 end
