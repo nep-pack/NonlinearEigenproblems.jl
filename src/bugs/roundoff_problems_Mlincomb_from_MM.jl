@@ -47,7 +47,6 @@ xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 println("m=",m)
 println("Error:",Float64(norm(x-xx)/norm(xx)))
 
-
 ## Compute lin comb for larger m-value
 
 # Setup a the coeff vector
@@ -57,7 +56,7 @@ X=randn(n,m)
 V,R=qr(X)
 
 # Compute with default method
-x=compute_Mlincomb_from_MM(dep,0,V,alphav)
+x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 
 norm(x-xx)/norm(xx)
@@ -71,7 +70,8 @@ X=randn(n,m)
 V,R=qr(X)
 
 # Compute with default method
-x=compute_Mlincomb_from_MM(dep,0,V,alphav)
+alphav[2]=0;
+x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 
 norm(x-xx)/norm(xx)
