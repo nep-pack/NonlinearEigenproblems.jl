@@ -12,6 +12,7 @@
      errmeasure::Function = default_errmeasure(nep::NEP),
      σ=0.0,
      γ=1,
+     v0=rand(nep.n,1),
      displaylevel=0
     )
 
@@ -31,14 +32,14 @@
      hh = zeros(Complex128,m+1);
 
      y  = zeros(Complex128,n,m+1);
-     α  = [0+0.0im;ones(Complex128,m)];
+     α=γ.^(0:m); α[1]=0; # equivalent to: for i=2:m+1; α[i]=γ^(i-1); end
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
-     for i=2:m+1; α[i]=γ^(i-1); end
+     
      local M0inv::LinSolver = linsolvercreator(nep,σ);
      err = zeros(m,m);
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
-     Z[:,1]=ones(n,1); Z[:,1]=Z[:,1]/norm(Z[:,1]);
+     Z[:,1]=v0; Z[:,1]=Z[:,1]/norm(Z[:,1]);
      a[1,1,1]=1;
 
      k=1; conv_eig=0;

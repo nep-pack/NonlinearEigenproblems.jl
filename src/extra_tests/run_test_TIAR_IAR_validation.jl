@@ -1,10 +1,10 @@
+cd("..")
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using PyPlot
 
 # explicit import needed for overloading
 # functions from packages
@@ -20,13 +20,9 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 end
 #
 m=50;
-λ,Q,err = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3);
+z=rand(100,1);
+λ1,Q1,err1 = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3,v0=z);
+λ2,Q2,err2 =  iar(nep,maxit=m,Neig=m,σ=2.0,γ=3,v0=z);
 
-for i=1:m
- semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
-end
-
-errormeasure=default_errmeasure(nep);
-for i=1:length(λ)
- println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
-end
+println("Error in the base= ",norm(Q1-Q2))
+println("Error in the Ritz values= ",norm(λ1-λ2))

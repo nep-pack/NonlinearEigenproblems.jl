@@ -3,8 +3,8 @@ clear all
 clc
 %% DEFINE THE PROBLEM
 n=5;                % problems size (wanted n-1 scaled-derivative)
-alpha=ones(1,n);    % rescaling factors
-mu=3;            % the derivatives are evaluated in mu
+alpha=rand(1,n);    % rescaling factors
+mu=rand;            % the derivatives are evaluated in mu
 
 %% COMPUTE THE SCALED DERIVATIVES WITH A MATRIX FUNCTION EVALUATION
 JJ=mu*diag(ones(n,1))+diag((1:1:n-1).*alpha(2:n)./alpha(1:n-1),1);  % tilde J
