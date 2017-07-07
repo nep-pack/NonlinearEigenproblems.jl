@@ -35,6 +35,26 @@ dep=DEP([A,B],[0,tau])
 
 ## Compute lin comb for small m-value
 
+
+# Setup a the coeff vector
+m=5;
+alphav=(0.6).^(1:m)
+X=randn(n,m)
+V,R=qr(X)
+
+# Compute with default method
+xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+
+betav=ones(alphav);
+x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
+x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
+x=x1-x2;
+
+norm(x-xx)/norm(xx)
+println("m=",m)
+println("Error:",Float64(norm(x-xx)/norm(xx)))
+
+
 # Setup a the coeff vector
 m=10;
 alphav=(0.6).^(1:m)
@@ -42,26 +62,65 @@ X=randn(n,m)
 V,R=qr(X)
 
 # Compute with default method
-x=compute_Mlincomb_from_MM(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+
+betav=ones(alphav);
+x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
+x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
+x=x1-x2;
+
+norm(x-xx)/norm(xx)
 println("m=",m)
 println("Error:",Float64(norm(x-xx)/norm(xx)))
 
-## Compute lin comb for larger m-value
+
+
+
 
 # Setup a the coeff vector
-m=30;
+m=20;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
 
 # Compute with default method
-x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+
+betav=ones(alphav);
+x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
+x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
+x=x1-x2;
 
 norm(x-xx)/norm(xx)
 println("m=",m)
 println("Error:",Float64(norm(x-xx)/norm(xx)))
+
+
+
+
+# Setup a the coeff vector
+m=50;
+alphav=(0.6).^(1:m)
+X=randn(n,m)
+V,R=qr(X)
+
+# Compute with default method
+xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+
+betav=ones(alphav);
+x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
+x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
+x=x1-x2;
+
+norm(x-xx)/norm(xx)
+println("m=",m)
+println("Error:",Float64(norm(x-xx)/norm(xx)))
+
+
+
+
+
+
 
 # Setup a the coeff vector
 m=100;
@@ -70,25 +129,12 @@ X=randn(n,m)
 V,R=qr(X)
 
 # Compute with default method
-alphav[2]=0;
-x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 
-norm(x-xx)/norm(xx)
-println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
-
-
-
-# Setup a the coeff vector
-m=500;
-alphav=(0.6).^(1:m)
-X=randn(n,m)
-V,R=qr(X)
-
-# Compute with default method
-x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
-xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
+betav=ones(alphav);
+x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
+x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
+x=x1-x2;
 
 norm(x-xx)/norm(xx)
 println("m=",m)
