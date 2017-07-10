@@ -1,5 +1,5 @@
 module gplot_module
-# This module is simply an interface with Gaston. 
+# This module is simply an interface with Gaston.
 
   using Gaston
 
@@ -13,7 +13,6 @@ module gplot_module
     # set axis
     a = AxesConf(); a.axis="semilogy";   addconf(a)
     # set curve
-    addcoords(x, y);
     c = CurveConf();    c.color=color;
 
     # plot
@@ -24,7 +23,6 @@ module gplot_module
     # set axis
     a = AxesConf(); addconf(a)
     # set curve
-    addcoords(x, y);
     c = CurveConf();    c.color=color;
 
     # plot
