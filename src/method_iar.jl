@@ -12,11 +12,12 @@
      errmeasure::Function = default_errmeasure(nep::NEP),
      σ=0.0,
      γ=1,
-     v0=rand(nep.n,1),
+     v0=rand(size(nep,1),1),
      displaylevel=0
     )
 
-     n = size(nep,1); m = maxit;
+     n = size(nep,1);
+     m = maxit;
      # initialization
      V = zeros(Complex128,n*(m+1),m+1);
      H = zeros(Complex128,m+1,m);

@@ -5,7 +5,7 @@ export nlar
 ################################################################################################################
 
 function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
-    if (isa(pnep,Proj_PEP))   
+    if (isa(pnep,Proj_PEP))
         return polyeig(pnep.nep_proj)
     else
         λ,Q,err=iar(pnep,Neig=2*nev+3,σ=σ,maxit=100)
@@ -26,13 +26,13 @@ function  default_eigval_sorter(dd,vv,σ,D,mm)
                 dd2[i]=Inf;
             end
         end
-    end            
+    end
     ii = sortperm(abs(dd2-σ));
 
     mm_min=min(mm,length(ii));
     nu = dd2[ii[1:mm_min]];
     y = vv[:,ii[1:mm_min]];
-    
+
     return nu,y
 end
 
@@ -51,7 +51,7 @@ function nlar(nep::NEP;
               eigval_sorter::Function = default_eigval_sorter,
               qrfact_orth::Bool=false)
 
-        local σ::Complex128 = λ; #Initial pole 
+        local σ::Complex128 = λ; #Initial pole
 
         if (maxit>size(nep,1))
             warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
@@ -65,14 +65,15 @@ function nlar(nep::NEP;
         Vk[:,1] = V[:,1];
 
         D = zeros(Complex128,nev);#To store the converged eigenvalues
+        err_hyst=eps()*ones(maxit,nev) # Giampaolo's edit
 
         m = 0; #Number of converged eigenvalues
-        k = 1; 
+        k = 1;
 
         proj_nep=create_proj_NEP(nep);
-        
+
         local linsolver::LinSolver=linsolvercreator(nep,σ);
- 
+
 
         ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
         while (m < nev) && (k < maxit)
@@ -80,11 +81,11 @@ function nlar(nep::NEP;
             ### only for PEP) #####
 
             set_projectmatrices!(proj_nep,Vk,Vk);
-            
-            dd,vv = proj_solve(proj_nep,nev,σ);            
+
+            dd,vv = proj_solve(proj_nep,nev,σ);
 
             nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
-            
+
 
             nu=nuv[1];
             y=yv[:,1];
@@ -92,7 +93,7 @@ function nlar(nep::NEP;
             if (isinf(nu))
                 error("We did not find any (non-converged) eigenvalues to target")
             end
-            
+
 
             #Determine ritz vector and residual
             u = Vk*y; # Note: y and u are vectors (not matrices)
@@ -100,10 +101,11 @@ function nlar(nep::NEP;
             u = normalize(u);
             res = compute_Mlincomb(nep,nu,u);
 
-           
+
             #Check for convergence of one of the eigenvalues
             err = errmeasure(nu,u);
             println(k," Error:",err," Eigval :",nu)
+            err_hyst[k,m+1]=err;    # Giampaolo's edit
             if(err < tol)
                 if(displaylevel == 1)
                     println("\n\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n")
@@ -117,13 +119,13 @@ function nlar(nep::NEP;
                 nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
                 nu1=nuv[1];
                 y1=yv[:,1];
-                
+
                 #Compute residual again
-                u1 = Vk*y1; 
+                u1 = Vk*y1;
                 u1 = normalize(u1);
                 res = compute_Mlincomb(nep,nu1,u1);
 
-                m = m+1; 
+                m = m+1;
             end
 
             #Compute new vector Δv to add to the search space V(k+1) = (Vk,Δv)
@@ -149,7 +151,7 @@ function nlar(nep::NEP;
                 g = V[:,1:k]'*V_k1;
                 V_k1 = V_k1-V[:,1:k]*g;
                 V_k1 = normalize(V_k1)
-               
+
                 #Expand
                 V[:,k+1] = V_k1;
                 Vk = V[:,1:k+1];
@@ -158,11 +160,10 @@ function nlar(nep::NEP;
             #Check orthogonalization
             if(k < 100)
                #println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
-                #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n") 
+                #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
             end
-            k = k+1; 
+            k = k+1;
         end
 
-        return D,X;
+        return D,X,err_hyst;
     end
-
