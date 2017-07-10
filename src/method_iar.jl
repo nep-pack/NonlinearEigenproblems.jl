@@ -25,7 +25,7 @@
      # rescaled coefficients(TODO: integrate in compute_Mlincomb)
 
      local M0inv::LinSolver = linsolvercreator(nep,σ);
-     err = zeros(m,m);
+     err = ones(m,m);
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
      vv=view(V,1:1:n,1); # next vector V[:,k+1]
