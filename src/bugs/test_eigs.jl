@@ -13,7 +13,7 @@ using MATLAB
 aa=mxarray(a)
 bb=mxarray(b)
 @mput aa bb;
-@matlab (vv,dd)=eigs(aa,bb); 
+@matlab (vv,dd)=eigs(aa,bb);
 @mget dd vv;
 
 println("residual=",norm(a*v[:,2] - d[2]*b*v[:,2]))

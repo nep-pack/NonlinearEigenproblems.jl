@@ -24,7 +24,7 @@ print("############### Testing Non-Linear Arnoldi with the PEP: \"pep0\" #######
 
 v=ones(size(nep1,1));
 #D,X,err_hyst = nlar(nep1,maxit=200,λ=1,nev=10,displaylevel=1,v=v);
-maxit=200; nev=4;
+maxit=200; nev=10;
 D,X,err_hyst = nlar(nep1,maxit=maxit,λ=1,nev=nev,displaylevel=1,v=v);
 
 #λ,Q,err = iar(pep,maxit=100,Neig=2,σ=0.0,γ=2);
