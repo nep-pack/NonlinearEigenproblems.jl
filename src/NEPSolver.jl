@@ -45,17 +45,14 @@ module NEPSolver
         return v;
     end
 
-    function compute_eigvec_from_eigval(nep::NEP,λ;
-                                        v=ones(size(nep,1)),
-                                        tol=sqrt(eps()))
+    function compute_eigvec_from_eigval(nep::NEP,λ)
         # Still not sure how to do this in an efficient way
         A=compute_Mder(nep,λ); # This requires matrix access
 
         n=size(nep,1)
         M=[A; rand(eltype(A),1,n)]
         b=[zeros(eltype(A),n); 1]
-        w=M\b;
-        v=w[1:n]
+        v=M\b;
 
         return v;
     end

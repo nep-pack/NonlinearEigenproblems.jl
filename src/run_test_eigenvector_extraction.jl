@@ -43,5 +43,5 @@ println("Residual before extraction = ",errormeasure(λ[1],v0))
 v=compute_eigvec_from_eigval_old(nep,s;v=v0,tol=sqrt(eps()));
 println("Residual after extraction = ",errormeasure(λ[1],v))
 
-v=compute_eigvec_from_eigval(nep,s;v=v0,tol=sqrt(eps()));
+v=compute_eigvec_from_eigval(nep,s);
 println("Residual after extraction new = ",errormeasure(λ[1],v))
