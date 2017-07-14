@@ -4,7 +4,7 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using PyPlot
+using gplot_module
 
 # explicit import needed for overloading
 # functions from packages
@@ -12,21 +12,21 @@ using PyPlot
 
 println("Load dep0")
 nep=nep_gallery("dep0",100)
-#nep=nep_gallery("pep0");
-#
+
 function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
-    #return compute_Mlincomb_from_Mder(nep,λ,V,a)
     return compute_Mlincomb_from_MM!(nep,λ,V,a)
 end
-#
-m=50;
-λ,Q,err = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3);
 
-for i=1:m
- semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
-end
+m=50;   p=3;
+λ,Q,err = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3,p=p);
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
  println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
+
+gcloseall()
+for i=1:m
+  gsemilogy(p:p:m, err[p:p:m,i])
+end
+show_gplot()

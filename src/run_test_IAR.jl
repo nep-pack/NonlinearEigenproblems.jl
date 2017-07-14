@@ -19,17 +19,16 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
     return compute_Mlincomb_from_MM!(nep,λ,V,a)
 end
 #
-m=50;
-λ,Q,err = iar(nep,maxit=m,Neig=m,σ=2.0,γ=3);
-
-gcloseall()
-mm=50;
-for i=1:mm
-  gsemilogy(1:m, err[1:m,i])
-end
-show_gplot()
+m=50; p=20;
+λ,Q,err = iar(nep,maxit=m,Neig=m,σ=2.0,γ=3,displaylevel=1,p=p);
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
  println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
+
+gcloseall()
+for i=1:m
+  gsemilogy(p:p:m, err[p:p:m,i])
+end
+show_gplot()
