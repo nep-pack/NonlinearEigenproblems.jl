@@ -5,6 +5,8 @@ using NEPCore
 using NEPTypes
 using Gallery
 using gplot_module
+using LinSolvers
+
 
 # explicit import needed for overloading
 # functions from packages
@@ -19,23 +21,24 @@ compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_
 m=50;
 λ,Q,err = iar(nep,maxit=m,Neig=5,σ=2.0,γ=3);
 
-
-
 errormeasure=default_errmeasure(nep);
 
 # EXTRACT EIGENVECOR
 v0=rand(size(nep,1));
 println("Residual before extraction = ",errormeasure(λ[1],v0))
 
-v=compute_eigvec_from_eigval_old(nep,λ[1];v=v0,tol=sqrt(eps()));
-println("Residual after extraction = ",errormeasure(λ[1],v))
 
-v=compute_eigvec_from_eigval(nep,λ[1]);
+
+v=compute_eigvec_from_eigval(nep,λ[1],default_linsolvercreator);
 println("Residual after extraction new = ",errormeasure(λ[1],v))
 
 # example: assume that M0inv already exists, the linsolvercreator is the
 # naive function linsolvercreator = (nep, σ) -> M0inv)
-using LinSolvers
 M0inv = default_linsolvercreator(nep,λ[1])
-v=compute_eigvec_from_eigval(nep,λ[1],linsolvercreator = (nep, σ) -> M0inv);
-println("Residual after extraction new = ",errormeasure(λ[1],v))
+v=compute_eigvec_from_eigval(nep,λ[1], (nep, σ) -> M0inv);
+println("Residual after extraction = ",errormeasure(λ[1],v))
+
+
+M0inv = backslash_linsolvercreator(nep,λ[1])
+v=compute_eigvec_from_eigval(nep,λ[1], (nep, σ) -> M0inv);
+println("Residual after extraction = ",errormeasure(λ[1],v))

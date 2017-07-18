@@ -19,34 +19,19 @@ module NEPSolver
 #    include("method_jd_lin.jl")
     include("method_jd_quad.jl")
 
-"""
-     Computes an eigenvector approximation from an
-     eigenvalue approximation (with very little
-     computational effort). It is not clear how
-     this is best achieved.
-"""
-    function compute_eigvec_from_eigval_old(nep::NEP,λ;
-                                        v=ones(size(nep,1)),
-                                        tol=sqrt(eps()))
-        # Still not sure how to do this in an efficient way
-        A=compute_Mder(nep,λ); # This requires matrix access
-        δ=1/sqrt(norm(A,1));
-        # Do a couple of steps of inverse iteration
-        local rv
-        for k=1:10
-            rv=A*v;
-            if (norm(rv)<tol)
-                return v # Sufficiently accurate
-            end
-            v=(A-δ*speye(size(A,1),size(A,2)))\v
-            v=v/norm(v);
-        end
-        warn("No sufficiently accurate eigenvector found. Norm:"*string(norm(rv)))
-        return v;
-    end
 
-    function compute_eigvec_from_eigval(nep::NEP,λ;
-                                        linsolvercreator::Function=default_linsolvercreator)
+    """
+    ### compute_eigvec_from_eigval
+    Compute an eigenvector approximation from an accurate
+    eigenvalue approximation. \\
+    `nep` is the nonlinear eigenvalue problem \\
+    `λ` is the accurate eigenvalue approximation \\
+    `linsolvercreator` is the linsolver creator for M(λ) \\
+    \\
+    OBS: if a LinSolver `M0inv` for M(λ) exists, call this function as \\
+    `compute_eigvec_from_eigval(nep,λ,(nep, σ) -> M0inv)`
+    """
+    function compute_eigvec_from_eigval(nep::NEP,λ,linsolvercreator::Function)
 
         local M0inv::LinSolver = linsolvercreator(nep,λ);
         n=size(nep,1);
