@@ -43,6 +43,8 @@ module Gallery
      'dep_double'\\
       Create problem with a double non-semisimple eigenvalue in λ=3πi\\
       Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012\\
+     'dep1'\\
+      A delay eigenvalue problem with one eigenvalue equal to one.\\
 \\
      'pep0'\\
      Create a random polynomial eigenvalue problem\\
@@ -206,6 +208,14 @@ module Gallery
           A=[A0,A1,A2]
           nep=PEP(A)
           return nep
+      elseif (name=="dep1")
+          A0=([1 2 3 ; 4 5 6; 1 -1 3]);
+          A1=((-A0+[1 0 3;0 0 -1;0 0 10])*exp(1));
+          Q=[1 0 3; 1 1 -4; 2 3 1];
+          A0=Q\(A0*Q);
+          A1=Q\(A1*Q);
+          nep=DEP([A0,A1],[0,1])
+          return nep;
 
       elseif (name== "dep_distributed")
           return gallery_dep_distributed();
