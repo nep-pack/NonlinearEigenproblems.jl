@@ -140,7 +140,12 @@
             end
 
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+
+            if (!isa(e,Base.LinAlg.SingularException) && !isa(e,Base.LinAlg.LAPACKException))
+                rethrow(e);
+            end
+            
+            #isa(e, Base.LinAlg.SingularException) || ) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             if (displaylevel>0)
@@ -148,7 +153,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\v; # Requires matrix access
+                v= compute_eigvec_from_eigval(nep,λ, (nep, σ) -> linsolver)  
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -228,8 +233,8 @@
                 println("We have an exact eigenvalue.")
             end
             if (errmeasure(λ,v)>tolerance)
-                # We need to compute an eigvec somehow
-                v= compute_eigvec_from_eigval(nep,λ,v=v,linsolver=linsolver)
+                # We need to compute an eigvec 
+                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 v=v/dot(c,v)
             end
             return (λ,v)
