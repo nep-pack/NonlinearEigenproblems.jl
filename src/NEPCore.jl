@@ -5,6 +5,7 @@ module NEPCore
     export size
     export issparse
     export NoConvergenceException
+    export NoConvergenceExceptionMultiple
     export LinEigSolver
     export interpolate
 
@@ -209,21 +210,20 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
     """
  ### NoConvergenceException
  Exeption thrown in case an iterative method does not converge\\
- `λ` = current eigenvalue approximation\\
- `v` = current eigenvector approximation\\
- `errmeasure` = The error measure of the current eigenpair approximation\\
+ `λ` = current eigenvalue(s) approximation\\
+ `v` = current eigenvector(s) approximation\\
+ `errmeasure` = The error measure of the current eigenpair(s) approximation\\
  `msg`
 """
     type NoConvergenceException <: Exception
-        "current eigenvalue approximation"
+        "current eigenvalue(s) approximation"
         λ
-        "current eigenvector approximation"
+        "current eigenvector(s) approximation"
         v
-        "The error measure of the current eigenpair approximation"
+        "The error measure of the current eigenpair(s) approximation"
         errmeasure
         msg
     end
-
 
 
 

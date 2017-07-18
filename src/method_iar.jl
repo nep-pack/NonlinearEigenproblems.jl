@@ -30,8 +30,8 @@ function iar(
  vv=view(V,1:1:n,1); # next vector V[:,k+1]
  vv[:]=v0; vv[:]=vv[:]/norm(vv);
  k=1; conv_eig=0;
- while (k <= m)&&(conv_eig<Neig)
-  if (displaylevel>0)
+ while (k <= m) && (conv_eig<Neig)
+  if (displaylevel>0) && (rem(k,p)==0) || (k==m)
    println("Iteration:",k, " conveig:",conv_eig)
   end
   VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
@@ -71,17 +71,26 @@ function iar(
     err[1:k,k]=err[idx,k];
 
     # extract the converged Ritzpairs
-    if (conv_eig>=Neig)||(k==m)
-     println("Last iteration. idx=",idx[1:min(length(λ),conv_eig)],"length(λ)=",length(λ),"conv_eig=",conv_eig)
-     λ=λ[idx[1:min(length(λ),conv_eig)]];
-     Q=Q[:,idx[1:min(length(λ),conv_eig)]];
+    if (k==m)||(conv_eig>=Neig)
+     λ=λ[idx[1:min(length(λ),Neig)]]
+     Q=Q[:,idx[1:length(λ)]]
+     println("I am in the last iteration and lenght(λ)=", length(λ) )
     end
    end
+
  k=k+1;
  end
 
+ if conv_eig<Neig
+  println("I am in the exception and lenght(λ)=", length(λ) )
+  err=err[end,1:Neig];
+  idx=sortperm(err); # sort the error
+  λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+  msg="Number of iterations exceeded. maxit=$(maxit)."
+  throw(NoConvergenceException(λ,Q,err,msg))
+ end
 
-return λ,Q,err
+ return λ,Q,err
 end
 
 
