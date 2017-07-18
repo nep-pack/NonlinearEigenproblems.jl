@@ -189,7 +189,8 @@
             c = v /norm(v)^2
         end
         v=v/dot(c,v);
-
+        local linsolver::LinSolver;
+        
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -205,7 +206,7 @@
 
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-                local linsolver::LinSolver = linsolvercreator(nep,λ)
+                linsolver = linsolvercreator(nep,λ)
                 tempvec = lin_solve(linsolver, z, tol=tolerance);
 
                 if (use_v_as_normalization_vector)
@@ -228,7 +229,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v= compute_eigvec_from_eigval(nep,λ,v=v)
+                v= compute_eigvec_from_eigval(nep,λ,v=v,linsolver=linsolver)
                 v=v/dot(c,v)
             end
             return (λ,v)
