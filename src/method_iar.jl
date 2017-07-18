@@ -74,7 +74,6 @@ function iar(
     if (k==m)||(conv_eig>=Neig)
      λ=λ[idx[1:min(length(λ),Neig)]]
      Q=Q[:,idx[1:length(λ)]]
-     println("I am in the last iteration and lenght(λ)=", length(λ) )
     end
    end
 
@@ -82,7 +81,6 @@ function iar(
  end
 
  if conv_eig<Neig
-  println("I am in the exception and lenght(λ)=", length(λ) )
   err=err[end,1:Neig];
   idx=sortperm(err); # sort the error
   λ=λ[idx];  Q=Q[:,idx]; err=err[idx];

@@ -46,22 +46,25 @@ module NEPSolver
     end
 
     function compute_eigvec_from_eigval(nep::NEP,λ;
-                                        v=ones(size(nep,1)),
-                                        tol=sqrt(eps()),
-                                        linsolver=0)
-        # Still not sure how to do this in an efficient way
-        A=compute_Mder(nep,λ); # This requires matrix access
+                                        linsolvercreator::Function=default_linsolvercreator)
 
-        if (isa(linsolver,:DefaultLinSolver))            
+        local M0inv::LinSolver = linsolvercreator(nep,λ);
+        n=size(nep,1);
+
+        if (isa(M0inv,DefaultLinSolver))
+            F=M0inv.Afact
         else
+            F=lufact(compute_Mder(nep,λ)); # This requires matrix access
         end
-        
-        n=size(nep,1)
-        M=[A; rand(eltype(A),1,n)]
-        b=[zeros(eltype(A),n); 1]
-        v=M\b;
+        x=[-F[:U][1:end-1,1:end-1]\F[:U][1:end-1,end]; 1]
 
-        return v;
+        if issparse(nep)
+            Q=zeros(Int64,n);   Q[F[:q]]=1:n;
+            return x[Q]
+        else
+            return x
+        end
+
     end
 
 
