@@ -20,7 +20,9 @@
                        λ=zero(T),
                        v=randn(size(nep,1)),
                        c=v,
-                       displaylevel=0)
+                       displaylevel=0,
+                       armijo_factor=1,
+                       armijo_max=5)
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -34,9 +36,10 @@
             for k=1:maxit
                 err=errmeasure(λ,v)
                 if (displaylevel>0)
-                    println("Iteration:",k," errmeasure:",err)
+                    print("Iteration:",k," errmeasure:",err)
                 end
                 if (err< tolerance)
+                    print("\n");
                     return (λ,v)
                 end
 
@@ -51,9 +54,21 @@
                 # Compute update
                 delta=-J\F;  # Hardcoded backslash
 
+                Δv=delta[1:size(nep,1)];
+                Δλ=T(delta[size(nep,1)+1]);
+
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+                if (j>0 && displaylevel>0)
+                    @printf(" Armijo scaling=%f\n",scaling);
+                else
+                    @printf("\n");
+                end
+                
+                
                 # Update eigenvalue and eigvec
-                v[:] += delta[1:size(nep,1)];
-                λ = λ+T(delta[size(nep,1)+1]);
+                v[:] += Δv
+                λ = λ+Δλ
             end
         catch e
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
@@ -303,18 +318,11 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 Δv=-lin_solve(linsolver, z, tol=tolerance);
 
                 
-                # Scale the step armijo_factor^j as long 
-                j=0
-                if (armijo_factor<1)
-                    while (errmeasure(λ+Δλ,v+Δv)>err && j<armijo_max)
-                        j=j+1;
-                        Δv=Δv*armijo_factor;                        
-                        Δλ=Δλ*armijo_factor;
-                    end
-                end
-
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+                
                 if (j>0 && displaylevel>0)
-                    @printf(" Armijo scaling=%f\n",armijo_factor^j);
+                    @printf(" Armijo scaling=%f\n",scaling);
                 else
                     @printf("\n");
                 end
@@ -342,4 +350,19 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,v,err,msg))
+    end
+
+
+    # Armijo rule implementation 
+    function armijo_rule(nep,errmeasure,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
+        j=0
+        if (armijo_factor<1)
+            # take smaller and smaller steps until errmeasure is decreasing
+            while (errmeasure(λ+Δλ,v+Δv)>err0 && j<armijo_max)
+                j=j+1;
+                Δv=Δv*armijo_factor;                        
+                Δλ=Δλ*armijo_factor;
+            end
+        end
+        return  (Δλ,Δv,j,armijo_factor^j)
     end

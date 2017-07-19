@@ -42,11 +42,15 @@ println(compute_resnorm(nep,λ,x))
 
 
 
-println("Running Newton on random dep with Float32 arithmetic only")
 nep=nep_gallery("dep0")
 
 
-λ,x =newton(Float32,nep,displaylevel=1);
+
+println("Running Newton on random dep with Float32 arithmetic only")
+λ,x =newton(Float32,nep,displaylevel=1,v=[-1,2,-0.1,0.3,0],λ=1.74,maxit=30);
+
+println("Running Newton on random dep with Float32 arithmetic only (with armijo)")
+λ,x =newton(Float32,nep,displaylevel=1,v=[-1,2,-0.1,0.3,0],λ=1.74,maxit=30,armijo_factor=0.9);
 
 println("Solution:",(λ,x))
 println("Resnorm:",compute_resnorm(nep,λ,x))
