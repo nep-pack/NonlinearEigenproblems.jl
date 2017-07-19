@@ -248,7 +248,7 @@
 
 """
     quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tolerance=eps(real(T))*100,][maxit=100,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator,][armijo_factor=1,][armijo_max=5])
-An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ). The method has an implementation of armijo steplength control which may improve the convergence basin, e.g., by setting `armijo_factor=0.5`.
+An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ). The function has an implementation of armijo steplength control which may improve the convergence basin (or initial convergence), e.g., by setting `armijo_factor=0.5`.
 """
     quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
     function quasinewton{T}(::Type{T},
@@ -260,9 +260,9 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                            v=randn(real(T),size(nep,1)),
                            ws=v,
                            displaylevel=0,
-                            linsolvercreator::Function=default_linsolvercreator,
-                            armijo_factor=1,
-                            armijo_max=3)
+                           linsolvercreator::Function=default_linsolvercreator,
+                           armijo_factor=1,
+                           armijo_max=5)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -309,15 +309,12 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                     while (errmeasure(λ+Δλ,v+Δv)>err && j<armijo_max)
                         j=j+1;
                         Δv=Δv*armijo_factor;                        
-                        if (errmeasure(λ+Δλ,v+Δv)<err)
-                            break;
-                        end
                         Δλ=Δλ*armijo_factor;
                     end
                 end
 
                 if (j>0 && displaylevel>0)
-                    @printf(" Armijo: scaling=%f\n",armijo_factor^j);
+                    @printf(" Armijo scaling=%f\n",armijo_factor^j);
                 else
                     @printf("\n");
                 end
