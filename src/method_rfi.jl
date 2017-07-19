@@ -1,8 +1,9 @@
 export rfi
 export rfi_b
 """
-Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and
-Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
+    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tolerance=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+
+Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 """
 function rfi(nep::NEP,
             nept::NEP;
@@ -13,7 +14,7 @@ function rfi(nep::NEP,
             v = randn(nep.n),
             u = randn(nep.n),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=1)
+            displaylevel=0)
 
         err = Inf;
 
