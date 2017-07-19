@@ -247,31 +247,35 @@
 
 
 """
-    quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tolerance=eps(real(T))*100,][maxit=30,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator])
-An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ).
+    quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tolerance=eps(real(T))*100,][maxit=100,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator,][armijo_factor=1,][armijo_max=5])
+An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ). The method has an implementation of armijo steplength control which may improve the convergence basin, e.g., by setting `armijo_factor=0.5`.
 """
     quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
     function quasinewton{T}(::Type{T},
                            nep::NEP;
                            errmeasure::Function = default_errmeasure(nep::NEP),
                            tolerance=eps(real(T))*100,
-                           maxit=30,
+                           maxit=100,
                            λ=zero(T),
                            v=randn(real(T),size(nep,1)),
                            ws=v,
                            displaylevel=0,
-                           linsolvercreator::Function=default_linsolvercreator)
+                            linsolvercreator::Function=default_linsolvercreator,
+                            armijo_factor=1,
+                            armijo_max=3)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
         ws=Array{T,1}(ws) # Left vector such that c'=w'M(λ0) where c normalization
 
         err=Inf;
-
+        
         local linsolver::LinSolver;
         if (displaylevel>0)
             @printf("Precomputing linsolver (factorization)\n");
         end
+
+
         
         linsolver = linsolvercreator(nep,λ)
         
@@ -279,9 +283,12 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
             for k=1:maxit
                 err=errmeasure(λ,v)
                 if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e\n",k, err);
+                    @printf("Iteration: %2d errmeasure:%.18e",k, err);
+                    print(", λ=",λ);
                 end
+                
                 if (err< tolerance)
+                    @printf("\n");
                     return (λ,v)
                 end
 
@@ -293,10 +300,31 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 # Intermediate quantities
                 Δλ=-dot(ws,u)/dot(ws,w); 
                 z=Δλ*w+u;
+                Δv=-lin_solve(linsolver, z, tol=tolerance);
 
+                
+                # Scale the step armijo_factor^j as long 
+                j=0
+                if (armijo_factor<1)
+                    while (errmeasure(λ+Δλ,v+Δv)>err && j<armijo_max)
+                        j=j+1;
+                        Δv=Δv*armijo_factor;                        
+                        if (errmeasure(λ+Δλ,v+Δv)<err)
+                            break;
+                        end
+                        Δλ=Δλ*armijo_factor;
+                    end
+                end
+
+                if (j>0 && displaylevel>0)
+                    @printf(" Armijo: scaling=%f\n",armijo_factor^j);
+                else
+                    @printf("\n");
+                end
+                                
                 # Update eigenpair
                 λ += Δλ 
-                v += -lin_solve(linsolver, z, tol=tolerance); # eigvec update
+                v += Δv; # eigvec update
 
             end
 
