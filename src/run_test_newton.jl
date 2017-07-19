@@ -74,4 +74,12 @@ nep=nep_gallery("dep0", 50)
 
 λ,x =augnewton(nep, displaylevel=1);
 
-println("Resnorm:",compute_resnorm(nep,λ,x))
+println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)
+
+
+println("Running quasinewton")
+λ,x =quasinewton(nep, λ=3.5, displaylevel=1,v=eye(size(nep,1),1)[:]);
+
+
+println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)
+

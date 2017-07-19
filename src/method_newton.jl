@@ -4,6 +4,7 @@
     export newton
     export resinv
     export augnewton
+    export quasinewton
 
 #############################################################################
 """
@@ -222,6 +223,76 @@
                 λ = λ - α;
 
                 v[:] = α*tempvec;
+
+            end
+
+        catch e
+            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            # This should not cast an error since it means that λ is
+            # already an eigenvalue.
+            if (displaylevel>0)
+                println("We have an exact eigenvalue.")
+            end
+            if (errmeasure(λ,v)>tolerance)
+                # We need to compute an eigvec 
+                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                v=v/dot(c,v)
+            end
+            return (λ,v)
+        end
+
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        throw(NoConvergenceException(λ,v,err,msg))
+    end
+
+
+"""
+    quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tolerance=eps(real(T))*100,][maxit=30,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator])
+An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ).
+"""
+    quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
+    function quasinewton{T}(::Type{T},
+                           nep::NEP;
+                           errmeasure::Function = default_errmeasure(nep::NEP),
+                           tolerance=eps(real(T))*100,
+                           maxit=30,
+                           λ=zero(T),
+                           v=randn(real(T),size(nep,1)),
+                           ws=v,
+                           displaylevel=0,
+                           linsolvercreator::Function=default_linsolvercreator)
+        # Ensure types λ and v are of type T
+        λ=T(λ)
+        v=Array{T,1}(v)
+        ws=Array{T,1}(ws) # Left vector such that c'=w'M(λ0) where c normalization
+
+        err=Inf;
+
+        local linsolver::LinSolver;
+        linsolver = linsolvercreator(nep,λ)
+        
+        try
+            for k=1:maxit
+                err=errmeasure(λ,v)
+                if (displaylevel>0)
+                    @printf("Iteration: %2d errmeasure:%.18e\n",k, err);
+                end
+                if (err< tolerance)
+                    return (λ,v)
+                end
+
+
+                # Compute u=M(λ)v and w=M'(λ)v
+                u=compute_Mlincomb(nep,λ,v,[T(1)],0);
+                w=compute_Mlincomb(nep,λ,v,[T(1)],1);                
+
+                # Intermediate quantities
+                Δλ=-dot(ws,u)/dot(ws,w); 
+                z=Δλ*w+u;
+
+                # Update eigenpair
+                λ += Δλ 
+                v += -lin_solve(linsolver, z, tol=tolerance); # eigvec update
 
             end
 
