@@ -114,8 +114,17 @@ Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP, where `S` and `V` are matrices
 
 
     ## Helper functions
+    """
+    compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
+The function computes Mlincomb by a call to compute_MM. The relationship between Mlincomb and MM is described in issue #2 and #3
+Usage normally by overloading:
+    compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_MM(nep,λ,V,a)
+"""
     compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)=compute_Mlincomb_from_MM!(nep,λ,copy(V),copy(a))
-
+    """
+    compute_Mlincomb_from_MM!(nep::NEP,λ::Number,V,a)
+Same as [`compute_Mlincomb`](@ref), but modifies V and a.
+"""
     function compute_Mlincomb_from_MM!(nep::NEP,λ::Number,V,a)
         # This function it is based on the evaluation of matrix function of a bidiagonal matrix
         # Should we document the methematical
@@ -128,7 +137,7 @@ Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP, where `S` and `V` are matrices
     end
     """
     compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
-The function computes Mlincomb by a call to to compute_Mder. This function is slow since it requires the construction of the matrices. 
+The function computes Mlincomb by a call to compute_Mder. This function is slow since it requires the construction of the matrices. 
 Usage normally by overloading:
     compute_Mder(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_Mder(nep,λ,V,a)
 """
