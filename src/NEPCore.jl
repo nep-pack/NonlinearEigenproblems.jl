@@ -5,7 +5,6 @@ module NEPCore
     export size
     export issparse
     export NoConvergenceException
-    export NoConvergenceExceptionMultiple
     export LinEigSolver
     export interpolate
 
