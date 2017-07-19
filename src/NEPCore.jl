@@ -224,11 +224,10 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
         errmeasure
         msg
     end
-
+    Base.showerror(io::IO, e::NoConvergenceException) = print(io, "No convergence.. '",e.msg,"' eigenvalue approx:",e.λ,", errmeasure:",e.errmeasure)
 
 
 """ Returns a Jordan matrix """
-
     jordan_matrix(n::Integer,λ::Number)=jordan_matrix(Complex128,n,λ)
     function jordan_matrix{T<:Number}(::Type{T},n::Integer,λ::Number)
         #println(typeof(λ)," ",Type{T})
