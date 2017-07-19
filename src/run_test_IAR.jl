@@ -10,27 +10,24 @@ using gplot_module
 # functions from packages
 import NEPCore.compute_Mlincomb
 
-println("Load dep0")
 nep=nep_gallery("dep0",100)
 #nep=nep_gallery("pep0");
 
-function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
-    #return compute_Mlincomb_from_Mder(nep,λ,V,a)
-    return compute_Mlincomb_from_MM!(nep,λ,V,a)
-end
+
+compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
+
 
 m=100; p=3; Neig=50;
-
 try
     λ,Q,err = iar(nep,maxit=m,Neig=Neig,σ=2.0,γ=3,displaylevel=1,p=p);
     errormeasure=default_errmeasure(nep);
     for i=1:length(λ)
-     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
+        println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
     end
 
     gcloseall()
     for i=1:m
-      gsemilogy(p:p:m, err[p:p:m,i])
+        gsemilogy(p:p:m, err[p:p:m,i])
     end
     show_gplot()
 catch e
@@ -40,7 +37,13 @@ catch e
     m=length(λ)
     println("Current approximations")
     for j=1:m
-     println("Eigenvalue ", λ[j]," with error ", err[j])
+        println("Eigenvalue ", λ[j]," with error ", err[j])
     end
+end
 
- end
+λ,Q,err = iar(nep,maxit=m,Neig=3,σ=0,γ=3,displaylevel=1,p=p);
+try
+    λ,Q,err = iar(nep,maxit=m,Neig=Neig,σ=λ[1],γ=3,displaylevel=1,p=p);
+catch e
+    println(e.msg)
+end
