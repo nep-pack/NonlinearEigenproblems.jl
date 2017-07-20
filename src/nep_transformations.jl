@@ -4,7 +4,7 @@ export ShiftScaleNEP
     type ShiftScaleNEP <: NEP
     ShiftScaleNEP(orgnep::NEP[,shift=0][,scale=1])
 
-Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M(scale*λ+shift). This can be used if the method does not have an easy implementation of shift and scaling.
+Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M(scale*λ+shift). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
 
 """
 
