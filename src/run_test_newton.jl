@@ -72,12 +72,15 @@ println("Resnorm:",compute_resnorm(nep,λ,x))
 
 
 
-println("Running Aug-Newton")
 nep=nep_gallery("dep0", 50)
 
 
-λ,x =augnewton(nep, displaylevel=1);
+println("Running Aug-Newton")
+λ,x =augnewton(nep, displaylevel=1,v=ones(50),λ=-1,maxit=50);
+println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)
 
+println("Running Aug-Newton (with armijo)")
+λ,x =augnewton(nep, displaylevel=1,v=ones(50),λ=-1,maxit=50,armijo_factor=0.5);
 println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)
 
 

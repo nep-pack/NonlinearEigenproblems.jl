@@ -188,15 +188,17 @@
 """
     augnewton(nep::NEP;params...)=augnewton(Complex128,nep;params...)
     function augnewton{T}(::Type{T},
-                           nep::NEP;
-                           errmeasure::Function = default_errmeasure(nep::NEP),
-                           tolerance=eps(real(T))*100,
-                           maxit=30,
-                           λ=zero(T),
-                           v=randn(real(T),size(nep,1)),
-                           c=v,
-                           displaylevel=0,
-                           linsolvercreator::Function=backslash_linsolvercreator)
+                          nep::NEP;
+                          errmeasure::Function = default_errmeasure(nep::NEP),
+                          tolerance=eps(real(T))*100,
+                          maxit=30,
+                          λ=zero(T),
+                          v=randn(real(T),size(nep,1)),
+                          c=v,
+                          displaylevel=0,
+                          linsolvercreator::Function=backslash_linsolvercreator,
+                          armijo_factor=1,
+                          armijo_max=5)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -217,9 +219,12 @@
                 err=errmeasure(λ,v)
                 if (displaylevel>0)
                     @printf("Iteration: %2d errmeasure:%.18e ",k, err);
-                    println(" v_as_normalization_vector=",use_v_as_normalization_vector);
+                    print(" v_as_normalization_vector=",use_v_as_normalization_vector);
                 end
                 if (err< tolerance)
+                    if (displaylevel>0)
+                        print("\n")
+                    end                    
                     return (λ,v)
                 end
                 # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
@@ -235,9 +240,20 @@
                 end
                 α = T(1)/ dot(c,tempvec);
 
-                λ = λ - α;
+                Δλ=-α
+                Δv=α*tempvec-v;
 
-                v[:] = α*tempvec;
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+
+                if (j>0 && displaylevel>0)
+                    @printf(" Armijo scaling=%f\n",scaling);
+                else
+                    @printf("\n");
+                end
+                
+                λ+=Δλ
+                v+=Δv
 
             end
 
