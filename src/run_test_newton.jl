@@ -55,7 +55,12 @@ println("Running Newton on random dep with Float32 arithmetic only (with armijo)
 println("Solution:",(λ,x))
 println("Resnorm:",compute_resnorm(nep,λ,x))
 
+nep=nep_gallery("dep0", 50)
 
+println("Running ResInv ")
+λ,x =resinv(nep, displaylevel=1,v=ones(size(nep,1)),λ=-3+0.2im,maxit=200);
+println("Running ResInv with Armijo")
+λ,x =resinv(nep, displaylevel=1,v=ones(size(nep,1)),λ=-3+0.2im,maxit=200,armijo_factor=0.9);
 
 println("Running ResInv with GMRES as solver")
 
@@ -65,7 +70,6 @@ function my_gmres_linsolvercreator(nep::NEP, λ)
     return gmres_linsolvercreator(nep, λ, linsolverkwargs)
 end
 
-nep=nep_gallery("dep0", 50)
 λ,x =resinv(nep, displaylevel=1, linsolvercreator=my_gmres_linsolvercreator);
 
 println("Resnorm:",compute_resnorm(nep,λ,x))

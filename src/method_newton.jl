@@ -103,7 +103,9 @@
                         v=randn(real(T),size(nep,1)),
                         c=v,
                         displaylevel=0,
-                        linsolvercreator::Function=default_linsolvercreator)
+                       linsolvercreator::Function=default_linsolvercreator,
+                       armijo_factor=1,
+                       armijo_max=5)
 
         local linsolver::LinSolver=linsolvercreator(nep,λ)
         # Ensure types λ and v are of type T
@@ -136,22 +138,34 @@
 
                 if (displaylevel>0)
                     @printf("Iteration: %2d errmeasure:%.18e ",k, err);
-                    println(" v_as_rf_vector=",use_v_as_rf_vector);
+                    print(" v_as_rf_vector=",use_v_as_rf_vector);
                 end
 
                 if (err< tolerance)
+                    print("\n");
                     return (λ,v)
                 end
 
                 # Compute eigenvalue update
-                λ = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
-
+                λ1 = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
+                Δλ=λ1-λ
+                
 
                 # Compute eigenvector update
-                Δv = lin_solve(linsolver,compute_Mlincomb(nep,λ,v)) #M*v);
+                Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,v)) #M*v);
 
-                # Update the eigvector
-                v[:] += -Δv;
+
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+                if (j>0 && displaylevel>0)
+                    @printf(" Armijo scaling=%f\n",scaling);
+                else
+                    @printf("\n");
+                end
+                
+                # Update the eigenpair
+                λ+=Δλ
+                v[:] += Δv;
 
             end
 
