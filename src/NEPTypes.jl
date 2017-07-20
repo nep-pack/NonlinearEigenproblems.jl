@@ -36,6 +36,7 @@ module NEPTypes
     export companion
 
 
+    include("nep_transformations.jl")
 
 
 
