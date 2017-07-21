@@ -75,7 +75,7 @@
             @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v=(compute_Mder(nep,λ,0)+eps(real(T))*speye(size(nep,1)))\v; # Requires matrix access
+                v=compute_eigvec_from_eigval(nep,λ, default_linsolvercreator)
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -90,15 +90,15 @@
 """
     resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
     function resinv{T}(::Type{T},
-                        nep::NEP;
-                        errmeasure::Function =
-                        default_errmeasure(nep::NEP),
-                        tolerance=eps(real(T))*100,
-                        maxit=100,
-                        λ=zero(T),
-                        v=randn(real(T),size(nep,1)),
-                        c=v,
-                        displaylevel=0,
+                       nep::NEP;
+                       errmeasure::Function =
+                       default_errmeasure(nep::NEP),
+                       tolerance=eps(real(T))*100,
+                       maxit=100,
+                       λ=zero(T),
+                       v=randn(real(T),size(nep,1)),
+                       c=v,
+                       displaylevel=0,
                        linsolvercreator::Function=default_linsolvercreator,
                        armijo_factor=1,
                        armijo_max=5)
