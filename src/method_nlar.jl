@@ -8,8 +8,17 @@ function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
     if (isa(pnep,Proj_PEP))
         return polyeig(pnep.nep_proj)
     else
-        λ,Q,err=iar(pnep,Neig=2*nev+3,σ=σ,maxit=100)
-        return λ,Q
+        try
+            λ,Q,err=iar(pnep,Neig=1+nev,σ=σ,maxit=100)
+            return λ,Q
+        catch e
+            # Return the eigenvalues we found even if
+            # we fail to find a sufficient number of projected
+            # eigenvalues
+            isa(e, NoConvergenceException) || rethrow(e)
+            return e.λ, e.v
+
+        end        
     end
 end
 
