@@ -35,11 +35,9 @@
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
-                if (displaylevel>0)
-                    print("Iteration:",k," errmeasure:",err)
-                end
+                @ifd(print("Iteration:",k," errmeasure:",err))
                 if (err< tolerance)
-                    print("\n");
+                    @ifd(print("\n"));
                     return (λ,v)
                 end
 
@@ -59,10 +57,10 @@
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-                if (j>0 && displaylevel>0)
-                    @printf(" Armijo scaling=%f\n",scaling);
+                if (j>0)
+                    @ifd(@printf(" Armijo scaling=%f\n",scaling))
                 else
-                    @printf("\n");
+                    @ifd(@printf("\n"))
                 end
                 
                 
@@ -74,9 +72,7 @@
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-            if (displaylevel>0)
-                println("We have an exact eigenvalue.")
-            end
+            @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
                 v=(compute_Mder(nep,λ,0)+eps(real(T))*speye(size(nep,1)))\v; # Requires matrix access
@@ -136,13 +132,11 @@
                     c=v;
                 end
 
-                if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e ",k, err);
-                    print(" v_as_rf_vector=",use_v_as_rf_vector);
-                end
+                @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+                @ifd(print(" v_as_rf_vector=",use_v_as_rf_vector))
 
                 if (err< tolerance)
-                    print("\n");
+                    @ifd(print("\n"));
                     return (λ,v)
                 end
 
@@ -157,10 +151,10 @@
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-                if (j>0 && displaylevel>0)
-                    @printf(" Armijo scaling=%f\n",scaling);
+                if (j>0 )
+                    @ifd(@printf(" Armijo scaling=%f\n",scaling))
                 else
-                    @printf("\n");
+                    @ifd(@printf("\n"))
                 end
                 
                 # Update the eigenpair
@@ -178,9 +172,8 @@
             #isa(e, Base.LinAlg.SingularException) || ) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-            if (displaylevel>0)
-                println("We have an exact eigenvalue.")
-            end
+
+            @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
                 v= compute_eigvec_from_eigval(nep,λ, (nep, σ) -> linsolver)  
@@ -231,14 +224,10 @@
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
-                if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e ",k, err);
-                    print(" v_as_normalization_vector=",use_v_as_normalization_vector);
-                end
+                @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+                @ifd(print(" v_as_normalization_vector=",use_v_as_normalization_vector))
                 if (err< tolerance)
-                    if (displaylevel>0)
-                        print("\n")
-                    end                    
+                    @ifd(print("\n"))
                     return (λ,v)
                 end
                 # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
@@ -260,10 +249,10 @@
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
-                if (j>0 && displaylevel>0)
-                    @printf(" Armijo scaling=%f\n",scaling);
+                if (j>0)
+                    @ifd(@printf(" Armijo scaling=%f\n",scaling))
                 else
-                    @printf("\n");
+                    @ifd(@printf("\n"))
                 end
                 
                 λ+=Δλ
@@ -275,9 +264,7 @@
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-            if (displaylevel>0)
-                println("We have an exact eigenvalue.")
-            end
+            @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec 
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
@@ -316,24 +303,19 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         err=Inf;
         
         local linsolver::LinSolver;
-        if (displaylevel>0)
-            @printf("Precomputing linsolver (factorization)\n");
-        end
-
-
+        @ifd(@printf("Precomputing linsolver (factorization)\n"))
+        
         
         linsolver = linsolvercreator(nep,λ)
         
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
-                if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e",k, err);
-                    print(", λ=",λ);
-                end
+                @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
+                @ifd(print(", λ=",λ))
                 
                 if (err< tolerance)
-                    @printf("\n");
+                    @ifd(@printf("\n"));
                     return (λ,v)
                 end
 
@@ -351,10 +333,10 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
                 
-                if (j>0 && displaylevel>0)
-                    @printf(" Armijo scaling=%f\n",scaling);
+                if (j>0)
+                    @ifd(@printf(" Armijo scaling=%f\n",scaling));
                 else
-                    @printf("\n");
+                    @ifd(@printf("\n"));
                 end
                                 
                 # Update eigenpair
@@ -367,9 +349,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-            if (displaylevel>0)
-                println("We have an exact eigenvalue.")
-            end
+            @ifd(println("We have an exact eigenvalue."))
+            
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec 
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
