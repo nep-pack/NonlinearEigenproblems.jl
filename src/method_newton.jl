@@ -133,7 +133,7 @@
                 end
 
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-                @ifd(print(" v_as_rf_vector=",use_v_as_rf_vector))
+                @ifd(if (use_v_as_rf_vector); print(" v_as_rf_vector=",use_v_as_rf_vector); end)
 
                 if (err< tolerance)
                     @ifd(print("\n"));
@@ -225,7 +225,7 @@
             for k=1:maxit
                 err=errmeasure(λ,v)
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-                @ifd(print(" v_as_normalization_vector=",use_v_as_normalization_vector))
+                @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
                 if (err< tolerance)
                     @ifd(print("\n"))
                     return (λ,v)
