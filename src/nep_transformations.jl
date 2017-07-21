@@ -1,5 +1,10 @@
 # Transformations between types
 export ShiftScaleNEP
+export MobiusTransformNEP
+
+
+
+
    """
     type ShiftScaleNEP <: NEP
     ShiftScaleNEP(orgnep::NEP[,shift=0][,scale=1])
@@ -29,7 +34,7 @@ end
 
 
 function compute_Mder(nep::ShiftScaleNEP,λ::Number,i::Integer=0)
-    # Just scale the orgnep call. Chain rule for differentiation. 
+    # Just scale the orgnep call. Chain rule for differentiation.
     return (nep.scale^i)*compute_Mder(nep.orgnep,nep.scale*λ+nep.shift,i);
 end
 
@@ -53,3 +58,50 @@ end
 
 
 
+   """
+    type MobiusTransformNEP <: NEP
+    MobiusTransformNEP(orgnep::NEP[,a=1][,b=0][,c=0][,d=1])
+
+Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M(scale*λ+shift). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
+
+"""
+
+type MobiusTransformNEP <: NEP
+    a::Number
+    b::Number
+    c::Number
+    d::Number
+    orgnep::NEP
+    function MobiusTransformNEP(orgnep;a=1,b=0,c=0,d=1)
+        return new(a,b,c,d,orgnep)
+    end
+end
+
+# Size and issparse implemented by delegation
+function size(nep::MobiusTransformNEP,dim=-1)
+    return size(nep.orgnep,dim)
+end
+function issparse(nep::MobiusTransformNEP)
+    return issparse(nep.orgnep)
+end
+
+
+# function compute_Mder(nep::ShiftScaleNEP,λ::Number,i::Integer=0)
+#     # Just scale the orgnep call. Chain rule for differentiation.
+#     return (nep.scale^i)*compute_Mder(nep.orgnep,nep.scale*λ+nep.shift,i);
+# end
+
+function compute_MM(nep::MobiusTransformNEP,S,V)
+    # Just call orgnep with a different S
+    return compute_MM(nep.orgnep,(nep.a*S+nep.b*eye(S))/(nep.c*S+nep.d*eye(S)),V)
+end
+
+
+# function compute_Mlincomb(nep::ShiftScaleNEP,λ::Number,V;a=ones(size(V,2)))
+#     # Multiply the coefficient matrix V with a diagonal matrix
+#     # corresponding to the chain rule
+#     p=size(V,2);
+#     z=nep.scale.^Array{eltype(V),1}(0:p-1)
+#     W=V*diagm(z); # not very fast
+#     return compute_Mlincomb(nep.orgnep,nep.scale*λ+nep.shift,W,a=a);
+# end

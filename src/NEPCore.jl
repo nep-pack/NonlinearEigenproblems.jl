@@ -67,7 +67,7 @@ Usage:\\
             extra_msg=", or choose to call the compute_Mder_from_MM, which can be slow"
         end
 
-        error("You need to provide an implementation of Mder for this NEP, or choose to use compute_Mder_from_MM"*extra_msg*".")
+        error("You need to provide an implementation of compute_Mder for this NEP, or choose to use compute_Mder_from_MM"*extra_msg*".")
         return 0;
     end
 
@@ -137,7 +137,7 @@ Same as [`compute_Mlincomb`](@ref), but modifies V and a.
     end
     """
     compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
-The function computes Mlincomb by a call to compute_Mder. This function is slow since it requires the construction of the matrices. 
+The function computes Mlincomb by a call to compute_Mder. This function is slow since it requires the construction of the matrices.
 Usage normally by overloading:
     compute_Mder(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_Mder(nep,λ,V,a)
 """
@@ -257,7 +257,7 @@ Exeption thrown in case an iterative method does not converge\\
 
     """
     default_errmeasure(nep::NEP)
-The default way of measuring error (residual norm). 
+The default way of measuring error (residual norm).
 """
     function default_errmeasure(nep::NEP)
         f=function (λ,v);

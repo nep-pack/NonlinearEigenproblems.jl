@@ -64,8 +64,8 @@
                 else
                     @printf("\n");
                 end
-                
-                
+
+
                 # Update eigenvalue and eigvec
                 v[:] += Δv
                 λ = λ+Δλ
@@ -149,7 +149,7 @@
                 # Compute eigenvalue update
                 λ1 = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
                 Δλ=λ1-λ
-                
+
 
                 # Compute eigenvector update
                 Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,v)) #M*v);
@@ -162,7 +162,7 @@
                 else
                     @printf("\n");
                 end
-                
+
                 # Update the eigenpair
                 λ+=Δλ
                 v[:] += Δv;
@@ -174,7 +174,7 @@
             if (!isa(e,Base.LinAlg.SingularException) && !isa(e,Base.LinAlg.LAPACKException))
                 rethrow(e);
             end
-            
+
             #isa(e, Base.LinAlg.SingularException) || ) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
@@ -183,7 +183,7 @@
             end
             if (errmeasure(λ,v)>tolerance)
                 # We need to compute an eigvec somehow
-                v= compute_eigvec_from_eigval(nep,λ, (nep, σ) -> linsolver)  
+                v= compute_eigvec_from_eigval(nep,λ, (nep, σ) -> linsolver)
                 v=v/dot(c,v)
             end
             return (λ,v)
@@ -227,7 +227,7 @@
         end
         v=v/dot(c,v);
         local linsolver::LinSolver;
-        
+
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -238,7 +238,7 @@
                 if (err< tolerance)
                     if (displaylevel>0)
                         print("\n")
-                    end                    
+                    end
                     return (λ,v)
                 end
                 # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
@@ -265,7 +265,7 @@
                 else
                     @printf("\n");
                 end
-                
+
                 λ+=Δλ
                 v+=Δv
 
@@ -279,7 +279,7 @@
                 println("We have an exact eigenvalue.")
             end
             if (errmeasure(λ,v)>tolerance)
-                # We need to compute an eigvec 
+                # We need to compute an eigvec
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 v=v/dot(c,v)
             end
@@ -314,16 +314,16 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         ws=Array{T,1}(ws) # Left vector such that c'=w'M(λ0) where c normalization
 
         err=Inf;
-        
+
         local linsolver::LinSolver;
         if (displaylevel>0)
             @printf("Precomputing linsolver (factorization)\n");
         end
 
 
-        
+
         linsolver = linsolvercreator(nep,λ)
-        
+
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -331,7 +331,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                     @printf("Iteration: %2d errmeasure:%.18e",k, err);
                     print(", λ=",λ);
                 end
-                
+
                 if (err< tolerance)
                     @printf("\n");
                     return (λ,v)
@@ -340,25 +340,25 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
                 # Compute u=M(λ)v and w=M'(λ)v
                 u=compute_Mlincomb(nep,λ,v,[T(1)],0);
-                w=compute_Mlincomb(nep,λ,v,[T(1)],1);                
+                w=compute_Mlincomb(nep,λ,v,[T(1)],1);
 
                 # Intermediate quantities
-                Δλ=-dot(ws,u)/dot(ws,w); 
+                Δλ=-dot(ws,u)/dot(ws,w);
                 z=Δλ*w+u;
                 Δv=-lin_solve(linsolver, z, tol=tolerance);
 
-                
+
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-                
+
                 if (j>0 && displaylevel>0)
                     @printf(" Armijo scaling=%f\n",scaling);
                 else
                     @printf("\n");
                 end
-                                
+
                 # Update eigenpair
-                λ += Δλ 
+                λ += Δλ
                 v += Δv; # eigvec update
 
             end
@@ -371,7 +371,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 println("We have an exact eigenvalue.")
             end
             if (errmeasure(λ,v)>tolerance)
-                # We need to compute an eigvec 
+                # We need to compute an eigvec
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 v=v/dot(c,v)
             end
@@ -383,14 +383,14 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
     end
 
 
-    # Armijo rule implementation 
+    # Armijo rule implementation
     function armijo_rule(nep,errmeasure,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
         j=0
         if (armijo_factor<1)
             # take smaller and smaller steps until errmeasure is decreasing
             while (errmeasure(λ+Δλ,v+Δv)>err0 && j<armijo_max)
                 j=j+1;
-                Δv=Δv*armijo_factor;                        
+                Δv=Δv*armijo_factor;
                 Δλ=Δλ*armijo_factor;
             end
         end
