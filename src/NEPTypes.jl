@@ -40,11 +40,14 @@ module NEPTypes
 
 
 
+    #
+    abstract ProjectableNEP <: NEP 
 
     #######################################################
     ### Sum of products matrices and functions
+
     
-    abstract  AbstractSPMF <: NEP # See issue #17 
+    abstract  AbstractSPMF <: ProjectableNEP # See issue #17 
     
     """
 ### Sum of products matrices and functions
@@ -439,7 +442,7 @@ Proj_NEP represents a projected NEP
 Creates a NEP representing a projected problem. Use
 set_projectionmatrices() to specify projection matrices.
 """
-    function create_proj_NEP(orgnep::Union{PEP,SPMF_NEP})
+    function create_proj_NEP(orgnep::ProjectableNEP)
         if (isa(orgnep,PEP))
             return Proj_PEP(orgnep);
         elseif (isa(orgnep,SPMF_NEP))
