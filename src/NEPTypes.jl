@@ -41,6 +41,107 @@ module NEPTypes
 
 
 
+    #######################################################
+    ### Sum of products matrices and functions
+    
+    abstract  AbstractSPMF <: NEP # See issue #17 
+    
+    """
+### Sum of products matrices and functions
+  An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,\\
+  where i = 0,1,2,..., all of the matrices are of size n times n
+  and f_i is a function. In particular, it must be possible to evaluate f_i with a matrix argument \\
+  Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and \\
+  fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
+  in the call of ``compute_MM(...)``.
+"""
+
+    type SPMF_NEP <: AbstractSPMF
+         n::Integer
+         A::Array   # Array of Array of matrices
+         fi::Array  # Array of functions
+         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
+
+         # Sparse zero matrix to be used for sparse matrix creation
+         Zero::SparseMatrixCSC
+         function SPMF_NEP(AA, fii::Array, Schur_fact = false)
+             n=size(AA[1],1);
+
+            if(length(AA) != length(fii))
+                error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
+            end
+
+             if (issparse(AA[1]))
+                 Zero=spones(AA[1]);
+                 for i=2:length(AA)
+                     Zero=Zero+spones(AA[i]);
+                 end
+                 Zero=(Zero*1im)*0
+             else
+                 Zero=zeros(n,n)
+             end
+             this=new(n,AA,fii,Schur_fact,Zero);
+             return this
+         end
+    end
+    function compute_MM(nep::SPMF_NEP,S,V)
+        if (issparse(V))
+            if (size(V)==size(nep))
+                # Initialize with zero sparse matrix which
+                # has sparsity pattern already consistent
+                # with sparsity pattern of M() for optimization
+                Z=copy(nep.Zero)
+            else
+                Z=spzeros(eltype(V),size(V,1),size(V,2))
+            end
+        else
+            Z=zeros(eltype(V),size(V))
+        end
+        # Sum together all the terms in the SPMF:
+        if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
+            (T, Q, ) = schur(S)
+        end
+        for i=1:length(nep.A)
+            ## Compute Fi=f_i(S) in an optimized way
+            if (isdiag(S)) # optimize if S is diagonal
+                Sd=diag(S);
+                if (norm(Sd-Sd[1])==0) # Optimize further if S is a
+                                       # multiple of identity
+                    Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
+                else  # Diagonal but not constant
+                    Fid=zeros(Complex128,size(S,1))
+                    for j=1:size(S,1)
+                        Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
+                    end
+                end
+                Fi=spdiagm(Fid);
+            else  # Otherwise just compute the matrix function operation
+                if(nep.Schur_factorize_before)
+                    Fi= Q*nep.fi[i](T)*Q'
+                else
+                    Fi=nep.fi[i](S)
+                end
+            end
+            ## Sum it up
+            Z=Z+nep.A[i]*(V*Fi);
+        end
+        return Z
+    end
+    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
+        if (i==0)
+            Z=copy(nep.Zero)
+            for i=1:length(nep.A)
+                Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
+            end
+            return Z
+        else
+            # This is typically slow for i>1 (can be optimized by
+            # treating the SPMF-terms individually)
+            return compute_Mder_from_MM(nep,λ,i)
+        end
+    end
+
+
     ###########################################################
     # Delay eigenvalue problems - DEP
     #
@@ -52,7 +153,7 @@ module NEPTypes
   Constructor: DEP(AA,tauv) where AA is an array of the\\
   matrices A_i, and tauv is a vector of the values tau_i
 """
-    type DEP <: NEP
+    type DEP <: AbstractSPMF
         n::Integer
         A::Array     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
@@ -79,6 +180,7 @@ module NEPTypes
         end
         if i==0; M=-λ*I;  end
         if i==1; M=-I; end
+        if (i>1); error("Not implemented"); end 
         for j=1:size(nep.A,1)
             M+=nep.A[j]*(exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i)
         end
@@ -110,7 +212,7 @@ module NEPTypes
   Constructor: PEP(AA) where AA is an array of the matrices A_i
 """
 
-    type PEP <: NEP
+    type PEP <: AbstractSPMF
         n::Integer
         A::Array   # Monomial coefficients of PEP
         function PEP(AA)
@@ -253,7 +355,7 @@ module NEPTypes
   Constructor: REP(AA) where AA is an array of the matrices A_i
 """
 
-    type REP <: NEP
+    type REP <: AbstractSPMF
         n::Integer
         A::Array   # Monomial coefficients of REP
         si::Array  # numerator polynomials
@@ -323,103 +425,6 @@ module NEPTypes
     end
 
 
-    #######################################################
-    ### Sum of products matrices and functions
-
-    """
-### Sum of products matrices and functions
-  An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,\\
-  where i = 0,1,2,..., all of the matrices are of size n times n
-  and f_i is a function. In particular, it must be possible to evaluate f_i with a matrix argument \\
-  Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and \\
-  fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
-  in the call of ``compute_MM(...)``.
-"""
-
-    type SPMF_NEP <: NEP
-         n::Integer
-         A::Array   # Array of Array of matrices
-         fi::Array  # Array of functions
-         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
-
-         # Sparse zero matrix to be used for sparse matrix creation
-         Zero::SparseMatrixCSC
-         function SPMF_NEP(AA, fii::Array, Schur_fact = false)
-             n=size(AA[1],1);
-
-            if(length(AA) != length(fii))
-                error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
-            end
-
-             if (issparse(AA[1]))
-                 Zero=spones(AA[1]);
-                 for i=2:length(AA)
-                     Zero=Zero+spones(AA[i]);
-                 end
-                 Zero=(Zero*1im)*0
-             else
-                 Zero=zeros(n,n)
-             end
-             this=new(n,AA,fii,Schur_fact,Zero);
-             return this
-         end
-    end
-    function compute_MM(nep::SPMF_NEP,S,V)
-        if (issparse(V))
-            if (size(V)==size(nep))
-                # Initialize with zero sparse matrix which
-                # has sparsity pattern already consistent
-                # with sparsity pattern of M() for optimization
-                Z=copy(nep.Zero)
-            else
-                Z=spzeros(eltype(V),size(V,1),size(V,2))
-            end
-        else
-            Z=zeros(eltype(V),size(V))
-        end
-        # Sum together all the terms in the SPMF:
-        if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
-            (T, Q, ) = schur(S)
-        end
-        for i=1:length(nep.A)
-            ## Compute Fi=f_i(S) in an optimized way
-            if (isdiag(S)) # optimize if S is diagonal
-                Sd=diag(S);
-                if (norm(Sd-Sd[1])==0) # Optimize further if S is a
-                                       # multiple of identity
-                    Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
-                else  # Diagonal but not constant
-                    Fid=zeros(Complex128,size(S,1))
-                    for j=1:size(S,1)
-                        Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
-                    end
-                end
-                Fi=spdiagm(Fid);
-            else  # Otherwise just compute the matrix function operation
-                if(nep.Schur_factorize_before)
-                    Fi= Q*nep.fi[i](T)*Q'
-                else
-                    Fi=nep.fi[i](S)
-                end
-            end
-            ## Sum it up
-            Z=Z+nep.A[i]*(V*Fi);
-        end
-        return Z
-    end
-    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
-        if (i==0)
-            Z=copy(nep.Zero)
-            for i=1:length(nep.A)
-                Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
-            end
-            return Z
-        else
-            # This is typically slow for i>1 (can be optimized by
-            # treating the SPMF-terms individually)
-            return compute_Mder_from_MM(nep,λ,i)
-        end
-    end
 
 
 
