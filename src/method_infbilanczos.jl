@@ -54,13 +54,13 @@ export infbilanczos
         gamma=zeros(m);
 
 
-        @printf("%e %e\n",norm(q), norm(qt));
+        @ifd(@printf("%e %e\n",norm(q), norm(qt)));
 
         k=1;
 
-        @printf("Iteration:");
+        @ifd(@printf("Iteration:"));
         while k < m
-            @printf("%d ", k);
+            @ifd(@printf("%d ", k));
             # Note: conjugate required since we compute s'*r not r'*s
             omega = conj(left_right_scalar_prod(nep,nept,Rt1,R1,k,k,σ));
 
@@ -138,7 +138,7 @@ export infbilanczos
         gamma=gamma[2:end];  # we do not need \gamma_1
         
 
-        @printf("done \n");
+        @ifd(@printf("done \n"));
         
         T = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
         
