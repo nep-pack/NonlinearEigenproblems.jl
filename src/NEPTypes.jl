@@ -206,10 +206,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         end
     end
 
-    """
-    compute_Mder(nep::DEP,λ::Number,i::Integer=0)
- Compute the ith derivative of a DEP
-"""
+# Compute the ith derivative of a DEP
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
         local M,I;
         if issparse(nep)
@@ -310,10 +307,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         return Z
     end
 
-    """
-    compute_Mder(nep::PEP,λ::Number,i::Integer=0)
- Compute the ith derivative of a PEP
-"""
+# Compute the ith derivative of a PEP
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
         if (issparse(nep))
             Z=spzeros(size(nep,1),size(nep,1));
