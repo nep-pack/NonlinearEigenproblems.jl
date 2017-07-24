@@ -1,7 +1,7 @@
 # Transformations between types
 export ShiftScaleNEP
 export MobiusTransformNEP
-
+export transform_to_pep
 
 
 
@@ -62,7 +62,7 @@ end
     type MobiusTransformNEP <: NEP
     MobiusTransformNEP(orgnep::NEP[,a=1][,b=0][,c=0][,d=1])
 
-Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a+b*λ)/(c+d*λ)). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
+Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
 
 """
 
@@ -98,4 +98,19 @@ end
 function compute_Mlincomb(nep::MobiusTransformNEP,λ::Number,V;a=ones(size(V,2)))
     # I did not found a better way
     return compute_Mlincomb_from_MM(nep,λ,V,a)
+end
+
+
+   """
+   transform_to_pep(orgnep::NEP[,d=2])
+
+Compute the truncated (with d term) Taylor series of a nep. The output is a PEP.
+"""
+# consider rename this function
+function transform_to_pep(nep::NEP,d::Integer=2)
+    A=Array{Array{Float64, 2}}(d+1)
+    for i=0:d
+        A[i+1]=compute_Mder(nep,0,i)/factorial(i);
+    end
+    return PEP(A)
 end

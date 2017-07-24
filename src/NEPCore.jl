@@ -139,7 +139,7 @@ Same as [`compute_Mlincomb`](@ref), but modifies V and a.
     compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
 The function computes Mlincomb by a call to compute_Mder. This function is slow since it requires the construction of the matrices.
 Usage normally by overloading:
-    compute_Mder(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_Mder(nep,λ,V,a)
+    compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_Mder(nep,λ,V,a)
 """
     function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_Mder -> compute_Mlincomb")

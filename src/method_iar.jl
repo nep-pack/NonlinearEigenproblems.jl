@@ -82,7 +82,7 @@ function iar(
         k=k+1;
     end
 
-    if conv_eig<Neig
+    if (conv_eig<Neig)&&(1>2)
        err=err[end,1:Neig];
        idx=sortperm(err); # sort the error
        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
