@@ -60,34 +60,39 @@ A ProjectableNEP is a NEP which can be projected, i.e., one can construct the pr
     """
     abstract  AbstractSPMF <: ProjectableNEP
 
-An AbstractSPMF is an abstract class representing NEPs which can be represented as a Sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,   where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions. Any AbstractSPMF has to have implementations of get_Av and get_fv which return the functions and matrices.
+An AbstractSPMF is an abstract class representing NEPs which can be represented
+as a Sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,
+where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions.
+Any AbstractSPMF has to have implementations of get_Av() and get_fv() which return the
+functions and matrices.
 """
     abstract  AbstractSPMF <: ProjectableNEP # See issue #17 
 
     """
     get_Av(nep::AbstractSPMF)
-Returns the matrices A_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+Returns an array of matrices A_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
-    function get_Av(nep::AbstractSPMF)
+    function get_Av(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_Av for all AbstractSPMFs")
     end
     """
     get_Av(nep::AbstractSPMF)
-Returns the function (matrix functions) f_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
-    function get_fv(nep::AbstractSPMF)
+    function get_fv(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_fv for all AbstractSPMFs")
     end
     
     """
     type SPMF_NEP <: AbstractSPMF
 
-An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,\\
+An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,
 where i = 0,1,2,..., all of the matrices are of size n times n
-and f_i is a function. In particular, it must be possible to evaluate f_i with a matrix argument \\
-Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and \\
-fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
-in the call of ``compute_MM(...)``.
+and f_i is a function. In particular, it must be possible to
+evaluate f_i with a matrix argument\\
+Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and 
+fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the
+matrices in the call of ``compute_MM(...)``.
 """
     type SPMF_NEP <: AbstractSPMF
          n::Integer
@@ -182,11 +187,13 @@ in the call of ``compute_MM(...)``.
     #
 
     """
-### Delay eigenvalue problem
-  A DEP is defined by the sum the sum  ``-λI + Σ_i A_i exp(-tau_i λ)``\\
-  where all of the matrices are of size n times n\\
-  Constructor: DEP(AA,tauv) where AA is an array of the\\
-  matrices A_i, and tauv is a vector of the values tau_i
+    type DEP <: AbstractSPMF
+Delay eigenvalue problem
+A DEP (Delay Eigenvalue problem) is defined by
+the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
+of the matrices are of size n times n.\\
+Constructor: DEP(AA,tauv) where AA is an array of the
+matrices A_i, and tauv is a vector of the values tau_i
 """
     type DEP <: AbstractSPMF
         n::Integer
@@ -420,6 +427,7 @@ in the call of ``compute_MM(...)``.
         # Not yet implemented
         # Note: PEP should probably be separated into Mono_PEP and
         # Cheb_PEP depending which inherit from PEP.
+        error("Not implemented")
     end
 
 
@@ -430,7 +438,7 @@ in the call of ``compute_MM(...)``.
 
     """
 ### Rational eigenvalue problem
-  A Rep is defined by the sum the sum ``Σ_i A_i s_i(λ)/q_i(λ)``,\\
+  A Rep is defined by the sum the sum ``Σ_i A_i s_i(λ)/q_i(λ)``,
   where i = 0,1,2,..., all of the matrices are of size n times n
   and s_i and q_i are polynomials\\
   Constructor: REP(AA) where AA is an array of the matrices A_i
