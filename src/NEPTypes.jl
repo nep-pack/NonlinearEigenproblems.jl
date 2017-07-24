@@ -1,10 +1,13 @@
+
 module NEPTypes
     # Specializalized NEPs
+    export ProjectableNEP
     export DEP
     export PEP
     export REP
     export SPMF_NEP
     export AbstractSPMF
+
 
     export Proj_NEP;
     export Proj_SPMF_NEP;
@@ -61,22 +64,30 @@ An AbstractSPMF is an abstract class representing NEPs which can be represented 
 """
     abstract  AbstractSPMF <: ProjectableNEP # See issue #17 
 
-    
+    """
+    get_Av(nep::AbstractSPMF)
+Returns the matrices A_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+"""
     function get_Av(nep::AbstractSPMF)
         error("You need to implement get_Av for all AbstractSPMFs")
     end
+    """
+    get_Av(nep::AbstractSPMF)
+Returns the function (matrix functions) f_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+"""
     function get_fv(nep::AbstractSPMF)
         error("You need to implement get_fv for all AbstractSPMFs")
     end
     
     """
-### Sum of products matrices and functions
-  An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,\\
-  where i = 0,1,2,..., all of the matrices are of size n times n
-  and f_i is a function. In particular, it must be possible to evaluate f_i with a matrix argument \\
-  Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and \\
-  fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
-  in the call of ``compute_MM(...)``.
+    type SPMF_NEP <: AbstractSPMF
+
+An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,\\
+where i = 0,1,2,..., all of the matrices are of size n times n
+and f_i is a function. In particular, it must be possible to evaluate f_i with a matrix argument \\
+Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and \\
+fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
+in the call of ``compute_MM(...)``.
 """
     type SPMF_NEP <: AbstractSPMF
          n::Integer

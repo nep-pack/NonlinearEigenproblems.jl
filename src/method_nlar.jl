@@ -45,7 +45,7 @@ function  default_eigval_sorter(dd,vv,σ,D,mm)
     return nu,y
 end
 
-function nlar(nep::NEP;
+function nlar(nep::ProjectableNEP;
                 nev=10,#Number of eigenvalues required
                 errmeasure::Function =
                 default_errmeasure(nep),
