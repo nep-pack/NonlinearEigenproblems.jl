@@ -5,6 +5,7 @@ module gplot_module
 
   export gsemilogy
   export gplot
+  export gplot_points
   export show_gplot
   export gfigure
   export gcloseall
@@ -28,6 +29,20 @@ module gplot_module
     # plot
     addcoords(x, y, c);
   end
+
+
+  function gplot_points(x,y)
+    # set axis
+    a = AxesConf(); addconf(a)
+    # set curve
+    c = CurveConf();
+    c.marker = "*"
+    c. plotstyle = "points"
+
+    # plot
+    addcoords(x, y, c);
+  end
+
 
   # call this function once you have finished plotting one figure
   show_gplot()=llplot()
