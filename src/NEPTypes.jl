@@ -4,6 +4,7 @@ module NEPTypes
     export PEP
     export REP
     export SPMF_NEP
+    export AbstractSPMF
 
     export Proj_NEP;
     export Proj_PEP;
@@ -35,19 +36,39 @@ module NEPTypes
     export size
     export companion
 
+    export get_Av
+    export get_fv
 
     include("nep_transformations.jl")
 
 
 
     #
+    """
+    abstract ProjectableNEP <: NEP
+
+A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP.
+
+"""
     abstract ProjectableNEP <: NEP 
 
     #######################################################
     ### Sum of products matrices and functions
 
-    
+    """
+    abstract  AbstractSPMF <: ProjectableNEP
+
+An AbstractSPMF is an abstract class representing NEPs which can be represented as a Sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,   where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions. Any AbstractSPMF has to have implementations of get_Av and get_fv which return the functions and matrices.
+"""
     abstract  AbstractSPMF <: ProjectableNEP # See issue #17 
+
+    
+    function get_Av(nep::AbstractSPMF)
+        error("You need to implement get_Av for all AbstractSPMFs")
+    end
+    function get_fv(nep::AbstractSPMF)
+        error("You need to implement get_fv for all AbstractSPMFs")
+    end
     
     """
 ### Sum of products matrices and functions
@@ -58,7 +79,6 @@ module NEPTypes
   fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the matrices\\
   in the call of ``compute_MM(...)``.
 """
-
     type SPMF_NEP <: AbstractSPMF
          n::Integer
          A::Array   # Array of Array of matrices
@@ -144,6 +164,8 @@ module NEPTypes
         end
     end
 
+    
+    
 
     ###########################################################
     # Delay eigenvalue problems - DEP
@@ -171,7 +193,6 @@ module NEPTypes
     compute_Mder(nep::DEP,λ::Number,i::Integer=0)
  Compute the ith derivative of a DEP
 """
-     # TODO: this function compute only the first 2 derivatives. Extend.
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
         local M,I;
         if issparse(nep)
@@ -183,7 +204,6 @@ module NEPTypes
         end
         if i==0; M=-λ*I;  end
         if i==1; M=-I; end
-        if (i>1); error("Not implemented"); end 
         for j=1:size(nep.A,1)
             M+=nep.A[j]*(exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i)
         end
@@ -202,6 +222,35 @@ module NEPTypes
             Z+=nep.A[j]*V*expm(full(-nep.tauv[j]*S))
         end
         return Z
+    end
+
+    #  Fetch the Av's, since they are not explicitly stored in DEPs
+    function get_Av(nep::DEP)
+        local I;
+        if (issparse(nep))
+            I=speye(eltype(nep.A[1]),nep.n)
+        else
+            I=eye(eltype(nep.A[1]),nep.n)            
+        end
+        return [I,nep.A...];
+    end
+    #  Fetch the Fv's, since they are not explicitly stored in DEPs
+    function get_fv(nep::DEP)
+        fv=Array{Function,1}(size(nep.A,1)+1);
+        # First function is -λ
+        fv[1] =  S-> -S
+
+        # The other functions are expm(-tauv[j]*S)
+        for i=1:size(nep.A,1)
+            if (nep.tauv[i]==0) # Zero delay means constant term
+                fv[i+1]=  (S-> eye(size(S,1)))
+            else
+                fv[i+1]=  (S-> expm(-nep.tauv[i]*S))
+            end
+            
+        end
+    
+        return fv;
     end
 
     ###########################################################
@@ -261,6 +310,25 @@ module NEPTypes
         return Z
     end
 
+    #  Fetch the Av's, since they are not explicitly stored in PEPs
+    function get_Av(nep::PEP)
+        return nep.A;
+    end
+    #  Fetch the Fv's, since they are not explicitly stored in PEPs
+    function get_fv(nep::PEP)
+        fv=Array{Function,1}(size(nep.A,1));
+        # Construct monomial functions
+        for i=1:size(nep.A,1)
+            if (i==1); # optimization for constant and linear term
+                fv[1]=(S->eye(size(S,1)));
+            elseif (i==2);
+                fv[2]=(S->S); 
+            else
+                fv[i]=  S->S^(i-1);
+            end            
+        end
+        return fv;
+    end
 
 
 """
@@ -428,6 +496,15 @@ module NEPTypes
     end
 
 
+    #  Fetch the Av's, since they are not explicitly stored in REPs
+    function get_Av(nep::REP)
+        return nep.A;
+    end
+    #  Fetch the Fv's, since they are not explicitly stored in PEPs
+    function get_fv(nep::REP)
+        error("Not implemented")
+    end
+
 
 
 
@@ -548,5 +625,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
 
 
+    function get_Av(nep::Union{SPMF_NEP,PEP,REP})
+        return nep.A;
+    end
+    function get_fv(nep::SPMF_NEP)
+        return nep.fi;
+    end
 
 end
