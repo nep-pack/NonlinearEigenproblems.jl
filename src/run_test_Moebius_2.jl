@@ -13,7 +13,7 @@ compute_Mder(nep::DEP,λ::Number,i::Integer=0)=compute_Mder_from_MM(nep,λ,i)
 compute_Mder(nep::PEP,λ::Number,i::Integer=0)=compute_Mder_from_MM(nep,λ,i)
 
 
-nep=transform_to_pep(nep,4)
+nep=transform_to_pep(nep,10)
 
 compute_Mder(nep,0);
 
