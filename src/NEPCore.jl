@@ -55,7 +55,7 @@ NEP represents a nonlinear eigenvalue problem
 
 
     """
-    compute_Mder(nep::NEP,λ::Number,i::Integer=0)
+    compute_Mder(nep::NEP,λ::Number [,i::Integer=0])
 Computes the ith derivative of NEP evaluated in λ\\
 Usage:\\
     `compute_Mder(nep,λ)`  # Evaluate NEP in λ
