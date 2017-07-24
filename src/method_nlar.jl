@@ -5,9 +5,9 @@ export nlar
 ################################################################################################################
 
 function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
-    if (isa(pnep,Proj_PEP))
-        return polyeig(pnep.nep_proj)
-    else
+    #if (isa(pnep,Proj_))
+    #    return polyeig(pnep.nep_proj)
+    #else
         try
             λ,Q,err=iar(pnep,Neig=1+nev,σ=σ,maxit=100)
             return λ,Q
@@ -19,7 +19,7 @@ function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
             return e.λ, e.v
 
         end        
-    end
+    #end
 end
 
 ## D = already computed eigenvalues

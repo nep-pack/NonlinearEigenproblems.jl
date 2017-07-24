@@ -49,6 +49,6 @@ x1=Q*z1; x1=x1/x1[1];
 println("Difference of solution from projected problem:", norm(x/x[1]-x1))
 
 println("Running IAR for projected problem (no special starting value)");
-λv,X=iar(pnep,σ=complex(0.0),displaylevel=1,maxit=20)
+λv,X=iar(pnep,σ=complex(0.0),displaylevel=1,Neig=3,maxit=100)
 
 println("Difference of solution from projected problem:",minimum(abs(λv-λ_exact)))

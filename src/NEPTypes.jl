@@ -7,7 +7,6 @@ module NEPTypes
     export AbstractSPMF
 
     export Proj_NEP;
-    export Proj_PEP;
     export Proj_SPMF_NEP;
     export create_proj_NEP;
 
@@ -519,34 +518,46 @@ Proj_NEP represents a projected NEP
 Creates a NEP representing a projected problem. Use
 set_projectionmatrices() to specify projection matrices.
 """
+#    function create_proj_NEP(orgnep::ProjectableNEP)
+#        if (isa(orgnep,PEP))
+#            return Proj_PEP(orgnep);
+#        elseif (isa(orgnep,SPMF_NEP))
+#            return Proj_SPMF_NEP(orgnep);
+#        else
+#            error("Projection of this NEP is not available");
+#        end
+#    end
     function create_proj_NEP(orgnep::ProjectableNEP)
-        if (isa(orgnep,PEP))
-            return Proj_PEP(orgnep);
-        elseif (isa(orgnep,SPMF_NEP))
-            return Proj_SPMF_NEP(orgnep);
-        else
-            error("Projection of this NEP is not available");
-        end
+         error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
     end
+    function create_proj_NEP(orgnep::AbstractSPMF)
+         return Proj_SPMF_NEP(orgnep);
+    end
+    
+
     # concrete types for projection of NEPs and PEPs
-    type Proj_PEP <: Proj_NEP
-        orgnep::PEP
-        V
-        W
-        nep_proj::PEP; # An instance of the projected NEP
-        function Proj_PEP(nep::PEP)
-            this=new(nep);
-            return this
-        end
-    end
+#    type Proj_PEP <: Proj_NEP
+#        orgnep::PEP
+#        V
+#        W
+#        nep_proj::PEP; # An instance of the projected NEP
+#        function Proj_PEP(nep::PEP)
+#            this=new(nep);
+#            return this
+#        end
+#    end
 
     type Proj_SPMF_NEP <: Proj_NEP
-        orgnep::SPMF_NEP
+        orgnep::AbstractSPMF
         V
         W
         nep_proj::SPMF_NEP; # An instance of the projected NEP
-        function Proj_SPMF_NEP(nep::SPMF_NEP)
+        orgnep_Av::Array
+        orgnep_fv::Array        
+        function Proj_SPMF_NEP(nep::AbstractSPMF)
             this=new(nep);
+            this.orgnep_Av=get_Av(nep);
+            this.orgnep_fv=get_fv(nep);
             return this
         end
     end
@@ -556,34 +567,27 @@ set_projectionmatrices() to specify projection matrices.
 Set the projection matrices for the NEP to W and V, i.e.,
 corresponding the NEP: W'nep.orgnep(s)Vz=0.
 """
-    function set_projectmatrices!(nep::Union{Proj_PEP,Proj_SPMF_NEP},W,V)
+    function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         k=size(W,2);
         m=size(nep.orgnep.A,1);
         B = Array{Array{eltype(W),2}}(m);
         for i=1:m
-            B[i]=W'*nep.orgnep.A[i]*V;
+            B[i]=W'*nep.orgnep_Av[i]*V;
         end
         nep.W=W;
         nep.V=V;
-        if (isa(nep.orgnep,PEP))
-            nep.nep_proj=PEP(B);
-        elseif (isa(nep.orgnep,SPMF_NEP))
-            # Keep the sequence of functions for SPMFs
-            nep.nep_proj=SPMF_NEP(B,nep.orgnep.fi)
-        else
-            error("Unknown type")
-        end
-
+        # Keep the sequence of functions for SPMFs
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
 
 
     # Use delagation to the nep_proj
-    compute_MM(nep::Union{Proj_PEP,Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
+    compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
     #compute_Mlincomb(nep::Proj_NEP,par...)=compute_Mlincomb(nep.nep_proj,par...) # does not work yet
-    compute_Mder(nep::Union{Proj_PEP,Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
-    compute_Mder(nep::Union{Proj_PEP,Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
+    compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
+    compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
     function size(nep::Proj_NEP,dim=-1)
         n=size(nep.W,2);
