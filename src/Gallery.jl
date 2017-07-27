@@ -7,7 +7,7 @@ module Gallery
     using NEPTypes
     using MATLAB
     using PolynomialRoots
-    
+
     export nep_gallery
 
 
@@ -21,7 +21,7 @@ module Gallery
     include("gallery_extra/nlevp_interface.jl")
 
 
-    
+
   """
 **Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems.**\\
     The parameter 'name' decides which NEP.\\
@@ -93,6 +93,11 @@ module Gallery
                             # discretization::String = 'FD',   which discretization (FD)\\
                             # NEP_format::String = 'SPMF',   NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
                             # delta = 0.1,   Slack from the absorbing boundary conditions
+\\
+     'qep_fixed_eig'\\
+     Create a quadratic eigenvalue problem with chosen eigenvalues
+     * two optional parameters determining the size (default = 5)
+       and a vector containing the eigenvalues (default = randn)       \\\\
   """
   function nep_gallery(name,params...)
       local n
@@ -177,9 +182,9 @@ module Gallery
           return nep
 
       elseif (name== "real_quadratic")
-          # Create a quadratic problem with real eigenvalues          
+          # Create a quadratic problem with real eigenvalues
           n=4; # mat size
-	   
+
 	  A0 = [4     0     1     1;
     		0     2     1     1;
    		1     1     6    -2;
@@ -222,12 +227,36 @@ module Gallery
 
       elseif (name== "waveguide")
           return gallery_waveguide(params...);
+
+      elseif (name == "qep_fixed_eig")
+          # A delay eigenvalue problem
+          if (length(params)>0)
+            n=params[1]
+          else
+            n=5; # Default size
+          end
+
+          if (length(params)>1)
+            E=params[2]
+          else
+            E=randn(2*n)
+          end
+
+
+          srand(0) # reset the random seed
+          I=eye(n);
+          A1=diagm(E[1:n]);
+          A2=diagm(E[n+1:2*n]);
+
+          nep=PEP([A1*A2,-A1-A2,I])
+          return nep
+
       else
           error("The name '", name, "' is not supported in NEP-Gallery.")
       end
-      
-  end
-        
 
-    
+  end
+
+
+
 end

@@ -62,7 +62,7 @@ end
     type MobiusTransformNEP <: NEP
     MobiusTransformNEP(orgnep::NEP[,a=1][,b=0][,c=0][,d=1])
 
-Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
+Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)). Usage of this transformation can slow down the algorithm.
 
 """
 
