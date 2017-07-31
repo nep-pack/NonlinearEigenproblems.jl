@@ -3,7 +3,6 @@ module NEPSolver
     using NEPTypes
     using LinSolvers
 
-    export compute_eigvec_from_eigval_old
     export compute_eigvec_from_eigval
     export @ifd
 
@@ -14,7 +13,7 @@ Executes z if displaylevel>0.
     macro ifd(z)
         return :( if (displaylevel>0); $z; end )
     end
-    
+
     ## NEP-Methods
 
     include("method_newton.jl")

@@ -6,7 +6,7 @@ clc
 %% generate the NEP
 rng('default')
 rng(1)
-n=96; A0 = spdiags(rand(n,3), -1:1, n, n);
+n=1e4; A0 = spdiags(rand(n,3), -1:1, n, n);
 A1 = spdiags(rand(n,3), -1:1, n, n);
 nep.M =@(l,v)  -l*v+A0*v+exp(-l)*(A1*v);
 
@@ -37,14 +37,18 @@ A=-E(1)*speye(n)+A0+exp(-E(1))*A1;
 norm(A*vv)
 
 
-x0=rand(n,1);
-%x0=vv;
-options = optimoptions(@fmincon,'MaxIterations',1500,'MaxFunctionEvaluations',1e6,'Display','iter','StepTolerance',1e-14,'SpecifyObjectiveGradient',true);
-%options = optimoptions(@fmincon,'Algorithm','interior-point','MaxIterations',1500,'MaxFunctionEvaluations',1e6,'Display','iter','StepTolerance',1e-14);
+%x0=rand(n,1);
+x0=vv+1e-6*rand(n,1);
 
-%options = optimoptions('fmincon','SpecifyObjectiveGradient',true);
+max_it=1e4;
+I=eye(length(A));
+[x,rhoLOCG,res] = lopcg(A,x0,max_it);
 
-
-[x,fval,exitflag,output]=fmincon(@(x) FF(x,A), x0, [], [], ones(1,n),1,[],[],[],options);
-norm(A*x)
-nep.resnorm(E(1),x)
+BB=loglog(res,'--k');        
+% 
+% 
+% I=eye(length(A));
+% [x,rhoLOCG,res2] = lopcg(A,x,max_it);
+% 
+% res=[res; res2];
+% BB=semilogy(res,'--k');    
