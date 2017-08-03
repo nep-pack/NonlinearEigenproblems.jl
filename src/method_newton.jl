@@ -5,6 +5,8 @@
     export resinv
     export augnewton
     export quasinewton
+    export newtonqr
+    export implicitdet
 
 #############################################################################
 """
@@ -363,6 +365,112 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         throw(NoConvergenceException(λ,v,err,msg))
     end
 
+
+"""
+    Newton-QR method. 
+"""
+    newtonqr(nep::NEP;params...)=newtonqr(Complex128,nep;params...)
+    function newtonqr{T}(::Type{T},
+                       nep::NEP;
+                       errmeasure::Function =
+                       default_errmeasure(nep::NEP),
+                       tolerance=eps(real(T))*100,
+                       maxit=100,
+                       λ=zero(T),
+                       v=randn(real(T),size(nep,1)),
+                       c=v,
+                       displaylevel=0,
+                       linsolvercreator::Function=default_linsolvercreator)
+
+
+        n = size(nep,1);
+        v = Array{T,1}(v);
+
+        try
+            for k=1:maxit
+
+                A = compute_Mder(nep,λ);
+                Q,R,PI = qr(A,Val{true});#QR factorization with pivoting.
+
+                P = eye(T,n)[:,PI];#The permutation matrix corresponding to the pivoted QR.
+
+                p = R[1:n-1,1:n-1]\R[1:n-1,n];
+                v = P*[-p;T(1)];
+                
+                if(abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2) < tolerance)    
+                    return λ,v;
+                end
+
+                d = dot(Q[n,:],compute_Mlincomb(nep,λ,P*[-p;T(1)],[T(1)],1));
+                λ = λ - R[n,n]/d;
+            end
+        catch e
+            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            # This should not cast an error since it means that λ is
+            # already an eigenvalue.
+            @ifd(println("We have an exact eigenvalue."))
+
+            if (k == maxit)
+                # We need to compute an eigvec
+                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                v=v/dot(c,v)
+            end
+            return (λ,v)
+        end
+    end
+
+
+"""
+    Implicit determinant method
+"""
+    implicitdet(nep::NEP;params...)=implicitdet(Complex128,nep;params...)
+    function implicitdet{T}(::Type{T},
+                       nep::NEP;
+                       errmeasure::Function =
+                       default_errmeasure(nep::NEP),
+                       tolerance=eps(real(T))*100,
+                       maxit=100,
+                       λ=zero(T),
+                       v=randn(real(T),size(nep,1)),
+                       c=v,
+                       displaylevel=0,
+                       linsolvercreator::Function=default_linsolvercreator)
+
+
+        n = size(nep,1);
+        v = Array{T,1}(v);
+        c = Array{T,1}(c);
+        b = c;
+        try
+            for k=1:maxit
+
+                L,U,PI = lu([compute_Mder(nep,λ) b; c' 0]);
+
+                P = eye(T,n+1)[PI,:];
+
+                v = U\(L\(P*[zeros(T,n);T(1)]));
+                vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],0);0]));
+                
+                if(abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2) < tolerance)  
+                    return λ,v;
+                end
+
+                λ = λ - v[n+1]/vp[n+1];
+            end
+        catch e
+            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            # This should not cast an error since it means that λ is
+            # already an eigenvalue.
+            @ifd(println("We have an exact eigenvalue."))
+
+            if (k == maxit)
+                # We need to compute an eigvec
+                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                v=v/dot(c,v)
+            end
+            return (λ,v)
+        end
+    end
 
     # Armijo rule implementation
     function armijo_rule(nep,errmeasure,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)

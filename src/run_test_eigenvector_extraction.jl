@@ -4,7 +4,6 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using gplot_module
 using LinSolvers
 
 
