@@ -10,7 +10,7 @@ using gplot_module
 # functions from packages
 import NEPCore.compute_Mlincomb
 
-nep=nep_gallery("dep0",100)
+nep=nep_gallery("dep0",1000)
 #nep=nep_gallery("pep0");
 
 

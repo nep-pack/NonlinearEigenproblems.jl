@@ -37,8 +37,8 @@ A=-E(1)*speye(n)+A0+exp(-E(1))*A1;
 norm(A*vv)
 
 
-%x0=rand(n,1);
-x0=vv+1e-6*rand(n,1);
+x0=rand(n,1);
+%x0=vv+1e-6*rand(n,1);
 
 max_it=1e4;
 I=eye(length(A));
