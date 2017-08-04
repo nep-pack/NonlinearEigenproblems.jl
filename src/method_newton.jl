@@ -441,10 +441,12 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         v = Array{T,1}(v);
         c = Array{T,1}(c);
         b = c;
+        
         try
             for k=1:maxit
 
-                L,U,PI = lu([compute_Mder(nep,λ) b; c' 0]);
+                L,U,PI = lu(AA);
+
 
                 P = eye(T,n+1)[PI,:];
 
@@ -470,6 +472,9 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
             end
             return (λ,v)
         end
+
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        throw(NoConvergenceException(λ,v,NaN,msg))
     end
 
     # Armijo rule implementation
