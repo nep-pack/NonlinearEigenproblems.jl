@@ -460,7 +460,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 P = eye(T,n+1)[PI,:];
 
                 v = U\(L\(P*[zeros(T,n);T(1)]));
-                #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],0);0]));
+                #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
                 vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
                 err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
