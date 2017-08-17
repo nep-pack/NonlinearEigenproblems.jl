@@ -77,7 +77,7 @@ Computes the linear combination of derivatives\\
 ``Σ_i a_i M^{(i)}(λ) v_i``
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
-        #println(typeof(λ))
+
         # determine a default behavior (may lead to loss of performance)
         if (@method_concretely_defined(compute_MM,nep))
             return compute_Mlincomb_from_MM(nep,λ,V,a)

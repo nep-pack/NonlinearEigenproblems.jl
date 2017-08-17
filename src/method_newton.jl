@@ -384,7 +384,6 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
 
         n = size(nep,1);
-        println("Size is ",n)
         v = Array{T,1}(v);
 
         try
@@ -403,7 +402,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 end
 
 
-                d = dot(Q[n,:],compute_Mlincomb(nep,λ,P*[-p;T(1)],[T(1)],1));
+                #d = dot(Q[n,:],compute_Mlincomb(nep,λ,P*[-p;T(1)],[T(1)],1));
+                d = dot(Q[n,:],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
                 λ = λ - R[n,n]/d;
             end
         catch e
@@ -448,6 +448,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         
         try
             for k=1:maxit
+
                 A = compute_Mder(nep,λ);
                 AA = [A b;c' 0];
                 L,U,PI = lu(AA);
@@ -456,10 +457,12 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 P = eye(T,n+1)[PI,:];
 
                 v = U\(L\(P*[zeros(T,n);T(1)]));
-                vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],0);0]));
-                
-                if(abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2) < tolerance)  
-                    return λ,v;
+                #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],0);0]));
+
+                vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
+                if(abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2) < tolerance) 
+                    println(λ) 
+                    return λ,v[1:n];
                 end
 
                 λ = λ - v[n+1]/vp[n+1];
