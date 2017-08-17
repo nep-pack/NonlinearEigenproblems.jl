@@ -397,7 +397,10 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 p = R[1:n-1,1:n-1]\R[1:n-1,n];
                 v = P*[-p;T(1)];
                 
-                if(abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2) < tolerance)    
+                err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
+                
+                println("Iteration: ",k," errmeasure: ", err);
+                if(err < tolerance)    
                     return λ,v;
                 end
 
@@ -458,9 +461,11 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
                 v = U\(L\(P*[zeros(T,n);T(1)]));
                 #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],0);0]));
-
                 vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
-                if(abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2) < tolerance) 
+
+                err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
+                 println("Iteration: ",k," errmeasure: ", err);
+                if(err < tolerance) 
                     println(λ) 
                     return λ,v[1:n];
                 end
