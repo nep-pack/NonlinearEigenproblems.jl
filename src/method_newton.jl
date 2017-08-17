@@ -384,6 +384,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
 
         n = size(nep,1);
+        println("Size is ",n)
         v = Array{T,1}(v);
 
         try
@@ -401,6 +402,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                     return λ,v;
                 end
 
+
                 d = dot(Q[n,:],compute_Mlincomb(nep,λ,P*[-p;T(1)],[T(1)],1));
                 λ = λ - R[n,n]/d;
             end
@@ -417,6 +419,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
             end
             return (λ,v)
         end
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        throw(NoConvergenceException(λ,v,err,msg))
     end
 
 
@@ -444,7 +448,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         
         try
             for k=1:maxit
-
+                A = compute_Mder(nep,λ);
+                AA = [A b;c' 0];
                 L,U,PI = lu(AA);
 
 

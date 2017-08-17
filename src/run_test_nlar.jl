@@ -5,7 +5,7 @@ using NEPCore
 using NEPTypes
 using LinSolvers
 using Gallery
-using gplot_module
+#using gplot_module
 
 
 #nep1 = nep_gallery("pep0");
@@ -30,9 +30,9 @@ D,X,err_hyst = nlar(nep1,maxit=maxit,λ=1,nev=nev,displaylevel=1,v=v);
 #λ,Q,err = iar(pep,maxit=100,Neig=2,σ=0.0,γ=2);
 print(norm(compute_Mlincomb(nep1,D[1],X[:,1])))
 
-
+#=
 gcloseall()
 for i=1:nev-1
   gsemilogy(1:maxit, err_hyst[:,i])
 end
-show_gplot()
+show_gplot()=#
