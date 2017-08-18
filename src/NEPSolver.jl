@@ -6,7 +6,7 @@ module NEPSolver
     export compute_eigvec_from_eigval
     export compute_eigvec_from_eigval_lopcg
 
-    #export @ifd
+    export @ifd
 
     """
     @ifd(z)
