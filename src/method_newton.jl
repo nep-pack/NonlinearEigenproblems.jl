@@ -38,9 +38,7 @@
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
-                #z=macroexpand( :( @ifd2));                
-                #println(z)
-                #@ifd2()
+
                 @ifd(print("Iteration:",k," errmeasure:",err))
                 if (err< tolerance)
                     @ifd(print("\n"));
@@ -404,7 +402,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 
                 #err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
                 err=errmeasure(λ,v);
-                println("Iteration: ",k," errmeasure: ", err);
+                @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tolerance)    
                     return λ,v;
                 end
@@ -469,9 +467,9 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
                 err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
-                 println("Iteration: ",k," errmeasure: ", err);
+                @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tolerance) 
-                    println(λ) 
+                    @ifd(println(λ))
                     return λ,v[1:n];
                 end
 

@@ -6,14 +6,14 @@ module NEPSolver
     export compute_eigvec_from_eigval
     export compute_eigvec_from_eigval_lopcg
 
-    export @ifd
+    #export @ifd
 
     """
     @ifd(z)
 Executes z if displaylevel>0.
 """
     macro ifd(z)
-        return :( if (displaylevel>0); $z; end )
+        return esc(:( if (displaylevel > 0); $z; end ))
     end
 
     ## NEP-Methods
