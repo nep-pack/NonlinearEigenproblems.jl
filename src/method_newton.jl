@@ -33,10 +33,14 @@
 
         err=Inf;
         v=v/dot(c,v);
+        
 
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
+                #z=macroexpand( :( @ifd2));                
+                #println(z)
+                #@ifd2()
                 @ifd(print("Iteration:",k," errmeasure:",err))
                 if (err< tolerance)
                     @ifd(print("\n"));
@@ -385,6 +389,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
         n = size(nep,1);
         v = Array{T,1}(v);
+        local err;
 
         try
             for k=1:maxit
@@ -397,16 +402,16 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 p = R[1:n-1,1:n-1]\R[1:n-1,n];
                 v = P*[-p;T(1)];
                 
-                err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
-                
+                #err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
+                err=errmeasure(λ,v);
                 println("Iteration: ",k," errmeasure: ", err);
                 if(err < tolerance)    
                     return λ,v;
                 end
 
 
-                #d = dot(Q[n,:],compute_Mlincomb(nep,λ,P*[-p;T(1)],[T(1)],1));
-                d = dot(Q[n,:],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
+                d = dot(Q[:,n],compute_Mlincomb(nep,λ,v,[T(1)],1));
+                #d = dot(Q[:,n],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
                 λ = λ - R[n,n]/d;
             end
         catch e
@@ -460,8 +465,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 P = eye(T,n+1)[PI,:];
 
                 v = U\(L\(P*[zeros(T,n);T(1)]));
-                vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
-                #vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
+                #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
+                vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
                 err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
                  println("Iteration: ",k," errmeasure: ", err);
