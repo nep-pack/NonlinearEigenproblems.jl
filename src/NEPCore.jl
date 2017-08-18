@@ -39,8 +39,11 @@ False will be returned if methodname is only defined for the
 abstract superclass of s.
 """
     macro method_concretely_defined(methodname,s)
-        return :(length(methodswith(typeof($s), $methodname, false))>0)
+        return :( length(methodswith(typeof($(esc(s))), $(esc(methodname)), false))>0 )
     end
+#    macro method_concretely_defined(methodname,s)
+#        return :(length(methodswith(typeof($s), $methodname, false))>0)
+#    end
 
 
     ############################################
