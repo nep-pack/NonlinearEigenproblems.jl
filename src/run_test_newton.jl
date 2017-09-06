@@ -97,9 +97,16 @@ println("Running quasinewton (with armijo)")
 λ,x =quasinewton(Float64,nep, λ=3.5, displaylevel=1,v=ones(size(nep,1),1)[:],armijo_factor=0.9,armijo_max=10);=#
 
 
-nep = nep_gallery("dep0");
-println("Running Newton-QR")
-λ,x = implicitdet(nep, displaylevel=1);
+nep = nep_gallery("dep_double");
+println("Running implicit det")
+n=size(nep,1);
+λ,x = implicitdet(nep, λ=9im, v=ones(n), displaylevel=1);
+λ,x = newton(nep, λ=9im, v=ones(n), displaylevel=1,maxit=100);
+println(λ)
+println("Newton QR")
+λ,x = newtonqr(nep, λ=9im, v=ones(n), displaylevel=1 );
+
+#λ,x = (nep, λ=-0.36, v=ones(n), displaylevel=1 );
 #println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)
 
 

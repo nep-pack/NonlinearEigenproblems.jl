@@ -33,8 +33,8 @@ abserrmeasure=function (λ,v)
 end
 println("Running residual inverse iteration")
 #
-λ0=round(λ_exact*10)/10; # Start value
-x0=round(x*10)/10;       # Start vector
+λ0=round.(λ_exact*10)/10; # Start value
+x0=round.(x*10)/10;       # Start vector
 λ,x =resinv(nep,λ=λ0,v=x0,displaylevel=1,errmeasure=abserrmeasure);	
 
 println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))

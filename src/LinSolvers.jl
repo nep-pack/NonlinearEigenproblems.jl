@@ -41,8 +41,8 @@ module LinSolvers
         A::T_mat
         Afact
 
-        DefaultLinSolver(A::AbstractMatrix{T_num},Afact) = new(A, Afact)
     end
+    DefaultLinSolver(A::AbstractMatrix,Afact) = new(A, Afact)
 
     function DefaultLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
@@ -68,8 +68,9 @@ module LinSolvers
 """
     type BackslashLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
         A::T_mat
-        BackslashLinSolver(A::AbstractMatrix{T_num}) = new(A)
     end
+    BackslashLinSolver{T_num}(A::AbstractMatrix{T_num}) = new(A)
+    
     function BackslashLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
         return BackslashLinSolver{eltype(A), typeof(A)}(A)
@@ -97,8 +98,8 @@ module LinSolvers
         nep::T_nep
         λ::T_num
 
-        Mlincomb_matvec{T_num, T_nep}(nep::T_nep, λ::T_num) = new{T_num,T_nep}(nep, λ)
     end
+    Mlincomb_matvec{T_num, T_nep}(nep::T_nep, λ::T_num) = new{T_num,T_nep}(nep, λ)
 
     function *{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep}, v::AbstractVector)
         return compute_Mlincomb(M.nep, M.λ, v, a=[1])
@@ -122,15 +123,16 @@ module LinSolvers
         kwargs
         gmres_log::Bool
 
-        function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs)
-            A = Mlincomb_matvec{T_num, T_nep}(nep, λ)
-            gmres_log = false
-            for elem in kwargs
-                gmres_log |= ((elem[1] == :log) && elem[2])
-            end
-            new{T_num, T_nep}(A, kwargs, gmres_log)
-        end
     end
+    function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs)
+        A = Mlincomb_matvec{T_num, T_nep}(nep, λ)
+        gmres_log = false
+        for elem in kwargs
+            gmres_log |= ((elem[1] == :log) && elem[2])
+        end
+        new{T_num, T_nep}(A, kwargs, gmres_log)
+    end
+    
 
     function lin_solve{T_num, T_nep}(solver::GMRESLinSolver{T_num, T_nep}, x::Array; tol=eps(real(T_num)))
         if( solver.gmres_log )
@@ -176,7 +178,7 @@ module LinSolvers
         end
 
         #Sort the eigenvalues wrt distance from target, and permute
-        I = sortperm(abs(target*ones(size(D,1))-D));
+        I = sortperm(abs.(target*ones(size(D,1))-D));
         D = D[I];V = V[:,I];
 
         #Return the nev closest values to target

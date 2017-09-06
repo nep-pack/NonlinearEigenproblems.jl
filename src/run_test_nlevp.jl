@@ -45,7 +45,10 @@ println("Running resinv (with backslash no pre-factorization)")
 println("Found eigenvalue \sqrt{λ}=",sqrt(λ))
 
 
+println("Running TIAR")
 
+
+@time λ,v=tiar(nep1,σ=λ0,displaylevel=2,maxit=100,γ=abs(λ0))
 
 
 

@@ -8,14 +8,14 @@ using Gallery
 
 
 
-nep=nep_gallery("dep0")
+nep=nep_gallery("dep_distributed")
 
 σ=1.5im;
 γ=2;
 nep1=ShiftScaleNEP(nep,shift=σ,scale=γ);
 
 
-s,x=newton(nep1,λ=0,v=ones(size(nep1,1)),displaylevel=1,armijo_factor=0.5,maxit=30)
+s,x=newton(nep1,λ=0,v=ones(size(nep1,1)),displaylevel=0,armijo_factor=0.5,maxit=30)
 
 println("Resnorm shift and scaled NEP:",norm(compute_Mlincomb(nep1,s,x)))
 println("Shift and scaled eigval s=",s);

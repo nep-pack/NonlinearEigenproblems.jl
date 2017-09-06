@@ -36,7 +36,7 @@ function  default_eigval_sorter(dd,vv,σ,D,mm)
             end
         end
     end
-    ii = sortperm(abs(dd2-σ));
+    ii = sortperm(abs.(dd2-σ));
 
     mm_min=min(mm,length(ii));
     nu = dd2[ii[1:mm_min]];

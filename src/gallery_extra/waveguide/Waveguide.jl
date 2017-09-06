@@ -100,12 +100,12 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
-    A = Array(SparseMatrixCSC,3+2*nz)
+    A = Array{SparseMatrixCSC}(3+2*nz)
     A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(Complex128,2*nz, 2*nz) )
     A[2] = hvcat((2,2), Q1, spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), spzeros(Complex128,2*nz, 2*nz) )
     A[3] = hvcat((2,2), Q2, spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), spzeros(Complex128,2*nz, 2*nz) )
 
-    f = Array(Function, 3+2*nz)
+    f = Array{Function}(3+2*nz)
     f[1] = λ -> eye(Complex128,size(λ,1),size(λ,2))
     f[2] = λ -> λ
     f[3] = λ -> λ^2
@@ -163,6 +163,7 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
     cM = Km^2 - 4*pi^2 * ((-p:p).^2);
     cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
+    # Note: γ should be scalar or matrix (not vector)
     betaM = function(γ, j::Integer)
         return γ^2 + b[j]*γ + cM[j]*eye(Complex128,size(γ,1))
     end
@@ -512,11 +513,11 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
     function sM(γ::Number)
         bbeta = betaM(γ)
-        return 1im*sign(imag(bbeta)).*sqrt(bbeta)+d0;
+        return 1im*sign.(imag(bbeta)).*sqrt(bbeta)+d0;
     end
     function sP(γ::Number)
         bbeta = betaP(γ)
-        return 1im*sign(imag(bbeta)).*sqrt(bbeta)+d0;
+        return 1im*sign.(imag(bbeta)).*sqrt(bbeta)+d0;
     end
 
     # BUILD THE INVERSE OF THE FOURTH BLOCK P

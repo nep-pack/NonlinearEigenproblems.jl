@@ -7,7 +7,7 @@ using NEPTypes
 using Gallery
 #using Winston # For plotting
 
-peptest=false
+peptest=true
 local nep::NEP
 if (peptest)
     nep=nep_gallery("pep0_sparse_003");
@@ -51,4 +51,4 @@ println("Difference of solution from projected problem:", norm(x/x[1]-x1))
 println("Running IAR for projected problem (no special starting value)");
 λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=1,Neig=3,maxit=100)
 
-println("Difference of solution from projected problem:",minimum(abs(λv-λ_exact)))
+println("Difference of solution from projected problem:",minimum(abs.(λv-λ_exact)))
