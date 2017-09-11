@@ -155,10 +155,10 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         D1 = zeros(Complex128, nz,nz)
         D2 = zeros(Complex128, nz,nz)
         for j = 1:nz
-            D1[j,j] = S([γ]'',j)[1]
+            D1[j,j] = S(reshape([γ],1,1),j)[1]
         end
         for j = 1:nz
-            D2[j,j] = S([γ]'',j+nz)[1]
+            D2[j,j] = S(reshape([γ],1,1),j+nz)[1]
         end
         Iz = eye(nz,nz);
         for j = 1:nz
@@ -179,7 +179,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
-            options = struct
+            options = cell2struct({},{},1)
             options.delta = delta
             options.wg = waveguide_str
             matlab_nep = nep_wg_generator(nxx, nzz, options)
@@ -245,7 +245,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
-            options = struct
+            options = cell2struct({},{},1)
             options.delta = delta
             options.wg = waveguide_str
             matlab_nep = nep_wg_generator(nxx, nzz, options)
@@ -416,7 +416,7 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
-            options = struct
+            options = cell2struct({},{},1)
             options.delta = delta
             options.wg = waveguide_str
             matlab_nep = nep_wg_generator(nxx, nzz, options)
@@ -456,7 +456,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
-            options = struct
+            options = cell2struct({},{},1)
             options.delta = double(delta)
             options.wg = waveguide_str
             nep = nep_wg_generator(nxx, nzz, options)
@@ -539,7 +539,6 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
             nn = nz
             NN = double(N)
             CC = double(C)
-            options = struct
             options.delta = double(delta)
             options.wg = waveguide_str
             nep = nep_wg_generator(nxx, nzz, options)
