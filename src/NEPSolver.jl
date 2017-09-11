@@ -44,6 +44,7 @@ Executes z if displaylevel>0.
     """
     function compute_eigvec_from_eigval(nep::NEP,λ::Number,linsolvercreator::Function)
 
+        local M0inv::LinSolver = linsolvercreator(nep,λ);
         n=size(nep,1);
 
         if (isa(M0inv,DefaultLinSolver))
