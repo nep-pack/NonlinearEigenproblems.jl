@@ -22,9 +22,6 @@ module LinSolvers
     export DefaultEigSolver
     export eig_solve
 
-    abstract LinSolver;
-    abstract EigSolver;
-
     import Base.eltype
     export eltype
     import Base.size
@@ -32,6 +29,9 @@ module LinSolvers
     import Base.*
     export *
 
+##############################################################################
+    abstract type LinSolver end
+    abstract type EigSolver end
 
 ##############################################################################
     """
@@ -257,18 +257,15 @@ module LinSolvers
         n = mxarray(nev)
         t = mxarray(target)
 
-        @mput aa_real aa_complex bb_real bb_complex n t
-        @matlab begin
-            n = double(n);
-            aa = double(aa_real) + 1i*double(aa_complex);
-            bb = double(bb_real) + 1i*double(bb_complex);
+        mat"""
+            aa = double($aa_real) + 1i*double($aa_complex);
+            bb = double($bb_real) + 1i*double($bb_complex);
 
-            t = double(t);
+            nn = double($n);
+            tt = double($t);
             
-            (V,D) = eigs(aa,bb,n,t); 
-        end
-
-        @mget D V
+            [$V,$D] = eigs(aa,bb,nn,tt);
+         """
 
         if nev > 1
             D = diag(D)
