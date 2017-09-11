@@ -19,6 +19,7 @@ export debug_Mlincomb_FD_WEP
 export debug_Sylvester_SMW_WEP
 export matlab_debug_eigval_comp_WEP_FD_and_SPMF
 export debug_WEP_FD_preconditioner
+export debug_eigval_comp_WEP_FD
 
 #OBS: Explicit imports of non-exported functions
 import Waveguide.generate_wavenumber_fd
@@ -174,8 +175,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nx nz delta WEP_path waveguide_str gamma
-        @matlab begin
+         mat"""
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
@@ -192,9 +192,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
             K_m = matlab_nep.K;
             hx_m = matlab_nep.hx;
             hz_m = matlab_nep.hz;
-
-        @matlab end
-        @mget K_m C2T_m C1_m hx_m hz_m P_m
+         """
         println("  -- Matlab printouts end --")
 
         println("Difference hx_m - hx = ", abs(hx_m-hx))
@@ -243,8 +241,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nx nz delta WEP_path waveguide_str gamma
-        @matlab begin
+        mat"""
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
@@ -256,10 +253,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
             Ixz = eye(nxx*nzz+2*nzz);
             M_m = NaN(nxx*nzz+2*nzz, nxx*nzz+2*nzz);
             eval("for i = 1:(nxx*nzz+2*nzz);   M_m(:,i) = matlab_nep.M(gamma, Ixz(:,i));    end")
-
-
-        @matlab end
-        @mget M_m
+        """
         println("  -- Matlab printouts end --")
 
         println("Difference M_m(γ) - M(γ) = ", norm(full(M_m-M_j)))
@@ -314,12 +308,10 @@ function debug_sqrt_derivative()
 
         WEP_path = pwd() * "/../matlab/WEP"
         println("  -- Matlab printouts start --")
-        @mput a b c d_vec x WEP_path
-        @matlab begin
+        mat"""
             addpath(WEP_path)
             der_val = sqrt_derivative_test(a,b,c, d_vec, x);
-        @matlab end
-        @mget der_val
+        """
         println("  -- Matlab printouts end --")
 
     julia_der_vec = sqrt_derivative(a,b,c, maximum(d_vec), x)
@@ -420,8 +412,7 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nx nz delta WEP_path waveguide_str gamma
-        @matlab begin
+        mat"""
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
@@ -434,9 +425,7 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
             Schur_m = NaN(nxx*nzz, nxx*nzz);
             eval("for i = 1:(nxx*nzz);   Schur_m(:,i) = matlab_nep.S(gamma, Ixz(:,i));    end")
 
-
-        @matlab end
-        @mget Schur_m
+         """
         println("  -- Matlab printouts end --")
 
         norm_diff = norm(Schur_m-Schur_j)
@@ -463,8 +452,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
         end
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nx nz delta WEP_path waveguide_str gamma C
-        @matlab begin
+         mat"""
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
@@ -480,9 +468,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
             K = nep.K - kk;
 
             X_m = fft_wg( CC, sigma, kk, nep.hx, nep.hz );
-
-        @matlab end
-        @mget X_m
+         """
         println("  -- Matlab printouts end --")
 
 
@@ -546,8 +532,7 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nx nz N delta WEP_path waveguide_str gamma C
-        @matlab begin
+        mat"""
             addpath(WEP_path)
             nxx = double(nx)
             nzz = double(nz)
@@ -576,9 +561,7 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
             M_m = generate_smw_matrix( nn, NN, Linv, dd1, dd2, Pm_inv, Pp_inv, K, false );
 
             X_m = solve_smw( M_m, CC, Linv, dd1, dd2, Pm_inv, Pp_inv, K );
-
-        @matlab end
-        @mget M_m X_m
+        """
         println("  -- Matlab printouts end --")
 
         println("    Difference SMW_matrix_m - SMW_matrix_j = ", norm(M_m - M_jj))
@@ -715,8 +698,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-        @mput nz N delta WEP_path waveguide_str gamma
-        @matlab begin
+        mat"""
             addpath(WEP_path)
 
             nzz = double(nz);
@@ -725,9 +707,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
             eigval_m, eigvec_m = main_func_WEP(nzz, NN, lambda, delta, waveguide_str)
 
-
-        @matlab end
-        @mget eigval_m eigvec_m
+        """
         println("  -- Matlab printouts end --")
 
         println("    Difference between WEP_FD and SPMF computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_j_SPMF))
@@ -755,5 +735,6 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
     end
     println("\n--- End eigenvalue computations of WEP_FD and SPMF against MATLAB ---\n")
 end
+
 
 end
