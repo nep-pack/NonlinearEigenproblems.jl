@@ -2,6 +2,7 @@ module LinSolvers
     using MATLAB
     using NEPCore
     using IterativeSolvers
+    using LinearMaps
     
     # Linear system of equation solvers
     export LinSolver
@@ -91,46 +92,25 @@ module LinSolvers
 
 ##############################################################################
 """
-      A wrapper that, given a NEP, computes the matrix-vector-product
-      using the compute_Mlincomb(...) function for NEPs.
-"""
-    type Mlincomb_matvec{T_num<:Number, T_nep<:NEP}
-        nep::T_nep
-        λ::T_num
-
-    end
-    Mlincomb_matvec{T_num, T_nep}(nep::T_nep, λ::T_num) = new{T_num,T_nep}(nep, λ)
-
-    function *{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep}, v::AbstractVector)
-        return compute_Mlincomb(M.nep, M.λ, v, a=[1])
-    end
-
-    function size{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep}, dim=-1)
-        return size(M.nep, dim)
-    end
-
-    function eltype{T_num, T_nep}(M::Mlincomb_matvec{T_num, T_nep})
-        return eltype(M.λ)
-    end
-
-
-
-"""
       A linear solver based on GMRES (built into Julia)
 """
     type GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
-        A::Mlincomb_matvec{T_num, T_nep}
+        A::LinearMap{T_num}
         kwargs
         gmres_log::Bool
 
-    end
-    function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs)
-        A = Mlincomb_matvec{T_num, T_nep}(nep, λ)
-        gmres_log = false
-        for elem in kwargs
-            gmres_log |= ((elem[1] == :log) && elem[2])
+        function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs) where {T_num<:Number, T_nep<:NEP}
+            function f(v::AbstractVector)
+              return compute_Mlincomb(nep, λ, v, a=[1])
+            end
+            A = LinearMap{T_num}(f, size(nep,1), ismutating=false)
+            gmres_log = false
+            for elem in kwargs
+                gmres_log |= ((elem[1] == :log) && elem[2])
+            end
+            new{T_num, T_nep}(A, kwargs, gmres_log)
         end
-        new{T_num, T_nep}(A, kwargs, gmres_log)
+
     end
     
 
