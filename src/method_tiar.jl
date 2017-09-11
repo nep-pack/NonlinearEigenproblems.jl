@@ -9,7 +9,7 @@ function tiar(
  errmeasure::Function = default_errmeasure(nep::NEP),
  σ=0.0,
  γ=1,
- v0=rand(nep.n,1),
+ v0=rand(size(nep,1),1),
  displaylevel=0,
  p=1
 )
