@@ -14,6 +14,8 @@ using Base.Test
 
 nep=nep_gallery("dep0")
 
+# newton and augnewton are equivalent, therefore I expect them
+# to generate identical results
 λ1,x1 =newton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tolerance=eps()*10);
 λ2,x2 =augnewton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tolerance=eps()*10);
 
