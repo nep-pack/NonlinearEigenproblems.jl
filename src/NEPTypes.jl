@@ -52,7 +52,7 @@ module NEPTypes
 A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP.
 
 """
-    abstract ProjectableNEP <: NEP 
+    abstract type ProjectableNEP <: NEP end
 
     #######################################################
     ### Sum of products matrices and functions
@@ -66,7 +66,7 @@ where i = 0,1,2,..., all of the matrices are of size n times n and f_i are funct
 Any AbstractSPMF has to have implementations of get_Av() and get_fv() which return the
 functions and matrices.
 """
-    abstract  AbstractSPMF <: ProjectableNEP # See issue #17 
+    abstract  type AbstractSPMF <: ProjectableNEP end # See issue #17 
 
     """
     get_Av(nep::AbstractSPMF)
@@ -525,7 +525,7 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i �
 """
 Proj_NEP represents a projected NEP
 """
-    abstract Proj_NEP <: NEP
+    abstract type Proj_NEP <: NEP end
 
 """
 Creates a NEP representing a projected problem. Use

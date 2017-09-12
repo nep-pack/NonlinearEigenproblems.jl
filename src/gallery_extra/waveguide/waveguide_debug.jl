@@ -61,14 +61,14 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
         return a*γ^2 + b*γ + cP
     end
 
-    const signM = 1im*sign(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
-    const signP = 1im*sign(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
+    const signM = 1im*sign.(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
+    const signP = 1im*sign.(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
 
     function sM(γ::Number)
-        return signM.*sqrt(betaM(γ))+d0;
+        return signM.*sqrt.(betaM(γ))+d0;
     end
     function sP(γ::Number)
-        return signP.*sqrt(betaP(γ))+d0;
+        return signP.*sqrt.(betaP(γ))+d0;
     end
 
     function p_sM(γ)
@@ -175,24 +175,27 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
-         mat"""
-            addpath(WEP_path)
-            nxx = double(nx)
-            nzz = double(nz)
-            options = cell2struct({},{},1)
-            options.delta = delta
-            options.wg = waveguide_str
-            matlab_nep = nep_wg_generator(nxx, nzz, options)
+        mat"""
+            addpath($WEP_path)
+            nxx = double($nx);
+            nzz = double($nz);
+            gamma_m = double($gamma);
+            options = [];
+            options.delta = $delta;
+            options.wg = $waveguide_str;
+            matlab_nep = nep_wg_generator(nxx, nzz, options);
 
-            P_m = NaN(2*nzz, 2*nzz);
+            $P_m = NaN(2*nzz, 2*nzz);
             Iz = eye(2*nzz);
-            eval("for i = 1:2*nzz;   P_m(:,i) = matlab_nep.P(gamma, Iz(:,i));    end")
-            C1_m = matlab_nep.C1;
-            C2T_m = matlab_nep.C2T;
-            K_m = matlab_nep.K;
-            hx_m = matlab_nep.hx;
-            hz_m = matlab_nep.hz;
-         """
+            for i = 1:2*nzz
+              $P_m(:,i) = matlab_nep.P(gamma_m, Iz(:,i));
+            end
+            $C1_m = matlab_nep.C1;
+            $C2T_m = matlab_nep.C2T;
+            $K_m = matlab_nep.K;
+            $hx_m = matlab_nep.hx;
+            $hz_m = matlab_nep.hz;
+        """
         println("  -- Matlab printouts end --")
 
         println("Difference hx_m - hx = ", abs(hx_m-hx))
@@ -242,17 +245,19 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
         mat"""
-            addpath(WEP_path)
-            nxx = double(nx)
-            nzz = double(nz)
-            options = cell2struct({},{},1)
-            options.delta = delta
-            options.wg = waveguide_str
-            matlab_nep = nep_wg_generator(nxx, nzz, options)
+            addpath($WEP_path)
+            nxx = double($nx);
+            nzz = double($nz);
+            options = [];
+            options.delta = double($delta);
+            options.wg = $waveguide_str;
+            matlab_nep = nep_wg_generator(nxx, nzz, options);
 
             Ixz = eye(nxx*nzz+2*nzz);
-            M_m = NaN(nxx*nzz+2*nzz, nxx*nzz+2*nzz);
-            eval("for i = 1:(nxx*nzz+2*nzz);   M_m(:,i) = matlab_nep.M(gamma, Ixz(:,i));    end")
+            $M_m = NaN(nxx*nzz+2*nzz, nxx*nzz+2*nzz);
+            for i = 1:(nxx*nzz+2*nzz)
+              $M_m(:,i) = matlab_nep.M($gamma, Ixz(:,i));
+            end
         """
         println("  -- Matlab printouts end --")
 
@@ -309,8 +314,8 @@ function debug_sqrt_derivative()
         WEP_path = pwd() * "/../matlab/WEP"
         println("  -- Matlab printouts start --")
         mat"""
-            addpath(WEP_path)
-            der_val = sqrt_derivative_test(a,b,c, d_vec, x);
+            addpath($WEP_path)
+            $der_val = sqrt_derivative_test($a,$b,$c, $d_vec, $x);
         """
         println("  -- Matlab printouts end --")
 
@@ -413,18 +418,19 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
         mat"""
-            addpath(WEP_path)
-            nxx = double(nx)
-            nzz = double(nz)
-            options = cell2struct({},{},1)
-            options.delta = delta
-            options.wg = waveguide_str
-            matlab_nep = nep_wg_generator(nxx, nzz, options)
+            addpath($WEP_path)
+            nxx = double($nx);
+            nzz = double($nz);
+            options = [];
+            options.delta = double($delta);
+            options.wg = $waveguide_str;
+            matlab_nep = nep_wg_generator(nxx, nzz, options);
 
             Ixz = eye(nxx*nzz);
-            Schur_m = NaN(nxx*nzz, nxx*nzz);
-            eval("for i = 1:(nxx*nzz);   Schur_m(:,i) = matlab_nep.S(gamma, Ixz(:,i));    end")
-
+            $Schur_m = NaN(nxx*nzz, nxx*nzz);
+            for i = 1:(nxx*nzz)
+              $Schur_m(:,i) = matlab_nep.S($gamma, Ixz(:,i));
+            end
          """
         println("  -- Matlab printouts end --")
 
@@ -453,21 +459,21 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
          mat"""
-            addpath(WEP_path)
-            nxx = double(nx)
-            nzz = double(nz)
-            options = cell2struct({},{},1)
-            options.delta = double(delta)
-            options.wg = waveguide_str
-            nep = nep_wg_generator(nxx, nzz, options)
+            addpath($WEP_path)
+            nxx = double($nx);
+            nzz = double($nz);
+            options = [];
+            options.delta = double($delta);
+            options.wg = $waveguide_str;
+            nep = nep_wg_generator(nxx, nzz, options);
 
-            CC = double(C)
-            sigma = double(gamma)
+            CC = double($C);
+            sigma = double($gamma);
 
             kk = mean(nep.K(:));
             K = nep.K - kk;
 
-            X_m = fft_wg( CC, sigma, kk, nep.hx, nep.hz );
+            $X_m = fft_wg( CC, sigma, kk, nep.hx, nep.hz );
          """
         println("  -- Matlab printouts end --")
 
@@ -533,33 +539,34 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
         mat"""
-            addpath(WEP_path)
-            nxx = double(nx)
-            nzz = double(nz)
-            nn = nz
-            NN = double(N)
-            CC = double(C)
-            options.delta = double(delta)
-            options.wg = waveguide_str
-            nep = nep_wg_generator(nxx, nzz, options)
+            addpath($WEP_path)
+            nxx = double($nx);
+            nzz = double($nz);
+            nn = nzz;
+            NN = double($N);
+            CC = double($C);
+            option = [];
+            options.delta = double($delta);
+            options.wg = $waveguide_str;
+            nep = nep_wg_generator(nxx, nzz, options);
 
-            sigma = double(gamma)
+            sigma = double($gamma);
 
-            #OBS: The below (MATLAB) code is copied from 'main.m' in the public code
-            # CONSTRUCT THE PRECONDITIONER
+            %OBS: The below (MATLAB) code is copied from 'main.m' in the public code
+            % CONSTRUCT THE PRECONDITIONER
             kk = mean(nep.K(:));
             K = nep.K - kk;
 
 
-            eval("Linv=@(X) fft_wg( X, sigma, kk, nep.hx, nep.hz );")
-            eval("Pm_inv=@(x) -nep.Pm_inv(sigma, x);              %OBS! The minus sign!")
-            eval("Pp_inv=@(x) -nep.Pp_inv(sigma, x);              %OBS! The minus sign!")
+            Linv=@(X) fft_wg( X, sigma, kk, nep.hx, nep.hz );
+            Pm_inv=@(x) -nep.Pm_inv(sigma, x);              %OBS! The minus sign!
+            Pp_inv=@(x) -nep.Pp_inv(sigma, x);              %OBS! The minus sign!
 
             dd1 = nep.d1/nep.hx^2;
             dd2 = nep.d2/nep.hx^2;
-            M_m = generate_smw_matrix( nn, NN, Linv, dd1, dd2, Pm_inv, Pp_inv, K, false );
+            $M_m = generate_smw_matrix( nn, NN, Linv, dd1, dd2, Pm_inv, Pp_inv, K, false );
 
-            X_m = solve_smw( M_m, CC, Linv, dd1, dd2, Pm_inv, Pp_inv, K );
+            $X_m = solve_smw( $M_m, CC, Linv, dd1, dd2, Pm_inv, Pp_inv, K );
         """
         println("  -- Matlab printouts end --")
 
@@ -601,7 +608,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
             println("    Testing for n = ", nz, " and N = ", N)
             precond = @time generate_preconditioner(nep, N, γ)
 
-            gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:plot,true), (:Pl,precond), (:tol, 1e-15), (:verbose,true))
+            gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:Pl,precond), (:tol, 1e-15), (:verbose,true))
             wep_solver = wep_linsolvercreator(nep, γ, gmres_kwargs)
 
             x = lin_solve(wep_solver, b)
@@ -698,13 +705,13 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         println("  -- Matlab printouts start --")
         WEP_path = pwd() * "/../matlab/WEP"
         mat"""
-            addpath(WEP_path)
+            addpath($WEP_path)
 
-            nzz = double(nz);
-            lambda = double(gamma);
-            NN = double(N);
+            nzz = double($nz);
+            lambda = double($gamma);
+            NN = double($N);
 
-            eigval_m, eigvec_m = main_func_WEP(nzz, NN, lambda, delta, waveguide_str)
+            $eigval_m, $eigvec_m = main_func_WEP(nzz, NN, lambda, delta, waveguide_str)
 
         """
         println("  -- Matlab printouts end --")

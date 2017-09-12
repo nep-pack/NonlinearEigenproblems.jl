@@ -54,7 +54,7 @@ abstract superclass of s.
     abstract NEP
 NEP represents a nonlinear eigenvalue problem
 """
-    abstract NEP;
+    abstract type NEP end
 
 
     """

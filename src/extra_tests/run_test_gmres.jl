@@ -58,7 +58,7 @@ println("Relative error = ", norm(x-x2)/norm(x2))
 
 
 # DO IT AGAIN BUT WITH LOG AND PLOT
-gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true), (:plot,true))
+gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true))
 function my_third_gmres_linsolvercreator(nep::NEP, λ)
     return gmres_linsolvercreator(nep, λ, gmres_kwargs)
 end
