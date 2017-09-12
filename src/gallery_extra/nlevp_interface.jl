@@ -29,12 +29,11 @@ type NLEVP_NEP <: NEP
         if (~isfile(joinpath(nlevp_path,"nlevp.m")))
             error("nlevp.m not found. You need to install the Berlin-Manchester collection (http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) and specify a nlevp_path.")
         end
-        @mput name nlevp_path
-        @matlab begin
-            addpath(nlevp_path)
-            Ai,funs=nlevp(name)
-            @matlab end
-        @mget Ai # fetch and store the matrices
+
+        mat"""
+            addpath($nlevp_path);
+            [$Ai,funs] = nlevp($name);
+        """
 
         this=new(size(Ai[1],1),name,Ai);
     end
