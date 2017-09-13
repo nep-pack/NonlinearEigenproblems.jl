@@ -233,7 +233,12 @@ end
  that is, with positivt imaginary part.
 """
 function sqrt_pos_imag(a::Complex128)
-    return sign(imag(a))*sqrt(a)
+    imag_sign = sign(imag(a))
+    if imag_sign == 0 #Real value in complex type
+        sqrt(a)
+    else
+        sign(imag(a))*sqrt(a)
+    end
 end
 function sqrt_pos_imag(a::Float64)
     return sqrt(a)
