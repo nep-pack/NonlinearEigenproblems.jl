@@ -17,7 +17,7 @@ function contour_beyn{T}(::Type{T},
                          maxit=10,
                          σ=zero(complex(T)),
                          displaylevel=0,
-                         linsolvercreator::Function=default_linsolvercreator,
+                         linsolvercreator::Function=backslash_linsolvercreator,
                          k=3, # Number of eigenvals to compute
                          radius=1, # integration radius
                          quad_method=:quadg_parallel, # which method to run. :quadg, :quadg_parallel, :quadgk
@@ -28,14 +28,16 @@ function contour_beyn{T}(::Type{T},
     gp=t -> 1im*radius*exp(1im*t)
 
     n=size(nep,1);
+    srand(10); # Reproducability
     Vh=randn(n,k)
     if (k>n)
         println("k=",k," n=",n);
         error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn()");
 
     end
-    
+
     function local_linsolve(λ,V)
+        @ifd(print("."))
         local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
         return lin_solve(M0inv,V);
     end
@@ -45,23 +47,27 @@ function contour_beyn{T}(::Type{T},
     Tv1= λ -> λ*Tv0(λ)
     f1= t-> Tv0(g(t))*gp(t) 
     f2= t -> Tv1(g(t))*gp(t)
-    @ifd(println("Computing integrals"))
+    @ifd(print("Computing integrals"))
 
     # Naive version, where we compute two separate integrals
 
     local A0,A1
     if (quad_method == :quadg_parallel)
+        @ifd(print(" using quadg_parallel"))
         A0=quadg_parallel(f1,0,2*pi,N);
-        A1=quadg_parallel(f2,0,2*pi,N);
+        A1=quadg_parallel(f2,0,2*pi,N);        
     elseif (quad_method == :quadg)
+        @ifd(print(" using quadg"))
         A0=quadg(f1,0,2*pi,N);
         A1=quadg(f2,0,2*pi,N);
     elseif (quad_method == :quadgk)
+        @ifd(print(" using quadgk"))
         A0,tmp=quadgk(f1,0,2*pi,reltol=tolerance);
         A1,tmp=quadgk(f2,0,2*pi,reltol=tolerance);
     else
         error("Unknown quadrature method:"*String(quad_method));
     end
+    @ifd(println("."));
     # Don't forget scaling
     A0=A0/(2im*pi);
     A1=A1/(2im*pi);    
