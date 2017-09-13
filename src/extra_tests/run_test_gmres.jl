@@ -1,7 +1,7 @@
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using Suppressor # Pkg.add("Suppressor");
-@suppress_err begin
+#using Suppressor # Pkg.add("Suppressor");
+#@suppress_err begin
 using NEPSolver
 using NEPCore
 using NEPTypes
@@ -57,8 +57,9 @@ println("GMRES relative residual norm = ", norm(compute_Mlincomb(nep, λ, x, a=[
 println("Relative error = ", norm(x-x2)/norm(x2))
 
 
-# DO IT AGAIN BUT WITH LOG AND PLOT
-gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true))
+# DO IT AGAIN BUT WITH VERBOSE AND A PRECONDITIONER
+P = lufact(diagm(diag(nep.A[1])+diag(nep.A[2])+diag(nep.A[3])+ones(size(nep,1))))
+gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true), (:verbose,true), (:Pl,P))
 function my_third_gmres_linsolvercreator(nep::NEP, λ)
     return gmres_linsolvercreator(nep, λ, gmres_kwargs)
 end
@@ -71,4 +72,4 @@ println("GMRES relative residual norm = ", norm(compute_Mlincomb(nep, λ, x, a=[
 println("Relative error = ", norm(x-x2)/norm(x2))
 
 
-end
+#end
