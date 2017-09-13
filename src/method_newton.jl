@@ -107,11 +107,12 @@
                        armijo_factor=1,
                        armijo_max=5)
 
-        local linsolver::LinSolver=linsolvercreator(nep,λ)
         # Ensure types λ and v are of type T
         λ::T=T(λ)
         v=Array{T,1}(v)
         c=Array{T,1}(c)
+
+        local linsolver::LinSolver=linsolvercreator(nep,λ)
 
         # If c is zero vector we take eigvec approx as left vector in
         # generalized Rayleigh functional
