@@ -3,7 +3,9 @@
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, pwd()*"/src")	
-push!(LOAD_PATH, pwd()*"/../src")	
+push!(LOAD_PATH, pwd()*"/src/gallery_extra")
+push!(LOAD_PATH, pwd()*"/src/gallery_extra/waveguide")	
+
 using NEPSolver
 using NEPCore
 using NEPTypes
@@ -15,7 +17,7 @@ using Base.Test
 nep=nep_gallery("dep0")
 
 println("Contour integral with σ=0,radius=1,k=2")
-λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2)
+λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:quadgk)
 
 println(λ[1])
 M=compute_Mder(nep,λ[1])
@@ -29,7 +31,7 @@ M=compute_Mder(nep,λ[2])
 
 println("Contour integral with σ=-0.2,radius=1.5,k=4")
 
-λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4)
+λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:quadgk)
 
 println(λ[1])
 M=compute_Mder(nep,λ[1])

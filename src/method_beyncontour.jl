@@ -19,7 +19,9 @@ function contour_beyn{T}(::Type{T},
                          displaylevel=0,
                          linsolvercreator::Function=default_linsolvercreator,
                          k=3, # Number of eigenvals to compute
-                         radius=1) # integration radius
+                         radius=1, # integration radius
+                         quad_method=:quadg_parallel, # which method to run. :quadg, :quadg_parallel, :quadgk
+                         N=1000)  # Nof quadrature nodes 
 
     
     g=t -> radius*exp(1im*t)
@@ -46,9 +48,22 @@ function contour_beyn{T}(::Type{T},
     @ifd(println("Computing integrals"))
 
     # Naive version, where we compute two separate integrals
-    A0,tmp=quadgk(f1,0,2*pi,reltol=tolerance);
+
+    local A0,A1
+    if (quad_method == :quadg_parallel)
+        A0=quadg_parallel(f1,0,2*pi,N);
+        A1=quadg_parallel(f2,0,2*pi,N);
+    elseif (quad_method == :quadg)
+        A0=quadg(f1,0,2*pi,N);
+        A1=quadg(f2,0,2*pi,N);
+    elseif (quad_method == :quadgk)
+        A0,tmp=quadgk(f1,0,2*pi,reltol=tolerance);
+        A1,tmp=quadgk(f2,0,2*pi,reltol=tolerance);
+    else
+        error("Unknown quadrature method:"*String(quad_method));
+    end
+    # Don't forget scaling
     A0=A0/(2im*pi);
-    A1,tmp=quadgk(f2,0,2*pi,reltol=tolerance);
     A1=A1/(2im*pi);    
     
     @ifd(println("Computing SVD prepare for eigenvalue extraction "))
@@ -69,6 +84,33 @@ function contour_beyn{T}(::Type{T},
 
 end
 
+#  Carries out Gauss quadrature (with N) discretization points
+#  by call to @parallel
+function quadg_parallel(f,a,b,N)
+    x,w=gauss(N);
+    # Rescale
+    w=w*(b-a)/2;
+    t=a+((x+1)/2)*(b-a);
+    # Sum it all together f(t[1])*w[1]+f(t[2])*w[2]...
+    S=@parallel (+) for i = 1:N
+        f(t[i])*w[i]
+    end
+    return S;
+end
+
+
+function quadg(f,a,b,N)
+    x,w=gauss(N);
+    # Rescale
+    w=w*(b-a)/2;
+    t=a+((x+1)/2)*(b-a);
+    S=zeros(size(f(t[1])))
+    # Sum it all together f(t[1])*w[1]+f(t[2])*w[2]...
+    for i = 1:N
+        S+= f(t[i])*w[i]
+    end
+    return S;
+end
 
 
 
