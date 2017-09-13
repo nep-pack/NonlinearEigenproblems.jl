@@ -602,8 +602,19 @@ function debug_WEP_FD_preconditioner(delta::Number)
 
         nep = nep_gallery("waveguide", nx, nz, waveguide, "fD", "WeP", delta)
 
-        b = rand(Complex128, nx*nz+2*nz)
 
+        bb = rand(Complex128, nx*nz)
+        precond = generate_preconditioner(nep, 45, γ)
+        Schur_fun = SchurMatVec(nep, γ)
+        bbb = A_ldiv_B!(precond, (Schur_fun*bb))
+        println("    Preconditioner * (Schur complement * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
+        bb = rand(Complex128, nx*nz)
+        bbb = A_ldiv_B!(precond, bb)
+        bbb = Schur_fun * bbb
+        println("    Schur complement * (Preconditioner * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
+
+
+        b = rand(Complex128, nx*nz+2*nz)
         for N = [1, 3, 9, 15, 45]
             println("    Testing for n = ", nz, " and N = ", N)
             precond = @time generate_preconditioner(nep, N, γ)
@@ -616,8 +627,6 @@ function debug_WEP_FD_preconditioner(delta::Number)
             println("    Relative residual norm = ", norm(compute_Mlincomb(nep, gamma, x) - b)/norm(b))
 
         end
-
-
 
 
     end
@@ -711,7 +720,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
             lambda = double($gamma);
             NN = double($N);
 
-            $eigval_m, $eigvec_m = main_func_WEP(nzz, NN, lambda, delta, waveguide_str)
+            [$eigval_m, $eigvec_m] = main_func_WEP(nzz, NN, lambda, $delta, $waveguide_str)
 
         """
         println("  -- Matlab printouts end --")

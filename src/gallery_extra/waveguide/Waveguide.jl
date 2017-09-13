@@ -4,6 +4,7 @@ using NEPCore
 using NEPTypes
 using LinSolvers
 using IterativeSolvers
+using LinearMaps
 
 
 export gallery_waveguide
@@ -18,7 +19,6 @@ export WEP_FD
 # We overload these
 import NEPCore.compute_Mlincomb
 export compute_Mlincomb
-import LinSolvers.Mlincomb_matvec
 import LinSolvers.lin_solve
 export lin_solve
 
@@ -30,6 +30,8 @@ import Base.*
 export *
 import Base.eltype
 export eltype
+import Base.A_ldiv_B!
+export A_ldiv_B!
 
 include("waveguide_FD.jl")
 include("waveguide_FEM.jl")
@@ -140,7 +142,7 @@ end
 function generate_R_matvecs(nz::Integer)
     # The scaled FFT-matrix R
     p = (nz-1)/2;
-    bb = exp(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
+    bb = exp.(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
     function R(X) # Note! Only works for vectors or one-dim matrices
         return flipdim(bb .* fft(vec(X)), 1);
     end
@@ -429,6 +431,10 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return vec(  vec( nep.A(λ)*X + X*nep.B(λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
     end
 
+    function (M::SchurMatVec)(v::AbstractVector) #Overload the ()-function so that a SchurMatVec struct can act and behave like a function
+        return M*v
+    end
+
     function size(M::SchurMatVec, dim=-1)
         n = M.nep.nx*M.nep.nz
         if (dim==-1)
@@ -447,13 +453,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     # and does transforming between that and the full system.
     # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
     type WEPLinSolver<:LinSolver
-        schur_comp::SchurMatVec;
+        schur_comp::LinearMap{Complex128}
         kwargs
         gmres_log::Bool
         nep::WEP_FD
         λ::Complex128
         function WEPLinSolver(nep::WEP_FD,λ::Union{Complex128,Float64},kwargs)
-            schur_comp=SchurMatVec(nep,λ);
+            f = SchurMatVec(nep, λ)
+            schur_comp = LinearMap{Complex128}(f, nep.nx*nep.nz, ismutating=false, issymmetric=false, ishermitian=false);
             gmres_log = false
             for elem in kwargs
                 gmres_log |= ((elem[1] == :log) && elem[2])
@@ -513,11 +520,11 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
     function sM(γ::Number)
         bbeta = betaM(γ)
-        return 1im*sign.(imag(bbeta)).*sqrt(bbeta)+d0;
+        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta)+d0;
     end
     function sP(γ::Number)
         bbeta = betaP(γ)
-        return 1im*sign.(imag(bbeta)).*sqrt(bbeta)+d0;
+        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta)+d0;
     end
 
     # BUILD THE INVERSE OF THE FOURTH BLOCK P

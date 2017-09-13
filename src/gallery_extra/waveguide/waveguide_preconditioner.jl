@@ -4,6 +4,35 @@
 # Implementing the Preconditioner in the optimized way described in Ringh et al.
 
     """
+    WEP_preconditioner
+ A wrapper struct to be able to use the preconditioner. Update in GMRES for Julia v0.6 remove possibility to use a function directly.
+"""
+    struct WEP_preconditioner
+        scratch_pad_for_FFT::Array{Complex128,2}
+        scratch_pad_for_transpose::Array{Complex128,2}
+        scratch_pad_for_Z::Array{Complex128,2}
+        nep::WEP_FD
+        M
+        σ
+        function WEP_preconditioner(nep::NEP, M, σ)
+            nx = nep.nx
+            nz = nep.nz
+            A = zeros(Complex128, 2*(nx+1), nz)
+            B = zeros(Complex128, nx, nz)
+            C = zeros(Complex128, nz, nx)
+            return new(A, B, C, nep, M, σ)
+        end
+    end
+
+
+    function A_ldiv_B!(A::WEP_preconditioner, B)
+        C = reshape(B, A.nep.nz, A.nep.nx)
+        B[:] = vec( solve_smw( A.nep, A.M, C, A.σ, A.scratch_pad_for_FFT, A.scratch_pad_for_transpose, A.scratch_pad_for_Z) )
+    end
+
+
+
+    """
     generate_preconditioner( nep::WEP_FD, N::Integer, σ)
  Given a nep of type WEP_FD, the number of domains in z-direction N, and a fixed shift σ,\\
  this computes a function that acts as a Preconditioner for the WEP.
@@ -11,19 +40,7 @@
 # Ringh - Algorithm 2, step 10
     function generate_preconditioner(nep::WEP_FD, N::Integer, σ)
         M = generate_smw_matrix(nep, N, σ)
-
-        nz = nep.nz
-        nx = nep.nx
-        const scratch_pad_for_FFT::Array{Complex128,2} = zeros(Complex128, 2*(nx+1), nz)
-        const scratch_pad_for_transpose::Array{Complex128,2} = zeros(Complex128, nx, nz)
-        const scratch_pad_for_Z::Array{Complex128,2} = zeros(Complex128, nz, nx)
-
-        precond = function(c_vec)
-            C = reshape(c_vec, nep.nz, nep.nx)
-            return vec( solve_smw( nep, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z) )
-        end
-
-        return precond
+        return WEP_preconditioner(nep, M, σ)
     end
 
 
@@ -118,7 +135,7 @@ function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scr
     D=fft(v+w)+alpha;
 
     # eigenvalues of B = Dxx
-    S = -((4+0.0im)/hx^2) * sin(pi*(1:nx)/(2*(nx+1))).^2
+    S = -((4+0.0im)/hx^2) * sin.(pi*(1:nx)/(2*(nx+1))).^2
 #    S=S.'
 
 
