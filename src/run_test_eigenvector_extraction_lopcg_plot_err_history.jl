@@ -41,7 +41,7 @@ while (k<max_it)&&(err>tol)
   mm=[x -g q]'*[x -g q]; mm=(mm+mm')/2;
 
   D,V=eig(aa,mm)
-  ii=indmin(abs(D));
+  ii=indmin(abs.(D));
   ρ=D[ii]; δ=V[:,ii];
 
   q=[-g q]*δ[2:end];

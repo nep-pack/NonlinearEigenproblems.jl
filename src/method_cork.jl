@@ -89,7 +89,7 @@ module NEPSolver_CORK # Will change later
         R = [r;zeros(m + maxrest*(m-p),1)];
 
         # For LU
-        LU = Array(Any,1);
+        LU = Array{Any}(1);
         SHIFTS = [];
 
         # Don't know how to do cellfun in julia

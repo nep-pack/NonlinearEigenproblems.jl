@@ -51,7 +51,7 @@ function jd_quad{T}(::Type{T},
 	Ap = [Ap0,Ap1,Ap2];
 	pep_temp = PEP(Ap);
 	Dc,Vc = polyeig(T,pep_temp,DefaultEigSolver);
-	c = sortperm(abs(Dc));
+	c = sortperm(abs.(Dc));
 
 
 	theta = Dc[c[1]];

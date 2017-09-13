@@ -32,7 +32,7 @@ println("\n Smallest eigevalue found: \n λ: ",λ)
 
 
 Dc,Vc = polyeig(nep,DefaultEigSolver);
-c = sortperm(abs(Dc));
+c = sortperm(abs.(Dc));
 println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1:5]]);
 
 
