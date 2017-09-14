@@ -63,9 +63,27 @@ N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
 λ=2
 T1=compute_Mder_from_MM(nep1,λ,1)
 T2=-1*speye(n)-t*A1*expm(-t*λ)
-
 @test norm(T1-T2)<sqrt(eps())
 
+λ=2
+T3=compute_Mder_from_MM(nep1,λ,2)
+T4=t^2*A1*expm(-t*λ)
+@test norm(T3-T4)<sqrt(eps())
+
+
+
+# Check consistency of MM and Mder
+
+# Exact Mlincomb: 
+Zexact=(-λ*speye(n)+A0+A1*exp(-t*λ))*V[:,1]+
+   (-speye(n)-t*A1*exp(-t*λ))*V[:,2]+
+   (t^2*A1*exp(-t*λ))*V[:,3];
+
+Z1=compute_Mlincomb_from_MM(nep1,λ,V,[1.0 1.0 1.0])
+@test norm(Z1-Zexact)<sqrt(eps())
+
+Z2=compute_Mlincomb_from_Mder(nep1,λ,V,[1.0 1.0 1.0])
+@test norm(Z2-Zexact)<sqrt(eps())
 
 
 
@@ -92,12 +110,5 @@ N2=hcat(compute_Mlincomb(nep2,d[1],V1[:,1]),
         compute_Mlincomb(nep2,d[3],V1[:,3]))*inv(W)
 @test norm(N1-N2)<sqrt(eps())
 
-
-# Check consistency of MM and Mder
-
-Z1=compute_Mlincomb_from_MM(nep1,d[1],V,[1.0 1.0 1.0])
-Z2=compute_Mlincomb_from_Mder(nep1,d[1],V,[1.0 1.0 1.0])
-
-@test norm(Z1-Z2)<sqrt(eps())
 
 
