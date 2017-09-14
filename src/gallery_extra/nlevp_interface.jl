@@ -75,10 +75,12 @@ end
 # stemming from a previous call to [Ai,funs]=nlevp(nepname).
 # The returned matrix containing derivatives has (maxder+1) rows 
 function call_current_fun(lambda,maxder::Integer=0)        
-    l::Complex64=Complex64(lambda)  # avoid type problems
-    @mput l maxder
-    eval_string("C=cell(maxder+1,1); [C{:}]=funs(l); D=cell2mat(C);")
-    @mget D
+    l::Complex128=Complex128(lambda)  # avoid type problems
+    mat"""
+    C=cell($maxder+1,1);
+    [C{:}]=funs($l);
+    $D=cell2mat(C);
+    """
     return D
 end
 
