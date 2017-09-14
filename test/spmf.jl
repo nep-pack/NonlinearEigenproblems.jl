@@ -61,7 +61,7 @@ N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
 
 # Check compute_Mder_from_MM()
 λ=2
-T1=compute_Mder_from_MM(nep1,3,1)
+T1=compute_Mder_from_MM(nep1,λ,1)
 T2=-1*speye(n)-t*A1*expm(-t*λ)
 
 @test norm(T1-T2)<sqrt(eps())
