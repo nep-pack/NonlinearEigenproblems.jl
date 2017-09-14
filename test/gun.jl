@@ -34,15 +34,27 @@ v1=v1/norm(v1);
 
 
 
-# Check comput_MM is correct (for diagonal matrix)
+# Check comput_MM is correct (by comparing against diagonalization of S)
+# by using the identity MM(V,S)=MM(V,W*D*inv(W))=MM(V*W,D)*inv(W) and MM(V1,D)
+# for diagonal D can be computed with compute_Mlincomb
 V=randn(n,3)+randn(n,3);
-s=randn(3)+1im*randn(3);
-S=diagm(s);
+S=randn(3,3);
+
+# Native compute_MM
 N1=compute_MM(nep1,S,V);
-N2=hcat(compute_Mlincomb(nep_org,s[1],V[:,1]),
-        compute_Mlincomb(nep_org,s[2],V[:,2]),
-        compute_Mlincomb(nep_org,s[3],V[:,3]))
+
+# compute same quantity with diagonalization of S and nep_org
+
+# Diagonalize S
+(d,W)=eig(S);
+D=diagm(d);
+V1=V*W;
+# 
+N2=hcat(compute_Mlincomb(nep_org,d[1],V1[:,1]),
+        compute_Mlincomb(nep_org,d[2],V1[:,2]),
+        compute_Mlincomb(nep_org,d[3],V1[:,3]))*inv(W)
 @test norm(N1-N2)<sqrt(eps())
+
 
 
 V=randn(n,2);
