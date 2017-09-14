@@ -32,6 +32,8 @@ v1=v1/norm(v1);
 @test norm(compute_Mder(nep_org,λ1)*v1)<tol*100
 
 
+
+
 # Check comput_MM is correct (for diagonal matrix)
 V=randn(n,3)+randn(n,3);
 s=randn(3)+1im*randn(3);
@@ -43,7 +45,22 @@ N2=hcat(compute_Mlincomb(nep_org,s[1],V[:,1]),
 @test norm(N1-N2)<sqrt(eps())
 
 
-# Check that two steps of quasinewton always gives the same resul
+V=randn(n,2);
+
+# Test that two version of native SPMF nep produce equal results
+z1a=compute_Mlincomb_from_Mder(nep1,10+10im,V,[1 1]);
+z1b=compute_Mlincomb_from_MM(nep1,10+10im,V,[1 1]);
+
+@test norm(z1a-z1b)<eps()*100
+
+# Test that it is equal to the MATLAB-version
+z_org=compute_Mlincomb(nep1,10+10im,V,a=[1 1])
+
+@test norm(z_org-z1a)<sqrt(eps())
+@test norm(z_org-z2a)<sqrt(eps())
+
+
+# Check that two steps of quasinewton always gives the same result
 λ_org=0
 try
     quasinewton(nep_org,maxit=2,λ=150^2+1im,v=ones(n),displaylevel=1)
@@ -61,4 +78,4 @@ end
 
 @test abs(λ1-λ_org)<sqrt(eps())
 
-    
+
