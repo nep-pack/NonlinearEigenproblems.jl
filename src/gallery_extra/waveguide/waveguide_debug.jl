@@ -5,8 +5,8 @@ using MATLAB
 using Gallery
 using NEPSolver
 using NEPCore
+using NEPTypes
 using LinSolvers
-using Waveguide
 
 
 export matlab_debug_WEP_FD
@@ -22,18 +22,18 @@ export debug_WEP_FD_preconditioner
 export debug_eigval_comp_WEP_FD
 
 #OBS: Explicit imports of non-exported functions
-import Waveguide.generate_wavenumber_fd
-import Waveguide.generate_fd_interior_mat
-import Waveguide.generate_fd_boundary_mat
-import Waveguide.generate_R_matvecs
-import Waveguide.generate_Pinv_matrix
-import Waveguide.generate_S_function
-import Waveguide.sqrtm_schur_pos_imag
-import Waveguide.sqrt_derivative
-import Waveguide.SchurMatVec
-import Waveguide.solve_wg_sylvester_fft!
-import Waveguide.generate_smw_matrix
-import Waveguide.solve_smw
+import Gallery.Waveguide.generate_wavenumber_fd
+import Gallery.Waveguide.generate_fd_interior_mat
+import Gallery.Waveguide.generate_fd_boundary_mat
+import Gallery.Waveguide.generate_R_matvecs
+import Gallery.Waveguide.generate_Pinv_matrix
+import Gallery.Waveguide.generate_S_function
+import Gallery.Waveguide.sqrtm_schur_pos_imag
+import Gallery.Waveguide.sqrt_derivative
+import Gallery.Waveguide.SchurMatVec
+import Gallery.Waveguide.solve_wg_sylvester_fft!
+import Gallery.Waveguide.generate_smw_matrix
+import Gallery.Waveguide.solve_smw
 
 
 ########### SOME REFERENCE IMPLEMENTATIONS ################
@@ -604,7 +604,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
 
 
         bb = rand(Complex128, nx*nz)
-        precond = generate_preconditioner(nep, 45, γ)
+        precond = wep_generate_preconditioner(nep, 45, γ)
         Schur_fun = SchurMatVec(nep, γ)
         bbb = A_ldiv_B!(precond, (Schur_fun*bb))
         println("    Preconditioner * (Schur complement * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
@@ -617,7 +617,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
         b = rand(Complex128, nx*nz+2*nz)
         for N = [1, 3, 9, 15, 45]
             println("    Testing for n = ", nz, " and N = ", N)
-            precond = @time generate_preconditioner(nep, N, γ)
+            precond = @time wep_generate_preconditioner(nep, N, γ)
 
             gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:Pl,precond), (:tol, 1e-15), (:verbose,true))
             wep_solver = wep_linsolvercreator(nep, γ, gmres_kwargs)
@@ -660,7 +660,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
 
         println("    Generating preconditioner")
-        precond = @time generate_preconditioner(nep_j_WEPFD, N, γ)
+        precond = @time wep_generate_preconditioner(nep_j_WEPFD, N, γ)
 
         gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,false), (:Pl,precond), (:tol, 1e-13))
         function wep_gmres_linsolvercreator(nep::NEP, λ)

@@ -8,19 +8,18 @@ module Gallery
     using MATLAB
     using PolynomialRoots
 
+
     export nep_gallery
 
 
 
-    push!(LOAD_PATH, pwd()*"/gallery_extra/waveguide")	# looks for modules in the correct path
-    using Waveguide
-    export generate_preconditioner
-    export wep_linsolvercreator
-
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/nlevp_interface.jl")
 
-
+    include("gallery_extra/waveguide/Waveguide.jl")
+    using .Waveguide
+    export wep_generate_preconditioner
+    export wep_linsolvercreator
 
   """
 **Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems.**\\

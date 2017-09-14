@@ -8,8 +8,7 @@ using LinearMaps
 
 
 export gallery_waveguide
-export generate_preconditioner
-
+export wep_generate_preconditioner
 export wep_linsolvercreator
 
 

@@ -33,12 +33,12 @@
 
 
     """
-    generate_preconditioner( nep::WEP_FD, N::Integer, σ)
+    wep_generate_preconditioner(nep::WEP_FD, N::Integer, σ)
  Given a nep of type WEP_FD, the number of domains in z-direction N, and a fixed shift σ,\\
- this computes a function that acts as a Preconditioner for the WEP.
+ this computes a functor (struct acting like a function) that acts as a Preconditioner for the WEP.
 """
 # Ringh - Algorithm 2, step 10
-    function generate_preconditioner(nep::WEP_FD, N::Integer, σ)
+    function wep_generate_preconditioner(nep::WEP_FD, N::Integer, σ)
         M = generate_smw_matrix(nep, N, σ)
         return WEP_preconditioner(nep, M, σ)
     end
