@@ -23,7 +23,7 @@ t=3.0
 
 minusop= S-> -S
 oneop= S -> eye(S)
-expmop= S -> sqrtm(full(-t*S)+10*eye(S))
+expmop= S -> expm(full(-t*S))
 fi=[minusop, oneop, expmop];
 
 
@@ -35,6 +35,11 @@ V=randn(n,3);
 
 # Check if prefactorize with Schur gives the same result
 @test norm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
+
+
+# Check compute_MM 
+@test norm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*expm(-t*S)))<sqrt(eps())
+
 
 
 # Check if compute_MM is correct (by comparing against diagonalization of S).
@@ -51,6 +56,17 @@ N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
         compute_Mlincomb(nep1,d[2],V1[:,2]),
         compute_Mlincomb(nep1,d[3],V1[:,3]))*inv(W)
 @test norm(N1-N2)<sqrt(eps())
+
+
+
+# Check compute_Mder_from_MM()
+λ=2
+T1=compute_Mder_from_MM(nep1,3,1)
+T2=-1*speye(n)-t*A1*expm(-t*λ)
+
+@test norm(T1-T2)<sqrt(eps())
+
+
 
 
 # Same nonlinearities as the GUN NLEVP problem
@@ -79,7 +95,9 @@ N2=hcat(compute_Mlincomb(nep2,d[1],V1[:,1]),
 
 # Check consistency of MM and Mder
 
-Z1=compute_Mlincomb_from_MM(nep2,d[1],V,[1.0 1.0 1.0])
-Z2=compute_Mlincomb_from_Mder(nep2,d[1],V,[1.0 1.0 1.0])
+Z1=compute_Mlincomb_from_MM(nep1,d[1],V,[1.0 1.0 1.0])
+Z2=compute_Mlincomb_from_Mder(nep1,d[1],V,[1.0 1.0 1.0])
 
 @test norm(Z1-Z2)<sqrt(eps())
+
+
