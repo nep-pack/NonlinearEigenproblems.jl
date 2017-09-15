@@ -9,7 +9,7 @@ function tiar(
  errmeasure::Function = default_errmeasure(nep::NEP),
  σ=0.0,
  γ=1,
- v0=rand(size(nep,1),1),
+ v=rand(size(nep,1),1),
  displaylevel=0,
  p=1
 )
@@ -31,7 +31,7 @@ function tiar(
  local M0inv::LinSolver = linsolvercreator(nep,σ);
  err = ones(m,m);
  λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
- Z[:,1]=v0; Z[:,1]=Z[:,1]/norm(Z[:,1]);
+ Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);
  a[1,1,1]=1;
 
  k=1; conv_eig=0;

@@ -1,7 +1,7 @@
 export iar
 
 """
-    iar(nep,[maxit=30,][σ=0,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*100,][Neig=6,][errmeasure=default_errmeasure,][σ=0,][γ=1,][v0=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1])
+    iar(nep,[maxit=30,][σ=0,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*100,][Neig=6,][errmeasure=default_errmeasure,][σ=0,][γ=1,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1])
 
 ### Infinite Arnoldi method
 Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
@@ -17,7 +17,7 @@ function iar(
     errmeasure::Function = default_errmeasure(nep::NEP),
     σ=0.0,
     γ=1,
-    v0=randn(size(nep,1),1),
+    v=randn(size(nep,1),1),
     displaylevel=0,
     check_error_every=1
     )
@@ -35,7 +35,7 @@ function iar(
     λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
-    vv[:]=v0; vv[:]=vv[:]/norm(vv);
+    vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
 
     while (k <= m) && (conv_eig<Neig)
