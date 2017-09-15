@@ -19,6 +19,7 @@ using Base.Test
 nep_org=nlevp_gallery_import("gun","../nlevp3/");
 nep1=nlevp_make_native(nep_org);
 
+
 n=size(nep1,1);
 tol=1e-11;
 λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tolerance=tol,maxit=500);
@@ -34,9 +35,16 @@ v1=v1/norm(v1);
 # Test compute_Mlincomb:
 λ=150^2+2im;
 V=randn(n,2);
-z1=compute_Mlincomb(nep1,λ,V, [1.0], 1)
-z2=compute_Mlincomb(nep_org,λ,V, [1.0], 1)
-@test norm(z1-z2)<sqrt(eps())
+z1=compute_Mlincomb(nep1,λ,V[:,1], [1.0], 1)
+z2=compute_Mlincomb(nep_org,λ,V[:,1], [1.0], 1)
+# Compare with divided difference
+ee=1e-4
+z3=(compute_Mlincomb(nep_org,λ+ee,v)-compute_Mlincomb(nep_org,λ-ee,v))/(2*ee);
+
+@test norm(z3-z1)<(ee^2)*100  # Compare native and FD
+@test norm(z3-z2)<(ee^2)*100 # Compare MATLAB and FD. This fails on NLEVP 3.0 due to a bug in gun.m in NLEVP 
+@test norm(z1-z2)<sqrt(eps()) # Compare MATLAB and native.  This fails on NLEVP 3.0 due to a bug in gun.m in NLEVP 
+
 
 # Check that two steps of quasinewton always gives the same result
 λ_org=0
