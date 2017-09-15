@@ -147,8 +147,10 @@ Usage normally by overloading:
     function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
         #println("Using poor-man's compute_Mder -> compute_Mlincomb")
         z=zeros(size(nep,1))
-        for i=1:size(a,1)
-            z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
+        for i=1:length(a)
+            if (a[i] != 0)
+                z+=compute_Mder(nep,λ,i-1)*(V[:,i]*a[i])
+            end
         end
         return z
     end
