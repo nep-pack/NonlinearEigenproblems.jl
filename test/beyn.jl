@@ -18,7 +18,6 @@ using Base.Test
     nep=nep_gallery("dep0")
     @testset "disk at origin" begin
 
-        println("Contour integral with σ=0,radius=1,k=2")
         λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:quadgk)
 
         println(λ[1])
@@ -31,8 +30,7 @@ using Base.Test
         @test minimum(svdvals(M))<eps()*1000
 
     end
-    @testset "quadgk" begin
-        println("shifted disk")
+    @testset "shifted disk" begin
 
         λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:quadgk)
 
