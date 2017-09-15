@@ -28,16 +28,16 @@ println("Residual before extraction = ",errormeasure(λ[1],v0))
 
 
 
-v=compute_eigvec_from_eigval(nep,λ[1],default_linsolvercreator);
+v=compute_eigvec_from_eigval_lu(nep,λ[1],default_linsolvercreator);
 println("Residual after extraction new = ",errormeasure(λ[1],v))
 
 # example: assume that M0inv already exists, the linsolvercreator is the
 # naive function linsolvercreator = (nep, σ) -> M0inv)
 M0inv = default_linsolvercreator(nep,λ[1])
-v=compute_eigvec_from_eigval(nep,λ[1], (nep, σ) -> M0inv);
+v=compute_eigvec_from_eigval_lu(nep,λ[1], (nep, σ) -> M0inv);
 println("Residual after extraction = ",errormeasure(λ[1],v))
 
 
 M0inv = backslash_linsolvercreator(nep,λ[1])
-v=compute_eigvec_from_eigval(nep,λ[1], (nep, σ) -> M0inv);
+v=compute_eigvec_from_eigval_lu(nep,λ[1], (nep, σ) -> M0inv);
 println("Residual after extraction = ",errormeasure(λ[1],v))

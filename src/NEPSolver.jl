@@ -3,7 +3,7 @@ module NEPSolver
     using NEPTypes
     using LinSolvers
 
-    export compute_eigvec_from_eigval
+    export compute_eigvec_from_eigval_lu
     export compute_eigvec_from_eigval_lopcg
 
     export @ifd
@@ -29,21 +29,25 @@ Executes z if displaylevel>0.
     include("method_rfi.jl")
 #    include("method_jd_lin.jl")
     include("method_jd_quad.jl")
-    include("method_beyncontour.jl")    
+    include("method_beyncontour.jl")
 
 
     """
-    ### compute_eigvec_from_eigval
+    ### compute_eigvec_from_eigval_lu
     Compute an eigenvector approximation from an accurate
-    eigenvalue approximation. \\
+    eigenvalue approximation with an LU approach. \\
     `nep` is the nonlinear eigenvalue problem \\
     `λ` is the accurate eigenvalue approximation \\
     `linsolvercreator` is the linsolver creator for M(λ) \\
     \\
     OBS: if a LinSolver `M0inv` for M(λ) exists, call this function as \\
-    `compute_eigvec_from_eigval(nep,λ,(nep, σ) -> M0inv)`
+    `compute_eigvec_from_eigval_lu(nep,λ,(nep, σ) -> M0inv)`
     """
-    function compute_eigvec_from_eigval(nep::NEP,λ::Number,linsolvercreator::Function)
+    function compute_eigvec_from_eigval_lu(
+        nep::NEP,
+        λ::Number,
+        linsolvercreator::Function
+        )
 
         local M0inv::LinSolver = linsolvercreator(nep,λ);
         n=size(nep,1);
@@ -106,7 +110,6 @@ Executes z if displaylevel>0.
         end
         return x
     end
-
 
 
 end #End module
