@@ -18,7 +18,7 @@ using Base.Test
 
 guntest=@testset "GUN (NLEVP interface)" begin
 
-    nep_org=nep_gallery_NLEVP("gun","../nlevp3/");
+    nep_org=nep_gallery(NLEVP_NEP,"gun","../nlevp3/");
     nep1=nlevp_make_native(nep_org);
     n=size(nep1,1);
     tol=1e-11;

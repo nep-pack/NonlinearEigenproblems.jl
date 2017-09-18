@@ -96,7 +96,8 @@ module Gallery
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\\\
   """
-  function nep_gallery(name::String,params...)
+  nep_gallery(name::String,params...)=nep_gallery(NEP,name,params...)  
+  function nep_gallery{T<:NEP}(::Type{T},name::String,params...)
       local n
       if (name == "dep0")
           # A delay eigenvalue problem

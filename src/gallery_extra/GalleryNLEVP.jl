@@ -13,21 +13,13 @@ module GalleryNLEVP
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
+    
+    export NLEVP_NEP
 
+    import Gallery.nep_gallery
+    export nep_gallery
 
     
-    """
-    nep_gallery_NLEVP(name)
-Loads a NEP from the Berlin-Manchester collection of nonlinear
-eigenvalue problems
-"""
-    function nep_gallery_NLEVP(name::String,nlevp_path::String="../../nlevp3")
-        if(nlevp_path[1:2] == "..") #Check if path is relative, then make absoulte
-            nlevp_path = pwd() * "/" * nlevp_path
-        end
-        nep=NLEVP_NEP(name,nlevp_path)
-        return nep
-    end
 
     """
          NLEVP_NEP represents a NEP in the NLEVP-toolbox
@@ -99,6 +91,8 @@ eigenvalue problems
     end
 
 
+
+    
     # size for NLEVP_NEPs
     function size(nep::NLEVP_NEP,dim=-1)
         if (dim==-1)
@@ -107,6 +101,21 @@ eigenvalue problems
             return nep.n
         end
     end
+
+    """
+    nep_gallery(NLEVP_NEP, name)
+    nep_gallery(NLEVP_NEP, name, nlevp_path)
+Loads a NEP from the Berlin-Manchester collection of nonlinear
+eigenvalue problems.
+"""
+    function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String,nlevp_path::String="../../nlevp3")
+        if(nlevp_path[1:2] == "..") #Check if path is relative, then make absoulte
+            nlevp_path = pwd() * "/" * nlevp_path
+        end
+        nep=NLEVP_NEP(name,nlevp_path)
+        return nep
+    end
+
 
     """
    nlevp_make_native(nep::NLEVP_NEP)

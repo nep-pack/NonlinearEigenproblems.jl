@@ -15,7 +15,7 @@ using GalleryNLEVP
 using Base.Test
 
 
-nep_org=nep_gallery_NLEVP("fiber","../nlevp3/");
+nep_org=nep_gallery(NLEVP_NEP,"fiber","../nlevp3/");
 n=size(nep_org,1);
 
 # An exact eigenvalue according (reported in NLEVP collection)
@@ -96,7 +96,7 @@ fibertest=@testset "NLEVP fiber" begin
     
 
 
-    fibertest_int=@testset "NLEVP fiber (PEP interpolation)" begin
+    fibertest_int=@testset "PEP interpolation" begin
         # Create a PEP Which interpolates in a couple of points
 
         intpoints=[1e-8,1e-7,7e-7,9e-7]
