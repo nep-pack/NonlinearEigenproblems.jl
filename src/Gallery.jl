@@ -14,7 +14,6 @@ module Gallery
 
 
     include("gallery_extra/distributed_example.jl")
-    include("gallery_extra/nlevp_interface.jl")
 
     include("gallery_extra/waveguide/Waveguide.jl")
     using .Waveguide
@@ -98,7 +97,7 @@ module Gallery
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\\\
   """
-  function nep_gallery(name,params...)
+  function nep_gallery(name::String,params...)
       local n
       if (name == "dep0")
           # A delay eigenvalue problem

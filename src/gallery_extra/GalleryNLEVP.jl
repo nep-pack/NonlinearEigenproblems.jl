@@ -1,15 +1,25 @@
-export nlevp_gallery_import
-export nlevp_make_native
-# We have to explicitly specify functions that we want "overload"
-import NEPCore.compute_Mder
-import NEPCore.size
+module GalleryNLEVP
 
+    using MATLAB
+    using NEPCore
+    using NEPTypes    
+    using Gallery    
+    
+    export nep_gallery_NLEVP
+    export nlevp_make_native
+    
+    # We have to explicitly specify functions that we want "overload"
+    import NEPCore.compute_Mder
+    import NEPCore.size
+
+
+    
 """
-    nlevp_gallery(name)
+    nep_gallery_NLEVP(name)
 Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems
 """
-function nlevp_gallery_import(name::String,nlevp_path::String="../../nlevp3")
+function nep_gallery_NLEVP(name::String,nlevp_path::String="../../nlevp3")
     if(nlevp_path[1:2] == "..") #Check if path is relative, then make absoulte
         nlevp_path = pwd() * "/" * nlevp_path
     end
@@ -39,6 +49,8 @@ type NLEVP_NEP <: NEP
     end
 end
 
+
+    
 function compute_Mder(nep::NLEVP_NEP,λ::Number,i::Integer=0)
     lambda=Complex{Float64}(λ)  # avoid type conversion problems
     #println("type",typeof(lambda))
@@ -109,8 +121,27 @@ function nlevp_make_native(nep::NLEVP_NEP)
         return nep2
     elseif (nep.name == "cd_player")
         return PEP(nep.Ai);
+    elseif (nep.name == "fiber")
+        error("Native implementation of fiber not finished")
     else
         error("Unable to make NEP native")
     end
 
+end
+
+# # In progress
+#function fiber2(S)
+#    # poor-mans version of
+#    f0=z -> z.*(- besselk.(1, z)./z - besselk.(0, z))./besselk.(1,z)
+#    f1=z -> 
+#    zsamples=eps()+1+cos(linspace(0,pi,100))
+#
+#    a=eps();
+#    b=3;
+#    α=-(a+b)/(b-a)
+#    β=2/(b-a);
+#
+#    
+#end
+#
 end

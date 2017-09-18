@@ -10,6 +10,7 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
+using GalleryNLEVP
 using LinSolvers
 
 using Base.Test
@@ -17,7 +18,7 @@ using Base.Test
 
 guntest=@testset "GUN (NLEVP interface)" begin
 
-    nep_org=nlevp_gallery_import("gun","../nlevp3/");
+    nep_org=nep_gallery_NLEVP("gun","../nlevp3/");
     nep1=nlevp_make_native(nep_org);
     n=size(nep1,1);
     tol=1e-11;

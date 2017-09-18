@@ -10,12 +10,12 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-
+using GalleryNLEVP
 
 using Base.Test
 
 
-nep_org=nlevp_gallery_import("fiber","../nlevp3/");
+nep_org=nep_gallery_NLEVP("fiber","../nlevp3/");
 n=size(nep_org,1);
 
 # An exact eigenvalue according (reported in NLEVP collection)
