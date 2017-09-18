@@ -54,7 +54,7 @@ projtest=@testset "Projected problems" begin
 
         n=size(nep,1);
         println("Running Newton Raphson")
-        tol=1e-8
+        tol=1e-12
         λ,x =newton(nep,maxit=30,λ=1+1im,tolerance=tol,
                     v=ones(n));
         # Check residual is small
