@@ -241,7 +241,7 @@
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
                 linsolver = linsolvercreator(nep,λ)
-                tempvec = lin_solve(linsolver, z, tol=tolerance);
+                tempvec = Array{T,1}(lin_solve(linsolver, z, tol=tolerance));
 
                 if (use_v_as_normalization_vector)
                     c = v /norm(v)^2
@@ -294,7 +294,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                            tolerance=eps(real(T))*100,
                            maxit=100,
                            λ=zero(T),
-                           v=randn(real(T),size(nep,1)),
+
+                            v=randn(real(T),size(nep,1)),
                            ws=v,
                            displaylevel=0,
                            linsolvercreator::Function=default_linsolvercreator,
