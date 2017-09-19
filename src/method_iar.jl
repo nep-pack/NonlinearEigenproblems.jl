@@ -12,7 +12,7 @@ function iar(
     nep::NEP;
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
-    tol=1e-12,
+    tolerance=1e-12,
     Neig=6,
     errmeasure::Function = default_errmeasure(nep::NEP),
     σ=0.0,
@@ -69,9 +69,10 @@ function iar(
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
-                if err[k,s]<tol; conv_eig=conv_eig+1; end
+                if err[k,s]<tolerance; conv_eig=conv_eig+1; end
             end
-            idx=sortperm(err[1:k,k]); # sort the error
+            #println(err[1:k,k])
+            idx=sortperm(err[k,1:k]); # sort the error
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)

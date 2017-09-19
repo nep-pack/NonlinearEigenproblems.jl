@@ -2,9 +2,9 @@
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
-push!(LOAD_PATH, pwd()*"/src")	
+push!(LOAD_PATH, pwd()*"/src")
 push!(LOAD_PATH, pwd()*"/src/gallery_extra")
-push!(LOAD_PATH, pwd()*"/src/gallery_extra/waveguide")	
+push!(LOAD_PATH, pwd()*"/src/gallery_extra/waveguide")
 
 using NEPSolver
 using NEPCore
@@ -42,7 +42,7 @@ exact_eigvals=[
     @test norm(compute_Mder(dep,λ)*x-compute_Mlincomb(dep,λ,x))<eps()*10
 
     # Check derivative computation with finite difference
-    zder=compute_Mlincomb(dep,λ,x,[1],1) 
+    zder=compute_Mlincomb(dep,λ,x,[1],1)
     ee=1e-4;
     zder_approx=(compute_Mlincomb(dep,λ+ee,x)-compute_Mlincomb(dep,λ-ee,x))/(2ee)
     @test norm(zder-zder_approx)<ee^2*10
@@ -50,15 +50,16 @@ exact_eigvals=[
 
     myerrmeasure=(λ,v) -> begin
         global exact_eigvals,dep;
-        return minimum(abs.(λ-exact_eigvals))/abs(λ)
+        return minimum(abs.(λ-exact_eigvals)./abs(λ))
         #return norm(compute_Mlincomb(dep,λ,v))/norm(compute_Mder(dep,λ))
     end
 
     (λ,V)=iar(dep,σ=3,Neig=5,errmeasure=myerrmeasure, v=ones(n),
               displaylevel=1,maxit=100,tol=eps()*100)
-    
+    println(λ)
+
     @testset "IAR eigval[$i]" for i in 1:length(λ)
-        @test myerrmeasure(λ[i],V[:,i])<1e-10    
+        @test myerrmeasure(λ[i],V[:,i])<1e-10
     end
 
 
