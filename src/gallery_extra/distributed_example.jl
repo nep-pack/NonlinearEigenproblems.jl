@@ -117,7 +117,7 @@ function  gauss_legendre_weights(N,a,b)
     
 
     # Starting values of Newton's method
-    y=cos.((2*(0:(N-1))+1)*pi/(2*(N-1)+2))+(0.27/N1)*sin(pi*xu*(N-1)/N2);    y0=2;
+    y=cos.((2*(0:(N-1))+1)*pi/(2*(N-1)+2))+(0.27/N1)*sin.(pi*xu*(N-1)/N2);    y0=2;
     
 
     local Lp0
