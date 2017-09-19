@@ -22,7 +22,7 @@ n=size(dep,1);
 @testset "IAR" begin
 
     (λ,V)=iar(dep,σ=3,Neig=5,v=ones(n),
-          displaylevel=1,maxit=100,tolerance=eps()*100)
+          displaylevel=1,maxit=100,tol=eps()*100)
 
     @testset "IAR eigval[$i]" for i in 1:length(λ)
       @test norm(compute_Mlincomb(dep,λ[i],V[:,i]))<eps()*100

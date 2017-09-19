@@ -1,4 +1,6 @@
 export iar
+using IterativeSolvers
+
 
 """
     iar(nep,[maxit=30,][σ=0,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*100,][Neig=6,][errmeasure=default_errmeasure,][σ=0,][γ=1,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1])
@@ -12,7 +14,7 @@ function iar(
     nep::NEP;
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
-    tolerance=1e-12,
+    tol=1e-12,
     Neig=6,
     errmeasure::Function = default_errmeasure(nep::NEP),
     σ=0.0,
@@ -54,12 +56,7 @@ function iar(
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
-        h,vv[:] = doubleGS(VV,vv,k,n);
-        H[1:k,k]=h;
-        β=norm(vv);
-
-        H[k+1,k]=β;
-        vv[:]=vv[:]/β;
+        H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), DGKS )
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
@@ -69,7 +66,7 @@ function iar(
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
-                if err[k,s]<tolerance; conv_eig=conv_eig+1; end
+                if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
             #println(err[1:k,k])
             idx=sortperm(err[k,1:k]); # sort the error
