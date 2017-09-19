@@ -80,7 +80,7 @@ export infbilanczos
             Qt_basis[:,k] = Qt1[:,1];        
 
              # Step 1: Compute Z_{k+1} 
-            Dk=diagm(1./(exp(lfact.(1:k))));
+            Dk=diagm(1./(exp.(lfact.(1:k))));
             b1_tmp=compute_Mlincomb(nep,σ,Q1[:,1:k]*Dk,ones(k),1);
             b1=-lin_solve(M0inv,b1_tmp);
             Z2[:,k] = b1;
