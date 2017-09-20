@@ -7,7 +7,9 @@ export infbilanczos
                           nept::NEP;  # Transposed NEP
                           maxit=30,
                           linsolvercreator::Function=default_linsolvercreator,
-                          linsolvertcreator::Function=linsolvercreator,                          
+                          linsolvertcreator::Function=linsolvercreator,
+                          v=randn(size(nep,1)),
+                          u=randn(size(nep,1)),
                           tol=1e-12,
                           Neig=maxit,                                  
                           errmeasure::Function = default_errmeasure(nep::NEP),
@@ -27,8 +29,8 @@ export infbilanczos
 
         #        
         m=maxit;
-        qt=lin_solve(M0Tinv,ones(n));
-        q=ones(n);
+        qt=lin_solve(M0Tinv,u);
+        q=v;
         q=q/dot(qt,compute_Mlincomb(nep,σ,q,ones(1),1));
         
         Q0=zeros(n,m);                  # represents Q_{k-1}
@@ -66,7 +68,7 @@ export infbilanczos
 
             beta[k] = sqrt(abs(omega));        
             gamma[k] = conj(omega) / beta[k];
-
+            
             # Step 11-12
             
             Q1[:,1:k]=R1[:,1:k]/beta[k];
@@ -84,6 +86,7 @@ export infbilanczos
             b1_tmp=compute_Mlincomb(nep,σ,Q1[:,1:k]*Dk,ones(k),1);
             b1=-lin_solve(M0inv,b1_tmp);
             Z2[:,k] = b1;
+            
 
 
             # Step 2: Compute \til{Z}_{k+1} 
@@ -91,14 +94,12 @@ export infbilanczos
             bt1=-lin_solve(M0Tinv,bt1_tmp);
             Zt2[:,k] = bt1
 
-            # Step 3: Compute R_{k+1}
-            
+            # Step 3: Compute R_{k+1}            
             R2[:,1] = Z2[:,k];            
             R2[:,2:(k+1)]=Q1[:,1:k];
             if k > 1
                 R2[:,1:(k-1)]=R2[:,1:(k-1)]-gamma[k]*Q0[:,1:(k-1)];
             end
-            
 
             # Step 4: Compute \til{R}_{k+1}
             Rt2[:,1] = Zt2[:,k];
@@ -112,18 +113,17 @@ export infbilanczos
             
 
             #Step 6: Compute R_{k+1}
-            
             R2[:,1:k]=R2[:,1:k]-alpha[k+1]*Q1[:,1:k];
-            
+
+
  
             #Step 7: Compute \til{R}_{k+1}
             Rt2[:,1:k]=Rt2[:,1:k]-conj(alpha[k+1])*Qt1[:,1:k];
             
 
-            # shift the matrices:
-            
-            R1=R2;  Rt1=Rt2;
-            Q0=Q1;  Qt0=Qt1;
+            # shift and copy the matrices: (can be made more efficient)
+            R1=copy(R2);  Rt1=copy(Rt2);
+            Q0=copy(Q1);  Qt0=copy(Qt1);
             
             
             k=k+1;
@@ -141,8 +141,8 @@ export infbilanczos
         @ifd(@printf("done \n"));
         
         T = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
-        
-        return 0,0,T;
+        λ = σ+1./eigvals(T);
+        return λ,0,T;
     end
 
     function left_right_scalar_prod(nep,nept,At,B,ma,mb,σ)
@@ -153,7 +153,7 @@ export infbilanczos
         XX=zeros(size(B,1),mb); # pre-allocate
         for j=1:ma
             #dd=1./factorial(j:(j+mb-1));
-            dd=1./exp(lfact.(j:(j+mb-1)));
+            dd=1./exp.(lfact.(j:(j+mb-1)));
             XX=broadcast(*,B[:,1:mb],dd'); # diag scaling
             #XX=bsxfun(@times,B(:,1:mb),dd);  # Column scaling: Faster than constructing
 
