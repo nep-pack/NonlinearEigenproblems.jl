@@ -3,13 +3,15 @@ export infbilanczos
 """
     The Infinite Bi-Lanczos
 """
-    function infbilanczos(nep::NEP,
+    infbilanczos(nep::NEP,nept::NEP;params...)=infbilanczos(Complex128,nep,nept;params...)
+    function infbilanczos{T<:Number}(::Type{T},
+                          nep::NEP,
                           nept::NEP;  # Transposed NEP
                           maxit=30,
                           linsolvercreator::Function=default_linsolvercreator,
                           linsolvertcreator::Function=linsolvercreator,
-                          v=randn(size(nep,1)),
-                          u=randn(size(nep,1)),
+                          v=randn(real(T),size(nep,1)),
+                          u=randn(real(T),size(nep,1)),
                           tol=1e-12,
                           Neig=maxit,                                  
                           errmeasure::Function = default_errmeasure(nep::NEP),
@@ -19,6 +21,7 @@ export infbilanczos
 
         
         n=size(nep,1);
+        σ=T(σ);
 
         # Linear systems solver for both M(σ) and M(σ)^H
 
@@ -26,34 +29,34 @@ export infbilanczos
         
         local M0inv::LinSolver = linsolvercreator(nep,σ);
         local M0Tinv::LinSolver = linsolvertcreator(nept,σ);        
-
+        
         #        
         m=maxit;
         qt=lin_solve(M0Tinv,u);
         q=v;
         q=q/dot(qt,compute_Mlincomb(nep,σ,q,ones(1),1));
         
-        Q0=zeros(n,m);                  # represents Q_{k-1}
-        Qt0=zeros(n,m);                 # represents \til{Q}_{k-1}
-        R1=zeros(n,m); R1[:,1]=q;       # represents R_{k}
-        Rt1=zeros(n,m); Rt1[:,1]=qt;    # represents \tild{R}_{k}  
-        Z2=zeros(n,m);
-        Zt2=zeros(n,m); 
-        Q_basis=zeros(n,m);
-        Qt_basis=zeros(n,m);
+        Q0=zeros(T,n,m);                  # represents Q_{k-1}
+        Qt0=zeros(T,n,m);                 # represents \til{Q}_{k-1}
+        R1=zeros(T,n,m); R1[:,1]=q;       # represents R_{k}
+        Rt1=zeros(T,n,m); Rt1[:,1]=qt;    # represents \tild{R}_{k}  
+        Z2=zeros(T,n,m);
+        Zt2=zeros(T,n,m); 
+        Q_basis=zeros(T,n,m);
+        Qt_basis=zeros(T,n,m);
 
 
-        R2=zeros(n,m); # Needed?
-        Rt2=zeros(n,m); # Needed?        
+        R2=zeros(T,n,m); # Needed?
+        Rt2=zeros(T,n,m); # Needed?        
         
-        Q1=zeros(n,m); # Needed?
-        Qt1=zeros(n,m); # Needed?
+        Q1=zeros(T,n,m); # Needed?
+        Qt1=zeros(T,n,m); # Needed?
 
 
         # Vectors storing the diagonals
-        alpha=zeros(m);               
-        beta=zeros(m);
-        gamma=zeros(m);
+        alpha=zeros(T,m);               
+        beta=zeros(T,m);
+        gamma=zeros(T,m);
 
 
         @ifd(@printf("%e %e\n",norm(q), norm(qt)));
@@ -64,7 +67,7 @@ export infbilanczos
         while k < m
             @ifd(@printf("%d ", k));
             # Note: conjugate required since we compute s'*r not r'*s
-            omega = conj(left_right_scalar_prod(nep,nept,Rt1,R1,k,k,σ));
+            omega = conj(left_right_scalar_prod(T,nep,nept,Rt1,R1,k,k,σ));
 
             beta[k] = sqrt(abs(omega));        
             gamma[k] = conj(omega) / beta[k];
@@ -109,7 +112,7 @@ export infbilanczos
             end
 
             # Step 5: Compute \alpha_k
-            alpha[k+1]=left_right_scalar_prod(nep,nept,Qt1,R2,k,k+1,σ);
+            alpha[k+1]=left_right_scalar_prod(T,nep,nept,Qt1,R2,k,k+1,σ);
             
 
             #Step 6: Compute R_{k+1}
@@ -129,7 +132,7 @@ export infbilanczos
             k=k+1;
            
         end
-        omega = left_right_scalar_prod(nep,nept,Rt1,R1,m,m,σ);
+        omega = left_right_scalar_prod(T,nep,nept,Rt1,R1,m,m,σ);
         
         beta[m] = sqrt(abs(omega));        
         gamma[m] = conj(omega) / beta[m];
@@ -140,17 +143,17 @@ export infbilanczos
 
         @ifd(@printf("done \n"));
         
-        T = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
-        λ = σ+1./eigvals(T);
-        return λ,0,T;
+        TT = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
+        λ = σ+1./eigvals(TT);
+        return λ,0,TT;
     end
 
-    function left_right_scalar_prod(nep,nept,At,B,ma,mb,σ)
+    function left_right_scalar_prod{T}(::Type{T}, nep,nept,At,B,ma,mb,σ)
         # Compute the scalar product based on the function nep.M_lin_comb  
         c=0;
         # This is the nasty double loop, which brings
         # complexity O(m^3n). Will be limiting if we do many iterations
-        XX=zeros(size(B,1),mb); # pre-allocate
+        XX=zeros(T,size(B,1),mb); # pre-allocate
         for j=1:ma
             #dd=1./factorial(j:(j+mb-1));
             dd=1./exp.(lfact.(j:(j+mb-1)));

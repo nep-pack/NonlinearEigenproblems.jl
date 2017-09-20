@@ -50,7 +50,7 @@ nept=SPMF_NEP(AAt,[quadfun,constfun,expfun])
 
 @testset "Infbilanczos σ=0" begin
     m=30;
-    λ,Q,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=0,
+    λ,Q,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=m,σ=0,
                          v=ones(n),u=ones(n));
 
     # Produced with a different implementation
@@ -71,8 +71,8 @@ nept=SPMF_NEP(AAt,[quadfun,constfun,expfun])
 end
 
 
-@testset "Infbilanczos σ=$x" for x in (1.0,1.0+0.2im)
-    m=30;
+@testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.2im)
+    m=20;
     λ,Q,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=x,
                          v=ones(n),u=ones(n));
     thiserr=ones(m)*NaN
@@ -80,7 +80,7 @@ end
         v=compute_eigvec_from_eigval_lu(nep,λ[i],default_linsolvercreator);
         thiserr[i]=norm(compute_Mlincomb(nep,λ[i],v));
     end
-    @test length(find(thiserr .< 1e-7)) >= 9
+    @test length(find(thiserr .< 1e-7)) >= 3
 end
 
     
