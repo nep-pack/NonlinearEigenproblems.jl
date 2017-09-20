@@ -11,42 +11,9 @@ using Base.Test
 using LinSolvers
 
 
-# explicit import needed for overloading
-# functions from packages
-# import NEPCore.compute_Mlincomb
-
-#println("Load dep0")
-#nep=nep_gallery("dep0",100)
-##nep=nep_gallery("pep0");
-#println("Transposing dep0");
-## Construct the transposed NEP
-#nept=DEP([nep.A[1]',nep.A[2]'],nep.tauv)
-#
-#
-
-
-file=matopen("matlab/infbilanczos/qdep_infbilanczos.mat");
-A0=read(file,"A0");
-A1=read(file,"A1");
-close(file)
-
-tau=1;
-quadfun= S -> S^2;
-constfun= S -> eye(S);
-expfun= S -> expm(-tau*S);
-
-
-AA=[-speye(A0),A0,A1]
-
-fi=[quadfun,constfun,expfun]
-nep=SPMF_NEP(AA,fi)
-
-AAt=[-speye(A0),A0',A1']
-
+nep=nep_gallery("qdep0");
+nept=SPMF_NEP([nep.A[1]',nep.A[2]',nep.A[3]'],nep.fi)
 n=size(nep,1);
-
-nept=SPMF_NEP(AAt,[quadfun,constfun,expfun])
-
 
 @testset "Infbilanczos σ=0" begin
     m=30;

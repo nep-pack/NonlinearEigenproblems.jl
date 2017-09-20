@@ -6,7 +6,7 @@ module Gallery
     using NEPCore
     using NEPTypes
     using PolynomialRoots
-
+    using MAT
 
     export nep_gallery
 
@@ -90,7 +90,11 @@ module Gallery
                             # discretization::String = 'FD',   which discretization (FD)\\
                             # NEP_format::String = 'SPMF',   NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
                             # delta = 0.1,   Slack from the absorbing boundary conditions
-\\
+\\  
+     'qdep0' \\
+      Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear
+      eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\\\
+
      'qep_fixed_eig'\\
      Create a quadratic eigenvalue problem with chosen eigenvalues
      * two optional parameters determining the size (default = 5)
@@ -222,6 +226,23 @@ module Gallery
 
       elseif (name== "dep_distributed")
           return gallery_dep_distributed();
+
+      elseif (name=="qdep0")
+
+          qdepfile=joinpath(dirname(@__FILE__()),
+                            "gallery_extra","qdep_infbilanczos.mat")
+          file=matopen(qdepfile);
+          A0=read(file,"A0");
+          A1=read(file,"A1");
+          close(file)
+          tau=1;
+          quadfun= S -> S^2;
+          constfun= S -> eye(S);
+          expfun= S -> expm(-tau*full(S));
+          
+          AA=[-speye(A0),A0,A1]
+          fi=[quadfun,constfun,expfun]
+          return SPMF_NEP(AA,fi)
 
       elseif (name== "waveguide")
           return gallery_waveguide(params...);
