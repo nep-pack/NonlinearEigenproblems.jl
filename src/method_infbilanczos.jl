@@ -28,7 +28,7 @@ export infbilanczos
         # Shift σ \neq 0 not implemented
         
         local M0inv::LinSolver = linsolvercreator(nep,σ);
-        local M0Tinv::LinSolver = linsolvertcreator(nept,σ);        
+        local M0Tinv::LinSolver = linsolvertcreator(nept,conj(σ));        
         
         #        
         m=maxit;
@@ -93,7 +93,7 @@ export infbilanczos
 
 
             # Step 2: Compute \til{Z}_{k+1} 
-            bt1_tmp=compute_Mlincomb(nept,σ,Qt1[:,1:k]*Dk,ones(k),1);
+            bt1_tmp=compute_Mlincomb(nept,conj(σ),Qt1[:,1:k]*Dk,ones(k),1);
             bt1=-lin_solve(M0Tinv,bt1_tmp);
             Zt2[:,k] = bt1
 
