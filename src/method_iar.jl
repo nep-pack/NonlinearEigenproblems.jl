@@ -21,7 +21,8 @@ function iar(
     γ=1,
     v=randn(size(nep,1),1),
     displaylevel=0,
-    check_error_every=1
+    check_error_every=1,
+    orthmethod::Function = (VV, vv, h) -> orthogonalize_and_normalize!(VV, vv, h, DGKS )
     )
 
     n = size(nep,1);
@@ -56,7 +57,7 @@ function iar(
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
-        H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), DGKS )
+        H[k+1,k] = orthmethod(VV, vv, view(H,1:k,k) )
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
@@ -91,21 +92,5 @@ function iar(
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-    return λ,Q,err
-end
-
-
-function doubleGS(VV,vv,k,n)
-    h=VV'*vv;
-    vv=vv-VV*h;
-    g=VV'*vv;
-    vv=vv-VV*g;
-    h = h+g;
-    return h,vv;
-end
-
-function singleGS(V,vv,k,n)
-    h=V[1:(k+1)*n,1:k]'*vv;
-    vv=vv-V[1:(k+1)*n,1:k]*h;
-    return h,vv;
+    return λ,Q,err,V[:,1:k]
 end
