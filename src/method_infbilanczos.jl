@@ -66,7 +66,7 @@ export infbilanczos
         k=1;
 
         @ifd(@printf("Iteration:"));
-        while k < m
+        for k=1:m
             @ifd(@printf("%d ", k));
             # Note: conjugate required since we compute s'*r not r'*s
             omega = conj(left_right_scalar_prod(T,nep,nept,Rt1,R1,k,k,σ));
@@ -171,7 +171,6 @@ export infbilanczos
                     return λ,Q,TT
                 end
             end
-            k=k+1;           
         end
         
 
