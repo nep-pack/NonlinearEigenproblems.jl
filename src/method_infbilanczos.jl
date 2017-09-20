@@ -124,10 +124,12 @@ export infbilanczos
             Rt2[:,1:k]=Rt2[:,1:k]-conj(alpha[k+1])*Qt1[:,1:k];
             
 
-            # shift and copy the matrices: (can be made more efficient)
-            R1=copy(R2);  Rt1=copy(Rt2);
-            Q0=copy(Q1);  Qt0=copy(Qt1);
-            
+            # shift  the matrices: 
+            (R1,R2)=(R2,R1);  R2[:,:]=0  # swap and reset forgotten variable
+            (Rt1,Rt2)=(Rt2,Rt1);  Rt2[:,:]=0
+            (Q0,Q1)=(Q1,Q0);  Q1[:,:]=0
+            (Qt0,Qt1)=(Qt1,Qt0);  Qt1[:,:]=0
+
             
             k=k+1;
            
