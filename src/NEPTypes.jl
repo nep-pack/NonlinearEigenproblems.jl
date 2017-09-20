@@ -105,9 +105,16 @@ matrices in the call of ``compute_MM(...)``.
          function SPMF_NEP(AA, fii::Array, Schur_fact = false)
              n=size(AA[1],1);
 
-            if(length(AA) != length(fii))
-                error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
-            end
+             if(length(AA) != length(fii))
+                 error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
+             end
+             for i = 2:length(AA)
+                 if size(AA[i]) != size(AA[1])
+                     error("The dimensions of the matrices mismatch: size(AA[1])",
+                           size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
+                 end
+             end
+             
 
              if (issparse(AA[1]))
                  Zero=spones(AA[1]);
@@ -118,6 +125,8 @@ matrices in the call of ``compute_MM(...)``.
              else
                  Zero=zeros(n,n)
              end
+
+             
              this=new(n,AA,fii,Schur_fact,Zero);
              return this
          end
