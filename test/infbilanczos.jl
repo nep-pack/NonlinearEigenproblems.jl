@@ -1,5 +1,7 @@
+# Test for infinite Bi-Lanczos
+
 workspace()
-push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+push!(LOAD_PATH, pwd()*"/src")	
 using NEPSolver
 using NEPCore
 using NEPTypes
@@ -19,8 +21,10 @@ nept=DEP([nep.A[1]',nep.A[2]'],nep.tauv)
 
 
 
-m=10;
+m=20;
 λ,Q,err = infbilanczos(nep,nept,maxit=m,Neig=m,σ=2.0,γ=2);
+minimum(svdvals(compute_Mder(nep,λ)))
+
 #
 ##for i=1:m
 ## semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
