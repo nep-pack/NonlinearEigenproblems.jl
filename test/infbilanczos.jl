@@ -16,8 +16,8 @@ nept=SPMF_NEP([nep.A[1]',nep.A[2]',nep.A[3]'],nep.fi)
 n=size(nep,1);
 
 @testset "Infbilanczos σ=0" begin
-    m=30;
-    λ,Q,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=m,σ=0,
+    m=40;
+    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=m,σ=0,displaylevel=1,
                          v=ones(n),u=ones(n));
 
     # Produced with a different implementation
@@ -28,26 +28,23 @@ n=size(nep,1);
     n0=size(Tstar,1);
     @test norm(Tstar-T[1:n0,1:n0])<1e-10
 
-    println("Post-processing: computing eigenvectors")
     thiserr=ones(m)*NaN
     for i=1:length(λ)
-        v=compute_eigvec_from_eigval_lu(nep,λ[i],default_linsolvercreator);
-        thiserr[i]=norm(compute_Mlincomb(nep,λ[i],v));
+        thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
     end
-    @test length(find(thiserr .< 1e-7)) == 9
+    @test length(find(thiserr .< 1e-7)) == 7
 end
 
 
-@testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.2im)
-    m=20;
-    λ,Q,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=x,
+@testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.1im)
+    m=30;
+    λ,V,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=x,
                          v=ones(n),u=ones(n));
     thiserr=ones(m)*NaN
     for i=1:length(λ)
-        v=compute_eigvec_from_eigval_lu(nep,λ[i],default_linsolvercreator);
-        thiserr[i]=norm(compute_Mlincomb(nep,λ[i],v));
+        thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
     end
-    @test length(find(thiserr .< 1e-7)) >= 3
+    @test length(find(thiserr .< 1e-7)) >= 2
 end
 
     
