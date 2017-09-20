@@ -141,7 +141,7 @@ export infbilanczos
         @ifd(@printf("done \n"));
         
         T = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
-        λ = 1./eigvals(T);
+        λ = σ+1./eigvals(T);
         return λ,0,T;
     end
 
