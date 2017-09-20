@@ -43,12 +43,15 @@ nep=SPMF_NEP(AA,fi)
 
 AAt=[-speye(A0),A0',A1']
 
+n=size(nep,1);
+
 nept=SPMF_NEP(AAt,[quadfun,constfun,expfun])
 
 
 @testset "Infbilanczos" begin
     m=30;
-    λ,Q,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=0);
+    λ,Q,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=0,
+                         v=ones(n),u=ones(n));
 
     # Produced with a different implementation
     Tstar=[  -1.665117675679600   5.780562035399026                   0                   0

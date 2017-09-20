@@ -8,6 +8,8 @@ export infbilanczos
                           maxit=30,
                           linsolvercreator::Function=default_linsolvercreator,
                           linsolvertcreator::Function=linsolvercreator,
+                          v=randn(size(nep,1)),
+                          u=randn(size(nep,1)),
                           tol=1e-12,
                           Neig=maxit,                                  
                           errmeasure::Function = default_errmeasure(nep::NEP),
@@ -27,8 +29,8 @@ export infbilanczos
 
         #        
         m=maxit;
-        qt=lin_solve(M0Tinv,ones(n));
-        q=ones(n);
+        qt=lin_solve(M0Tinv,u);
+        q=v;
         q=q/dot(qt,compute_Mlincomb(nep,σ,q,ones(1),1));
         
         Q0=zeros(n,m);                  # represents Q_{k-1}
