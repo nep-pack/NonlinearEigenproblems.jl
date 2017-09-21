@@ -13,11 +13,13 @@ export infbilanczos
                           v=randn(real(T),size(nep,1)),
                           u=randn(real(T),size(nep,1)),
                           tol=1e-12,
-                          Neig=maxit,                                  
+                          Neig=5,                                  
                           errmeasure::Function = default_errmeasure(nep::NEP),
                           σ=0.0,
                           γ=1,
-                          displaylevel=0)
+                          displaylevel=0,
+                          check_error_every=1
+                                     )
 
         
         n=size(nep,1);
@@ -64,7 +66,7 @@ export infbilanczos
         k=1;
 
         @ifd(@printf("Iteration:"));
-        while k < m
+        for k=1:m
             @ifd(@printf("%d ", k));
             # Note: conjugate required since we compute s'*r not r'*s
             omega = conj(left_right_scalar_prod(T,nep,nept,Rt1,R1,k,k,σ));
@@ -130,33 +132,50 @@ export infbilanczos
             (Q0,Q1)=(Q1,Q0);  Q1[:,:]=0
             (Qt0,Qt1)=(Qt1,Qt0);  Qt1[:,:]=0
 
-            
-            k=k+1;
-           
+            if (rem(k,check_error_every)==0)||(k==m)
+                # Check if we should terminate
+                omega = left_right_scalar_prod(T,nep,nept,Rt1,R1,k+1,k+1,σ);
+                beta[k+1] = sqrt(abs(omega));
+                gamma[k+1] = conj(omega) / beta[k+1];
+                
+                alpha0=alpha[2:(k+1)];  # \alpha_1 stored in alpha(2)
+                beta0=beta[2:(k+1)];    # we do not need \beta_1
+                gamma0=gamma[2:(k+1)];  # we do not need \gamma_1
+                
+                TT = full(spdiagm((beta0[1:k],alpha0[1:k],gamma0[1:k]), -1:1));
+                
+                E=eigfact(TT);                
+                λ = σ+1./E.values;
+                Z=E.vectors;
+                #@ifd(println("size(Z)=",size(Z)))
+                #@ifd(println("size(TT)=",size(TT)))                
+                Q=Q_basis[:,1:(k+1)]*Z
+                conv_eig=0;
+                err=zeros(real(T),k);                
+                for s=1:k
+                    err[s]=errmeasure(λ[s],Q[:,s]);
+                    if err[s]<tol; conv_eig=conv_eig+1; end
+                end
+                #println(conv_eig)
+                @ifd(@printf("(%d) ",conv_eig))
+                idx=sortperm(err[1:k]); # sort the error
+                err=err[idx];
+
+                if (conv_eig>=Neig)
+                    λ=λ[idx[1:min(length(λ),Neig)]]
+                    Q=Q[:,idx[1:length(λ)]]
+                    for i=1:size(Q,2)
+                        normalize!(view(Q,1:n,i))
+                    end
+                    @ifd(@printf("done \n"));
+                    return λ,Q,TT
+                end
+            end
         end
-        omega = left_right_scalar_prod(T,nep,nept,Rt1,R1,m,m,σ);
-        
-        beta[m] = sqrt(abs(omega));        
-        gamma[m] = conj(omega) / beta[m];
-        alpha=alpha[2:end];  # \alpha_1 stored in alpha(2)
-        beta=beta[2:end];    # we do not need \beta_1
-        gamma=gamma[2:end];  # we do not need \gamma_1
         
 
-        @ifd(@printf("done \n"));
-        
-        TT = full(spdiagm((beta[1:m-1],alpha[1:m-1],gamma[1:m-1]), -1:1));
-        E=eigfact(TT);
-        λ = σ+1./E.values;
-
-        @ifd(println("Normalizing"))
-        V=Q_basis*E.vectors;
-        for i=1:size(V,2)
-            normalize!(view(V,1:n,i))
-        end
-        
-
-        return λ,V,TT;
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        throw(NoConvergenceException(λ,v,err,msg))
     end
 
     function left_right_scalar_prod{T}(::Type{T}, nep,nept,At,B,ma,mb,σ)

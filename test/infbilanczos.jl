@@ -17,8 +17,9 @@ n=size(nep,1);
 
 @testset "Infbilanczos σ=0" begin
     m=40;
-    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=m,σ=0,displaylevel=1,
-                         v=ones(n),u=ones(n));
+    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=7,σ=0,displaylevel=1,
+                         v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
+                         tol=1e-7);
 
     # Produced with a different implementation
     Tstar=[  -1.665117675679600   5.780562035399026                   0                   0
@@ -38,7 +39,7 @@ end
 
 @testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.1im)
     m=30;
-    λ,V,T = infbilanczos(nep,nept,maxit=m,Neig=m,σ=x,
+    λ,V,T = infbilanczos(nep,nept,maxit=m,Neig=2,σ=x,tol=1e-7,
                          v=ones(n),u=ones(n));
     thiserr=ones(m)*NaN
     for i=1:length(λ)
