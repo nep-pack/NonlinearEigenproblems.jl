@@ -9,9 +9,9 @@ using IterativeSolvers
 Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
 by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.
 """
-
-function iar(
+function iar{T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     nep::NEP;
+    orthmethod::Type{T_orth}=DGKS,
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
     tol=1e-12,
@@ -21,8 +21,7 @@ function iar(
     γ=1,
     v=randn(size(nep,1),1),
     displaylevel=0,
-    check_error_every=1,
-    orthmethod::Function = (VV, vv, h) -> orthogonalize_and_normalize!(VV, vv, h, DGKS )
+    check_error_every=1
     )
 
     n = size(nep,1);
@@ -57,7 +56,7 @@ function iar(
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
-        H[k+1,k] = orthmethod(VV, vv, view(H,1:k,k) )
+        H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
