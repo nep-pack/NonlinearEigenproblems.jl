@@ -32,7 +32,7 @@ function rfi(nep::NEP,
                 err = errmeasure(λ,u);
 
                 if(err < tolerance)
-                    return λ,u
+                    return λ,u,v
                 end
 
                 if (displaylevel>0)
@@ -101,7 +101,7 @@ function rfi_b(nep::NEP,
                 err = errmeasure(λ,u);
 
                 if(err < tolerance)
-                    return λ,u
+                    return λ,u,v
                 end
 
                 if (displaylevel>0)

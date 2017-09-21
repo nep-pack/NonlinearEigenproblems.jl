@@ -12,13 +12,15 @@ using LinSolvers
 
 using Base.Test
 
-
 @testset "Rayleigh Function Iteration" begin
     println("Running two-sided RFI on random dep")
     nep=nep_gallery("dep0")
     nept=DEP([nep.A[1]',nep.A[2]'],copy(nep.tauv))
 
     n=size(nep,1);
+    u0=ones(n);
+    v0=ones(n);
+    
     λ=NaN;
     x=NaN
     y=NaN;
