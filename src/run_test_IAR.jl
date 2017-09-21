@@ -17,9 +17,9 @@ nep=nep_gallery("dep0",10)
 
 compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
 
-
 try
     λ,Q,err = iar(nep,maxit=100,Neig=10,σ=2.0,γ=3,displaylevel=1,check_error_every=3);
+    #λ,Q,err = iar(Float32,nep,maxit=100,Neig=10,σ=2.0,γ=3,displaylevel=1,check_error_every=3);
     errormeasure=default_errmeasure(nep);
     for i=1:length(λ)
         println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
@@ -43,8 +43,8 @@ catch e
     global σ=λ[1]   # make this variable visible outisde try-catch
 end
 
-try
-    λ,Q,err = iar(nep,maxit=100,Neig=3,σ=σ,γ=3,displaylevel=1,check_error_every=3);
-catch e
-    println(e)
-end
+# try
+#     λ,Q,err = iar(nep,maxit=100,Neig=3,σ=σ,γ=3,displaylevel=1,check_error_every=3);
+# catch e
+#     println(e)
+# end

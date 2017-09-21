@@ -9,17 +9,19 @@ using IterativeSolvers
 Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
 by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.
 """
-function iar{T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+iar(nep::NEP;params...)=iar(Complex128,nep;params...)
+function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+    ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
-    tol=1e-12,
+    tol=eps(real(T))*10000,
     Neig=6,
     errmeasure::Function = default_errmeasure(nep::NEP),
-    σ=0.0,
-    γ=1,
-    v=randn(size(nep,1),1),
+    σ=zero(T),
+    γ=one(T),
+    v=randn(real(T),size(nep,1)),
     displaylevel=0,
     check_error_every=1
     )
@@ -28,13 +30,14 @@ function iar{T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     m = maxit;
 
     # initialization
-    V = zeros(Complex128,n*(m+1),m+1);
-    H = zeros(Complex128,m+1,m);
-    y = zeros(Complex128,n,m+1);
-    α=γ.^(0:m); α[1]=0;
+    V = zeros(T,n*(m+1),m+1);
+    H = zeros(T,m+1,m);
+    y = zeros(T,n,m+1);
+    α=γ.^(0:m); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m,m);
-    λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
+    λ=zeros(T,m+1); Q=zeros(T,n,m+1);
+    println("Type in iar", typeof(λ))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     vv[:]=v; vv[:]=vv[:]/norm(vv);

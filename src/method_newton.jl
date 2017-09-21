@@ -17,7 +17,7 @@
                        nep::NEP;
                        errmeasure::Function =
                        default_errmeasure(nep::NEP),
-                       tolerance=eps(real(T))*100,
+                       tol=eps(real(T))*100,
                        maxit=10,
                        λ=zero(T),
                        v=randn(size(nep,1)),
@@ -33,14 +33,14 @@
 
         err=Inf;
         v=v/dot(c,v);
-        
+
 
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
 
                 @ifd(print("Iteration:",k," errmeasure:",err))
-                if (err< tolerance)
+                if (err< tol)
                     @ifd(print("\n"));
                     return (λ,v)
                 end
@@ -77,7 +77,7 @@
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tolerance)
+            if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec somehow
                 v=compute_eigvec_from_eigval(nep,λ, default_linsolvercreator)
                 v=v/dot(c,v)
@@ -97,7 +97,7 @@
                        nep::NEP;
                        errmeasure::Function =
                        default_errmeasure(nep::NEP),
-                       tolerance=eps(real(T))*100,
+                       tol=eps(real(T))*100,
                        maxit=100,
                        λ=zero(T),
                        v=randn(real(T),size(nep,1)),
@@ -140,7 +140,7 @@
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
                 @ifd(if (use_v_as_rf_vector); print(" v_as_rf_vector=",use_v_as_rf_vector); end)
 
-                if (err< tolerance)
+                if (err< tol)
                     @ifd(print("\n"));
                     return (λ,v)
                 end
@@ -179,7 +179,7 @@
             # already an eigenvalue.
 
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tolerance)
+            if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec somehow
                 v= compute_eigvec_from_eigval(nep,λ, (nep, σ) -> linsolver)
                 v=v/dot(c,v)
@@ -202,7 +202,7 @@
     function augnewton{T}(::Type{T},
                           nep::NEP;
                           errmeasure::Function = default_errmeasure(nep::NEP),
-                          tolerance=eps(real(T))*100,
+                          tol=eps(real(T))*100,
                           maxit=30,
                           λ=zero(T),
                           v=randn(real(T),size(nep,1)),
@@ -231,7 +231,7 @@
                 err=errmeasure(λ,v)
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
                 @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
-                if (err< tolerance)
+                if (err< tol)
                     @ifd(print("\n"))
                     return (λ,v)
                 end
@@ -241,7 +241,7 @@
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
                 linsolver = linsolvercreator(nep,λ)
-                tempvec = Array{T,1}(lin_solve(linsolver, z, tol=tolerance));
+                tempvec = Array{T,1}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
                     c = v /norm(v)^2
@@ -270,7 +270,7 @@
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tolerance)
+            if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 v=v/dot(c,v)
@@ -284,14 +284,14 @@
 
 
 """
-    quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tolerance=eps(real(T))*100,][maxit=100,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator,][armijo_factor=1,][armijo_max=5])
+    quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tol=eps(real(T))*100,][maxit=100,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator,][armijo_factor=1,][armijo_max=5])
 An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ). The function has an implementation of armijo steplength control which may improve the convergence basin (or initial convergence), e.g., by setting `armijo_factor=0.5`.
 """
     quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
     function quasinewton{T}(::Type{T},
                            nep::NEP;
                            errmeasure::Function = default_errmeasure(nep::NEP),
-                           tolerance=eps(real(T))*100,
+                           tol=eps(real(T))*100,
                            maxit=100,
                            λ=zero(T),
 
@@ -320,7 +320,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
                 @ifd(print(", λ=",λ))
 
-                if (err< tolerance)
+                if (err< tol)
                     @ifd(@printf("\n"));
                     return (λ,v)
                 end
@@ -333,7 +333,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 # Intermediate quantities
                 Δλ=-dot(ws,u)/dot(ws,w);
                 z=Δλ*w+u;
-                Δv=-lin_solve(linsolver, z, tol=tolerance);
+                Δv=-lin_solve(linsolver, z, tol=tol);
 
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
@@ -357,7 +357,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
 
-            if (errmeasure(λ,v)>tolerance)
+            if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 v=v/dot(c,v)
@@ -371,14 +371,14 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
 
 """
-    Newton-QR method. 
+    Newton-QR method.
 """
     newtonqr(nep::NEP;params...)=newtonqr(Complex128,nep;params...)
     function newtonqr{T}(::Type{T},
                        nep::NEP;
                        errmeasure::Function =
                        default_errmeasure(nep::NEP),
-                       tolerance=eps(real(T))*100,
+                       tol=eps(real(T))*100,
                        maxit=100,
                        λ=zero(T),
                        v=randn(real(T),size(nep,1)),
@@ -404,11 +404,11 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 p = R[1:n-1,1:n-1]\R[1:n-1,n];
                 v = P*[-p;T(1)];#Right eigenvector
                 w = Q*en;#Left eigenvector
-                
+
                 #err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
                 err=errmeasure(λ,v);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
-                if(err < tolerance)    
+                if(err < tol)
                     return λ,v,w;
                 end
 
@@ -443,7 +443,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                        nep::NEP;
                        errmeasure::Function =
                        default_errmeasure(nep::NEP),
-                       tolerance=eps(real(T))*100,
+                       tol=eps(real(T))*100,
                        maxit=100,
                        λ=zero(T),
                        v=randn(real(T),size(nep,1)),
@@ -456,7 +456,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         v = Array{T,1}(v);
         c = Array{T,1}(c);
         b = c;
-        
+
         try
             for k=1:maxit
 
@@ -473,7 +473,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
 
                 err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
-                if(err < tolerance) 
+                if(err < tol)
                     @ifd(println(λ))
                     return λ,v[1:n];
                 end

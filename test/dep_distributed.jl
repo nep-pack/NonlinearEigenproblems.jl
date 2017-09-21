@@ -69,7 +69,7 @@ exact_eigvals=[
                         #displaylevel=1,
                         armijo_factor=0.5,maxit=200,
                         errmeasure=myerrmeasure,
-                        tolerance=eps()*100)
+                        tol=eps()*100)
         @test abs((exact_eigvals[i]-λ)/λ)<eps()*100
     end
 
