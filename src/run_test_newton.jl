@@ -104,7 +104,7 @@ n=size(nep,1);
 λ,x = newton(nep, λ=9im, v=ones(n), displaylevel=1,maxit=100);
 println(λ)
 println("Newton QR")
-λ,x = newtonqr(nep, λ=9im, v=ones(n), displaylevel=1 );
+λ,x,y = newtonqr(nep, λ=9im, v=ones(n), displaylevel=1 );
 
 #λ,x = (nep, λ=-0.36, v=ones(n), displaylevel=1 );
 #println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)

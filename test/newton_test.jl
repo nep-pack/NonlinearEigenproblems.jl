@@ -28,7 +28,27 @@ r2=compute_resnorm(nep,λ2,x2)
 @test r1 < eps()*100
 @test r2 < eps()*100
 
+#Run derivative test for left and right eigenvectors returned by newtonqr
+λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=0,tolerance=eps()*10);
 
+println("\nTesting formula for derivative (with left and right eigvecs\n")
+tau=1;
+n=size(nep,1);
+Mλ=-eye(n)-tau*nep.A[2]*exp(-tau*λ3)
+Mtau= -λ3*nep.A[2]*exp(-tau*λ3);
+
+# Formula for derivative
+λp=-(y3'*(Mtau)*x3) / (y3'* Mλ*x3)
+
+δ=0.0001;
+
+nep.tauv[2]=nep.tauv[2]+δ
+
+λ3δ,x3,y3 =newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=0,tolerance=eps()*10);
+
+λp_approx=(λ3δ-λ3)/δ;
+
+@test abs(λp-λp_approx)< (δ*10)
 
 
 

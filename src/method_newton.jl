@@ -391,6 +391,8 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
         v = Array{T,1}(v);
         local err;
 
+        en = zeros(n);
+        en[n] = 1;
         try
             for k=1:maxit
 
@@ -400,13 +402,14 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 P = eye(T,n)[:,PI];#The permutation matrix corresponding to the pivoted QR.
 
                 p = R[1:n-1,1:n-1]\R[1:n-1,n];
-                v = P*[-p;T(1)];
+                v = P*[-p;T(1)];#Right eigenvector
+                w = Q*en;#Left eigenvector
                 
                 #err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
                 err=errmeasure(λ,v);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tolerance)    
-                    return λ,v;
+                    return λ,v,w;
                 end
 
 
@@ -425,7 +428,7 @@ An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.0
                 v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 v=v/dot(c,v)
             end
-            return (λ,v)
+            return (λ,v,w)
         end
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,v,err,msg))
