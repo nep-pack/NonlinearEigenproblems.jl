@@ -4,13 +4,14 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using gplot_module
+using PyPlot
+using PyCall
 
 # explicit import needed for overloading
 # functions from packages
 import NEPCore.compute_Mlincomb
 
-nep=nep_gallery("dep0",1000)
+nep=nep_gallery("dep0",10)
 #nep=nep_gallery("pep0");
 
 
@@ -18,17 +19,17 @@ compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_
 
 
 try
-    λ,Q,err = iar(nep,maxit=100,Neig=50,σ=2.0,γ=3,displaylevel=1,check_error_every=3);
+    λ,Q,err = iar(nep,maxit=100,Neig=10,σ=2.0,γ=3,displaylevel=1,check_error_every=3);
     errormeasure=default_errmeasure(nep);
     for i=1:length(λ)
         println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
     end
 
-    gcloseall()
+    m=size(err,1);
     for i=1:m
-        gsemilogy(p:p:m, err[p:p:m,i])
+        semilogy(3:3:m, err[3:3:m,i],color="black")
     end
-    show_gplot()
+    global σ=λ[1]   # make this variable visible outisde try-catch
 catch e
     println(typeof(e))
     λ=e.λ
@@ -39,11 +40,11 @@ catch e
     for j=1:m
         println("Eigenvalue ", λ[j]," with error ", err[j])
     end
-    global σ=λ[1]   # make this variable visible outisde catch
+    global σ=λ[1]   # make this variable visible outisde try-catch
 end
 
 try
     λ,Q,err = iar(nep,maxit=100,Neig=3,σ=σ,γ=3,displaylevel=1,check_error_every=3);
 catch e
-    println(e.msg)
+    println(e)
 end

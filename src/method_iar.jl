@@ -3,7 +3,7 @@ using IterativeSolvers
 
 
 """
-    iar(nep,[maxit=30,][σ=0,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*100,][Neig=6,][errmeasure=default_errmeasure,][σ=0,][γ=1,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1])
+    iar(nep,[maxit=30,][maxit=30,][σ=0,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*100,][Neig=6,][errmeasure=default_errmeasure,][σ=0,][γ=1,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1])
 
 ### Infinite Arnoldi method
 Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
@@ -91,5 +91,5 @@ function iar{T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-    return λ,Q,err,V[:,1:k]
+    return λ,Q,err[1:k,:],V[:,1:k]
 end
