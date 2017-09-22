@@ -9,7 +9,7 @@ using LinearMaps
 
 export gallery_waveguide
 export wep_generate_preconditioner
-export wep_linsolvercreator
+export wep_gmres_linsolvercreator
 
 
 # Specializalized NEPs
@@ -495,7 +495,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return x
     end
 
-    function wep_linsolvercreator(nep::WEP_FD, λ, kwargs=())
+    function wep_gmres_linsolvercreator(nep::WEP_FD, λ, kwargs=())
         return WEPGMRESLinSolver(nep, λ, kwargs)
     end
 

@@ -15,7 +15,7 @@ using LinSolvers
 
 export matlab_debug_WEP_FD
 export matlab_debug_full_matrix_WEP_FD_SPMF
-export debug_sqrtm_schur
+export debug_sqrtm_schur>
 export fft_debug_mateq
 export debug_sqrt_derivative
 export matlab_debug_Schur_WEP_FD_SPMF
@@ -624,7 +624,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
             precond = @time wep_generate_preconditioner(nep, N, γ)
 
             gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:Pl,precond), (:tol, 1e-15), (:verbose,true))
-            wep_solver = wep_linsolvercreator(nep, γ, gmres_kwargs)
+            wep_solver = wep_gmres_linsolvercreator(nep, γ, gmres_kwargs)
 
             x = lin_solve(wep_solver, b)
 
@@ -668,7 +668,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
         gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,false), (:Pl,precond), (:tol, 1e-13))
         function wep_gmres_linsolvercreator(nep::NEP, λ)
-            return wep_linsolvercreator(nep, λ, gmres_kwargs)
+            return wep_gmres_linsolvercreator(nep, λ, gmres_kwargs)
         end
 
         println("    Compute for WEP_FD")
