@@ -1,3 +1,7 @@
+"
+   A module with an implementation of the waveguide functionality
+   using MATLAB callbacks
+"
 module waveguide_debug
 
 using MATLAB
