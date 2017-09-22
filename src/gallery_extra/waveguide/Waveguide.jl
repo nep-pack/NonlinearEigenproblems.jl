@@ -456,13 +456,13 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     # Special LinSolver for WEP that solves the system with the Schur-complement
     # and does transforming between that and the full system.
     # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
-    type WEPLinSolver<:LinSolver
+    type WEPGMRESLinSolver<:LinSolver
         schur_comp::LinearMap{Complex128}
         kwargs
         gmres_log::Bool
         nep::WEP_FD
         λ::Complex128
-        function WEPLinSolver(nep::WEP_FD,λ::Union{Complex128,Float64},kwargs)
+        function WEPGMRESLinSolver(nep::WEP_FD,λ::Union{Complex128,Float64},kwargs)
             f = SchurMatVec(nep, λ)
             schur_comp = LinearMap{Complex128}(f, nep.nx*nep.nz, ismutating=false, issymmetric=false, ishermitian=false);
             gmres_log = false
@@ -474,7 +474,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     end
 
-    function lin_solve(solver::WEPLinSolver, x::Array; tol=eps(Float64))
+    function lin_solve(solver::WEPGMRESLinSolver, x::Array; tol=eps(Float64))
     # Ringh - Proposition 2.1
         λ = solver.λ
         nep = solver.nep
@@ -496,7 +496,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
     function wep_linsolvercreator(nep::WEP_FD, λ, kwargs=())
-        return WEPLinSolver(nep, λ, kwargs)
+        return WEPGMRESLinSolver(nep, λ, kwargs)
     end
 
 
