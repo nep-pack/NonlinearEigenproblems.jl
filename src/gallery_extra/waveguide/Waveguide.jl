@@ -368,7 +368,8 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
  Computes the linear combination of derivatives\\
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
-    function compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(Complex128,size(V,2)))
+    function compute_Mlincomb(nep::WEP_FD, λ::Number, V;
+                              a=ones(Complex128,size(V,2)))
         na = size(a,1)
         nv = size(V,1)
         mv = size(V,2)
@@ -388,31 +389,38 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         V2 = view(V, nx*nz+1:n_nep, :)
 
         # Compute the top part (nx*nz)
-        y1_mat::Array{Complex128,2} = nep.A(λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1]
+        y1_mat::Array{Complex128,2} = (nep.A(λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1])*a[1]
         for d = 1:min(max_d,3)
-            y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1]
+            y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1] * a[d+1];
         end
         y1::Array{Complex128,1} = y1_mat[:]
-        y1 += nep.C1 * V2[:,1]
+        y1 += nep.C1 * V2[:,1] * a[1]
 
         # Compute the bottom part (2*nz)
         D::Array{Complex128,2} = zeros(Complex128, 2*nz, na)
         for j = 1:2*nz
-            a = 1
-            b = nep.b[rem(j-1,nz)+1]
-            c = nep.cMP[j]
-            der_coeff = 1im*sqrt_derivative(a, b, c, max_d, λ)
+            aa = 1
+            bb = nep.b[rem(j-1,nz)+1]
+            cc = nep.cMP[j]
+            der_coeff = 1im*sqrt_derivative(aa, bb, cc, max_d, λ)
             for jj = 1:na
                 D[j, jj] = der_coeff[jj]
             end
         end
-
-        y2_temp::Array{Complex128,1} = (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]); nep.Rinv(V2[nz+1:2*nz,1])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+        
+        #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+        y2_temp::Array{Complex128,1} =
+            (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]);
+                                  nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
+        
         for jj = 2:na
-            y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]); nep.Rinv(V2[nz+1:2*nz,jj])] #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+            #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+            y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
+                                   nep.Rinv(V2[nz+1:2*nz,jj])] *a[jj]
         end
-        y2::Array{Complex128,1} = [nep.R(y2_temp[1:nz,1]); nep.R(y2_temp[nz+1:2*nz,1])]
-        y2 += nep.C2T * V1[:,1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
+        y2::Array{Complex128,1} = [nep.R(y2_temp[1:nz,1]);
+                                   nep.R(y2_temp[nz+1:2*nz,1])]
+        y2 += nep.C2T * V1[:,1]*a[1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
         return vcat(y1, y2)
     end
