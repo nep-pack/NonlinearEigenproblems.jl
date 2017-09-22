@@ -46,11 +46,16 @@ n=size(nep,1);
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
 
+    nev=3
    
-    λ,v=iar(Complex128,nep,σ=λ0, displaylevel=1,Neig=4,maxit=50,v=v0,
-            tol=1e-6);
+    λ,v=@time iar(Complex128,nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
+                  tol=1e-8);
+
     @test minimum(abs.(λstar-λ))<1e-10
 
+    #λ,v=@time tiar(nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
+    #               tol=1e-8);
+    
 end
 
 
