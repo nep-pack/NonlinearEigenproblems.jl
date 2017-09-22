@@ -77,7 +77,7 @@ Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 function rfi_b(nep::NEP,
             nept::NEP;
             errmeasure::Function=default_errmeasure(nep::NEP),
-            tolerance = eps()*1000,
+            tol = eps()*1000,
             maxit=100,
             λ = 0.0+0.0im,
             v = randn(nep.n),
