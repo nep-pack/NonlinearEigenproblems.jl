@@ -2,7 +2,7 @@
 export ShiftScaleNEP
 export MobiusTransformNEP
 export transform_to_pep
-
+export shift_and_scale
 
 
    """
@@ -20,6 +20,10 @@ type ShiftScaleNEP <: NEP
     function ShiftScaleNEP(orgnep;shift=0,scale=1)
         return new(shift,scale,orgnep)
     end
+end
+
+function shift_and_scale(orgnep::NEP;shift=0,scale=1)
+    return ShiftScaleNEP(orgnep,shift=shift,scale=scale);
 end
 
 
