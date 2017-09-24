@@ -1,14 +1,14 @@
 export rfi
 export rfi_b
 """
-    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tolerance=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 
 Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 """
 function rfi(nep::NEP,
             nept::NEP;
             errmeasure::Function=default_errmeasure(nep::NEP),
-            tolerance = eps()*1000,
+            tol = eps()*1000,
             maxit=100,
             λ = 0.0+0.0im,
             v = randn(nep.n),
@@ -31,7 +31,7 @@ function rfi(nep::NEP,
             for k=1:maxit
                 err = errmeasure(λ,u);
 
-                if(err < tolerance)
+                if(err < tol)
                     return λ,u,v
                 end
 
@@ -43,11 +43,11 @@ function rfi(nep::NEP,
                 local linsolver_t::LinSolver = linsolvercreator(nept,λ);
                 
                 #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k) 
-                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[1],1),tol = tolerance);
+                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[1],1),tol = tol);
                 u = x/norm(x);
 
                 #S2: (T(λ_k)^H)y_(k+1) = (T'(λ_k)^H)v_(k)
-                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tolerance);
+                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tol);
                 v = y/norm(y);
 
                 λ =compute_rf(nep,u;y=v);
@@ -59,7 +59,7 @@ function rfi(nep::NEP,
             if (displaylevel>0)
                 println("We have an exact eigenvalue.")
             end
-            if (errmeasure(λ,u)>tolerance)
+            if (errmeasure(λ,u)>tol)
                 # We need to compute an eigvec somehow
                 u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u; # Requires matrix access
                 u=u/norm(u);
@@ -100,7 +100,7 @@ function rfi_b(nep::NEP,
             for k=1:maxit
                 err = errmeasure(λ,u);
 
-                if(err < tolerance)
+                if(err < tol)
                     return λ,u,v
                 end
 
@@ -113,13 +113,13 @@ function rfi_b(nep::NEP,
                 #local linsolver::LinSolver = BackslashLinSolver(C);
 
                 #C[s;μ] = -[T(λ)u;0]
-                #l1 = lin_solve(linsolver,-[compute_Mlincomb(nep,λ,u,[1],0);0],tol = tolerance);
+                #l1 = lin_solve(linsolver,-[compute_Mlincomb(nep,λ,u,[1],0);0],tol = tol);
                 l1 = C\-[compute_Mlincomb(nep,λ,u,[1],0);0];
                 s = l1[1:end-1];
                 u = (u+s)/norm(u+s);
                 
                 #C[t;ν] = -[T(λ)'v;0]
-                #l2 = lin_solve(linsolver,-[compute_Mlincomb(nept,λ,v,[1],0);0],tol = tolerance);
+                #l2 = lin_solve(linsolver,-[compute_Mlincomb(nept,λ,v,[1],0);0],tol = tol);
                 l2 = C\-[compute_Mlincomb(nept,λ,v,[1],0);0];
                 t = l2[1:end-1];
                 v = (v+t)/norm(v+t);
@@ -133,7 +133,7 @@ function rfi_b(nep::NEP,
             if (displaylevel>0)
                 println("We have an exact eigenvalue.")
             end
-            if (errmeasure(λ,u)>tolerance)
+            if (errmeasure(λ,u)>tol)
                 # We need to compute an eigvec somehow
                 u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u; # Requires matrix access
                 u=u/norm(u);

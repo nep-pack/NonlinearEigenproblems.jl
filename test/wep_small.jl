@@ -17,6 +17,19 @@ using Base.Test
 import NEPCore.compute_Mder;
 
 
+nep_spmf=nep_gallery("waveguide", 3*5*7, 3*5*7,"JARLEBRING","FD","SPMF")
+
+AA=nep_spmf.A;
+AAt=Array{SparseMatrixCSC,1}(size(AA,1));
+for i=1:size(AA,1)
+    AAt[i]=AA[i]';
+end
+
+nept_spmf=SPMF_NEP(AAt,nep_spmf.fi)
+
+
+
+
 nep=nep_gallery("waveguide", 3*5*7, 3*5*7,"JARLEBRING","FD","WEP")
 # Waveguide compute_Mder(WEP_FD) (or direct solve) not implemented.
 # Workaround: use the spmf-version, but only for the linear solves.

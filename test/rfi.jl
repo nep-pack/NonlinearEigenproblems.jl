@@ -27,7 +27,7 @@ using Base.Test
     try
         λ,x,y =rfi(nep,nept,displaylevel=1,
                    v=ones(n), u=ones(n),
-                   tolerance=1e-15);
+                   tol=1e-15);
     catch e
         # Only catch NoConvergence
         isa(e, NoConvergenceException) || rethrow(e)
@@ -48,7 +48,7 @@ using Base.Test
     # Test RFIb
 
     λb,xb,yb =rfi_b(nep,nept,displaylevel=1,
-                    v=v0, u=u0,λ=λ+0.01,tolerance=1e-15);
+                    v=v0, u=u0,λ=λ+0.01,tol=1e-15);
     @test λ ≈ λb
 
     

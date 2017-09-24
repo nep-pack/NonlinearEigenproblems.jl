@@ -13,7 +13,7 @@ function contour_beyn{T}(::Type{T},
                          nep::NEP;
                          errmeasure::Function =
                          default_errmeasure(nep::NEP),
-                         tolerance=eps(real(T))*100,
+                         tol=eps(real(T))*100,
                          maxit=10,
                          σ=zero(complex(T)),
                          displaylevel=0,
@@ -62,8 +62,8 @@ function contour_beyn{T}(::Type{T},
         A1=quadg(f2,0,2*pi,N);
     elseif (quad_method == :quadgk)
         @ifd(print(" using quadgk"))
-        A0,tmp=quadgk(f1,0,2*pi,reltol=tolerance);
-        A1,tmp=quadgk(f2,0,2*pi,reltol=tolerance);
+        A0,tmp=quadgk(f1,0,2*pi,reltol=tol);
+        A1,tmp=quadgk(f2,0,2*pi,reltol=tol);
     else
         error("Unknown quadrature method:"*String(quad_method));
     end

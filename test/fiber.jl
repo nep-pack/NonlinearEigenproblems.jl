@@ -47,7 +47,7 @@ fibertest=@testset "NLEVP fiber" begin
 
         println("Running Newton");
         (λstar,v)=newton(Float64,nep_org,λ=7e-7,v=ones(n),displaylevel=1,
-                         tolerance=1e-14)
+                         tol=1e-14)
 
         @test abs(sol_val-λstar)/abs(λ) < 1e-10
         if (imag(λstar) != 0)
@@ -63,7 +63,7 @@ fibertest=@testset "NLEVP fiber" begin
         tol=1e-11
         (λ,v)=quasinewton(Float64,nep_org,λ=7.1e-7,v=ones(n),
                           displaylevel=1,errmeasure=myerrmeasure,
-                          tolerance=tol,armijo_factor=0.5,armijo_max=10)
+                          tol=tol,armijo_factor=0.5,armijo_max=10)
 
         @test abs(sol_val-λ)/abs(λ) < tol
         if (imag(λ) != 0)
@@ -75,7 +75,7 @@ fibertest=@testset "NLEVP fiber" begin
         tol=1e-8
         (λ,v)=resinv(nep_org,λ=7e-7,v=ones(n),
                      displaylevel=1,errmeasure=myerrmeasure,
-                     tolerance=tol)
+                     tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if (imag(λ) != 0)
             warn("resinv switches to complex although it should be real"*
@@ -86,7 +86,7 @@ fibertest=@testset "NLEVP fiber" begin
 
         (λ,v)=mslp(nep_org,λ=7e-7,
                    displaylevel=1,errmeasure=myerrmeasure,
-                   tolerance=tol)
+                   tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if (imag(λ) != 0)
             warn("mslp switches to complex although it should be real:"*

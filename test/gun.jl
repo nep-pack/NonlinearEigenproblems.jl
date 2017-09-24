@@ -23,7 +23,7 @@ guntest=@testset "GUN (NLEVP interface)" begin
     n=size(nep1,1);
     tol=1e-11;
     @testset "Running alg" begin
-        λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tolerance=tol,maxit=500);
+        λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tol=tol,maxit=500);
 
         v1=v1/norm(v1);
 

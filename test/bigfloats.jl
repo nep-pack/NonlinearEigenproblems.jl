@@ -38,7 +38,7 @@ myerrmeasure= (λ,v) -> begin
 end
 
 λstar,vstar=augnewton(T, nep,v=v0,λ=λ0,
-                      tolerance=eps(T)*100,
+                      tol=eps(T)*100,
                       errmeasure=myerrmeasure)
 
 bigfloattest=@testset "BigFloat comparison w $T" for T in
@@ -59,7 +59,7 @@ bigfloattest=@testset "BigFloat comparison w $T" for T in
     v0=ones(T,4);
     λ0=T(0)
     λ,v=augnewton(T, nep1,v=v0,λ=λ0,
-                  tolerance=eps(real(T))*2,
+                  tol=eps(real(T))*2,
 #                  displaylevel=1,
                   errmeasure=myerrmeasure)
     @test isa(λ,T) # Check type stable 
