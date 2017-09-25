@@ -34,3 +34,28 @@ nep2=shift_and_scale(orgnep,shift=σ,scale=α);
 λ2,v2=quasinewton(nep2)
 @test abs((α*λ2+σ)-orgλ)<eps()*100
 
+
+
+
+
+# Check that PEP transformations correctly transform coefficients
+pep0=nep_gallery("pep0",10);
+σ=1+0.3im;
+α=3;
+pep1=shift_and_scale(pep0,shift=σ,scale=α)
+λ,v= quasinewton(pep0,λ=1+1im);
+norm(compute_Mlincomb(pep0, λ,v))
+λv,V=polyeig(pep1);
+@test minimum(abs.(λv-(λ-σ)/α))<eps()*100
+
+# Check that real PEP with real transformation is still real
+σ=3;
+α=1
+pep2=shift_and_scale(pep0,shift=σ,scale=α)
+@test !isa(Complex,eltype(pep2.A[1])) # Preserve realness
+
+
+
+
+
+

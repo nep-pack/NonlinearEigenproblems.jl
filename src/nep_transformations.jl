@@ -4,7 +4,6 @@ export MobiusTransformNEP
 export transform_to_pep
 export shift_and_scale
 
-
    """
     type ShiftScaleNEP <: NEP
     ShiftScaleNEP(orgnep::NEP[,shift=0][,scale=1])
@@ -21,9 +20,31 @@ type ShiftScaleNEP <: NEP
         return new(shift,scale,orgnep)
     end
 end
-
+"""
+    shift_and_scale(orgnep::NEP;shift=0,scale=1)
+Transforms the orgnep by defining a new NEP from the relation
+T(λ)=M(scale*λ+shift) where M is the orgnep. This function tries
+ to preserve the NEP type. 
+"""
 function shift_and_scale(orgnep::NEP;shift=0,scale=1)
     return ShiftScaleNEP(orgnep,shift=shift,scale=scale);
+end
+
+function shift_and_scale(orgnep::PEP;shift=0,scale=1)
+    # Transform the coefficients. This is not necessarily fast.
+    At=copy(shift*scale*orgnep.A); # Allocate correct type (not so fast)
+    m=size(At,1)-1
+    for j=0:m
+        AA=zeros(At[j+1])        
+        for i=j:m
+            factor=((scale^j)*(shift^(i-j))*factorial(i)/factorial(i-j))/factorial(j)
+            AA+=orgnep.A[i+1]*factor;
+            
+            
+        end        
+        At[j+1]=AA;
+    end
+    return PEP(At)
 end
 
 
