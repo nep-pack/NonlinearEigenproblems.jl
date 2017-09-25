@@ -41,7 +41,6 @@ module NEPTypes
     export get_Av
     export get_fv
 
-    include("nep_transformations.jl")
 
 
 
@@ -657,5 +656,8 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     function get_fv(nep::SPMF_NEP)
         return nep.fi;
     end
+
+
+    include("nep_transformations.jl")
 
 end
