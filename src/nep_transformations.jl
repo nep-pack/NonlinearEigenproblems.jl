@@ -38,8 +38,8 @@ function shift_and_scale(orgnep::NEP;shift=0,scale=1)
     return ShiftScaleNEP(orgnep,shift=shift,scale=scale);
 end
 
+# Native implementation for PEPs by transformation of the coefficients. This is not necessarily fast.
 function shift_and_scale(orgnep::PEP;shift=0,scale=1)
-    # Transform the coefficients. This is not necessarily fast.
     At=copy(shift*scale*orgnep.A); # Allocate correct type (not so fast)
     m=size(At,1)-1
     for j=0:m
@@ -60,10 +60,13 @@ function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
     orgfv=get_fv(orgnep);
     m=size(orgfv,1);
     fv=Array{Function}(m)
+    # create anonymous functions corresponding to the
+    # shift and scaled problem
     for i=1:m
         fv[i]= S -> orgfv[i](scale*S+shift*eye(S))
-    end    
-    Ai=SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
+    end
+    # create a new SPMF with transformed functions
+    return SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
 end
 
 
