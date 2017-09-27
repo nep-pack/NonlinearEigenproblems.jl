@@ -47,6 +47,17 @@ function shift_and_scale(orgnep::PEP;shift=0,scale=1)
     return PEP(At)
 end
 
+# Only for generic SPMF (not AbstractSPMF)
+function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
+    orgfv=get_fv(orgnep);
+    m=size(orgfv,1);
+    fv=Array{Function}(m)
+    for i=1:m
+        fv[i]= S -> orgfv[i](scale*S+shift*eye(S))
+    end    
+    Ai=SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
+end
+
 
 
 # Size and issparse implemented by delegation
