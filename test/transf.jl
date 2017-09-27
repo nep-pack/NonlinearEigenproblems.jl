@@ -64,3 +64,53 @@ nep3_transf=shift_and_scale(nep3,shift=σ,scale=α);
 λ,V=iar(nep3_transf,σ=0,Neig=2,maxit=60)
 @test norm(compute_Mlincomb(nep3,α*λ[1]+σ,V[:,1]))<sqrt(eps())
 @test norm(compute_Mlincomb(nep3,α*λ[2]+σ,V[:,2]))<sqrt(eps())
+
+
+λ,V=iar(nep3_transf,σ=0,Neig=2,maxit=60)
+@test norm(compute_Mlincomb(nep3,α*λ[1]+σ,V[:,1]))<sqrt(eps())
+@test norm(compute_Mlincomb(nep3,α*λ[2]+σ,V[:,2]))<sqrt(eps())
+#
+
+
+# Checks mobius_transformation
+
+nep4=nep_gallery("qdep0")
+a=3+0.1im
+b=0.1im;
+c=1;
+d=1-0.3im
+nep4_transf=mobius_transform(nep4,a=a,b=b,c=c,d=d)
+λ,v= quasinewton(nep4_transf,λ=1-0.3im,v=ones(size(nep4,1)));
+λorg=(a*λ+b)/(c*λ+d) 
+@test norm(compute_Mlincomb(nep4,λorg,v))<sqrt(eps());
+
+
+n=size(nep4,1);
+V=randn(n,5);
+S=randn(5,5);
+s=eye(1,1)*3
+W1=compute_MM(nep4,(c*S+d*eye(S))\(a*S+b*eye(S)),V);
+W2=compute_MM(nep4_transf,S,V);
+@test norm(W1-W2)<sqrt(eps())
+
+# Check that mobius_transformation becomes shift_and_scale
+c=0; d=1;
+nep4_transf1=mobius_transform(nep4,a=a,b=b,c=c,d=d)
+nep4_transf2=shift_and_scale(nep4,scale=a,shift=b);
+λ=3;
+w=compute_Mlincomb(nep4,λ*a+b,V[:,1])
+w1=compute_Mlincomb(nep4_transf1,λ,V[:,1])
+w2=compute_Mlincomb(nep4_transf2,λ,V[:,1])
+@test norm(w-w1)<eps()*100
+@test norm(w-w2)<eps()*100
+@test norm(w1-w2)<eps()*100
+W1=compute_Mlincomb(nep4_transf1,λ,V,a=[0 1 0 1 0])
+W2=compute_Mlincomb(nep4_transf2,λ,V,a=[0 1 0 1 0]);
+@test norm(W1-W2)<sqrt(eps())
+
+
+
+
+
+
+

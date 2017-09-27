@@ -3,6 +3,7 @@ export ShiftScaleNEP
 export MobiusTransformNEP
 export transform_to_pep
 export shift_and_scale
+export mobius_transform
 
    """
     type ShiftScaleNEP <: NEP
@@ -102,15 +103,19 @@ end
 
 
 
-
-
-
-   """
-    type MobiusTransformNEP <: NEP
-    MobiusTransformNEP(orgnep::NEP[,a=1][,b=0][,c=0][,d=1])
-
+"""
+    mobius_transform(orgnep::NEP,[,a=1][,b=0][,c=0][,d=1])
 Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)). Usage of this transformation can slow down the algorithm.
 
+"""
+function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)
+    return MobiusTransformNEP(orgnep;a=a,b=b,c=c,d=d)    
+end
+
+
+
+"""
+Hidden type representing a transformed NEP
 """
 
 type MobiusTransformNEP <: NEP
