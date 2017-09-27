@@ -23,8 +23,16 @@ end
 """
     shift_and_scale(orgnep::NEP;shift=0,scale=1)
 Transforms the orgnep by defining a new NEP from the relation
-T(λ)=M(scale*λ+shift) where M is the orgnep. This function tries
- to preserve the NEP type. 
+T(λ)=M(scale * λ+shift) where M is the orgnep. This function tries
+ to preserve the NEP type.
+#    Example
+```julia-repl
+julia> nep0=nep_gallery("pep0")
+julia> σ=3; α=10;
+julia> nep1=shift_and_scale(nep0,shift=σ,scale=α)
+julia> norm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
+8.875435870738592e-12
+```
 """
 function shift_and_scale(orgnep::NEP;shift=0,scale=1)
     return ShiftScaleNEP(orgnep,shift=shift,scale=scale);
@@ -47,7 +55,7 @@ function shift_and_scale(orgnep::PEP;shift=0,scale=1)
     return PEP(At)
 end
 
-# Only for generic SPMF (not AbstractSPMF)
+# Native implementation for SPMF. Only for generic SPMF (not AbstractSPMF)
 function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
     orgfv=get_fv(orgnep);
     m=size(orgfv,1);
