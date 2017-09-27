@@ -112,6 +112,19 @@ function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)
     return MobiusTransformNEP(orgnep;a=a,b=b,c=c,d=d)    
 end
 
+function mobius_transform(orgnep::SPMF_NEP;a=1,b=0,c=0,d=1)
+    orgfv=get_fv(orgnep);
+    m=size(orgfv,1);
+    fv=Array{Function}(m)
+    # create anonymous functions corresponding to the
+    # möbius transformed problem
+    for i=1:m
+        fv[i]= S -> orgfv[i]((a*S+b*eye(S))/(c*S+d*eye(S)))
+    end
+    # create a new SPMF with transformed functions
+    return SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
+end
+
 
 
 """
