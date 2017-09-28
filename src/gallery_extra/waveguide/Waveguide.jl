@@ -51,9 +51,9 @@ E. Jarlebring, and G. Mele, and O. Runborg
 The waveguide eigenvalue problem and the tensor infinite Arnoldi method
 SIAM J. Sci. Comput., 2017
 "
-function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide::String = "TAUSCH", discretization::String = "FD", NEP_format::String = "SPMF",  delta::Number = 0.1)
-    waveguide = uppercase(waveguide)
-    NEP_format = uppercase(NEP_format)
+function gallery_waveguide(; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1)
+    waveguide = uppercase(benchmark_problem)
+    neptype = uppercase(neptype)
     discretization = uppercase(discretization)
     if !isodd(nz)
         error("Variable nz must be odd! You have used nz = ", nz, ".")
@@ -61,25 +61,25 @@ function gallery_waveguide( nx::Integer = 3*5*7, nz::Integer = 3*5*7, waveguide:
 
 
     # Generate the matrices and formulate the problem is the sought format
-    if ((NEP_format == "SPMF") || (NEP_format == "SPMF_PRE")) && (discretization == "FD")
+    if ((neptype == "SPMF") || (neptype == "SPMF_PRE")) && (discretization == "FD")
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
         Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        if(NEP_format == "SPMF_PRE")
+        if(neptype == "SPMF_PRE")
             pre_Schur_fact = true
         else
             pre_Schur_fact = false
         end
         nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp, pre_Schur_fact)
 
-    elseif (NEP_format == "WEP") && (discretization == "FD")
+    elseif (neptype == "WEP") && (discretization == "FD")
         K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
         Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         nep = WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
 
     else
-        error("The NEP-format '", NEP_format, "' is not supported for the discretization '", discretization, "'.")
+        error("The NEP-type '", neptype, "' is not supported for the discretization '", discretization, "'.")
     end
 
     println("Waveguide generated")

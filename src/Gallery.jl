@@ -17,7 +17,7 @@ module Gallery
     include("gallery_extra/waveguide/Waveguide.jl")
     using .Waveguide
     export wep_generate_preconditioner
-    export wep_linsolvercreator
+    export wep_gmres_linsolvercreator
 
   """
 **Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems.**\\
@@ -84,12 +84,12 @@ module Gallery
      The waveguide eigenvalue problem and the tensor infinite Arnoldi method\\
      SIAM J. Sci. Comput., 2017\\
      * required parameters:\\
-                            # nx = 3 * 5 * 7,   disctretization points in x-direction\\
-                            # nz = 3 * 5 * 7,   disctretization points in x-direction\\
-                            # waveguide = 'TAUSCH',   which waveguide (TAUSCH, JARLEBRING)\\
+                            # nx::Integer = 3 * 5 * 7,         disctretization points in x-direction\\
+                            # nz::Integer = 3 * 5 * 7,         disctretization points in z-direction\\
+                            # benchmark_problem = 'TAUSCH',    which waveguide (TAUSCH, JARLEBRING)\\
                             # discretization::String = 'FD',   which discretization (FD)\\
-                            # NEP_format::String = 'SPMF',   NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
-                            # delta = 0.1,   Slack from the absorbing boundary conditions
+                            # neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
+                            # delta = 0.1,                     Slack from the absorbing boundary conditions
 \\  
      'qdep0' \\
       Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear
@@ -100,8 +100,8 @@ module Gallery
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\\\
   """
-  nep_gallery(name::String,params...)=nep_gallery(NEP,name,params...)  
-  function nep_gallery{T<:NEP}(::Type{T},name::String,params...)
+  nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
+  function nep_gallery{T<:NEP}(::Type{T},name::String,params...;kwargs...)
       local n
       if (name == "dep0")
           # A delay eigenvalue problem
@@ -245,7 +245,7 @@ module Gallery
           return SPMF_NEP(AA,fi)
 
       elseif (name== "waveguide")
-          return gallery_waveguide(params...);
+          return gallery_waveguide(params...;kwargs...)
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem
