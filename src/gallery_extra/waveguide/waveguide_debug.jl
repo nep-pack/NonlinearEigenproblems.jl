@@ -15,7 +15,7 @@ using LinSolvers
 
 export matlab_debug_WEP_FD
 export matlab_debug_full_matrix_WEP_FD_SPMF
-export debug_sqrtm_schur>
+export debug_sqrtm_schur
 export fft_debug_mateq
 export debug_sqrt_derivative
 export matlab_debug_Schur_WEP_FD_SPMF
@@ -675,7 +675,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_WEPFD = NaN
         eigvec_j_WEPFD = NaN
         try
-            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -690,7 +690,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF = NaN
         eigvec_j_SPMF = NaN
         try
-            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -704,7 +704,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF_pre = NaN
         eigvec_j_SPMF_pre = NaN
         try
-            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tolerance = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -754,6 +754,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
     end
     println("\n--- End eigenvalue computations of WEP_FD and SPMF against MATLAB ---\n")
 end
+
 
 
 end
