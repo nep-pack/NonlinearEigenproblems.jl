@@ -178,7 +178,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -247,7 +247,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -315,7 +315,7 @@ function debug_sqrt_derivative()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
 
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
         println("  -- Matlab printouts start --")
         mat"""
             addpath($WEP_path)
@@ -420,7 +420,7 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -461,7 +461,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
             waveguide_str = waveguide
         end
         println("  -- Matlab printouts start --")
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
          mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -541,7 +541,7 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -716,7 +716,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
 
         println("  -- Matlab printouts start --")
-        WEP_path = pwd() * "/../matlab/WEP"
+        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
         mat"""
             addpath($WEP_path)
 
