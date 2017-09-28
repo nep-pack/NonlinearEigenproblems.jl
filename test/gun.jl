@@ -2,9 +2,9 @@
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
-push!(LOAD_PATH, pwd()*"/src")	
-push!(LOAD_PATH, pwd()*"/src/gallery_extra")
-push!(LOAD_PATH, pwd()*"/src/gallery_extra/waveguide")	
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
 using NEPSolver
 using NEPCore
@@ -18,7 +18,7 @@ using Base.Test
 
 guntest=@testset "GUN (NLEVP interface)" begin
 
-    nep_org=nep_gallery(NLEVP_NEP,"gun","../nlevp3/");
+    nep_org=nep_gallery(NLEVP_NEP,"gun");
     nep1=nlevp_make_native(nep_org);
     n=size(nep1,1);
     tol=1e-11;

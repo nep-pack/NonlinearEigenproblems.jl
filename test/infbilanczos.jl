@@ -1,7 +1,7 @@
 # Test for infinite Bi-Lanczos
 
 workspace()
-push!(LOAD_PATH, pwd()*"/src")	
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 using NEPSolver
 using NEPCore
 using NEPTypes

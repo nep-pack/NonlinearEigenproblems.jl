@@ -1,6 +1,6 @@
 #  Tests for the projected NEPs
 workspace()
-push!(LOAD_PATH, pwd()*"/src")	
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
 using NEPSolver
 using NEPCore

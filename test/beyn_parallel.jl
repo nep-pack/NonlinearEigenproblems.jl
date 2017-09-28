@@ -6,9 +6,9 @@
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
-push!(LOAD_PATH, pwd()*"/src")	
-push!(LOAD_PATH, pwd()*"/src/gallery_extra")
-push!(LOAD_PATH, pwd()*"/src/gallery_extra/waveguide")	
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
 using NEPSolver
 using NEPCore

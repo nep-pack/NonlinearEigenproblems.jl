@@ -2,9 +2,9 @@
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
-push!(LOAD_PATH, pwd()*"/src")	
-push!(LOAD_PATH, pwd()*"/src/gallery_extra")
-push!(LOAD_PATH, pwd()*"/src/gallery_extra/waveguide")	
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
 using NEPSolver
 using NEPCore
@@ -15,7 +15,7 @@ using GalleryNLEVP
 using Base.Test
 
 
-nep_org=nep_gallery(NLEVP_NEP,"fiber","../nlevp3/");
+nep_org=nep_gallery(NLEVP_NEP,"fiber");
 n=size(nep_org,1);
 
 # An exact eigenvalue according (reported in NLEVP collection)
