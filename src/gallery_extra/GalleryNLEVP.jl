@@ -108,7 +108,8 @@ module GalleryNLEVP
 Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems.
 """
-    function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String,nlevp_path::String="../../nlevp3")
+    nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String) = nep_gallery(T,name,string(@__DIR__, "/../../../nlevp3"))
+    function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String,nlevp_path::String)
         if(nlevp_path[1:2] == "..") #Check if path is relative, then make absoulte
             nlevp_path = pwd() * "/" * nlevp_path
         end
