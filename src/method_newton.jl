@@ -10,7 +10,22 @@
 
 #############################################################################
 """
-    Newton raphsons method on nonlinear equation with (n+1) unknowns
+    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,]
+                 [armijo_factor=1,][armijo_max])
+
+Newton-Raphsons method on nonlinear equation with (n+1) unknowns. errmeasure is a function
+handle which specifies provides a procedure for error measure and termination. The iteration
+is continued until errmeausure is less than tol. λ and v are starting approximations. c is the
+orthogonalization vector.  If c=0 the current approximation will be used for the orthogonalization.
+armijo_factor specifies if an Armijo rule should be applied. 
+
+    Example:
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> λ,v=newton(nep);
+julia> minimum(svdvals(compute_Mder(nep,λ)))
+1.6066157878930876e-16
+```
 """
     newton(nep::NEP;params...)=newton(Complex128,nep;params...)
     function newton{T}(::Type{T},
@@ -90,7 +105,20 @@
 
     ############################################################################
 """
-    Residual inverse iteration method for nonlinear eigenvalue problems.
+    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,]
+                 [armijo_factor=1,][armijo_max,][linsolvecreator])
+    
+Residual inverse iteration method for nonlinear eigenvalue problems. linsolvecreator
+is a function which specifies how the linear system is created. See newton() for other
+parameters
+
+```julia-repl
+julia> nep=nep_gallery("qdep0");
+julia> λ,v=resinv(Complex128,nep,λ=-2,v=ones(size(nep,1)))
+julia> norm(compute_Mlincomb(nep,λ,v))
+1.817030659827106e-14                   
+```
+
 """
     resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
     function resinv{T}(::Type{T},
