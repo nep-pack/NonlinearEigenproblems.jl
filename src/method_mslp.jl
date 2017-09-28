@@ -13,7 +13,7 @@ function mslp{T}(::Type{T},
                  nep::NEP;
                  errmeasure::Function =
                  default_errmeasure(nep::NEP),
-                 tolerance=eps(real(T))*100,
+                 tol=eps(real(T))*100,
                  maxit=100,
                  λ=zero(T),
                  v=randn(nep.n),
@@ -40,7 +40,7 @@ function mslp{T}(::Type{T},
         if (displaylevel>0)
             println("Iteration:",k," errmeasure:",err)
         end
-        if (err< tolerance)
+        if (err< tol)
             return (λ,v)
         end
 
