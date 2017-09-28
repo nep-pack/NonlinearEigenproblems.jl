@@ -1,9 +1,5 @@
 workspace()
-push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using NEPSolver
-using NEPCore
-using NEPTypes
-using Gallery
+push!(LOAD_PATH, string(@__DIR__))	# looks for modules in the current directory
 
 println("")
 println("")
@@ -24,9 +20,9 @@ sleep(2.5)
 
 for k = 1:2
     if( k == 1)
-        path = pwd()
+        path = string(@__DIR__)
     elseif( k == 2)
-        path = pwd() * "/extra_tests/"
+        path = string(@__DIR__, "/extra_tests/")
     end
 
     file_list = readdir(path)
