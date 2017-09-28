@@ -17,7 +17,7 @@ using Base.Test
 
 
 # The user can create his own orthogonalization function to use in IAR
-function doubleGS_function(VV, vv, h)
+function doubleGS_function!(VV, vv, h)
     h[:]=VV'*vv; vv[:]=vv-VV*h; g=VV'*vv; vv[:]=vv-VV*g;
     h[] = h[]+g[]; β=norm(vv); vv[:]=vv/β; return β
 end
@@ -27,7 +27,7 @@ abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
 # the defined orthogonalization function
 import IterativeSolvers.orthogonalize_and_normalize!
 function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
-    doubleGS_function(V, v, h) end
+    doubleGS_function!(V, v, h) end
 
 
 dep=nep_gallery("dep0");
