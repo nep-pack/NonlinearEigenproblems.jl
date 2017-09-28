@@ -420,8 +420,13 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return WEPGMRESLinSolver(nep, λ, kwargs)
     end
 
+    # Turns the default Linsolver creator for WEP_FD to the GMRES-linsolver with Schur-complement
+    # OBS: TODO: Should be something different when that is implemented.
+    # default_linsolvercreator(nep::WEP_FD, λ) = wep_gmres_linsolvercreator(nep, λ)
 
-# Generate P^{-1}-matrix
+
+###########################################################
+# Generate a function for mat-vecs with P^{-1}-matrix
 # P is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
 function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 

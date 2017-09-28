@@ -22,6 +22,8 @@ import NEPCore.compute_Mlincomb
 export compute_Mlincomb
 import LinSolvers.lin_solve
 export lin_solve
+import LinSolvers.default_linsolvercreator
+export default_linsolvercreator
 
 import Base.size
 export size
