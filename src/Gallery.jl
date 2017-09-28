@@ -10,23 +10,19 @@ module Gallery
 
     export nep_gallery
 
+    push!(LOAD_PATH, string(@__DIR__, "/gallery_extra")) # Add the search-path to the extra galleries
+
 
 
     include("gallery_extra/distributed_example.jl")
 
-    include("gallery_extra/waveguide/Waveguide.jl")
-    using .Waveguide
-    export wep_generate_preconditioner
-    export wep_gmres_linsolvercreator
-
   """
+     nep=nep_gallery(name)\\
+     nep=nep_gallery(name,params)\\
 **Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems.**\\
     The parameter 'name' decides which NEP.\\
 \\
-  **Usage:**\\
-     nep=nep_gallery(name)\\
-     or\\
-     nep=nep_gallery(name,params)\\
+
 \\
   **Supported 'name' and 'params':**\\
      'dep0'\\
@@ -74,22 +70,6 @@ module Gallery
          -1.631513006819252 - 4.555484848248613i\\
          -1.677320660400946 + 7.496870451838560i\\
          -1.677320660400946 - 7.496870451838560i\\
-\\
-     'waveguide'\\
-     Create the NEP associated with example in both\\
-     E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,\\
-     Sylvester-based preconditioning for the waveguide eigenvalue problem, LAA\\
-     and\\
-     E. Jarlebring, and G. Mele, and O. Runborg\\
-     The waveguide eigenvalue problem and the tensor infinite Arnoldi method\\
-     SIAM J. Sci. Comput., 2017\\
-     * required parameters:\\
-                            # nx::Integer = 3 * 5 * 7,         disctretization points in x-direction\\
-                            # nz::Integer = 3 * 5 * 7,         disctretization points in z-direction\\
-                            # benchmark_problem = 'TAUSCH',    which waveguide (TAUSCH, JARLEBRING)\\
-                            # discretization::String = 'FD',   which discretization (FD)\\
-                            # neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
-                            # delta = 0.1,                     Slack from the absorbing boundary conditions
 \\  
      'qdep0' \\
       Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear
@@ -99,6 +79,10 @@ module Gallery
      Create a quadratic eigenvalue problem with chosen eigenvalues
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\\\
+
+     **See also the following galleries: **\\
+      * GalleryNLEVP\\
+      * GalleryWaveguide\\\\
   """
   nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
   function nep_gallery{T<:NEP}(::Type{T},name::String,params...;kwargs...)
@@ -243,9 +227,6 @@ module Gallery
           AA=[-speye(A0),A0,A1]
           fi=[quadfun,constfun,expfun]
           return SPMF_NEP(AA,fi)
-
-      elseif (name== "waveguide")
-          return gallery_waveguide(params...;kwargs...)
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem

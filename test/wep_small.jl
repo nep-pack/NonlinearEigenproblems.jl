@@ -2,20 +2,21 @@
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))	
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+#push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
 using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
 using LinSolvers
-using Gallery.Waveguide
+using Gallery
+using GalleryWaveguide
 
 using Base.Test
 import NEPCore.compute_Mder;
 
 
-nep_spmf=nep_gallery("waveguide", nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "SPMF")
+nep_spmf=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "SPMF")
 
 AA=nep_spmf.A;
 AAt=Array{SparseMatrixCSC,1}(size(AA,1));
@@ -28,10 +29,10 @@ nept_spmf=SPMF_NEP(AAt,nep_spmf.fi)
 
 
 
-nep=nep_gallery("waveguide", nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "WEP")
+nep=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "WEP")
 # Waveguide compute_Mder(WEP_FD) (or direct solve) not implemented.
 # Workaround: use the spmf-version, but only for the linear solves.
-nep_spmf=nep_gallery("waveguide", nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "SPMF")
+nep_spmf=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "SPMF")
 function compute_Mder(nep::WEP_FD,λ::Number,i::Integer)
     return compute_Mder(nep_spmf,λ,i);
 end

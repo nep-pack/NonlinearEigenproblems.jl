@@ -3,10 +3,13 @@
    using MATLAB callbacks
 "
 module waveguide_debug
+push!(LOAD_PATH, string(@__DIR__,"/../"))	# looks for modules in the current directory
+push!(LOAD_PATH, string(@__DIR__,"/../../"))	# looks for modules in the current directory
 
 using MATLAB
 
 using Gallery
+using GalleryWaveguide
 using NEPSolver
 using NEPCore
 using NEPTypes
@@ -26,18 +29,18 @@ export debug_WEP_FD_preconditioner
 export debug_eigval_comp_WEP_FD
 
 #OBS: Explicit imports of non-exported functions
-import Gallery.Waveguide.generate_wavenumber_fd
-import Gallery.Waveguide.generate_fd_interior_mat
-import Gallery.Waveguide.generate_fd_boundary_mat
-import Gallery.Waveguide.generate_R_matvecs
-import Gallery.Waveguide.generate_Pinv_matrix
-import Gallery.Waveguide.generate_S_function
-import Gallery.Waveguide.sqrtm_schur_pos_imag
-import Gallery.Waveguide.sqrt_derivative
-import Gallery.Waveguide.SchurMatVec
-import Gallery.Waveguide.solve_wg_sylvester_fft!
-import Gallery.Waveguide.generate_smw_matrix
-import Gallery.Waveguide.solve_smw
+import GalleryWaveguide.generate_wavenumber_fd
+import GalleryWaveguide.generate_fd_interior_mat
+import GalleryWaveguide.generate_fd_boundary_mat
+import GalleryWaveguide.generate_R_matvecs
+import GalleryWaveguide.generate_Pinv_matrix
+import GalleryWaveguide.generate_S_function
+import GalleryWaveguide.sqrtm_schur_pos_imag
+import GalleryWaveguide.sqrt_derivative
+import GalleryWaveguide.SchurMatVec
+import GalleryWaveguide.solve_wg_sylvester_fft!
+import GalleryWaveguide.generate_smw_matrix
+import GalleryWaveguide.solve_smw
 
 
 ########### SOME REFERENCE IMPLEMENTATIONS ################
@@ -237,7 +240,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         println("\n")
         println("Testing full matrix M for waveguide: ", waveguide)
 
-        nep_j = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
+        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
         M_j = compute_Mder(nep_j,γ)
 
         if waveguide == "JARLEBRING"
@@ -355,8 +358,8 @@ function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
         println("\n")
         println("Testing full matrix M for waveguide: ", waveguide)
 
-        nep_j = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
-        nep_SPMF = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
+        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
+        nep_SPMF = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
 
         for d = [0 1 2 5]
             M_j = zeros(Complex128, n, n)
@@ -404,7 +407,7 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
         println("\n")
         println("Testing Schur-complement for waveguide: ", waveguide)
 
-        nep_j = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WEp", delta = delta)
+        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WEp", delta = delta)
         Schur_fun = SchurMatVec(nep_j, γ)
         Schur_j = zeros(Complex128, n, n)
         for i = 1:n
@@ -525,7 +528,7 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
         println("\n")
         println("Testing Sylvester SMW for waveguide: ", waveguide)
 
-        nep = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "wEp", delta = delta)
+        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "wEp", delta = delta)
 
         println("  Generate SMW-matrix")
         M_j = @time generate_smw_matrix(nep, N, σ)
@@ -604,7 +607,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
         println("\n")
         println("Testing eigenvalue computations for waveguide: ", waveguide)
 
-        nep = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
+        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
 
 
         bb = rand(Complex128, nx*nz)
@@ -649,9 +652,9 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         println("\n")
         println("Testing eigenvalue computations for waveguide: ", waveguide)
 
-        nep_j_WEPFD =    nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
-        nep_j_SPMF  =    nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
-        nep_j_SPMF_pre = nep_gallery("waveguide", nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF_prE", delta = delta)
+        nep_j_WEPFD =    nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
+        nep_j_SPMF  =    nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
+        nep_j_SPMF_pre = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF_prE", delta = delta)
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
@@ -753,6 +756,83 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
     end
     println("\n--- End eigenvalue computations of WEP_FD and SPMF against MATLAB ---\n")
+end
+
+
+###########################################################
+# Test to compute eigenvalues and eigenvectors. Test different methods
+function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
+    println("\n\n--- Debugging eigenvalue computations for WEP_FD using different methods ---\n")
+
+    nx = nz + 4;
+
+    for waveguide = ["JARLEBRING"]
+        println("\n")
+        println("Testing eigenvalue computations for waveguide: ", waveguide)
+
+        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
+
+
+        # ##
+        # println("\n")
+        # println("  Using preconditioned Resinv")
+        #
+        γ = -2.7-3.1im
+        # println("    Generating preconditioner")
+        # precond = @time wep_generate_preconditioner(nep, N, γ)
+        #
+        # gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:verbose, false), (:Pl,precond), (:tol, 1e-13))
+        # function wep_gmres_linsolvercreator(nep::NEP, λ)
+        #     return wep_linsolvercreator(nep, λ, gmres_kwargs)
+        # end
+        #
+        # srand(10524089)
+        # eigval, eigvec = @time resinv(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        #
+        # println("Computed eigenvalue = ", eigval)
+        #
+        #
+        # ##
+        # println("\n")
+        # println("  Using preconditioned Augmented Newton")
+        #
+        # γ = -2.7-3.1im
+        # println("    Generating preconditioner")
+        # precond = @time wep_generate_preconditioner(nep, N, γ)
+        #
+        # gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:verbose, false), (:Pl,precond), (:tol, 1e-13))
+        # function wep_gmres_linsolvercreator(nep::NEP, λ)
+        #     return wep_linsolvercreator(nep, λ, gmres_kwargs)
+        # end
+        #
+        # srand(10524089)
+        # eigval, eigvec = @time augnewton(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        #
+        # println("Computed eigenvalue = ", eigval)
+        #
+
+        ##
+        println("\n")
+        println("  Using preconditioned TIAR")
+        γ = -2.7-3.1im
+
+#        γ0 = -2-pi*im
+#        cayley_shifted_nep = MobiusTransformNEP(nep, a=conj(γ0), b=γ0, c=-1, d=1) # T(λ)=M((a*λ+b)/(c*λ+d))
+#        eigval, eigvec = @time tiar(nep, displaylevel=1, γ=γ, σ=γ, maxit = 30, tol = 2e-9)
+
+        println("    Generating preconditioner")
+        precond = @time wep_generate_preconditioner(nep, N, γ)
+
+        gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:verbose, true), (:Pl,precond), (:tol, 1e-13))
+        function wep_gmres_linsolvercreator(nep::NEP, λ)
+            return wep_linsolvercreator(nep, λ, gmres_kwargs)
+        end
+
+        eigval, eigvec = @time tiar(nep, displaylevel=1, γ=γ, σ=γ, maxit = 30, tol = 2e-9, linsolvercreator=wep_gmres_linsolvercreator)
+        println("Computed eigenvalue = ", eigval)
+
+    end
+    println("\n--- End eigenvalue computations for WEP_FD using different methods ---\n")
 end
 
 

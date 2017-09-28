@@ -1,9 +1,10 @@
 workspace()
-push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using Gallery
+#push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+#using Gallery
+#using GalleryWaveguide
 
 #OBS: Only needed to run the debug
-push!(LOAD_PATH, pwd()*"/gallery_extra/waveguide")	# looks for modules in the correct directory
+push!(LOAD_PATH, string(@__DIR__, "/../gallery_extra/waveguide")) # looks for modules in the correct directory
 using waveguide_debug
 
 
@@ -13,6 +14,8 @@ println("||   This is WEP-test    ||")
 println("===========================")
 
 delta = 0.1
+
+#debug_eigval_comp_WEP_FD(105, 35, delta)
 
 matlab_debug_eigval_comp_WEP_FD_and_SPMF(105, 35, delta)
 

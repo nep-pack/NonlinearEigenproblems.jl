@@ -1,90 +1,3 @@
-module Waveguide
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using IterativeSolvers
-using LinearMaps
-
-
-export gallery_waveguide
-export wep_generate_preconditioner
-export wep_gmres_linsolvercreator
-
-
-# Specializalized NEPs
-export WEP_FD
-
-# We overload these
-import NEPCore.compute_Mlincomb
-export compute_Mlincomb
-import LinSolvers.lin_solve
-export lin_solve
-
-import Base.size
-export size
-import Base.issparse
-export issparse
-import Base.*
-export *
-import Base.eltype
-export eltype
-import Base.A_ldiv_B!
-export A_ldiv_B!
-
-include("waveguide_FD.jl")
-include("waveguide_FEM.jl")
-# OBS: include("waveguide_preconditioner.jl") is at the bottom so that needed types are declared before the include
-
-
-
-"
-Creates the NEP associated with example in
-
-E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
-Sylvester-based preconditioning for the waveguide eigenvalue problem,
-Linear Algebra and its Applications
-
-and
-
-E. Jarlebring, and G. Mele, and O. Runborg
-The waveguide eigenvalue problem and the tensor infinite Arnoldi method
-SIAM J. Sci. Comput., 2017
-"
-function gallery_waveguide(; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1)
-    waveguide = uppercase(benchmark_problem)
-    neptype = uppercase(neptype)
-    discretization = uppercase(discretization)
-    if !isodd(nz)
-        error("Variable nz must be odd! You have used nz = ", nz, ".")
-    end
-
-
-    # Generate the matrices and formulate the problem is the sought format
-    if ((neptype == "SPMF") || (neptype == "SPMF_PRE")) && (discretization == "FD")
-        K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
-        C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        if(neptype == "SPMF_PRE")
-            pre_Schur_fact = true
-        else
-            pre_Schur_fact = false
-        end
-        nep = assemble_waveguide_spmf_fd(nx, nz, hx, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp, pre_Schur_fact)
-
-    elseif (neptype == "WEP") && (discretization == "FD")
-        K, hx, hz, Km, Kp = generate_wavenumber_fd( nx, nz, waveguide, delta)
-        Dxx, Dzz, Dz = generate_fd_interior_mat( nx, nz, hx, hz)
-        C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
-        nep = WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
-
-    else
-        error("The NEP-type '", neptype, "' is not supported for the discretization '", discretization, "'.")
-    end
-
-    println("Waveguide generated")
-    return nep
-end
 
 
 ###########################################################
@@ -255,7 +168,7 @@ end
       Sylvester-based preconditioning for the waveguide eigenvalue problem,
       Linear Algebra and its Applications''
 """
-    type WEP_FD <: NEP
+    type WEP_FD <: WEP
         nx::Int64
         nz::Int64
         hx::Float64
@@ -597,6 +510,3 @@ function sqrt_derivative(a,b,c, d=0, x=0)
     return derivatives
 end
 
-include("waveguide_preconditioner.jl")
-
-end

@@ -7,7 +7,6 @@ module GalleryNLEVP
     using NEPTypes    
     using Gallery    
     
-    export nep_gallery_NLEVP
     export nlevp_make_native
     
     # We have to explicitly specify functions that we want "overload"
