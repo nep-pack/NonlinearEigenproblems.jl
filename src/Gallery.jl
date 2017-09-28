@@ -45,7 +45,7 @@ module Gallery
 \\
      'pep0_sparse_003'\\
      Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
-     * one optional parameter determining the size (default = 200)\\\\
+     * one optional parameter determining the size (default = 200)\\
 \\
      'real_quadratic'\\
      Create a quadratic problem with real eigenvalues\\
@@ -70,19 +70,22 @@ module Gallery
          -1.631513006819252 - 4.555484848248613i\\
          -1.677320660400946 + 7.496870451838560i\\
          -1.677320660400946 - 7.496870451838560i\\
+
 \\  
      'qdep0' \\
       Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear
-      eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\\\
+      eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
+\\
 
      'qep_fixed_eig'\\
      Create a quadratic eigenvalue problem with chosen eigenvalues
      * two optional parameters determining the size (default = 5)
-       and a vector containing the eigenvalues (default = randn)       \\\\
+       and a vector containing the eigenvalues (default = randn)       \\
+\\
 
-     **See also the following galleries: **\\
+   **See also the following galleries:**\\
       * GalleryNLEVP\\
-      * GalleryWaveguide\\\\
+      * GalleryWaveguide\\
   """
   nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
   function nep_gallery{T<:NEP}(::Type{T},name::String,params...;kwargs...)
