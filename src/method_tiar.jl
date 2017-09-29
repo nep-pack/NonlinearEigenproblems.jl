@@ -140,7 +140,7 @@ function tiar(
       conv_eig=conv_eig+1;
      end
     end
-    idx=sortperm(err[1:k,k]); # sort the error
+    idx=sortperm(err[k,1:k]); # sort the error
     err[1:k,k]=err[idx,k];
 
     # extract the converged Ritzpairs

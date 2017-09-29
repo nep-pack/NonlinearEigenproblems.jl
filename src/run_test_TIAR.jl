@@ -4,7 +4,8 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using gplot_module
+using PyPlot
+using PyCall
 
 # explicit import needed for overloading
 # functions from packages
@@ -25,8 +26,7 @@ for i=1:length(λ)
  println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
 
-gcloseall()
+m=size(err,1);
 for i=1:m
-  gsemilogy(p:p:m, err[p:p:m,i])
+    semilogy(3:3:m, err[3:3:m,i],color="black")
 end
-show_gplot()
