@@ -84,7 +84,7 @@ fibertest=@testset "NLEVP fiber" begin
 
         println("Running MSLP");
 
-        (λ,v)=mslp(nep_org,λ=7e-7,
+        (λ,v)=mslp(Float64,nep_org,λ=7e-7,
                    displaylevel=1,errmeasure=myerrmeasure,
                    tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
