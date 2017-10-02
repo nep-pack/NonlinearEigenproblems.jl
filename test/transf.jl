@@ -119,8 +119,8 @@ using Base.Test
         @test norm(w-w1)<eps()*100
         @test norm(w-w2)<eps()*100
         @test norm(w1-w2)<eps()*100
-        W1=compute_Mlincomb(nep4_transf1,λ,V,a=[0 1 0 1 0])
-        W2=compute_Mlincomb(nep4_transf2,λ,V,a=[0 1 0 1 0]);
+        W1=compute_Mlincomb(nep4_transf1,λ,V,a=[0,1,0,1,0])
+        W2=compute_Mlincomb(nep4_transf2,λ,V,a=[0,1,0,1,0]);
         @test norm(W1-W2)<sqrt(eps())
 
 
