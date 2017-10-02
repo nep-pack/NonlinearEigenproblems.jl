@@ -8,8 +8,8 @@ Applies the block Newton method to nep.
 # References
 * D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372
 """
-function blocknewton(nep::NEP;
-                     S=eye(3,3),
+function blocknewton(nep::AbstractSPMF;
+                     S=zeros(3,3),
                      X=eye(size(nep,1),3),
 #                       errmeasure::Function =                      default_errmeasure(nep::NEP),
                        tol=eps(real(eltype(S)))*100,
@@ -76,17 +76,21 @@ end
 
 
 
-function newtonstep_linsys(nep,S, X, W, RT, RV, displaylevel)
+function newtonstep_linsys(nep::AbstractSPMF,S, X, W, RT, RV, displaylevel)
     T=complex(eltype(S))
 
     n = size(nep,1);
     p = size(X,2); l = size(W,3);
     dX = zeros(T, n,p); dS = zeros(T,p,p);
 
+    # Fetch the SPMF 
     fv=get_fv(nep);
-    m = size(fv,1);
     Av=get_Av(nep)
-    fS = zeros(Complex128,p,p,m); 
+
+    m = size(fv,1);
+
+    # Initialize a tensor with a f_i(S) 
+    fS = zeros(T,p,p,m); 
     for j = 1:m
         fS[:,:,j] = fv[j](S);
     end
@@ -98,16 +102,13 @@ function newtonstep_linsys(nep,S, X, W, RT, RV, displaylevel)
         T11=compute_Mder(nep,s)
         
         S_expanded=[S eye(S);zeros(S) s*eye(S)]
-        # T12 = compute_MM(nep,[0*X X],S_expanded) # Can maybe be computed like this?
-        #println("m=",m)
+        # T12 = compute_MM(nep,[0*X X],S_expanded) # Can maybe be computed like this? Would avoid the explicit use of Av and and fv
 
         T12 = zeros(T,n,p);
         for j = 1:m
             DF = fv[j](S_expanded)
             DF1=DF[1:p,p+1:2*p];
             T12 = T12 + Av[j]*X*DF1;
-            
-            #println("T12:",T12, " DF1:",DF1, " X:",X)
         end
         T21 = W[:,:,1]'; 
         for j = 2:l
@@ -116,40 +117,29 @@ function newtonstep_linsys(nep,S, X, W, RT, RV, displaylevel)
         DS = eye(p);
         T22 = zeros(T,p,p);
         for j = 2:l
-            #println("T22:",T22)
             T22 = T22 + W[:,:,j]'*X*DS;
-            DS = s*DS + S^(j-2) # pS(:,:,j-1);
+            DS = s*DS + S^(j-2) 
         end
-        #println("k:",k)        
-        #println("size T11:",size(T11))
-        #println("size T12:",size(T12))
-        #println("size T21:",size(T21))
-        #println("size T22:",size(T22))
-        #println("T22:",T22)
-        TT=[T11 T12; T21 T22];
-        #println("TT:",TT)
+        TT=[T11 T12; T21 T22]; # This can maybe be optimized with Schur complement
         sol =  TT \ [RT[:,i];RV[:,i]];
+        # compute the dS and dX
         dX[:,i] = sol[1:n];
         dS[:,i] = sol[n+1:end];
-        # Update right-hand side
+        
+        # Update RHS 
         Z = zeros(T,p,p);
         Z[:,i] = dS[:,i]; DS = Z;
         S2_expanded=[S Z;zeros(S) S];
         for j = 1:m
-            #println("size(S2_expanded):",size(S2_expanded))
             
-            DF = fv[j](S2_expanded)#feval(f,j,[S, Z;zeros(k) S ]);
+            DF = fv[j](S2_expanded)
 
             Z1a=dX[:,i]*(fS[i,i+1:p,j]).'
-            #println("typeof(DF):",typeof(DF))
             Z1b=X*DF[1:p,p+i+1:2*p];
             Z1=(Z1a + Z1b );
-            #println("size(Z1)=",size(Z1))
             RT[:,i+1:p] =  RT[:,i+1:p]  - Av[j] * Z1;
         end
         for j = 2:l
-
-            #println("SS:",(((S^(j-2))[i,i+1:k]).'))
             Z1a=dX[:,i]*  ((S^(j-2))[i,i+1:p].');
             Z1b=X*DS[:,i+1:p] ;
             Z1=W[:,:,j]' * ( Z1a +Z1b );
