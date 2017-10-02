@@ -30,6 +30,7 @@ Executes z if displaylevel>0.
 #    include("method_jd_lin.jl")
     include("method_jd_quad.jl")
     include("method_beyncontour.jl")
+    include("method_blocknewton.jl")
 
 
     """
