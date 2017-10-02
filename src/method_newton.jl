@@ -12,13 +12,13 @@
 """
     λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
 
-Newton-Raphsons method on nonlinear equation with `(n+1)` unknowns. errmeasure is a function
+Applies Newton-Raphsons method on nonlinear equation with `(n+1)` unknowns. errmeasure is a function
 handle which specifies provides a procedure for error measure and termination. The iteration
 is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the
 orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization.
 `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
 
-    Example:
+# Example
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> λ,v=newton(nep);
@@ -26,7 +26,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 1.6066157878930876e-16
 ```
 
-References:
+# References
 * Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.
 * A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 
@@ -111,10 +111,10 @@ References:
 """
     λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
     
-Residual inverse iteration method for nonlinear eigenvalue problems. linsolvecreator
+Applies residual inverse iteration method for nonlinear eigenvalue problems. linsolvecreator
 is a function which specifies how the linear system is created. See `newton()` for other parameters.
 
-    Example:
+# Example
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
 julia> λ,v=resinv(Complex128,nep,λ=-2,v=ones(size(nep,1)))
@@ -122,7 +122,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 1.817030659827106e-14                   
 ```
 
-References:
+# References
 *  A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923
 
 """
