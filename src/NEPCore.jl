@@ -126,9 +126,26 @@ if you want efficiency (for aug_newton, IAR, ..).
         return compute_Mlincomb(nep,λ,VV,a=aa)
     end
 
-    """
+"""
     compute_MM(nep::NEP,S,V)
 Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP, where `S` and `V` are matrices.
+
+# Example
+This example shows that for diagonal `S`, the result of `compute_MM` can
+also be computed with `compute_Mlincomb`
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> D=diagm([1,2])
+2×2 Array{Int64,2}:
+ 1  0
+ 0  2
+julia> V=ones(size(n,1),2);
+julia> W=compute_MM(nep,D,V);
+julia> norm(W[:,1]-compute_Mlincomb(nep,D[1,1],V[:,1]))
+1.1102230246251565e-16
+julia> norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
+0.0
+```
 """
     function compute_MM(nep::NEP,S,V)
         error("No procedure to compute MM")

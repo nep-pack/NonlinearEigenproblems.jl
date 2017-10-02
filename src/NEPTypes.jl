@@ -234,10 +234,7 @@ matrices A_i, and tauv is a vector of the values tau_i
 
 
 
-    """
-    compute_MM(nep::DEP,S,V)
- Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
-"""
+#  Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
         for j=1:size(nep.A,1)
@@ -296,10 +293,7 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i �
         end
     end
 
-    """
-    compute_MM(nep::DEP,S,V)
- Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
-"""
+# Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
         if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
