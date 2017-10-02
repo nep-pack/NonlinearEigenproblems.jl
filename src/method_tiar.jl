@@ -1,7 +1,12 @@
 export tiar
 using IterativeSolvers
 
-# The Tensor Infinite Arnoldi method
+"""
+    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+### Tensor Infinite Arnoldi method
+Tensor Infinite Arnoldi method, as described in Algorithm 2 in  "The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method",
+by Jarlebring, Elias and Mele, Giampaolo and Runborg, Olof.
+"""
 tiar(nep::NEP;params...)=tiar(Complex128,nep;params...)
 function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     ::Type{T},
@@ -9,35 +14,41 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
-    tol=1e-12,
-    Neig=maxit,
+    tol=eps(real(T))*10000,
+    Neig=6,
     errmeasure::Function = default_errmeasure(nep::NEP),
-    σ=0.0,
-    γ=1,
-    v=rand(size(nep,1),1),
+    σ=zero(T),
+    γ=one(T),
+    v=randn(real(T),size(nep,1)),
     displaylevel=0,
     check_error_every=1
     )
 
-    n = size(nep,1); m = maxit;
     # initialization
-    a  = zeros(Complex128,m+1,m+1,m+1);
-    Z  = zeros(Complex128,n,m+1);
-    t  = zeros(Complex128,m+1);
-    tt = zeros(Complex128,m+1);
-    g  = zeros(Complex128,m+1,m+1);
-    f  = zeros(Complex128,m+1,m+1);
-    ff = zeros(Complex128,m+1,m+1);
-    H  = zeros(Complex128,m+1,m);
-    h  = zeros(Complex128,m+1);
-    hh = zeros(Complex128,m+1);
-    y  = zeros(Complex128,n,m+1);
-    α=γ.^(0:m); α[1]=0;
+    n = size(nep,1); m = maxit;
+
+    if n<m
+        msg="Loss of orthogonality in the matrix Z. The problem size is too small, use iar instead.";
+        throw(LostOrthogonalityException(msg))
+    end
+
+    a  = zeros(T,m+1,m+1,m+1);
+    Z  = zeros(T,n,m+1);
+    t  = zeros(T,m+1);
+    tt = zeros(T,m+1);
+    g  = zeros(T,m+1,m+1);
+    f  = zeros(T,m+1,m+1);
+    ff = zeros(T,m+1,m+1);
+    H  = zeros(T,m+1,m);
+    h  = zeros(T,m+1);
+    hh = zeros(T,m+1);
+    y  = zeros(T,n,m+1);
+    α=γ.^(0:m); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m+1,m+1);
-    λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
+    λ=zeros(T,m+1); Q=zeros(T,n,m+1);
     Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);
-    a[1,1,1]=1;
+    a[1,1,1]=one(T);
 
     k=1; conv_eig=0;
     while (k <= m)&(conv_eig<Neig)
@@ -66,7 +77,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         end
 
         # compute h (orthogonalization with tensors factorization)
-        h=0*h;
+        h=zero(h);
         for l=1:k
             h[1:k]=h[1:k]+a[1:k,1:k,l]'*g[1:k,l];
         end
@@ -82,7 +93,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
-        hh=0*hh;
+        hh=zero(hh);
         for l=1:k
             hh[1:k]=hh[1:k]+a[1:k,1:k,l]'*f[1:k,l];
         end
@@ -99,7 +110,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         # update the orthogonalization coefficients
         h=h+hh; f=ff;
 
-        β=vecnorm(f[1:k+1,1:k+1]); # equivalent to Frobenius norm
+        β=vecnorm(view(f,1:k+1,1:k+1)); # equivalent to Frobenius norm
 
         # extend the matrix H
         H[1:k,k]=h[1:k]; H[k+1,k]=β;
@@ -132,6 +143,19 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         end
         k=k+1;
     end
+
+    # NoConvergenceException
+    if conv_eig<Neig
+       err=err[end,1:Neig];
+       idx=sortperm(err); # sort the error
+       λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        if conv_eig<3
+            msg=string(msg, " Check that σ is not an eigenvalue.")
+        end
+        throw(NoConvergenceException(λ,Q,err,msg))
+    end
+
 
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];

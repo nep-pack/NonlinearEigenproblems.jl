@@ -9,7 +9,7 @@ using PyCall
 
 # explicit import needed for overloading
 # functions from packages
-#import NEPCore.compute_Mlincomb
+# import NEPCore.compute_Mlincomb
 
 println("Load dep0")
 nep=nep_gallery("dep0",100)
@@ -18,8 +18,8 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
     return compute_Mlincomb_from_MM!(nep,λ,V,a)
 end
 
-m=50;   p=1;
-λ,Q,err,Z = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3,check_error_every=p,displaylevel=1);
+m=200;   p=1;
+λ,Q,err,Z = tiar(nep,maxit=m,Neig=4,σ=2.0,γ=3,check_error_every=p,displaylevel=1);
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
@@ -31,3 +31,5 @@ for i=1:m
     semilogy(3:3:m, err[3:3:m,i],color="black")
 end
 ylim(ymax=100)
+
+#λ,Q,err,Z = tiar(nep,maxit=m,Neig=4,σ=λ[1],γ=3,check_error_every=p,displaylevel=1);

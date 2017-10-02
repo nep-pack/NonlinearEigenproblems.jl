@@ -5,6 +5,7 @@ module NEPCore
     export size
     export issparse
     export NoConvergenceException
+    export LostOrthogonalityException
     export LinEigSolver
     export interpolate
 
@@ -114,7 +115,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
 
 """
     compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
-Computes linear combination starting with derivative startder, i.e., 
+Computes linear combination starting with derivative startder, i.e.,
 ``Σ_i a_i M^{(i+startder)}(λ) v_i``
 
 The default implementation of this can be slow. Overload for specific NEP
@@ -309,6 +310,14 @@ The default way of measuring error (residual norm).
             compute_resnorm(nep,λ,v)/norm(v)
         end
         return f
+    end
+
+    """
+    type LostOrthogonalityException
+`msg`
+"""
+    type LostOrthogonalityException <: Exception
+        msg
     end
 
 end  # End Module
