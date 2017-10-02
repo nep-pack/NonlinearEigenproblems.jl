@@ -89,6 +89,16 @@ julia> norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
     compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
 Computes the linear combination of derivatives\\
 ``Σ_i a_i M^{(i)}(λ) v_i``
+
+# Example
+This example shows that `compute_Mder` gives a result consistent with `compute_Mlincomb`. Note that `compute_Mlincomb` is in general faster since no matrix needs to be constructed.
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> v=ones(size(nep,1)); λ=-1+1im;
+julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
+1.0778315928076987e-15
+
+```
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
 
@@ -104,10 +114,10 @@ Computes the linear combination of derivatives\\
 
 """
     compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
-Computes linear combination starting with derivative startder, i.e., first
-column of V is multiplied by derivative startder.
+Computes linear combination starting with derivative startder, i.e., 
+``Σ_i a_i M^{(i+startder)}(λ) v_i``
 
-The default implementation of this is slow. Overload for specific NEP
+The default implementation of this can be slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
     function compute_Mlincomb(nep::NEP,λ,V,a::Array{<:Number,1},startder::Integer)
