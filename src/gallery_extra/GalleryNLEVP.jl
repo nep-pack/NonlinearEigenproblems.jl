@@ -28,9 +28,9 @@ module GalleryNLEVP
         n::Integer
         name::String
         Ai::Array
-        function NLEVP_NEP(name,nlevp_path)
+        function NLEVP_NEP(name, nlevp_path)
             if (~isfile(joinpath(nlevp_path,"nlevp.m")))
-                error("nlevp.m not found. You need to install the Berlin-Manchester collection (http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) and specify a nlevp_path.")
+                error("nlevp.m not found. You need to install the Berlin-Manchester collection (http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) and specify a nlevp_path. Path:"*nlevp_path)
             end
 
             mat"""
@@ -107,10 +107,10 @@ module GalleryNLEVP
 Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems.
 """
-    nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String) = nep_gallery(T,name,string(@__DIR__, "/../../../nlevp3"))
+    nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String) = nep_gallery(T,name,joinpath(@__DIR__, "..","..","..","nlevp3"))
     function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String,nlevp_path::String)
-        if(nlevp_path[1:2] == "..") #Check if path is relative, then make absoulte
-            nlevp_path = pwd() * "/" * nlevp_path
+        if(!isabspath(nlevp_path)) #Check if path is relative, then make absoulte
+            nlevp_path = abspath(nlevp_path)
         end
         nep=NLEVP_NEP(name,nlevp_path)
         return nep
