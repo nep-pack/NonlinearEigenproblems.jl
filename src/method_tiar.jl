@@ -1,7 +1,12 @@
 export tiar
+using IterativeSolvers
+
 # The Tensor Infinite Arnoldi method
-function tiar(
+tiar(nep::NEP;params...)=tiar(Complex128,nep;params...)
+function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+    ::Type{T},
     nep::NEP;
+    orthmethod::Type{T_orth}=DGKS,
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
     tol=1e-12,
@@ -49,15 +54,8 @@ function tiar(
         y[:,1] = -lin_solve(M0inv,y[:,1]);
 
         # Gram–Schmidt orthogonalization in Z
-        t[1:k]=Z[:,1:k]'*y[:,1];
-        Z[:,k+1]=y[:,1]-Z[:,1:k]*t[1:k];
-
-        # Gram–Schmidt re-orthogonalization in Z
-        tt[1:k]=Z[:,1:k]'*Z[:,k+1];
-        Z[:,k+1]=Z[:,k+1]-Z[:,1:k]*tt[1:k];
-        t=t+tt;
-        t[k+1]=norm(Z[:,k+1]);
-        Z[:,k+1]=Z[:,k+1]/t[k+1]
+        Z[:,k+1]=y[:,1];
+        t[k+1] = orthogonalize_and_normalize!(view(Z,:,1:k), view(Z,:,k+1), view(t,1:k), orthmethod)
 
         # compute the matrix G
         for l=1:k+1
@@ -138,5 +136,5 @@ function tiar(
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];
     Q=Q[:,1:min(size(Q,2),conv_eig)];
-    return λ,Q,err[1:k,:] #,V[:,1:k]
+    return λ,Q,err[1:k,:],Z[:,1:k]
 end

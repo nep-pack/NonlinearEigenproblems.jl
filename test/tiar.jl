@@ -5,8 +5,8 @@ workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
-using NEPSolver
 
+using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
@@ -29,17 +29,40 @@ import IterativeSolvers.orthogonalize_and_normalize!
 function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     doubleGS_function!(V, v, h) end
 
-n=100;
+n=200;
 dep=nep_gallery("dep0",n);
-n=size(dep,1);
 
 TIAR=@testset "TIAR" begin
     @testset "accuracy eigenpairs" begin
-        (λ,Q)=tiar(dep,σ=0,Neig=3,v=ones(n),displaylevel=1,maxit=50,tol=eps()*100);
+        (λ,Q)=tiar(dep,σ=0,Neig=5,v=ones(n),
+                  displaylevel=0,maxit=100,tol=eps()*100);
         @testset "TIAR eigval[$i]" for i in 1:length(λ)
             @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<eps()*100;
         end
     end
 
+    @testset "orthogonalization" begin
+
+    # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
+    @testset "DGKS" begin
+        (λ,Q,err,Z)=tiar(dep,orthmethod=DGKS,σ=0,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+        @test norm(Z'*Z-eye(size(Z,2)))<1e-6
+     end
+
+     @testset "User provided doubleGS" begin
+         (λ,Q,err,Z)=tiar(dep,orthmethod=DoubleGS,σ=0,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+         @test norm(Z'*Z-eye(size(Z,2)))<1e-6
+      end
+
+      @testset "ModifiedGramSchmidt" begin
+          (λ,Q,err,Z)=tiar(dep,orthmethod=ModifiedGramSchmidt,σ=0,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+          @test norm(Z'*Z-eye(size(Z,2)))<1e-6
+      end
+
+       @testset "ClassicalGramSchmidt" begin
+           (λ,Q,err,Z)=tiar(dep,orthmethod=ClassicalGramSchmidt,σ=0,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+           @test norm(Z'*Z-eye(size(Z,2)))<1e-6
+       end
+    end
 
 end

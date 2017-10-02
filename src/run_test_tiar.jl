@@ -19,7 +19,7 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 end
 
 m=50;   p=1;
-λ,Q,err = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3,check_error_every=p,displaylevel=1);
+λ,Q,err,Z = tiar(nep,maxit=m,Neig=m,σ=2.0,γ=3,check_error_every=p,displaylevel=1);
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
