@@ -71,7 +71,6 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
                 if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
-            #println(err[1:k,k])
             idx=sortperm(err[k,1:k]); # sort the error
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
