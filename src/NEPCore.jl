@@ -57,11 +57,22 @@ NEP represents a nonlinear eigenvalue problem
     abstract type NEP end
 
 
-    """
+"""
     compute_Mder(nep::NEP,λ::Number [,i::Integer=0])
-Computes the ith derivative of NEP evaluated in λ\\
-Usage:\\
-    `compute_Mder(nep,λ)`  # Evaluate NEP in λ
+
+Computes the ith derivative of `nep` evaluated in `λ`.
+
+# Example
+This example shows that `compute_Mder(nep,λ,1)` gives the first derivative.
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> ϵ=1e-5;
+julia> Aminus=compute_Mder(nep,λ-ϵ);
+julia> Aminus=compute_Mder(nep,λ-ϵ);
+julia> Aplus=compute_Mder(nep,λ+ϵ);
+julia> norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
+1.990970375089371e-11
+```
 """
     function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
 
