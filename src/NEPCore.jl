@@ -99,7 +99,7 @@ column of V is multiplied by derivative startder.
 The default implementation of this is slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
-    function compute_Mlincomb(nep::NEP,λ,V,a::Array,startder::Integer)
+    function compute_Mlincomb{T<:Number}(nep::NEP,λ,V,a::Array{T,1},startder::Integer)
         aa=[zeros(startder);a];
         VV=[zeros(size(nep,1),startder) V]; # This is typically slow since copy is needed
         return compute_Mlincomb(nep,λ,VV,a=aa)
@@ -128,7 +128,7 @@ Usage normally by overloading:
     compute_Mlincomb_from_MM!(nep::NEP,λ::Number,V,a)
 Same as [`compute_Mlincomb`](@ref), but modifies V and a.
 """
-    function compute_Mlincomb_from_MM!(nep::NEP,λ::Number,V,a)
+    function compute_Mlincomb_from_MM!{T<:Number}(nep::NEP,λ::Number,V,a::Array{T,1})
         # This function it is based on the evaluation of matrix function of a bidiagonal matrix
         # Should we document the methematical
         k=size(V,2);
@@ -144,7 +144,7 @@ The function computes Mlincomb by a call to compute_Mder. This function is slow 
 Usage normally by overloading:
     compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_Mder(nep,λ,V,a)
 """
-    function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
+    function compute_Mlincomb_from_Mder{T<:Number}(nep::NEP,λ::Number,V,a::Array{T,1})
         #println("Using poor-man's compute_Mder -> compute_Mlincomb")
         z=zeros(size(nep,1))
         for i=1:length(a)
@@ -192,6 +192,8 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
             count=count+1
             z1=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1))
             z2=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1),[1],1)
+            println("typeof x:",typeof(x)," z1:",typeof(z1)," z2:",typeof(z2),
+                    " λ:",λ)
             Δλ=- T(dot(y,z1)/dot(y,z2));
             λ += Δλ
         end
