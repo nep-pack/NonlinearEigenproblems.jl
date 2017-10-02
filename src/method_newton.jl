@@ -10,14 +10,13 @@
 
 #############################################################################
 """
-    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,]
-                 [armijo_factor=1,][armijo_max])
+    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
 
-Newton-Raphsons method on nonlinear equation with (n+1) unknowns. errmeasure is a function
+Newton-Raphsons method on nonlinear equation with `(n+1)` unknowns. errmeasure is a function
 handle which specifies provides a procedure for error measure and termination. The iteration
-is continued until errmeausure is less than tol. λ and v are starting approximations. c is the
-orthogonalization vector.  If c=0 the current approximation will be used for the orthogonalization.
-armijo_factor specifies if an Armijo rule should be applied. 
+is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the
+orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization.
+`armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
 
     Example:
 ```julia-repl
@@ -26,6 +25,11 @@ julia> λ,v=newton(nep);
 julia> minimum(svdvals(compute_Mder(nep,λ)))
 1.6066157878930876e-16
 ```
+
+References:
+* Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.
+* A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
+
 """
     newton(nep::NEP;params...)=newton(Complex128,nep;params...)
     function newton{T}(::Type{T},
@@ -105,19 +109,21 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
     ############################################################################
 """
-    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,]
-                 [armijo_factor=1,][armijo_max,][linsolvecreator])
+    λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
     
 Residual inverse iteration method for nonlinear eigenvalue problems. linsolvecreator
-is a function which specifies how the linear system is created. See newton() for other
-parameters
+is a function which specifies how the linear system is created. See `newton()` for other parameters.
 
+    Example:
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
 julia> λ,v=resinv(Complex128,nep,λ=-2,v=ones(size(nep,1)))
 julia> norm(compute_Mlincomb(nep,λ,v))
 1.817030659827106e-14                   
 ```
+
+References:
+*  A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923
 
 """
     resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
@@ -174,13 +180,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 end
 
                 # Compute eigenvalue update
-                λ1 = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
+                local λ1::T = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
                 Δλ=λ1-λ
 
 
                 # Compute eigenvector update
                 Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,v)) #M*v);
 
+                println("type Δv:",typeof(Δv))
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
