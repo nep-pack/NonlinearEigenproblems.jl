@@ -27,6 +27,20 @@ julia> compute_MM(nep,S,X)
   1.94289e-16-1.0842e-19im  -5.55112e-17-6.77626e-20im
   7.63278e-17-1.0842e-19im   2.77556e-17-2.71051e-20im
 ```
+This example solves the `gun` problem from the Berlin-Manchester collection
+```julia-repl
+julia> using GalleryNLEVP
+julia> nep_org=nep_gallery(NLEVP_NEP,"gun");
+julia> nep=nlevp_make_native(nep_org); 
+julia> S=150^2*eye(2); V=eye(size(nep,1),2);
+julia> (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
+Iteration 1: Error: 6.081316e+03
+Iteration 2: Error: 1.701970e-02 Armijo scaling=0.031250
+Iteration 3: Error: 1.814887e-02 Armijo scaling=0.250000
+...
+Iteration 13: Error: 6.257442e-09
+Iteration 14: Error: 2.525942e-15
+```
 
 # References
 * D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372
@@ -74,7 +88,7 @@ function blocknewton(nep::AbstractSPMF;
         # upper triangular form and then doing a backward substitution
         # and finally reversing the backward substitution 
         RR,QQ=schur(complex(S))
-        dSt,dXt = newtonstep_linsys(Complex128,nep,
+        dSt,dXt = newtonstep_linsys(T,nep,
                                     RR, X*QQ,
                                     WW,  # Orthogonalization matrix
                                     Res*QQ, # RT
