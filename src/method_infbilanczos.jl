@@ -1,7 +1,25 @@
 
 export infbilanczos
 """
-    The Infinite Bi-Lanczos
+    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
+
+Executes the Infinite Bi-Lanczos method on the problem defined by nep::NEP
+and nept::NEP. nep:NEP is the original nonlinear eigenvalue problem and
+nept::NEP is its (hermitian) transpose. v and u are starting vectors,
+σ is the shift and γ the scaling.  See `newton()` for other parameters.
+
+# Example:
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> A=get_Av(nep); fv=get_fv(nep);
+julia> nept=SPMF_NEP([A[1]',A[2]',A[3]'],fv); # Create the transposed NEP
+julia> λv,V=infbilanczos(nep,nept,Neig=3)
+julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
+```
+
+# References:
+* The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, arxiv: 1607.03454, to appear in SIAM J. Scientific Computing
+
 """
     infbilanczos(nep::NEP,nept::NEP;params...)=infbilanczos(Complex128,nep,nept;params...)
     function infbilanczos{T<:Number}(::Type{T},
