@@ -30,12 +30,7 @@ nept_spmf=SPMF_NEP(AAt,nep_spmf.fi)
 
 
 nep=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "WEP")
-# Waveguide compute_Mder(WEP_FD) (or direct solve) not implemented.
-# Workaround: use the spmf-version, but only for the linear solves.
-nep_spmf=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "SPMF")
-function compute_Mder(nep::WEP_FD,λ::Number,i::Integer)
-    return compute_Mder(nep_spmf,λ,i);
-end
+
 λstar=-2.690050173308845 - 3.1436003386330347im  # An exact eigenvalue
 n=size(nep,1);
 

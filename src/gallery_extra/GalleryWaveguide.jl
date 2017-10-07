@@ -10,6 +10,7 @@ using Gallery
 
 export wep_generate_preconditioner
 export wep_gmres_linsolvercreator
+export wep_backslash_linsolvercreator
 
 # Specializalized NEPs
 export WEP

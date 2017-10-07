@@ -31,7 +31,7 @@ debug_sqrt_derivative()
 
 debug_Mlincomb_FD_WEP(29, 31, delta)
 
-matlab_debug_Schur_WEP_FD_SPMF(49, 45, delta)
+matlab_debug_Schur_WEP_FD(49, 45, delta)
 
 fft_debug_mateq(431, 427, delta)
 

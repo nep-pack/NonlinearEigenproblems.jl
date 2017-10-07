@@ -21,7 +21,7 @@ export matlab_debug_full_matrix_WEP_FD_SPMF
 export debug_sqrtm_schur
 export fft_debug_mateq
 export debug_sqrt_derivative
-export matlab_debug_Schur_WEP_FD_SPMF
+export matlab_debug_Schur_WEP_FD
 export debug_Mlincomb_FD_WEP
 export debug_Sylvester_SMW_WEP
 export matlab_debug_eigval_comp_WEP_FD_and_SPMF
@@ -392,7 +392,7 @@ end
 
 ###########################################################
 # Test the Schur-complement of native-WEP against MATLAB code
-function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
+function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Schur-complement of native-WEP against MATLAB ---\n")
     if(nx > 50 || nz > 50)
         warn("This debug is 'naive' and might be slow for the discretization used.")
@@ -415,6 +415,9 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
             V[i] = 1
             Schur_j[:,i] += Schur_fun* V
         end
+
+        bs_linsolver = wep_backslash_linsolvercreator(nep_j, γ)
+        Schur_jj = bs_linsolver.schur_comp
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
@@ -444,6 +447,9 @@ function matlab_debug_Schur_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
         norm_diff = norm(Schur_m-Schur_j)
         println("Difference Schur_m(γ) - Schur_j(γ) = ", norm_diff)
         println("Relative difference norm(Schur_m(γ) - Schur_j(γ))/norm(Schur_j(γ)) = ", norm_diff/norm(Schur_j))
+        norm_diff = norm(Schur_m-Schur_jj)
+        println("Difference Schur_m(γ) - Schur_jj(γ) = ", norm_diff)
+        println("Relative difference norm(Schur_m(γ) - Schur_jj(γ))/norm(Schur_jj(γ)) = ", norm_diff/norm(Schur_jj))
     end
     println("\n--- End Schur-complement of native-WEP against MATLAB ---\n")
 end
