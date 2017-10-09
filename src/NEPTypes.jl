@@ -435,11 +435,24 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i �
     # Rational eigenvalue problem - REP
 
     """
-### Rational eigenvalue problem
-  A Rep is defined by the sum the sum ``Σ_i A_i s_i(λ)/q_i(λ)``,
-  where i = 0,1,2,..., all of the matrices are of size n times n
-  and s_i and q_i are polynomials\\
-  Constructor: REP(AA) where AA is an array of the matrices A_i
+    REP(A,poles) <: AbstractSPMF
+ 
+Creates a rational eigenvalue problem. The REP is defined by the
+sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
+matrices are of size n times n and s_i and q_i are polynomials. The
+constructor takes the matrices A_i and a sequence of poles as input
+(not complete).
+
+
+# Example
+```julia-repl
+julia> A0=[1 2; 3 4]; A1=[3 4; 5 6];
+julia> nep=REP([A0,A1],[1,3]);
+julia> compute_Mder(nep,3)
+2×2 Array{Float64,2}:
+ NaN  NaN
+ NaN  NaN
+```
 """
 
     type REP <: AbstractSPMF
@@ -462,7 +475,7 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i �
             qi=Array{Array{Number,1}}(length(poles))
             for i =1:size(poles,1)
                 if poles[i]!=0
-                    qi[i]=[1,-poles[i]];
+                    qi[i]=[1,-1/poles[i]];
                 else
                     qi[i]=[1];
                 end
