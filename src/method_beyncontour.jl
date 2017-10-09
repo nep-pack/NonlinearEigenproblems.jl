@@ -36,9 +36,11 @@ function contour_beyn{T}(::Type{T},
 
     end
 
-    function local_linsolve(λ,V)
+    function local_linsolve(λ::T,V::Array{T,2}) where {T<:Number}
         @ifd(print("."))
         local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
+        # This requires that lin_solve can handle rectangular
+        # matrices as the RHS
         return lin_solve(M0inv,V);
     end
 
