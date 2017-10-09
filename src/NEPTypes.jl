@@ -103,35 +103,56 @@ matrices in the call of ``compute_MM(...)``.
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
-         function SPMF_NEP(AA, fii::Array, Schur_fact = false)
-             n=size(AA[1],1);
-
-             if(length(AA) != length(fii))
-                 error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
-             end
-             for i = 2:length(AA)
-                 if size(AA[i]) != size(AA[1])
-                     error("The dimensions of the matrices mismatch: size(AA[1])",
-                           size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
-                 end
-             end
-             
-
-             if (issparse(AA[1]))
-                 Zero=spones(AA[1]);
-                 for i=2:length(AA)
-                     Zero=Zero+spones(AA[i]);
-                 end
-                 Zero=(Zero*1im)*0
-             else
-                 Zero=zeros(n,n)
-             end
-
-             
-             this=new(n,AA,fii,Schur_fact,Zero);
-             return this
-         end
     end
+"""
+     SPMF_NEP(AA,fii,Schur_fact=false)
+
+Creates a SPMF_NEP consisting of matrices AA and functions fii. fii must
+be an array of functions defined for matrices. AA is an array of
+matrices. Schur_fact specifies if the computation of compute_MM should be
+done by first pre-computing a Schur-factorization (which can be faster).
+
+
+```julia-repl
+julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
+julia> id_op=S -> eye(S)
+julia> exp_op=S -> expm(S)
+julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
+julia> compute_Mder(nep,1)-(A0+A1*exp(1))
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+```
+"""
+     function SPMF_NEP(AA, fii::Array{Function,1}, Schur_fact = false)
+         n=size(AA[1],1);
+
+         if(length(AA) != length(fii))
+             error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
+         end
+         for i = 2:length(AA)
+             if size(AA[i]) != size(AA[1])
+                 error("The dimensions of the matrices mismatch: size(AA[1])",
+                       size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
+             end
+         end
+         
+
+         if (issparse(AA[1]))
+             Zero=spones(AA[1]);
+             for i=2:length(AA)
+                 Zero=Zero+spones(AA[i]);
+             end
+             Zero=(Zero*1im)*0
+         else
+             Zero=zeros(n,n)
+         end
+
+         
+         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero);
+         return this
+    end
+
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
             if (size(V)==size(nep))
