@@ -231,8 +231,8 @@ Computes the rayleigh functional of nep, i.e., computes λ such that
             count=count+1
             z1=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1))
             z2=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1),[1],1)
-            println("typeof x:",typeof(x)," z1:",typeof(z1)," z2:",typeof(z2),
-                    " λ:",λ)
+            #println("typeof x:",typeof(x)," z1:",typeof(z1)," z2:",typeof(z2),
+            #        " λ:",λ)
             Δλ=- T(dot(y,z1)/dot(y,z2));
             λ += Δλ
         end
