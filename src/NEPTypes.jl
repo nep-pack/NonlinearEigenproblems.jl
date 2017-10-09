@@ -103,35 +103,56 @@ matrices in the call of ``compute_MM(...)``.
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
-         function SPMF_NEP(AA, fii::Array, Schur_fact = false)
-             n=size(AA[1],1);
-
-             if(length(AA) != length(fii))
-                 error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
-             end
-             for i = 2:length(AA)
-                 if size(AA[i]) != size(AA[1])
-                     error("The dimensions of the matrices mismatch: size(AA[1])",
-                           size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
-                 end
-             end
-             
-
-             if (issparse(AA[1]))
-                 Zero=spones(AA[1]);
-                 for i=2:length(AA)
-                     Zero=Zero+spones(AA[i]);
-                 end
-                 Zero=(Zero*1im)*0
-             else
-                 Zero=zeros(n,n)
-             end
-
-             
-             this=new(n,AA,fii,Schur_fact,Zero);
-             return this
-         end
     end
+"""
+     SPMF_NEP(AA,fii,Schur_fact=false)
+
+Creates a SPMF_NEP consisting of matrices AA and functions fii. fii must
+be an array of functions defined for matrices. AA is an array of
+matrices. Schur_fact specifies if the computation of compute_MM should be
+done by first pre-computing a Schur-factorization (which can be faster).
+
+
+```julia-repl
+julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
+julia> id_op=S -> eye(S)
+julia> exp_op=S -> expm(S)
+julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
+julia> compute_Mder(nep,1)-(A0+A1*exp(1))
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+```
+"""
+     function SPMF_NEP(AA::Array, fii::Array{Function,1}, Schur_fact = false)
+         n=size(AA[1],1);
+
+         if(length(AA) != length(fii))
+             error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
+         end
+         for i = 2:length(AA)
+             if size(AA[i]) != size(AA[1])
+                 error("The dimensions of the matrices mismatch: size(AA[1])",
+                       size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
+             end
+         end
+         
+
+         if (issparse(AA[1]))
+             Zero=spones(AA[1]);
+             for i=2:length(AA)
+                 Zero=Zero+spones(AA[i]);
+             end
+             Zero=(Zero*1im)*0
+         else
+             Zero=zeros(n,n)
+         end
+
+         
+         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero);
+         return this
+    end
+
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
             if (size(V)==size(nep))
@@ -281,19 +302,34 @@ matrices A_i, and tauv is a vector of the values tau_i
     """
     type PEP <: AbstractSPMF
 
-A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n \\
-  Constructor: PEP(AA) where AA is an array of the matrices A_i
+A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
 """
 
     type PEP <: AbstractSPMF
         n::Integer
         A::Array   # Monomial coefficients of PEP
-        function PEP(AA)
-            n=size(AA[1],1)
-            AA=reshape(AA,length(AA))
-            return new(n,AA)
-        end
     end
+"""
+    PEP(AA::Array)
+
+Creates a polynomial eigenvalue problem with monomial matrices specified in
+AA, which is an array of matrices.
+
+```julia-repl
+julia> A0=[1 3; 4 5]; A1=A0+eye(2); A2=ones(2,2);
+julia> pep=PEP([A0,A1,A2])
+julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+```
+"""
+    function PEP(AA::Array)
+        n=size(AA[1],1)
+        AA=reshape(AA,length(AA))
+        return PEP(n,AA)
+    end
+
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
@@ -433,13 +469,23 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i �
 
     ###########################################################
     # Rational eigenvalue problem - REP
+"""
+    type REP <: AbstractSPMF
 
-    """
-    REP(A,poles) <: AbstractSPMF
- 
-Creates a rational eigenvalue problem. The REP is defined by the
+A REP represents a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
-matrices are of size n times n and s_i and q_i are polynomials. The
+matrices are of size n times n and s_i and q_i are polynomials.
+"""
+    type REP <: AbstractSPMF
+        n::Integer
+        A::Array   # Monomial coefficients of REP
+        si::Array  # numerator polynomials
+        qi::Array  # demonimator polynomials
+    end
+    """
+    REP(A,poles)
+
+Creates a rational eigenvalue problem. The
 constructor takes the matrices A_i and a sequence of poles as input
 (not complete).
 
@@ -454,35 +500,27 @@ julia> compute_Mder(nep,3)
  NaN  NaN
 ```
 """
+    function REP(AA,poles::Array{<:Number,1})
 
-    type REP <: AbstractSPMF
-        n::Integer
-        A::Array   # Monomial coefficients of REP
-        si::Array  # numerator polynomials
-        qi::Array  # demonimator polynomials
-        # Initiate with order zero numerators and order one denominators
-        # with poles given by poles[]
-        function REP(AA,poles::Array{<:Number,1})
-
-            n=size(AA[1],1)
-            AA=reshape(AA,length(AA)) # allow for 1xn matrices
-            # numerators
-            si=Array{Array{Number,1},1}(length(poles))
-            for i =1:size(poles,1)
-                si[i]=[1];
-            end
-            # denominators
-            qi=Array{Array{Number,1}}(length(poles))
-            for i =1:size(poles,1)
-                if poles[i]!=0
-                    qi[i]=[1,-1/poles[i]];
-                else
-                    qi[i]=[1];
-                end
-            end
-            return new(n,AA,si,qi)
+        n=size(AA[1],1)
+        AA=reshape(AA,length(AA)) # allow for 1xn matrices
+        # numerators
+        si=Array{Array{Number,1},1}(length(poles))
+        for i =1:size(poles,1)
+            si[i]=[1];
         end
+        # denominators
+        qi=Array{Array{Number,1}}(length(poles))
+        for i =1:size(poles,1)
+            if poles[i]!=0
+                qi[i]=[1,-1/poles[i]];
+            else
+                qi[i]=[1];
+            end
+        end
+        return REP(n,AA,si,qi)
     end
+
 
    function compute_MM(nep::REP,S,V)
         local Z0; 

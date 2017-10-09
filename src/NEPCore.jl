@@ -215,10 +215,22 @@ Computes the residual norm ||M(λ)v|| of the nep.
     end
 
   """
-    compute_rf{T}(::Type{T},nep::NEP,x; y=x, target=zero(T), λ0=target,
-                        TOL=eps(real(T))*1e3,max_iter=10)
-Computes the rayleigh functional of nep, i.e., computes λ such that
-   y^TM(λ)x=0.
+    compute_rf([eltype],nep::NEP,x; y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
+
+Computes the Rayleigh functional of nep, i.e., computes λ such that
+`y^TM(λ)x=0`. The default behaviour consists of a scalar valued
+Newton-iteration.
+
+# Example
+
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> x=ones(size(nep,1));
+julia> s=compute_rf(nep,x)
+0.6812131933795569 + 0.0im
+julia> x'*compute_Mlincomb(nep,s,x)
+-8.881784197001252e-16 + 0.0im
+```
 """
     compute_rf(nep::NEP,x;params...) = compute_rf(Complex128,nep,x;params...)
     function compute_rf{T}(::Type{T},nep::NEP,x; y=x, target=zero(T), λ0=target,
