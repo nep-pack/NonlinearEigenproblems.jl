@@ -36,7 +36,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
-    println("Type in iar", typeof(λ))
+    @ifd(println("Type in iar", typeof(λ)))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     vv[:]=v; vv[:]=vv[:]/norm(vv);
