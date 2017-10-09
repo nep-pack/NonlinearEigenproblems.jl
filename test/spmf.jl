@@ -1,3 +1,4 @@
+
 # Tests for SPMF-code
 
 
@@ -12,6 +13,7 @@ using NEPTypes
 using Gallery
 
 using Base.Test
+
 
 @testset "SPMF" begin
     # Create an SPMF
@@ -82,10 +84,10 @@ using Base.Test
         (-speye(n)-t*A1*exp(-t*λ))*V[:,2]+
         (t^2*A1*exp(-t*λ))*V[:,3];
 
-        Z1=compute_Mlincomb_from_MM(nep1,λ,V,[1.0 1.0 1.0])
+        Z1=compute_Mlincomb_from_MM(nep1,λ,V,[1.0,1.0,1.0])
         @test norm(Z1-Zexact)<sqrt(eps())
 
-        Z2=compute_Mlincomb_from_Mder(nep1,λ,V,[1.0 1.0 1.0])
+        Z2=compute_Mlincomb_from_Mder(nep1,λ,V,[1.0,1.0,1.0])
         @test norm(Z2-Zexact)<sqrt(eps())
 
     end
@@ -119,6 +121,22 @@ using Base.Test
         @test norm(N1-N2)<sqrt(eps())*100
 
     end
-    
+
+    @testset "REP" begin
+        srand(10)
+        A0=randn(5,5);        
+        A1=randn(5,5);
+        A2=randn(5,5);
+        # Check that REP generates the
+        # same values as an SPMF generated from the REP
+        nep0=REP([A0,A1,A2],[1,2,3.3])
+        nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
+        for  λ in [3,10,-3,-100];
+            M0=compute_Mder(nep0,λ)
+            M1=compute_Mder(nep1,λ)            
+            @test M0 ≈ M1
+        end
+
+    end
 
 end

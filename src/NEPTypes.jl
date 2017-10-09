@@ -29,6 +29,7 @@ module NEPTypes
 
     import Base.size
     import Base.issparse
+    
 
     export compute_Mder
     export compute_Mlincomb
@@ -37,6 +38,7 @@ module NEPTypes
     export compute_rf
     export size
     export companion
+    export issparse
 
     export get_Av
     export get_fv
@@ -447,7 +449,7 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Î£_i A_i Î
         qi::Array  # demonimator polynomials
         # Initiate with order zero numerators and order one denominators
         # with poles given by poles[]
-        function REP(AA,poles::Array)
+        function REP(AA,poles::Array{<:Number,1})
 
             n=size(AA[1],1)
             AA=reshape(AA,length(AA)) # allow for 1xn matrices
@@ -469,28 +471,29 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Î£_i A_i Î
         end
     end
 
-    function compute_MM(nep::REP,S,V)
+   function compute_MM(nep::REP,S,V)
+        local Z0; 
         if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
-            Si=speye(size(S,1))
+            Si=speye(S)
         else
-            Z=zeros(size(V))
-            Si=eye(size(S,1))
+            Z=zeros(V)
+            Si=eye(S)
         end
         # Sum all the elements
         for i=1:size(nep.A,1)
             # compute numerator
-            Snum=copy(Si);
+            Snum=0*copy(Z);
             Spowj=copy(Si);
-            for j=1:length(nep.si[i])
+            for j=1:size(nep.si[i],1)
                 Snum+=Spowj*nep.si[i][j]
                 Spowj=Spowj*S;
             end
 
             # compute denominator
-            Sden=copy(Si);
+            Sden=0*copy(Z);
             Spowj=copy(Si);
-            for j=1:length(nep.qi[i])
+            for j=1:size(nep.qi[i],1)
                 Sden+=Spowj*nep.qi[i][j]
                 Spowj=Spowj*S;
             end
@@ -516,9 +519,27 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Î£_i A_i Î
     end
     #  Fetch the Fv's, since they are not explicitly stored in PEPs
     function get_fv(nep::REP)
-        error("Not implemented")
+        fv=Array{Function,1}(size(nep.qi,1))
+        for i=1:size(fv,1)
+            fv[i]=S -> (lpolyvalm(nep.qi[i],S)\lpolyvalm(nep.si[i],S))
+        end
+        return fv
     end
 
+    # Evaluation of matrix polynomial with coefficient a
+    function lpolyvalm(a::Array{<:Number,1},S::Array{<:Number,2})
+        Sp=eye(S);
+        Ssum=zeros(S);
+        for j=1:size(a,1)
+            Ssum+= a[j]*Sp;
+            Sp=Sp*S;
+        end
+        return Ssum
+    end
+
+    function issparse(nep::REP)
+        return issparse(nep.A[1])
+    end
 
 
 
