@@ -469,13 +469,23 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 
     ###########################################################
     # Rational eigenvalue problem - REP
+"""
+    type REP <: AbstractSPMF
 
-    """
-    REP(A,poles) <: AbstractSPMF
- 
-Creates a rational eigenvalue problem. The REP is defined by the
+A REP represents a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
-matrices are of size n times n and s_i and q_i are polynomials. The
+matrices are of size n times n and s_i and q_i are polynomials.
+"""
+    type REP <: AbstractSPMF
+        n::Integer
+        A::Array   # Monomial coefficients of REP
+        si::Array  # numerator polynomials
+        qi::Array  # demonimator polynomials
+    end
+    """
+    REP(A,poles)
+
+Creates a rational eigenvalue problem. The
 constructor takes the matrices A_i and a sequence of poles as input
 (not complete).
 
@@ -490,35 +500,27 @@ julia> compute_Mder(nep,3)
  NaN  NaN
 ```
 """
+    function REP(AA,poles::Array{<:Number,1})
 
-    type REP <: AbstractSPMF
-        n::Integer
-        A::Array   # Monomial coefficients of REP
-        si::Array  # numerator polynomials
-        qi::Array  # demonimator polynomials
-        # Initiate with order zero numerators and order one denominators
-        # with poles given by poles[]
-        function REP(AA,poles::Array{<:Number,1})
-
-            n=size(AA[1],1)
-            AA=reshape(AA,length(AA)) # allow for 1xn matrices
-            # numerators
-            si=Array{Array{Number,1},1}(length(poles))
-            for i =1:size(poles,1)
-                si[i]=[1];
-            end
-            # denominators
-            qi=Array{Array{Number,1}}(length(poles))
-            for i =1:size(poles,1)
-                if poles[i]!=0
-                    qi[i]=[1,-1/poles[i]];
-                else
-                    qi[i]=[1];
-                end
-            end
-            return new(n,AA,si,qi)
+        n=size(AA[1],1)
+        AA=reshape(AA,length(AA)) # allow for 1xn matrices
+        # numerators
+        si=Array{Array{Number,1},1}(length(poles))
+        for i =1:size(poles,1)
+            si[i]=[1];
         end
+        # denominators
+        qi=Array{Array{Number,1}}(length(poles))
+        for i =1:size(poles,1)
+            if poles[i]!=0
+                qi[i]=[1,-1/poles[i]];
+            else
+                qi[i]=[1];
+            end
+        end
+        return REP(n,AA,si,qi)
     end
+
 
    function compute_MM(nep::REP,S,V)
         local Z0; 
