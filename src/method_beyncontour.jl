@@ -4,7 +4,22 @@ using QuadGK
 export contour_beyn
 
 """
-    contour_beyn computes eigenvalues using Beyn's contour integral approach
+    λv,V=contour_beyn([eltype],nep;[errmeasure,][tol,][maxit,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N])
+
+The function computes eigenvalues using Beyn's contour integral approach,
+using a circle centered at `σ` with radius `radius`. The quadrature method
+is specified in `quad_method` (`:quadg`,`:quadg_parallel`,`:quadgk`). `k`
+specifies the number of computed eigenvalues. `N` corresponds to the
+number of quadrature points.
+
+# Example
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> λ,v=contour_beyn(nep,radius=1,k=2,quad_method=:quadgk);
+julia> minimum(compute_Mder(nep,λ[1]));
+```
+# References
+* Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
 """
 
 
