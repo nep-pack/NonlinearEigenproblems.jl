@@ -124,7 +124,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA, fii::Array{Function,1}, Schur_fact = false)
+     function SPMF_NEP(AA::Array, fii::Array{Function,1}, Schur_fact = false)
          n=size(AA[1],1);
 
          if(length(AA) != length(fii))
@@ -302,19 +302,34 @@ matrices A_i, and tauv is a vector of the values tau_i
     """
     type PEP <: AbstractSPMF
 
-A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n \\
-  Constructor: PEP(AA) where AA is an array of the matrices A_i
+A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
 """
 
     type PEP <: AbstractSPMF
         n::Integer
         A::Array   # Monomial coefficients of PEP
-        function PEP(AA)
-            n=size(AA[1],1)
-            AA=reshape(AA,length(AA))
-            return new(n,AA)
-        end
     end
+"""
+    PEP(AA::Array)
+
+Creates a polynomial eigenvalue problem with monomial matrices specified in
+AA, which is an array of matrices.
+
+```julia-repl
+julia> A0=[1 3; 4 5]; A1=A0+eye(2); A2=ones(2,2);
+julia> pep=PEP([A0,A1,A2])
+julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+```
+"""
+    function PEP(AA::Array)
+        n=size(AA[1],1)
+        AA=reshape(AA,length(AA))
+        return PEP(n,AA)
+    end
+
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
