@@ -1,7 +1,7 @@
 #The non-linear Arnoldi method, as introduced in "An Arnoldi method for non-linear eigenvalue problems" by H.Voss
 
 export nlar
-
+using IterativeSolvers
 ################################################################################################################
 
 function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
@@ -45,20 +45,23 @@ function  default_eigval_sorter(dd,vv,σ,D,mm)
     return nu,y
 end
 
-function nlar(nep::ProjectableNEP;
-                nev=10,#Number of eigenvalues required
-                errmeasure::Function =
-                default_errmeasure(nep),
-                tol=1e-6,
-                maxit=100,
-                λ=0,
-                v=randn(size(nep,1)),
-                displaylevel=0,
-                nl_eigsolvertype=Union{AbstractString,Function},
-                  linsolvercreator::Function=default_linsolvercreator,
-                  proj_solve::Function = default_proj_solver,
-              eigval_sorter::Function = default_eigval_sorter,
-              qrfact_orth::Bool=false)
+nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
+function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+            ::Type{T},
+            nep::ProjectableNEP;
+            orthmethod::Type{T_orth}=ModifiedGramSchmidt,
+            nev=10,#Number of eigenvalues required
+            errmeasure::Function = default_errmeasure(nep),
+            tol=1e-6,
+            maxit=100,
+            λ=zero(T),
+            v=randn(T,size(nep,1)),
+            displaylevel=0,
+            nl_eigsolvertype=Union{AbstractString,Function},
+            linsolvercreator::Function=default_linsolvercreator,
+            proj_solve::Function = default_proj_solver,
+            eigval_sorter::Function = default_eigval_sorter,
+            qrfact_orth::Bool=false)
 
         local σ::Complex128 = λ; #Initial pole
 
@@ -67,13 +70,13 @@ function nlar(nep::ProjectableNEP;
             maxit=size(nep,1);
         end
         #Initialize the basis V_1
-        V = zeros(Complex128, size(nep,1) ,maxit);
-        X = zeros(Complex128, size(nep,1) ,nev);
-        V[:,1] = normalize(ones(size(nep,1)));
-        Vk = zeros(Complex128, size(nep,1) ,1);
+        V = zeros(T, size(nep,1) ,maxit);
+        X = zeros(T, size(nep,1) ,nev);
+        V[:,1] = normalize(ones(T,size(nep,1)));
+        Vk = zeros(T, size(nep,1) ,1);
         Vk[:,1] = V[:,1];
 
-        D = zeros(Complex128,nev);#To store the converged eigenvalues
+        D = zeros(T,nev);#To store the converged eigenvalues
         err_hyst=eps()*ones(maxit,nev) # Giampaolo's edit
 
         m = 0; #Number of converged eigenvalues
@@ -155,7 +158,7 @@ function nlar(nep::ProjectableNEP;
             else
 
                 # Do our own (double) Gram-Schmidt
-                h = V[:,1:k]'*Δv;
+                #=h = V[:,1:k]'*Δv;
                 V_k1 = Δv-V[:,1:k]*h;
                 g = V[:,1:k]'*V_k1;
                 V_k1 = V_k1-V[:,1:k]*g;
@@ -163,7 +166,15 @@ function nlar(nep::ProjectableNEP;
 
                 #Expand
                 V[:,k+1] = V_k1;
-                Vk = V[:,1:k+1];
+                Vk = V[:,1:k+1];=#
+
+                #Use orthogonalization provided by the package "IterativeSolvers"
+                h=zeros(T,k);
+                orthogonalize_and_normalize!(Vk,Δv,h,orthmethod);
+
+                #Expand basis
+                V[:,k+1] = Δv;
+                Vk = view(V,:,1:k+1);
             end
 
             #Check orthogonalization
