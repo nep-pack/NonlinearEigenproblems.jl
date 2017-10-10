@@ -211,11 +211,11 @@ jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
 </code></pre>
 
 <p>If you want this to appear on our documentation page <a href="https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/">https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
-<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ echo DOCSDIR=`pwd()`
+<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
 jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
 jarl@bjork:/tmp$ cd nep-pack-alpha
-jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/* .
+jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
 jarl@bjork:/tmp/nep-pack-alpha$ git add *
 jarl@bjork:/tmp/nep-pack-alpha$ git commit .
 jarl@bjork:/tmp/nep-pack-alpha$ git push
@@ -385,5 +385,5 @@ julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-10 18:33:44.764833
+Build Date UTC : 2017-10-10 18:38:18.353912
 -->
