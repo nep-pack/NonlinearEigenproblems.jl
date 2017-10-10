@@ -319,8 +319,24 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 
 """
-    quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tol=eps(real(T))*100,][maxit=100,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator,][armijo_factor=1,][armijo_max=5])
-An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ). The function has an implementation of armijo steplength control which may improve the convergence basin (or initial convergence), e.g., by setting `armijo_factor=0.5`.
+    quasinewton{T}([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
+
+An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference.
+The method involves one linear system solve per iteration corresponding with the
+matrix ``M(λ)``, where ``λ`` is constant.
+The vector `ws` is a representation of the normalization, in the sense that ``c^T=w_s^TM(λ)``,
+where all iterates satisfy ``c^Tx_i=1``. See `newton()` for other parameters.
+
+# Example
+```julia-repl
+julia> nep=nep_gallery("pep0")
+julia> λ,v=quasinewton(nep,v=ones(size(nep,1)));
+julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
+6.301479387102376e-15
+```
+
+# References
+* Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492
 """
     quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
     function quasinewton{T}(::Type{T},
