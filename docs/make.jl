@@ -1,4 +1,12 @@
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 using Documenter, NEPCore, NEPTypes
-makedocs()
+#deploydocs(
+#    deps = Deps.pip("pygments", "mkdocs", "python-markdown-math"),
+#)
+
+makedocs(
+    clean = true,
+    doctest = false,
+)
+
 
