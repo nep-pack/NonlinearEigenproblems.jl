@@ -412,13 +412,12 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     # Direct Backslash solver
     type WEPBackslashLinSolver<:LinSolver
         schur_comp::SparseMatrixCSC{Complex128,Int64}
-        kwargs
         nep::WEP_FD
         λ::Complex128
 
-        function WEPBackslashLinSolver(nep::WEP_FD, λ::Union{Complex128,Float64}, kwargs)
+        function WEPBackslashLinSolver(nep::WEP_FD, λ::Union{Complex128,Float64}, kwargs=())
             schur_comp = construct_WEP_schur_complement(nep, λ)
-            return new(schur_comp, kwargs, nep, λ)
+            return new(schur_comp, nep, λ)
         end
     end
 
@@ -428,6 +427,27 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     function wep_backslash_linsolvercreator(nep::WEP_FD, λ, kwargs=())
         return WEPBackslashLinSolver(nep, λ, kwargs)
+    end
+
+
+    # Direct pre-factorized solver
+    type WEPFactorizedLinSolver<:LinSolver
+        schur_comp_fact
+        nep::WEP_FD
+        λ::Complex128
+
+        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{Complex128,Float64}, kwargs=())
+            schur_comp_fact = factorize(construct_WEP_schur_complement(nep, λ))
+            return new(schur_comp_fact, nep, λ)
+        end
+    end
+
+    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Array, tol)
+        return solver.schur_comp_fact \ rhs
+    end
+
+    function wep_factorized_linsolvercreator(nep::WEP_FD, λ, kwargs=())
+        return WEPFactorizedLinSolver(nep, λ, kwargs)
     end
 
 
@@ -465,7 +485,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     # Since Schur-complement transformations are the same.
     # Does transforming between that and the full system.
     # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
-    function lin_solve(solver::Union{WEPBackslashLinSolver,WEPGMRESLinSolver}, x::Array; tol=eps(Float64))
+    function lin_solve(solver::Union{WEPBackslashLinSolver,WEPGMRESLinSolver,WEPFactorizedLinSolver}, x::Array; tol=eps(Float64))
     # Ringh - Proposition 2.1
         λ = solver.λ
         nep = solver.nep
@@ -481,7 +501,8 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
     # Turns the default Linsolver creator for WEP_FD to the GMRES-linsolver with Schur-complement
-    default_linsolvercreator(nep::WEP_FD, λ) = wep_backslash_linsolvercreator(nep, λ)
+    DefaultLinSolver(nep::WEP_FD, λ)   = WEPFactorizedLinSolver(nep, λ)
+    BackslashLinSolver(nep::WEP_FD, λ) = WEPBackslashLinSolver(nep, λ)
 
 
 ###########################################################

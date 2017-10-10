@@ -11,6 +11,7 @@ using Gallery
 export wep_generate_preconditioner
 export wep_gmres_linsolvercreator
 export wep_backslash_linsolvercreator
+export wep_factorized_linsolvercreator
 
 # Specializalized NEPs
 export WEP
@@ -25,6 +26,10 @@ import LinSolvers.lin_solve
 export lin_solve
 import LinSolvers.default_linsolvercreator
 export default_linsolvercreator
+import LinSolvers.DefaultLinSolver
+export DefaultLinSolver
+import LinSolvers.BackslashLinSolver
+export BackslashLinSolver
 
 import Base.size
 export size
