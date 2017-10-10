@@ -1,0 +1,8 @@
+site_name:           Parameters.jl
+repo_url:            https://github.com/mauro3/Parameters.jl
+site_description:    Types with default field values, keyword constructors ...
+site_author:         Mauro Werder
+theme:               readthedocs
+markdown_extensions: [tables, fenced_code]
+pages:
+- Introduction: index.md

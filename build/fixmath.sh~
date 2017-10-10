@@ -1,0 +1,2 @@
+mv build/index.md /tmp/index.md
+cat build/index.md |  perl -pe 's/([^\$])\$([^\$]+)\$/$1\\\\($2\\\\)/g'  > build/index2.md
