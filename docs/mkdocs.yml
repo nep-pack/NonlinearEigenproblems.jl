@@ -1,18 +1,24 @@
-site_name:        PACKAGE
+site_name:        NEPPACK
 repo_url:         https://github.com/USER_NAME/PACKAGE_NAME.jl
 site_description: Description...
 site_author:      NEP-PACK team
 repo_url: https://github.com/JuliaDiff/TaylorSeries.jl
+theme: readthedocs
 
 extra_css:
   - assets/Documenter.css
 
 extra_javascript:
-  - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML
   - assets/mathjaxhelper.js
 
 docs_dir: 'build'
 
-
 pages:
   - Home: index.md
+
+markdown_extensions:
+  - extra
+  - tables
+  - fenced_code
+
