@@ -87,14 +87,14 @@ Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ
     """
     type SPMF_NEP <: AbstractSPMF
 
-An SPMF_NEP is NEP defined by a Sum of Products of Matrices and Functions,
-defined by the sum 
+An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions,
+i.e.,
 ```math
-M(λ)=Σ_i A_i f_i(λ),
+M(λ)=∑_i A_i f_i(λ).
 ```
-where ``i = 0,1,2,...``, all of the matrices are of size ``n×n``
+All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
-for matrices and return be defined in a matrix function sense. 
+for matrices in the standard matrix function sense. 
 """
     type SPMF_NEP <: AbstractSPMF
          n::Integer
@@ -108,9 +108,9 @@ for matrices and return be defined in a matrix function sense.
 """
      SPMF_NEP(AA,fii,Schur_fact=false)
 
-Creates a SPMF_NEP consisting of matrices AA and functions fii. fii must
-be an array of functions defined for matrices. AA is an array of
-matrices. Schur_fact specifies if the computation of compute_MM should be
+Creates a SPMF_NEP consisting of matrices `AA` and functions `fii`. `fii` must
+be an array of functions defined for matrices. `AA` is an array of
+matrices. `Schur_fact` specifies if the computation of `compute_MM` should be
 done by first pre-computing a Schur-factorization (which can be faster).
 
 

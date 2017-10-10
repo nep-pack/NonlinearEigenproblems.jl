@@ -12,7 +12,7 @@ SPMF_NEP
 ```
 
 ```@docs
-SPMF_NEP(AA,fii,Schur_fact=false)
+SPMF_NEP(AA::Array, fii::Array{Function,1}) 
 ```
 
 ```@docs
@@ -40,4 +40,19 @@ jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
 ```
 
 More information about `Documenter.jl`: [here](https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1)
+
+
+
+
+# NEP methods
+
+## Newton type methods
+```@docs
+NEPSolver.newton
+NEPSolver.resinv
+NEPSolver.quasinewton
+NEPSolver.mslp
+```
+## Projection methods
+
 

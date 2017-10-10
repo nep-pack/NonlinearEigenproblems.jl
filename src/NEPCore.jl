@@ -53,7 +53,17 @@ abstract superclass of s.
 
     """
     abstract NEP
-NEP represents a nonlinear eigenvalue problem
+A NEP object represents a nonlinear eigenvalue problem. All NEPs should implement
+```julia-repl
+size(nep::NEP,d)
+```
+and at least one of the following
+```
+M=compute_Mder(nep::NEP,λ::Number;der=0)
+V=compute_Mlincomb(nep::NEP,λ::Number,V::Array{<:Number,2})
+MM=compute_MM(nep::NEP,S::Array{<:Number,2},V::Array{<:Number,2})
+```
+
 """
     abstract type NEP end
 
