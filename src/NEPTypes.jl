@@ -87,13 +87,14 @@ Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ
     """
     type SPMF_NEP <: AbstractSPMF
 
-An SPMF_NEP is defined by the sum the sum ``Σ_i A_i f_i(λ)``,
-where i = 0,1,2,..., all of the matrices are of size n times n
-and f_i is a function. In particular, it must be possible to
-evaluate f_i with a matrix argument\\
-Constructor: SPMF_NEP(AA,fii,Schur_fact = false) where AA is an array of the matrices A_i and 
-fii is an array of the funtion f_i. Set ``Schur_fact = true`` if you want to pre-factorize the
-matrices in the call of ``compute_MM(...)``.
+An SPMF_NEP is NEP defined by a Sum of Products of Matrices and Functions,
+defined by the sum 
+```math
+M(λ)=Σ_i A_i f_i(λ),
+```
+where ``i = 0,1,2,...``, all of the matrices are of size ``n×n``
+and ``f_i`` are a functions. The  functions ``f_i`` must be defined
+for matrices and return be defined in a matrix function sense. 
 """
     type SPMF_NEP <: AbstractSPMF
          n::Integer
@@ -223,7 +224,10 @@ Delay eigenvalue problem
 A DEP (Delay Eigenvalue problem) is defined by
 the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
 of the matrices are of size n times n.\\
-Constructor: DEP(AA,tauv) where AA is an array of the
+Constructor: DEP(AA,tauv) where AA is an array of the 
+```math
+\\frac{n!}{k!(n - k)!} = \\binom{n}{k}
+```
 matrices A_i, and tauv is a vector of the values tau_i
 """
     type DEP <: AbstractSPMF
