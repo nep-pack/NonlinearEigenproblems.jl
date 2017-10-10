@@ -1,0 +1,6 @@
+site_name:        PACKAGE
+repo_url:         https://github.com/USER_NAME/PACKAGE_NAME.jl
+site_description: Description...
+site_author:      NEP-PACK team
+
+docs_dir: 'build'
