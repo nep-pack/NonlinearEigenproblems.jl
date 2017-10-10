@@ -49,10 +49,31 @@ More information about `Documenter.jl`: [here](https://juliadocs.github.io/Docum
 ## Newton type methods
 ```@docs
 NEPSolver.newton
+NEPSolver.augnewton
 NEPSolver.resinv
 NEPSolver.quasinewton
 NEPSolver.mslp
+NEPSolver.rfi
+NEPSolver.newtonqr
+NEPSolver.implicitdet
 ```
 ## Projection methods
+```@docs
+NEPSolver.nlar
+```
+## Arnoldi type methods
+```@docs
+NEPSolver.iar
+NEPSolver.tiar
+NEPSolver.infbilanczos
+```
+
+
+
+
+
+# Gallery
+
+WEP
 
 

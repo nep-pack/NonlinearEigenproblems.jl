@@ -70,6 +70,11 @@
                 
                     <li><a class="toctree-l4" href="#projection-methods">Projection methods</a></li>
                 
+                    <li><a class="toctree-l4" href="#arnoldi-type-methods">Arnoldi type methods</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#gallery">Gallery</a></li>
+                
             
             </ul>
         
@@ -136,7 +141,7 @@ MM=compute_MM(nep::NEP,S::Array{&lt;:Number,2},V::Array{&lt;:Number,2})
 
 <p>An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions, i.e.,</p>
 <p>$$
-M(λ)=∑_i A_i f_i(λ).
+M(λ)=∑_i A_i f_i(λ). 
 $$</p>
 <p>All of the matrices $A_0,...$ are of size $n×n$ and $f_i$ are a functions. The  functions $f_i$ must be defined for matrices in the standard matrix function sense. </p>
 <p><a id='NEPTypes.SPMF_NEP-Tuple{Array,Array{Function,1}}' href='#NEPTypes.SPMF_NEP-Tuple{Array,Array{Function,1}}'>#</a>
@@ -228,6 +233,11 @@ julia&gt; minimum(svdvals(compute_Mder(nep,λ)))
 <li>Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.</li>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
+<p><a id='NEPSolver.augnewton' href='#NEPSolver.augnewton'>#</a>
+<strong><code>NEPSolver.augnewton</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>Augmented Newton's method. Equivalent to newton() but works only with operations on vectors of length n, instead of n+1.
+</code></pre>
+
 <p><a id='NEPSolver.resinv' href='#NEPSolver.resinv'>#</a>
 <strong><code>NEPSolver.resinv</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
@@ -257,8 +267,64 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
 </code></pre>
 
 <p>Method of successive linear problems</p>
+<p><a id='NEPSolver.rfi' href='#NEPSolver.rfi'>#</a>
+<strong><code>NEPSolver.rfi</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+</code></pre>
+
+<p>Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals", by Kathrin Schreiber.</p>
+<p><a id='NEPSolver.newtonqr' href='#NEPSolver.newtonqr'>#</a>
+<strong><code>NEPSolver.newtonqr</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>Newton-QR method.
+</code></pre>
+
+<p><a id='NEPSolver.implicitdet' href='#NEPSolver.implicitdet'>#</a>
+<strong><code>NEPSolver.implicitdet</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>Implicit determinant method
+</code></pre>
+
 <p><a id='Projection-methods-1'></a></p>
 <h2 id="projection-methods">Projection methods</h2>
+<pre><code>NEPSolver.nlar
+</code></pre>
+
+<p><a id='Arnoldi-type-methods-1'></a></p>
+<h2 id="arnoldi-type-methods">Arnoldi type methods</h2>
+<p><a id='NEPSolver.iar' href='#NEPSolver.iar'>#</a>
+<strong><code>NEPSolver.iar</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+</code></pre>
+
+<p><strong>Infinite Arnoldi method</strong></p>
+<p>Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem", by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.</p>
+<p><a id='NEPSolver.tiar' href='#NEPSolver.tiar'>#</a>
+<strong><code>NEPSolver.tiar</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+</code></pre>
+
+<p><strong>Tensor Infinite Arnoldi method</strong></p>
+<p>Tensor Infinite Arnoldi method, as described in Algorithm 2 in  "The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method", by Jarlebring, Elias and Mele, Giampaolo and Runborg, Olof.</p>
+<p><a id='NEPSolver.infbilanczos' href='#NEPSolver.infbilanczos'>#</a>
+<strong><code>NEPSolver.infbilanczos</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
+</code></pre>
+
+<p>Executes the Infinite Bi-Lanczos method on the problem defined by nep::NEP and nept::NEP. nep:NEP is the original nonlinear eigenvalue problem and nept::NEP is its (hermitian) transpose. v and u are starting vectors, σ is the shift and γ the scaling.  See <code>newton()</code> for other parameters.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
+julia&gt; A=get_Av(nep); fv=get_fv(nep);
+julia&gt; nept=SPMF_NEP([A[1]',A[2]',A[3]'],fv); # Create the transposed NEP
+julia&gt; λv,V=infbilanczos(nep,nept,Neig=3)
+julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
+</code></pre>
+
+<p><strong>References:</strong></p>
+<ul>
+<li>The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, arxiv: 1607.03454, to appear in SIAM J. Scientific Computing</li>
+</ul>
+<p><a id='Gallery-1'></a></p>
+<h1 id="gallery">Gallery</h1>
+<p>WEP</p>
               
             </div>
           </div>
@@ -297,5 +363,5 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-10 12:23:33.866753
+Build Date UTC : 2017-10-10 12:35:29.117170
 -->
