@@ -340,6 +340,8 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
 
 ###########################################################
+# Linear Solvers for WEP
+
     # Matrix vector operations for the Schur complement (to be used in GMRES call)
     # Matrix-vector product according to Ringh (2.13) and (3.3)
     type SchurMatVec
@@ -374,16 +376,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
 
-    # Special LinSolver for WEP that solves the system with the Schur-complement
-    # using GMRES as solver (using only mat-vec product)
-    # and does transforming between that and the full system.
-    # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
+    # GMRES Solver
     type WEPGMRESLinSolver<:LinSolver
         schur_comp::LinearMap{Complex128}
         kwargs
         gmres_log::Bool
         nep::WEP_FD
         λ::Complex128
+
         function WEPGMRESLinSolver(nep::WEP_FD,λ::Union{Complex128,Float64},kwargs)
             f = SchurMatVec(nep, λ)
             schur_comp = LinearMap{Complex128}(f, nep.nx*nep.nz, ismutating=false, issymmetric=false, ishermitian=false);
@@ -393,28 +393,15 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             end
             return new(schur_comp, kwargs, gmres_log,nep,λ)
         end
-
     end
 
-    function lin_solve(solver::WEPGMRESLinSolver, x::Array; tol=eps(Float64))
-    # Ringh - Proposition 2.1
-        λ = solver.λ
-        nep = solver.nep
-
-        x_int = x[1:(nep.nx*nep.nz)]
-        x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
-
-        rhs = vec(  x_int - nep.C1*nep.Pinv(λ, x_ext))
-
+    function WEP_inner_lin_solve(solver::WEPGMRESLinSolver, rhs::Array, tol)
         if( solver.gmres_log )
             q, convhist = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
         else
             q = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
         end
-
-        x = [q; vec(nep.Pinv(λ, -nep.C2T * q + x_ext))]
-
-        return x
+        return q
     end
 
     function wep_gmres_linsolvercreator(nep::WEP_FD, λ, kwargs=())
@@ -422,47 +409,63 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
 
-    # Special LinSolver for WEP that solves the system with the Schur-complement
-    # a direct solver (requiring full matrix construction)
-    # and does transforming between that and the full system.
-    # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
+    # Direct Backslash solver
     type WEPBackslashLinSolver<:LinSolver
         schur_comp::SparseMatrixCSC{Complex128,Int64}
         kwargs
         nep::WEP_FD
         λ::Complex128
+
         function WEPBackslashLinSolver(nep::WEP_FD, λ::Union{Complex128,Float64}, kwargs)
-            nz = nep.nz
-            nx = nep.nx
-            Inz = speye(Complex128,nz,nz)
-            Inx = speye(Complex128,nx,nx)
-
-            P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
-            Pinv_minus = Array{Complex128}(nz,nz)
-            Pinv_plus = Array{Complex128}(nz,nz)
-            e = zeros(Complex128,nz)
-            for i = 1:nz
-                e[:] = 0
-                e[i] = 1
-                Pinv_minus[:,i] = P_inv_m(e)
-                Pinv_plus[:,i] = P_inv_p(e)
-            end
-
-            E = spzeros(nx,nx)
-            E[1,1] = nep.d1/(nep.hx^2)
-            E[1,2] = nep.d2/(nep.hx^2)
-            EE = spzeros(nx,nx)
-            EE[nx,nx] = nep.d1/(nep.hx^2)
-            EE[nx,nx-1] = nep.d2/(nep.hx^2)
-
-            # Kronecker product form of Ringh - Proposition 3.1
-            schur_comp = kron(nep.B(λ)', Inz) + kron(Inx, nep.A(λ)) + spdiagm(nep.K[:]) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
-
+            schur_comp = construct_WEP_schur_complement(nep, λ)
             return new(schur_comp, kwargs, nep, λ)
         end
     end
 
-    function lin_solve(solver::WEPBackslashLinSolver, x::Array; tol=eps(Float64))
+    function WEP_inner_lin_solve(solver::WEPBackslashLinSolver, rhs::Array, tol)
+        return solver.schur_comp \ rhs
+    end
+
+    function wep_backslash_linsolvercreator(nep::WEP_FD, λ, kwargs=())
+        return WEPBackslashLinSolver(nep, λ, kwargs)
+    end
+
+
+    # Helper functions for WEP LinSolvers. To avoid code repetition.
+    # Assembls the full Schur-complement, used in both Backslash and LU solvers
+    function construct_WEP_schur_complement(nep::WEP_FD, λ::Union{Complex128,Float64})
+        nz = nep.nz
+        nx = nep.nx
+        Inz = speye(Complex128,nz,nz)
+        Inx = speye(Complex128,nx,nx)
+
+        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
+        Pinv_minus = Array{Complex128}(nz,nz)
+        Pinv_plus = Array{Complex128}(nz,nz)
+        e = zeros(Complex128,nz)
+        for i = 1:nz
+            e[:] = 0
+            e[i] = 1
+            Pinv_minus[:,i] = P_inv_m(e)
+            Pinv_plus[:,i] = P_inv_p(e)
+        end
+
+        E = spzeros(nx,nx)
+        E[1,1] = nep.d1/(nep.hx^2)
+        E[1,2] = nep.d2/(nep.hx^2)
+        EE = spzeros(nx,nx)
+        EE[nx,nx] = nep.d1/(nep.hx^2)
+        EE[nx,nx-1] = nep.d2/(nep.hx^2)
+
+        # Kronecker product form of Ringh - Proposition 3.1
+        return kron(nep.B(λ)', Inz) + kron(Inx, nep.A(λ)) + spdiagm(nep.K[:]) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
+    end
+
+    # lin_solve function to wrapp all the WEP linear solvers.
+    # Since Schur-complement transformations are the same.
+    # Does transforming between that and the full system.
+    # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
+    function lin_solve(solver::Union{WEPBackslashLinSolver,WEPGMRESLinSolver}, x::Array; tol=eps(Float64))
     # Ringh - Proposition 2.1
         λ = solver.λ
         nep = solver.nep
@@ -471,16 +474,11 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
         rhs =  vec(  x_int - nep.C1*nep.Pinv(λ, x_ext))
 
-        q = solver.schur_comp \ rhs
+        q = WEP_inner_lin_solve(solver, rhs, tol)
 
         return [q; vec(nep.Pinv(λ, -nep.C2T * q + x_ext))]
 
     end
-
-    function wep_backslash_linsolvercreator(nep::WEP_FD, λ, kwargs=())
-        return WEPBackslashLinSolver(nep, λ, kwargs)
-    end
-
 
     # Turns the default Linsolver creator for WEP_FD to the GMRES-linsolver with Schur-complement
     default_linsolvercreator(nep::WEP_FD, λ) = wep_backslash_linsolvercreator(nep, λ)

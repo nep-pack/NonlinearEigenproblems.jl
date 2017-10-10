@@ -41,6 +41,7 @@ import GalleryWaveguide.SchurMatVec
 import GalleryWaveguide.solve_wg_sylvester_fft!
 import GalleryWaveguide.generate_smw_matrix
 import GalleryWaveguide.solve_smw
+import GalleryWaveguide.construct_WEP_schur_complement
 
 
 ########### SOME REFERENCE IMPLEMENTATIONS ################
@@ -416,8 +417,7 @@ function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
             Schur_j[:,i] += Schur_fun* V
         end
 
-        bs_linsolver = wep_backslash_linsolvercreator(nep_j, γ)
-        Schur_jj = bs_linsolver.schur_comp
+        Schur_jj = full(construct_WEP_schur_complement(nep_j, γ))
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
