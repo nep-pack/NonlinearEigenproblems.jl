@@ -141,7 +141,7 @@ MM=compute_MM(nep::NEP,S::Array{&lt;:Number,2},V::Array{&lt;:Number,2})
 
 <p>An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions, i.e.,</p>
 <p>$$
-M(λ)=∑_i A_i f_i(λ). 
+M(λ)=∑_i A_i f_i(λ).
 $$</p>
 <p>All of the matrices $A_0,...$ are of size $n×n$ and $f_i$ are a functions. The  functions $f_i$ must be defined for matrices in the standard matrix function sense. </p>
 <p><a id='NEPTypes.SPMF_NEP-Tuple{Array,Array{Function,1}}' href='#NEPTypes.SPMF_NEP-Tuple{Array,Array{Function,1}}'>#</a>
@@ -204,10 +204,21 @@ x=x_1+1
 $$</p>
 <p><a id='Compiling-the-documentation-1'></a></p>
 <h1 id="compiling-the-documentation">Compiling the documentation</h1>
-<p>Compile this documentation site by running:</p>
+<p>Compile this documentation page by running:</p>
 <pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ mkdocs build --clean
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
+</code></pre>
+
+<p>If you want this to appear on our documentation page <a href="https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/">https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
+<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
+jarl@bjork:/tmp$ cd nep-pack-alpha
+jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
+jarl@bjork:/tmp/nep-pack-alpha$ git add *
+jarl@bjork:/tmp/nep-pack-alpha$ git commit .
+jarl@bjork:/tmp/nep-pack-alpha$ git push
 </code></pre>
 
 <p>More information about <code>Documenter.jl</code>: <a href="https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1">here</a></p>
@@ -257,10 +268,21 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
 </ul>
 <p><a id='NEPSolver.quasinewton' href='#NEPSolver.quasinewton'>#</a>
 <strong><code>NEPSolver.quasinewton</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>quasinewton{T}([T=Complex128],nep::NEP,[errmeasure,][tol=eps(real(T))*100,][maxit=100,][λ=0,][v=randn(real(T),size(nep,1)),][ws=v,][displaylevel=0,][linsolvercreator::Function=default_linsolvercreator,][armijo_factor=1,][armijo_max=5])
+<pre><code>quasinewton([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
 </code></pre>
 
-<p>An implementation of quasi-newton 2 as described in https://arxiv.org/pdf/1702.08492.pdf. The vector ws is a prepresentation of the normalization, in the sense that c'=ws'M(λ). The function has an implementation of armijo steplength control which may improve the convergence basin (or initial convergence), e.g., by setting <code>armijo_factor=0.5</code>.</p>
+<p>An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference. The method involves one linear system solve per iteration corresponding with the matrix $M(λ)$, where $λ$ is constant. The vector <code>ws</code> is a representation of the normalization, in the sense that $c^T=w_s^TM(λ)$, where all iterates satisfy $c^Tx_i=1$. See <code>newton()</code> for other parameters.</p>
+<p><strong>Example</strong></p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
+julia&gt; λ,v=quasinewton(nep,v=ones(size(nep,1)));
+julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
+6.301479387102376e-15
+</code></pre>
+
+<p><strong>References</strong></p>
+<ul>
+<li>Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492</li>
+</ul>
 <p><a id='NEPSolver.mslp' href='#NEPSolver.mslp'>#</a>
 <strong><code>NEPSolver.mslp</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code> mslp(nep,..)
@@ -363,5 +385,5 @@ julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-10 12:35:29.117170
+Build Date UTC : 2017-10-10 18:38:18.353912
 -->

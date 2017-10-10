@@ -32,12 +32,26 @@ x=x_1+1
 
 # Compiling the documentation
 
-Compile this documentation site by running:
+Compile this documentation page by running:
 ```
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ mkdocs build --clean
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
 ```
+If you want this to appear on our documentation page
+[https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/](https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/)
+you need to push it to the `gh-branch`, e.g.,  by running
+```
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b "gh-pages" git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
+jarl@bjork:/tmp$ cd nep-pack-alpha
+jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
+jarl@bjork:/tmp/nep-pack-alpha$ git add *
+jarl@bjork:/tmp/nep-pack-alpha$ git commit . -m "refresh docs"
+jarl@bjork:/tmp/nep-pack-alpha$ git push
+```
+
 
 More information about `Documenter.jl`: [here](https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1)
 
