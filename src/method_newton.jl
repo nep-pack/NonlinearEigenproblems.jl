@@ -319,7 +319,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 
 """
-    quasinewton{T}([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
+    quasinewton([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
 
 An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference.
 The method involves one linear system solve per iteration corresponding with the
