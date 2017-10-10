@@ -500,7 +500,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     end
 
-    # Turns the default Linsolver creator for WEP_FD to the GMRES-linsolver with Schur-complement
+    # Overloads Defalut and Backslash LinSolvers
     DefaultLinSolver(nep::WEP_FD, λ)   = WEPFactorizedLinSolver(nep, λ)
     BackslashLinSolver(nep::WEP_FD, λ) = WEPBackslashLinSolver(nep, λ)
 
