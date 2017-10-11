@@ -49,22 +49,35 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
-        y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k);
-        for j=1:k
-            y[:,j+1]=y[:,j+1]/j;
+        # just a test
+        # hardcoded matrix L
+        temp=reshape(vv[1:k*n],n,k);
+        println("temp",temp)
+
+        if k==1
+            L=2;
+        else
+            L=diagm(vcat(2, 1./(2:k)),0)+diagm(-vcat(1./(1:(k-2))),-2);
         end
-        y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-        y[:,1] = -lin_solve(M0inv,y[:,1]);
+        y[:,2:k+1]=reshape(vv[1:k*n],n,k)*L;
+        # end test
+        #println("Matrix y",y)
+
+        y[:,1] = compute_y0(reshape(vv[1:k*n],n,k),y[:,2:k+1],nep);
+        #println("Matrix y after y0",y)
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 
+        #println("Vector vv",vv)
+        #println("Matrix H",H[1:k,1:k])
+
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
             D,Z=eig(H[1:k,1:k]);
             VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=σ+γ./D;
+            Q=VV*Z; λ=D;
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
@@ -94,4 +107,49 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     end
 
     return λ,Q,err[1:k,:],V[:,1:k]
+end
+
+
+function compute_y0(x,y,nep)
+   n,N=size(y);
+   y0=zeros(n,1);
+   A0=nep.A[2];
+   A1=nep.A[3];
+
+
+   for i=1:N
+      y0=y0+T(i,3)*y[:,i];
+   end
+   y0=-A1*y0;
+
+   for i=1:N-1
+      # be careful with the index of x. It starts from zero.
+      y0=y0+2*i*U(i-1,1)*x[:,i+1];
+   end
+   y0=y0-A0*sum(y,2);
+   y0=(A0+A1)\y0;
+
+end
+
+
+# Chebyshev polynomials of the first kind
+function T(i,x)
+   if i==0
+      1
+   elseif i==1
+      x
+   else
+      2*x*T(i-1,x)-T(i-2,x)
+   end
+end
+
+# Chebyshev polynomials of the second kind
+function U(i,x)
+   if i==0
+      1
+   elseif i==1
+      2*x
+   else
+      2*x*U(i-1,x)-U(i-2,x)
+   end
 end
