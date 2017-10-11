@@ -8,9 +8,9 @@ export contour_beyn
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
-is specified in `quad_method` (`:quadg`,`:quadg_parallel`,`:quadgk`). `k`
+is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
-number of quadrature points.
+number of quadrature points. 
 
 # Example
 ```julia-repl
@@ -36,7 +36,7 @@ function contour_beyn{T}(::Type{T},
                          linsolvercreator::Function=backslash_linsolvercreator,
                          k=3, # Number of eigenvals to compute
                          radius=1, # integration radius
-                         quad_method=:quadg_parallel, # which method to run. :quadg, :quadg_parallel, :quadgk
+                         quad_method=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                          N=1000)  # Nof quadrature nodes 
 
     
@@ -79,6 +79,10 @@ function contour_beyn{T}(::Type{T},
         @ifd(print(" using quadg"))
         A0=quadg(f1,0,2*pi,N);
         A1=quadg(f2,0,2*pi,N);
+    elseif (quad_method == :ptrapz)
+        @ifd(print(" using ptrapz"))
+        A0=ptrapz(f1,0,2*pi,N);
+        A1=ptrapz(f2,0,2*pi,N);
     elseif (quad_method == :quadgk)
         @ifd(print(" using quadgk"))
         A0,tmp=quadgk(f1,0,2*pi,reltol=tol);
@@ -135,6 +139,18 @@ function quadg(f,a,b,N)
         S+= f(t[i])*w[i]
     end
     return S;
+end
+
+
+# Trapezoidal rule for a periodic function f
+function ptrapz(f,a,b,N)
+    h=(b-a)/N
+    t=linspace(a,b-h,N);
+    S=zeros(f(t[1]))
+    for i=1:N
+        S+=f(t[i])
+    end
+    return h*S;
 end
 
 
