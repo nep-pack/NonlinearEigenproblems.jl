@@ -14,6 +14,8 @@ using LinSolvers
 
 using Base.Test
 
+
+
 @testset "Beyn contour" begin
     nep=nep_gallery("dep0")
     @testset "disk at origin" begin
@@ -29,6 +31,12 @@ using Base.Test
         M=compute_Mder(nep,λ[2])
         @test minimum(svdvals(M))<eps()*1000
 
+
+        λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:ptrapz,N=100)
+        M=compute_Mder(nep,λ[1])
+        minimum(svdvals(M))
+        @test minimum(svdvals(M))<eps()*1000
+        
     end
     @testset "shifted disk" begin
 
