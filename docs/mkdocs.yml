@@ -2,7 +2,7 @@ site_name:        NEPPACK
 repo_url:         https://github.com/USER_NAME/PACKAGE_NAME.jl
 site_description: Description...
 site_author:      NEP-PACK team
-repo_url: https://github.com/JuliaDiff/TaylorSeries.jl
+repo_url: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha
 theme: readthedocs
 
 extra_css:

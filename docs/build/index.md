@@ -16,8 +16,7 @@ Compile this documentation page by running:
 
 
 ```
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ mkdocs build --clean
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl &&  mkdocs build --clean
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
 ```
 
@@ -298,7 +297,17 @@ $$
 λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
 ```
 
-Applies Newton-Raphsons method on nonlinear equation with `(n+1)` unknowns. errmeasure is a function handle which specifies provides a procedure for error measure and termination. The iteration is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization. `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
+Applies Newton-Raphsons method on the system of  nonlinear equations with `n+1` unknowns:
+
+$$
+M(λ)v=0
+$$
+
+$$
+c^Hv-1=0
+$$
+
+The kwarg `errmeasure` is a function handle which specifies provides a procedure for error measure and termination (default is residual norm). The iteration is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization. `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
 
 **Example**
 

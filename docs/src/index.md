@@ -9,8 +9,7 @@ This is the documentation of the NEPPACK package.
 
 Compile this documentation page by running:
 ```
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ mkdocs build --clean
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl &&  mkdocs build --clean
 jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
 ```
 If you want this to appear on our documentation page
