@@ -252,7 +252,25 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
     # New augnewton
 """
-    Augmented Newton's method. Equivalent to newton() but works only with operations on vectors of length n, instead of n+1.
+    augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][linsolvercreator,][armijo_factor,][armijo_max])
+
+Run the augmented Newton method. The method is equivalent to `newton()`
+in exact arithmetic,  but works only with operations on vectors of
+length `n`. The `linsolvecreator` is used to initiate linear solvers.
+See `newton()` for other parameters.
+
+# Example
+This illustrates the equivalence between `newton` and `augnewton`.
+```julia-repl
+julia> nep=nep_gallery("dep1")
+julia> λ1,v1=newton(nep,maxit=20,v=ones(size(nep,1)),λ=0)
+julia> λ2,v2=augnewton(nep,maxit=20,v=ones(size(nep,1)),λ=0)
+julia> λ1-λ2
+0.0 + 0.0im
+```
+# References
+* Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.
+* A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 """
     augnewton(nep::NEP;params...)=augnewton(Complex128,nep;params...)
     function augnewton{T}(::Type{T},
