@@ -307,7 +307,7 @@ $$
 c^Hv-1=0
 $$
 
-The kwarg `errmeasure` is a function handle which specifies provides a procedure for error measure and termination (default is residual norm). The iteration is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization. `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
+The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). The iteration is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization. `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
 
 **Example**
 
@@ -341,13 +341,22 @@ Augmented Newton's method. Equivalent to newton() but works only with operations
 λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
 ```
 
-Applies residual inverse iteration method for nonlinear eigenvalue problems. linsolvecreator is a function which specifies how the linear system is created. See `newton()` for other parameters.
+Applies residual inverse iteration method for nonlinear eigenvalue problems. The kwarg `linsolvecreator` is a function which specifies how the linear system is created. The function calls `compute_rf` for the computation of the Rayleigh functional. See `newton()` for other parameters. 
 
 **Example**
 
+The example shows how to specify if the method should run in real or complex mode (or any other `Number` type).
+
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
-julia> λ,v=resinv(Complex128,nep,λ=-2,v=ones(size(nep,1)))
+julia> λ,v=resinv(nep,λ=-2,v=ones(size(nep,1)))
+julia> typeof(λ)
+Complex{Float64}
+julia> norm(compute_Mlincomb(nep,λ,v))
+1.817030659827106e-14                   
+julia> λ,v=resinv(Float64,nep,λ=-2,v=ones(size(nep,1)))
+julia> typeof(λ)
+Float64
 julia> norm(compute_Mlincomb(nep,λ,v))
 1.817030659827106e-14                   
 ```
