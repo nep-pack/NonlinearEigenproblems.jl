@@ -53,7 +53,7 @@ abstract superclass of s.
 
     """
     abstract NEP
-A NEP object represents a nonlinear eigenvalue problem. All NEPs should implement
+A `NEP` object represents a nonlinear eigenvalue problem. All NEPs should implement
 ```julia-repl
 size(nep::NEP,d)
 ```
@@ -139,7 +139,7 @@ if you want efficiency (for aug_newton, IAR, ..).
 
 """
     compute_MM(nep::NEP,S,V)
-Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP, where `S` and `V` are matrices.
+Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP, where ``S`` and ``V`` are matrices, and the NEP satisfies ``M(λ)=Σ_i M_i f_i(λ)``.
 
 # Example
 This example shows that for diagonal `S`, the result of `compute_MM` can
@@ -157,6 +157,13 @@ julia> norm(W[:,1]-compute_Mlincomb(nep,D[1,1],V[:,1]))
 julia> norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
 0.0
 ```
+# Reference
+Properties of the quantity ``Σ_i M_i V f_i(S)`` for
+non-polynomial nonlinear eigenvalue problems were
+extensively used in:
+* D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372
+* C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne
+
 """
     function compute_MM(nep::NEP,S,V)
         error("No procedure to compute MM")
