@@ -307,7 +307,14 @@ $$</p>
 <pre><code>λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
 </code></pre>
 
-<p>Applies Newton-Raphsons method on nonlinear equation with <code>(n+1)</code> unknowns. errmeasure is a function handle which specifies provides a procedure for error measure and termination. The iteration is continued until errmeausure is less than <code>tol</code>. <code>λ</code> and <code>v</code> are starting approximations. <code>c</code> is the orthogonalization vector.  If <code>c=0</code> the current approximation will be used for the orthogonalization. <code>armijo_factor</code> specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable <code>armijo_max</code> specifies the maximum number of step length reductions.</p>
+<p>Applies Newton-Raphsons method on the system of  nonlinear equations with <code>n+1</code> unknowns:</p>
+<p>$$
+M(λ)v=0
+$$</p>
+<p>$$
+c^Hv-1=0
+$$</p>
+<p>The kwarg <code>errmeasure</code> is a function handle which specifies provides a procedure for error measure and termination (default is residual norm). The iteration is continued until errmeausure is less than <code>tol</code>. <code>λ</code> and <code>v</code> are starting approximations. <code>c</code> is the orthogonalization vector.  If <code>c=0</code> the current approximation will be used for the orthogonalization. <code>armijo_factor</code> specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable <code>armijo_max</code> specifies the maximum number of step length reductions.</p>
 <p><strong>Example</strong></p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
 julia&gt; λ,v=newton(nep);
@@ -487,5 +494,5 @@ julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-12 07:22:19.899636
+Build Date UTC : 2017-10-12 07:32:29.874475
 -->
