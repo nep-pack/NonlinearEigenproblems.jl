@@ -15,8 +15,11 @@ extra_javascript:
 docs_dir: 'build'
 
 pages:
-  - Home: index.md
-
+  - Introduction: index.md
+  - NEP Methods: methods.md
+  - NEP transformations: transformations.md
+  - NEP Gallery: gallery.md
+  
 markdown_extensions:
   - extra
   - tables
