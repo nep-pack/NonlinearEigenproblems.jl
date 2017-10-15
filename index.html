@@ -164,7 +164,7 @@ julia&gt; λ,v=polyeig(nep)
 </code></pre>
 
 <p>You have now solved your first nonlinear eigenvalue problem with NEPPACK.</p>
-<p>If we have a solution, then M(λ) should be singular, with a singular vector v such that M(λ)v=0:</p>
+<p>If we have a solution, then $M(λ)$ should be singular, with a singular vector v such that M(λ)v=0:</p>
 <pre><code class="julia-repl">julia&gt; λ1=λ[1]; v1=v[:,1];
 julia&gt; norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 1.1502634749464687e-14
@@ -420,5 +420,5 @@ jarl@bjork:/tmp/nep-pack-alpha$ git push
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-15 09:56:52.789942
+Build Date UTC : 2017-10-15 11:42:00.137961
 -->
