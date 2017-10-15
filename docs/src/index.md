@@ -34,7 +34,7 @@ julia> λ,v=polyeig(nep)
 You have now solved your first nonlinear eigenvalue
 problem with NEPPACK.
 
-If we have a solution, then M(λ) should be singular,
+If we have a solution, then ``M(λ)`` should be singular,
 with a singular vector v such that M(λ)v=0:
 ```julia-repl
 julia> λ1=λ[1]; v1=v[:,1];
