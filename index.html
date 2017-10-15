@@ -54,14 +54,14 @@
           
             <li>
     <li class="toctree-l1 current">
-        <a class="current" href=".">Home</a>
+        <a class="current" href=".">Introduction</a>
         
             <ul>
             
-                <li class="toctree-l3"><a href="#neppack-documentation">NEPPACK documentation</a></li>
+                <li class="toctree-l3"><a href="#neppack">NEPPACK</a></li>
                 
             
-                <li class="toctree-l3"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
+                <li class="toctree-l3"><a href="#getting-started">Getting started</a></li>
                 
             
                 <li class="toctree-l3"><a href="#nepcore">NEPCore</a></li>
@@ -72,19 +72,34 @@
                 <li class="toctree-l3"><a href="#neptypes">NEPTypes</a></li>
                 
             
-                <li class="toctree-l3"><a href="#nep-methods">NEP methods</a></li>
-                
-                    <li><a class="toctree-l4" href="#newton-type-methods">Newton type methods</a></li>
-                
-                    <li><a class="toctree-l4" href="#projection-methods">Projection methods</a></li>
-                
-                    <li><a class="toctree-l4" href="#arnoldi-type-methods">Arnoldi type methods</a></li>
-                
-            
                 <li class="toctree-l3"><a href="#gallery">Gallery</a></li>
                 
             
+                <li class="toctree-l3"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
+                
+            
             </ul>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="methods/">NEP Methods</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="transformations/">NEP transformations</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
+        <a class="" href="gallery/">NEP Gallery</a>
         
     </li>
 <li>
@@ -111,7 +126,7 @@
     
       
     
-    <li>Home</li>
+    <li>Introduction</li>
     <li class="wy-breadcrumbs-aside">
       
         
@@ -123,28 +138,39 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='NEPPACK-documentation-1'></a></p>
-<h1 id="neppack-documentation">NEPPACK documentation</h1>
-<p>This is the documentation of the NEPPACK package.</p>
-<p><a id='Compiling-the-documentation-1'></a></p>
-<h1 id="compiling-the-documentation">Compiling the documentation</h1>
-<p>Compile this documentation page by running:</p>
-<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl &amp;&amp;  mkdocs build --clean
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
+                <p><a id='NEPPACK-1'></a></p>
+<h1 id="neppack">NEPPACK</h1>
+<p>Welcome to the NEPPACK documentation pages.</p>
+<p><a id='Getting-started-1'></a></p>
+<h1 id="getting-started">Getting started</h1>
+<p>Let's solve a polynomial eigenvalue problem. First we need to load the appropriate packages. </p>
+<pre><code class="julia-repl">julia&gt; using NEPCore, NEPSolver
 </code></pre>
 
-<p>If you want this to appear on our documentation page <a href="https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/">https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
-<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
-jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
-jarl@bjork:/tmp$ cd nep-pack-alpha
-jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
-jarl@bjork:/tmp/nep-pack-alpha$ git add *
-jarl@bjork:/tmp/nep-pack-alpha$ git commit . -m &quot;refresh docs&quot;
-jarl@bjork:/tmp/nep-pack-alpha$ git push
+<p>The first time you run this, you will normally get an error message,</p>
+<pre><code class="julia-repl">
 </code></pre>
 
-<p>More information about <code>Documenter.jl</code>: <a href="https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1">here</a></p>
+<p>NEPPACK builds on the community contributed julia packages. These need to be installed the first time you use them, by running for the corresponding packages:</p>
+<pre><code class="julia-repl">julia&gt; Pkg.add(&quot;IterativeSolvers&quot;)
+</code></pre>
+
+<p>We are now ready to create and solve a nonlinear eigenvalue problem:</p>
+<pre><code class="julia-repl">julia&gt; A0=[1 3; 5 6]; A1=[3 4; 6 6]
+julia&gt; nep=PEP([A0,A1,eye(2)])
+NEPTypes.PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
+julia&gt; λ,v=polyeig(nep)
+(Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
+</code></pre>
+
+<p>You have now solved your first nonlinear eigenvalue problem with NEPPACK.</p>
+<p>If we have a solution, then M(λ) should be singular, with a singular vector v such that M(λ)v=0:</p>
+<pre><code class="julia-repl">julia&gt; λ1=λ[1]; v1=v[:,1];
+julia&gt; norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
+1.1502634749464687e-14
+</code></pre>
+
+<p>Reproduce an example in DDE-BIFTOOL</p>
 <p><a id='NEPCore-1'></a></p>
 <h1 id="nepcore">NEPCore</h1>
 <p>The basic class is the abstract class <code>NEP</code> which represents a NEP. </p>
@@ -298,135 +324,6 @@ julia&gt; norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1
 <p>$$
 x=x_1+1
 $$</p>
-<p><a id='NEP-methods-1'></a></p>
-<h1 id="nep-methods">NEP methods</h1>
-<p><a id='Newton-type-methods-1'></a></p>
-<h2 id="newton-type-methods">Newton type methods</h2>
-<p><a id='NEPSolver.newton' href='#NEPSolver.newton'>#</a>
-<strong><code>NEPSolver.newton</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
-</code></pre>
-
-<p>Applies Newton-Raphsons method on the system of  nonlinear equations with <code>n+1</code> unknowns:</p>
-<p>$$
-M(λ)v=0
-$$</p>
-<p>$$
-c^Hv-1=0
-$$</p>
-<p>The kwarg <code>errmeasure</code> is a function handle which specifies provides a procedure for error measure and termination (default is residual norm). The iteration is continued until errmeausure is less than <code>tol</code>. <code>λ</code> and <code>v</code> are starting approximations. <code>c</code> is the orthogonalization vector.  If <code>c=0</code> the current approximation will be used for the orthogonalization. <code>armijo_factor</code> specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable <code>armijo_max</code> specifies the maximum number of step length reductions.</p>
-<p><strong>Example</strong></p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
-julia&gt; λ,v=newton(nep);
-julia&gt; minimum(svdvals(compute_Mder(nep,λ)))
-1.6066157878930876e-16
-</code></pre>
-
-<p><strong>References</strong></p>
-<ul>
-<li>Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.</li>
-<li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
-</ul>
-<p><a id='NEPSolver.augnewton' href='#NEPSolver.augnewton'>#</a>
-<strong><code>NEPSolver.augnewton</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>Augmented Newton's method. Equivalent to newton() but works only with operations on vectors of length n, instead of n+1.
-</code></pre>
-
-<p><a id='NEPSolver.resinv' href='#NEPSolver.resinv'>#</a>
-<strong><code>NEPSolver.resinv</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
-</code></pre>
-
-<p>Applies residual inverse iteration method for nonlinear eigenvalue problems. linsolvecreator is a function which specifies how the linear system is created. See <code>newton()</code> for other parameters.</p>
-<p><strong>Example</strong></p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;qdep0&quot;);
-julia&gt; λ,v=resinv(Complex128,nep,λ=-2,v=ones(size(nep,1)))
-julia&gt; norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14                   
-</code></pre>
-
-<p><strong>References</strong></p>
-<ul>
-<li>A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923</li>
-</ul>
-<p><a id='NEPSolver.quasinewton' href='#NEPSolver.quasinewton'>#</a>
-<strong><code>NEPSolver.quasinewton</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>quasinewton([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
-</code></pre>
-
-<p>An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference. The method involves one linear system solve per iteration corresponding with the matrix $M(λ)$, where $λ$ is constant. The vector <code>ws</code> is a representation of the normalization, in the sense that $c^T=w_s^TM(λ)$, where all iterates satisfy $c^Tx_i=1$. See <code>newton()</code> for other parameters.</p>
-<p><strong>Example</strong></p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
-julia&gt; λ,v=quasinewton(nep,v=ones(size(nep,1)));
-julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
-6.301479387102376e-15
-</code></pre>
-
-<p><strong>References</strong></p>
-<ul>
-<li>Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492</li>
-</ul>
-<p><a id='NEPSolver.mslp' href='#NEPSolver.mslp'>#</a>
-<strong><code>NEPSolver.mslp</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code> mslp(nep,..)
-</code></pre>
-
-<p>Method of successive linear problems</p>
-<p><a id='NEPSolver.rfi' href='#NEPSolver.rfi'>#</a>
-<strong><code>NEPSolver.rfi</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
-</code></pre>
-
-<p>Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals", by Kathrin Schreiber.</p>
-<p><a id='NEPSolver.newtonqr' href='#NEPSolver.newtonqr'>#</a>
-<strong><code>NEPSolver.newtonqr</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>Newton-QR method.
-</code></pre>
-
-<p><a id='NEPSolver.implicitdet' href='#NEPSolver.implicitdet'>#</a>
-<strong><code>NEPSolver.implicitdet</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>Implicit determinant method
-</code></pre>
-
-<p><a id='Projection-methods-1'></a></p>
-<h2 id="projection-methods">Projection methods</h2>
-<pre><code>NEPSolver.nlar
-</code></pre>
-
-<p><a id='Arnoldi-type-methods-1'></a></p>
-<h2 id="arnoldi-type-methods">Arnoldi type methods</h2>
-<p><a id='NEPSolver.iar' href='#NEPSolver.iar'>#</a>
-<strong><code>NEPSolver.iar</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
-</code></pre>
-
-<p><strong>Infinite Arnoldi method</strong></p>
-<p>Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem", by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.</p>
-<p><a id='NEPSolver.tiar' href='#NEPSolver.tiar'>#</a>
-<strong><code>NEPSolver.tiar</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
-</code></pre>
-
-<p><strong>Tensor Infinite Arnoldi method</strong></p>
-<p>Tensor Infinite Arnoldi method, as described in Algorithm 2 in  "The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method", by Jarlebring, Elias and Mele, Giampaolo and Runborg, Olof.</p>
-<p><a id='NEPSolver.infbilanczos' href='#NEPSolver.infbilanczos'>#</a>
-<strong><code>NEPSolver.infbilanczos</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
-</code></pre>
-
-<p>Executes the Infinite Bi-Lanczos method on the problem defined by nep::NEP and nept::NEP. nep:NEP is the original nonlinear eigenvalue problem and nept::NEP is its (hermitian) transpose. v and u are starting vectors, σ is the shift and γ the scaling.  See <code>newton()</code> for other parameters.</p>
-<p><strong>Example:</strong></p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
-julia&gt; A=get_Av(nep); fv=get_fv(nep);
-julia&gt; nept=SPMF_NEP([A[1]',A[2]',A[3]'],fv); # Create the transposed NEP
-julia&gt; λv,V=infbilanczos(nep,nept,Neig=3)
-julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
-</code></pre>
-
-<p><strong>References:</strong></p>
-<ul>
-<li>The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, arxiv: 1607.03454, to appear in SIAM J. Scientific Computing</li>
-</ul>
 <p><a id='Gallery-1'></a></p>
 <h1 id="gallery">Gallery</h1>
 <p>A large number of examples are provided in the <code>nep_gallery</code>.</p>
@@ -458,10 +355,37 @@ julia&gt; norm(compute_Mder(nep1,0)-compute_Mder(nep2,0),1)
 <pre><code class="julia-repl">julia&gt; using GalleryWaveguide
 julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
 </code></pre>
+
+<p><a id='Compiling-the-documentation-1'></a></p>
+<h1 id="compiling-the-documentation">Compiling the documentation</h1>
+<p>Compile this documentation page by running:</p>
+<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl &amp;&amp;  mkdocs build --clean
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
+</code></pre>
+
+<p>If you want this to appear on our documentation page <a href="https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/">https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
+<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
+jarl@bjork:/tmp$ cd nep-pack-alpha
+jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
+jarl@bjork:/tmp/nep-pack-alpha$ git add *
+jarl@bjork:/tmp/nep-pack-alpha$ git commit . -m &quot;refresh docs&quot;
+jarl@bjork:/tmp/nep-pack-alpha$ git push
+</code></pre>
+
+<p>More information about <code>Documenter.jl</code>: <a href="https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1">here</a></p>
               
             </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="methods/" class="btn btn-neutral float-right" title="NEP Methods"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
   
 
   <hr/>
@@ -486,6 +410,8 @@ julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
       
       
       
+        <span style="margin-left: 15px"><a href="methods/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
     </span>
 </div>
 
@@ -494,5 +420,5 @@ julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-12 07:32:29.874475
+Build Date UTC : 2017-10-15 09:56:52.789942
 -->
