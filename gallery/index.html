@@ -68,6 +68,13 @@
           
             <li>
     <li class="toctree-l1 ">
+        <a class="" href="../types/">NEP Types</a>
+        
+    </li>
+<li>
+          
+            <li>
+    <li class="toctree-l1 ">
         <a class="" href="../transformations/">NEP transformations</a>
         
     </li>
@@ -78,9 +85,6 @@
         <a class="current" href="./">NEP Gallery</a>
         
             <ul>
-            
-                <li class="toctree-l3"><a href="#nep-gallery">NEP Gallery</a></li>
-                
             
             </ul>
         
@@ -121,8 +125,35 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='NEP-Gallery-1'></a></p>
-<h1 id="nep-gallery">NEP Gallery</h1>
+                <p>A large number of examples are provided in the <code>nep_gallery</code>.</p>
+<pre><code class="julia-repl">julia&gt; using Gallery
+julia&gt; nep=nep_gallery(&quot;dep0&quot;)
+julia&gt; λ,v=newton(nep)
+(-0.3587189459686265 + 0.0im, Complex{Float64}[0.284742+0.0im, -0.143316+0.0im, 0.278378+0.0im, -0.5009+0.0im, -0.613634+0.0im])
+julia&gt; norm(compute_Mlincomb(nep,λ,v))
+4.718447854656915e-16
+</code></pre>
+
+<p>If MATLAB and the Berlin-Manchester collection areinstalled, we can access them with the GalleryNLEVP (which does MATLAB-access through julia's MATLAB-package).</p>
+<pre><code class="julia-repl">julia&gt; using GalleryNLEVP
+julia&gt; nep=nep_gallery(NLEVP_NEP,&quot;hadeler&quot;)
+julia&gt; λ,v=quasinewton(nep,λ=0.2,displaylevel=1,maxit=20,tol=1e-10);
+julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
+9.698206079849311e-11
+</code></pre>
+
+<p>Problems loaded from the Berlin-Manchester collection are NEP-objects where every call to access a function generates a call to an underlying MATLAB-session. Some problems in the Berlin-Manchester collection have native support in NEPPACK, i.e., avoiding a MATLAB-access in every call. The native equivalent object is generated with  <code>nlevp_make_native</code>:</p>
+<pre><code class="juli-repl">julia&gt; using GalleryNLEVP
+julia&gt; nep1=nep_gallery(NLEVP_NEP,&quot;gun&quot;)
+julia&gt; nep2=nlevp_make_native(nep1);
+julia&gt; norm(compute_Mder(nep1,0)-compute_Mder(nep2,0),1)
+0.0
+</code></pre>
+
+<p>Stand-alone implementation can be accessed in a similar way, e.g., a native implementation of the waveguide eigenvalue problem:</p>
+<pre><code class="julia-repl">julia&gt; using GalleryWaveguide
+julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
+</code></pre>
               
             </div>
           </div>
