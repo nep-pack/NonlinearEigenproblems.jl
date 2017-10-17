@@ -1,29 +1,42 @@
 
 # NEPPACK 
 
-Welcome to the NEPPACK documentation pages.
+NEPPACK is a package with implementations of methods to solve nonlinear eigenvalue problems of
+the type: Find ``(λ,v)\in\mathbb{C}\times\mathbb{C}^n`` such that
+```math
+M(λ)v=0
+```
+and ``v\neq 0``. 
+
 
 # Getting started
 
 
-Let's solve a polynomial eigenvalue problem. First we need
-to load the appropriate packages. 
-
+First we need to load the appropriate packages. 
 ```julia-repl
 julia> using NEPCore, NEPSolver
 ```
 The first time you run this, you will normally get an error message,
-```julia-repl
-
+```julia
+ERROR: LoadError: LoadError: ArgumentError: Module IterativeSolvers not found in current path.
+Run `Pkg.add("IterativeSolvers")` to install the IterativeSolvers package.
 ```
-NEPPACK builds on the community contributed julia
-packages. These need to be installed the first time you use them,
+NEPPACK builds on contributed julia packages.
+These need to be installed the first time you use them,
 by running for the corresponding packages:
 ```julia-repl
 julia> Pkg.add("IterativeSolvers")
 ```
 
-We are now ready to create and solve a nonlinear eigenvalue problem:
+We are now ready to create and solve a nonlinear eigenvalue problem, in this example
+
+```math
+M(λ)=\begin{block}1&3\\5&6\end{block}+
+λ\begin{block}3&4\\6&6\end{block}+
+λ^2\begin{block}1&0\\0&1\end{block}
+```
+The following code creates this NEP (which is a so called polynomial eigenvalue problem)
+and solves it using the NEP solution method implemented in `polyeig()`:
 ```julia-repl
 julia> A0=[1 3; 5 6]; A1=[3 4; 6 6]
 julia> nep=PEP([A0,A1,eye(2)])
@@ -32,10 +45,10 @@ julia> λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
 ```
 You have now solved your first nonlinear eigenvalue
-problem with NEPPACK.
+problem with NEPPACK. 
 
-If we have a solution, then ``M(λ)`` should be singular,
-with a singular vector v such that M(λ)v=0:
+In order to verify that we have a solution, we can check that  ``M(λ)`` is singular,
+with a singular vector ``v`` such that ``M(λ)v=0``:
 ```julia-repl
 julia> λ1=λ[1]; v1=v[:,1];
 julia> norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
@@ -47,9 +60,7 @@ julia> norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 
 Reproduce an example in DDE-BIFTOOL
 
-
-# NEPCore
-
+Here is a Benchmark Example..
 
 
 
