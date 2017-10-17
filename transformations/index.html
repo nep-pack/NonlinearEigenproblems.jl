@@ -79,7 +79,10 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#nep-transformations">NEP transformations</a></li>
+                <li class="toctree-l3"><a href="#transforming-neps">Transforming NEPs</a></li>
+                
+            
+                <li class="toctree-l3"><a href="#projection">Projection</a></li>
                 
             
             </ul>
@@ -128,8 +131,64 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='NEP-transformations-1'></a></p>
-<h1 id="nep-transformations">NEP transformations</h1>
+                <p><a id='Transforming-NEPs-1'></a></p>
+<h1 id="transforming-neps">Transforming NEPs</h1>
+<p>There are various ways to transform NEPs into other NEPs. The simplest example is the function <code>shift_and_scale()</code>.</p>
+<p><a id='NEPTypes.shift_and_scale' href='#NEPTypes.shift_and_scale'>#</a>
+<strong><code>NEPTypes.shift_and_scale</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>shift_and_scale(orgnep::NEP;shift=0,scale=1)
+</code></pre>
+
+<p>Transforms the orgnep by defining a new NEP from the relation T(λ)=M(scale * λ+shift) where M is the orgnep. This function tries  to preserve the NEP type.</p>
+<p><strong>Example</strong></p>
+<pre><code class="julia-repl">julia&gt; nep0=nep_gallery(&quot;pep0&quot;)
+julia&gt; σ=3; α=10;
+julia&gt; nep1=shift_and_scale(nep0,shift=σ,scale=α)
+julia&gt; norm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
+8.875435870738592e-12
+</code></pre>
+
+<p>Similarly <code>mobius_transform()</code> is more general than <code>shift_and_scale</code> which transform the problem using a Möbius transformation. The function <code>taylor_exp</code> create new PEP by doing truncating a Taylor expansion.</p>
+<p><a id='Projection-1'></a></p>
+<h1 id="projection">Projection</h1>
+<p>Several methods for NEPs are based on forming a smaller NEP, which we will refer to as a projection:</p>
+<p>$$
+N(λ)=W^HM(λ)V,
+$$</p>
+<p>where $V,W\in\mathbb{C}^{n\times p}$  and the corresponding projected problem</p>
+<p>$$
+N(λ)u=0.
+$$</p>
+<p>NEPs which for which this projection can be computed inherit from <code>ProjectableNEP</code>. The most important type is the <code>SPMF_NEP</code>. </p>
+<p>You can create a projected NEP with <code>create_proj_NEP</code>:</p>
+<p><a id='NEPTypes.create_proj_NEP' href='#NEPTypes.create_proj_NEP'>#</a>
+<strong><code>NEPTypes.create_proj_NEP</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>pnep=create_proj_NEP(orgnep::ProjectableNEP)
+</code></pre>
+
+<p>Create a NEP representing a projected problem. The projection is defined as the problem $N(λ)=W^HM(λ)V$ where $M(λ)$ is represented by <code>orgnep</code>. Use <code>set_projectionmatrices!()</code> to specify projection matrices $V$ and $W$.</p>
+<p><a id='NEPTypes.set_projectmatrices!-Tuple{NEPTypes.Proj_SPMF_NEP,Any,Any}' href='#NEPTypes.set_projectmatrices!-Tuple{NEPTypes.Proj_SPMF_NEP,Any,Any}'>#</a>
+<strong><code>NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>set_projectmatrices!(pnep::Proj_NEP,W,V)
+</code></pre>
+
+<p>Set the projection matrices for the NEP to W and V, i.e., corresponding the NEP: $N(λ)=W^HM(λ)V$.</p>
+<p><strong>Example:</strong></p>
+<p>The following example illustrates that a projection of a <code>NEP</code> is also a <code>NEP</code> and we can for instance call <code>compute_Mder</code>on it: </p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
+julia&gt; V=eye(size(nep,1),2); 
+julia&gt; W=eye(size(nep,1),2);
+julia&gt; pnep=create_proj_NEP(nep);
+julia&gt; set_projectmatrices!(pnep,W,V);
+julia&gt; compute_Mder(pnep,λ)
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+julia&gt; compute_Mder(nep,λ)[1:2,1:2]
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+</code></pre>
               
             </div>
           </div>
