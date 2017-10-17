@@ -606,8 +606,13 @@ Proj_NEP represents a projected NEP
     abstract type Proj_NEP <: NEP end
 
 """
-Creates a NEP representing a projected problem. Use
-set_projectionmatrices() to specify projection matrices.
+    pnep=create_proj_NEP(orgnep::ProjectableNEP)
+
+Create a NEP representing a projected problem. The projection is defined
+as the problem ``N(λ)=W^HM(λ)V``
+where ``M(λ)`` is represented by `orgnep`. Use
+`set_projectionmatrices!()` to specify projection matrices
+``V`` and ``W``.
 """
 #    function create_proj_NEP(orgnep::ProjectableNEP)
 #        if (isa(orgnep,PEP))
@@ -654,9 +659,29 @@ set_projectionmatrices() to specify projection matrices.
     end
 
 """
-    set_projectmatrices!(nep::Proj_NEP,W,V)
+    set_projectmatrices!(pnep::Proj_NEP,W,V)
 Set the projection matrices for the NEP to W and V, i.e.,
-corresponding the NEP: W'nep.orgnep(s)Vz=0.
+corresponding the NEP: ``N(λ)=W^HM(λ)V``.
+
+# Example:
+The following example illustrates that a projection
+of a `NEP` is also a `NEP` and we can for instance
+call `compute_Mder`on it: 
+```julia-repl
+julia> nep=nep_gallery("pep0")
+julia> V=eye(size(nep,1),2); 
+julia> W=eye(size(nep,1),2);
+julia> pnep=create_proj_NEP(nep);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,λ)
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+julia> compute_Mder(nep,λ)[1:2,1:2]
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+```
 """
     function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
