@@ -22,18 +22,19 @@ ERROR: LoadError: LoadError: ArgumentError: Module IterativeSolvers not found in
 Run `Pkg.add("IterativeSolvers")` to install the IterativeSolvers package.
 ```
 NEPPACK builds on contributed julia packages.
-These need to be installed the first time you use them,
+These need to be installed the first time you use NEPPACK,
 by running for the corresponding packages:
 ```julia-repl
 julia> Pkg.add("IterativeSolvers")
 ```
 
-We are now ready to create and solve a nonlinear eigenvalue problem, in this example
+We are now ready to create and solve a nonlinear eigenvalue problem, in this
+illustrative example we set
 
 ```math
-M(λ)=\begin{block}1&3\\5&6\end{block}+
-λ\begin{block}3&4\\6&6\end{block}+
-λ^2\begin{block}1&0\\0&1\end{block}
+M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
+λ\begin{bmatrix}3&4\newline6&6\end{bmatrix}+
+λ^2\begin{bmatrix}1&0\newline0&1\end{bmatrix}
 ```
 The following code creates this NEP (which is a so called polynomial eigenvalue problem)
 and solves it using the NEP solution method implemented in `polyeig()`:
