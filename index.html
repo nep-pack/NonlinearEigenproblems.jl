@@ -156,11 +156,11 @@ Run `Pkg.add(&quot;IterativeSolvers&quot;)` to install the IterativeSolvers pack
 <pre><code class="julia-repl">julia&gt; Pkg.add(&quot;IterativeSolvers&quot;)
 </code></pre>
 
-<p>We are now ready to create and solve a nonlinear eigenvalue problem, in this example</p>
+<p>We are now ready to create and solve a nonlinear eigenvalue problem, in this illustrative example we set</p>
 <p>$$
-M(λ)=\begin{block}1&amp;3\5&amp;6\end{block}+
-λ\begin{block}3&amp;4\6&amp;6\end{block}+
-λ^2\begin{block}1&amp;0\0&amp;1\end{block}
+M(λ)=\begin{bmatrix}1&amp;3\newline5&amp;6\end{bmatrix}+
+λ\begin{bmatrix}3&amp;4\newline6&amp;6\end{bmatrix}+
+λ^2\begin{bmatrix}1&amp;0\newline0&amp;1\end{bmatrix}
 $$</p>
 <p>The following code creates this NEP (which is a so called polynomial eigenvalue problem) and solves it using the NEP solution method implemented in <code>polyeig()</code>:</p>
 <pre><code class="julia-repl">julia&gt; A0=[1 3; 5 6]; A1=[3 4; 6 6]
@@ -171,7 +171,7 @@ julia&gt; λ,v=polyeig(nep)
 </code></pre>
 
 <p>You have now solved your first nonlinear eigenvalue problem with NEPPACK. </p>
-<p>In order to verify that we have a solution, we check that  $M(λ)$ is singular, with a singular vector $v$ such that $M(λ)v=0$:</p>
+<p>In order to verify that we have a solution, we can check that  $M(λ)$ is singular, with a singular vector $v$ such that $M(λ)v=0$:</p>
 <pre><code class="julia-repl">julia&gt; λ1=λ[1]; v1=v[:,1];
 julia&gt; norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 1.1502634749464687e-14
@@ -243,5 +243,5 @@ jarl@bjork:/tmp/nep-pack-alpha$ git push
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2017-10-17 10:37:24.580359
+Build Date UTC : 2017-10-17 11:58:07.124638
 -->
