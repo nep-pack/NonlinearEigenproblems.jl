@@ -1,5 +1,4 @@
 module LinSolvers
-    using MATLAB
     using NEPCore
     using IterativeSolvers
     using LinearMaps
@@ -17,9 +16,9 @@ module LinSolvers
 
     # Eigenvalue solvers
     export EigSolver
-    export JuliaEigSolver
-    export JuliaEigSSolver
-    export MatlabEigSSolver
+    export NativeEigSolver
+    export NativeEigSSolver
+
     export DefaultEigSolver
     export eig_solve
 
@@ -137,11 +136,11 @@ module LinSolvers
 """
     A linear EP solver that calls Julia's in-built eig() 
 """
-    type JuliaEigSolver <: EigSolver
+    type NativeEigSolver <: EigSolver
         A
         B
 
-        function JuliaEigSolver(A,B=zeros(eltype(A),0))
+        function NativeEigSolver(A,B=zeros(eltype(A),0))
             this = new()
             this.A = A
             this.B = B
@@ -150,7 +149,7 @@ module LinSolvers
         end
     end
 
-    function eig_solve(solver::JuliaEigSolver;nev = 1, target = 0)
+    function eig_solve(solver::NativeEigSolver;nev = 1, target = 0)
         if(solver.B != zeros(eltype(solver.A),0))
             D,V = eig(solver.A,solver.B);
         else
@@ -172,11 +171,11 @@ module LinSolvers
 """
     A linear EP solve that calls Julia's in-built eigs()
 """
-    type JuliaEigSSolver <: EigSolver
+    type NativeEigSSolver <: EigSolver
         A
         B
 
-        function JuliaEigSSolver(A,B=spzeros(eltype(A),0))
+        function NativeEigSSolver(A,B=spzeros(eltype(A),0))
             this = new()
             this.A = A
             this.B = B
@@ -186,7 +185,7 @@ module LinSolvers
 
     end
 
-    function eig_solve(solver::JuliaEigSSolver;nev=6,target=0)
+    function eig_solve(solver::NativeEigSSolver;nev=6,target=0)
         if(solver.B != spzeros(eltype(solver.A),0))
             warn("Julia's eigs() could return erroneous results for GEPs")
             D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
@@ -202,58 +201,7 @@ module LinSolvers
     end
 
 
-"""
-    A linear solver that will call MATLAB eigs()
-"""
-    type MatlabEigSSolver <: EigSolver
-        A
-        B
-
-        function MatlabEigSSolver(A,B=spzeros(eltype(A),0))
-            this = new()
-            this.A = A
-            this.B = B
-
-            return this
-        end
-    end
-
     
-    function eig_solve(solver::MatlabEigSSolver;nev=6,target=0)
-        #TODO: The real/complex partition is because of MATLAB.jl limitation in sparse-complex matrices
-        eltype_A = eltype(solver.A)
-        if !( eltype_A <: Union{Float64, Complex128} )
-            error("This implementation only supports matrices of type 'Float64' and 'Complex128', you have supplied a matrix of type '", eltype_A,"'.")
-        end
-        aa_real = mxarray(real(solver.A))
-        aa_complex = mxarray(imag(solver.A))
-
-        if(solver.B == zeros(eltype(solver.A),0))
-            solver.B = speye(eltype(solver.A),size(solver.A,1))
-        end
-        bb_real = mxarray(real(solver.B))
-        bb_complex = mxarray(imag(solver.B))
-
-        n = mxarray(nev)
-        t = mxarray(target)
-
-        mat"""
-            aa = double($aa_real) + 1i*double($aa_complex);
-            bb = double($bb_real) + 1i*double($bb_complex);
-
-            nn = double($n);
-            tt = double($t);
-            
-            [$V,$D] = eigs(aa,bb,nn,tt);
-         """
-
-        if nev > 1
-            D = diag(D)
-        end
-
-        return D,V;
-
-    end
 
 
 """
@@ -267,12 +215,16 @@ module LinSolvers
 
             if(issparse(A))
                 if(B == zeros(eltype(A),0))
-                    subsolver = JuliaEigSSolver(A,B);
+                    subsolver = NativeEigSSolver(A,B);
                 else
-                    subsolver = MatlabEigSSolver(A,B);
+                    error("DefaultEigSolver for sparse GEP is disabled due to bug (issue #1). "*
+                          "You can explicitly use the MATLAB-version "*
+                          "using LinSolversMATLAB and MATLABEigSSolver, or the (currently) buggy "*
+                          "native version: NativeEigSSolver.")
+                    #subsolver = MatlabEigSSolver(A,B);  # See bug in ussue #1.
                 end
             else
-                subsolver = JuliaEigSolver(A,B);
+                subsolver = NativeEigSolver(A,B);
             end
         end
     end
