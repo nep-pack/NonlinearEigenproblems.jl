@@ -11,7 +11,7 @@ using NEPCore
 using NEPTypes
 using Gallery
 using GalleryNLEVP
-
+using LinSolversMATLAB
 using Base.Test
 
 
@@ -86,7 +86,7 @@ fibertest=@testset "NLEVP fiber" begin
 
         (λ,v)=mslp(Float64,nep_org,λ=7e-7,
                    displaylevel=1,errmeasure=myerrmeasure,
-                   tol=tol)
+                   tol=tol, eigsolvertype=MatlabEigSSolver)
         @test abs(sol_val-λ)/abs(λ) < tol
         if (imag(λ) != 0)
             warn("mslp switches to complex although it should be real:"*
