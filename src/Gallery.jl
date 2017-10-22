@@ -42,6 +42,10 @@ module Gallery
      'pep0'\\
      Create a random polynomial eigenvalue problem\\
      * one optional parameter determining the size (default = 200)\\
+ \\
+      'pep0_sym'\\
+      Create a random symmetric polynomial eigenvalue problem\\
+      * one optional parameter determining the size (default = 200)\\
 \\
      'pep0_sparse_003'\\
      Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
@@ -71,7 +75,7 @@ module Gallery
          -1.677320660400946 + 7.496870451838560i\\
          -1.677320660400946 - 7.496870451838560i\\
 
-\\  
+\\
      'qdep0' \\
       Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear
       eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
@@ -154,6 +158,22 @@ module Gallery
           nep=PEP(A)
           return nep
 
+      elseif (name== "pep0_sym")
+          # A polynomial eigenvalue problem
+          if (length(params)>0)
+              n=params[1]
+          else
+              n = 200; # Default size
+          end
+
+          srand(0)
+          A0 = Symmetric(randn(n,n))
+          A1 = Symmetric(randn(n,n))
+          A2 = Symmetric(randn(n,n))
+          A = [A0]#, A1, A2]
+          nep = PEP(A)
+          return nep
+
       elseif (name== "pep0_sparse_003")
           # A sparse polynomial eigenvalue problem
           if (length(params)>0)
@@ -226,7 +246,7 @@ module Gallery
           quadfun= S -> S^2;
           constfun= S -> eye(S);
           expfun= S -> expm(-tau*full(S));
-          
+
           AA=[-speye(A0),A0,A1]
           fi=[quadfun,constfun,expfun]
           return SPMF_NEP(AA,fi)
