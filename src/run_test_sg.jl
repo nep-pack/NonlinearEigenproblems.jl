@@ -7,6 +7,8 @@ using NEPTypes
 using LinSolvers
 using Gallery
 
+include("method_sg_old.jl")
+
 
 nep=nep_gallery("real_quadratic");
 
