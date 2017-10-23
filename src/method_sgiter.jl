@@ -22,7 +22,8 @@ function sgiter{T}(::Type{T},
     if (j > n) || (j <= 0)
        error("j must be a number between 1 and size(nep) = ", n, ". You have selected j = ", j, ".")
     end
-    λ::T = T(λ)
+    λ::real(T) = real(T(λ))
+    local λv::Array{real(T),1};
     v::Array{T,1} = zeros(T,n)
     err = 0
 
@@ -30,8 +31,9 @@ function sgiter{T}(::Type{T},
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
        println(typeof(eig_solver))
        v[:] = compute_jth_eigenvector(eig_solver, nep, λ, j)
-       λ = compute_rf(T, nep, v, TOL = tol/10, max_iter = 10)
-
+       λv = compute_rf(T, nep, v, TOL = tol/10, max_iter = 10)
+       λ=maximum(λv);
+       @ifd(println("compute_rf:",λv, " λ=",λ))
        err = errmeasure(λ, v)
        @ifd(print("Iteration:", k, " errmeasure:", err, "\n"))
        if (err < tol)
