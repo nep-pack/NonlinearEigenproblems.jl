@@ -2,7 +2,7 @@ module LinSolvers
     using NEPCore
     using IterativeSolvers
     using LinearMaps
-    
+
     # Linear system of equation solvers
     export LinSolver
     export DefaultLinSolver
@@ -70,7 +70,7 @@ module LinSolvers
         A::T_mat
     end
     BackslashLinSolver{T_num}(A::AbstractMatrix{T_num}) = new(A)
-    
+
     function BackslashLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
         return BackslashLinSolver{eltype(A), typeof(A)}(A)
@@ -111,7 +111,7 @@ module LinSolvers
         end
 
     end
-    
+
 
     function lin_solve{T_num, T_nep}(solver::GMRESLinSolver{T_num, T_nep}, x::Array; tol=eps(real(T_num)))
         if( solver.gmres_log )
@@ -134,7 +134,7 @@ module LinSolvers
 
 ##############################################################################
 """
-    A linear EP solver that calls Julia's in-built eig() 
+    A linear EP solver that calls Julia's in-built eig()
 """
     type NativeEigSolver <: EigSolver
         A
@@ -144,7 +144,7 @@ module LinSolvers
             this = new()
             this.A = A
             this.B = B
-        
+
             return this
         end
     end
@@ -164,7 +164,7 @@ module LinSolvers
         if(nev == 1)
             return D[1],V[:,1]
         end
-        
+
         return D[1:nev],V[:,1:nev];
     end
 
@@ -201,12 +201,12 @@ module LinSolvers
     end
 
 
-    
+
 
 
 """
     Default linear EP solver which calls checks for sparsity and accordingly assigns an appropriate solver
-""" 
+"""
     type DefaultEigSolver <: EigSolver
         subsolver::EigSolver
 
@@ -215,7 +215,7 @@ module LinSolvers
 
             if(issparse(A))
                 if(B == zeros(eltype(A),0))
-                    subsolver = NativeEigSSolver(A,B);
+                    this.subsolver = NativeEigSSolver(A,B);
                 else
                     error("DefaultEigSolver for sparse GEP is disabled due to bug (issue #1). "*
                           "You can explicitly use the MATLAB-version "*
@@ -224,8 +224,9 @@ module LinSolvers
                     #subsolver = MatlabEigSSolver(A,B);  # See bug in ussue #1.
                 end
             else
-                subsolver = NativeEigSolver(A,B);
+                this.subsolver = NativeEigSolver(A,B);
             end
+            return this
         end
     end
 
@@ -235,7 +236,7 @@ module LinSolvers
     end
 
     function eig_solve(solver::DefaultEigSolver;nev=size(solver.subsolver.A,1),target=0)
-        
+
         return eig_solve(solver.subsolver,nev=nev,target=target)
 
     end
