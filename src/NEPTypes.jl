@@ -19,7 +19,9 @@ module NEPTypes
     export set_projectmatrices!;
 
     using NEPCore
-
+    using PolynomialZeros    
+    using Polynomials
+    
     # We overload these
     import NEPCore.compute_Mder
     import NEPCore.compute_Mlincomb
@@ -350,6 +352,20 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         end
         return Z
     end
+
+    compute_rf(nep::PEP,x;params...) = compute_rf(Complex128,nep,x;params...)
+    function compute_rf{T<:Real}(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
+                           TOL=eps(real(T))*1e3,max_iter=10)
+
+        a=zeros(T,size(nep.A,1))
+        for i=1:size(nep.A,1)
+            a[i]=dot(y,nep.A[i]*x);
+        end
+        p=Poly(a);
+        rr=real(poly_roots(p));  # Only works if polynomial roots are real
+        return rr
+    end
+
 
 # Compute the ith derivative of a PEP
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
