@@ -234,9 +234,11 @@ Computes the residual norm ||M(λ)v|| of the nep.
   """
     compute_rf([eltype],nep::NEP,x; y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
 
-Computes the Rayleigh functional of nep, i.e., computes λ such that
-`y^TM(λ)x=0`. The default behaviour consists of a scalar valued
-Newton-iteration.
+Computes the Rayleigh functional of nep, i.e., computes a vector Λ of values λ
+such that `y^TM(λ)x=0`. The default behaviour consists of a scalar valued
+Newton-iteration, and the returned vector has only one element.
+
+The given eltype is the type of the returned vector.
 
 # Example
 
@@ -250,22 +252,30 @@ julia> x'*compute_Mlincomb(nep,s,x)
 ```
 """
     compute_rf(nep::NEP,x;params...) = compute_rf(Complex128,nep,x;params...)
-    function compute_rf{T}(::Type{T},nep::NEP,x; y=x, target=zero(T), λ0=target,
-                        TOL=eps(real(T))*1e3,max_iter=10)
+    function compute_rf{T}(::Type{T}, nep::NEP, x; y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3, max_iter=10)
         # Ten steps of scalar Newton's method
-        λ = T(λ0);
+        λ_iter = T(λ0);
         Δλ = T(Inf)
         count = 0
         while (abs(Δλ)>TOL) & (count<max_iter)
-            count=count+1
-            z1=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1))
-            z2=compute_Mlincomb(nep,λ,reshape(x,size(nep,1),1),[1],1)
-            #println("typeof x:",typeof(x)," z1:",typeof(z1)," z2:",typeof(z2),
-            #        " λ:",λ)
-            Δλ=- T(dot(y,z1)/dot(y,z2));
-            λ += Δλ
+            count = count+1
+            z1 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1))
+            z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[1],1)
+
+            Δλ =- dot(y,z1)/dot(y,z2);
+            λ_iter += Δλ
         end
-        return λ
+
+        # Return type is a vector of correct type
+        λ_star::Array{T,1} = Array{T,1}(1)
+        if (T <: Real) && (typeof(λ_iter) != T) && (imag(λ_iter)/real(λ_iter) < TOL)
+            # Looking for a real quantity (AND) iterate is not real (AND) complex part is negligible
+            λ_star[1] = real(λ_iter) # Truncate to real
+        else
+            λ_star[1] = λ_iter
+        end
+        return λ_star
     end
 
 

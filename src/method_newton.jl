@@ -12,7 +12,7 @@
 """
     λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
 
-Applies Newton-Raphsons method on the system of 
+Applies Newton-Raphsons method on the system of
 nonlinear equations with `n+1` unknowns:
 ```math
 M(λ)v=0
@@ -120,13 +120,13 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
     ############################################################################
 """
     λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
-    
+
 Applies residual inverse iteration method for nonlinear eigenvalue problems.
 The kwarg `linsolvecreator`
 is a function which specifies how the linear system is created.
 The function calls `compute_rf` for the computation
 of the Rayleigh functional.
-See `newton()` for other parameters. 
+See `newton()` for other parameters.
 
 # Example
 The example shows how to specify if the method should run in real
@@ -137,12 +137,12 @@ julia> λ,v=resinv(nep,λ=-2,v=ones(size(nep,1)))
 julia> typeof(λ)
 Complex{Float64}
 julia> norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14                   
+1.817030659827106e-14
 julia> λ,v=resinv(Float64,nep,λ=-2,v=ones(size(nep,1)))
 julia> typeof(λ)
 Float64
 julia> norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14                   
+1.817030659827106e-14
 ```
 
 # References
@@ -203,7 +203,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 end
 
                 # Compute eigenvalue update
-                local λ1::T = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)
+                local λ1::T = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)[1]
                 Δλ=λ1-λ
 
 

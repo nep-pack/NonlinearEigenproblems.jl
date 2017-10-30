@@ -16,41 +16,41 @@ function rfi(nep::NEP,
             linsolvercreator::Function=default_linsolvercreator,
             displaylevel=0)
 
-        err = Inf;
+        err = Inf
 
         #Ensure type coherence
-        T = typeof(λ);
-        v = Array{T,1}(v);
-        u = Array{T,1}(u);
+        T = typeof(λ)
+        v = Array{T,1}(v)
+        u = Array{T,1}(u)
         #Normalize v and u
-        v = v/norm(v);
-        u = u/norm(u);
+        v = v/norm(v)
+        u = u/norm(u)
 
 
         try
             for k=1:maxit
-                err = errmeasure(λ,u);
+                err = errmeasure(λ,u)
 
                 if(err < tol)
                     return λ,u,v
                 end
 
                 if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e \n",k, err);
+                    @printf("Iteration: %2d errmeasure:%.18e \n",k, err)
                 end
 
-                local linsolver::LinSolver = linsolvercreator(nep,λ);
-                local linsolver_t::LinSolver = linsolvercreator(nept,λ);
-                
-                #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k) 
-                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[1],1),tol = tol);
+                local linsolver::LinSolver = linsolvercreator(nep,λ)
+                local linsolver_t::LinSolver = linsolvercreator(nept,λ)
+
+                #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k)
+                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[1],1),tol = tol)
                 u = x/norm(x);
 
                 #S2: (T(λ_k)^H)y_(k+1) = (T'(λ_k)^H)v_(k)
-                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tol);
-                v = y/norm(y);
+                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tol)
+                v = y/norm(y)
 
-                λ =compute_rf(nep,u;y=v);
+                λ = compute_rf(nep,u;y=v)[1]
             end
         catch e
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
@@ -61,7 +61,7 @@ function rfi(nep::NEP,
             end
             if (errmeasure(λ,u)>tol)
                 # We need to compute an eigvec somehow
-                u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u; # Requires matrix access
+                u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u # Requires matrix access
                 u=u/norm(u);
             end
             return (λ,u)
@@ -85,46 +85,46 @@ function rfi_b(nep::NEP,
             linsolvercreator::Function=default_linsolvercreator,
             displaylevel=1)
 
-        err = Inf;
+        err = Inf
 
         #Ensure type coherence
-        T = typeof(λ);
-        v = Array{T,1}(v);
-        u = Array{T,1}(u);
+        T = typeof(λ)
+        v = Array{T,1}(v)
+        u = Array{T,1}(u)
         #Normalize v and u
-        v = v/norm(v);
-        u = u/norm(u);
+        v = v/norm(v)
+        u = u/norm(u)
 
 
         try
             for k=1:maxit
-                err = errmeasure(λ,u);
+                err = errmeasure(λ,u)
 
                 if(err < tol)
                     return λ,u,v
                 end
 
                 if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e \n",k, err);
+                    @printf("Iteration: %2d errmeasure:%.18e \n",k, err)
                 end
 
                 #Construct C_k
-                C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[1],1);v'*compute_Mder(nep,λ,1) T(0.0)];
+                C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[1],1);v'*compute_Mder(nep,λ,1) T(0.0)]
                 #local linsolver::LinSolver = BackslashLinSolver(C);
 
                 #C[s;μ] = -[T(λ)u;0]
                 #l1 = lin_solve(linsolver,-[compute_Mlincomb(nep,λ,u,[1],0);0],tol = tol);
-                l1 = C\-[compute_Mlincomb(nep,λ,u,[1],0);0];
-                s = l1[1:end-1];
-                u = (u+s)/norm(u+s);
-                
+                l1 = C\-[compute_Mlincomb(nep,λ,u,[1],0);0]
+                s = l1[1:end-1]
+                u = (u+s)/norm(u+s)
+
                 #C[t;ν] = -[T(λ)'v;0]
                 #l2 = lin_solve(linsolver,-[compute_Mlincomb(nept,λ,v,[1],0);0],tol = tol);
-                l2 = C\-[compute_Mlincomb(nept,λ,v,[1],0);0];
-                t = l2[1:end-1];
-                v = (v+t)/norm(v+t);
+                l2 = C\-[compute_Mlincomb(nept,λ,v,[1],0);0]
+                t = l2[1:end-1]
+                v = (v+t)/norm(v+t)
 
-                λ =compute_rf(nep,u;y=v);
+                λ =compute_rf(nep,u;y=v)[1]
             end
         catch e
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
@@ -135,8 +135,8 @@ function rfi_b(nep::NEP,
             end
             if (errmeasure(λ,u)>tol)
                 # We need to compute an eigvec somehow
-                u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u; # Requires matrix access
-                u=u/norm(u);
+                u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u # Requires matrix access
+                u=u/norm(u)
             end
             return (λ,u)
         end
