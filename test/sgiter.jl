@@ -10,7 +10,7 @@ using Gallery
 using GalleryNLEVP
 using Base.Test
 
-#@testset "sgiter" begin
+@testset "sgiter" begin
 
     nep = nep_gallery("real_quadratic")
 #    nep = nep_gallery("dep_distributed")
@@ -20,11 +20,11 @@ using Base.Test
     λ,v = sgiter(Float64,
                  nep,
                  j,
-                 λ = -100,
+                 λ_min = -10,
+                 λ_max = 0,
+                 λ = -10,
                  displaylevel = 1,
                  maxit = 100)
-#    @test norm(compute_Mlincomb(nep,λ,v)) < eps(Float64)*100
-    println(norm(compute_Mlincomb(nep,λ,v)))
-    println(λ)
+   @test norm(compute_Mlincomb(nep,λ,v)) < eps(Float64)*100
 
-#end
+end
