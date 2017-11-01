@@ -5,15 +5,16 @@ export sgiter
 
 Finds the ``j``th eigenvalue of the NEP using self-guarded iteration.
 The method only works for Hermitian problems, and the eigenvalues are assumed to be real.
-The Rayleigh functional is assumed to be unique on the interval [λ_min,λ_max].
+If an interval [λ_min,λ_max] is given, then the Rayleigh functional is assumed to be unique on the interval.
+If no interval is given, then the minimum solution is always taken.
 
 """
 sgiter(nep::NEP, j::Integer; params...) = sgiter(Complex128, nep, j; params...)
 function sgiter{T}(::Type{T},
                    nep::NEP,
                    j::Integer;
-                   λ_min = -Inf,
-                   λ_max = Inf,
+                   λ_min = NaN,
+                   λ_max = NaN,
                    λ = zero(real(T)),
                    errmeasure::Function = default_errmeasure(nep),
                    tol = eps(real(T)) * 100,
@@ -29,11 +30,14 @@ function sgiter{T}(::Type{T},
     real_T = real(T)
     λ_min::real_T = real_T(λ_min)
     λ_max::real_T = real_T(λ_max)
+    if !( (isnan(λ_min) && isnan(λ_max)) || (!isnan(λ_min) && !isnan(λ_max)) )
+        error("A proper interval is not chosen.") #Both should be either given or not given
+    end
     if (λ_max < λ_min)
        error("The interval cannot be empty, λ_max >= λ_min is required. Supplied interval [λ_min,λ_max] = [", λ_min, ",", λ_max, "].")
     end
     λ::real_T = real_T(λ)
-    if( (λ < λ_min) || (λ > λ_max) )
+    if ( (λ < λ_min) || (λ > λ_max) )
        error("The starting guess is outside the interval.")
     end
 
@@ -43,7 +47,10 @@ function sgiter{T}(::Type{T},
     for k = 1:maxit
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
        v[:] = compute_jth_eigenvector(eig_solver, nep, λ, j)
-       λ = compute_correct_eigenvalue_from_rf(T, nep, v, tol, displaylevel, λ_min, λ_max)
+       λ_vec = compute_rf(real_T, nep, v, TOL = tol/10)
+       @ifd(println("compute_rf: ", λ_vec))
+       λ = choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
+       @ifd(println(" λ = ", λ))
        err = errmeasure(λ, v)
        @ifd(print("Iteration:", k, " errmeasure:", err, "\n"))
        if (err < tol)
@@ -64,23 +71,18 @@ function compute_jth_eigenvector(eig_solver, nep::NEP, λ, j)
 end
 
 
-function compute_correct_eigenvalue_from_rf(T, nep::NEP, v, tol, displaylevel, λ_min, λ_max)
-    λ_vec = compute_rf(T, nep, v, TOL = tol/10, max_iter = 10)
-    @ifd(println("compute_rf: ", λ_vec))
-
-    λ::real(T) = NaN
-    for i = 1:length(λ_vec)
-        if( (λ_vec[i] <= λ_max) && (λ_vec[i] >= λ_min) )
-            if( !isnan(λ) )
-                error("Multiple values of λ found in the interval.")
-            end
-            λ = λ_vec[i]
+function choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
+    if ( isnan(λ_min) && isnan(λ_max) )
+        return minimum(λ_vec)
+    else
+        idxes = (λ_vec .<= λ_max) .& (λ_vec .>= λ_min)
+        if sum(idxes) > 1
+            error("Multiple values of λ found in the interval.")
         end
+        if sum(idxes) == 0
+            error("No λ found in the prescribed interval.")
+        end
+        idx = find(idxes)[1]::Integer #This vector is only 1 element
+        return λ_vec[idx]
     end
-    @ifd(println(" λ = ", λ))
-
-    if( isnan(λ) )
-       error("No λ found in the prescribed interval.")
-    end
-    return λ
 end

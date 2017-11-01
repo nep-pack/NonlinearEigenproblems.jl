@@ -16,15 +16,23 @@ using Base.Test
 #    nep = nep_gallery("dep_distributed")
 #    nep = nep_gallery("pep0_sym")
 #    nep = nep_gallery(NLEVP_NEP,"hadeler")
-    j = 1;
     λ,v = sgiter(Float64,
                  nep,
-                 j,
+                 1,
                  λ_min = -10,
                  λ_max = 0,
                  λ = -10,
                  displaylevel = 1,
                  maxit = 100)
    @test norm(compute_Mlincomb(nep,λ,v)) < eps(Float64)*100
+
+
+   λ,v = sgiter(Float64,
+                nep,
+                2,
+                displaylevel = 1,
+                tol = 1e-9,
+                maxit = 100)
+  @test norm(compute_Mlincomb(nep,λ,v)) < 1e-9
 
 end
