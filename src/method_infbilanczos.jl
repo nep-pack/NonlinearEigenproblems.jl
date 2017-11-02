@@ -3,10 +3,11 @@ export infbilanczos
 """
     λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
 
-Executes the Infinite Bi-Lanczos method on the problem defined by nep::NEP
-and nept::NEP. nep:NEP is the original nonlinear eigenvalue problem and
-nept::NEP is its (hermitian) transpose. v and u are starting vectors,
-σ is the shift and γ the scaling.  See `newton()` for other parameters.
+Executes the Infinite Bi-Lanczos method on the problem defined by `nep::NEP`
+and `nept::NEP`. `nep:NEP` is the original nonlinear eigenvalue problem and
+`nept::NEP` is its (hermitian) transpose: ``M(\lambda^*)^H``.
+ `v` and `u` are starting vectors,
+`σ` is the shift and `γ` the scaling.  See `newton()` for other parameters.
 
 # Example:
 ```julia-repl
