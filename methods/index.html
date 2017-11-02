@@ -138,7 +138,20 @@
               
                 <p><a id='NEP-Methods-1'></a></p>
 <h1 id="nep-methods">NEP Methods</h1>
-<p>Here is the documentation of the NEP solver methods.</p>
+<p>The NEP solver methods implemented in NEP-pack, are accessed by the functions below. The functions all return $λ,v,w$ where $λ$ is either a number (eigenvalue) a vector of eigenvalues $v$ is either a vector containing an eigenvector or a matrix whose columns corresponding to the eigenvectors.</p>
+<p>The first parameter optional parameter in all NEP solver methods is a type. This type specifies which arithmetic should be used for the algorithm.</p>
+<p>Example:</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;)
+julia&gt; λ,v=augnewton(Complex128,nep,v=ones(5))
+(0.8347353572199425 + 0.0im, Complex{Float64}[0.480386+0.0im, 0.0631636+0.0im, -0.136405+0.0im, 0.214274+0.0im, 0.378581+0.0im])
+julia&gt; typeof(λ)
+Complex{Float64}
+julia&gt; λ,v=augnewton(Float16,nep,v=ones(5))
+(Float16(0.8223), Float16[0.47388, 0.063904, -0.13843, 0.21692, 0.38306])
+julia&gt; typeof(λ)
+Float16
+</code></pre>
+
 <p><a id='Newton-type-methods-1'></a></p>
 <h2 id="newton-type-methods">Newton type methods</h2>
 <p><a id='NEPSolver.newton' href='#NEPSolver.newton'>#</a>
@@ -146,7 +159,7 @@
 <pre><code>λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
 </code></pre>
 
-<p>Applies Newton-Raphsons method on the system of  nonlinear equations with <code>n+1</code> unknowns:</p>
+<p>Applies Newton-Raphsons method on the system of nonlinear equations with <code>n+1</code> unknowns:</p>
 <p>$$
 M(λ)v=0
 $$</p>
@@ -191,7 +204,7 @@ julia&gt; λ1-λ2
 <pre><code>λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
 </code></pre>
 
-<p>Applies residual inverse iteration method for nonlinear eigenvalue problems. The kwarg <code>linsolvecreator</code> is a function which specifies how the linear system is created. The function calls <code>compute_rf</code> for the computation of the Rayleigh functional. See <code>newton()</code> for other parameters. </p>
+<p>Applies residual inverse iteration method for nonlinear eigenvalue problems. The kwarg <code>linsolvecreator</code> is a function which specifies how the linear system is created. The function calls <code>compute_rf</code> for the computation of the Rayleigh functional. See <code>newton()</code> for other parameters.</p>
 <p><strong>Example</strong></p>
 <p>The example shows how to specify if the method should run in real or complex mode (or any other <code>Number</code> type).</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;qdep0&quot;);
@@ -199,12 +212,12 @@ julia&gt; λ,v=resinv(nep,λ=-2,v=ones(size(nep,1)))
 julia&gt; typeof(λ)
 Complex{Float64}
 julia&gt; norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14                   
+1.817030659827106e-14
 julia&gt; λ,v=resinv(Float64,nep,λ=-2,v=ones(size(nep,1)))
 julia&gt; typeof(λ)
 Float64
 julia&gt; norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14                   
+1.817030659827106e-14
 </code></pre>
 
 <p><strong>References</strong></p>
