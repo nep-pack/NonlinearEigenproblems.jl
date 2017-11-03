@@ -1,14 +1,37 @@
 export sgiter
 
 """
-    λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eig_solver,])
+    λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eigsolvertype::DataType,])
 
-Finds the ``j``th eigenvalue of the NEP using self-guarded iteration.
+Finds the `j`-th eigenvalue of the NEP using safeguarded iteration.
 The method only works for Hermitian problems, and the eigenvalues are assumed to be real.
-If an interval [λ_min,λ_max] is given, then the Rayleigh functional is assumed to be unique on the interval.
+If an interval [`λ_min`,`λ_max`] is given, then the Rayleigh functional is assumed to be unique on the interval.
 If no interval is given, then the minimum solution is always taken.
 
+
+The kwarg `errmeasure` is a function handle which can be used to specify how the error
+is measured to be used in termination (default is absolute residual norm). The iteration
+is continued until errmeausure is less than `tol`, or at max to `maxit` after which an error is thrown.
+The `eigsolvertype` is a DataType that allows to specify exactly which eigevalue solver is used inside the algorithm.
+
+
+# Example
+```julia-repl
+julia> nep = nep_gallery("real_quadratic");
+julia> λ,v = sgiter(nep, 1, λ_min = -10, λ_max = 0,  λ = -10, maxit = 100);
+julia> minimum(svdvals(compute_Mder(nep,λ)))
+0.0
+julia> norm(v)
+1.0
+```
+
+# References
+* V. Mehrmann and H. Voss, Nonlinear eigenvalue problems: a challenge for modern eigenvalue methods, GAMM‐Mitteilungen 27.2 (2004): 121-152.
+* H. Voss and B. Werner, Solving sparse nonlinear eigenvalue problems. Technical Report 82/4, Inst. f. Angew. Mathematik, Universität Hamburg, 1982.
+* B. Werner. Das Spektrum von Operatorenscharen mit verallgemeinerten Rayleighquotienten. PhD thesis, Fachbereich Mathematik, Universität Hamburg, 1970
+
 """
+
 sgiter(nep::NEP, j::Integer; params...) = sgiter(Complex128, nep, j; params...)
 function sgiter{T}(::Type{T},
                    nep::NEP,

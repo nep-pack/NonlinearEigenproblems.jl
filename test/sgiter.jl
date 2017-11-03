@@ -7,7 +7,6 @@ using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using GalleryNLEVP
 using Base.Test
 
 @testset "sgiter" begin
@@ -15,7 +14,6 @@ using Base.Test
     nep = nep_gallery("real_quadratic")
 #    nep = nep_gallery("dep_distributed")
 #    nep = nep_gallery("pep0_sym")
-#    nep = nep_gallery(NLEVP_NEP,"hadeler")
     λ,v = sgiter(Float64,
                  nep,
                  1,
