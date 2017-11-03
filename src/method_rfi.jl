@@ -50,7 +50,8 @@ function rfi(nep::NEP,
                 y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tol)
                 v = y/norm(y)
 
-                λ = compute_rf(nep,u;y=v)[1]
+                λ_vec = compute_rf(nep, u, y=v)
+                λ = closest_to(λ_vec,  λ)
             end
         catch e
             isa(e, Base.LinAlg.SingularException) || rethrow(e)
@@ -124,7 +125,8 @@ function rfi_b(nep::NEP,
                 t = l2[1:end-1]
                 v = (v+t)/norm(v+t)
 
-                λ =compute_rf(nep,u;y=v)[1]
+                λ_vec = compute_rf(nep, u, y=v)
+                λ = closest_to(λ_vec,  λ)
             end
         catch e
             isa(e, Base.LinAlg.SingularException) || rethrow(e)

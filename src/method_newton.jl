@@ -203,7 +203,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 end
 
                 # Compute eigenvalue update
-                local λ1::T = compute_rf(T, nep,v,y=c,λ0=λ,target=σ)[1]
+                λ_vec = compute_rf(T, nep, v, y=c, λ0=λ, target=σ)
+                local λ1::T = closest_to(λ_vec,  λ)
                 Δλ=λ1-λ
 
 

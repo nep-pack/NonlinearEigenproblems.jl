@@ -113,5 +113,16 @@ Executes z if displaylevel>0.
         return x
     end
 
+    """
+        σ = closest_to(λ_vec::Array{T,1},  λ::T) where {T<:Number}
+
+    Finds the value `σ` in the vector `λ_vec` that is closes to the value `λ`.
+
+    """
+    function closest_to(λ_vec::Array{T,1},  λ::T) where {T<:Number}
+        idx = indmin(abs.(λ_vec - λ))
+        return λ_vec[idx]
+    end
+
 
 end #End module
