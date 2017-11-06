@@ -19,9 +19,9 @@ module NEPTypes
     export set_projectmatrices!;
 
     using NEPCore
-    using PolynomialZeros    
+    using PolynomialZeros
     using Polynomials
-    
+
     # We overload these
     import NEPCore.compute_Mder
     import NEPCore.compute_Mlincomb
@@ -31,7 +31,7 @@ module NEPTypes
 
     import Base.size
     import Base.issparse
-    
+
 
     export compute_Mder
     export compute_Mlincomb
@@ -69,7 +69,7 @@ where i = 0,1,2,..., all of the matrices are of size n times n and f_i are funct
 Any AbstractSPMF has to have implementations of get_Av() and get_fv() which return the
 functions and matrices.
 """
-    abstract  type AbstractSPMF <: ProjectableNEP end # See issue #17 
+    abstract  type AbstractSPMF <: ProjectableNEP end # See issue #17
 
     """
     get_Av(nep::AbstractSPMF)
@@ -85,7 +85,7 @@ Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ
     function get_fv(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_fv for all AbstractSPMFs")
     end
-    
+
     """
     type SPMF_NEP <: AbstractSPMF
 
@@ -96,7 +96,7 @@ M(λ)=∑_i A_i f_i(λ).
 ```
 All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
-for matrices in the standard matrix function sense. 
+for matrices in the standard matrix function sense.
 """
     type SPMF_NEP <: AbstractSPMF
          n::Integer
@@ -139,7 +139,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                        size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
              end
          end
-         
+
 
          if (issparse(AA[1]))
              Zero=spones(AA[1]);
@@ -151,7 +151,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
              Zero=zeros(n,n)
          end
 
-         
+
          this=SPMF_NEP(n,AA,fii,Schur_fact,Zero);
          return this
     end
@@ -213,8 +213,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         end
     end
 
-    
-    
+
+
 
     ###########################################################
     # Delay eigenvalue problems - DEP
@@ -226,7 +226,7 @@ Delay eigenvalue problem
 A DEP (Delay Eigenvalue problem) is defined by
 the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
 of the matrices are of size n times n.\\
-Constructor: DEP(AA,tauv) where AA is an array of the 
+Constructor: DEP(AA,tauv) where AA is an array of the
 ```math
 \\frac{n!}{k!(n - k)!} = \\binom{n}{k}
 ```
@@ -278,7 +278,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         if (issparse(nep))
             I=speye(eltype(nep.A[1]),nep.n)
         else
-            I=eye(eltype(nep.A[1]),nep.n)            
+            I=eye(eltype(nep.A[1]),nep.n)
         end
         return [I,nep.A...];
     end
@@ -295,9 +295,9 @@ matrices A_i, and tauv is a vector of the values tau_i
             else
                 fv[i+1]=  (S-> expm(-nep.tauv[i]*S))
             end
-            
+
         end
-    
+
         return fv;
     end
 
@@ -393,10 +393,10 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             if (i==1); # optimization for constant and linear term
                 fv[1]=(S->eye(size(S,1)));
             elseif (i==2);
-                fv[2]=(S->S); 
+                fv[2]=(S->S);
             else
                 fv[i]=  S->S^(i-1);
-            end            
+            end
         end
         return fv;
     end
@@ -543,7 +543,7 @@ julia> compute_Mder(nep,3)
 
 
    function compute_MM(nep::REP,S,V)
-        local Z0; 
+        local Z0;
         if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
             Si=speye(S)
@@ -588,7 +588,7 @@ julia> compute_Mder(nep,3)
     function get_Av(nep::REP)
         return nep.A;
     end
-    #  Fetch the Fv's, since they are not explicitly stored in PEPs
+    #  Fetch the Fv's, since they are not explicitly stored in REPs
     function get_fv(nep::REP)
         fv=Array{Function,1}(size(nep.qi,1))
         for i=1:size(fv,1)
@@ -645,7 +645,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
     function create_proj_NEP(orgnep::AbstractSPMF)
          return Proj_SPMF_NEP(orgnep);
     end
-    
+
 
     # concrete types for projection of NEPs and PEPs
 #    type Proj_PEP <: Proj_NEP
@@ -665,7 +665,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
         W
         nep_proj::SPMF_NEP; # An instance of the projected NEP
         orgnep_Av::Array
-        orgnep_fv::Array        
+        orgnep_fv::Array
         function Proj_SPMF_NEP(nep::AbstractSPMF)
             this=new(nep);
             this.orgnep_Av=get_Av(nep);
@@ -682,10 +682,10 @@ corresponding the NEP: ``N(λ)=W^HM(λ)V``.
 # Example:
 The following example illustrates that a projection
 of a `NEP` is also a `NEP` and we can for instance
-call `compute_Mder`on it: 
+call `compute_Mder`on it:
 ```julia-repl
 julia> nep=nep_gallery("pep0")
-julia> V=eye(size(nep,1),2); 
+julia> V=eye(size(nep,1),2);
 julia> W=eye(size(nep,1),2);
 julia> pnep=create_proj_NEP(nep);
 julia> set_projectmatrices!(pnep,W,V);
@@ -728,6 +728,14 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
         else
             return n
         end
+    end
+
+    function get_Av(nep::Proj_SPMF_NEP)
+        return get_Av(nep.nep_proj);
+    end
+
+    function get_fv(nep::Proj_SPMF_NEP)
+        return orgnep_fv
     end
 
     function issparse(nep::Proj_NEP)
