@@ -28,67 +28,64 @@ function jd_quad{T}(::Type{T},
     V[:,1] = v
     u::Array{T,1} = v
 
-   #loop...
+    #loop...
+    for kk=1:maxit
 
-   for kk=1:maxit
+        err=errmeasure(λ,u)
+        if (displaylevel>0)
+          println("Iteration:",k," errmeasure:",err)
+        end
+        if (err< tolerance)
+            return (λ,u)
+        end
 
-    	err=errmeasure(λ,u)
+        # Projected matrices
+        set_projectmatrices!(proj_nep,V,V)
 
-    if (displaylevel>0)
-      println("Iteration:",k," errmeasure:",err)
-   	end
-  	if (err< tolerance)
-      	return (λ,u)
+        # Create the projected NEP problem and
+        # find the eigenvalue with smallest absolute value
+        Dc,Vc = jd_inner_eig_solver(typeof(nep), T, proj_nep, eigsolvertype)
+        c = sortperm(abs.(Dc))
+
+        λ = Dc[c[1]]
+        s = Vc[:,c[1]]
+        s = s/norm(s)
+
+        u = V*s
+
+        Mdu::Array{T,1} = compute_Mlincomb(nep,λ,u,[1],1)
+        P1 = eye(T,n) - Mdu*u'/(u'*Mdu)
+        P2 = eye(T,n) - u*u'
+
+        r = compute_Mlincomb(nep,λ,u)
+
+        MP2 = zeros(T,size(nep,1),size(P2,2))
+        for ii = 1:size(P2,2)
+            MP2[:,ii] = compute_Mlincomb(nep,λ,P2[:,ii],[1],0)
+        end
+        X = P1*MP2
+
+        # Least squares, -pseudo_inv(X)*r
+        Q,R = qr(X)
+        t = -R\(Q'*r)
+
+        #Modified Gram-Schmidt
+        for ii=1:kk
+            temp = dot(V[:,ii],t)
+            t += - temp*V[:,ii]
+        end
+        # reorthogonalization
+        for ii=1:kk
+              temp = dot(V[:,ii],t)
+              t += - temp*V[:,ii]
+        end
+        v = t/norm(t);
+
+        # Update the search space V
+        V = [V v]
+
+        println("Iteration: ",kk," norm of residual:", compute_resnorm(nep,λ,u))
     end
-
-    # Projected matrices
-    set_projectmatrices!(proj_nep,V,V)
-
-    # Create the projected NEP problem and
-    # find the eigenvalue with smallest absolute value
-    Dc,Vc = jd_inner_eig_solver(typeof(nep), T, proj_nep, eigsolvertype)
-    c = sortperm(abs.(Dc))
-
-	λ = Dc[c[1]]
-	s = Vc[:,c[1]]
-	s = s/norm(s)
-
-	u = V*s
-
-    Mdu::Array{T,1} = compute_Mlincomb(nep,λ,u,[1],1)
-    P1 = eye(T,n) - Mdu*u'/(u'*Mdu)
-    P2 = eye(T,n) - u*u'
-
-    r = compute_Mlincomb(nep,λ,u)
-
-    MP2 = zeros(T,size(nep,1),size(P2,2))
-    for ii = 1:size(P2,2)
-        MP2[:,ii] = compute_Mlincomb(nep,λ,P2[:,ii],[1],0)
-    end
-    X = P1*MP2
-
-	# Least squares, -pseudo_inv(X)*r
-	Q,R = qr(X)
-	t = -R\(Q'*r)
-
-	#Modified Gram-Schmidt
-	for ii=1:kk
-	    temp = dot(V[:,ii],t)
-	    t += - temp*V[:,ii]
-	end
-	# reorthogonalization
-	for ii=1:kk
-	      temp = dot(V[:,ii],t)
-	      t += - temp*V[:,ii]
-	end
-	v = t/norm(t);
-
-	# Update the search space V
-    V = [V v]
-
-	println("Iteration: ",kk," norm of residual:", compute_resnorm(nep,λ,u))
-
-  end
 
     err=errmeasure(λ,u)
     msg="Number of iterations exceeded. maxit=$(maxit)."
