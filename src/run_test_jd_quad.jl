@@ -14,21 +14,13 @@ using Gallery
 
 
 
-n=100; # mat size
-	   
-A0 = randn(n,n);
-A1 = randn(n,n);
-A2 = randn(n,n);
-A = [A0,A1,A2];
-nep=PEP(A);
+nep = nep_gallery("pep0",100)
 
 
-
-λ,u =jd_quad(nep,tolerance=1e-5,maxit=80);
+λ,u =jd_quad(nep,tolerance=1e-10,maxit=80);
 
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
 println("\n Smallest eigevalue found: \n λ: ",λ)
-
 
 
 Dc,Vc = polyeig(nep,DefaultEigSolver);
@@ -37,7 +29,7 @@ println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1
 
 
 println("\n Testing in only Complex64 precision (32 bit in real and 32 bit in imaginary)")
-λ,u =jd_quad(Complex64,nep,tolerance=1e-5,maxit=80);
+λ,u =jd_quad(Complex64,nep,tolerance=5e-4,maxit=80);
 
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
 println("\n Smallest eigevalue found: \n λ: ",λ)
@@ -45,7 +37,5 @@ println("\n Smallest eigevalue found: \n λ: ",λ)
 
 
 Dc,Vc = polyeig(Complex64,nep,DefaultEigSolver);
-c = sortperm(abs(Dc));
+c = sortperm(abs.(Dc));
 println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1:5]]);
-
-
