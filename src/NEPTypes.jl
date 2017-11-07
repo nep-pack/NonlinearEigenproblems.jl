@@ -703,7 +703,7 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         k=size(W,2);
-        m=size(nep.orgnep.A,1);
+        m=size(nep.orgnep_Av,1);
         B = Array{Array{eltype(W),2}}(m);
         for i=1:m
             B[i]=W'*nep.orgnep_Av[i]*V;
