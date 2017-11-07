@@ -3,16 +3,7 @@ export sgiter
 """
     λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eigsolvertype::DataType,])
 
-Finds the `j`-th eigenvalue of the NEP using safeguarded iteration.
-The method only works for Hermitian problems, and the eigenvalues are assumed to be real.
-If an interval [`λ_min`,`λ_max`] is given, then the Rayleigh functional is assumed to be unique on the interval.
-If no interval is given, then the minimum solution is always taken.
-
-
-The kwarg `errmeasure` is a function handle which can be used to specify how the error
-is measured to be used in termination (default is absolute residual norm). The iteration
-is continued until errmeausure is less than `tol`, or at max to `maxit` after which an error is thrown.
-The `eigsolvertype` is a DataType that allows to specify exactly which eigevalue solver is used inside the algorithm.
+Finds the `j`-th eigenvalue of the NEP using safeguarded iteration, with eigenvalue numbering according to min-max theory. The method only works for Hermitian problems, and the eigenvalues are assumed to be real. If an interval [`λ_min`,`λ_max`] is given, then the Rayleigh functional is assumed to be unique on the interval. If no interval is given, then the minimum solution is always taken. The method requires the computation of (all) eigenvalues of a matrix. The `eigsolvertype` is a `DataType` that specifies which eigevalue solver is used inside the algorithm. See `newton`for the meaning of other kwargs.
 
 
 # Example
