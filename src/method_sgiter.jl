@@ -80,8 +80,12 @@ end
 function compute_jth_eigenvector(eig_solver, nep::NEP, λ, j)
     n = size(nep,1)
     Λ, V = eig_solve(eig_solver, nev = n)
-    p = sortperm(Λ);
-    return vec(V[:,p[j]])
+    if (n>1)
+        p = sortperm(Λ)
+        return vec(V[:,p[j]])
+    else
+        return V
+    end
 end
 
 
