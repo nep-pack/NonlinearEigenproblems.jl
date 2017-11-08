@@ -1,7 +1,10 @@
+
 # Transformations between types
 export transform_to_pep
 export shift_and_scale
 export mobius_transform
+export effenberger_deflation
+
 
 """
     type ShiftScaledNEP <: NEP
@@ -177,3 +180,67 @@ function transform_to_pep(nep::NEP,d::Integer=2)
     end
     return PEP(A)
 end
+
+
+
+"""
+    effenberger_deflation(nep::NEP,S0,V0)
+
+A deflation procedure as described in the PhD thesis of Effenberger. More documentation to come.
+
+* Example:
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> (λ,v)=newton(nep);
+julia> n=size(nep,1);
+julia> S0=reshape([λ],1,1);
+julia> V0=reshape(v,n,1);
+julia> dnep=effenberger_deflation(nep,S0,V0)
+julia> (λ2,v2)=augnewton(dnep);  # this converges to different eigval
+julia> minimum(svdvals(compute_Mder(nep,λ2)))
+9.323003321058995e-17
+```
+
+"""
+
+function effenberger_deflation(nep::NEP,S0,V0)
+    return DeflatedNEP(nep,V0,S0)
+end
+
+
+type DeflatedNEP <: NEP
+    orgnep::NEP
+    V0
+    S0
+end
+
+function size(nep::DeflatedNEP,dim=-1)
+    n=size(nep.orgnep,1)+size(nep.V0,2);
+    if (dim==-1)
+        return (n,n)
+    else
+        return n        
+    end
+end
+
+function compute_MM(nep::DeflatedNEP,S,V)
+    orgnep=nep.orgnep;
+    n0=size(orgnep,1);
+    S0=nep.S0; V0=nep.V0
+    p0=size(S0,1); p=size(S,1);
+    V1=view(V,1:n0,            1:size(V,2))
+    V2=view(V,(n0+1):size(V,1),1:size(V,2))
+    # println("V2=",V2);
+    Stilde=hcat(vcat(S0,zeros(p,p0)),vcat(V2,S))
+    Vtilde=hcat(V0,V1);
+    R=compute_MM(orgnep, Stilde,Vtilde);
+    return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
+end
+
+function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
+    return compute_Mder_from_MM(nep,λ,i);
+end
+
+
+    
+        
