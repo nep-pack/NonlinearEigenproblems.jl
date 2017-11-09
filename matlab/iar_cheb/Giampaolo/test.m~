@@ -34,7 +34,7 @@ y0test
 L=@(k)diag([2, 1./(2:k)])+diag(-1./(1:(k-2)),-2);
 L(5)
 
-% function for compuing y0 for this specific DEP
+% function for compuing y0 for this specifi
 function y0=compute_y0(x,y)
     a=1;
     tt=1;
