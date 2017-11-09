@@ -85,6 +85,9 @@
                 <li class="toctree-l3"><a href="#projection">Projection</a></li>
                 
             
+                <li class="toctree-l3"><a href="#deflation">Deflation</a></li>
+                
+            
             </ul>
         
     </li>
@@ -188,6 +191,29 @@ julia&gt; compute_Mder(nep,λ)[1:2,1:2]
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
+</code></pre>
+
+<p><a id='Deflation-1'></a></p>
+<h1 id="deflation">Deflation</h1>
+<p>Due to structure of the representation of NEPs in NEP-PACK it is possible to do deflation, by transformation of the NEP-object. The deflation is based on theory provided in Effenbergers thesis and the main function consists of <code>effenberger_deflation</code>.</p>
+<p><a id='NEPTypes.effenberger_deflation' href='#NEPTypes.effenberger_deflation'>#</a>
+<strong><code>NEPTypes.effenberger_deflation</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>effenberger_deflation(nep::NEP,S0,V0)
+</code></pre>
+
+<p>A deflation procedure as described in the PhD thesis of Effenberger. More documentation to come.</p>
+<ul>
+<li>Example:</li>
+</ul>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
+julia&gt; (λ,v)=newton(nep);
+julia&gt; n=size(nep,1);
+julia&gt; S0=reshape([λ],1,1);
+julia&gt; V0=reshape(v,n,1);
+julia&gt; dnep=effenberger_deflation(nep,S0,V0)
+julia&gt; (λ2,v2)=augnewton(dnep);  # this converges to different eigval
+julia&gt; minimum(svdvals(compute_Mder(nep,λ2)))
+9.323003321058995e-17
 </code></pre>
               
             </div>
