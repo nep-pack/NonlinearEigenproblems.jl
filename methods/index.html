@@ -243,10 +243,27 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
 </ul>
 <p><a id='NEPSolver.mslp' href='#NEPSolver.mslp'>#</a>
 <strong><code>NEPSolver.mslp</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code> mslp(nep,..)
+<pre><code> mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::DataType][armijo_factor=1,][armijo_max])
 </code></pre>
 
-<p>Method of successive linear problems</p>
+<p>Runs the method of successive linear problems. The  method requires the solution of a generalized eigenvalue problem in every iteration. The method used for the eigenvalue computation is specified in eigsolvertype. See <code>newton</code> for other parameters.</p>
+<p><strong>Example</strong></p>
+<p>Create a rational NEP with SPMFs.</p>
+<pre><code class="julia-repl">julia&gt; Av=[ones(3,3),eye(3,3),triu(ones(3,3))];
+julia&gt; fv=[S-&gt; S, S -&gt; S^2, S::AbstractArray -&gt; inv(full(S)-eye(S)*10)]
+julia&gt; nep=SPMF_NEP(Av,fv)
+julia&gt; (λ,v)=mslp(nep)
+julia&gt; compute_Mlincomb(nep,λ,v)
+3-element Array{Complex{Float64},1}:
+ -1.38778e-17+1.65715e-18im
+ -5.55112e-17+1.30633e-17im
+ -4.16334e-17-1.54436e-17im
+</code></pre>
+
+<p><strong>References</strong></p>
+<ul>
+<li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
+</ul>
 <p><a id='NEPSolver.rfi' href='#NEPSolver.rfi'>#</a>
 <strong><code>NEPSolver.rfi</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
@@ -289,7 +306,7 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
 <pre><code>λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
 </code></pre>
 
-<p>Executes the Infinite Bi-Lanczos method on the problem defined by nep::NEP and nept::NEP. nep:NEP is the original nonlinear eigenvalue problem and nept::NEP is its (hermitian) transpose. v and u are starting vectors, σ is the shift and γ the scaling.  See <code>newton()</code> for other parameters.</p>
+<p>Executes the Infinite Bi-Lanczos method on the problem defined by <code>nep::NEP</code> and <code>nept::NEP</code>. <code>nep:NEP</code> is the original nonlinear eigenvalue problem and <code>nept::NEP</code> is its (hermitian) transpose: $M(lambda^*)^H$.  <code>v</code> and <code>u</code> are starting vectors, <code>σ</code> is the shift and <code>γ</code> the scaling.  See <code>newton()</code> for other parameters.</p>
 <p><strong>Example:</strong></p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
 julia&gt; A=get_Av(nep); fv=get_fv(nep);

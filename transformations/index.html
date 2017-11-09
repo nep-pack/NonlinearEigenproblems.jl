@@ -174,9 +174,9 @@ $$</p>
 
 <p>Set the projection matrices for the NEP to W and V, i.e., corresponding the NEP: $N(λ)=W^HM(λ)V$.</p>
 <p><strong>Example:</strong></p>
-<p>The following example illustrates that a projection of a <code>NEP</code> is also a <code>NEP</code> and we can for instance call <code>compute_Mder</code>on it: </p>
+<p>The following example illustrates that a projection of a <code>NEP</code> is also a <code>NEP</code> and we can for instance call <code>compute_Mder</code>on it:</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
-julia&gt; V=eye(size(nep,1),2); 
+julia&gt; V=eye(size(nep,1),2);
 julia&gt; W=eye(size(nep,1),2);
 julia&gt; pnep=create_proj_NEP(nep);
 julia&gt; set_projectmatrices!(pnep,W,V);
