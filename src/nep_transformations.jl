@@ -230,7 +230,6 @@ function compute_MM(nep::DeflatedNEP,S,V)
     p0=size(S0,1); p=size(S,1);
     V1=view(V,1:n0,            1:size(V,2))
     V2=view(V,(n0+1):size(V,1),1:size(V,2))
-    # println("V2=",V2);
     Stilde=hcat(vcat(S0,zeros(p,p0)),vcat(V2,S))
     Vtilde=hcat(V0,V1);
     R=compute_MM(orgnep, Stilde,Vtilde);
@@ -238,7 +237,8 @@ function compute_MM(nep::DeflatedNEP,S,V)
 end
 
 function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
-    return compute_Mder_from_MM(nep,λ,i);
+    # Use full to make it work with MSLP. This will not work for large and sparse.
+    return full(compute_Mder_from_MM(nep,λ,i));
 end
 
 
