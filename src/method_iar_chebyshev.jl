@@ -51,19 +51,17 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # just a test
         # hardcoded matrix L
-        temp=reshape(vv[1:k*n],n,k);
-        println("temp",temp)
 
         if k==1
             L=2;
         else
             L=diagm(vcat(2, 1./(2:k)),0)+diagm(-vcat(1./(1:(k-2))),-2);
         end
-        y[:,2:k+1]=reshape(vv[1:k*n],n,k)*L;
+        y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*L;
         # end test
         #println("Matrix y",y)
 
-        y[:,1] = compute_y0(reshape(vv[1:k*n],n,k),y[:,2:k+1],nep);
+        y[:,1] = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,2:k+1],nep);
         #println("Matrix y after y0",y)
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
@@ -77,7 +75,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         if (rem(k,check_error_every)==0)||(k==m)
             D,Z=eig(H[1:k,1:k]);
             VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=D;
+            Q=VV*Z; λ=1./D;
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
@@ -95,17 +93,18 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     end
 
     # NoConvergenceException
-    if conv_eig<Neig
-       err=err[end,1:Neig];
-       idx=sortperm(err); # sort the error
-       λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
-        msg="Number of iterations exceeded. maxit=$(maxit)."
-        if conv_eig<3
-            msg=string(msg, " Check that σ is not an eigenvalue.")
-        end
-        throw(NoConvergenceException(λ,Q,err,msg))
-    end
+    # if conv_eig<Neig
+    #    err=err[end,1:Neig];
+    #    idx=sortperm(err); # sort the error
+    #    λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+    #     msg="Number of iterations exceeded. maxit=$(maxit)."
+    #     if conv_eig<3
+    #         msg=string(msg, " Check that σ is not an eigenvalue.")
+    #     end
+    #     throw(NoConvergenceException(λ,Q,err,msg))
+    # end
 
+    k=k-1
     return λ,Q,err[1:k,:],V[:,1:k]
 end
 
@@ -118,7 +117,7 @@ function compute_y0(x,y,nep)
 
 
    for i=1:N
-      y0=y0+T(i,3)*y[:,i];
+      y0=y0+T(i+1,3)*y[:,i];
    end
    y0=-A1*y0;
 
