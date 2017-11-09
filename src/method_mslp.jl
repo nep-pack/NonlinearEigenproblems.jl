@@ -37,9 +37,8 @@ function mslp{T}(::Type{T},
 
         err=errmeasure(λ,v)
 
-        if (displaylevel>0)
-            println("Iteration:",k," errmeasure:",err)
-        end
+        @ifd(println("Iteration:",k," errmeasure:",err))
+        
         if (err< tol)
             return (λ,v)
         end
@@ -48,7 +47,7 @@ function mslp{T}(::Type{T},
         #d,v = levsolver.solve(compute_Mder(nep,λ,0),B=compute_Mder(nep,λ,1),λ_t=λ,nev=1);
         solver=eigsolvertype(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1));
 
-        d,v = eig_solve(solver,target=λ,nev=1);
+        d,v = eig_solve(solver,target=0,nev=1);
         # update eigenvalue
         λ += -d
     end
