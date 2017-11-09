@@ -16,7 +16,7 @@ function mslp{T}(::Type{T},
                  tol=eps(real(T))*100,
                  maxit=100,
                  λ=zero(T),
-                 v=randn(nep.n),
+                 v=randn(real(T),size(nep,1)),
                  displaylevel=0,
                  eigsolvertype::DataType=DefaultEigSolver)
 
