@@ -39,3 +39,16 @@ create_proj_NEP
 ```@docs
 set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
 ```
+
+
+
+# Deflation
+
+Due to structure of the representation of NEPs in NEP-PACK
+it is possible to do deflation, by transformation of the NEP-object.
+The deflation is based on theory provided in Effenbergers thesis
+and the main function consists of `effenberger_deflation`.
+
+```@docs
+effenberger_deflation
+```
