@@ -1,57 +1,50 @@
-
-
-
-
 export jd_quad
 
-jd_quad(nep::NEP;params...) = jd_quad(Complex128,nep;params...)
-function jd_quad{T}(::Type{T},
-                    nep::ProjectableNEP;
-                    errmeasure::Function =
-                    default_errmeasure(nep::NEP),
-                    tolerance=eps(real(T))*100,
-                    maxit=100,
-                    λ=zero(T),
-                    v0=randn(size(nep,1)),
-                    displaylevel=0,
-                    eigsolvertype::DataType=DefaultEigSolver)
+using IterativeSolvers
 
+
+jd_quad(nep::NEP;params...) = jd_quad(Complex128,nep;params...)
+function jd_quad{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
+                    nep::ProjectableNEP;
+                    orthmethod::Type{T_orth} = DGKS,
+                    errmeasure::Function = default_errmeasure(nep::NEP),
+                    tol = eps(real(T))*100,
+                    maxit = 100,
+                    λ = zero(T),
+                    v0 = randn(size(nep,1)),
+                    displaylevel = 0,
+                    eigsolvertype::DataType = DefaultEigSolver)
 
     λ::T = T(λ)
-    v0 = Array{T,1}(v0)
-    v::Array{T,1} = v0/norm(v0)
+    u::Array{T,1} = Array{T,1}(v0)/norm(v0)
     n = size(nep,1)
 
     proj_nep = create_proj_NEP(nep)
 
-    V::Array{T,2} = zeros(T,size(nep,1),1)
-    V[:,1] = v
-    u::Array{T,1} = v
+    V::Array{T,2} = zeros(T, size(nep,1), maxit)
+    V[:,1] = u
+    dummy_vector = zeros(T,maxit)
 
-    #loop...
-    for kk=1:maxit
-
+    for k=1:maxit
         err=errmeasure(λ,u)
         if (displaylevel>0)
           println("Iteration:",k," errmeasure:",err)
         end
-        if (err< tolerance)
+        if (err< tol)
             return (λ,u)
         end
 
         # Projected matrices
-        set_projectmatrices!(proj_nep,V,V)
+        W = view(V, :, 1:k) # extact subarrays, memory-CPU efficient
+        w = view(V, :, k+1); # next vector position
 
-        # Create the projected NEP problem and
-        # find the eigenvalue with smallest absolute value
-        Dc,Vc = jd_inner_eig_solver(typeof(nep), T, proj_nep, eigsolvertype)
-        c = sortperm(abs.(Dc))
+        set_projectmatrices!(proj_nep, W, W)
 
-        λ = Dc[c[1]]
-        s = Vc[:,c[1]]
+        # find the eigenvalue with smallest absolute value of projected NEP
+        λ,s = jd_inner_eig_solver(typeof(nep), T, proj_nep, eigsolvertype)
         s = s/norm(s)
 
-        u = V*s
+        u[:] = W*s
 
         Mdu::Array{T,1} = compute_Mlincomb(nep,λ,u,[1],1)
         P1 = eye(T,n) - Mdu*u'/(u'*Mdu)
@@ -67,24 +60,12 @@ function jd_quad{T}(::Type{T},
 
         # Least squares, -pseudo_inv(X)*r
         Q,R = qr(X)
-        t = -R\(Q'*r)
+        w[:] = -R\(Q'*r)
 
-        #Modified Gram-Schmidt
-        for ii=1:kk
-            temp = dot(V[:,ii],t)
-            t += - temp*V[:,ii]
-        end
-        # reorthogonalization
-        for ii=1:kk
-              temp = dot(V[:,ii],t)
-              t += - temp*V[:,ii]
-        end
-        v = t/norm(t);
+        # orthogonalization
+        orthogonalize_and_normalize!(W, w, dummy_vector[1:k], orthmethod)
 
-        # Update the search space V
-        V = [V v]
-
-        println("Iteration: ",kk," norm of residual:", compute_resnorm(nep,λ,u))
+        println("Iteration: ",k," norm of residual:", compute_resnorm(nep,λ,u))
     end
 
     err=errmeasure(λ,u)
@@ -100,5 +81,8 @@ end
 function jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, eigsolvertype) where {T_orig_nep <: PEP}
     pep_temp = PEP(get_Av(proj_nep))
     Dc,Vc = polyeig(T,pep_temp,eigsolvertype)
-    return Dc,Vc
+    c = sortperm(abs.(Dc))
+    λ = Dc[c[1]]
+    s = Vc[:,c[1]]
+    return λ, s
 end
