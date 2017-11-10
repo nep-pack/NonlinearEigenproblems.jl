@@ -16,6 +16,6 @@ nep.err=@(lambda,v) norm(nep.MMeval(lambda)*v);
 nep.n=n;
 
 v=zeros(n,1);   v(1)=1;
-m=100;
+m=20;
 [ V, H ] = InfArn( nep, v, m ); V=V(1:n,:);
 [ err, conv_eig_IAR ] = iar_error_hist( nep, V, H, '-k' );

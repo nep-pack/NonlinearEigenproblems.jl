@@ -15,7 +15,9 @@ for k=1:m-1
     for i=1:k
         s=1/S(i,i);
         z=V(:,1:k)*Z(:,i);  
-        err(i,k)=nep.err(s,z(1:nep.n));
+%        err(i,k)=nep.err(s,z(1:nep.n));
+        err(i,k)=min(svd(nep.MMeval(s)));
+        
         
         % save eigenvalues if converged
         if err(i,k)<1e-10
