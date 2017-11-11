@@ -1,10 +1,10 @@
-export jd_quad
+export jd
 
 using IterativeSolvers
 
 
-jd_quad(nep::NEP;params...) = jd_quad(Complex128,nep;params...)
-function jd_quad{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
+jd(nep::NEP;params...) = jd(Complex128,nep;params...)
+function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
                     nep::ProjectableNEP;
                     orthmethod::Type{T_orth} = DGKS,
                     errmeasure::Function = default_errmeasure(nep::NEP),
