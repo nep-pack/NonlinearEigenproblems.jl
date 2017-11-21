@@ -702,7 +702,7 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
-        m=size(nep.orgnep_Av,2);
+        m = length(nep.orgnep_Av);
         B = Array{Array{eltype(W),2}}(m);
         for i=1:m
             B[i]=W'*nep.orgnep_Av[i]*V;
