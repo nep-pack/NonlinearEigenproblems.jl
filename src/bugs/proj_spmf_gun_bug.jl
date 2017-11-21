@@ -1,6 +1,6 @@
 workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/.."))
+push!(LOAD_PATH, string(@__DIR__, "/../gallery_extra"))
 
 using NEPCore
 using NEPTypes
