@@ -1,5 +1,6 @@
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
 using NEPSolver
 using NEPCore
 using NEPTypes
@@ -7,6 +8,7 @@ using LinSolvers
 using Gallery
 
 using Base.Test
+
 
 
 #  A Polynomial eigenvalue problem
@@ -46,14 +48,36 @@ println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1
 
 
 
-println("\n Testing a non-PEP")
+println("\n Testing an (almost) non-PEP")
 nep2 = nep_gallery("real_quadratic")
-λ,u =jd(Complex128, nep2, tol=1e-10, maxit=80, displaylevel = 1)
+nep2 = SPMF_NEP(get_Av(nep2), get_fv(nep2))
+λ,u =jd(Float64, nep2, tol=1e-10, maxit=80, displaylevel = 1)
 λ = λ[1]
 u = vec(u)
 println("\n Resnorm of computed solution: ",compute_resnorm(nep2,λ,u))
 println("\n Smallest eigevalue found: \n λ: ",λ)
 
 @test norm(compute_Mlincomb(nep2,λ,u)) < 1e-10
+
+
+
+println("\n Testing IAR as projected solver")
+# nep_org_3 = nep_gallery(NLEVP_NEP,"gun")
+# nep3 = nlevp_make_native(nep_org_3)
+# nep3 = nep_gallery("dep0")
+nep3 = nep_gallery("pep0",300)
+f = function(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
+    λ,Q,err,V = iar(T, proj_nep, Neig=1, maxit=100, tol=1e-11)
+    return λ[1], Q[:,1]
+    # resinv(T, proj_nep, tol = 1e-11, maxit = 100, displaylevel = 1)
+end
+
+λ,u =jd(Complex128, nep3, tol=1e-10, maxit=80, displaylevel = 1, proj_eig_solver = f)
+λ = λ[1]
+u = vec(u)
+println("\n Resnorm of computed solution: ",compute_resnorm(nep3,λ,u))
+println("\n Smallest eigevalue found: \n λ: ",λ)
+
+@test norm(compute_Mlincomb(nep3,λ,u)) < 1e-10
 
 end

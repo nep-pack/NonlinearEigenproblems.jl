@@ -9,6 +9,7 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
                     orthmethod::Type{T_orth} = DGKS,
                     errmeasure::Function = default_errmeasure(nep::NEP),
                     linsolvercreator::Function=default_linsolvercreator,
+                    proj_eig_solver::Function = default_proj_eig_solver(nep::ProjectableNEP),
                     Neig = 1,
                     tol = eps(real(T))*100,
                     maxit = 100,
@@ -51,7 +52,7 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         set_projectmatrices!(proj_nep, W, W)
 
         # find the eigenvalue with smallest absolute value of projected NEP
-        λ,s = jd_inner_eig_solver(typeof(nep), T, proj_nep, conveig+1)
+        λ,s = proj_eig_solver(typeof(nep), T, proj_nep, conveig+1)
         s = s/norm(s)
 
         # the approximate eigenvector
@@ -90,12 +91,19 @@ function convergence_criterion(err, tol, λ, λ_vec, conveig, T)
     return (err < tol) && (conveig == 0 || all( abs.(λ - λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> eps(real(T))*1e5 ) )
 end
 
-function jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
+function default_proj_eig_solver(nep::ProjectableNEP)
+    f=function(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
+        defaul_jd_inner_eig_solver(T_orig_nep, T, proj_nep, N)
+    end
+    return f
+end
+
+function defaul_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
     λ,s = sgiter(T, proj_nep, N)
     return λ, s
 end
 
-function jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: PEP}
+function defaul_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: PEP}
     pep_temp = PEP(get_Av(proj_nep))
     Dc,Vc = polyeig(T,pep_temp)
     c = sortperm(abs.(Dc))
