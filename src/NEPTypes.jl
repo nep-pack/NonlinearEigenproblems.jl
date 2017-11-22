@@ -130,6 +130,15 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
      function SPMF_NEP(AA::Array, fii::Array{Function,1}, Schur_fact = false)
          n=size(AA[1],1);
 
+         if     (size(AA,1) != 1) && (size(AA,2) == 1) # Stored as column vector - do nothing
+         elseif (size(AA,1) == 1) && (size(AA,2) == 1) # It is a single entry - do nothing
+         elseif (size(AA,1) == 1) && (size(AA,2) != 1) # Stored as a row-vector
+             AA = vec(AA)
+         else
+             error("The given array should be a vector but is of size ", size(AA), ".")
+         end
+
+
          if(length(AA) != length(fii))
              error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
          end
@@ -667,9 +676,25 @@ where ``M(λ)`` is represented by `orgnep`. Use
         orgnep_Av::Array
         orgnep_fv::Array
         function Proj_SPMF_NEP(nep::AbstractSPMF)
-            this=new(nep);
-            this.orgnep_Av=get_Av(nep);
-            this.orgnep_fv=get_fv(nep);
+            this = new(nep)
+
+            this.orgnep_Av = get_Av(nep)
+            if     (size(this.orgnep_Av,1) != 1) && (size(this.orgnep_Av,2) == 1) # Stored as column vector - do nothing
+            elseif (size(this.orgnep_Av,1) == 1) && (size(this.orgnep_Av,2) == 1) # It is a single entry - do nothing
+            elseif (size(this.orgnep_Av,1) == 1) && (size(this.orgnep_Av,2) != 1) # Stored as a row-vector
+                this.orgnep_Av = vec(this.orgnep_Av)
+            else
+                error("The given array should be a vector but is of size ", size(this.orgnep_Av), ".")
+            end
+
+            this.orgnep_fv = get_fv(nep)
+            if     (size(this.orgnep_fv,1) != 1) && (size(this.orgnep_fv,2) == 1) # Stored as column vector - do nothing
+            elseif (size(this.orgnep_fv,1) == 1) && (size(this.orgnep_fv,2) == 1) # It is a single entry - do nothing
+            elseif (size(this.orgnep_fv,1) == 1) && (size(this.orgnep_fv,2) != 1) # Stored as a row-vector
+                this.orgnep_fv = vec(this.orgnep_fv)
+            else
+                error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
+            end
             return this
         end
     end
@@ -702,7 +727,7 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
-        m = length(nep.orgnep_Av);
+        m = size(nep.orgnep_Av,1);
         B = Array{Array{eltype(W),2}}(m);
         for i=1:m
             B[i]=W'*nep.orgnep_Av[i]*V;
