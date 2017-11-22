@@ -62,14 +62,11 @@ println("\n Smallest eigevalue found: \n λ: ",λ)
 
 
 println("\n Testing IAR as projected solver")
-# nep_org_3 = nep_gallery(NLEVP_NEP,"gun")
-# nep3 = nlevp_make_native(nep_org_3)
-# nep3 = nep_gallery("dep0")
+
 nep3 = nep_gallery("pep0",300)
 f = function(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
     λ,Q,err,V = iar(T, proj_nep, Neig=1, maxit=100, tol=1e-11)
     return λ[1], Q[:,1]
-    # resinv(T, proj_nep, tol = 1e-11, maxit = 100, displaylevel = 1)
 end
 
 λ,u =jd(Complex128, nep3, tol=1e-10, maxit=80, displaylevel = 1, proj_eig_solver = f)
