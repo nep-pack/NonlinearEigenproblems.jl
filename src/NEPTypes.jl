@@ -302,7 +302,7 @@ matrices A_i, and tauv is a vector of the values tau_i
             if (nep.tauv[i]==0) # Zero delay means constant term
                 fv[i+1]=  (S-> eye(size(S,1)))
             else
-                fv[i+1]=  (S-> expm(-nep.tauv[i]*S))
+                fv[i+1]=  (S-> expm(-full(nep.tauv[i]*S)))
             end
 
         end
