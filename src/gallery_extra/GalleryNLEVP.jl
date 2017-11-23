@@ -128,10 +128,14 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
             oneop= S -> eye(size(S,1),size(S,2))
             sqrt1op= S -> 1im*sqrtm(full(S))
             sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
-            nep2=SPMF_NEP(nep.Ai,[oneop,minusop,sqrt1op,sqrt2op])
+            # The nep.Ai object which comes from MATLAB
+            # is Array{Any,2} (with one row). Reshape to correct type.
+            AA=Array{AbstractMatrix,1}(vec(nep.Ai));
+            nep2=SPMF_NEP(AA,[oneop,minusop,sqrt1op,sqrt2op])
             return nep2
         elseif (nep.name == "cd_player")
-            return PEP(nep.Ai);
+            AA=Array{AbstractMatrix,1}(vec(nep.Ai));
+            return PEP(AA);
         elseif (nep.name == "fiber")
             error("Native implementation of fiber not finished")
         else
