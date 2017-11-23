@@ -127,7 +127,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Array, fii::Array{Function,1}, Schur_fact = false)
+     function SPMF_NEP(AA::Array{<:AbstractMatrix,1}, fii::Array{Function,1}, Schur_fact = false)
          n=size(AA[1],1);
 
          if     (size(AA,1) != 1) && (size(AA,2) == 1) # Stored as column vector - do nothing
@@ -139,10 +139,10 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
-         if(length(AA) != length(fii))
+         if(size(AA,1) != size(fii,1))
              error("Inconsistency: Number of supplied matrices = ", length(AA), " but the number of supplied functions are = ", length(fii))
          end
-         for i = 2:length(AA)
+         for i = 2:size(AA,1)
              if size(AA[i]) != size(AA[1])
                  error("The dimensions of the matrices mismatch: size(AA[1])",
                        size(AA[1]),"!=",size(AA[i]),"=size(AA[",i,"])")
@@ -152,7 +152,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if (issparse(AA[1]))
              Zero=spones(AA[1]);
-             for i=2:length(AA)
+             for i=2:size(AA,1)
                  Zero=Zero+spones(AA[i]);
              end
              Zero=(Zero*1im)*0
@@ -182,7 +182,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
             (T, Q, ) = schur(S)
         end
-        for i=1:length(nep.A)
+        for i=1:size(nep.A,1)
             ## Compute Fi=f_i(S) in an optimized way
             if (isdiag(S)) # optimize if S is diagonal
                 Sd=diag(S);
@@ -211,7 +211,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
         if (i==0)
             Z=copy(nep.Zero)
-            for i=1:length(nep.A)
+            for i=1:size(nep.A,1)
                 Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
             end
             return Z
@@ -247,7 +247,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         tauv::Array{Float64,1} # the delays
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
-            this=new(n,reshape(AA,length(AA)),tauv);   # allow for 1xn matrices
+            this=new(n,reshape(AA,size(AA,1)),tauv);   # allow for 1xn matrices
             return this;
         end
     end
@@ -341,7 +341,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 """
     function PEP(AA::Array)
         n=size(AA[1],1)
-        AA=reshape(AA,length(AA))
+        AA=reshape(AA,size(AA,1))
         return PEP(n,AA)
     end
 
@@ -383,7 +383,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         else
             Z=zeros(size(nep,1),size(nep,1));
         end
-        for j=(i+1):length(nep.A)
+        for j=(i+1):size(nep.A,1)
             # Derivatives of monimials
             Z+= nep.A[j]*(λ^(j-i-1)*factorial(j-1)/factorial(j-i-1))
         end
