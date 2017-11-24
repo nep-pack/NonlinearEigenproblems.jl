@@ -36,7 +36,7 @@ for i=1:m
     semilogy(err(i,:),mplot)
     hold on
 end
-ylim([1e-16 1e0])
+ylim([1e-16 1e5])
 
 end
 

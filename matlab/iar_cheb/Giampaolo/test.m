@@ -35,7 +35,8 @@ v=rand(n,1);    v=v/norm(v);
 m=20;
 
 global LL comp_y0
-LL = @(k) L(k);
+% notice that there is a factor (b-a)/4 in front of LL
+LL = @(k) L(k)/4;
 comp_y0=@(x,y) compute_y0(x,y);
 
 [ V, H ] = InfArn( nep, v, m ); 
@@ -65,6 +66,7 @@ function Lmat=L(k)
 end
 
 % function for compuing y0 for this specific DEP
+% function for compuing y0 for this specific DEP
 function y0=compute_y0(x,y)
     a=-1;
     tt=1;
@@ -81,14 +83,14 @@ function y0=compute_y0(x,y)
         y0=y0+(2*i/a)*U(i-1,1)*x(:,i+1);
     end
     
-    for i=1:N
-        y0=y0+(-A0)*y(:,i+1);
+    for i=1:N+1
+        y0=y0+A0*T(i,1)*y(:,i);
     end
     
-    for i=1:N
-        y0=y0+(-A1)*T(i,1+2*tt/a)*y(:,i+1);
+    for i=1:N+1
+        y0=y0+A1*T(i-1,1+2*tt/a)*y(:,i);
     end
-    y0=(A0+A1)\y0;
+    y0=-(A0+A1)\y0;
     
 end
 
