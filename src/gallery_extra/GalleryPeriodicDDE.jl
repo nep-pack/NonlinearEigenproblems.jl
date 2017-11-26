@@ -79,37 +79,30 @@ julia> compute_Mlincomb(nep,λ,v)
         return y;
     end
 
-    # The implementations of compute_Mlincomb and compute_Mder are
-    # crude first-versions, not optimized for efficiency nor accuracy.
-    function compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,V)
+    # The implementations of compute_MM is a 
+    # crude first-version, not optimized for efficiency nor accuracy.
+    function compute_MM(nep::PeriodicDDE_NEP, S ,V)
         n=size(nep,1);
-        if (size(V,2)>1)
-            error("Derivatives in compute_Mlincomb(PeriodicDDE_NEP) not implemented")
-        end
-        C=(t,λ) -> (nep.A(t)+nep.B(t)*exp(-nep.tau*λ)-λ*eye(n))
-        y0=V[:,1]
-        y=ode_rk4((t,y) -> C(t,λ)*y,  0,nep.tau,nep.N,y0);    
-        return y-y0;
+        # We are using (non-trivial) fact that
+        # the MM satisfies an ODE (as well as the action)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+        Y0=V;
+        YY=ode_rk4(F, 0,nep.tau,nep.N,Y0);
+        return YY-Y0
     end
+
+    # For compute_Mlincomb we (implicitly) use compute_Mlincomb_from_MM 
 
     function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
         if (der==0)
-            n=size(nep,1);
-            # Create the matrix based on typeof(λ). 
-            Y=zeros(typeof(λ),n,n);
-            for k=1:n
-                ek=zeros(typeof(λ),n,1);
-                ek[k]=1;
-                Y[:,k]=compute_Mlincomb(nep,λ,ek);
-            end
-            return Y;
+            return compute_Mder_from_MM(nep,λ,der) 
         elseif (der==1)
             # Compute first derivative with finite difference. (Slow and inaccurate)
             ee=sqrt(eps())/10;
             Yp=compute_Mder(nep,λ+ee,0)
             Ym=compute_Mder(nep,λ-ee,0)
             return (Yp-Ym)/(2ee);
-        else
+        else # This would be too slow.
             error("Higher derivatives not implemented");
         end
 
