@@ -137,12 +137,32 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
 * E. Bueler, Error Bounds for Approximate Eigenvalues of Periodic-Coefficient Linear Delay Differential Equations, SIAM J. Numer. Anal., 45(6), 2510–2536
 
 """
-    function nep_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu")
+    function nep_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=200)
         if (name == "mathieu")
             δ=1; b=1/2; a=0.1; tau=2;
             A=t-> [0 1; -( δ+ a*cos(pi*t) ) -1];
             B=t-> [0 0; b 0];
             nep=PeriodicDDE_NEP(A,B,tau)
+            return nep;
+        elseif (name == "rand0")
+            # Some eigenvalues for n=200: 
+            #  4.63633+1.10239im
+            # 4.63633-1.10239im
+            # 5.58214+4.03225im
+            # 5.58214-4.03225im
+            # 5.73989+0.732386im
+            # 5.73989-0.732386im
+
+            srand(0);
+            A0=sprandn(n,n,0.3)-speye(n,n)
+            A1=sprandn(n,n,0.3)-speye(n,n)
+            B0=sprandn(n,n,0.3)-speye(n,n);
+            B1=sprandn(n,n,0.3)-speye(n,n);            
+            tau=2;
+            A=t-> A0+cos(pi*t)*A1;
+            B=t-> B0+exp(0.01*sin(pi*t))*B1;
+            nep=PeriodicDDE_NEP(A,B,tau)
+            return nep;
         elseif (name == "milling")
             # The problem by Rott and Hömberg (and Jarlebring)
             error("Problem in http://dx.doi.org/10.3182/20100607-3-CZ-4010.00023 not yet implemented")
