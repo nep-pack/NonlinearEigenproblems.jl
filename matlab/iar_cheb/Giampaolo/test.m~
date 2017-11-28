@@ -46,14 +46,8 @@ V=V(1:n,:);
 [ err, conv_eig_IAR_Chebyshev ] = iar_error_hist( nep, V, H, '--r' );
 
 % artificially add a legend
-AA=semilogy(1e18*rand(2,1),1e18*rand(2,1),'-k');
-BB=semilogy(1e18*rand(2,1),1e18*rand(2,1),'--r');
-legend([AA, BB],'Taylor','Chebyshev')
-title('Convergence history')
+semilogy(1e1rand(2,1),rand(2,1),'-k')
 
 figure
-AA=plot(real(conv_eig_IAR),imag(conv_eig_IAR),'d');    hold on
-BB=plot(real(conv_eig_IAR_Chebyshev),imag(conv_eig_IAR_Chebyshev),'*');
-legend([AA, BB],'Taylor','Chebyshev')
-title('Converged Ritz values')
-
+A=plot(real(conv_eig_IAR),imag(conv_eig_IAR),'d');    hold on
+B=plot(real(conv_eig_IAR_Chebyshev),imag(conv_eig_IAR_Chebyshev),'*');

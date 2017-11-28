@@ -15,11 +15,11 @@ for k=1:m-1
     for i=1:k
         s=1/S(i,i);
         z=V(:,1:k)*Z(:,i);  
-        err(i,k)=nep.err(s,z(1:nep.n));
-%        err(i,k)=min(svd(nep.MMeval(s)));
+%        err(i,k)=nep.err(s,z(1:nep.n));
+        err(i,k)=min(svd(nep.MMeval(s)));
         
         % save eigenvalues if converged
-        if err(i,k)<1e-10
+        if err(i,k)<1e-5
             if isempty(conv_eig) || min(abs(conv_eig-s))>1e-6
                 conv_eig=[conv_eig s];
                 conv_vec=[conv_vec z(1:nep.n)];
