@@ -26,7 +26,7 @@ tau=1;
 
 
 %  Compute a very exact solution 
-a=-5;
+a=-1;
 b=0; k=2/(b-a) ; c=(a+b)/(a-b);
 cheb_vect=@(t,Z) cos((0:(size(Z,2)-1))*acos(t))'; 
 cheb2_vect_m1=@(Z)  (0:(size(Z,2)-1))';
@@ -36,9 +36,9 @@ Mterm=@(t,X) k*(X*((0:(size(X,2)-1))'.*cheb2_vect_m1(X)));
 y0comp=@(X,Y) (A0+A1)\(Mterm(c,X)-A0*Y*cheb_vect(c,Y)-A1*Y*cheb_vect(-k*tau+c,Y));
 
 
-N=6;
-x=rand(n,N);
-y=rand(n,N+1);
+N=3;
+x=ones(n,N);
+y=ones(n,N+1);
 
 gy0=g_compute_y0(x,y);
 
@@ -52,7 +52,7 @@ should_be_zero=norm(gy0-ey0)
 
 % function for compuing y0 for this specific DEP
 function y0=g_compute_y0(x,y)
-    a=-5;
+    a=-1;
     tt=1;
     
     global A0 A1

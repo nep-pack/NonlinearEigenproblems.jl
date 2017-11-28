@@ -3,7 +3,9 @@ clear all
 clc
 
 n=4;
-global A0 A1
+global A0 A1 a b
+a=-1;
+b=0;
 %A0=rand(n); A1=rand(n); 
 A0=[  3  -6   0 4  ;
      -3   4  -8 19 ;
@@ -31,12 +33,13 @@ nep.n=n;
 
 
 %v=zeros(n,1);   v(1)=1;
-v=rand(n,1);    v=v/norm(v);
+v=ones(n,1);    v=v/norm(v);
 m=20;
 
 global LL comp_y0
+
 % notice that there is a factor (b-a)/4 in front of LL
-LL = @(k) L(k)/4;
+LL = @(k) L(k)*(b-a)/4;
 comp_y0=@(x,y) compute_y0(x,y);
 
 [ V, H ] = InfArn( nep, v, m ); 
@@ -44,17 +47,6 @@ norm(V'*V-eye(m+1))
 V=V(1:n,:);
 [ err, conv_eig_IAR ] = iar_error_hist( nep, V, H, '-k' );
 
-
-% N=10;
-% x=rand(n,N);
-% y=rand(n,N+1);
-% 
-% y0test=compute_y0(x,y);
-% y0test
-% 
-% L(1)
-% L(2)
-% L(5)
 
 % matrix needed to the expansion
 function Lmat=L(k)
@@ -66,14 +58,16 @@ function Lmat=L(k)
 end
 
 % function for compuing y0 for this specific DEP
-% function for compuing y0 for this specific DEP
 function y0=compute_y0(x,y)
-    a=-1;
     tt=1;
     
-    global A0 A1
-    T=@(n,x) chebyshevT(n,x);   % Chebyshev polynomials of the first kind
-    U=@(n,x) chebyshevU(n,x);   % Chebyshev polynomials of the second kind
+    global A0 A1 a
+    % Chebyshev polynomials of the first kind
+    T=@(n,x) cos(n*acos(x));
+    
+    % Chebyshev polynomials of the second kind
+    %U=@(n,x) sin((n+1)*acos(x))/sin(acos(x));
+    U=@(n,x) n+1; % observe that U(n,1)=n+1 and we evaluate U only in 1 in this code
     
     n=length(A0);
     N=size(x,2);

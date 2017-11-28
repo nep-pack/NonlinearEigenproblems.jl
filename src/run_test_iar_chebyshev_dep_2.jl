@@ -19,15 +19,12 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
     0.7000    0.4000   -0.4000         0];
 
 
-
-
-
 # define the quadratic DEP
 # IDEA: should we define PDEP=polynomial DEP?
 nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
 
-λ,Q,err = iar_chebyshev(nep, maxit=40,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1);
+λ,Q,err,V,H = iar_chebyshev(nep, maxit=30,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
@@ -35,5 +32,5 @@ end
 
 m=size(err,1);
 for i=1:m
-    semilogy(3:3:m, err[3:3:m,i],color="black")
+    semilogy(1:1:m, err[1:1:m,i],color="black")
 end

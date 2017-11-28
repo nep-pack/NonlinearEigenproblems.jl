@@ -34,24 +34,19 @@ for k=1:m
     % (see article about waveguides eigenproblem)
     
     x=reshape(V(:,k),n,k);
-% -------- Taylor version commented here ------    
+% -------- o    
 %    for j=2:k+1        
 %        y(:,j)=1/(j-1)*x(:,j-1);        
 %    end
-% -------- Taylor version commented here ------    
     L=LL(k);
     y(:,2:end)=x*L;
-    'matrix y'
-    y
     
-    % computing y1  
-% -------- Taylor version commented here ------        
+    % computing y1    
     %y(:,1)=zeros(n,1);    
     %for s=1:k
     %    y(:,1) = y(:,1) + nep.Mdd(s)*y(:,s+1);
     %end    
     %y(:,1)=-M0\y(:,1);
-% -------- Taylor version commented here ------        
     y(:,1)=comp_y0(x,y);
     y=reshape(y,(k+1)*n,1);
     

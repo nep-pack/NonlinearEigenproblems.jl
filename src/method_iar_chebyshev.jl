@@ -24,6 +24,8 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     displaylevel=0,
     check_error_every=1
     )
+    # hardcoded for 2dep
+    a=-1; b=0;
 
     n = size(nep,1);
     m = maxit;
@@ -39,6 +41,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     println("Type in iar", typeof(λ))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
+    v=ones(n,1);  # debug
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
 
@@ -57,12 +60,13 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         else
             L=diagm(vcat(2, 1./(2:k)),0)+diagm(-vcat(1./(1:(k-2))),-2);
         end
+        L=L*(b-a)/4;
+        y=zeros(n,k+1);
+
         y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*L;
         # end test
-        #println("Matrix y",y)
+        y[:,1] = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
 
-        y[:,1] = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,2:k+1],nep);
-        #println("Matrix y after y0",y)
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
@@ -105,50 +109,28 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     # end
 
     k=k-1
-    return λ,Q,err[1:k,:],V[:,1:k]
+    return λ,Q,err[1:k,:],V,H
 end
 
 
-function compute_y0(x,y,nep)
-   n,N=size(y);
+function compute_y0(x,y,nep,a,b)
+   T=(n,x)->cos(n*acos(x));
+   U=(n,x)->n+1;
+   n,N=size(x);
    y0=zeros(n,1);
    A0=nep.A[2];
    A1=nep.A[3];
+   # hardcoded for 2dep
+   τ=1;
 
-
-   for i=1:N
-      y0=y0+T(i+1,3)*y[:,i];
-   end
-   y0=-A1*y0;
-
+   y0=A0*sum(y,2);
    for i=1:N-1
-      # be careful with the index of x. It starts from zero.
-      y0=y0+2*i*U(i-1,1)*x[:,i+1];
+      y0=y0+(2*i/a)*U(i-1,1)*x[:,i+1];
    end
-   y0=y0-A0*sum(y,2);
-   y0=(A0+A1)\y0;
 
-end
-
-
-# Chebyshev polynomials of the first kind
-function T(i,x)
-   if i==0
-      1
-   elseif i==1
-      x
-   else
-      2*x*T(i-1,x)-T(i-2,x)
+   for i=1:N+1
+      y0=y0+T(i-1,1+2*τ/a)*A1*y[:,i];
    end
-end
 
-# Chebyshev polynomials of the second kind
-function U(i,x)
-   if i==0
-      1
-   elseif i==1
-      2*x
-   else
-      2*x*U(i-1,x)-U(i-2,x)
-   end
+   y0=-(A0+A1)\y0;
 end
