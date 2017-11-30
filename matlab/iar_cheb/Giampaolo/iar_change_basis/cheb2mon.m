@@ -1,6 +1,5 @@
-
-function bb=mon2cheb(a)
-%mon2cheb  Monomial to Chebyshev basis conversion.
+function a=cheb2mon(b)
+%cheb2mon:  Monomial to Chebyshev basis conversion.
 %   A = MON2CHEB(B) converts polynomial B given in monomial basis to 
 %   Chebyshev basis A. The polynomial must be given with its coefficients
 %   in descending order, i.e. B = B_N*x^N + ... + B_1*x + B_0
@@ -17,24 +16,31 @@ function bb=mon2cheb(a)
 %      b = [2 0 -2];
 %      a = mon2cheb(b);
 
-n=length(a);
-a=flipud(a);
+
+
+n=length(b);
+%b=flip(b);
+b(end+2)=0;
 bb=zeros(n+2,1);
-b=0*bb;
+a=zeros(n,1);
 
 
-for j=n:-1:1 
-    b(1)=a(j)+bb(2)/2;
-    b(2)=bb(1)+bb(3)/2;
-    for k=3:n-j+2
-        b(k)=(bb(k-1)+bb(k+1))/2;
-    end
-    k=n-j+3;
-	b(k)=b(k-1)/2;
-    
-    bb=b;   
+for j=1:n 
+   
+
+   
+   for k=n-j+1:-1:2
+       bb(k)=2*b(k+1)-bb(k+2);
+   end
+   
+   bb(1)=b(2)-bb(3)/2;
+   a(j)=b(1)-bb(2)/2;
+   
+   
+   b=bb;
+   bb=0*bb;
 end
 
-bb=bb(1:n);
-bb=flipud(bb);
+%a=flip(a);
+
 end

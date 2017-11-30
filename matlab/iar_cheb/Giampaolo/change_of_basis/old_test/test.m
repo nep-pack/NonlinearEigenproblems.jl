@@ -4,7 +4,7 @@ close all
 clear all
 clc
 
-n=100;
+n=10;
 a=rand(n,1);
 
 bb1=g_mon2cheb(a);
@@ -28,13 +28,13 @@ b=0*bb;
 
 
 for j=n:-1:1 
-    b(1)=a(j)+bb(2)/2;
-    b(2)=bb(1)+bb(3)/2;
+    b(1)=a(j)*2^(-j+1)+bb(2);
+    b(2)=2*bb(1)+bb(3);
     for k=3:n-j+2
-        b(k)=(bb(k-1)+bb(k+1))/2;
+        b(k)=(bb(k-1)+bb(k+1));
     end
     k=n-j+3;
-	b(k)=b(k-1)/2;
+	b(k)=b(k-1);
     
     bb=b;   
 end

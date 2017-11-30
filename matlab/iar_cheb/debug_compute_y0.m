@@ -8,7 +8,10 @@ clc
 %A0=A0; A1=A1;
 
 n=4;
-global A0 A1
+global A0 A1 a b
+
+a=-1; b=0; 
+
 A0=[0.3000   -0.6000         0    0.4000
    -0.3000    0.4000   -0.8000    1.9000
     0.1000   -1.6000   -1.3000         0
@@ -26,8 +29,7 @@ tau=1;
 
 
 %  Compute a very exact solution 
-a=-1;
-b=0; k=2/(b-a) ; c=(a+b)/(a-b);
+k=2/(b-a) ; c=(a+b)/(a-b);
 cheb_vect=@(t,Z) cos((0:(size(Z,2)-1))*acos(t))'; 
 cheb2_vect_m1=@(Z)  (0:(size(Z,2)-1))';
 Mterm=@(t,X) k*(X*((0:(size(X,2)-1))'.*cheb2_vect_m1(X)));
@@ -52,10 +54,11 @@ should_be_zero=norm(gy0-ey0)
 
 % function for compuing y0 for this specific DEP
 function y0=g_compute_y0(x,y)
-    a=-1;
     tt=1;
+    global A0 A1 a b
+    k=2/(b-a) ; c=(a+b)/(a-b);
+
     
-    global A0 A1
     T=@(n,x) chebyshevT(n,x);   % Chebyshev polynomials of the first kind
     U=@(n,x) chebyshevU(n,x);   % Chebyshev polynomials of the second kind
     

@@ -21,7 +21,7 @@ function a=g_cheb2mon(b)
 % a is a column vector
 
 n=length(b);
-b=flipud(b);
+b=flip(b);
 b(end+2)=0;
 bb=zeros(n+2,1);
 a=zeros(n,1);
@@ -32,18 +32,18 @@ for j=1:n
 
    
    for k=n-j+1:-1:2
-       bb(k)=2*b(k+1)-bb(k+2);
+       bb(k)=b(k+1)-bb(k+2);
    end
    
-   bb(1)=b(2)-bb(3)/2;
-   a(j)=b(1)-bb(2)/2;
+   bb(1)=(b(2)-bb(3))/2;
+   a(j)=(2^(j-1))*(b(1)-bb(2));
    
    
    b=bb;
    bb=0*bb;
 end
 
-a=flipud(a);
+a=flip(a);
 
 end
 

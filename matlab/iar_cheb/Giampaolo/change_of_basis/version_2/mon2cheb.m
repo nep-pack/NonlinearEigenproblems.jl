@@ -1,4 +1,3 @@
-
 function bb=mon2cheb(a)
 %mon2cheb  Monomial to Chebyshev basis conversion.
 %   A = MON2CHEB(B) converts polynomial B given in monomial basis to 
@@ -17,6 +16,10 @@ function bb=mon2cheb(a)
 %      b = [2 0 -2];
 %      a = mon2cheb(b);
 
+% a is a column vector
+
+% a is a column vector
+
 n=length(a);
 a=flipud(a);
 bb=zeros(n+2,1);
@@ -24,17 +27,18 @@ b=0*bb;
 
 
 for j=n:-1:1 
-    b(1)=a(j)+bb(2)/2;
-    b(2)=bb(1)+bb(3)/2;
+    b(1)=a(j)*2^(-j+1)+bb(2);
+    b(2)=2*bb(1)+bb(3);
     for k=3:n-j+2
-        b(k)=(bb(k-1)+bb(k+1))/2;
+        b(k)=(bb(k-1)+bb(k+1));
     end
     k=n-j+3;
-	b(k)=b(k-1)/2;
+	b(k)=b(k-1);
     
     bb=b;   
 end
 
 bb=bb(1:n);
 bb=flipud(bb);
+
 end
