@@ -1,4 +1,3 @@
-
 function bb=mon2cheb(a)
 %mon2cheb  Monomial to Chebyshev basis conversion.
 %   A = MON2CHEB(B) converts polynomial B given in monomial basis to 
