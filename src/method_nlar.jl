@@ -22,10 +22,10 @@ function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
     #end
 end
 
+
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
-## σ target
-## returns at most mm values
+## σ targets
 function  default_eigval_sorter(dd,vv,σ,D,mm)
     R=0.01;
     dd2=copy(dd);
@@ -57,7 +57,6 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             λ=zero(T),
             v=randn(T,size(nep,1)),
             displaylevel=0,
-            nl_eigsolvertype=Union{AbstractString,Function},
             linsolvercreator::Function=default_linsolvercreator,
             proj_solve::Function = default_proj_solver,
             eigval_sorter::Function = default_eigval_sorter,
@@ -85,20 +84,21 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         proj_nep=create_proj_NEP(nep);
 
         local linsolver::LinSolver=linsolvercreator(nep,σ);
-
+        
 
         ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
         while (m < nev) && (k < maxit)
-            ### Construct the small projected PEP projected problem (V^H)T(λ)Vx = 0 using nl_eigsolvertype....(Currently works
-            ### only for PEP) #####
-
+            # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0 
             set_projectmatrices!(proj_nep,Vk,Vk);
 
             dd,vv = proj_solve(proj_nep,nev,σ);
 
+            ### Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
+            ### in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the 
+            ### eigenvalues in D.
             nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
 
-
+            # Select the eigenvalue with minimum distance from D
             nu=nuv[1];
             y=yv[:,1];
 
@@ -110,6 +110,7 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             #Determine ritz vector and residual
             u = Vk*y; # Note: y and u are vectors (not matrices)
 
+            #Normalize and compute residual
             u = normalize(u);
             res = compute_Mlincomb(nep,nu,u);
 
@@ -122,13 +123,14 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 if(displaylevel == 1)
                     println("\n\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n")
                 end
+                #Add to the set of converged eigenvalues and eigenvectors
                 D[m+1] = nu;
                 X[:,m+1] = u;
 
-                #Change the pole
-                #σ = 2.0*ν;
+                ## TODO: Check for restarting
 
-                nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
+                ## Sort and select he eigenvalues of the projected problem as described before
+                nuv,yv = eigval_sorter(dd,vv,σ,D,4)
                 nu1=nuv[1];
                 y1=yv[:,1];
 
