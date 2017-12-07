@@ -38,13 +38,14 @@ for k=1:m
     y=zeros(n,k+1);
     x=reshape(V(:,k),n,k);
     % change basis (to Monomial)
+%    close all
+%    subplot(2,1,1); semilogy(abs(x(1,:)),'--*'); hold on
     for i=1:size(x,1)
-        subplot(2,1,1); semilogy(abs(x(i,:))); hold on
         x(i,:)=cheb2mon(2/(b-a),(a+b)/(a-b),x(i,:));
-        subplot(2,1,2); semilogy(abs(x(i,:))); hold on 
     end
+%    subplot(2,1,2); semilogy(abs(x(1,:)),'--.'); hold on 
     %x=x';   x=P(1:k,1:k)*x;  x=x';
-    pause; close all
+%    pause; close all
     % apply the operator B (Taylor)
     for j=2:k+1        
         y(:,j)=1/(j-1)*x(:,j-1);
