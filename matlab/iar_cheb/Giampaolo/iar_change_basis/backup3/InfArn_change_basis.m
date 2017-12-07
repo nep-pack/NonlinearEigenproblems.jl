@@ -21,8 +21,6 @@ H=zeros(1,1);                   % Hessenberg matrix
 LL = @(k) L(k)*(nep.b-nep.a)/4;
 a=nep.a; b=nep.b;
 
-%P=P_mat(m+1,2/(b-a),(a+b)/(a-b));
-%Pinv=Pinv_mat(m+1,2/(b-a),(a+b)/(a-b));
 
 
 % iterations of the algorithm
@@ -39,12 +37,9 @@ for k=1:m
     x=reshape(V(:,k),n,k);
     % change basis (to Monomial)
     for i=1:size(x,1)
-        subplot(2,1,1); semilogy(abs(x(i,:))); hold on
         x(i,:)=cheb2mon(2/(b-a),(a+b)/(a-b),x(i,:));
-        subplot(2,1,2); semilogy(abs(x(i,:))); hold on 
     end
-    %x=x';   x=P(1:k,1:k)*x;  x=x';
-    pause; close all
+    
     % apply the operator B (Taylor)
     for j=2:k+1        
         y(:,j)=1/(j-1)*x(:,j-1);
@@ -61,7 +56,6 @@ for k=1:m
     for i=1:size(y,1)
         y(i,:)=mon2cheb(2/(b-a),(a+b)/(a-b),y(i,:));
     end
-%    y=y';   y=Pinv(1:k+1,1:k+1)*y;  y=y';
     y=reshape(y,(k+1)*n,1);
     % --------------------------------------------
 
@@ -76,7 +70,7 @@ for k=1:m
 
     
     
-    error_new_way_compute_y0=norm(y-yy)
+    norm(y-yy)
     
     
     

@@ -2,8 +2,9 @@ close all
 clear all
 clc
 
+
 n=4;
-a=-1;   b=1;
+a=-1;   b=0;
 
 A0=[  3  -6   0 4  ;
      -3   4  -8 19 ;
@@ -16,7 +17,9 @@ A1=[  8   2  -13 -3  ;
       7   4   -4   0]/10;
 
 m=100;  
-%n=30; A0=rand(n); A1=rand(n); m=150;
+%n=100; A0=rand(n); A1=rand(n); m=100;
+
+
 
 I=eye(n);
 
@@ -27,18 +30,21 @@ nep.Mdd=@(j)                            ...
                 (j==1)*(-A1) +          ...
                 (j==2)*(-2*I+A1) +      ...
                 (j>2)*((-1)^j*A1);
+
+            
+
 nep.M0solver=@(x) nep.MMeval(0)\x;
 nep.err=@(lambda,v) norm(nep.MMeval(lambda)*v);
 nep.n=n;
 nep.A0=A0;  nep.A1=A1;  nep.I=I;
 nep.a=a;    nep.b=b;
 
-v=zeros(n,1);   v(1)=1;
+%v=zeros(n,1);   v(1)=1;
 %v=ones(n,1);    v=v/norm(v);
-%v=rand(n,1);
+v=rand(n,1);
 
 
-[ V, H ] = InfArn_change_basis( nep, v, m ); 
+[ V, H ] = InfArn_change_basis_2( nep, v, m ); 
 V=V(1:n,:);
 [ err, conv_eig_IAR_Chebyshev ] = iar_error_hist( nep, V, H, '--r' );
 

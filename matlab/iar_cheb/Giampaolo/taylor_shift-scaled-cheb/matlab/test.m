@@ -3,7 +3,7 @@ clear all
 clc
 
 % define a polynomial in monomial basis with random coefficients "a"
-n=3;    % degree+1
+n=5;    % degree+1
 a=rand(n,1);
 
 % % coefficients that one may expect from IAR

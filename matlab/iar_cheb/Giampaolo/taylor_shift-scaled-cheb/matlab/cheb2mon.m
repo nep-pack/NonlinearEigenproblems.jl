@@ -24,7 +24,7 @@ function a=cheb2mon(rho,gamma,c)
             b(k)=(bb(k+1)-beta*b(k+1)-alpha*b(k+2))/alpha;
         end
         b(1)=(bb(2)-beta*b(2)-alpha*b(3))/(2*alpha);
-        a(j)=bb(1)-alpha*b(2)-beta*b(1);
+        a(j)=(bb(1)-alpha*b(2)-beta*b(1))/factorial(j);
         bb=b; b=0*b;
     end
     a=a(1:n+1,1);

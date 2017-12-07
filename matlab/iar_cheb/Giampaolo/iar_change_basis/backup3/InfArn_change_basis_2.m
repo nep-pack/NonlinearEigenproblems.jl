@@ -1,4 +1,4 @@
-function [ V, H ] = InfArn_change_basis( nep, v1, m )
+function [ V, H ] = InfArn_change_basis_2( nep, v1, m )
 %INFARN naive implementation
 %   Naive imprementation of Infinite Arnoldi
 %   Date: 13 May 2014
@@ -76,7 +76,7 @@ for k=1:m
 
     
     
-    error_new_way_compute_y0=norm(y-yy)
+    norm(y-yy)
     
     
     

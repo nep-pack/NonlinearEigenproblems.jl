@@ -8,7 +8,7 @@ m=size(V,2);
 err=NaN(m,m);
 
 for k=1:m-1    
-    %k
+    k
 %    [Z,S]=eig(H(1:k,1:k));
     [Z,S]=eig(H(1:k,1:k));
     

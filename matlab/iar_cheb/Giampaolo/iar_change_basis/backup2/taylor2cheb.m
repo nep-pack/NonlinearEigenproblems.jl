@@ -1,4 +1,4 @@
-function c=mon2cheb(rho,gamma,a)
+function c=taylor2cheb(rho,gamma,a)
 %cheb2mon: Monomial basis to shifted-and-scaled Chebyshev basis conversion.
 %   c = cheb2mon(rho,gamma,a) converts a polynomial written in 
 %   monomial basis
@@ -22,7 +22,8 @@ function c=mon2cheb(rho,gamma,a)
     b=zeros(n+3,1);
     bb=zeros(n+3,1);
     for j=n:-1:0
-        bb(1)=alpha*b(2)+beta*b(1)+a(j+1);
+%        bb(1)=alpha*b(2)+beta*b(1)+a(j+1);
+        bb(1)=alpha*b(2)+beta*b(1)+a(j+1)*factorial(j+1);
         bb(2)=beta*b(2)+alpha*b(3)+2*alpha*b(1);
         for k=3:n-j-1
             bb(k)=alpha*b(k-1)+beta*b(k)+alpha*b(k+1);

@@ -21,8 +21,6 @@ H=zeros(1,1);                   % Hessenberg matrix
 LL = @(k) L(k)*(nep.b-nep.a)/4;
 a=nep.a; b=nep.b;
 
-%P=P_mat(m+1,2/(b-a),(a+b)/(a-b));
-%Pinv=Pinv_mat(m+1,2/(b-a),(a+b)/(a-b));
 
 
 % iterations of the algorithm
@@ -30,54 +28,61 @@ for k=1:m
     fprintf("Iteration %d\n",k);
     % COMPUTING NEXT VECTOR OF THE ARNOLDI SEQUENCE
     
-
-
+    y=zeros(n,k+1);   % vector-coefficients that defines the next vector
+                      % of the Arnoldi sequence
+    
+    % reshape the last vector of the Arnoldi sequence 
+    % (see article about waveguides eigenproblem)
+    
+    % computing y2,...,y_{k+1}  
     
     % --------------------------------------------
     % new variation
-    y=zeros(n,k+1);
-    x=reshape(V(:,k),n,k);
+    yy=zeros(n,k+1);
+    xx=reshape(V(:,k),n,k);
     % change basis (to Monomial)
-    for i=1:size(x,1)
-        subplot(2,1,1); semilogy(abs(x(i,:))); hold on
-        x(i,:)=cheb2mon(2/(b-a),(a+b)/(a-b),x(i,:));
-        subplot(2,1,2); semilogy(abs(x(i,:))); hold on 
+    for i=1:size(xx,1)
+        semilogy(abs(xx(i,:))./((1:size(xx,2))))
+        hold on
+        %xx(i,:)=cheb2mon(2/(b-a),(a+b)/(a-b),xx(i,:));
+        xx(i,:)=cheb2taylor(2/(b-a),(a+b)/(a-b),xx(i,:));  
     end
-    %x=x';   x=P(1:k,1:k)*x;  x=x';
-    pause; close all
+    pause
+    close all
+    
     % apply the operator B (Taylor)
     for j=2:k+1        
-        y(:,j)=1/(j-1)*x(:,j-1);
+        %yy(:,j)=1/(j-1)*xx(:,j-1);
+        yy(:,j)=xx(:,j-1)*factorial(j-2);
     end
 
-    y(:,1)=zeros(n,1);    
+    yy(:,1)=zeros(n,1);    
     for s=1:k
-        y(:,1)=y(:,1)+nep.Mdd(s)*y(:,s+1);
+        yy(:,1)=yy(:,1)+nep.Mdd(s)*yy(:,s+1);
     end
-    y(:,1)=-M0\y(:,1); 
+    yy(:,1)=-M0\yy(:,1); 
 
    
     % change basis (to Chebyshev)
-    for i=1:size(y,1)
-        y(i,:)=mon2cheb(2/(b-a),(a+b)/(a-b),y(i,:));
+    for i=1:size(yy,1)
+        yy(i,:)=mon2cheb(2/(b-a),(a+b)/(a-b),yy(i,:));
+        %yy(i,:)=cheb2taylor(2/(b-a),(a+b)/(a-b),yy(i,:));
     end
-%    y=y';   y=Pinv(1:k+1,1:k+1)*y;  y=y';
-    y=reshape(y,(k+1)*n,1);
-    % --------------------------------------------
-
-    % --------------------------------------------
-    % standard
-    yy=zeros(n,k+1);
-    xx=reshape(V(:,k),n,k);
-    yy(:,2:end)=xx*LL(k);
-    yy(:,1)=compute_y0(xx,yy,nep);
+    yym=yy;
     yy=reshape(yy,(k+1)*n,1);
     % --------------------------------------------
-
+  
+    x=reshape(V(:,k),n,k);
+    y(:,2:end)=x*LL(k);
+    y(:,1)=compute_y0(x,y,nep);
+    ym=y;
+    y=reshape(y,(k+1)*n,1);
     
     
-    error_new_way_compute_y0=norm(y-yy)
-    
+    ym./yym
+    norm(y-yy)
+    y=yy;
+    pause
     
     
 
@@ -101,6 +106,7 @@ for k=1:m
 end
     
 end
+
 
 % matrix needed to the expansion
 function Lmat=L(k)
