@@ -26,13 +26,15 @@ end
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
 ## σ targets
-function  default_eigval_sorter(dd,vv,σ,D,mm)
-    R=0.01;
+function  default_eigval_sorter(dd,vv,σ,D,mm,R)
     dd2=copy(dd);
+
+    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
+    ## from each eigenvalue that as already converged(i.e. in D) 
     for i=1:size(dd,1)
         for j=1:size(D,1)
             if (abs(dd2[i]-D[j])<R)
-                dd2[i]=Inf;
+                dd2[i]=Inf; #Discard all eigenvalues within a particular radius R
             end
         end
     end
@@ -96,7 +98,7 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             ### Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
             ### in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the 
             ### eigenvalues in D.
-            nuv,yv = eigval_sorter(dd,vv,σ,D, 4)
+            nuv,yv = eigval_sorter(dd,vv,σ,D, 4,0.01)
 
             # Select the eigenvalue with minimum distance from D
             nu=nuv[1];
@@ -130,7 +132,7 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 ## TODO: Check for restarting
 
                 ## Sort and select he eigenvalues of the projected problem as described before
-                nuv,yv = eigval_sorter(dd,vv,σ,D,4)
+                nuv,yv = eigval_sorter(dd,vv,σ,D,4,0.01)
                 nu1=nuv[1];
                 y1=yv[:,1];
 
