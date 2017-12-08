@@ -52,7 +52,8 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             ::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth}=ModifiedGramSchmidt,
-            nev=10,#Number of eigenvalues required
+            nev=10,         #Number of eigenvalues required
+            submax_rest=30, #Maximum dimension of subspace before restarting
             errmeasure::Function = default_errmeasure(nep),
             tol=1e-6,
             maxit=100,
