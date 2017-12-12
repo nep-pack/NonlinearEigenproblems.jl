@@ -49,10 +49,17 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
     L=L*(b-a)/4;
 
-    # standard behaviour
-    P=P_mat(m+1,2/(b-a),(a+b)/(a-b));
-    P_inv=P_inv_mat(m+1,2/(b-a),(a+b)/(a-b));
 
+    # Compute the P and P_inv 
+    TT=Float64 # Select if you want to compute P_mat using higher precision
+    P=P_mat(TT,m+1,2/(TT(b)-TT(a)),
+            (TT(a)+TT(b))/(TT(a)-TT(b)));
+    P=Array{Float64,2}(P); # Warning: If you set this to BigFloat the algorithm will also run in bigfloat
+    P_inv=P_inv_mat(TT,m+1,2/(TT(b)-TT(a)),
+                    (TT(a)+TT(b))/(TT(a)-TT(b)));
+    P_inv=Array{Float64,2}(P_inv);
+   
+    
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
             println("Iteration:",k, " conveig:",conv_eig)
@@ -63,13 +70,50 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         # compute y (only steps different then standard IAR)
         y=zeros(n,k+1);
         if isempty(methods(compute_y0))
-            y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
-            for j=1:k
-                y[:,j+1]=y[:,j+1]/j;
+ 
+            use_partial_bigfloat=true;  # Set to false to use compute_Mlincomb-call
+            if (!use_partial_bigfloat)
+                y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
+                for j=1:k
+                    y[:,j+1]=y[:,j+1]/j;
+                end
+                y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+                y[:,1] = -lin_solve(M0inv,y[:,1]);
+                y=y*P_inv[1:k+1,1:k+1]';
+            else                
+                # Prepare for call to compute_MM
+                a=α[1:k+1];
+                kk=k+1;
+
+                # Compute the VZ-matrix 
+
+                VZ=zeros(n,kk);
+                VZ[:,2:end]=reshape(VV[1:1:n*k,k],n,k);
+                VZ[:,find(x->x==0,a)]=0; a[find(x->x==0,a)]=1;            
+
+                # Compute the S-matrix
+                D=diagm(1./(1:k))
+                PP=P[1:k,1:k]'*D;
+                TT=BigFloat;
+                SS=diagm(σ*ones(TT,kk))+diagm((a[2:kk]./a[1:kk-1]).*(1:kk-1),1); SS=SS.';
+                QQ=zeros(kk,kk); QQ[1,1]=1; QQ[2:end,2:end]=PP;
+                S2=Array{Complex128,2}(QQ*SS/QQ);
+
+                ## Compute the y0
+                #println("eltype(VZ)=",eltype(VZ)," eltype(S2)=",eltype(S2));
+                z=compute_MM(nep,S2,VZ)*QQ[:,1]
+                y0 = -lin_solve(M0inv,z);            
+
+                ## Reverse the transformation
+                q=P[1:k+1,1:k+1]'*eye(k+1,1);
+                # Shifted down part
+                Y1hat=reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
+
+                # Set y
+                y[:,1]=(y0-Y1hat*q[2:end])/q[1];
+                y[:,2:k+1]  = Y1hat;
             end
-            y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-            y[:,1] = -lin_solve(M0inv,y[:,1]);
-            y=y*P_inv[1:k+1,1:k+1]';
+ 
         else
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
@@ -121,11 +165,11 @@ end
 
 
 
-function mon2cheb(ρ,γ,a)
+function mon2cheb(T,ρ,γ,a)
     n=length(a)-1;
     α=1/(2*ρ);    β=-γ/ρ;
-    b=zeros(n+3,1);
-    bb=zeros(n+3,1);
+    b=zeros(T,n+3,1);
+    bb=zeros(T,n+3,1);
 
         for j=n:-1:0
         bb[1]=α*b[2]+β*b[1]+a[j+1];
@@ -147,11 +191,11 @@ function mon2cheb(ρ,γ,a)
 end
 
 
-function cheb2mon(ρ,γ,c)
+function cheb2mon(T,ρ,γ,c)
     n=length(c)-1;
     α=1/(2*ρ);    β=-γ/ρ;
-    a=zeros(n+3,1);     b=zeros(n+3,1);
-    bb=zeros(n+3,1);    bb[1:n+1]=c;
+    a=zeros(T,n+3,1);     b=zeros(T,n+3,1);
+    bb=zeros(T,n+3,1);    bb[1:n+1]=c;
     for j=1:1:n+1
         for k=n-j+1:-1:2
             b[k]=(bb[k+1]-β*b[k+1]-α*b[k+2])/α;
@@ -165,19 +209,21 @@ function cheb2mon(ρ,γ,c)
 end
 
 
-function P_mat( n, ρ, γ )
-    I=eye(n,n); P=zeros(n,n);
+function P_mat(T,n, ρ, γ )
+    I=eye(T,n,n); P=zeros(T,n,n);
+    ρ=T(ρ); γ=T(γ);
     for j=1:n
-        P[:,j]=cheb2mon(ρ,γ,I[:,j]);
+        P[:,j]=cheb2mon(T,ρ,γ,I[:,j]);
     end
-    P
+    return P
 end
 
 
-function P_inv_mat( n, ρ, γ )
-    I=eye(n,n); P_inv=zeros(n,n);
+function P_inv_mat(T,n, ρ, γ )
+    I=eye(T,n,n); P_inv=zeros(T,n,n);
+    ρ=T(ρ); γ=T(γ);
     for j=1:n
-        P_inv[:,j]=mon2cheb(ρ,γ,I[:,j]);
+        P_inv[:,j]=mon2cheb(T,ρ,γ,I[:,j]);
     end
-    P_inv
+    return P_inv
 end

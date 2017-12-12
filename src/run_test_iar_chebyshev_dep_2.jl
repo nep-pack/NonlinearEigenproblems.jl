@@ -19,11 +19,33 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
     0.7000    0.4000   -0.4000         0];
 
 
+function myexpm(A::Array{T,2}) where {T<:Number}
+    A=Array{Complex128,2}(A);
+    F=zeros(T,size(A,1),size(A,2))
+    if (size(A)==(1,1))
+        F[:]=exp(A[1,1]);
+        return F
+    end            
+    Bi=eye(T,size(A,1),size(A,2))
+    for k=0:50
+        F=F+Bi/factorial(real(T(k)));
+        Bi=Bi*A;
+    end
+    #F=Array{Complex128,2}(F);
+    err=norm(expm(A)-F,1)/norm(F,1);
+    if(err>eps()*100)
+        println("Warning: error large:",err, " size:",size(A), " norm(A):",norm(A));
+
+    end
+    
+    return F
+end
+
 # define the quadratic DEP
 # IDEA: should we define PDEP=polynomial DEP?
 #nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
-nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->myexpm(-λ)])
 
 function compute_y0(x,y,nep,a,b)
    T=(n,x)->cos(n*acos(x));
@@ -48,13 +70,14 @@ function compute_y0(x,y,nep,a,b)
 end
 
 v0=randn(n);
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0=compute_y0,v=v0);
+λ,Q,err,V,H = iar_chebyshev(nep, maxit=80,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0=compute_y0,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
 
 m=size(err,1);
+clf();
 for i=1:m
     semilogy(1:1:m, err[1:1:m,i],color="black")
 end
@@ -63,7 +86,7 @@ ylim(1e-16,1e1)
 
 
 
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
+λ,Q,err,V,H = iar_chebyshev(nep, maxit=80,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
