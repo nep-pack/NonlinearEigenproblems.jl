@@ -21,6 +21,7 @@ function c=mon2cheb(rho,gamma,a)
 
     b=zeros(n+3,1);
     bb=zeros(n+3,1);
+    %bb=sym(bb); b=sym(b);   a=sym(a);    
     for j=n:-1:0
         bb(1)=alpha*b(2)+beta*b(1)+a(j+1);
         bb(2)=beta*b(2)+alpha*b(3)+2*alpha*b(1);

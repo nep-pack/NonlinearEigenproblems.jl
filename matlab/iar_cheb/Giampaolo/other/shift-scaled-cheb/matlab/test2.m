@@ -5,10 +5,11 @@ clc
 % set scaling and shift
 %rho=2;    gamma=3;
 %rho=1;    gamma=0;
-a=-3;   b=3;
+%a=-3;   b=3;
+a=-1;   b=0;
 rho=2/(b-a); gamma=(a+b)/(a-b);
 
-n=5;
+n=10;
 I=eye(n);
 P=zeros(n); Pinv=zeros(n);
 for j=1:n

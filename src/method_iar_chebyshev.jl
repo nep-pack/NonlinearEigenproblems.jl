@@ -17,12 +17,13 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
     Neig=6,
-    errmeasure::Function = default_errmeasure(nep::NEP),
+    errmeasure::Function=default_errmeasure(nep::NEP),
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
-    check_error_every=1
+    check_error_every=1,
+    compute_y0::Function=function emptyfunc end
     )
     # hardcoded for 2dep
     a=-1; b=0;
@@ -38,12 +39,19 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
-    println("Type in iar", typeof(λ))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     v=ones(n,1);  # debug
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
+
+    # hardcoded matrix L
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
+    L=L*(b-a)/4;
+
+    # standard behaviour
+    P=P_mat(m+1,2/(b-a),(a+b)/(a-b));
+    P_inv=P_inv_mat(m+1,2/(b-a),(a+b)/(a-b));
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
@@ -52,28 +60,24 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
-        # just a test
-        # hardcoded matrix L
-
-        if k==1
-            L=2;
-        else
-            L=diagm(vcat(2, 1./(2:k)),0)+diagm(-vcat(1./(1:(k-2))),-2);
-        end
-        L=L*(b-a)/4;
+        # compute y (only steps different then standard IAR)
         y=zeros(n,k+1);
-
-        y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*L;
-        # end test
-        y[:,1] = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
-
+        if isempty(methods(compute_y0))
+            y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
+            for j=1:k
+                y[:,j+1]=y[:,j+1]/j;
+            end
+            y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+            y[:,1] = -lin_solve(M0inv,y[:,1]);
+            y=y*P_inv[1:k+1,1:k+1]';
+        else
+            y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
+            y[:,1]      = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
+        end
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
-
-        #println("Vector vv",vv)
-        #println("Matrix H",H[1:k,1:k])
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
@@ -113,24 +117,67 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 end
 
 
-function compute_y0(x,y,nep,a,b)
-   T=(n,x)->cos(n*acos(x));
-   U=(n,x)->n+1;
-   n,N=size(x);
-   y0=zeros(n,1);
-   A0=nep.A[2];
-   A1=nep.A[3];
-   # hardcoded for 2dep
-   τ=1;
 
-   y0=A0*sum(y,2);
-   for i=1:N-1
-      y0=y0+(2*i/a)*U(i-1,1)*x[:,i+1];
-   end
 
-   for i=1:N+1
-      y0=y0+T(i-1,1+2*τ/a)*A1*y[:,i];
-   end
 
-   y0=-(A0+A1)\y0;
+
+function mon2cheb(ρ,γ,a)
+    n=length(a)-1;
+    α=1/(2*ρ);    β=-γ/ρ;
+    b=zeros(n+3,1);
+    bb=zeros(n+3,1);
+
+        for j=n:-1:0
+        bb[1]=α*b[2]+β*b[1]+a[j+1];
+        bb[2]=β*b[2]+α*b[3]+2*α*b[1];
+        for k=3:n-j-1
+            bb[k]=α*b[k-1]+β*b[k]+α*b[k+1];
+        end
+        if n-j>2
+            bb[n-j]=α*b[n-j-1]+β*b[n-j];
+        end
+        if n-j+1>2
+            bb[n-j+1]=α*b[n-j];
+        end
+        b=bb;
+        bb=0*bb;
+    end
+    c=b[1:n+1];
+    c=c[:,1];
+end
+
+
+function cheb2mon(ρ,γ,c)
+    n=length(c)-1;
+    α=1/(2*ρ);    β=-γ/ρ;
+    a=zeros(n+3,1);     b=zeros(n+3,1);
+    bb=zeros(n+3,1);    bb[1:n+1]=c;
+    for j=1:1:n+1
+        for k=n-j+1:-1:2
+            b[k]=(bb[k+1]-β*b[k+1]-α*b[k+2])/α;
+        end
+        b[1]=(bb[2]-β*b[2]-α*b[3])/(2*α);
+        a[j]=bb[1]-α*b[2]-β*b[1];
+
+        bb=b; b=0*b;
+    end
+    a=a[1:n+1,1];
+end
+
+
+function P_mat( n, ρ, γ )
+    I=eye(n,n); P=zeros(n,n);
+    for j=1:n
+        P[:,j]=cheb2mon(ρ,γ,I[:,j]);
+    end
+    P
+end
+
+
+function P_inv_mat( n, ρ, γ )
+    I=eye(n,n); P_inv=zeros(n,n);
+    for j=1:n
+        P_inv[:,j]=mon2cheb(ρ,γ,I[:,j]);
+    end
+    P_inv
 end

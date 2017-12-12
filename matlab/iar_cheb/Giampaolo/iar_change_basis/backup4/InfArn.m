@@ -35,11 +35,33 @@ for k=1:m
     % (see article about waveguides eigenproblem)
     
     % computing y2,...,y_{k+1}  
-    x=reshape(V(:,k),n,k);
-    semilogy(abs(x(1,:)),'--*');
-    pause
-    close all
     
+%     % --------------------------------------------
+%     % new variation
+%     xv=reshape(V(:,k),n,k);
+%     yv=zeros(n,k+1);
+%     % change basis (to Monomial)
+%     for i=1:size(xv,1)
+%         xv(i,:)=cheb2mon(xv(i,:));
+%     end
+%     % apply the operator B (Taylor)
+%     for j=2:k+1        
+%         yv(:,j)=1/(j-1)*xv(:,j-1);        
+%     end
+%     yv(:,1)=zeros(n,1);    
+%     for s=1:k
+%         yv(:,1)=yv(:,1)+nep.Mdd(s)*yv(:,s+1);
+%     end
+%     yv(:,1)=-M0\yv(:,1);    
+%     % change basis (to Chebyshev)
+%     for i=1:size(yv,1)
+%         yv(i,:)=mon2cheb(yv(i,:));
+%     end
+%     % --------------------------------------------
+
+    
+    
+    x=reshape(V(:,k),n,k);
     if strcmp(variation,'Taylor')
         for j=2:k+1        
            y(:,j)=1/(j-1)*x(:,j-1);        
@@ -55,7 +77,7 @@ for k=1:m
     if strcmp(variation,'Taylor')
         y(:,1)=zeros(n,1);    
         for s=1:k
-            y(:,1) = y(:,1) + nep.Mdd(s)*y(:,s+1);
+            y(:,1)=y(:,1)+nep.Mdd(s)*y(:,s+1);
         end
         y(:,1)=-M0\y(:,1);
     elseif strcmp(variation,'Chebyshev')
@@ -64,6 +86,18 @@ for k=1:m
         print('Error')
         break          
     end    
+%    norm(yv-y)
+%    y
+%    yv
+%    y=yv
+%    xv
+%    for i=1:size(xv,1)
+%        xv(i,:)=mon2cheb(xv(i,:));
+%    end
+%    xv
+%    norm(x-xv)
+    %pause
+    
     y=reshape(y,(k+1)*n,1);
     
     % expand V
@@ -96,33 +130,19 @@ function Lmat=L(k)
 end
 
 % function for compuing y0 for this specific DEP
-function y0=compute_y0(x,y,nep)
-    tt=1; % delay
-    n=length(nep.A0);
-    N=size(x,2);
+function y0=compute_y0(X,Y,nep)
 
-    
-    % Chebyshev polynomials of the first kind
-    T=@(n,x) cos(n*acos(x));
-    
-    % Chebyshev polynomials of the second kind
-    %U=@(n,x) sin((n+1)*acos(x))/sin(acos(x));
-    U=@(n,x) n+1; % observe that U(n,1)=n+1 and we evaluate U only in 1 in this code
-    
-    
-    y0=zeros(n,1);
-    for i=1:N-1
-        y0=y0+(2*i/nep.a)*U(i-1,1)*x(:,i+1);
-    end
-    
-    for i=1:N+1
-        y0=y0+nep.A0*T(i,1)*y(:,i);
-    end
-    
-    for i=1:N+1
-        y0=y0+nep.A1*T(i-1,1+2*tt/nep.a)*y(:,i);
-    end
-    y0=-(nep.A0+nep.A1)\y0;
+a=nep.a;    b=nep.b;
+A1=nep.A1;  A0=nep.A0;
+tau=1;
+
+k=2/(b-a) ; c=(a+b)/(a-b);
+cheb_vect=@(t,Z) cos((0:(size(Z,2)-1))*acos(t))'; 
+cheb2_vect_m1=@(Z)  (0:(size(Z,2)-1))';
+Mterm=@(t,X) k*(X*((0:(size(X,2)-1))'.*cheb2_vect_m1(X)));
+
+% QDEP: 
+y0= (A0+A1)\(Mterm(c,X)-A0*Y*cheb_vect(c,Y)-A1*Y*cheb_vect(-k*tau+c,Y));
     
 end
 

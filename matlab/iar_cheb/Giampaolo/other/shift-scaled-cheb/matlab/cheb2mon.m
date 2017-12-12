@@ -18,15 +18,14 @@ function a=cheb2mon(rho,gamma,c)
     n=length(c)-1;
     alpha=1/(2*rho);    beta=-gamma/rho;
     a=zeros(n+3,1);     b=zeros(n+3,1);    
-    bb=zeros(n+3,1);    bb(1:n+1)=c;   
-    %bb=sym(bb); b=sym(b);   a=sym(a);    
+    bb=zeros(n+3,1);    bb(1:n+1)=c;  
+    %bb=sym(bb); b=sym(b);   a=sym(a);
     for j=1:1:n+1
         for k=n-j+1:-1:2
             b(k)=(bb(k+1)-beta*b(k+1)-alpha*b(k+2))/alpha;
         end
         b(1)=(bb(2)-beta*b(2)-alpha*b(3))/(2*alpha);
         a(j)=bb(1)-alpha*b(2)-beta*b(1);
-        
         bb=b; b=0*b;
     end
     a=a(1:n+1,1);

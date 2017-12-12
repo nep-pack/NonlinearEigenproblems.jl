@@ -18,9 +18,15 @@ A1=[  8   2  -13 -3  ;
 
 m=60;  
 
-%n=100; A0=rand(n); A1=rand(n); m=100;
-
-
+nn=200;            
+A0= [ A0            zeros(n,nn);
+      zeros(nn,n)   eye(nn,nn)
+                    ];
+A1= [ A1            zeros(n,nn);
+      zeros(nn,n)   eye(nn,nn)
+                    ];   
+                
+n=n+nn;
 
 I=eye(n);
 
@@ -32,11 +38,13 @@ nep.Mdd=@(j)                            ...
                 (j==2)*(-2*I+A1) +      ...
                 (j>2)*((-1)^j*A1);
 
-            
+             
+                
+               
 
 nep.M0solver=@(x) nep.MMeval(0)\x;
 nep.err=@(lambda,v) norm(nep.MMeval(lambda)*v);
-nep.n=n;
+nep.n=length(A0);
 nep.A0=A0;  nep.A1=A1;  nep.I=I;
 nep.a=a;    nep.b=b;
 

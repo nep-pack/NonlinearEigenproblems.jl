@@ -3,41 +3,28 @@ clear all
 clc
 
 
-n=4;
-a=-1;   b=0;
+a=-1;   b=1;
 
-A0=[  3  -6   0 4  ;
-     -3   4  -8 19 ;
-      1 -16 -13 0  ;
-    -14  -9   2 9  ]/10;
-
-A1=[  8   2  -13 -3  ;
-     -11  9   12  5 ;
-      5   2  -16 -13  ;
-      7   4   -4   0]/10;
-
-m=60;  
-
-%n=100; A0=rand(n); A1=rand(n); m=100;
+n=1000; 
+m=100;
 
 
 
 I=eye(n);
 
 
-nep.MMeval=@(l)  -l^2*I + A0 + A1*exp(-l);
-nep.Mdd=@(j)                            ...
-                (j==0)*(A0 + A1) +      ...
-                (j==1)*(-A1) +          ...
-                (j==2)*(-2*I+A1) +      ...
-                (j>2)*((-1)^j*A1);
+D=10*rand(n,1);
+[Q,~]=qr(rand(n));
+A=Q*diag(D)*Q';
+
+nep.MMeval=@(l)  A-l*I;
+nep.Mdd=@(j)    (j==0)*(A)+(j==1)*(-I);
 
             
 
 nep.M0solver=@(x) nep.MMeval(0)\x;
 nep.err=@(lambda,v) norm(nep.MMeval(lambda)*v);
 nep.n=n;
-nep.A0=A0;  nep.A1=A1;  nep.I=I;
 nep.a=a;    nep.b=b;
 
 %v=zeros(n,1);   v(1)=1;

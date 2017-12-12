@@ -32,7 +32,10 @@ nep.Mdd=@(j)                            ...
                 (j==2)*(-2*I+A1) +      ...
                 (j>2)*((-1)^j*A1);
 
-            
+
+nn=100;            
+nep.MMeval=@(l) [   nep.MMeval(l)   
+                    ]            
 
 nep.M0solver=@(x) nep.MMeval(0)\x;
 nep.err=@(lambda,v) norm(nep.MMeval(lambda)*v);
