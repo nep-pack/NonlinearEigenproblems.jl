@@ -58,13 +58,12 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         # the approximate eigenvector
         u[:] = W*s
 
-        # solve for the basis extension using equation (9) to avoid matrix access.
-        # the vector should be orthogonal to u
+
+        # solve for basis extension using comment on top of page 367 to avoid
+        # matrix access. The orthogonalization to u comes anyway since u in V
         pk::Array{T,1} = compute_Mlincomb(nep,λ,u,[1],1)
         linsolver = linsolvercreator(nep,λ)
-        tt::Array{T,1} = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
-        α = norm(u)^2/dot(tt,u)
-        w[:] = -u + α*tt
+        w[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
 
         # orthogonalization
         orthogonalize_and_normalize!(W, w, dummy_vector[1:k], orthmethod)
