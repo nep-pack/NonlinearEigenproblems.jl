@@ -48,9 +48,9 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
     L=L*(b-a)/4;
+    setprecision(BigFloat, 200000);
 
-
-    # Compute the P and P_inv 
+    # Compute the P and P_inv
     TT=Float64 # Select if you want to compute P_mat using higher precision
     P=P_mat(TT,m+1,2/(TT(b)-TT(a)),
             (TT(a)+TT(b))/(TT(a)-TT(b)));
@@ -58,8 +58,8 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     P_inv=P_inv_mat(TT,m+1,2/(TT(b)-TT(a)),
                     (TT(a)+TT(b))/(TT(a)-TT(b)));
     P_inv=Array{Float64,2}(P_inv);
-   
-    
+
+
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
             println("Iteration:",k, " conveig:",conv_eig)
@@ -70,7 +70,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         # compute y (only steps different then standard IAR)
         y=zeros(n,k+1);
         if isempty(methods(compute_y0))
- 
+
             use_partial_bigfloat=true;  # Set to false to use compute_Mlincomb-call
             if (!use_partial_bigfloat)
                 y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
@@ -80,21 +80,25 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
                 y[:,1] = -lin_solve(M0inv,y[:,1]);
                 y=y*P_inv[1:k+1,1:k+1]';
-            else                
+            else
                 # Prepare for call to compute_MM
                 a=α[1:k+1];
                 kk=k+1;
 
-                # Compute the VZ-matrix 
+                # Compute the VZ-matrix
 
                 VZ=zeros(n,kk);
                 VZ[:,2:end]=reshape(VV[1:1:n*k,k],n,k);
-                VZ[:,find(x->x==0,a)]=0; a[find(x->x==0,a)]=1;            
+                VZ[:,find(x->x==0,a)]=0; a[find(x->x==0,a)]=1;
 
                 # Compute the S-matrix
-                D=diagm(1./(1:k))
-                PP=P[1:k,1:k]'*D;
                 TT=BigFloat;
+                D=diagm(zeros(TT,k))
+                for jj=1:k
+                    D[jj,jj]=BigFloat(1/jj);
+                end
+                #D=diagm(1./(1:k))
+                PP=P[1:k,1:k]'*D;
                 SS=diagm(σ*ones(TT,kk))+diagm((a[2:kk]./a[1:kk-1]).*(1:kk-1),1); SS=SS.';
                 QQ=zeros(kk,kk); QQ[1,1]=1; QQ[2:end,2:end]=PP;
                 S2=Array{Complex128,2}(QQ*SS/QQ);
@@ -102,7 +106,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 ## Compute the y0
                 #println("eltype(VZ)=",eltype(VZ)," eltype(S2)=",eltype(S2));
                 z=compute_MM(nep,S2,VZ)*QQ[:,1]
-                y0 = -lin_solve(M0inv,z);            
+                y0 = -lin_solve(M0inv,z);
 
                 ## Reverse the transformation
                 q=P[1:k+1,1:k+1]'*eye(k+1,1);
@@ -113,7 +117,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 y[:,1]=(y0-Y1hat*q[2:end])/q[1];
                 y[:,2:k+1]  = Y1hat;
             end
- 
+
         else
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);

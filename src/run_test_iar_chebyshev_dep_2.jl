@@ -25,9 +25,9 @@ function myexpm(A::Array{T,2}) where {T<:Number}
     if (size(A)==(1,1))
         F[:]=exp(A[1,1]);
         return F
-    end            
+    end
     Bi=eye(T,size(A,1),size(A,2))
-    for k=0:50
+    for k=0:10000
         F=F+Bi/factorial(real(T(k)));
         Bi=Bi*A;
     end
@@ -37,7 +37,7 @@ function myexpm(A::Array{T,2}) where {T<:Number}
         println("Warning: error large:",err, " size:",size(A), " norm(A):",norm(A));
 
     end
-    
+
     return F
 end
 

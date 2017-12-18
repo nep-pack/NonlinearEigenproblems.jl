@@ -1,0 +1,134 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts,graphicx,amsthm,xcolor}
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lemma}[thm]{Lemma}
+
+%opening
+\title{}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Problem description}
+Let $p(x)$ be a polynomial written in monomial basis 
+\begin{align} \label{eq:monomial}
+ p(x) = \sum_{k=0}^n a_k x^k 
+\end{align}
+We want to write this polynomial by using the shifted-and-scaled Chebyshev polynomials basis, i.e., as
+\begin{align} \label{eq:Chebyshev}
+ p(x) = \sum_{k=0}^n c_k \hat T_k(x) 
+\end{align}
+where $\hat T_(x):=T_k(\rho x + \gamma)$ and $T_k(x)$ is the $k$-th first kind Chebyshev polynomial. The constants $\rho$ and $\gamma$ are respectively the scale and the shift factors. 
+\\[0.6cm]
+The problem can therefore be stated as: given $a_0, a_1, \dots, a_n$ the coefficients that represent the polynomial $p(x)$ in monomial basis as \eqref{eq:monomial}, compute  $c_0, c_1, \dots, c_n$ the coefficients that represent the polynomial in shifted-and-scaled Chebyshev basis as \eqref{eq:Chebyshev}. We are also interested in the reverse transformation. This problem can be naively solved with interpolation-based techniques (using, for conditioning reasons, Chebyshev nodes or the unit roots depending on the wanted transformation). Since the degree of the polynomial is in our application large, this approach is infeasible (I have tested it). We want to obtain the coefficients $c_k$ by only manipulating the coefficients $a_k$. The method we propose is based on the three-term recurrence that the Chebyshev polynomials satisfy.
+
+\section{A three-term recurrence method}
+
+\subsection{A three-term recurrence for the shifted-and-scaled Chebyshev polynomials}
+Similar to the (standard) first kind Chebyshev polynomials, the shifted-and-scaled Chebyshev polynomials satisfy the following three term recurrence:
+\begin{align*}
+ \begin{cases}
+  \hat T_(0) 		&= 1	\\
+  \hat T_1(x)		&= \rho x + \gamma \\
+  \hat T_{k+1}(x)	&= 2(\rho x + \gamma) \hat T_k(x) - \hat T_{k-1}(x)
+ \end{cases}.
+\end{align*}
+With a direct usage of the three-term recurrence, it is easy to show that the shifted-and-scaled Chebyshev polynomials fulfill the following relations
+\begin{align} \label{eq:T_relations}
+ \begin{cases}
+  x \hat T_0(x) = 2 \alpha \hat T_1(x) + \beta \hat T_{0}(x)	\\
+  x \hat T_k(x) = \alpha T_{k+1} (x) + \beta T_{k} (x) + \alpha T_{k-1} (x) 
+ \end{cases}
+\end{align}
+where we have defined $\alpha:=1/2\rho$ and $\beta=-\gamma/\rho$. 
+
+\subsection{From monomial basis to shifted-and-scaled Chebyshev polynomial basis}
+We now consider the polynomial $p(x)$ written in an intermediate form between \eqref{eq:monomial} and \eqref{eq:Chebyshev}. More precisely, fixed a $j$ such that $0 \le j \le n$, we write
+\begin{align} \label{eq:j}
+ p(x) = \sum_{k=0}^{j-1} a_{k} x^k + x^j \sum_{k=0}^{n-j} b_k^{(j)} \hat T_k(x)
+\end{align}
+The key observation is that $b^{(0)}_k = c_k$ and $b^{(n)}_k=0$. Therefore, our strategy is to compute the coefficients $b^{(j)}$ by using the coefficients $b^{(j+1)}$. 
+Therefore we assume that the coefficients $b^{(j+1)}$ are given, i.e., the following relation is satisfied 
+\begin{align} \label{eq:j+1}
+ p(x) = \sum_{k=0}^{j} a_{k} x^k + x^{j+1} \sum_{k=0}^{n-j-1} b_k^{(j+1)} \hat T_k(x).
+\end{align}
+By using \eqref{eq:T_relations}, the equation \eqref{eq:j+1} can be written as 
+\begin{align} \label{eq:to_continue}
+ p(x) = \sum_{k=0}^{j} a_{k} x^k + x^j \Bigg\{
+\sum_{k=1}^{n-j-1} b_k^{(j+1)} \left[
+\alpha T_{k+1} (x) + \beta T_{k} (x) + \alpha T_{k-1} (x) \right]
++ b_0^{(j+1)} 
+\left[ 
+2 \alpha \hat T_1(x) + \beta \hat T_0(x) \right]
+\Bigg\}
+\end{align}
+In order to simplify this equation we need an intermediate result (which can easily proved by induction)
+\begin{lemma}
+It holds
+ \begin{align*}
+&  \sum_{j=1}^N \eta_j (\alpha r_{j+1} + \beta r_j + \alpha r_{j-1}) = \\
+&  \eta_1 \alpha r_0 + (\eta_1 \beta + \eta_2 \alpha) r_1 + 
+  \sum_{j=2}^{N-1} (\eta_{j-1} \alpha + \eta_j \beta + \eta_{j+1} \alpha) r_j 
+  + (\eta_{N-1} \alpha + \eta_N \beta) r_N + \alpha \eta_N r_{N+1}
+ \end{align*}
+\end{lemma}
+By using this lemma (and easy algebraic manipulations), the equation \eqref{eq:to_continue} can by written as
+\begin{align*}
+ p(x) =& \sum_{k=0}^{j-1} a_{k} x^k + 
+ x^j 
+ \Bigg\{
+ \left[  b^{(j+1)}_1 \alpha + b^{(j+1)}_0 \beta + a_j \right] \hat T_0(x) + 
+ \\ &+
+ \left[  b^{(j+1)}_1 \beta + b^{(j+1)}_2 \alpha + 2 \alpha b^{(j+1)}_0 \right] \hat T_1(x) + 
+  \\ &+
+  \sum_{k=2}^{n-j-2} \left[   b_{k-1}^{(j+1)} \alpha + b_{k}^{(j+1)} \beta + b_{k+1}^{(j+1)} \alpha  \right] \hat T_k(x) +
+ \\ &+
+  \left[  b^{(j+1)}_{n-j-2} \alpha + b^{(j+1)}_{n-j-1} \beta \right] \hat T_1(x) +   b^{(j+1)}_{n-j-1} \alpha \hat T_{n-j} (x)
+   \Bigg\}
+\end{align*}
+Finally, by comparing (coefficients-wise) this expression with \eqref{eq:j} we obtain a method to compute $b^{(j)}$ starting from $b^{(j+1)}$. More precisely we obtain the following relations
+\begin{align} \label{eq:final_relations}
+ \begin{cases}
+  b^{(j+1)}_{1} \alpha + b^{(j+1)}_{0} \beta + a_j = b^{(j)}_{0}	\\
+  b^{(j+1)}_{1} \beta + b^{(j+1)}_{2} \alpha + 2 \alpha b^{(j+1)}_{0} = b^{(j)}_{1}	\\
+  b^{(j+1)}_{k-1} \alpha + b^{(j+1)}_{k} \beta + b^{(j+1)}_{k+1} \alpha = b^{(j)}_{k}	& 2 \le l \le n-j-2	\\
+  b^{(j+1)}_{n-j-2} \alpha + b^{(j+1)}_{n-j-1} \beta = b^{(j)}_{n-j-1}	\\
+  b^{(j+1)}_{n-j-1} \alpha = b^{(j)}_{n-j} 
+ \end{cases}
+\end{align}
+
+\subsection{Conclusion}
+By using that $b^{(n)}_{k}=0$ and that $b^{(0)}_{k}=c_k$, the idea is to go backward and compute in sequence 
+\begin{align*}
+ 0=b^{(N)} \rightarrow 
+ b^{(N-1)} \rightarrow 
+ \dots 
+ b^{(2)} \rightarrow 
+ b^{(1)} \rightarrow 
+ b^{(0)}
+ =c
+\end{align*}
+
+\subsection{From shifted-and-scaled Chebyshev polynomial basis to monomial basis}
+We can use the relations \eqref{eq:final_relations} to do the conversion from $c_j$ to $a_j$. No further computation is needed. In this case we will go in the other direction 
+\begin{align*}
+ 0=b^{(N)} \leftarrow 
+ b^{(N-1)} \leftarrow 
+ \dots 
+ b^{(2)} \leftarrow 
+ b^{(1)} \leftarrow 
+ b^{(0)}
+ =c
+\end{align*}
+and, as side effect we compute $a_j$. The details are omitted but very simple.
+
+\end{document}
