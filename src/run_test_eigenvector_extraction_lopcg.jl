@@ -9,7 +9,7 @@ using Gallery
 
 
 # functions from packages
-nep=nep_gallery("dep0_sparse",10);nept=DEP([nep.A[1]',nep.A[2]'],nep.tauv);
+nep=nep_gallery("dep0_sparse",100);nept=DEP([nep.A[1]',nep.A[2]'],nep.tauv);
 
 #nep=nep_gallery("pep0",50);
 #nept=PEP([nep.A[1]',nep.A[2]',nep.A[3]'])
