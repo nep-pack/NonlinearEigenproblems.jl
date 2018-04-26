@@ -110,6 +110,7 @@ function blocknewton(nep::AbstractSPMF;
             St=S+ΔS
             Xt=X+ΔV
         else
+            j = 0
             St=S-dS
             Xt=X-dX
             
