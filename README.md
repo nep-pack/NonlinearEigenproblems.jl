@@ -1,7 +1,7 @@
 
 This package is a first alpha version of methods for nonlinear eigenvalue problems in julia.
 
-Core developers (alphabetical): Elias Jarlebring (www.math.kth.se/~eliasj), Giampaolo Mele (www.math.kth.se/~gmele), Emil Ringh (www.math.kth.se/~eringh), Parikshit Upadhyaya (https://www.kth.se/profile/pup/)
+Core developers (alphabetical): Elias Jarlebring (www.math.kth.se/~eliasj), Giampaolo Mele (www.math.kth.se/~gmele), Emil Ringh (www.math.kth.se/~eringh), Parikshit Upadhyaya (https://www.kth.se/profile/pup/). Thanks to A Koskela for involvement in initial version of the software.
 
 The user documentation is available on github pages:
 https://nep-pack.github.io/nep-pack-alpha/
