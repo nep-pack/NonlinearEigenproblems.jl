@@ -3,34 +3,29 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>NEPPACK</title>
-  
-
+  <meta name="description" content="Description...">
+  <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="./img/favicon.ico">
-
-  
+  <title>Introduction - NEPPACK</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="./css/theme.css" type="text/css" />
   <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="./css/highlight.css">
   <link href="./assets/Documenter.css" rel="stylesheet">
-
   
   <script>
     // Current page data
-    var mkdocs_page_name = "None";
+    var mkdocs_page_name = "Introduction";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/";
   </script>
   
   <script src="./js/jquery-2.1.1.min.js"></script>
   <script src="./js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="./js/highlight.pack.js"></script>
-  <script src="./js/theme.js"></script> 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  <script src="./assets/mathjaxhelper.js"></script>
-
+  <script type="text/javascript" src="./js/highlight.pack.js"></script> 
   
 </head>
 
@@ -50,55 +45,45 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-        <ul class="current">
+	<ul class="current">
+	  
           
-            <li>
-    <li class="toctree-l1 current">
-        <a class="current" href=".">Introduction</a>
-        
-            <ul>
+            <li class="toctree-l1 current">
+		
+    <a class="current" href=".">Introduction</a>
+    <ul class="subnav">
             
-                <li class="toctree-l3"><a href="#neppack">NEPPACK</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#getting-started">Getting started</a></li>
-                
-            
-                <li class="toctree-l3"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
-                
-            
-            </ul>
-        
-    </li>
-<li>
+    <li class="toctree-l2"><a href="#neppack">NEPPACK</a></li>
+    
+
+    <li class="toctree-l2"><a href="#getting-started">Getting started</a></li>
+    
+
+    <li class="toctree-l2"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
+    
+
+    </ul>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="methods/">NEP Methods</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="methods/">NEP Methods</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="types/">NEP Types</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="types/">NEP Types</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="transformations/">NEP transformations</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="transformations/">NEP transformations</a>
+	    </li>
           
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="gallery/">NEP Gallery</a>
-        
-    </li>
-<li>
+            <li class="toctree-l1">
+		
+    <a class="" href="gallery/">NEP Gallery</a>
+	    </li>
           
         </ul>
       </div>
@@ -125,7 +110,7 @@
     <li>Introduction</li>
     <li class="wy-breadcrumbs-aside">
       
-        
+        <a href="https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/"> Edit on Gitr</a>
       
     </li>
   </ul>
@@ -143,7 +128,25 @@ $$</p>
 <p>and $v\neq 0$. </p>
 <p><a id='Getting-started-1'></a></p>
 <h1 id="getting-started">Getting started</h1>
-<p>First we need to load the appropriate packages. </p>
+<p>Download NEP-PACK and get into the correct directory and start julia</p>
+<pre><code>jarl@bjork:~/src/nep-pack-alpha$
+jarl@bjork:~/src/nep-pack-alpha$ julia
+   _       _ _(_)_     |  A fresh approach to technical computing
+  (_)     | (_) (_)    |  Documentation: https://docs.julialang.org
+   _ _   _| |_  __ _   |  Type &quot;?help&quot; for help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 0.6.2 (2017-12-13 18:08 UTC)
+ _/ |\__'_|_|_|\__'_|  |  Official http://julialang.org/ release
+|__/                   |  x86_64-pc-linux-gnu
+
+julia&gt; 
+</code></pre>
+
+<p>First we need to make julia find the NEP-PACK-files in its path</p>
+<pre><code class="julia-repl">julia&gt; push!(LOAD_PATH, string(ENV[&quot;HOME&quot;],&quot;/src/nep-pack-alpha/src/&quot;))
+</code></pre>
+
+<p>and then we can start to load the appropriate packages. </p>
 <pre><code class="julia-repl">julia&gt; using NEPCore, NEPSolver
 </code></pre>
 
@@ -182,14 +185,14 @@ julia&gt; norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 <p><a id='Compiling-the-documentation-1'></a></p>
 <h1 id="compiling-the-documentation">Compiling the documentation</h1>
 <p>Compile this documentation page by running:</p>
-<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl &amp;&amp;  mkdocs build --clean
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
+<pre><code>jarl@bjork:~/src/nep-pack-alpha/docs$ julia --color=yes make.jl &amp;&amp;  mkdocs build --clean
+jarl@bjork:~/src/nep-pack-alpha/docs$ firefox site/index.html
 </code></pre>
 
-<p>If you want this to appear on our documentation page <a href="https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/">https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
-<pre><code>jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
-jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
+<p>If you want this to appear on our documentation page <a href="https://nep-pack.github.io/nep-pack-alpha/">https://nep-pack.github.io/nep-pack-alpha/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
+<pre><code>jarl@bjork:~/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/src/nep-pack-alpha/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@github.com:nep-pack/nep-pack-alpha.git
 jarl@bjork:/tmp$ cd nep-pack-alpha
 jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
 jarl@bjork:/tmp/nep-pack-alpha$ git add *
@@ -205,7 +208,7 @@ jarl@bjork:/tmp/nep-pack-alpha$ git push
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="methods/" class="btn btn-neutral float-right" title="NEP Methods"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="methods/" class="btn btn-neutral float-right" title="NEP Methods">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
     </div>
@@ -225,10 +228,10 @@ jarl@bjork:/tmp/nep-pack-alpha$ git push
       </div>
 
     </section>
-
+    
   </div>
 
-<div class="rst-versions" role="note" style="cursor: pointer">
+  <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
@@ -237,11 +240,14 @@ jarl@bjork:/tmp/nep-pack-alpha$ git push
       
     </span>
 </div>
+    <script src="./js/theme.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script src="./assets/mathjaxhelper.js"></script>
 
 </body>
 </html>
 
 <!--
-MkDocs version : 0.14.0
-Build Date UTC : 2017-11-09 15:58:45.449969
+MkDocs version : 0.16.3
+Build Date UTC : 2018-05-25 12:53:18
 -->
