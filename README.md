@@ -3,7 +3,7 @@ This package is a first alpha version of methods for nonlinear eigenvalue proble
 
 Core developers (alphabetical): Elias Jarlebring, Giampaolo Mele, Emil Ringh, Parikshit Upadhyaya
 
-Links below are on KTH: 
+Links below are on KTH we will migrate them soon: 
 
 Documentation page: https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/
 
