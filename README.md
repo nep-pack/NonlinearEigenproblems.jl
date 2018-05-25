@@ -18,7 +18,7 @@ If you find this software useful please cite
 ```bibtex
 @Misc{,
   author = 	 {E. Jarlebring, G. Mele, E. Ringh, P. Upadhyaya},
-  title = 	 {NEP-PACK},
+  title = 	 {NEP-PACK: A nonlinear eigenvalue problem in Julia},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
 }
