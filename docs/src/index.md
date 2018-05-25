@@ -33,7 +33,7 @@ julia> push!(LOAD_PATH, string(ENV["HOME"],"/src/nep-pack-alpha/src/"))
 ```
 and then we can start to load the appropriate packages. 
 ```julia-repl
-julia> using NEPCore, NEPSolver
+julia> using NEPSolver, NEPTypes
 ```
 The first time you run this, you will normally get an error message,
 ```julia
@@ -63,6 +63,8 @@ julia> nep=PEP([A0,A1,eye(2)])
 NEPTypes.PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
 julia> λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
+julia> resnorm=norm((A0+λ[1]*A1+λ[1]^2*eye(2))*v[:,1])
+1.4888583356622763e-14
 ```
 You have now solved your first nonlinear eigenvalue
 problem with NEPPACK. 
@@ -78,9 +80,7 @@ julia> norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 
 
 
-Reproduce an example in DDE-BIFTOOL
-
-Here is a Benchmark Example..
+Under construction: Reproduce an example in DDE-BIFTOOL. Here is a Benchmark Example. 
 
 
 
@@ -102,9 +102,7 @@ jarl@bjork:~/src/nep-pack-alpha/docs$ cd /tmp
 jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/nep-pack-alpha.git
 jarl@bjork:/tmp$ cd nep-pack-alpha
 jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
-jarl@bjork:/tmp/nep-pack-alpha$ git add *
-jarl@bjork:/tmp/nep-pack-alpha$ git commit . -m "refresh docs"
-jarl@bjork:/tmp/nep-pack-alpha$ git push
+jarl@bjork:/tmp/nep-pack-alpha$ git add *;  git commit . -m "refresh docs"; git push
 ```
 
 
