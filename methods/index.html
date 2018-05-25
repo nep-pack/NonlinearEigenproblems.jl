@@ -168,7 +168,7 @@ julia&gt; minimum(svdvals(compute_Mder(nep,λ)))
 <li>Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.</li>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_newton.jl#L12-L43' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_newton.jl#L12-L43' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.augnewton' href='#NEPSolver.augnewton'>#</a>
 <strong><code>NEPSolver.augnewton</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][linsolvercreator,][armijo_factor,][armijo_max])
@@ -189,7 +189,7 @@ julia&gt; λ1-λ2
 <li>Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.</li>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_newton.jl#L255-L275' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_newton.jl#L255-L275' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.resinv' href='#NEPSolver.resinv'>#</a>
 <strong><code>NEPSolver.resinv</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
@@ -215,7 +215,7 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
 <ul>
 <li>A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_newton.jl#L121-L151' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_newton.jl#L121-L151' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.quasinewton' href='#NEPSolver.quasinewton'>#</a>
 <strong><code>NEPSolver.quasinewton</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>quasinewton([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
@@ -233,7 +233,7 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
 <ul>
 <li>Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_newton.jl#L361-L380' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_newton.jl#L361-L380' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.mslp' href='#NEPSolver.mslp'>#</a>
 <strong><code>NEPSolver.mslp</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code> mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::DataType][armijo_factor=1,][armijo_max])
@@ -257,26 +257,26 @@ julia&gt; compute_Mlincomb(nep,λ,v)
 <ul>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_mslp.jl#L7-L33' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_mslp.jl#L7-L33' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.rfi' href='#NEPSolver.rfi'>#</a>
 <strong><code>NEPSolver.rfi</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 </code></pre>
 
 <p>Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals", by Kathrin Schreiber.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_rfi.jl#L3-L7' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_rfi.jl#L3-L7' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.newtonqr' href='#NEPSolver.newtonqr'>#</a>
 <strong><code>NEPSolver.newtonqr</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>Newton-QR method.
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_newton.jl#L464-L466' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_newton.jl#L464-L466' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.implicitdet' href='#NEPSolver.implicitdet'>#</a>
 <strong><code>NEPSolver.implicitdet</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>Implicit determinant method
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_newton.jl#L529-L531' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_newton.jl#L529-L531' class='documenter-source'>source</a><br></p>
 <p><a id='Projection-methods-1'></a></p>
 <h2 id="projection-methods">Projection methods</h2>
 <pre><code>NEPSolver.nlar
@@ -291,7 +291,7 @@ julia&gt; compute_Mlincomb(nep,λ,v)
 
 <p><strong>Infinite Arnoldi method</strong></p>
 <p>Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem", by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_iar.jl#L5-L10' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_iar.jl#L5-L10' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.tiar' href='#NEPSolver.tiar'>#</a>
 <strong><code>NEPSolver.tiar</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -299,7 +299,7 @@ julia&gt; compute_Mlincomb(nep,λ,v)
 
 <p><strong>Tensor Infinite Arnoldi method</strong></p>
 <p>Tensor Infinite Arnoldi method, as described in Algorithm 2 in  "The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method", by Jarlebring, Elias and Mele, Giampaolo and Runborg, Olof.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_tiar.jl#L4-L9' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_tiar.jl#L4-L9' class='documenter-source'>source</a><br></p>
 <p><a id='NEPSolver.infbilanczos' href='#NEPSolver.infbilanczos'>#</a>
 <strong><code>NEPSolver.infbilanczos</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
@@ -318,7 +318,7 @@ julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 <ul>
 <li>The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, arxiv: 1607.03454, to appear in SIAM J. Scientific Computing</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/bebf59f32baae6a2d2d0bfc70979ad8738075a62/src/method_infbilanczos.jl#L3-L24' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/nep-pack-alpha/blob/e0bca745415575e9ff5e6a813737c1782769fc2f/src/method_infbilanczos.jl#L3-L24' class='documenter-source'>source</a><br></p>
 <p><a id='Class-specific-methods-1'></a></p>
 <h2 id="class-specific-methods">Class specific methods</h2>
 <p><a id='Companion-linearizations-1'></a></p>
