@@ -12,7 +12,7 @@ https://nep-pack.github.io/nep-pack-alpha/
 Core developers (alphabetical): Elias Jarlebring (www.math.kth.se/~eliasj), Giampaolo Mele (www.math.kth.se/~gmele), Emil Ringh (www.math.kth.se/~eringh), Parikshit Upadhyaya (https://www.kth.se/profile/pup/). Thanks to A Koskela for involvement in initial version of the software.
 
 
-Links below are developer info on KTH. we will migrate them soon: 
+Links below are developer info on KTH. We will migrate them soon: 
 
 Documentation page: https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/
 
