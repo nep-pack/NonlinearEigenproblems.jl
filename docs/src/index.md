@@ -11,8 +11,27 @@ and ``v\neq 0``.
 
 # Getting started
 
+Download NEP-PACK and get into the correct directory and start julia
 
-First we need to load the appropriate packages. 
+```
+jarl@bjork:~/src/nep-pack-alpha$
+jarl@bjork:~/src/nep-pack-alpha$ julia
+   _       _ _(_)_     |  A fresh approach to technical computing
+  (_)     | (_) (_)    |  Documentation: https://docs.julialang.org
+   _ _   _| |_  __ _   |  Type "?help" for help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 0.6.2 (2017-12-13 18:08 UTC)
+ _/ |\__'_|_|_|\__'_|  |  Official http://julialang.org/ release
+|__/                   |  x86_64-pc-linux-gnu
+
+julia> 
+```
+
+First we need to make julia find the NEP-PACK-files in its path
+```julia-repl
+julia> push!(LOAD_PATH, string(ENV["HOME"],"/src/nep-pack-alpha/src/"))
+```
+and then we can start to load the appropriate packages. 
 ```julia-repl
 julia> using NEPCore, NEPSolver
 ```
@@ -71,16 +90,16 @@ Here is a Benchmark Example..
 
 Compile this documentation page by running:
 ```
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ julia --color=yes make.jl &&  mkdocs build --clean
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ firefox site/index.html
+jarl@bjork:~/src/nep-pack-alpha/docs$ julia --color=yes make.jl &&  mkdocs build --clean
+jarl@bjork:~/src/nep-pack-alpha/docs$ firefox site/index.html
 ```
 If you want this to appear on our documentation page
-[https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/](https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/)
+[https://nep-pack.github.io/nep-pack-alpha/](https://nep-pack.github.io/nep-pack-alpha/)
 you need to push it to the `gh-branch`, e.g.,  by running
 ```
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
-jarl@bjork:~/jobb/src/nep-pack-alpha/docs$ cd /tmp
-jarl@bjork:/tmp$ git clone -b "gh-pages" git@gitr.sys.kth.se:nep-pack/nep-pack-alpha.git
+jarl@bjork:~/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/src/nep-pack-alpha/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/nep-pack-alpha.git
 jarl@bjork:/tmp$ cd nep-pack-alpha
 jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
 jarl@bjork:/tmp/nep-pack-alpha$ git add *
