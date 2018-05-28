@@ -59,6 +59,9 @@
     <li class="toctree-l2"><a href="#getting-started">Getting started</a></li>
     
 
+    <li class="toctree-l2"><a href="#accessing-more-complicated-applications">Accessing more complicated applications</a></li>
+    
+
     <li class="toctree-l2"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
     
 
@@ -180,6 +183,23 @@ julia&gt; norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 1.1502634749464687e-14
 </code></pre>
 
+<p><a id='Accessing-more-complicated-applications-1'></a></p>
+<h1 id="accessing-more-complicated-applications">Accessing more complicated applications</h1>
+<p>We have made benchmark examples available in the module <code>Gallery</code>. Use it by loading the module and calling the function <code>nep_gallery</code>:</p>
+<pre><code class="julia-repl">julia&gt; using Gallery
+julia&gt; nep=nep_gallery(&quot;dep0&quot;,100);
+julia&gt; size(nep)
+(100, 100)
+julia&gt; λ,v=mslp(nep,tol=1e-10);
+julia&gt; λ
+0.23169217667341738 - 2.1866254654451488e-16im
+julia&gt; size(v)
+(100,)
+julia&gt; resnorm=norm(compute_Mlincomb(nep,λ,v))
+3.124042808475689e-14
+</code></pre>
+
+<p>Information about the gallery can be found by typing <code>?nep_gallery</code>. The second arument in <code>nep_gallery</code> is a problem parameter, in this case specifying that the  size of the problem should be <code>100</code>. The example solves the problem with the method MSLP. The parameter <code>tol</code> specifies the tolerance for iteration termination. Type <code>?mslp</code> for more information about this method.</p>
 <p>Under construction: Reproduce an example in DDE-BIFTOOL. Here is a Benchmark Example. </p>
 <p><a id='Compiling-the-documentation-1'></a></p>
 <h1 id="compiling-the-documentation">Compiling the documentation</h1>
@@ -246,5 +266,5 @@ jarl@bjork:/tmp/nep-pack-alpha$ git add *;  git commit . -m &quot;refresh docs&q
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-05-25 12:59:27
+Build Date UTC : 2018-05-28 15:04:01
 -->
