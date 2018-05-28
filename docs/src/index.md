@@ -63,8 +63,6 @@ julia> nep=PEP([A0,A1,eye(2)])
 NEPTypes.PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
 julia> λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
-julia> resnorm=norm((A0+λ[1]*A1+λ[1]^2*eye(2))*v[:,1])
-1.4888583356622763e-14
 ```
 You have now solved your first nonlinear eigenvalue
 problem with NEPPACK. 
@@ -78,6 +76,30 @@ julia> norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 ```
 
 
+# Accessing more complicated applications
+
+We have made benchmark examples available in the module `Gallery`. Use it
+by loading the module and calling the function `nep_gallery`:
+
+```julia-repl
+julia> using Gallery
+julia> nep=nep_gallery("dep0",100);
+julia> size(nep)
+(100, 100)
+julia> λ,v=mslp(nep,tol=1e-10);
+julia> λ
+0.23169217667341738 - 2.1866254654451488e-16im
+julia> size(v)
+(100,)
+julia> resnorm=norm(compute_Mlincomb(nep,λ,v))
+3.124042808475689e-14
+```
+Information about the gallery can be found by typing `?nep_gallery`.
+The second arument in the call to `nep_gallery` is a problem parameter,
+in this case specifying that the  size of the problem should be `100`.
+The example solves the problem with the method MSLP. The parameter `tol` specifies the
+tolerance for iteration termination. Type `?mslp` for more information
+about this method.
 
 
 Under construction: Reproduce an example in DDE-BIFTOOL. Here is a Benchmark Example. 

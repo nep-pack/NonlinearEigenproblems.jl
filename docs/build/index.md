@@ -50,7 +50,7 @@ and then we can start to load the appropriate packages.
 
 
 ```julia-repl
-julia> using NEPCore, NEPSolver
+julia> using NEPSolver, NEPTypes
 ```
 
 
@@ -106,10 +106,33 @@ julia> norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 ```
 
 
-Reproduce an example in DDE-BIFTOOL
+<a id='Accessing-more-complicated-applications-1'></a>
+
+# Accessing more complicated applications
 
 
-Here is a Benchmark Example..
+We have made benchmark examples available in the module `Gallery`. Use it by loading the module and calling the function `nep_gallery`:
+
+
+```julia-repl
+julia> using Gallery
+julia> nep=nep_gallery("dep0",100);
+julia> size(nep)
+(100, 100)
+julia> λ,v=mslp(nep,tol=1e-10);
+julia> λ
+0.23169217667341738 - 2.1866254654451488e-16im
+julia> size(v)
+(100,)
+julia> resnorm=norm(compute_Mlincomb(nep,λ,v))
+3.124042808475689e-14
+```
+
+
+Information about the gallery can be found by typing `?nep_gallery`. The second arument in `nep_gallery` is a problem parameter, in this case specifying that the  size of the problem should be `100`. The example solves the problem with the method MSLP. The parameter `tol` specifies the tolerance for iteration termination. Type `?mslp` for more information about this method.
+
+
+Under construction: Reproduce an example in DDE-BIFTOOL. Here is a Benchmark Example. 
 
 
 <a id='Compiling-the-documentation-1'></a>
@@ -135,9 +158,7 @@ jarl@bjork:~/src/nep-pack-alpha/docs$ cd /tmp
 jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/nep-pack-alpha.git
 jarl@bjork:/tmp$ cd nep-pack-alpha
 jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
-jarl@bjork:/tmp/nep-pack-alpha$ git add *
-jarl@bjork:/tmp/nep-pack-alpha$ git commit . -m "refresh docs"
-jarl@bjork:/tmp/nep-pack-alpha$ git push
+jarl@bjork:/tmp/nep-pack-alpha$ git add *;  git commit . -m "refresh docs"; git push
 ```
 
 
