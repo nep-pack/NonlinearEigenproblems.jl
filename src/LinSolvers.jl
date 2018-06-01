@@ -187,8 +187,20 @@ module LinSolvers
 
     function eig_solve(solver::NativeEigSSolver;nev=6,target=0)
         if(solver.B != spzeros(eltype(solver.A),0))
-            warn("Julia's eigs() could return erroneous results for GEPs")
-            D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
+            # Julia's eigs(A,B) is currently broken for
+            # indefinite B 
+            # https://github.com/JuliaLang/julia/issues/24668
+            # This is what we want to do:
+            # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
+            # We do a work-around by computing
+            # largest eigenvalue of (target B -A)\B 
+            C=target*solver.B-solver.A;
+            Cfact=factorize(C);
+            Atransformed=LinearMap(x->Cfact\(solver.B*x),
+                                   size(solver.A,1),size(solver.A,1));
+            D0,V =eigs(Atransformed;nev=nev,which=:LM);
+            # And reverse transformation
+            D=target-inv.(D0); # Reverse transformation 
         else
             D,V = eigs(solver.A;nev=nev,sigma=target)
         end
@@ -212,17 +224,8 @@ module LinSolvers
 
         function DefaultEigSolver(A,B=zeros(eltype(A),0))
             this = new()
-
             if(issparse(A))
-                if(B == zeros(eltype(A),0))
-                    this.subsolver = NativeEigSSolver(A,B);
-                else
-                    error("DefaultEigSolver for sparse GEP is disabled due to bug (issue #1). "*
-                          "You can explicitly use the MATLAB-version "*
-                          "using LinSolversMATLAB and MATLABEigSSolver, or the (currently) buggy "*
-                          "native version: NativeEigSSolver.")
-                    #subsolver = MatlabEigSSolver(A,B);  # See bug in ussue #1.
-                end
+                this.subsolver = NativeEigSSolver(A,B);
             else
                 this.subsolver = NativeEigSolver(A,B);
             end
