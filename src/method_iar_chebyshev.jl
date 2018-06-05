@@ -48,7 +48,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
     L=L*(b-a)/4;
-    setprecision(BigFloat, 200000);
+    setprecision(BigFloat, 100);
 
     # Compute the P and P_inv
     TT=Float64 # Select if you want to compute P_mat using higher precision

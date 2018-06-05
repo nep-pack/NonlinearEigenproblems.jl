@@ -1,11 +1,14 @@
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+
+using PyPlot
+using PyCall
+
 using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
-using PyPlot
-using PyCall
+
 
 n=4;
 A0=[0.3000   -0.6000         0    0.4000
@@ -18,8 +21,11 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
     0.5000    0.2000   -1.6000   -1.3000
     0.7000    0.4000   -0.4000         0];
 
+mm=80;  # number of iterations
 
 function myexpm(A::Array{T,2}) where {T<:Number}
+    println("call expm with ",typeof(A),"\n");
+
     A=Array{Complex128,2}(A);
     F=zeros(T,size(A,1),size(A,2))
     if (size(A)==(1,1))
@@ -27,7 +33,7 @@ function myexpm(A::Array{T,2}) where {T<:Number}
         return F
     end
     Bi=eye(T,size(A,1),size(A,2))
-    for k=0:10000
+    for k=0:100
         F=F+Bi/factorial(real(T(k)));
         Bi=Bi*A;
     end
@@ -38,14 +44,13 @@ function myexpm(A::Array{T,2}) where {T<:Number}
 
     end
 
+#    F=expm(A);
     return F
 end
 
-# define the quadratic DEP
-# IDEA: should we define PDEP=polynomial DEP?
-#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
 nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->myexpm(-λ)])
+#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
 function compute_y0(x,y,nep,a,b)
    T=(n,x)->cos(n*acos(x));
@@ -70,7 +75,7 @@ function compute_y0(x,y,nep,a,b)
 end
 
 v0=randn(n);
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=80,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0=compute_y0,v=v0);
+λ,Q,err,V,H = iar_chebyshev(nep, maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0=compute_y0,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
@@ -79,14 +84,14 @@ end
 m=size(err,1);
 clf();
 for i=1:m
-    semilogy(1:1:m, err[1:1:m,i],color="black")
+   semilogy(1:1:m, err[1:1:m,i],color="black")
 end
 ylim(1e-16,1e1)
 
 
 
 
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=80,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
+λ,Q,err,V,H = iar_chebyshev(nep, maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
@@ -94,6 +99,6 @@ end
 
 m=size(err,1);
 for i=1:m
-    semilogy(1:1:m, err[1:1:m,i],color="red")
+   semilogy(1:1:m, err[1:1:m,i],color="red")
 end
 ylim(1e-16,1e1)
