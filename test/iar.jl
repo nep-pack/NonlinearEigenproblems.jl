@@ -1,4 +1,4 @@
-# Run tests for the dep_distributed example (more?)
+# Run tests for the dep_distributed example
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
