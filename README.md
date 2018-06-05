@@ -5,7 +5,7 @@ This package is a first alpha version of methods for nonlinear eigenvalue proble
 # How to use it?
 
 The user documentation is available on github pages:
-https://nep-pack.github.io/nep-pack-alpha/
+https://nep-pack.github.io/NonlinearEigenproblems.jl
 
 # Developers
 
