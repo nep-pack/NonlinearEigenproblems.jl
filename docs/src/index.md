@@ -116,7 +116,7 @@ jarl@bjork:~/src/nep-pack-alpha/docs$ julia --color=yes make.jl &&  mkdocs build
 jarl@bjork:~/src/nep-pack-alpha/docs$ firefox site/index.html
 ```
 If you want this to appear on our documentation page
-[https://nep-pack.github.io/nep-pack-alpha/](https://nep-pack.github.io/nep-pack-alpha/)
+[https://nep-pack.github.io/NonlinearEigenproblems.jl/](https://nep-pack.github.io/NonlinearEigenproblems.jl/)
 you need to push it to the `gh-branch`, e.g.,  by running
 ```
 jarl@bjork:~/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
