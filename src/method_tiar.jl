@@ -3,9 +3,32 @@ using IterativeSolvers
 
 """
     tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
-### Tensor Infinite Arnoldi method
-Tensor Infinite Arnoldi method, as described in Algorithm 2 in  "The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method",
-by Jarlebring, Elias and Mele, Giampaolo and Runborg, Olof.
+
+Runs the tensor infinite Arnoldi method which tries to find eigenvalues close to the shift σ. 
+
+# Example
+
+```julia-repl
+julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
+julia> nep=nep_gallery("dep0",100);
+julia> v0=ones(size(nep,1));
+julia> λ,v=iar(nep,v=v0,tol=1e-5,Neig=3);
+julia> λ
+3-element Array{Complex{Float64},1}:
+ -0.156062-0.122734im   
+ -0.156062+0.122734im   
+  0.231692+4.82981e-17im
+julia> λ,v=iar(nep,v=v0,tol=1e-5,Neig=3);
+julia> λ  % Same eigenvalues are computed
+3-element Array{Complex{Float64},1}:
+ -0.156062-0.122734im   
+ -0.156062+0.122734im   
+  0.231692+4.82981e-17im
+```
+
+# References
+* Algorithm 2 in Jarlebring, Mele, Runborg, The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method, SIAM J. Scient. computing, 39 (3), A1062-A1088, 2017
+
 """
 tiar(nep::NEP;params...)=tiar(Complex128,nep;params...)
 function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(

@@ -3,8 +3,8 @@
   Look at the function 'nep_gallery()' for further instructions.
   """
 module Gallery
-    using NEPCore
-    using NEPTypes
+    using ..NEPCore
+    using ..NEPTypes
     using PolynomialRoots
     using MAT
 

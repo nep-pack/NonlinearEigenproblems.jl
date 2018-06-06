@@ -4,9 +4,23 @@ using IterativeSolvers
 
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+
 ### Infinite Arnoldi method
-Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
-by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.
+
+Runs the infinite Arnoldi method which tries to find eigenvalues close to the shift σ. 
+
+
+# Example
+```julia-repl
+julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
+julia> nep=nep_gallery("dep0");
+julia> λ,v=iar(nep); 
+julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
+
+```
+
+# References
+* Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
 iar(nep::NEP;params...)=iar(Complex128,nep;params...)
 function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
@@ -22,8 +36,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     γ=one(T),
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
-    check_error_every=1
-    )
+    check_error_every=1)
 
     n = size(nep,1);
     m = maxit;
@@ -84,9 +97,9 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
     # NoConvergenceException
     if conv_eig<Neig
-       err=err[end,1:Neig];
-       idx=sortperm(err); # sort the error
-       λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+        err=err[end,1:Neig];
+        idx=sortperm(err); # sort the error
+        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
         msg="Number of iterations exceeded. maxit=$(maxit)."
         if conv_eig<3
             msg=string(msg, " Check that σ is not an eigenvalue.")
