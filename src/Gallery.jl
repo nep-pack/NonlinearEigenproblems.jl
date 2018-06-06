@@ -15,6 +15,7 @@ module Gallery
 
 
     include("gallery_extra/distributed_example.jl")
+    include("gallery_extra/periodic_dde.jl")
 
   """
      nep=nep_gallery(name)\\
@@ -273,7 +274,8 @@ module Gallery
 
           nep=PEP([A1*A2,-A1-A2,I])
           return nep
-
+      elseif (name == "periodicdde")
+          return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);          
       else
           error("The name '", name, "' is not supported in NEP-Gallery.")
       end
