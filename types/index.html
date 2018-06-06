@@ -125,8 +125,8 @@
                 <p><a id='The-basic-type-1'></a></p>
 <h1 id="the-basic-type">The basic type</h1>
 <p>The basic class is the abstract class <code>NEP</code> which represents a NEP. </p>
-<p><a id='NEPCore.NEP' href='#NEPCore.NEP'>#</a>
-<strong><code>NEPCore.NEP</code></strong> &mdash; <em>Type</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPCore.NEP' href='#NonlinearEigenproblems.NEPCore.NEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.NEP</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>abstract NEP
 </code></pre>
 
@@ -140,12 +140,12 @@ V=compute_Mlincomb(nep::NEP,λ::Number,V::Array{&lt;:Number,2})
 MM=compute_MM(nep::NEP,S::Array{&lt;:Number,2},V::Array{&lt;:Number,2})
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L54-L67' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L54-L67' class='documenter-source'>source</a><br></p>
 <p><a id='Accessing-the-NEP-1'></a></p>
 <h2 id="accessing-the-nep">Accessing the NEP</h2>
 <p>The nonlinear eigenvalue problem is defined by the data stored in the NEP-class, and the NEP-solvers access the data mainly through three main functions, <code>compute_Mder</code> <code>compute_Mlincomb</code> and <code>compute_MM</code>.</p>
-<p><a id='NEPCore.compute_Mder-Tuple{NEPCore.NEP,Number,Integer}' href='#NEPCore.compute_Mder-Tuple{NEPCore.NEP,Number,Integer}'>#</a>
-<strong><code>NEPCore.compute_Mder</code></strong> &mdash; <em>Method</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_Mder-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Integer}' href='#NonlinearEigenproblems.NEPCore.compute_Mder-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Integer}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_Mder</code></strong> &mdash; <em>Method</em>.</p>
 <pre><code>compute_Mder(nep::NEP,λ::Number [,i::Integer=0])
 </code></pre>
 
@@ -161,9 +161,9 @@ julia&gt; norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
 1.990970375089371e-11
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L71-L87' class='documenter-source'>source</a><br></p>
-<p><a id='NEPCore.compute_Mlincomb-Tuple{NEPCore.NEP,Number,Any}' href='#NEPCore.compute_Mlincomb-Tuple{NEPCore.NEP,Number,Any}'>#</a>
-<strong><code>NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Method</em>.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L71-L87' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_Mlincomb-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Any}' href='#NonlinearEigenproblems.NEPCore.compute_Mlincomb-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Any}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Method</em>.</p>
 <pre><code>compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
 </code></pre>
 
@@ -178,9 +178,9 @@ julia&gt; norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1
 
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L99-L113' class='documenter-source'>source</a><br></p>
-<p><a id='NEPCore.compute_MM' href='#NEPCore.compute_MM'>#</a>
-<strong><code>NEPCore.compute_MM</code></strong> &mdash; <em>Function</em>.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L99-L113' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_MM' href='#NonlinearEigenproblems.NEPCore.compute_MM'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_MM</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>compute_MM(nep::NEP,S,V)
 </code></pre>
 
@@ -206,12 +206,12 @@ julia&gt; norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
 <li>D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372</li>
 <li>C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L140-L167' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L140-L167' class='documenter-source'>source</a><br></p>
 <p><a id='NEPTypes-1'></a></p>
 <h1 id="neptypes">NEPTypes</h1>
 <p>In order to use the methods, the user has the possibility to implement their own problem-specific functions above, or use one of the predefined types. The most common one is the <code>SPMF_NEP</code>.</p>
-<p><a id='NEPTypes.SPMF_NEP' href='#NEPTypes.SPMF_NEP'>#</a>
-<strong><code>NEPTypes.SPMF_NEP</code></strong> &mdash; <em>Type</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.SPMF_NEP' href='#NonlinearEigenproblems.NEPTypes.SPMF_NEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.SPMF_NEP</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>type SPMF_NEP &lt;: AbstractSPMF
 </code></pre>
 
@@ -220,13 +220,13 @@ julia&gt; norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
 M(λ)=∑_i A_i f_i(λ).
 $$</p>
 <p>All of the matrices $A_0,...$ are of size $n×n$ and $f_i$ are a functions. The  functions $f_i$ must be defined for matrices in the standard matrix function sense.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPTypes.jl#L89-L100' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPTypes.jl#L89-L100' class='documenter-source'>source</a><br></p>
 <p>In order to construct an <code>SPMF_NEP</code>, we need to provide the matrices and the functions.</p>
 <pre><code>SPMF_NEP(AA::Array, fii::Array{Function,1}) 
 </code></pre>
 
-<p><a id='NEPCore.compute_Mder' href='#NEPCore.compute_Mder'>#</a>
-<strong><code>NEPCore.compute_Mder</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_Mder' href='#NonlinearEigenproblems.NEPCore.compute_Mder'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_Mder</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>compute_Mder(nep::NEP,λ::Number [,i::Integer=0])
 </code></pre>
 
@@ -242,9 +242,9 @@ julia&gt; norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
 1.990970375089371e-11
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L71-L87' class='documenter-source'>source</a><br></p>
-<p><a id='NEPCore.compute_Mlincomb' href='#NEPCore.compute_Mlincomb'>#</a>
-<strong><code>NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Function</em>.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L71-L87' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_Mlincomb' href='#NonlinearEigenproblems.NEPCore.compute_Mlincomb'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
 </code></pre>
 
@@ -259,13 +259,13 @@ julia&gt; norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1
 
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L99-L113' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L99-L113' class='documenter-source'>source</a><br></p>
 <pre><code>compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
 </code></pre>
 
 <p>Computes linear combination starting with derivative startder, i.e., $Σ_i a_i M^{(i+startder)}(λ) v_i$</p>
 <p>The default implementation of this can be slow. Overload for specific NEP if you want efficiency (for aug_newton, IAR, ..).</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPCore.jl#L126-L133' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPCore.jl#L126-L133' class='documenter-source'>source</a><br></p>
 <p>Let's try an equation $x=f(x)$. (a \ne 0)</p>
 <p>$$
 x=x_1+1

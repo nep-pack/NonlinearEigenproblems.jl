@@ -122,8 +122,8 @@
                 <p><a id='Transforming-NEPs-1'></a></p>
 <h1 id="transforming-neps">Transforming NEPs</h1>
 <p>There are various ways to transform NEPs into other NEPs. The simplest example is the function <code>shift_and_scale()</code>.</p>
-<p><a id='NEPTypes.shift_and_scale' href='#NEPTypes.shift_and_scale'>#</a>
-<strong><code>NEPTypes.shift_and_scale</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.shift_and_scale' href='#NonlinearEigenproblems.NEPTypes.shift_and_scale'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.shift_and_scale</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>shift_and_scale(orgnep::NEP;shift=0,scale=1)
 </code></pre>
 
@@ -136,7 +136,7 @@ julia&gt; norm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
 8.875435870738592e-12
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/nep_transformations.jl#L25-L38' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/nep_transformations.jl#L25-L38' class='documenter-source'>source</a><br></p>
 <p>Similarly <code>mobius_transform()</code> is more general than <code>shift_and_scale</code> which transform the problem using a Möbius transformation. The function <code>taylor_exp</code> create new PEP by doing truncating a Taylor expansion.</p>
 <p><a id='Projection-1'></a></p>
 <h1 id="projection">Projection</h1>
@@ -150,15 +150,15 @@ N(λ)u=0.
 $$</p>
 <p>NEPs which for which this projection can be computed inherit from <code>ProjectableNEP</code>. The most important type is the <code>SPMF_NEP</code>. </p>
 <p>You can create a projected NEP with <code>create_proj_NEP</code>:</p>
-<p><a id='NEPTypes.create_proj_NEP' href='#NEPTypes.create_proj_NEP'>#</a>
-<strong><code>NEPTypes.create_proj_NEP</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.create_proj_NEP' href='#NonlinearEigenproblems.NEPTypes.create_proj_NEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.create_proj_NEP</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>pnep=create_proj_NEP(orgnep::ProjectableNEP)
 </code></pre>
 
 <p>Create a NEP representing a projected problem. The projection is defined as the problem $N(λ)=W^HM(λ)V$ where $M(λ)$ is represented by <code>orgnep</code>. Use <code>set_projectionmatrices!()</code> to specify projection matrices $V$ and $W$.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPTypes.jl#L633-L641' class='documenter-source'>source</a><br></p>
-<p><a id='NEPTypes.set_projectmatrices!-Tuple{NEPTypes.Proj_SPMF_NEP,Any,Any}' href='#NEPTypes.set_projectmatrices!-Tuple{NEPTypes.Proj_SPMF_NEP,Any,Any}'>#</a>
-<strong><code>NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Method</em>.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPTypes.jl#L633-L641' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{NonlinearEigenproblems.NEPTypes.Proj_SPMF_NEP,Any,Any}' href='#NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{NonlinearEigenproblems.NEPTypes.Proj_SPMF_NEP,Any,Any}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Method</em>.</p>
 <pre><code>set_projectmatrices!(pnep::Proj_NEP,W,V)
 </code></pre>
 
@@ -180,12 +180,12 @@ julia&gt; compute_Mder(nep,λ)[1:2,1:2]
  -1.35069  -13.0975
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/NEPTypes.jl#L702-L726' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/NEPTypes.jl#L702-L726' class='documenter-source'>source</a><br></p>
 <p><a id='Deflation-1'></a></p>
 <h1 id="deflation">Deflation</h1>
 <p>Due to structure of the representation of NEPs in NEP-PACK it is possible to do deflation, by transformation of the NEP-object. The deflation is based on theory provided in Effenbergers thesis and the main function consists of <code>effenberger_deflation</code>.</p>
-<p><a id='NEPTypes.effenberger_deflation' href='#NEPTypes.effenberger_deflation'>#</a>
-<strong><code>NEPTypes.effenberger_deflation</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.effenberger_deflation' href='#NonlinearEigenproblems.NEPTypes.effenberger_deflation'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.effenberger_deflation</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>effenberger_deflation(nep::NEP,S0,V0)
 </code></pre>
 
@@ -204,7 +204,7 @@ julia&gt; minimum(svdvals(compute_Mder(nep,λ2)))
 9.323003321058995e-17
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/66a1a0dafcf7c2c9b3db3bd0e0e94e301d41a96f/src/nep_transformations.jl#L186-L204' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/d6b6cbb68aae5003567cfe5d24544a8d12547507/src/nep_transformations.jl#L186-L204' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>

@@ -134,38 +134,20 @@ $$</p>
 <p>and $v\neq 0$. </p>
 <p><a id='Getting-started-1'></a></p>
 <h1 id="getting-started">Getting started</h1>
-<p>Download NEP-PACK and get into the correct directory and start julia</p>
-<pre><code>jarl@bjork:~/src/NonlinearEigenproblems.jl$
-jarl@bjork:~/src/NonlinearEigenproblems.jl$ julia
-   _       _ _(_)_     |  A fresh approach to technical computing
-  (_)     | (_) (_)    |  Documentation: https://docs.julialang.org
-   _ _   _| |_  __ _   |  Type &quot;?help&quot; for help.
-  | | | | | | |/ _` |  |
-  | | |_| | | | (_| |  |  Version 0.6.2 (2017-12-13 18:08 UTC)
- _/ |\__'_|_|_|\__'_|  |  Official http://julialang.org/ release
-|__/                   |  x86_64-pc-linux-gnu
+<p>Install it as a contributed package </p>
+<pre><code>julia&gt; Pkg.clone(&quot;git://github.com/nep-pack/NonlinearEigenproblems.jl.git&quot;);
 
-julia&gt; 
 </code></pre>
 
-<p>First we need to make julia find the NEP-PACK-files in its path</p>
-<pre><code class="julia-repl">julia&gt; push!(LOAD_PATH, string(ENV[&quot;HOME&quot;],&quot;/src/NonlinearEigenproblems.jl/src/&quot;))
-</code></pre>
-
-<p>and then we can start to load the appropriate packages. </p>
-<pre><code class="julia-repl">julia&gt; using NEPSolver, NEPTypes
-</code></pre>
-
-<p>The first time you run this, you will normally get an error message,</p>
-<pre><code class="julia">ERROR: LoadError: LoadError: ArgumentError: Module IterativeSolvers not found in current path.
-Run `Pkg.add(&quot;IterativeSolvers&quot;)` to install the IterativeSolvers package.
-</code></pre>
-
-<p>NEPPACK builds on contributed julia packages. These need to be installed the first time you use NEPPACK, by running for the corresponding packages:</p>
+<p>NEP-PACK builds on contributed julia packages. These need to be installed the first time you use NEPPACK, by running for the corresponding packages:</p>
 <pre><code class="julia-repl">julia&gt; Pkg.add(&quot;IterativeSolvers&quot;)
 </code></pre>
 
-<p>We are now ready to create and solve a nonlinear eigenvalue problem, in this illustrative example we set</p>
+<p>Then we can start to load some NEP-PACK packages</p>
+<pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems: NEPSolver, NEPTypes
+</code></pre>
+
+<p>We are now ready to create and solve a nonlinear eigenvalue problem, in this illustrative example we set </p>
 <p>$$
 M(λ)=\begin{bmatrix}1&amp;3\newline5&amp;6\end{bmatrix}+
 λ\begin{bmatrix}3&amp;4\newline6&amp;6\end{bmatrix}+
@@ -272,5 +254,5 @@ jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m &quot;ref
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-06-06 08:45:23
+Build Date UTC : 2018-06-06 11:11:39
 -->
