@@ -2,6 +2,24 @@ export jd
 
 using IterativeSolvers
 
+"""
+    jd(nep::ProjectableNEP;orthmethod::Type{T_orth} = DGKS,errmeasure::Function = default_errmeasure(nep::NEP),linsolvercreator::Function=default_linsolvercreator,proj_eig_solver::Function = default_proj_eig_solver(nep::ProjectableNEP),Neig = 1,tol = eps(real(T))*100, maxit = 100, λ = zero(T), v0 = randn(size(nep,1)), displaylevel = 0)
+
+Runs the Jacobi-Davidson method with a projected solver in proj_eig_solver.
+
+
+# Example
+```julia-repl
+julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
+julia> nep=nep_gallery("real_quadratic");
+julia> λ,v=jd(nep,tol=1e-5,maxit=100);
+julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
+8.85629539860136e-12
+```
+
+# References
+* The Jacobi-Davidson method for nonlinear eigenvalue problems, Betcke.
+"""
 
 jd(nep::NEP;params...) = jd(Complex128,nep;params...)
 function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},

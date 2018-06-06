@@ -1,5 +1,6 @@
 # Beyn contour integral approach
-using QuadGK
+
+#using QuadGK # Disabled to lessen requirements 
 
 export contour_beyn
 
@@ -13,9 +14,9 @@ specifies the number of computed eigenvalues. `N` corresponds to the
 number of quadrature points. 
 
 # Example
-```julia-repl
+```julia-repl 
 julia> nep=nep_gallery("dep0");
-julia> λv,V=contour_beyn(nep,radius=1,k=2,quad_method=:quadgk);
+julia> λv,V=contour_beyn(nep,radius=1,k=2,quad_method=:ptrapz);
 julia> minimum(svdvals(compute_Mder(nep,λv[1])))
 1.6106898471314257e-16
 ```
@@ -72,21 +73,24 @@ function contour_beyn{T}(::Type{T},
 
     local A0,A1
     if (quad_method == :quadg_parallel)
-        @ifd(print(" using quadg_parallel"))
-        A0=quadg_parallel(f1,0,2*pi,N);
-        A1=quadg_parallel(f2,0,2*pi,N);        
+        #@ifd(print(" using quadg_parallel"))
+        #A0=quadg_parallel(f1,0,2*pi,N);
+        #A1=quadg_parallel(f2,0,2*pi,N);        
+        error("disabled");
     elseif (quad_method == :quadg)
-        @ifd(print(" using quadg"))
-        A0=quadg(f1,0,2*pi,N);
-        A1=quadg(f2,0,2*pi,N);
+        #@ifd(print(" using quadg"))
+        #A0=quadg(f1,0,2*pi,N);
+        #A1=quadg(f2,0,2*pi,N);
+        error("disabled");        
     elseif (quad_method == :ptrapz)
         @ifd(print(" using ptrapz"))
         A0=ptrapz(f1,0,2*pi,N);
         A1=ptrapz(f2,0,2*pi,N);
     elseif (quad_method == :quadgk)
-        @ifd(print(" using quadgk"))
-        A0,tmp=quadgk(f1,0,2*pi,reltol=tol);
-        A1,tmp=quadgk(f2,0,2*pi,reltol=tol);
+        #@ifd(print(" using quadgk"))
+        #A0,tmp=quadgk(f1,0,2*pi,reltol=tol);
+        #A1,tmp=quadgk(f2,0,2*pi,reltol=tol);
+        error("disabled");
     else
         error("Unknown quadrature method:"*String(quad_method));
     end

@@ -3,7 +3,20 @@ export rfi_b
 """
     rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 
-Two-sided Rayleigh functional Iteration, as given as Algorithm 4 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
+This is an implementation of the two-sided Rayleigh functional Iteration. This method requires the transpose of the NEP, which needs to be provided in nept.
+
+# Example:
+julia> nep=nep_gallery("dep0");
+julia> nept=DEP([nep.A[1]',nep.A[2]'])
+julia> λ,v,u=rfi(nep,nept,v=ones(size(nep,1)))
+julia> norm(compute_Mder(nep,λ)*v) % v is a right eigenvector
+5.4672143489065705e-16
+julia> norm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
+4.1447913221215544e-16
+
+# Reference
+*  Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008
+
 """
 function rfi(nep::NEP,
             nept::NEP;
