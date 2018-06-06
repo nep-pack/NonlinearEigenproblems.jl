@@ -1,6 +1,6 @@
-using NEPCore
-using NEPTypes
-using LinSolvers
+using ..NEPCore
+using ..NEPTypes
+using ..LinSolvers
 export mslp
 
 

@@ -18,16 +18,16 @@ module NEPTypes
 
     export set_projectmatrices!;
 
-    using NEPCore
+    using ..NEPCore
     using PolynomialZeros
     using Polynomials
 
     # We overload these
-    import NEPCore.compute_Mder
-    import NEPCore.compute_Mlincomb
-    import NEPCore.compute_MM
-    import NEPCore.compute_resnorm
-    import NEPCore.compute_rf
+    import ..NEPCore.compute_Mder
+    import ..NEPCore.compute_Mlincomb
+    import ..NEPCore.compute_MM
+    import ..NEPCore.compute_resnorm
+    import ..NEPCore.compute_rf
 
     import Base.size
     import Base.issparse

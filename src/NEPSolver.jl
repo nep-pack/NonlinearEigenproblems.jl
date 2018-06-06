@@ -1,7 +1,7 @@
 module NEPSolver
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
+    using ..NEPCore
+    using ..NEPTypes
+    using ..LinSolvers
 
     export compute_eigvec_from_eigval_lu
     export compute_eigvec_from_eigval_lopcg
@@ -19,18 +19,18 @@ Executes z if displaylevel>0.
     ## NEP-Methods
 
     include("method_newton.jl")
-    include("method_iar.jl")
-    include("method_iar_chebyshev.jl")
-    include("method_tiar.jl")
-    include("method_infbilanczos.jl")
+    #include("method_iar.jl")
+    #include("method_iar_chebyshev.jl")
+    #include("method_tiar.jl")
+    #include("method_infbilanczos.jl")
     include("method_mslp.jl")
     include("method_companion.jl")
-    include("method_nlar.jl")
+    #include("method_nlar.jl")
     include("method_sgiter.jl")
-    include("method_rfi.jl")
-    include("method_jd.jl")
-    include("method_beyncontour.jl")
-    include("method_blocknewton.jl")
+    #include("method_rfi.jl")
+    #include("method_jd.jl")
+    #include("method_beyncontour.jl")
+    #include("method_blocknewton.jl")
 
 
     """
