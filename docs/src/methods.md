@@ -27,24 +27,38 @@ Float16
 
 ## Newton type methods
 ```@docs
-NEPSolver.newton
-NEPSolver.augnewton
-NEPSolver.resinv
-NEPSolver.quasinewton
-NEPSolver.mslp
-NEPSolver.rfi
-NEPSolver.newtonqr
-NEPSolver.implicitdet
+newton
+```
+```@docs
+augnewton
+```
+```@docs
+resinv
+```
+```@docs
+quasinewton
+```
+```@docs
+mslp
+```
+```@docs
+rfi
+```
+```@docs
+newtonqr
+```
+```@docs
+implicitdet
 ```
 ## Projection methods
 ```@docs
-NEPSolver.nlar
+nlar
 ```
 ## Arnoldi type methods
 ```@docs
-NEPSolver.iar
-NEPSolver.tiar
-NEPSolver.infbilanczos
+iar
+tiar
+infbilanczos
 ```
 
 ## Class specific methods

@@ -11,44 +11,23 @@ and ``v\neq 0``.
 
 # Getting started
 
-Download NEP-PACK and get into the correct directory and start julia
+Install it as a contributed package 
+```
+julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 
 ```
-jarl@bjork:~/src/nep-pack-alpha$
-jarl@bjork:~/src/nep-pack-alpha$ julia
-   _       _ _(_)_     |  A fresh approach to technical computing
-  (_)     | (_) (_)    |  Documentation: https://docs.julialang.org
-   _ _   _| |_  __ _   |  Type "?help" for help.
-  | | | | | | |/ _` |  |
-  | | |_| | | | (_| |  |  Version 0.6.2 (2017-12-13 18:08 UTC)
- _/ |\__'_|_|_|\__'_|  |  Official http://julialang.org/ release
-|__/                   |  x86_64-pc-linux-gnu
-
-julia> 
-```
-
-First we need to make julia find the NEP-PACK-files in its path
-```julia-repl
-julia> push!(LOAD_PATH, string(ENV["HOME"],"/src/nep-pack-alpha/src/"))
-```
-and then we can start to load the appropriate packages. 
-```julia-repl
-julia> using NEPSolver, NEPTypes
-```
-The first time you run this, you will normally get an error message,
-```julia
-ERROR: LoadError: LoadError: ArgumentError: Module IterativeSolvers not found in current path.
-Run `Pkg.add("IterativeSolvers")` to install the IterativeSolvers package.
-```
-NEPPACK builds on contributed julia packages.
+NEP-PACK builds on contributed julia packages.
 These need to be installed the first time you use NEPPACK,
 by running for the corresponding packages:
 ```julia-repl
 julia> Pkg.add("IterativeSolvers")
 ```
-
+Then we can start to load some NEP-PACK packages
+```julia-repl
+julia> using NonlinearEigenproblems: NEPSolver, NEPTypes
+```
 We are now ready to create and solve a nonlinear eigenvalue problem, in this
-illustrative example we set
+illustrative example we set 
 
 ```math
 M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
@@ -64,8 +43,7 @@ NEPTypes.PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.
 julia> λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
 ```
-You have now solved your first nonlinear eigenvalue
-problem with NEPPACK. 
+You have now solved your first nonlinear eigenvalue problem with NEPPACK. 
 
 In order to verify that we have a solution, we can check that  ``M(λ)`` is singular,
 with a singular vector ``v`` such that ``M(λ)v=0``:
@@ -104,7 +82,10 @@ about this method.
 
 Under construction: Reproduce an example in DDE-BIFTOOL. Here is a Benchmark Example. 
 
+# What now?
 
+Now you are ready to have a look at the examples
+in [NEP methods](methods/) and  [NEP Gallery](gallery/).
 
 
 
@@ -112,19 +93,19 @@ Under construction: Reproduce an example in DDE-BIFTOOL. Here is a Benchmark Exa
 
 Compile this documentation page by running:
 ```
-jarl@bjork:~/src/nep-pack-alpha/docs$ julia --color=yes make.jl &&  mkdocs build --clean
-jarl@bjork:~/src/nep-pack-alpha/docs$ firefox site/index.html
+jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ julia --color=yes make.jl &&  mkdocs build --clean
+jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ firefox site/index.html
 ```
 If you want this to appear on our documentation page
 [https://nep-pack.github.io/NonlinearEigenproblems.jl/](https://nep-pack.github.io/NonlinearEigenproblems.jl/)
 you need to push it to the `gh-branch`, e.g.,  by running
 ```
-jarl@bjork:~/src/nep-pack-alpha/docs$ export DOCSDIR=`pwd`
-jarl@bjork:~/src/nep-pack-alpha/docs$ cd /tmp
-jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/nep-pack-alpha.git
-jarl@bjork:/tmp$ cd nep-pack-alpha
-jarl@bjork:/tmp/nep-pack-alpha$ cp -r $DOCSDIR/site/* .
-jarl@bjork:/tmp/nep-pack-alpha$ git add *;  git commit . -m "refresh docs"; git push
+jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/NonlinearEigenproblems.jl.git
+jarl@bjork:/tmp$ cd NonlinearEigenproblems
+jarl@bjork:/tmp/NonlinearEigenproblems.jl$ cp -r $DOCSDIR/site/* .
+jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m "refresh docs"; git push
 ```
 
 
