@@ -1,10 +1,16 @@
 # NEP-PACK
 
-This package is a first alpha version of methods for nonlinear eigenvalue problems in julia.
+A nonlinear eigenvalue problem is the problem to determine a scalar λ and a vector v such that
+<p align="center">M(λ)v=0</p>
+where M is an nxn-matrix depending on a parameter. This package is a first version of methods for nonlinear eigenvalue problems in julia. 
 
 # How to use it?
 
-The user documentation is available on github pages:
+It's easy. Installation in a one-liner:
+```
+julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
+```
+Check out "Getting started" in the user documentation
 https://nep-pack.github.io/NonlinearEigenproblems.jl
 
 # Developers
