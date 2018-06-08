@@ -31,6 +31,7 @@ Executes z if displaylevel>0.
     include("method_jd.jl")
     include("method_beyncontour.jl")
     include("method_blocknewton.jl")
+    include("method_broyden.jl")
 
 
     """
