@@ -2,7 +2,7 @@ site_name:        NEPPACK
 repo_url:         https://github.com/USER_NAME/PACKAGE_NAME.jl
 site_description: Description...
 site_author:      NEP-PACK team
-repo_url: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha
+repo_url: https://github.com/nep-pack/NonlinearEigenproblems.jl
 theme: readthedocs
 
 extra_css:
@@ -20,6 +20,7 @@ pages:
   - NEP Types: types.md
   - NEP transformations: transformations.md
   - NEP Gallery: gallery.md
+  - Developer info: development.md  
   
 markdown_extensions:
   - extra

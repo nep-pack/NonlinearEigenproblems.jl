@@ -50,6 +50,9 @@ newtonqr
 ```@docs
 implicitdet
 ```
+```@docs
+broyden
+```
 ## Projection methods
 ```@docs
 nlar

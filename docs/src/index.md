@@ -16,8 +16,8 @@ Install it as a contributed package
 julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 
 ```
-NEP-PACK builds on contributed julia packages.
-These need to be installed the first time you use NEPPACK,
+NEP-PACK uses several contributed julia packages.
+These need to be installed the first time you use NEP-PACK,
 by running for the corresponding packages:
 ```julia-repl
 julia> Pkg.add("IterativeSolvers")
@@ -88,28 +88,6 @@ Now you are ready to have a look at the examples
 in [NEP methods](methods/) and  [NEP Gallery](gallery/).
 
 
-
-# Compiling the documentation
-
-Compile this documentation page by running:
-```
-jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ julia --color=yes make.jl &&  mkdocs build --clean
-jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ firefox site/index.html
-```
-If you want this to appear on our documentation page
-[https://nep-pack.github.io/NonlinearEigenproblems.jl/](https://nep-pack.github.io/NonlinearEigenproblems.jl/)
-you need to push it to the `gh-branch`, e.g.,  by running
-```
-jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ export DOCSDIR=`pwd`
-jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ cd /tmp
-jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/NonlinearEigenproblems.jl.git
-jarl@bjork:/tmp$ cd NonlinearEigenproblems
-jarl@bjork:/tmp/NonlinearEigenproblems.jl$ cp -r $DOCSDIR/site/* .
-jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m "refresh docs"; git push
-```
-
-
-More information about `Documenter.jl`: [here](https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1)
 
 
 
