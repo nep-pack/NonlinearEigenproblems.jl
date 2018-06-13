@@ -15,7 +15,7 @@ you need to push it to the `gh-branch`, e.g.,  by running
 jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ export DOCSDIR=`pwd`
 jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ cd /tmp
 jarl@bjork:/tmp$ git clone -b "gh-pages" git@github.com:nep-pack/NonlinearEigenproblems.jl.git
-jarl@bjork:/tmp$ cd NonlinearEigenproblems
+jarl@bjork:/tmp$ cd NonlinearEigenproblems.jl
 jarl@bjork:/tmp/NonlinearEigenproblems.jl$ cp -r $DOCSDIR/site/* .
 jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m "refresh docs"; git push
 ```
