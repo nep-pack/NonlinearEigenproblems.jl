@@ -1,4 +1,4 @@
-# Run tests on Beyns contour integral method 
+# Run tests on Beyns contour integral method
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
@@ -6,14 +6,15 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
-using GalleryNLEVP
 using LinSolvers
-
+using NEPSolver
+using Gallery
+using IterativeSolvers
 using Base.Test
+using GalleryNLEVP
+using LinSolversMATLAB
 
 
 guntest=@testset "GUN (NLEVP interface)" begin
@@ -45,10 +46,10 @@ guntest=@testset "GUN (NLEVP interface)" begin
         z3=(compute_Mlincomb(nep_org,λ+ee,v)-compute_Mlincomb(nep_org,λ-ee,v))/(2*ee);
 
         @test norm(z3-z1)<(ee^2)*1000  # Compare native and FD
-        @test norm(z3-z2)<(ee^2)*1000 # Compare MATLAB and FD. This fails on NLEVP 3.0 due to a bug in gun.m in NLEVP 
-        @test norm(z1-z2)<sqrt(eps()) # Compare MATLAB and native.  This fails on NLEVP 3.0 due to a bug in gun.m in NLEVP 
+        @test norm(z3-z2)<(ee^2)*1000 # Compare MATLAB and FD. This fails on NLEVP 3.0 due to a bug in gun.m in NLEVP
+        @test norm(z1-z2)<sqrt(eps()) # Compare MATLAB and native.  This fails on NLEVP 3.0 due to a bug in gun.m in NLEVP
     end
-    
+
 
     @testset "Compare SPMF and Native in alg" begin
         # Check that two steps of quasinewton always gives the same result

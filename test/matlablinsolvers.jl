@@ -2,6 +2,7 @@
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
+using NEPCore
 using LinSolvers
 using LinSolversMATLAB
 using Base.Test

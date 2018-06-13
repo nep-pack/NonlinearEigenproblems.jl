@@ -5,10 +5,12 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPSolver
 using NEPCore
-using Gallery
 using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
 using Base.Test
 
 nep=nep_gallery("dep0");
@@ -53,6 +55,4 @@ for i=1:size(λv,1)
     @test norm(compute_Mlincomb(nep,λ,v))<sqrt(eps())
 end
 
-end                  
-              
-
+end

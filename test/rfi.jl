@@ -2,11 +2,11 @@
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
 using LinSolvers
+using NEPSolver
+using Gallery
 
 #using Winston # For plotting
 
@@ -20,7 +20,7 @@ using Base.Test
     n=size(nep,1);
     u0=ones(n);
     v0=ones(n);
-    
+
     λ=NaN;
     x=NaN
     y=NaN;
@@ -51,14 +51,14 @@ using Base.Test
                     v=v0, u=u0,λ=λ+0.01,tol=1e-15);
     @test λ ≈ λb
 
-    
+
     println("Testing formula for derivative (with left and right eigvecs")
     tau=1;
     Mλ=-eye(n)-tau*nep.A[2]*exp(-tau*λ)
     Mtau= -λ*nep.A[2]*exp(-tau*λ);
 
 
-    
+
     # Formula for derivative
     λp=-(y'*(Mtau)*x) / (y'* Mλ*x)
 
@@ -77,5 +77,5 @@ using Base.Test
     @test abs(λp-λp_approx)< (δ*10)
 
 
-    
+
 end

@@ -2,9 +2,10 @@
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
 using Gallery
 #using Winston # For plotting
 
@@ -19,7 +20,7 @@ projtest=@testset "Projected problems" begin
         if (nepstr == "pep")
             nep=nep_gallery("pep0_sparse_003");
         elseif (nepstr == "dep")
-            
+
             n=5;
             srand(1)
             A0=randn(5,5);
@@ -30,23 +31,23 @@ projtest=@testset "Projected problems" begin
             oneop= S -> eye(S)
             expmop= S -> expm(full(-t*S))
             fi=[minusop, oneop, expmop];
-            
+
             nep=SPMF_NEP([eye(n),A0,A1],fi)
 
         elseif (nepstr == "sqrtm")
-            
+
             n=8;
             srand(1)
             A0=randn(n,n);
             A1=randn(n,n);
-            A2=randn(n,n)/10;            
+            A2=randn(n,n)/10;
             t=3.0
 
             minusop= S-> -S
             oneop= S -> eye(S)
             expmop= S -> sqrtm(full(-t*S)+30*eye(S))
             fi=[minusop, oneop, expmop];
-            
+
             nep=SPMF_NEP([A0,A1,A2],fi)
         end
 

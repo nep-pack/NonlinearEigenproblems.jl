@@ -2,13 +2,14 @@
 
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
-using MAT
-using Base.Test
 using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using Base.Test
+using LinSolversMATLAB
 
 
 nep=nep_gallery("qdep0");
@@ -24,8 +25,8 @@ n=size(nep,1);
     # Produced with a different implementation
     Tstar=[  -1.665117675679600   5.780562035399026                   0                   0
              5.780562035399026  11.562308485001218 -18.839546184493731                   0
-             0  18.839546184493734 -15.213756300995186   9.788512505128466                                
-             0                   0   9.788512505128464  -0.120825360586847                                ] 
+             0  18.839546184493734 -15.213756300995186   9.788512505128466
+             0                   0   9.788512505128464  -0.120825360586847                                ]
     n0=size(Tstar,1);
     @test norm(Tstar-T[1:n0,1:n0])<1e-10
 
@@ -48,7 +49,7 @@ end
     @test length(find(thiserr .< 1e-7)) >= 2
 end
 
-    
+
 
 
 

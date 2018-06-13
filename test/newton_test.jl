@@ -3,13 +3,15 @@
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
 using LinSolvers
-
+using NEPSolver
+using Gallery
 using Base.Test
+
+
+
 
 nep=nep_gallery("dep0")
 @testset "Newton iterations" begin

@@ -6,11 +6,12 @@ workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
 
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
 using Gallery
-
+using IterativeSolvers
 using Base.Test
 
 nep=nep_gallery("dep0");

@@ -1,10 +1,13 @@
-# Run tests on Periodic DDE 
+# Run tests on Periodic DDE
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
+using NEPCore
+using NEPTypes
+using LinSolvers
 using NEPSolver
 using GalleryPeriodicDDE
 

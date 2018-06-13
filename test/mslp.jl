@@ -4,13 +4,16 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
+using NEPCore
 using LinSolvers
 using IterativeSolvers
 using Base.Test
 using LinearMaps;
+using NEPTypes
 using Gallery;
 using NEPSolver;
 using NEPCore;
+
 
 A=sprandn(100,100,0.1);
 B=sprandn(100,100,0.1);
@@ -30,5 +33,5 @@ nep=nep_gallery("dep0");
     @test norm(compute_Mlincomb(nep,λ2,v2))<1e-10
 
     @test λ1≈λ2 # They should be exactly the same
-    
+
 end

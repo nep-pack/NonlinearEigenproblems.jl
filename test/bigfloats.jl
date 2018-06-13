@@ -6,9 +6,10 @@ push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
 
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
 using Gallery
 
 using Base.Test
@@ -43,7 +44,7 @@ end
 
 bigfloattest=@testset "BigFloat comparison w $T" for T in
     (Float16,Float32,Float64,Complex32,Complex64,Complex128)
-    
+
     nep1=PEP(Array{Array{T,2},1}(nep.A))
     global itercount=0;
     global λiterates=zeros(T,100)
@@ -62,9 +63,9 @@ bigfloattest=@testset "BigFloat comparison w $T" for T in
                   tol=eps(real(T))*2,
 #                  displaylevel=1,
                   errmeasure=myerrmeasure)
-    @test isa(λ,T) # Check type stable 
+    @test isa(λ,T) # Check type stable
     @test abs(T(λ-λstar))<eps(real(T))*8 # Check that we have a solution
-    
+
     # Check that the kth iterate is the same as the bigfloat iteration
     k=4
     @test abs(T(λiterates_star[k]-λiterates[k]))<eps(real(T))*8

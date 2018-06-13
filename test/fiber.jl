@@ -6,13 +6,15 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
 using Gallery
+using IterativeSolvers
+using Base.Test
 using GalleryNLEVP
 using LinSolversMATLAB
-using Base.Test
 
 
 nep_org=nep_gallery(NLEVP_NEP,"fiber");
@@ -25,7 +27,7 @@ sol_val= 7.139494306065948e-07;
 fibertest=@testset "NLEVP fiber" begin
 
     @testset "basics" begin
-        # Checking Mder 
+        # Checking Mder
         λ=3;
         δ=0.0001;
         Ap=compute_Mder(nep_org,λ+δ)
@@ -93,7 +95,7 @@ fibertest=@testset "NLEVP fiber" begin
                  string(λ))
         end
     end
-    
+
 
 
     fibertest_int=@testset "PEP interpolation" begin
@@ -112,9 +114,9 @@ fibertest=@testset "NLEVP fiber" begin
         # Create a new PEP which interpolates in the solution computed
         # in the previous iteration
         intpoints=vcat(intpoints,real(λ[1]))
-        println("Interpolating:"*string(intpoints));    
+        println("Interpolating:"*string(intpoints));
         pep=interpolate(nep_org,intpoints);
-        println("Running IAR")    
+        println("Running IAR")
         λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
         minerr2=minimum(abs.(sol_val-λ))/abs(sol_val)
         println("Error:",minerr2)

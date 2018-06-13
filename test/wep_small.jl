@@ -5,10 +5,10 @@ workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 #push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
 using LinSolvers
+using NEPSolver
 using Gallery
 using GalleryWaveguide
 
@@ -59,7 +59,7 @@ n=size(nep,1);
 
 
     nev=3
-   
+
     λ,v=@time iar(Complex128,nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
                   tol=1e-8);
 
@@ -67,7 +67,5 @@ n=size(nep,1);
 
     #λ,v=@time tiar(nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
     #               tol=1e-8);
-    
+
 end
-
-

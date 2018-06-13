@@ -4,10 +4,10 @@ push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using PyPlot
 using PyCall
 
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
+using LinSolvers
+using NEPSolver
 
 
 n=4;

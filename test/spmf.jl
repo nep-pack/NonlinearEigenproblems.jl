@@ -7,9 +7,10 @@ workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
 
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
 using Gallery
 
 using Base.Test
@@ -27,10 +28,10 @@ using Base.Test
     oneop= S -> eye(S)
     expmop= S -> expm(full(-t*S))
     fi=[minusop, oneop, expmop];
-    
+
     nep1=SPMF_NEP([speye(n),A0,A1],fi)
     nep2=SPMF_NEP([speye(n),A0,A1],fi, true)
-    
+
 
     @testset "compute_MM" begin
 
@@ -39,7 +40,7 @@ using Base.Test
 
         # Check if prefactorize with Schur gives the same result
         @test norm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
-        # Check compute_MM 
+        # Check compute_MM
         @test norm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*expm(-t*S)))<sqrt(eps())
 
 
@@ -52,7 +53,7 @@ using Base.Test
         (d,W)=eig(S);
         D=diagm(d);
         V1=V*W;
-        # 
+        #
         N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
                 compute_Mlincomb(nep1,d[2],V1[:,2]),
                 compute_Mlincomb(nep1,d[3],V1[:,3]))*inv(W)
@@ -79,7 +80,7 @@ using Base.Test
 
         # Check consistency of MM and Mder
 
-        # Exact Mlincomb: 
+        # Exact Mlincomb:
         Zexact=(-λ*speye(n)+A0+A1*exp(-t*λ))*V[:,1]+
         (-speye(n)-t*A1*exp(-t*λ))*V[:,2]+
         (t^2*A1*exp(-t*λ))*V[:,3];
@@ -96,7 +97,7 @@ using Base.Test
 
         S=randn(3,3);
         V=randn(n,3);
-        
+
         # Same nonlinearities as the GUN NLEVP problem
         minusop= S-> -S
         oneop= S -> eye(size(S,1),size(S,2))
@@ -114,7 +115,7 @@ using Base.Test
         (d,W)=eig(S);
         D=diagm(d);
         V1=V*W;
-        # 
+        #
         N2=hcat(compute_Mlincomb(nep2,d[1],V1[:,1]),
                 compute_Mlincomb(nep2,d[2],V1[:,2]),
                 compute_Mlincomb(nep2,d[3],V1[:,3]))*inv(W)
@@ -124,7 +125,7 @@ using Base.Test
 
     @testset "REP" begin
         srand(10)
-        A0=randn(5,5);        
+        A0=randn(5,5);
         A1=randn(5,5);
         A2=randn(5,5);
         # Check that REP generates the
@@ -133,7 +134,7 @@ using Base.Test
         nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
         for  λ in [3,10,-3,-100];
             M0=compute_Mder(nep0,λ)
-            M1=compute_Mder(nep1,λ)            
+            M1=compute_Mder(nep1,λ)
             @test M0 ≈ M1
         end
 

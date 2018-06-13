@@ -2,7 +2,7 @@
 
 # Start julia with julia -p XX where XX is the number of cores/processes
 # on your computer. On eight.math.kth.se you typically want to do
-# julia -p 20 
+# julia -p 20
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
@@ -10,12 +10,12 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
 using LinSolvers
-
+using NEPSolver
+using Gallery
+using IterativeSolvers
 using Base.Test
 using BenchmarkTools
 

@@ -1,4 +1,4 @@
-# Run tests on Beyns contour integral method 
+# Run tests on Beyns contour integral method
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
@@ -6,14 +6,13 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
-using Gallery
 using LinSolvers
-
+using NEPSolver
+using Gallery
+using IterativeSolvers
 using Base.Test
-
 
 
 @testset "Beyn contour" begin
@@ -36,7 +35,7 @@ using Base.Test
         M=compute_Mder(nep,λ[1])
         minimum(svdvals(M))
         @test minimum(svdvals(M))<eps()*1000
-        
+
     end
     @testset "shifted disk" begin
 
@@ -59,5 +58,5 @@ using Base.Test
         M=compute_Mder(nep,λ[4])
         @test minimum(svdvals(M))<sqrt(eps())
     end
-    
+
 end

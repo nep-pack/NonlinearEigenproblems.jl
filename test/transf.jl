@@ -6,9 +6,10 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
 using Gallery
 using Base.Test
 
@@ -84,7 +85,7 @@ using Base.Test
         d=1-0.3im
         pep0_transf=mobius_transform(pep0,a=a,b=b,c=c,d=d)
         λ,v= quasinewton(pep0_transf,λ=0,v=ones(size(pep0,1)));
-        λorg=(a*λ+b)/(c*λ+d) 
+        λorg=(a*λ+b)/(c*λ+d)
         @test norm(compute_Mlincomb(pep0,λorg,v))<sqrt(eps());
 
 
@@ -96,7 +97,7 @@ using Base.Test
         nep4_transf=mobius_transform(nep4,a=a,b=b,c=c,d=d)
         @test isa(nep4_transf,SPMF_NEP)  # Möbius transformed SPMF-NEP is still a SPMF
         λ,v= quasinewton(nep4_transf,λ=1-0.3im,v=ones(size(nep4,1)));
-        λorg=(a*λ+b)/(c*λ+d) 
+        λorg=(a*λ+b)/(c*λ+d)
         @test norm(compute_Mlincomb(nep4,λorg,v))<sqrt(eps());
 
 
@@ -128,6 +129,6 @@ using Base.Test
 
 
     end
-    
+
 
 end

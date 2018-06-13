@@ -20,7 +20,7 @@ Executes z if displaylevel>0.
 
     include("method_newton.jl")
     include("method_iar.jl")
-    #include("method_iar_chebyshev.jl")
+    include("method_iar_chebyshev.jl")
     include("method_tiar.jl")
     include("method_infbilanczos.jl")
     include("method_mslp.jl")
