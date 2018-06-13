@@ -8,7 +8,7 @@
   
   <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>NEP Gallery - NEPPACK</title>
+  <title>Developer info - NEPPACK</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -18,9 +18,9 @@
   
   <script>
     // Current page data
-    var mkdocs_page_name = "NEP Gallery";
-    var mkdocs_page_input_path = "gallery.md";
-    var mkdocs_page_url = "/gallery/";
+    var mkdocs_page_name = "Developer info";
+    var mkdocs_page_input_path = "development.md";
+    var mkdocs_page_url = "/development/";
   </script>
   
   <script src="../js/jquery-2.1.1.min.js"></script>
@@ -68,17 +68,23 @@
     <a class="" href="../transformations/">NEP transformations</a>
 	    </li>
           
-            <li class="toctree-l1 current">
-		
-    <a class="current" href="./">NEP Gallery</a>
-    <ul class="subnav">
-            
-    </ul>
-	    </li>
-          
             <li class="toctree-l1">
 		
-    <a class="" href="../development/">Developer info</a>
+    <a class="" href="../gallery/">NEP Gallery</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">Developer info</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#developer-info">Developer info</a></li>
+    
+
+    <li class="toctree-l2"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
+    
+
+    </ul>
 	    </li>
           
         </ul>
@@ -103,10 +109,10 @@
     
       
     
-    <li>NEP Gallery</li>
+    <li>Developer info</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://github.com/nep-pack/NonlinearEigenproblems.jl/edit/master/docs/gallery.md"
+        <a href="https://github.com/nep-pack/NonlinearEigenproblems.jl/edit/master/docs/development.md"
           class="icon icon-github"> Edit on GitHub</a>
       
     </li>
@@ -116,35 +122,25 @@
           <div role="main">
             <div class="section">
               
-                <p>A large number of examples are provided in the <code>nep_gallery</code>.</p>
-<pre><code class="julia-repl">julia&gt; using Gallery
-julia&gt; nep=nep_gallery(&quot;dep0&quot;)
-julia&gt; λ,v=newton(nep)
-(-0.3587189459686265 + 0.0im, Complex{Float64}[0.284742+0.0im, -0.143316+0.0im, 0.278378+0.0im, -0.5009+0.0im, -0.613634+0.0im])
-julia&gt; norm(compute_Mlincomb(nep,λ,v))
-4.718447854656915e-16
+                <p><a id='Developer-info-1'></a></p>
+<h1 id="developer-info">Developer info</h1>
+<p><a id='Compiling-the-documentation-1'></a></p>
+<h1 id="compiling-the-documentation">Compiling the documentation</h1>
+<p>Compile this documentation page by running:</p>
+<pre><code>jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ julia --color=yes make.jl &amp;&amp;  mkdocs build --clean
+jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ firefox site/index.html
 </code></pre>
 
-<p>If MATLAB and the Berlin-Manchester collection areinstalled, we can access them with the GalleryNLEVP (which does MATLAB-access through julia's MATLAB-package).</p>
-<pre><code class="julia-repl">julia&gt; using GalleryNLEVP
-julia&gt; nep=nep_gallery(NLEVP_NEP,&quot;hadeler&quot;)
-julia&gt; λ,v=quasinewton(nep,λ=0.2,displaylevel=1,maxit=20,tol=1e-10);
-julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
-9.698206079849311e-11
+<p>If you want this to appear on our documentation page <a href="https://nep-pack.github.io/NonlinearEigenproblems.jl/">https://nep-pack.github.io/NonlinearEigenproblems.jl/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
+<pre><code>jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ export DOCSDIR=`pwd`
+jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ cd /tmp
+jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@github.com:nep-pack/NonlinearEigenproblems.jl.git
+jarl@bjork:/tmp$ cd NonlinearEigenproblems
+jarl@bjork:/tmp/NonlinearEigenproblems.jl$ cp -r $DOCSDIR/site/* .
+jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m &quot;refresh docs&quot;; git push
 </code></pre>
 
-<p>Problems loaded from the Berlin-Manchester collection are NEP-objects where every call to access a function generates a call to an underlying MATLAB-session. Some problems in the Berlin-Manchester collection have native support in NEPPACK, i.e., avoiding a MATLAB-access in every call. The native equivalent object is generated with  <code>nlevp_make_native</code>:</p>
-<pre><code class="juli-repl">julia&gt; using GalleryNLEVP
-julia&gt; nep1=nep_gallery(NLEVP_NEP,&quot;gun&quot;)
-julia&gt; nep2=nlevp_make_native(nep1);
-julia&gt; norm(compute_Mder(nep1,0)-compute_Mder(nep2,0),1)
-0.0
-</code></pre>
-
-<p>Stand-alone implementation can be accessed in a similar way, e.g., a native implementation of the waveguide eigenvalue problem:</p>
-<pre><code class="julia-repl">julia&gt; using GalleryWaveguide
-julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
-</code></pre>
+<p>More information about <code>Documenter.jl</code>: <a href="https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1">here</a></p>
               
             </div>
           </div>
@@ -152,10 +148,8 @@ julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../development/" class="btn btn-neutral float-right" title="Developer info">Next <span class="icon icon-circle-arrow-right"></span></a>
       
-      
-        <a href="../transformations/" class="btn btn-neutral" title="NEP transformations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../gallery/" class="btn btn-neutral" title="NEP Gallery"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -183,10 +177,8 @@ julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
           <a href="https://github.com/nep-pack/NonlinearEigenproblems.jl" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
       
       
-        <span><a href="../transformations/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../gallery/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
-      
-        <span style="margin-left: 15px"><a href="../development/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>

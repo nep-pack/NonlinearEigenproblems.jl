@@ -65,9 +65,6 @@
     <li class="toctree-l2"><a href="#what-now">What now?</a></li>
     
 
-    <li class="toctree-l2"><a href="#compiling-the-documentation">Compiling the documentation</a></li>
-    
-
     </ul>
 	    </li>
           
@@ -89,6 +86,11 @@
             <li class="toctree-l1">
 		
     <a class="" href="gallery/">NEP Gallery</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="development/">Developer info</a>
 	    </li>
           
         </ul>
@@ -116,7 +118,8 @@
     <li>Introduction</li>
     <li class="wy-breadcrumbs-aside">
       
-        <a href="https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/"> Edit on Gitr</a>
+        <a href="https://github.com/nep-pack/NonlinearEigenproblems.jl/edit/master/docs/index.md"
+          class="icon icon-github"> Edit on GitHub</a>
       
     </li>
   </ul>
@@ -139,7 +142,7 @@ $$</p>
 
 </code></pre>
 
-<p>NEP-PACK builds on contributed julia packages. These need to be installed the first time you use NEPPACK, by running for the corresponding packages:</p>
+<p>NEP-PACK uses several contributed julia packages. These need to be installed the first time you use NEP-PACK, by running for the corresponding packages:</p>
 <pre><code class="julia-repl">julia&gt; Pkg.add(&quot;IterativeSolvers&quot;)
 </code></pre>
 
@@ -189,23 +192,6 @@ julia&gt; resnorm=norm(compute_Mlincomb(nep,λ,v))
 <p><a id='What-now?-1'></a></p>
 <h1 id="what-now">What now?</h1>
 <p>Now you are ready to have a look at the examples in <a href="./methods/">NEP methods</a> and  <a href="./gallery/">NEP Gallery</a>.</p>
-<p><a id='Compiling-the-documentation-1'></a></p>
-<h1 id="compiling-the-documentation">Compiling the documentation</h1>
-<p>Compile this documentation page by running:</p>
-<pre><code>jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ julia --color=yes make.jl &amp;&amp;  mkdocs build --clean
-jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ firefox site/index.html
-</code></pre>
-
-<p>If you want this to appear on our documentation page <a href="https://nep-pack.github.io/NonlinearEigenproblems.jl/">https://nep-pack.github.io/NonlinearEigenproblems.jl/</a> you need to push it to the <code>gh-branch</code>, e.g.,  by running</p>
-<pre><code>jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ export DOCSDIR=`pwd`
-jarl@bjork:~/src/NonlinearEigenproblems.jl/docs$ cd /tmp
-jarl@bjork:/tmp$ git clone -b &quot;gh-pages&quot; git@github.com:nep-pack/NonlinearEigenproblems.jl.git
-jarl@bjork:/tmp$ cd NonlinearEigenproblems
-jarl@bjork:/tmp/NonlinearEigenproblems.jl$ cp -r $DOCSDIR/site/* .
-jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m &quot;refresh docs&quot;; git push
-</code></pre>
-
-<p>More information about <code>Documenter.jl</code>: <a href="https://juliadocs.github.io/Documenter.jl/v0.1.3/man/guide/#Package-Guide-1">here</a></p>
               
             </div>
           </div>
@@ -239,6 +225,8 @@ jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m &quot;ref
   <div class="rst-versions" role="note" style="cursor: pointer">
     <span class="rst-current-version" data-toggle="rst-current-version">
       
+          <a href="https://github.com/nep-pack/NonlinearEigenproblems.jl" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
       
       
         <span style="margin-left: 15px"><a href="methods/" style="color: #fcfcfc">Next &raquo;</a></span>
@@ -254,5 +242,5 @@ jarl@bjork:/tmp/NonlinearEigenproblems.jl$ git add *;  git commit . -m &quot;ref
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-06-06 11:11:39
+Build Date UTC : 2018-06-11 12:03:41
 -->
