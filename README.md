@@ -1,8 +1,8 @@
 # NEP-PACK
 
-A nonlinear eigenvalue problem is the problem to determine a scalar λ and a vector v such that
-<p align="center">M(λ)v=0</p>
-where M is an nxn-matrix depending on a parameter. This package is a first version of methods for nonlinear eigenvalue problems in julia. 
+A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
+*<p align="center">M(λ)v=0</p>*
+where *M* is an nxn-matrix depending on a parameter. This package is a first version of algorithms for nonlinear eigenvalue problems in julia. 
 
 # How to use it?
 
@@ -13,7 +13,9 @@ julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 Check out "Getting started" in the user documentation
 https://nep-pack.github.io/NonlinearEigenproblems.jl
 
-# Developers
+# Development
+
+The main work of NEP-PACK has been done in a closed repository at KTH, but as of May 2018 the development is carried out in a public github repo.
 
 Core developers (alphabetical): Elias Jarlebring (www.math.kth.se/~eliasj), Giampaolo Mele (www.math.kth.se/~gmele), Emil Ringh (www.math.kth.se/~eringh), Parikshit Upadhyaya (https://www.kth.se/profile/pup/). Thanks to A Koskela for involvement in initial version of the software.
 
@@ -29,8 +31,8 @@ If you find this software useful please cite
   note = 	 {https://github.com/nep-pack},
 }
 ```
-If you use a specific method, please also give credit to the method developer.
-Reference to the method developer can be found by in, e.g., by writing `?resinv`.
+If you use a specific method, please also give credit to the algorithm researcher.
+Reference to a corresponding algorithm paper can be found by in, e.g., by writing `?resinv`.
 
 Links below are developer info on KTH. We will migrate them soon: 
 
