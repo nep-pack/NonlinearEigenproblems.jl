@@ -1,6 +1,6 @@
 site_name:        NEPPACK
 repo_url:         https://github.com/USER_NAME/PACKAGE_NAME.jl
-site_description: Description...
+site_description: Nonlinear eigenvalue problems in julia
 site_author:      NEP-PACK team
 repo_url: https://github.com/nep-pack/NonlinearEigenproblems.jl
 theme: readthedocs
