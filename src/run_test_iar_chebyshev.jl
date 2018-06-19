@@ -1,17 +1,22 @@
-workspace()
-push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using NEPSolver
-using NEPCore
-using NEPTypes
-using Gallery
-using PyPlot
-using PyCall
+# workspace()
+# push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+#
+# using PyPlot
+# using PyCall
+#
+# using NEPCore
+# using NEPTypes
+# using LinSolvers
+# using NEPSolver
+# using Gallery
+
+
 
 # explicit import needed for overloading
 # functions from packages
-import NEPCore.compute_Mlincomb
+#import NEPCore.compute_Mlincomb
 
-nep=nep_gallery("dep0",10)
+nep=nep_gallery("dep0_sparse",1000)
 #nep=nep_gallery("pep0");
 
 
@@ -27,3 +32,4 @@ m=size(err,1);
 for i=1:m
     semilogy(3:3:m, err[3:3:m,i],color="black")
 end
+ylim(1e-16,1e1)

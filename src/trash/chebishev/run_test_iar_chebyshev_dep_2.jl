@@ -49,8 +49,8 @@ function myexpm(A::Array{T,2}) where {T<:Number}
 end
 
 
-#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->myexpm(-λ)])
-nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->myexpm(-λ)])
+#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
 function compute_y0(x,y,nep,a,b)
    T=(n,x)->cos(n*acos(x));
