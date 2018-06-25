@@ -36,9 +36,6 @@ for k=1:m
     
     % computing y2,...,y_{k+1}  
     x=reshape(V(:,k),n,k);
-    semilogy(abs(x(1,:)),'--*');
-    pause
-    close all
     
     if strcmp(variation,'Taylor')
         for j=2:k+1        

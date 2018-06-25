@@ -86,17 +86,7 @@ for k=1:m
         print('Error')
         break          
     end    
-%    norm(yv-y)
-%    y
-%    yv
-%    y=yv
-%    xv
-%    for i=1:size(xv,1)
-%        xv(i,:)=mon2cheb(xv(i,:));
-%    end
-%    xv
-%    norm(x-xv)
-    %pause
+
     
     y=reshape(y,(k+1)*n,1);
     

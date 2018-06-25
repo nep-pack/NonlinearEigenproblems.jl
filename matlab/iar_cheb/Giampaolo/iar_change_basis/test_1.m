@@ -3,34 +3,36 @@ clear all
 clc
 
 
+a=-1;   b=1;
+
+
+n=100; A0=rand(n); A1=rand(n); m=5;
+
 n=4;
-a=-1;   b=0;
 
-A0=[  3  -6   0 4  ;
-     -3   4  -8 19 ;
-      1 -16 -13 0  ;
-    -14  -9   2 9  ]/10;
-
-A1=[  8   2  -13 -3  ;
-     -11  9   12  5 ;
-      5   2  -16 -13  ;
-      7   4   -4   0]/10;
-
-m=60;  
-
-%n=100; A0=rand(n); A1=rand(n); m=100;
+A0=[1 2 5 9
+    4 8 3 8
+    1 5 -4 5
+    1 3 5 4
+    ];
 
 
+A1=[4 2 5 9
+    5 -8 3 8
+    1 -5 -3 5
+    4 3 5 4
+    ];
+
+m=5;
 
 I=eye(n);
 
 
-nep.MMeval=@(l)  -l^2*I + A0 + A1*exp(-l);
+nep.MMeval=@(l)  -l*I + A0 + A1*exp(-l);
 nep.Mdd=@(j)                            ...
                 (j==0)*(A0 + A1) +      ...
-                (j==1)*(-A1) +          ...
-                (j==2)*(-2*I+A1) +      ...
-                (j>2)*((-1)^j*A1);
+                (j==1)*(-I-A1) +        ...
+                (j>1)*((-1)^j*A1);
 
             
 
@@ -41,8 +43,8 @@ nep.A0=A0;  nep.A1=A1;  nep.I=I;
 nep.a=a;    nep.b=b;
 
 %v=zeros(n,1);   v(1)=1;
-%v=ones(n,1);    v=v/norm(v);
-v=rand(n,1);
+v=ones(n,1);    v=v/norm(v);
+%v=rand(n,1);
 
 
 [ V, H ] = InfArn_change_basis( nep, v, m ); 

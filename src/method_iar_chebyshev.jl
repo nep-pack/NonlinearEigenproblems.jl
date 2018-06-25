@@ -26,7 +26,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     compute_y0::Function=function emptyfunc end
     )
     # hardcoded for 2dep
-    a=-1; b=0;
+    a=-1; b=1;
 
     n = size(nep,1);
     m = maxit;
@@ -41,7 +41,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
-    v=ones(n,1);  # debug
+    v=ones(n,1);        # debug
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
 
@@ -52,6 +52,11 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     # Compute the P and P_inv
     P=P_mat(T,m+1,2/(b-a),(a+b)/(a-b));
     P_inv=P_inv_mat(T,m+1,2/(b-a),(a+b)/(a-b));
+    #println("\n")
+    #Base.showarray(STDOUT,P,false)
+    #println("\n")
+    #Base.showarray(STDOUT,P_inv,false)
+    #println("\n")
 
 
     while (k <= m) && (conv_eig<Neig)
@@ -69,7 +74,9 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 y[:,j+1]=y[:,j+1]/j;
             end
             y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+            #println("y1",y[:,1],"\n")
             y[:,1] = -lin_solve(M0inv,y[:,1]);
+
             y=y*P_inv[1:k+1,1:k+1]';
         else
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
@@ -116,9 +123,6 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     k=k-1
     return λ,Q,err[1:k,:],V,H
 end
-
-
-
 
 
 

@@ -124,6 +124,22 @@ module Gallery
           nep=DEP([A0,A1],[0,tau])
           return nep
 
+    elseif (name == "dep0_tridiag")
+         # A delay eigenvalue problem with sparse tridiagonal matrices
+         if (length(params)>0)
+            n=params[1]
+         else
+            n=100; # Default size
+         end
+         srand(0) # reset the random seed
+         I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
+         A0=sparse(I, J, rand(3*n-2))
+         A1=sparse(I, J, rand(3*n-2))
+
+         tau=1;
+         nep=DEP([A0,A1],[0,tau])
+         return nep
+
       elseif (name == "dep_double")
           # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
           # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
@@ -275,7 +291,7 @@ module Gallery
           nep=PEP([A1*A2,-A1-A2,I])
           return nep
       elseif (name == "periodicdde")
-          return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);          
+          return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
       else
           error("The name '", name, "' is not supported in NEP-Gallery.")
       end

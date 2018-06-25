@@ -7,14 +7,14 @@ using IterativeSolvers
 
 ### Infinite Arnoldi method
 
-Runs the infinite Arnoldi method which tries to find eigenvalues close to the shift σ. 
+Runs the infinite Arnoldi method which tries to find eigenvalues close to the shift σ.
 
 
 # Example
 ```julia-repl
 julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
 julia> nep=nep_gallery("dep0");
-julia> λ,v=iar(nep); 
+julia> λ,v=iar(nep);
 julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 
 ```

@@ -23,7 +23,9 @@ a=nep.a; b=nep.b;
 
 P=P_mat(m+1,2/(b-a),(a+b)/(a-b));
 Pinv=Pinv_mat(m+1,2/(b-a),(a+b)/(a-b));
-[VV,DD] = eig(P);
+P
+Pinv
+
 
 % iterations of the algorithm
 for k=1:m
@@ -46,6 +48,7 @@ for k=1:m
     %subplot(2,1,2); semilogy(abs(x(1,:)),'--.'); hold on 
     %x=x';   x=P(1:k,1:k)*x;  x=x';
     x=x*P(1:k,1:k)';
+    
     %pause; clf
     % apply the operator B (Taylor)
     for j=2:k+1        
@@ -56,7 +59,8 @@ for k=1:m
     for s=1:k
         y(:,1)=y(:,1)+nep.Mdd(s)*y(:,s+1);
     end
-    y(:,1)=-M0\y(:,1); 
+    y(:,1)
+    y(:,1)=-M0\y(:,1);
 
    
     % change basis (to Chebyshev)
@@ -68,16 +72,6 @@ for k=1:m
     
     y=reshape(y,(k+1)*n,1);
     % --------------------------------------------
-
-    % --------------------------------------------
-    % standard
-    yy=zeros(n,k+1);
-    xx=reshape(V(:,k),n,k);
-    yy(:,2:end)=xx*LL(k);
-    yy(:,1)=compute_y0(xx,yy,nep);
-    yy=reshape(yy,(k+1)*n,1);
-    error_new_way_compute_y0=norm(y-yy)    
-    % --------------------------------------------    
     
     
 
