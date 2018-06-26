@@ -15,14 +15,14 @@ using Gallery
 import NEPCore.compute_Mlincomb
 
 
-nep=nep_gallery("dep0_sparse",1000)
+nep=nep_gallery("dep_symm",100)
 #nep=nep_gallery("dep0_tridiag",1000)
 
 
 
 compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
 
-(λ,Q,err)=iar(nep,σ=0,γ=1,Neig=20,v=ones(4),displaylevel=1,maxit=100,tol=eps()*10000,check_error_every=1)
+(λ,Q,err)=iar(nep,σ=0,γ=1,Neig=30,v=ones(4),displaylevel=1,maxit=100,tol=eps()*10000,check_error_every=1)
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
@@ -34,3 +34,6 @@ for i=1:m
     semilogy(3:3:m, err[3:3:m,i],color="black")
 end
 ylim(1e-16,1e1)
+
+figure()
+plot(real(λ),imag(λ),"*")

@@ -147,6 +147,30 @@ module Gallery
          nep=DEP([A0,A1],[0,tau])
          return nep
 
+     elseif (name == "dep_symm_double")
+          # A symmetric delay eigenvalue problem with double eigenvalues
+          # Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017
+          if (length(params)>0)
+             n=params[1]
+          else
+             n=100; # Default size
+          end
+
+          L=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
+          x = linspace(0,pi,n)
+          h=x[2]-x[1];
+          h=pi
+          L=L/(h^2)
+          L=kron(L,L)
+
+          b=broadcast((x,y)->100*abs(sin(x+y)),x,x.')
+          a=broadcast((x,y)->-sin(x)*sin(y),x,x.')
+          B=sparse(1:n^2,1:n^2,b[:])
+          A=L+sparse(1:n^2,1:n^2,a[:])
+
+          nep=DEP([A,B],[0,2])
+          return nep
+
       elseif (name == "dep_double")
           # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
           # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
