@@ -107,5 +107,5 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-    return λ,Q,err[1:k,:],V[:,1:k]
+    return λ,Q,err[1:k,:]
 end

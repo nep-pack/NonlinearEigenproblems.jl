@@ -112,14 +112,21 @@ module Gallery
 
       elseif (name == "dep0_sparse")
           # A delay eigenvalue problem with sparse matrices
-          if (length(params)>0)
+          if (length(params)>1)
               n=params[1]
+              p=params[2]
+          elseif (length(params)>0)
+              n=params[1];
+              p=0.25;      # Default fill density
           else
-              n=5; # Default size
+              n=100;       # Default size
+              p=0.25;      # Default fill density
           end
           srand(0) # reset the random seed
-          A0=sparse(randn(n,n));
-          A1=sparse(randn(n,n));
+
+          A0=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
+          A1=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
+
           tau=1;
           nep=DEP([A0,A1],[0,tau])
           return nep
