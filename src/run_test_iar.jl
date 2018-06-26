@@ -15,7 +15,7 @@ using Gallery
 import NEPCore.compute_Mlincomb
 
 
-nep=nep_gallery("dep_symm",100)
+nep=nep_gallery("dep_symm_double",100)
 #nep=nep_gallery("dep0_tridiag",1000)
 
 
