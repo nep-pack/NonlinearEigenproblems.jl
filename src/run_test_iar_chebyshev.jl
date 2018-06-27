@@ -14,9 +14,13 @@ using Gallery
 
 #explicit import needed for overloading functions from packages
 import NEPCore.compute_Mlincomb
+#nep=nep_gallery("dep0_tridiag",1000)
+
+n=100;
+A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
+nep=DEP([A0,A1,A2],[0,2,1.4])
 
 
-nep=nep_gallery("dep0_tridiag",1000)
 
 compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
 

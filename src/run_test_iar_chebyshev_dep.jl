@@ -23,32 +23,24 @@ compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_
 
 function compute_y0(x,y,nep,a,b)
    T=(n,x)->cos(n*acos(x));
-
-   A0=nep.A[1];
-   A1=nep.A[2];
-
-   c=(a+b)/(a-b);
-   k=2/(b-a);
-   tau1=1;
+   c=(a+b)/(a-b);   k=2/(b-a);
 
    N=size(x,2);
    n=size(x,1);
 
 
    y0=zeros(n,1);
-   for i=1:N+1
-       y0=y0-T(i-1,c)*(A0*y[:,i]);
-   end
-
    for i=1:N
        y0=y0+T(i-1,c)*x[:,i];
    end
 
-   for i=1:N+1
-       y0=y0-T(i-1,-k*tau1+c)*(A1*y[:,i]);
+   for j=1:length(nep.A)
+       for i=1:N+1
+           y0=y0-T(i-1,-k*nep.tauv[j]+c)*(nep.A[j]*y[:,i]);
+       end
    end
 
-   y0=(A0+A1)\y0;
+   y0=sum(nep.A)\y0;
 
 end
 

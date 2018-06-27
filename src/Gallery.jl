@@ -32,7 +32,16 @@ module Gallery
 \\
      'dep0_sparse'\\
       Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1\\
-      * one optional parameter determining the size (default = 5)\\
+      * two optional parameter determining the size (default = 5) and the fill (default = 0.25)\\
+\\
+      'dep0_tridiag'\\
+      Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1\\
+       * one optional parameter determining the size (default = 100)\\
+\\
+      'dep_symm_double'\\
+      Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1\\
+       * one optional parameter determining the size (default = 100)\\
+       Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017\\
 \\
      'dep_double'\\
       Create problem with a double non-semisimple eigenvalue in λ=3πi\\
