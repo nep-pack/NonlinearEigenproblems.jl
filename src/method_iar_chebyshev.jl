@@ -68,13 +68,16 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # compute y (only steps different then standard IAR)
         y=zeros(n,k+1);
-        if isempty(methods(compute_y0))
+        if isa(nep,NEPTypes.DEP)
+            y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
+            y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
+            println("here\n")
+        elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
             for j=1:k
                 y[:,j+1]=y[:,j+1]/j;
             end
             y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-            #println("y1",y[:,1],"\n")
             y[:,1] = -lin_solve(M0inv,y[:,1]);
 
             y=y*P_inv[1:k+1,1:k+1]';
@@ -187,4 +190,28 @@ function P_inv_mat(T,n, ρ, γ )
         P_inv[:,j]=mon2cheb(T,ρ,γ,I[:,j]);
     end
     return P_inv
+end
+
+
+function compute_y0_dep(x,y,nep,a,b)
+   T=(n,x)->cos(n*acos(x));
+   c=(a+b)/(a-b);   k=2/(b-a);
+
+   N=size(x,2);
+   n=size(x,1);
+
+
+   y0=zeros(n,1);
+   for i=1:N
+       y0=y0+T(i-1,c)*x[:,i];
+   end
+
+   for j=1:length(nep.A)
+       for i=1:N+1
+           y0=y0-T(i-1,-k*nep.tauv[j]+c)*(nep.A[j]*y[:,i]);
+       end
+   end
+
+   y0=sum(nep.A)\y0;
+   return y0
 end
