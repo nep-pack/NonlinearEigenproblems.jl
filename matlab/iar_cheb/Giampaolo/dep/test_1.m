@@ -27,8 +27,8 @@ v=ones(n,1);    v=v/norm(v);
 %v=rand(n,1);
 
 
-[ V, H ] = InfArn_change_basis( nep, v, m ); 
-%[ V, H ] = InfArn_dep( nep, v, m ); 
+%[ V, H ] = InfArn_change_basis( nep, v, m ); 
+[ V, H ] = InfArn_dep( nep, v, m ); 
 
 V=V(1:n,:);
 [ err, conv_eig_IAR_Chebyshev ] = iar_error_hist( nep, V, H, '--r' );

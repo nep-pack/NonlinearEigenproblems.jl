@@ -86,6 +86,7 @@ function y0=dep_y0(x,y,nep)
     N=size(x,2);
     n=size(x,1);
 
+    Tc=cos([0:N].*acos([0:N]));
     
     y0=zeros(n,1);
     for i=1:N+1
