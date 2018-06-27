@@ -26,7 +26,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     compute_y0::Function=function emptyfunc end
     )
     # hardcoded for 2dep
-    a=-1; b=1;
+    a=-5; b=3;
 
     n = size(nep,1);
     m = maxit;
@@ -71,7 +71,6 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         if isa(nep,NEPTypes.DEP)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
-            println("here\n")
         elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
             for j=1:k
