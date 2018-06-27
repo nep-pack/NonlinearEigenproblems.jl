@@ -74,10 +74,14 @@ function y0=dep_y0(x,y,nep)
     T=@(i,x) cos(i*acos(x));
     
     a=nep.a;    b=nep.b;
-    A1=nep.A1;  A0=nep.A0;  
+    A1=nep.A1;
+    A2=nep.A2;
+    A0=nep.A0;  
     c=(a+b)/(a-b);
     k=2/(b-a);
-    tau=nep.tau;
+    tau1=nep.tau1;
+    tau2=nep.tau2;
+    
 
     N=size(x,2);
     n=size(x,1);
@@ -92,9 +96,14 @@ function y0=dep_y0(x,y,nep)
     end  
     
     for i=1:N+1
-        y0=y0-T(i-1,-k*tau+c)*(A1*y(:,i));
+        y0=y0-T(i-1,-k*tau1+c)*(A1*y(:,i));
     end
-    y0=(A0+A1)\y0;
+    
+    for i=1:N+1
+        y0=y0-T(i-1,-k*tau2+c)*(A2*y(:,i));
+    end
+    
+    y0=(A0+A1+A2)\y0;
     
 end
 

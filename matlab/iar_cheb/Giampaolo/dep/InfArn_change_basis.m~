@@ -106,32 +106,29 @@ function y0=dep_y0(x,y,nep)
     A1=nep.A1;  A0=nep.A0;  
     c=(a+b)/(a-b);
     k=2/(b-a);
-    tau=1;
+    tau=nep.tau;
 
     N=size(x,2);
     n=size(x,1);
     
     y0=zeros(n,1);
-    % this part is for every nep
     for i=1:N+1
-        y0=y0+T(i-1,c)*y(:,i);
+        y0=y0-T(i-1,c)*(A0*y(:,i));
     end
-    y0=-y0;
     
-    % for dep
-    y0d=zeros(n,1);
-    
-    % term in I    
     for i=1:N
-        y0d=y0d+T(i-1,c)*((A0+A1)\x(:,i));
+        y0=y0+T(i-1,c)*x(:,i);
     end  
-
     
-    % term of the delay    
     for i=1:N+1
-        y0d=y0d-T(i-1,-k*tau+c)*((A0+A1)\(A1*y(:,i)));
+        y0=y0-T(i-1,-k*tau1+c)*(A1*y(:,i));
     end
-    y0=y0+y0d;
+    
+    for i=1:N+1
+        y0=y0-T(i-1,-k*tau2+c)*(A2*y(:,i));
+    end    
+    
+    y0=(A0+A1+)\y0;
     
 end
 
