@@ -194,6 +194,8 @@ end
 
 
 function compute_y0_dep(x,y,nep,a,b)
+   # TODO: DOCUMENT THIS BETTER
+   #y_0= \sum_{i=1}^N T_{i-1}(c) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-k \tau_j+c) y_i\right )
    T=(n,x)->cos(n*acos(x));
    c=(a+b)/(a-b);   k=2/(b-a);
 
@@ -202,16 +204,19 @@ function compute_y0_dep(x,y,nep,a,b)
 
 
    y0=zeros(n,1);
+   # TODO: IMPROVE THESE FOR LOOPS
    for i=1:N
        y0=y0+T(i-1,c)*x[:,i];
    end
 
+   # TODO: IMPROVE THESE FOR LOOPS
    for j=1:length(nep.A)
        for i=1:N+1
            y0=y0-T(i-1,-k*nep.tauv[j]+c)*(nep.A[j]*y[:,i]);
        end
    end
 
+   # USE THE LINSOLVER
    y0=sum(nep.A)\y0;
    return y0
 end
