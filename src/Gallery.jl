@@ -164,7 +164,7 @@ module Gallery
           L=kron(L,L)
 
           b=broadcast((x,y)->100*abs(sin(x+y)),x,x.')
-          a=broadcast((x,y)->-sin(x)*sin(y),x,x.')
+          a=broadcast((x,y)->-8*sin(x)*sin(y),x,x.')
           B=sparse(1:n^2,1:n^2,b[:])
           A=L+sparse(1:n^2,1:n^2,a[:])
 
