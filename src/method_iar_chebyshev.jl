@@ -27,6 +27,8 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     )
     # hardcoded for 2dep
     a=-5; b=3;
+    γ=(a+b)/(a-b);   ρ=2/(b-a);
+
 
     n = size(nep,1);
     m = maxit;
@@ -50,13 +52,16 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     L=L*(b-a)/4;
 
     # Compute the P and P_inv
-    P=P_mat(T,m+1,2/(b-a),(a+b)/(a-b));
-    P_inv=P_inv_mat(T,m+1,2/(b-a),(a+b)/(a-b));
+    P=P_mat(T,m+1,ρ,γ);
+    P_inv=P_inv_mat(T,m+1,ρ,γ);
     #println("\n")
     #Base.showarray(STDOUT,P,false)
     #println("\n")
     #Base.showarray(STDOUT,P_inv,false)
     #println("\n")
+
+
+    Tc=cos.((0:m)'.*acos(ρ)); Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-γ*nep.tauv+ρ)),1)
 
 
     while (k <= m) && (conv_eig<Neig)
@@ -70,7 +75,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         y=zeros(n,k+1);
         if isa(nep,NEPTypes.DEP)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
+            y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b,M0inv,Tc,Ttau);
         elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
             for j=1:k
@@ -172,7 +177,7 @@ function cheb2mon(T,ρ,γ,c)
 end
 
 
-function P_mat(T,n, ρ, γ )
+function P_mat(T, n, ρ, γ )
     I=eye(T,n,n); P=zeros(T,n,n);
     ρ=T(ρ); γ=T(γ);
     for j=1:n
@@ -182,7 +187,7 @@ function P_mat(T,n, ρ, γ )
 end
 
 
-function P_inv_mat(T,n, ρ, γ )
+function P_inv_mat(T, n, ρ, γ )
     I=eye(T,n,n); P_inv=zeros(T,n,n);
     ρ=T(ρ); γ=T(γ);
     for j=1:n
@@ -192,30 +197,15 @@ function P_inv_mat(T,n, ρ, γ )
 end
 
 
-function compute_y0_dep(x,y,nep,a,b)
+function compute_y0_dep(x,y,nep,a,b,M0inv,Tc,Ttau)
    # TODO: DOCUMENT THIS BETTER
-   #y_0= \sum_{i=1}^N T_{i-1}(c) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-k \tau_j+c) y_i\right )
-   T=(n,x)->cos(n*acos(x));
-   c=(a+b)/(a-b);   k=2/(b-a);
+   #y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
 
-   N=size(x,2);
-   n=size(x,1);
-
-
-   y0=zeros(n,1);
-   # TODO: IMPROVE THESE FOR LOOPS
-   for i=1:N
-       y0=y0+T(i-1,c)*x[:,i];
+   N=size(x,2);   n=size(x,1);
+   y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
+   for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
+       y0-=nep.A[j]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
    end
-
-   # TODO: IMPROVE THESE FOR LOOPS
-   for j=1:length(nep.A)
-       for i=1:N+1
-           y0=y0-T(i-1,-k*nep.tauv[j]+c)*(nep.A[j]*y[:,i]);
-       end
-   end
-
-   # USE THE LINSOLVER
-   y0=sum(nep.A)\y0;
+   y0=lin_solve(M0inv,y0)
    return y0
 end
