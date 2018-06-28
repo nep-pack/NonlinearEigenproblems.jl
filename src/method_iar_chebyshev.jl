@@ -26,8 +26,8 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     compute_y0::Function=function emptyfunc end
     )
     # hardcoded for 2dep
-    a=-5; b=3;
-    γ=(a+b)/(a-b);   ρ=2/(b-a);
+    a=-5; b=3;  # TODO: (a,b) shoudl be an (optional) input
+    γ=(a+b)/(a-b);   ρ=2/(b-a); # TODO: explain what is this
 
 
     n = size(nep,1);
@@ -48,21 +48,17 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     k=1; conv_eig=0;
 
     # hardcoded matrix L
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
-    L=L*(b-a)/4;
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
 
-    # Compute the P and P_inv
-    P=P_mat(T,m+1,ρ,γ);
-    P_inv=P_inv_mat(T,m+1,ρ,γ);
-    #println("\n")
-    #Base.showarray(STDOUT,P,false)
-    #println("\n")
-    #Base.showarray(STDOUT,P_inv,false)
-    #println("\n")
-
-
-    Tc=cos.((0:m)'.*acos(ρ)); Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-γ*nep.tauv+ρ)),1)
-
+    # precomputation for exploiting the structure DEP, GENERAL, PEP (missing)
+    if isa(nep,NEPTypes.DEP)
+        #TODO: explain what is this
+        Tc=cos.((0:m)'.*acos(ρ)); Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-γ*nep.tauv+ρ)),1)
+    elseif isempty(methods(compute_y0))
+        # Compute the P and P_inv
+        P=P_mat(T,m+1,ρ,γ);         # P maps chebyshev to monomials
+        P_inv=P_inv_mat(T,m+1,ρ,γ); # P maps monomials to chebyshev
+    end
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
@@ -78,12 +74,12 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b,M0inv,Tc,Ttau);
         elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
+            # TODO: write this for-loop with broadcast
             for j=1:k
                 y[:,j+1]=y[:,j+1]/j;
             end
             y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
             y[:,1] = -lin_solve(M0inv,y[:,1]);
-
             y=y*P_inv[1:k+1,1:k+1]';
         else
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
@@ -116,24 +112,25 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     end
 
     # NoConvergenceException
-    # if conv_eig<Neig
-    #    err=err[end,1:Neig];
-    #    idx=sortperm(err); # sort the error
-    #    λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
-    #     msg="Number of iterations exceeded. maxit=$(maxit)."
-    #     if conv_eig<3
-    #         msg=string(msg, " Check that σ is not an eigenvalue.")
-    #     end
-    #     throw(NoConvergenceException(λ,Q,err,msg))
-    # end
+    if conv_eig<Neig
+        err=err[end,1:Neig];
+        idx=sortperm(err); # sort the error
+        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        if conv_eig<3
+            msg=string(msg, " Check that σ is not an eigenvalue.")
+        end
+        throw(NoConvergenceException(λ,Q,err,msg))
+    end
 
     k=k-1
-    return λ,Q,err[1:k,:],V,H
+    return λ,Q,err[1:k,:]
 end
 
 
 
 function mon2cheb(T,ρ,γ,a)
+    # TODO: write what this function does
     n=length(a)-1;
     α=1/(2*ρ);    β=-γ/ρ;
     b=zeros(T,n+3,1);
@@ -160,6 +157,7 @@ end
 
 
 function cheb2mon(T,ρ,γ,c)
+    # TODO: write what this function does
     n=length(c)-1;
     α=1/(2*ρ);    β=-γ/ρ;
     a=zeros(T,n+3,1);     b=zeros(T,n+3,1);
@@ -178,6 +176,7 @@ end
 
 
 function P_mat(T, n, ρ, γ )
+    # TODO: write what this function does
     I=eye(T,n,n); P=zeros(T,n,n);
     ρ=T(ρ); γ=T(γ);
     for j=1:n
@@ -188,6 +187,7 @@ end
 
 
 function P_inv_mat(T, n, ρ, γ )
+    # TODO: write what this function does
     I=eye(T,n,n); P_inv=zeros(T,n,n);
     ρ=T(ρ); γ=T(γ);
     for j=1:n
@@ -198,14 +198,14 @@ end
 
 
 function compute_y0_dep(x,y,nep,a,b,M0inv,Tc,Ttau)
-   # TODO: DOCUMENT THIS BETTER
-   #y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
+    # TODO: write what this function does
+    #y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
 
-   N=size(x,2);   n=size(x,1);
-   y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
-   for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
-       y0-=nep.A[j]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
-   end
-   y0=lin_solve(M0inv,y0)
-   return y0
+    N=size(x,2);   n=size(x,1);
+    y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
+    for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
+        y0-=nep.A[j]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
+    end
+    y0=lin_solve(M0inv,y0)
+    return y0
 end
