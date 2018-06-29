@@ -7,7 +7,7 @@ using IterativeSolvers
 
 ### Infinite Arnoldi method
 
-Runs the infinite Arnoldi method which tries to find eigenvalues close to the shift σ.
+Runs the infinite Arnoldi method (Chebyshev version) which tries to find eigenvalues close to the shift σ. The shifted-and-scaled Chebyshev polynomials in the interval [a,b] are used as Krylov space.
 
 
 # Example
