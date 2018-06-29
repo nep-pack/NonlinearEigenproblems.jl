@@ -64,9 +64,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
         y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k);
-        for j=1:k
-            y[:,j+1]=y[:,j+1]/j;
-        end
+        broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
         y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
         y[:,1] = -lin_solve(M0inv,y[:,1]);
 
