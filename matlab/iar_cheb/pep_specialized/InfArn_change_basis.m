@@ -68,6 +68,7 @@ for k=1:m
     [y(1:n) yy(1:n)]
     norm(y(n+1:end)-yy(n+1:end))
     pause
+    []
     
     
     % expand V
