@@ -3,14 +3,17 @@ clear all
 clc
 
 
-a=-4;   b=2;
+a=-1;   b=2;
 
 
-n=100; m=100;  d=10;
-for j=1:d
-    coeff{j}=rand(n);
+n=100; m=10;  d=100;
+for j=1:d+1
+    coeff{j}=rand(n)/factorial(j);
 end
+%coeff{1}=eye(n);
 nep.coeff=coeff;
+nep.A0inv=inv(coeff{1});
+
 nep.MMeval=@(l)  M_pep_eval(coeff,l);
 nep.Mdd=@(j) M_pep_der(coeff,j);
 
@@ -20,7 +23,7 @@ nep.n=n;
 nep.a=a;    nep.b=b;    
 %v=zeros(n,1);   v(1)=1;
 v=ones(n,1);    v=v/norm(v);
-%v=rand(n,1);
+%v=rand(n,1);   v=v/norm(v);
 
 
 [ V, H ] = InfArn_change_basis( nep, v, m ); 

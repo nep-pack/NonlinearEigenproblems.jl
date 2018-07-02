@@ -107,7 +107,7 @@ function y0=pep_y0(x,y,nep)
     a=nep.a;    b=nep.b;
     c=(a+b)/(a-b);
     N=size(x,2);
-    Tc=cos((0:N)*acos(c)).';
+    Tc=cos((0:N-1)*acos(c)).';
     n=nep.n; 
     d=length(nep.coeff)-1;
     % sum over all the matrix coefficients
@@ -118,15 +118,13 @@ function y0=pep_y0(x,y,nep)
     % sum for every coefficient
     for j=0:d-1
         Bj=-nep.coeff{j+2};
-        y0=y0+Bj*(x*(R^j)*Tc(1:N));
+        y0=y0+Bj*(x*(R^j)*Tc);
     end
     y0=nep.A0inv*y0;
-    
-    y0=y0-y*Tc;
-    
-%     for j=1:N+1
-%         y0=y0-Tc(j)*y(:,j);
-%     end
+
+    for j=1:N+1
+        y0=y0+y(:,j)/(j+);
+    end
     
     
     
