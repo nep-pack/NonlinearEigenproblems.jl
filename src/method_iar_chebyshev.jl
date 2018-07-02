@@ -69,7 +69,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
         Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing T_i(-k_j*tau+c)
     elseif isa(nep,NEPTypes.PEP)
-        Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
+        Tc=cos.((0:m).*acos(cc));  # vector containing T_i(c)
     elseif isempty(methods(compute_y0))
         # Compute the P and P_inv
         P=P_mat(T,m+1,kk,cc);         # P maps chebyshev to monomials
@@ -84,7 +84,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
         # compute y (only steps different then standard IAR)
-        y=zeros(n,k+1);
+        y=zeros(T,n,k+1);
         if isa(nep,NEPTypes.DEP)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,Tc,Ttau);
@@ -252,11 +252,15 @@ function P_inv_mat(T, n, ρ, γ )
     # P_inv_mat construct the matrix that convert the coefficients of a polynomial
     # in monomial basis to the coefficients in the Chebyshev basis. Namely,
     # the function mon2cheb is applyied to every column of the identity matrix.
-    I=eye(T,n,n); P_inv=zeros(T,n,n);
+    I=eye(T,n,n);   P_inv=zeros(T,n,n);
     ρ=T(ρ); γ=T(γ);
     for j=1:n
         P_inv[:,j]=mon2cheb(T,ρ,γ,I[:,j]);
     end
+
+    # TODO: fix this function with mapslices (eventually keep it in main function)
+    #P_inv=eye(T,n,n);
+    #P_inv=mapslices(x->mon2cheb(T,ρ,γ,x),P_inv,2)
     return P_inv
 end
 
@@ -284,22 +288,22 @@ function compute_y0_pep(x,y,nep,M0inv,Tc,L)
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
 # where T_i is the i-th Chebyshev polynomial of the first kind
 
-    N=size(x,2);   n=size(x,1);
+    N=size(x,2);   n=size(x,1);    T=eltype(y);
 
     # compute the derivation matrix
     LL=inv(L[1:N,1:N])
     D=vcat(zeros(1,N),LL[1:N-1,:]);
 
-    d=length(nep.A)-1;
+    d=length(nep.A)-1;  # degree of the PEP
+
     # sum for every coefficiet
-    v=Tc[1:N]';
-    y0=zeros(n,1);
+    v=view(Tc,1:N);
+    y0=zeros(T,n,1);
     for j=0:d-1
-        y0=y0+nep.A[j+2]*(x*v);
+        y0+=nep.A[j+2]*(x*v);
         v=D*v;
     end
     y0=-lin_solve(M0inv,y0)
-
-    y0=y0-y*(Tc[1:N+1]');
+    y0-=y*(view(Tc,1:N+1));
     return y0
 end
