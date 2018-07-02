@@ -83,13 +83,13 @@ function y0=pep_y0(x,y,nep)
     y0=zeros(n,1);
     
     % compute the derivation matrix
-    R=[zeros(1,N); inv(nep.LL(N))]; R=R(1:N,1:N);
+    D=[zeros(1,N); inv(nep.LL(N))]; D=D(1:N,1:N);
     % sum for every coefficient
     v=Tc(1:N);
     for j=0:d-1
         Bj=-nep.coeff{j+2};
         y0=y0+Bj*(x*v);
-        v=R*v;
+        v=D*v;
     end
     y0=nep.M0solver(y0);
     

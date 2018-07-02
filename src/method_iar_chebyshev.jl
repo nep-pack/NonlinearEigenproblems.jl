@@ -68,6 +68,8 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     if isa(nep,NEPTypes.DEP) # T_i denotes the i-th Chebyshev polynomial of first kind
         Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
         Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing T_i(-k_j*tau+c)
+    elseif isa(nep,NEPTypes.PEP)
+        Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     elseif isempty(methods(compute_y0))
         # Compute the P and P_inv
         P=P_mat(T,m+1,kk,cc);         # P maps chebyshev to monomials
@@ -86,6 +88,9 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         if isa(nep,NEPTypes.DEP)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,Tc,Ttau);
+        elseif isa(nep,NEPTypes.PEP)
+            y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
+            y[:,1]      = compute_y0_pep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,Tc,L);
         elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
             broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
@@ -268,5 +273,33 @@ function compute_y0_dep(x,y,nep,M0inv,Tc,Ttau)
         y0-=nep.A[j]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
     end
     y0=lin_solve(M0inv,y0)
+    return y0
+end
+
+
+function compute_y0_pep(x,y,nep,M0inv,Tc,L)
+# TODO: edit this function and its documentation
+# compute_y0_dep computes y0 for the DEP
+# The formula is explicitly given by
+# y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
+# where T_i is the i-th Chebyshev polynomial of the first kind
+
+    N=size(x,2);   n=size(x,1);
+
+    # compute the derivation matrix
+    LL=inv(L[1:N,1:N])
+    D=vcat(zeros(1,N),LL[1:N-1,:]);
+
+    d=length(nep.A)-1;
+    # sum for every coefficiet
+    v=Tc[1:N];
+    y0=zeros(n,1);
+    for j=0:d-1
+        y0=y0+nep.A[j+2]*(x*v);
+        v=D*v;
+    end
+    y0=-lin_solve(M0inv,y0)
+
+    y0=y0-y*(Tc[1:N+1]');
     return y0
 end
