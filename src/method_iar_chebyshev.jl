@@ -292,7 +292,7 @@ function compute_y0_pep(x,y,nep,M0inv,Tc,L)
 
     d=length(nep.A)-1;
     # sum for every coefficiet
-    v=Tc[1:N];
+    v=Tc[1:N]';
     y0=zeros(n,1);
     for j=0:d-1
         y0=y0+nep.A[j+2]*(x*v);
