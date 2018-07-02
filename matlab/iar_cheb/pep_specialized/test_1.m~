@@ -6,7 +6,7 @@ clc
 a=-1;   b=2;
 
 
-n=100; m=100;  d=20;
+n=100; m=10;  d=2;
 for j=1:d+1
     coeff{j}=rand(n)/factorial(j);
 end

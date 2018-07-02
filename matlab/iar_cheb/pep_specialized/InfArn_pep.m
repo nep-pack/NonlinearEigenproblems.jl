@@ -1,4 +1,4 @@
-function [ V, H ] = InfArn_dep( nep, v1, m )
+function [ V, H ] = InfArn_pep( nep, v1, m )
 %INFARN naive implementation
 %   Naive imprementation of Infinite Arnoldi
 %   Date: 13 May 2014
@@ -19,6 +19,8 @@ V=v1/norm(v1);                  % basis of Krylov space
 H=zeros(1,1);                   % Hessenberg matrix
 
 LL = @(k) L(k)*(nep.b-nep.a)/4;
+nep.LL=LL;
+
 a=nep.a; b=nep.b;
 
 P=P_mat(m+1,2/(b-a),(a+b)/(a-b));
@@ -35,7 +37,7 @@ for k=1:m
     y=zeros(n,k+1);
     x=reshape(V(:,k),n,k);
     y(:,2:end)=x*LL(k);
-    y(:,1)=dep_y0(x,y,nep);
+    y(:,1)=pep_y0(x,y,nep);
     y=reshape(y,(k+1)*n,1);
 
     
@@ -70,41 +72,32 @@ function Lmat=L(k)
 end
 
 
-function y0=dep_y0(x,y,nep)
-    T=@(i,x) cos(i*acos(x));
-    
+function y0=pep_y0(x,y,nep)
     a=nep.a;    b=nep.b;
-    A1=nep.A1;
-    A2=nep.A2;
-    A0=nep.A0;  
     c=(a+b)/(a-b);
-    k=2/(b-a);
-    tau1=nep.tau1;
-    tau2=nep.tau2;
-    
-
     N=size(x,2);
-    n=size(x,1);
-
-    
+    Tc=cos((0:N)*acos(c)).';
+    n=nep.n; 
+    d=length(nep.coeff)-1;
+    % sum over all the matrix coefficients
     y0=zeros(n,1);
-    for i=1:N+1
-        y0=y0-T(i-1,c)*(A0*y(:,i));
+    
+    % compute the derivation matrix
+    R=[zeros(1,N); inv(nep.LL(N))]; R=R(1:N,1:N);
+    % sum for every coefficient
+    v=Tc(1:N);
+    for j=0:d-1
+        Bj=-nep.coeff{j+2};
+        y0=y0+Bj*(x*v);
+        v=R*v;
     end
+    y0=nep.M0solver(y0);
     
-    for i=1:N
-        y0=y0+T(i-1,c)*x(:,i);
-    end  
+    y0=y0-y*Tc;
     
-    for i=1:N+1
-        y0=y0-T(i-1,-k*tau1+c)*(A1*y(:,i));
-    end
     
-    for i=1:N+1
-        y0=y0-T(i-1,-k*tau2+c)*(A2*y(:,i));
-    end
     
-    y0=(A0+A1+A2)\y0;
+    
     
 end
 

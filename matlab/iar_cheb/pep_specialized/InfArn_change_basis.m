@@ -116,17 +116,16 @@ function y0=pep_y0(x,y,nep)
     % compute the derivation matrix
     R=[zeros(1,N); inv(nep.LL(N))]; R=R(1:N,1:N);
     % sum for every coefficient
+    v=Tc(1:N);
     for j=0:d-1
         Bj=-nep.coeff{j+2};
-        y0=y0+Bj*(x*(R^j)*Tc(1:N));
+        y0=y0+Bj*(x*v);
+        v=R*v;
     end
-    y0=nep.A0inv*y0;
+    y0=nep.M0solver(y0);
     
     y0=y0-y*Tc;
     
-%     for j=1:N+1
-%         y0=y0-Tc(j)*y(:,j);
-%     end
     
     
     
