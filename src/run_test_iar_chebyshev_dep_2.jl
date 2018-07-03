@@ -91,7 +91,7 @@ ylim(1e-16,1e1)
 
 
 
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
+λ,Q,err,V,H = iar_chebyshev(nep, maxit=mm,Neig=20,σ=3.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))

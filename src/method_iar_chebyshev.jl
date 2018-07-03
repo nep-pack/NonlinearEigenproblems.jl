@@ -41,6 +41,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     a=-1.0,
     b=1.0
     )
+    #TODO: this function does not work for shift and scaled problems
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
@@ -110,7 +111,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         if (rem(k,check_error_every)==0)||(k==m)
             D,Z=eig(H[1:k,1:k]);
             VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=1./D;
+            Q=VV*Z; λ=σ+γ./D;
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
