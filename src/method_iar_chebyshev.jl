@@ -64,16 +64,16 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
 
-    # precomputation for exploiting the structure DEP, GENERAL, PEP (missing)
-    if isa(nep,NEPTypes.DEP) # T_i denotes the i-th Chebyshev polynomial of first kind
+    # precomputation for exploiting the structure DEP, PEP, GENERAL (no y0_provided)
+    if isa(nep,NEPTypes.DEP)        # T_i denotes the i-th Chebyshev polynomial of first kind
         Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
         Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing T_i(-k_j*tau+c)
     elseif isa(nep,NEPTypes.PEP)
         Tc=cos.((0:m).*acos(cc));  # vector containing T_i(c)
     elseif isempty(methods(compute_y0))
-        # Compute the P and P_inv
-        P=P_mat(T,m+1,kk,cc);         # P maps chebyshev to monomials
-        P_inv=P_inv_mat(T,m+1,kk,cc); # P maps monomials to chebyshev
+        warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
+        P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
+        P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
     end
 
     while (k <= m) && (conv_eig<Neig)
@@ -234,37 +234,6 @@ function cheb2mon(T,ρ,γ,c)
     a=a[1:n+1,1];
 end
 
-
-function P_mat(T, n, ρ, γ )
-# P_mat construct the matrix that convert the coefficients of a polynomial
-# in chebyshev basis to the coefficients in the monomial basis. Namely,
-# the function cheb2mon is applyied to every column of the identity matrix.
-    I=eye(T,n,n); P=zeros(T,n,n);
-    ρ=T(ρ); γ=T(γ);
-    for j=1:n
-        P[:,j]=cheb2mon(T,ρ,γ,I[:,j]);
-    end
-    return P
-end
-
-
-function P_inv_mat(T, n, ρ, γ )
-    # P_inv_mat construct the matrix that convert the coefficients of a polynomial
-    # in monomial basis to the coefficients in the Chebyshev basis. Namely,
-    # the function mon2cheb is applyied to every column of the identity matrix.
-    I=eye(T,n,n);   P_inv=zeros(T,n,n);
-    ρ=T(ρ); γ=T(γ);
-    for j=1:n
-        P_inv[:,j]=mon2cheb(T,ρ,γ,I[:,j]);
-    end
-
-    # TODO: fix this function with mapslices (eventually keep it in main function)
-    #P_inv=eye(T,n,n);
-    #P_inv=mapslices(x->mon2cheb(T,ρ,γ,x),P_inv,2)
-    return P_inv
-end
-
-
 function compute_y0_dep(x,y,nep,M0inv,Tc,Ttau)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
@@ -280,13 +249,11 @@ function compute_y0_dep(x,y,nep,M0inv,Tc,Ttau)
     return y0
 end
 
-
 function compute_y0_pep(x,y,nep,M0inv,Tc,L)
-# TODO: edit this function and its documentation
-# compute_y0_dep computes y0 for the DEP
+# compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
-# y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
-# where T_i is the i-th Chebyshev polynomial of the first kind
+# y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
+# where T(c) is the vector containing T_i(c) as coefficients, where T_i is the i-th Chebyshev polynomial of the first kind
 
     N=size(x,2);   n=size(x,1);    T=eltype(y);
 
