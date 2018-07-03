@@ -41,7 +41,9 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     a=-1.0,
     b=1.0
     )
-    #TODO: this function does not work for shift and scaled problems
+    #TODO: this function does not work for shift and scaled problems.
+    # Possible fix (only for DEP): the shift-and-scaling influences
+    # the matrix coefficients and the delay, then we use the usual formulas
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
