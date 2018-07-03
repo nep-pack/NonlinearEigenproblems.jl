@@ -140,7 +140,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     end
 
     k=k-1
-    return λ,Q,err[1:k,:]
+    return λ,Q,err[1:k,:],V[:,1:k]
 end
 
 
