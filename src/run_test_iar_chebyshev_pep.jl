@@ -28,8 +28,8 @@ nep=PEP(A)
 
 compute_Mlincomb(nep::PEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
 
-#(λ,Q,err)=iar(nep,σ=0,γ=1,Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
-(λ,Q,err)=iar_chebyshev(nep,σ=3,γ=1,Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
+(λ,Q,err)=iar(nep,σ=0,γ=1,Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
+#(λ,Q,err)=iar_chebyshev(nep,σ=3,γ=1,Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
 
 
 errormeasure=default_errmeasure(nep);
