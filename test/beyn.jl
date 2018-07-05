@@ -19,7 +19,7 @@ using Base.Test
     nep=nep_gallery("dep0")
     @testset "disk at origin" begin
 
-        λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:quadgk)
+        λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:ptrapz)
 
         println(λ[1])
         M=compute_Mder(nep,λ[1])
@@ -39,7 +39,7 @@ using Base.Test
     end
     @testset "shifted disk" begin
 
-        λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:quadgk)
+        λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:ptrapz)
 
         println(λ[1])
         M=compute_Mder(nep,λ[1])
