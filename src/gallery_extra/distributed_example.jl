@@ -24,10 +24,10 @@ function gallery_dep_distributed()
     # -1.677320660400946 + 7.496870451838560i
     # -1.677320660400946 - 7.496870451838560i
     #
-    # 
+    #
 
-    
-    
+
+
     A0=-eye(3);
     A1=[2.5    2.8   -0.5
         1.8    0.3    0.3
@@ -41,12 +41,12 @@ function gallery_dep_distributed()
     idop= S -> S
     oneop= S -> eye(size(S,1),size(S,2))
     f1= S -> expm(-full(S))
-    N=10; 
+    N=10;
     f2= S -> distributed_kernel_gauss_legendre(full(S),N)
-    #N=1000;  
-    #f2= S -> distributed_kernel_trapezoidal(full(S),N)    
+    #N=1000;
+    #f2= S -> distributed_kernel_trapezoidal(full(S),N)
     return SPMF_NEP([A0,A1,A2,A3],[idop,oneop,f1,f2])
-end    
+end
 
 
 function distributed_kernel_trapezoidal(S,N0)
@@ -56,7 +56,7 @@ function distributed_kernel_trapezoidal(S,N0)
     F=zeros(eltype(S),size(S,1),size(S,2));
 
     h=1/N0;
-    for i=1:(N0+1) # Trapezoidal rule 
+    for i=1:(N0+1) # Trapezoidal rule
         x=float((i-1)*h-1)
         if (i==1 || i==N0+1)
             F += 0.5*fS(x)*h;
@@ -79,8 +79,8 @@ function distributed_kernel_gauss_legendre(S,N)
     accumulative_expm_comp=true
     for i=1:length(xv)
         if (accumulative_expm_comp)
-            # An accumulative way to compute E=expm(xv[i]*S) which is 
-            # faster due to the fact that scaling and squaring 
+            # An accumulative way to compute E=expm(xv[i]*S) which is
+            # faster due to the fact that scaling and squaring
             # for expm((xv[i]-xv[i-1])*S) is faster than
             # expm(xv[i]*S)
             if (i==1)
@@ -92,7 +92,7 @@ function distributed_kernel_gauss_legendre(S,N)
             E=expm(xv[i]*S);
 
         end
-        
+
         fSw=E*(f(xv[i])*wv[i]);
         F=F+fSw;
     end
@@ -110,24 +110,24 @@ function  gauss_legendre_weights(N,a,b)
     # L will be the Legendre-Gauss Vandermonde Matrix
     L=zeros(N1,N2);
 
-    
+
 
     # "Derivative" of L
     Lp=zeros(N1,N2);
-    
+
 
     # Starting values of Newton's method
     y=cos.((2*(0:(N-1))+1)*pi/(2*(N-1)+2))+(0.27/N1)*sin.(pi*xu*(N-1)/N2);    y0=2;
-    
+
 
     local Lp0
     # Newton's method to decide points
     # Iterate until new points are uniformly within epsilon of old points
-    
+
     while maximum(abs.(y-y0))>eps()
-        
-        
-        
+
+
+
         L[:,1]=ones(size(L,1));
         Lp[:,1]=zeros(size(Lp,1));
 
@@ -138,9 +138,9 @@ function  gauss_legendre_weights(N,a,b)
         for k=2:N1
             L[:,k+1]=( (2*k-1)*(y).*L[:,k]-(k-1)*L[:,k-1] )/k;
         end
-        
-        Lp0=(N2)*( L[:,N1]-(y).*L[:,N2] )./(1-y.^2);   
-        
+
+        Lp0=(N2)*( L[:,N1]-(y).*L[:,N2] )./(1-y.^2);
+
         y0=y;
         y=y0-L[:,N2]./Lp0;
     end

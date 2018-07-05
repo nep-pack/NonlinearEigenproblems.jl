@@ -45,17 +45,22 @@ function shift_and_scale(orgnep::PEP;shift=0,scale=1)
     At=copy(shift*scale*orgnep.A); # Allocate correct type (not so fast)
     m=size(At,1)-1
     for j=0:m
-        AA=zeros(At[j+1])        
+        AA=zeros(At[j+1])
         for i=j:m
             factor=((scale^j)*(shift^(i-j))*factorial(i)/factorial(i-j))/factorial(j)
             AA+=orgnep.A[i+1]*factor;
-            
-            
-        end        
+
+
+        end
         At[j+1]=AA;
     end
     return PEP(At)
 end
+
+function shift_and_scale(orgnep::DEP;shift=0,scale=1)
+    return DEP([broadcast(*,nep.A,exp.(-nep.tauv*shift)/scale); [-shift/scale*nep.A[1]^0] ],[nep.tauv*scale; 0])
+end
+
 
 # Native implementation for SPMF. Only for generic SPMF (not AbstractSPMF)
 function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
@@ -110,7 +115,7 @@ Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)). Usage 
 
 """
 function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)
-    return MobiusTransformedNEP(orgnep;a=a,b=b,c=c,d=d)    
+    return MobiusTransformedNEP(orgnep;a=a,b=b,c=c,d=d)
 end
 
 function mobius_transform(orgnep::SPMF_NEP;a=1,b=0,c=0,d=1)
@@ -219,7 +224,7 @@ function size(nep::DeflatedNEP,dim=-1)
     if (dim==-1)
         return (n,n)
     else
-        return n        
+        return n
     end
 end
 
@@ -240,7 +245,3 @@ function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
     return full(compute_Mder_from_MM(nep,λ,i));
 end
-
-
-    
-        

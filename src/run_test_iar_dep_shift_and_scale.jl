@@ -9,7 +9,10 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
+include("nep_transformations.jl")
 
+#import NEPSolver.iar_chebyshev;
+#include("../src/method_iar_chebyshev.jl");
 
 
 
@@ -32,7 +35,7 @@ nep_old=nep;
 #explicit import needed for overloading functions from packages
 #import NEPCore.compute_Mlincomb
 #compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
-σ=1; γ=2;
+σ=1.0; γ=2.0;
 (λ,Q,err)=iar(nep,σ=σ,γ=γ,Neig=6,v=ones(4),displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
 # redefine the dep shifted and scaled
 mm=length(nep.tauv)
@@ -45,9 +48,8 @@ end
 A[mm+1]=-σ/γ*eye(n); tauv2[mm+1]=0
 nep2=DEP(A,tauv2)
 
-nep3=DEP([broadcast(*,nep.A,exp.(-nep.tauv*σ)/γ); [-σ/γ*eye(n)] ],[nep.tauv*γ; 0])
-
-
+#nep3=DEP([broadcast(*,nep.A,exp.(-nep.tauv*σ)/γ); [-σ/γ*nep.A[1]^0] ],[nep.tauv*γ; 0])
+nep3=shift_and_scale(nep,shift=σ,scale=γ);
 (μ,Q,err)=iar(nep3,σ=0,γ=1,Neig=6,v=ones(4),displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
 λ2=σ+γ*μ
 

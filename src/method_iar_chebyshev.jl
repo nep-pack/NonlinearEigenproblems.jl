@@ -5,8 +5,8 @@ using IterativeSolvers
 # Types specifying which way to compute y0 in chebyshev iar
 abstract type ComputeY0Cheb end;
 abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
-abstract type ComputeY0ChebPEP <: ComputeY0Cheb end;    
-abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;    
+abstract type ComputeY0ChebPEP <: ComputeY0Cheb end;
+abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 
 
 # Data collected in a precomputation phase
@@ -24,6 +24,9 @@ function PrecomputeData()
     return PrecomputeData(0,0,0,0,0,0,0,0);
 end
 
+#TODO: fix Chebyshev polynomial evaluation for argument with abs. val. greater then 1
+#TODO: shift-and-scale for DEP: define the new function in nep transformations
+#TODO: shift-and-scale for PEP
 
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
@@ -37,7 +40,7 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     precomp.L=L
 
     return precomp;
@@ -46,16 +49,16 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
     warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
-    precomp.L=L    
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
+    precomp.L=L
     precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
     precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
     precomp.σ=σ;
     precomp.γ=γ;
     precomp.α=γ.^(0:m);
-    return precomp;   
+    return precomp;
 end
-    
+
 
 
 
@@ -110,7 +113,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         elseif (isa(nep,PEP))
             compute_y0_method=ComputeY0ChebPEP;
         else
-            compute_y0_method=ComputeY0Cheb;            
+            compute_y0_method=ComputeY0Cheb;
         end
     end
 
@@ -134,10 +137,10 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     k=1; conv_eig=0;
 
     # hardcoded matrix L
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
 
 
-    ## precomputation for exploiting the structure DEP, PEP, GENERAL 
+    ## precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
     while (k <= m) && (conv_eig<Neig)
@@ -153,7 +156,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
         end
         y[:,1] = compute_y0_cheb(T,nep,compute_y0_method,reshape(VV[1:1:n*k,k],n,k),
-                                 y,M0inv,precomp);        
+                                 y,M0inv,precomp);
 
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
@@ -296,7 +299,7 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
 
     Tc=precomp.Tc;
     Ttau=precomp.Ttau;
-    
+
     N=size(x,2);   n=size(x,1);
     y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
     for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
@@ -336,7 +339,7 @@ end
 
 
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::PrecomputeData)
-    k=size(x,2); 
+    k=size(x,2);
     α=precomp.α; σ=precomp.σ;
     y[:,2:k+1] = x*precomp.P[1:k,1:k]';
     broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')

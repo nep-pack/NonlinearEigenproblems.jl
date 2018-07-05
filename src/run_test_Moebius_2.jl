@@ -1,8 +1,10 @@
 workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-using NEPSolver
 using NEPCore
 using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
 using Gallery
 using gplot_module
 
