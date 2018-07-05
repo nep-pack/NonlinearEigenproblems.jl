@@ -2,6 +2,15 @@ export iar_chebyshev
 using IterativeSolvers
 
 
+type PrecomputeData
+    Tc
+    L
+    Ttau
+    P
+    P_inv
+end
+
+
 """
     iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1])
 
@@ -64,19 +73,21 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
 
+    precomp=PrecomputeData(0,0,0,0,0);
+
     # hardcoded matrix L
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
 
     # precomputation for exploiting the structure DEP, PEP, GENERAL (no y0_provided)
     if isa(nep,NEPTypes.DEP)        # T_i denotes the i-th Chebyshev polynomial of first kind
-        Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-        Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing T_i(-k_j*tau+c)
+        precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
+        precomp.Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing T_i(-k_j*tau+c)
     elseif isa(nep,NEPTypes.PEP)
-        Tc=cos.((0:m).*acos(cc));  # vector containing T_i(c)
+        precomp.Tc=cos.((0:m).*acos(cc));  # vector containing T_i(c)
     elseif isempty(methods(compute_y0))
         warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
-        P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
-        P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
+        precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
+        precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
     end
 
     while (k <= m) && (conv_eig<Neig)
@@ -90,16 +101,16 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         y=zeros(T,n,k+1);
         if isa(nep,NEPTypes.DEP)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,Tc,Ttau);
+            y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
         elseif isa(nep,NEPTypes.PEP)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0_pep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,Tc,L);
+            y[:,1]      = compute_y0_pep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
         elseif isempty(methods(compute_y0))
-            y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*P[1:k,1:k]';
+            y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*precomp.P[1:k,1:k]';
             broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
             y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
             y[:,1] = -lin_solve(M0inv,y[:,1]);
-            y=y*P_inv[1:k+1,1:k+1]';
+            y=y*precomp.P_inv[1:k+1,1:k+1]';
         else
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
@@ -237,12 +248,14 @@ function cheb2mon(T,ρ,γ,c)
     a=a[1:n+1,1];
 end
 
-function compute_y0_dep(x,y,nep,M0inv,Tc,Ttau)
+function compute_y0_dep(x,y,nep,M0inv,precomp::PrecomputeData)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
 # where T_i is the i-th Chebyshev polynomial of the first kind
 
+    Tc=precomp.Tc;
+    Ttau=precomp.Ttau;
     N=size(x,2);   n=size(x,1);
     y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
     for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
@@ -252,12 +265,14 @@ function compute_y0_dep(x,y,nep,M0inv,Tc,Ttau)
     return y0
 end
 
-function compute_y0_pep(x,y,nep,M0inv,Tc,L)
+function compute_y0_pep(x,y,nep,M0inv,precomp::PrecomputeData)
 # compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
 # y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
 # where T(c) is the vector containing T_i(c) as coefficients, where T_i is the i-th Chebyshev polynomial of the first kind
 
+    Tc=precomp.Tc;
+    L=precomp.L;
     N=size(x,2);   n=size(x,1);    T=eltype(y);
 
     # compute the derivation matrix
