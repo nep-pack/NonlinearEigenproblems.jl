@@ -96,7 +96,6 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
     check_error_every=1,
-    compute_y0::Function=function emptyfunc end,
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
     a=-1.0,
     b=1.0
