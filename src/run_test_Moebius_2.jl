@@ -5,8 +5,6 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
-using Gallery
-using gplot_module
 
 
 nep=nep_gallery("dep0",100)

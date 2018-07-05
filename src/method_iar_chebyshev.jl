@@ -140,7 +140,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
 
 
-    ## precomputation for exploiting the structure DEP, PEP, GENERAL
+    # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
     while (k <= m) && (conv_eig<Neig)

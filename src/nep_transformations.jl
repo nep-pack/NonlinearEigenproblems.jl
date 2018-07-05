@@ -57,8 +57,9 @@ function shift_and_scale(orgnep::PEP;shift=0,scale=1)
     return PEP(At)
 end
 
+# A shift and rescale of a DEP is DEP where the matrix coefficients and the delays are rescaled and another matrix coefficient with delay zero is added.
 function shift_and_scale(orgnep::DEP;shift=0,scale=1)
-    return DEP([broadcast(*,nep.A,exp.(-nep.tauv*shift)/scale); [-shift/scale*nep.A[1]^0] ],[nep.tauv*scale; 0])
+    return DEP([broadcast(*,orgnep.A,exp.(-orgnep.tauv*shift)/scale); [-shift/scale*orgnep.A[1]^0] ],[orgnep.tauv*scale; 0])
 end
 
 

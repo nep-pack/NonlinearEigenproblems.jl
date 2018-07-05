@@ -9,7 +9,6 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
-include("nep_transformations.jl")
 
 #import NEPSolver.iar_chebyshev;
 #include("../src/method_iar_chebyshev.jl");
