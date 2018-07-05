@@ -2,26 +2,38 @@ export iar_chebyshev
 using IterativeSolvers
 
 
+# Types specifying which way to compute y0 in chebyshev iar
+abstract type ComputeY0Cheb end;
+abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
+abstract type ComputeY0ChebPEP <: ComputeY0Cheb end;    
+abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;    
+
+
+# Data collected in a precomputation phase
 type PrecomputeData
     Tc
     L
     Ttau
     P
     P_inv
+    α
+    γ
+    σ
 end
 function PrecomputeData()
-    return PrecomputeData(0,0,0,0,0);
+    return PrecomputeData(0,0,0,0,0,0,0,0);
 end
 
 
-function precompute_data(nep::NEPTypes.DEP,a,b,m)
+# Precompute data (depending on NEP-type and y0 computation method)
+function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     precomp.Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing
     return precomp;
 end
-function precompute_data(nep::NEPTypes.PEP,a,b,m)
+function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
@@ -30,6 +42,22 @@ function precompute_data(nep::NEPTypes.PEP,a,b,m)
 
     return precomp;
 end
+function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
+    warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
+    cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
+    precomp=PrecomputeData();
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
+    precomp.L=L    
+    precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
+    precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
+    precomp.σ=σ;
+    precomp.γ=γ;
+    precomp.α=γ.^(0:m);
+    return precomp;   
+end
+    
+
+
 
 
 """
@@ -53,7 +81,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
 iar_chebyshev(nep::NEP;params...)=iar_chebyshev(Complex128,nep;params...)
-function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
+                       T_y0<:ComputeY0Cheb}(
     ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
@@ -68,12 +97,23 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     displaylevel=0,
     check_error_every=1,
     compute_y0::Function=function emptyfunc end,
+    compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
     a=-1.0,
     b=1.0
     )
     #TODO: this function does not work for shift and scaled problems.
     # Possible fix (only for DEP): the shift-and-scaling influences
     # the matrix coefficients and the delay, then we use the usual formulas
+
+    if (compute_y0_method == ComputeY0ChebAuto)
+        if (isa(nep,DEP))
+             compute_y0_method=ComputeY0ChebDEP;
+        elseif (isa(nep,PEP))
+            compute_y0_method=ComputeY0ChebPEP;
+        else
+            compute_y0_method=ComputeY0Cheb;            
+        end
+    end
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
@@ -94,20 +134,12 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
 
-    precomp=PrecomputeData(0,0,0,0,0);
-
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
 
-    # precomputation for exploiting the structure DEP, PEP, GENERAL (no y0_provided)
-    if isa(nep,NEPTypes.DEP) || isa(nep,NEPTypes.PEP)        
-        precomp=precompute_data(nep,a,b,maxit)
-    elseif isempty(methods(compute_y0))
-        warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
-        precomp.L=L
-        precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
-        precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
-    end
+
+    ## precomputation for exploiting the structure DEP, PEP, GENERAL 
+    precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
@@ -118,19 +150,12 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # compute y (only steps different then standard IAR)
         y=zeros(T,n,k+1);
-        if (isa(nep,NEPTypes.DEP) || isa(nep,NEPTypes.PEP))
+        if (compute_y0_method != ComputeY0Cheb)
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0_cheb(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
-        elseif isempty(methods(compute_y0))
-            y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*precomp.P[1:k,1:k]';
-            broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
-            y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-            y[:,1] = -lin_solve(M0inv,y[:,1]);
-            y=y*precomp.P_inv[1:k+1,1:k+1]';
-        else
-            y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,a,b);
         end
+        y[:,1] = compute_y0_cheb(T,nep,compute_y0_method,reshape(VV[1:1:n*k,k],n,k),
+                                 y,M0inv,precomp);        
+
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
         # orthogonalization
@@ -264,7 +289,7 @@ function cheb2mon(T,ρ,γ,c)
     a=a[1:n+1,1];
 end
 
-function compute_y0_cheb(x,y,nep::NEPTypes.DEP,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,precomp::PrecomputeData)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
@@ -282,7 +307,7 @@ function compute_y0_cheb(x,y,nep::NEPTypes.DEP,M0inv,precomp::PrecomputeData)
     return y0
 end
 
-function compute_y0_cheb(x,y,nep::NEPTypes.PEP,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::PrecomputeData)
 # compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
 # y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
@@ -308,4 +333,16 @@ function compute_y0_cheb(x,y,nep::NEPTypes.PEP,M0inv,precomp::PrecomputeData)
     y0=-lin_solve(M0inv,y0)
     y0-=y*(view(Tc,1:N+1));
     return y0
+end
+
+
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::PrecomputeData)
+    k=size(x,2); 
+    α=precomp.α; σ=precomp.σ;
+    y[:,2:k+1] = x*precomp.P[1:k,1:k]';
+    broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
+    y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+    y[:,1] = -lin_solve(M0inv,y[:,1]);
+    y[:,:]=y*precomp.P_inv[1:k+1,1:k+1]';
+    return y[:,1];
 end
