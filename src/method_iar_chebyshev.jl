@@ -9,6 +9,24 @@ type PrecomputeData
     P
     P_inv
 end
+function PrecomputeData()
+    return PrecomputeData(0,0,0,0,0);
+end
+
+
+function precompute_data(nep::NEPTypes.DEP,a,b,m)
+    cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
+    precomp=PrecomputeData();
+    precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
+    precomp.Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing
+    return precomp;
+end
+function precompute_data(nep::NEPTypes.PEP,a,b,m)
+    cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
+    precomp=PrecomputeData();
+    precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
+    return precomp;
+end
 
 
 """
@@ -77,13 +95,11 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
+    precomp.L=L
 
     # precomputation for exploiting the structure DEP, PEP, GENERAL (no y0_provided)
-    if isa(nep,NEPTypes.DEP)        # T_i denotes the i-th Chebyshev polynomial of first kind
-        precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-        precomp.Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing T_i(-k_j*tau+c)
-    elseif isa(nep,NEPTypes.PEP)
-        precomp.Tc=cos.((0:m).*acos(cc));  # vector containing T_i(c)
+    if isa(nep,NEPTypes.DEP) || isa(nep,NEPTypes.PEP)        
+        precomp=precompute_data(nep,a,b,maxit)
     elseif isempty(methods(compute_y0))
         warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
         precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
@@ -99,12 +115,9 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # compute y (only steps different then standard IAR)
         y=zeros(T,n,k+1);
-        if isa(nep,NEPTypes.DEP)
+        if (isa(nep,NEPTypes.DEP) || isa(nep,NEPTypes.PEP))
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
             y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
-        elseif isa(nep,NEPTypes.PEP)
-            y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0_pep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
         elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*precomp.P[1:k,1:k]';
             broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
@@ -256,6 +269,7 @@ function compute_y0_dep(x,y,nep,M0inv,precomp::PrecomputeData)
 
     Tc=precomp.Tc;
     Ttau=precomp.Ttau;
+    
     N=size(x,2);   n=size(x,1);
     y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
     for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
