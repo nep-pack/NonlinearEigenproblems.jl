@@ -25,6 +25,9 @@ function precompute_data(nep::NEPTypes.PEP,a,b,m)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
+    precomp.L=L
+
     return precomp;
 end
 
@@ -95,13 +98,13 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;    
-    precomp.L=L
 
     # precomputation for exploiting the structure DEP, PEP, GENERAL (no y0_provided)
     if isa(nep,NEPTypes.DEP) || isa(nep,NEPTypes.PEP)        
         precomp=precompute_data(nep,a,b,maxit)
     elseif isempty(methods(compute_y0))
         warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
+        precomp.L=L
         precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
         precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
     end
@@ -117,7 +120,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         y=zeros(T,n,k+1);
         if (isa(nep,NEPTypes.DEP) || isa(nep,NEPTypes.PEP))
             y[:,2:k+1]  = reshape(VV[1:1:n*k,k],n,k)*L[1:k,1:k];
-            y[:,1]      = compute_y0_dep(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
+            y[:,1]      = compute_y0_cheb(reshape(VV[1:1:n*k,k],n,k),y[:,1:k+1],nep,M0inv,precomp);
         elseif isempty(methods(compute_y0))
             y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k)*precomp.P[1:k,1:k]';
             broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
@@ -261,7 +264,7 @@ function cheb2mon(T,ρ,γ,c)
     a=a[1:n+1,1];
 end
 
-function compute_y0_dep(x,y,nep,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(x,y,nep::NEPTypes.DEP,M0inv,precomp::PrecomputeData)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
@@ -279,7 +282,7 @@ function compute_y0_dep(x,y,nep,M0inv,precomp::PrecomputeData)
     return y0
 end
 
-function compute_y0_pep(x,y,nep,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(x,y,nep::NEPTypes.PEP,M0inv,precomp::PrecomputeData)
 # compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
 # y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
