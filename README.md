@@ -40,12 +40,10 @@ If you find this software useful please cite
 If you use a specific method, please also give credit to the algorithm researcher.
 Reference to a corresponding algorithm paper can be found by in, e.g., by writing `?resinv`.
 
-Links below are developer info on KTH. We will migrate them soon: 
-
-Documentation page: https://gitr.sys.kth.se/pages/nep-pack/nep-pack-alpha/
+Some links below are developer info on KTH. We will migrate them soon: 
 
 
-* Checklist for first public version: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/issues/26
+* Checklist for first public version: https://github.com/nep-pack/NonlinearEigenproblems.jl/issues/26
 
 * NEP-page style "guide": https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/Style-guidelines-and-notes
 
