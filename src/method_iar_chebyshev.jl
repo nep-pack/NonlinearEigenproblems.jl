@@ -132,6 +132,19 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         end
     end
 
+    #TODO: working on this: explicit shift and scaling
+    if ( σ!=zero(T) || γ!=one(T) ) && isa(nep,DEP) || isa(nep,PEP)
+            warn("The problem will be explicitly shifted and scaled. The shift and scaling feature is not supported in the general version of iar_chebyshev.")
+            # use the original error measure
+            #function f(μ,v)
+            #    return compute_resnorm(nep,σ+γ*μ,v)
+            #end
+            #errmeasure=f;
+            nep=shift_and_scale(nep,shift=σ,scale=γ);
+            # maybe do a recursive call (better)
+    end
+
+
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
     n = size(nep,1);
