@@ -1,6 +1,6 @@
-# Run tests for the dep_distributed example
+#Run tests for the dep_distributed example
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
+#Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
@@ -83,10 +83,10 @@ IAR=@testset "IAR" begin
             A[j+1]=rand(n,n)
         end
         nep=PEP(A)
-        (λ,Q)=iar_chebyshev(nep,σ=0,Neig=5,v=ones(n),displaylevel=1,maxit=100,tol=eps()*100)
-        
+        (λ,Q)=iar_chebyshev(nep,σ=0,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+
         @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
-    end    
+    end
 
     @testset "IAR CHEB GENERIC Y0" begin
 
@@ -98,9 +98,22 @@ IAR=@testset "IAR" begin
         nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ,λ->eye(λ),λ->expm(-λ)])
 
         compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
-        (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,v=ones(4),displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,displaylevel=1,a=-1,b=2)
+        (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,v=ones(4),displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,displaylevel=0,a=-1,b=2)
 
         @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
-
     end
+
+    @testset "IAR CHEB DEP DELAYS>1" begin
+        srand(0)
+        n=100;
+        A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
+        tau1=0; tau2=2.3; tau3=.1;
+        nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
+        (λ,Q)=iar_chebyshev(nep,σ=0,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+
+        @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+    end
+
+
+
 end

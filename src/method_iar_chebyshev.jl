@@ -25,16 +25,30 @@ function PrecomputeData()
     return PrecomputeData(0,0,0,0,0,0,0,0);
 end
 
-#TODO: fix Chebyshev polynomial evaluation for argument with abs. val. greater then 1
-#TODO: shift-and-scale for DEP: define the new function in nep transformations
 #TODO: shift-and-scale for PEP
+#TODO: test compute_y0 as input
+
 
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
+
+    # creating the vector containing T_i(c)
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-    precomp.Ttau=mapslices(cos,broadcast(*,(0:m+1)',acos.(-kk*nep.tauv+cc)),1) # matrix containing
+
+    # creating the matrix containing T_i(-kk*nep.tauv[j]+cc)
+    precomp.Ttau=zeros(T,length(nep.tauv),m+2);    II=(0:m+1)';
+    for j=1:length(nep.tauv)
+        tauv_SS=-kk*nep.tauv[j]+cc;
+        if abs(tauv_SS)<1
+            precomp.Ttau[j,:]=cos.(II.*acos(tauv_SS));
+        elseif tauv_SS>1
+            precomp.Ttau[j,:]=cosh.(II.*acosh(tauv_SS));
+        else
+            precomp.Ttau[j,:]=((-1).^II).*cosh.(II.*acosh(-tauv_SS));
+        end
+    end
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
