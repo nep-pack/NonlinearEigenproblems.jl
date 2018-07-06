@@ -141,9 +141,14 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
             #end
             #errmeasure=f;
             nep=shift_and_scale(nep,shift=σ,scale=γ);
+            σ=zero(T); γ=one(T)
             # maybe do a recursive call (better)
+            return iar_chebyshev(nep,σ=0,γ=1,Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
+
+
     end
 
+    println("value of σ",σ,"value of γ",γ,"\n")
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
