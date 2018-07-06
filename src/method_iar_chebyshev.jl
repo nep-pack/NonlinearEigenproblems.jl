@@ -4,6 +4,18 @@ using IterativeSolvers
 #TODO: shift-and-scale for PEP
 #TODO: test compute_y0 as input
 
+# Types specifying which way to compute y0 in chebyshev iar
+abstract type ComputeY0Cheb end;
+abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
+abstract type ComputeY0ChebPEP <: ComputeY0Cheb end;
+abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
+
+# Data collected in a precomputation phase
+abstract type AbstractPrecomputeData end
+type PrecomputeData <: AbstractPrecomputeData
+    Tc; L; Ttau; P; P_inv; α; γ; σ
+end
+
 """
     iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1])
 
@@ -156,24 +168,6 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     return λ,Q,err[1:k,:],V[:,1:k]
 end
 
-# Types specifying which way to compute y0 in chebyshev iar
-abstract type ComputeY0Cheb end;
-abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
-abstract type ComputeY0ChebPEP <: ComputeY0Cheb end;
-abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
-
-# Data collected in a precomputation phase
-abstract type AbstractPrecomputeData end
-type PrecomputeData <: AbstractPrecomputeData
-    Tc
-    L
-    Ttau
-    P
-    P_inv
-    α
-    γ
-    σ
-end
 function PrecomputeData()
     return PrecomputeData(0,0,0,0,0,0,0,0);
 end

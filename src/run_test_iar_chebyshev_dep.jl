@@ -1,17 +1,17 @@
-# workspace()
-# push!(LOAD_PATH, pwd())	# looks for modules in the current directory
-#
-# #using PyPlot
-# #using PyCall
-#
-# using NEPCore
-# using NEPTypes
-# using LinSolvers
-# using NEPSolver
-# using Gallery
+workspace()
+push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 
-import NEPSolver.iar_chebyshev;
-include("../src/method_iar_chebyshev.jl");
+#using PyPlot
+#using PyCall
+
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+
+#import NEPSolver.iar_chebyshev;
+#include("../src/method_iar_chebyshev.jl");
 
 
 #explicit import needed for overloading functions from packages

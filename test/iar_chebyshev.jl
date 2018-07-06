@@ -114,6 +114,27 @@ IAR=@testset "IAR" begin
         @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
     end
 
+    @testset "IAR CHEB DEP SHIFTED AND SCALED" begin
+        nep=nep_gallery("dep0_tridiag",1000)
+        (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
 
+        @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+    end
+
+    @testset "IAR CHEB PEP SHIFTED AND SCALED" begin
+        srand(0)
+        n=100;
+        d=3;
+        A = Array{Array{Float64}}(d+1)
+        for j=0:d
+            A[j+1]=rand(n,n)
+        end
+        nep=PEP(A)
+        (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+
+        @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+    end
 
 end
+
+#TODO: add test for compute_y0 provided as input (dep+qep)
