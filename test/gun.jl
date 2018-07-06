@@ -71,6 +71,13 @@ guntest=@testset "GUN (NLEVP interface)" begin
         @test abs(λ1-λ_org)<sqrt(eps())
 
     end
+
+    @testset "Compare MATLAB loaded vs MAT-loaded" begin
+        nep2=nep_gallery("nlevp_native_gun");
+        z=ones(n); λ=150^2;
+        @test norm(compute_Mlincomb(nep2,λ,z)-compute_Mlincomb(nep1,λ,z))
+    end
+    
 end
 Base.Test.print_test_results(guntest)
 

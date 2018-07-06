@@ -332,6 +332,22 @@ module Gallery
           return nep
       elseif (name == "periodicdde")
           return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
+      elseif (name == "nlevp_native_gun")
+          # In progress
+          file = matopen("/home/jarl/jobb/src/nlevp3/private/gun.mat");
+          K=read(file,"K");
+          M=read(file,"M");
+          W1=read(file,"W1");
+          W2=read(file,"W2");
+          close(file);
+          minusop= S-> -S
+          oneop= S -> eye(size(S,1),size(S,2))
+          sqrt1op= S -> 1im*sqrtm(full(S))
+          sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+          AA=[K,M,W1,W2];
+          nep=SPMF_NEP(AA,[oneop,minusop,sqrt1op,sqrt2op])
+          return nep;
+
       else
           error("The name '", name, "' is not supported in NEP-Gallery.")
       end
