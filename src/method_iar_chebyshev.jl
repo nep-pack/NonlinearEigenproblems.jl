@@ -10,7 +10,8 @@ abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 
 
 # Data collected in a precomputation phase
-type PrecomputeData
+abstract type AbstractPrecomputeData end
+type PrecomputeData <: AbstractPrecomputeData
     Tc
     L
     Ttau
@@ -291,7 +292,7 @@ function cheb2mon(T,ρ,γ,c)
     a=a[1:n+1,1];
 end
 
-function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,precomp::AbstractPrecomputeData)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
@@ -309,7 +310,7 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
     return y0
 end
 
-function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::AbstractPrecomputeData)
 # compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
 # y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
@@ -338,7 +339,7 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
 end
 
 
-function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::PrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
     k=size(x,2);
     α=precomp.α; σ=precomp.σ;
     y[:,2:k+1] = x*precomp.P[1:k,1:k]';
