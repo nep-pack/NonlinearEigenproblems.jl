@@ -19,6 +19,12 @@ The main work of NEP-PACK has been done in a closed repository at KTH, but as of
 
 Core developers (alphabetical): Elias Jarlebring (www.math.kth.se/~eliasj), Giampaolo Mele (www.math.kth.se/~gmele), Emil Ringh (www.math.kth.se/~eringh), Parikshit Upadhyaya (https://www.kth.se/profile/pup/). Thanks to A Koskela for involvement in initial version of the software.
 
+Developers who want to push directly to the repository can use the following installation
+```
+julia> # Pkg.rm("NonlinearEigenproblems")  #
+julia> Pkg.clone("git@github.com:nep-pack/NonlinearEigenproblems.jl.git");
+```
+
 # How to cite
 
 If you find this software useful please cite

@@ -334,7 +334,8 @@ module Gallery
           return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
       elseif (name == "nlevp_native_gun")
           # In progress
-          file = matopen("/home/jarl/jobb/src/nlevp3/private/gun.mat");
+          nlevp_path="/home/jarl/jobb/src/nlevp3/private";
+          file = matopen(joinpath(nlevp_path,"/gun.mat"));
           K=read(file,"K");
           M=read(file,"M");
           W1=read(file,"W1");
