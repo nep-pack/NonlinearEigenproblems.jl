@@ -223,16 +223,12 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-    k=k-1
-
-    # check that the problem was shifted and rescaled
-    println("hello",isdefined(:σ_orig),"\n") # very strange
-    println("hello2",σ_orig,"\n")
-    # TODO: fix this
-    #if isdefined(:σ_orig)#&&isdefined(:γ_orig)
+    # eventually shift and rescale the eigenvalues if the problem was shifted and rescaled
+    try
         λ=σ_orig+γ_orig*λ
-    #end
+    end
 
+    k=k-1
     return λ,Q,err[1:k,:],V[:,1:k]
 end
 
