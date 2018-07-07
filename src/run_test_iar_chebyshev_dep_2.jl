@@ -1,15 +1,18 @@
-workspace()
-push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+#workspace()
+#push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 
-using PyPlot
-using PyCall
+#using PyPlot
+#using PyCall
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
+#using NEPCore
+#using NEPTypes
+#using LinSolvers
+#using NEPSolver
 
+import NEPSolver.iar_chebyshev;
+include("../src/method_iar_chebyshev.jl");
 
+#TODO: add this to the gallery
 n=4;
 A0=[0.3000   -0.6000         0    0.4000
    -0.3000    0.4000   -0.8000    1.9000
@@ -23,35 +26,9 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
 
 mm=80;  # number of iterations
 
-function myexpm(A::Array{T,2}) where {T<:Number}
-    println("call expm with ",typeof(A),"\n");
-
-    A=Array{Complex128,2}(A);
-    F=zeros(T,size(A,1),size(A,2))
-    if (size(A)==(1,1))
-        F[:]=exp(A[1,1]);
-        return F
-    end
-    Bi=eye(T,size(A,1),size(A,2))
-    for k=0:100
-        F=F+Bi/factorial(real(T(k)));
-        Bi=Bi*A;
-    end
-    #F=Array{Complex128,2}(F);
-    err=norm(expm(A)-F,1)/norm(F,1);
-    if(err>eps()*100)
-        println("Warning: error large:",err, " size:",size(A), " norm(A):",norm(A));
-
-    end
-
-#    F=expm(A);
-    return F
-end
-
-
-#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->myexpm(-λ)])
 nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
+# The user can create his own orthogonalization function to use in IAR
 function compute_y0(x,y,nep,a,b)
    T=(n,x)->cos(n*acos(x));
    U=(n,x)->n+1;
@@ -71,34 +48,20 @@ function compute_y0(x,y,nep,a,b)
       y0=y0+T(i-1,1+2*τ/a)*A1*y[:,i];
    end
 
-   y0=-(A0+A1)\y0;
+   return y0=-(A0+A1)\y0;
 end
+# Then it is needed to create a type to access to this function
+abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
+# And then introduce a function dispatch for this new type in order to use
+# the defined orthogonalization function
+import NEPSolver.compute_y0_cheb
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::AbstractPrecomputeData) compute_y0(x,y,nep,-1,1) end
+
+#TODO: fix this function
 
 v0=randn(n);
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0=compute_y0,v=v0);
+λ,Q,err = iar_chebyshev(nep,maxit=mm,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,compute_y0_method=ComputeY0Cheb_QDEP);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
-
-m=size(err,1);
-clf();
-for i=1:m
-   semilogy(1:1:m, err[1:1:m,i],color="black")
-end
-ylim(1e-16,1e1)
-
-
-
-
-λ,Q,err,V,H = iar_chebyshev(nep, maxit=mm,Neig=20,σ=3.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
-errormeasure=default_errmeasure(nep);
-for i=1:length(λ)
-    println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
-end
-
-m=size(err,1);
-for i=1:m
-   semilogy(1:1:m, err[1:1:m,i],color="red")
-end
-ylim(1e-16,1e1)

@@ -56,10 +56,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     a=-1.0,
     b=1.0
     )
-    #TODO: this function does not work for shift and scaled problems.
-    # Possible fix (only for DEP): the shift-and-scaling influences
-    # the matrix coefficients and the delay, then we use the usual formulas
-
+    
     if (compute_y0_method == ComputeY0ChebAuto)
         if (isa(nep,DEP))
              compute_y0_method=ComputeY0ChebDEP;
@@ -70,8 +67,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         end
     end
 
-    #TODO: working on this: explicit shift and scaling
-    if ( σ!=zero(T) || γ!=one(T) ) && isa(nep,DEP) || isa(nep,PEP)
+    if ( σ!=zero(T) || γ!=one(T) ) && (isa(nep,DEP) || isa(nep,PEP))
             warn("The problem will be explicitly shifted and scaled. The shift and scaling feature is not supported in the general version of iar_chebyshev.")
             # TODO: use the original errmeasure and not compute_resnorm. I don't know why doesn't work
             errmeasure=function (μ,v) return compute_resnorm(nep,σ+γ*μ,v) end
