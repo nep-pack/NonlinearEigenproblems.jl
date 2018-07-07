@@ -1,16 +1,13 @@
-#workspace()
-#push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+workspace()
+push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 
-#using PyPlot
-#using PyCall
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
 
-#using NEPCore
-#using NEPTypes
-#using LinSolvers
-#using NEPSolver
-
-import NEPSolver.iar_chebyshev;
-include("../src/method_iar_chebyshev.jl");
+#import NEPSolver.iar_chebyshev;
+#include("../src/method_iar_chebyshev.jl");
 
 #TODO: add this to the gallery
 n=4;
@@ -52,15 +49,22 @@ function compute_y0(x,y,nep,a,b)
 end
 # Then it is needed to create a type to access to this function
 abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
+abstract type AbstractPrecomputeData_QDEP <: NEPSolver.AbstractPrecomputeData end
+
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import NEPSolver.compute_y0_cheb
-function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::AbstractPrecomputeData) compute_y0(x,y,nep,-1,1) end
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::AbstractPrecomputeData_QDEP) compute_y0(x,y,nep,-1,1) end
+
+import NEPSolver.precompute_data
+function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ) end
+
+
 
 #TODO: fix this function
 
 v0=randn(n);
-λ,Q,err = iar_chebyshev(nep,maxit=mm,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,compute_y0_method=ComputeY0Cheb_QDEP);
+λ,Q,err = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=mm,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))

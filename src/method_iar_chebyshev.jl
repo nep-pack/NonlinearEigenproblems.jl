@@ -56,7 +56,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     a=-1.0,
     b=1.0
     )
-    
+
     if (compute_y0_method == ComputeY0ChebAuto)
         if (isa(nep,DEP))
              compute_y0_method=ComputeY0ChebDEP;
