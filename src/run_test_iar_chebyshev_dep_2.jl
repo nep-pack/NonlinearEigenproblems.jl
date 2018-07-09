@@ -51,18 +51,17 @@ end
 import NEPSolver.ComputeY0Cheb
 import NEPSolver.AbstractPrecomputeData
 abstract type ComputeY0Cheb_QDEP <: ComputeY0Cheb end
-abstract type AbstractPrecomputeData_QDEP <: AbstractPrecomputeData end
+type PrecomputeData_QDEP <: AbstractPrecomputeData end
 
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import NEPSolver.precompute_data
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
-   return 0
+    return PrecomputeData_QDEP()
 end
 
 import NEPSolver.compute_y0_cheb
-function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::AbstractPrecomputeData_QDEP)
-   println("I am here")
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::PrecomputeData_QDEP)
    return compute_y0(x,y,nep,-1,1)
 end
 
