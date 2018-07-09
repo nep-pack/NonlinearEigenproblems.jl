@@ -167,7 +167,6 @@ end
 function PrecomputeData()
     return PrecomputeData(0,0,0,0,0,0,0,0);
 end
-
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
@@ -196,7 +195,6 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     precomp.L=L
-
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
@@ -212,7 +210,6 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
     precomp.α=γ.^(0:m);
     return precomp;
 end
-
 function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,precomp::AbstractPrecomputeData)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
@@ -230,7 +227,6 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
     y0=lin_solve(M0inv,y0)
     return y0
 end
-
 function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::AbstractPrecomputeData)
 # compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
