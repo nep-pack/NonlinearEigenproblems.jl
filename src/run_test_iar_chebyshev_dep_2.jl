@@ -48,16 +48,24 @@ function compute_y0(x,y,nep,a,b)
    return y0=-(A0+A1)\y0;
 end
 # Then it is needed to create a type to access to this function
-abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
-abstract type AbstractPrecomputeData_QDEP <: NEPSolver.AbstractPrecomputeData end
+import NEPSolver.ComputeY0Cheb
+import NEPSolver.AbstractPrecomputeData
+abstract type ComputeY0Cheb_QDEP <: ComputeY0Cheb end
+abstract type AbstractPrecomputeData_QDEP <: AbstractPrecomputeData end
 
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
-import NEPSolver.compute_y0_cheb
-function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::AbstractPrecomputeData_QDEP) compute_y0(x,y,nep,-1,1) end
-
 import NEPSolver.precompute_data
-function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ) end
+function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
+   return 0
+end
+
+import NEPSolver.compute_y0_cheb
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::AbstractPrecomputeData_QDEP)
+   println("I am here")
+   return compute_y0(x,y,nep,-1,1)
+end
+
 
 
 
