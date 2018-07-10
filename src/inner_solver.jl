@@ -16,7 +16,7 @@ Solves the projected linear problem with solver specied with T. This is to be us
 as an inner solver in an inner-outer iteration. T specifies which method
 to use. The most common choice is `DefaultInnersolver`.
 """
-function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:DefaultInnerSolver
+function inner_solve(TT::Type{DefaultInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.DEP)
@@ -30,7 +30,7 @@ function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:Defa
 end
 
 
-function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:NewtonInnerSolver
+function inner_solve(TT::Type{NewtonInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...) 
 
     kvargsdict=Dict(kwargs);
     λv=kvargsdict[:λv];
@@ -60,7 +60,7 @@ function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:Newt
     return λv,V
 end
 
-function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:PolyeigInnerSolver
+function inner_solve(TT::Type{PolyeigInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...) 
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
         error("Wrong type");
     end
@@ -69,7 +69,7 @@ function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:Poly
 end
 
 
-function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;λv=[],kwargs...) where T<:IARInnerSolver
+function inner_solve(TT::Type{IARInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],kwargs...) 
     m=size(λv,1);
     σ=mean(λv);
     try 
