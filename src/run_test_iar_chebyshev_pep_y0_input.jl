@@ -44,8 +44,12 @@ end
 
 #TODO: fix this function
 v0=randn(n);
-λ,Q,err = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=mm,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
+λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=mm,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
+
+λ2,Q2,err2,V2 = iar_chebyshev(nep,maxit=mm,Neig=10,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
+
+norm(V-V2)

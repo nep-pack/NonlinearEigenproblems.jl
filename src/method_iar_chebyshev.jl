@@ -123,7 +123,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 
         # compute Ritz pairs (every check_error_every iterations)
-        if (rem(k,check_error_every)==0)||(k==m)
+        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             D,Z=eig(H[1:k,1:k]);
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=σ+γ./D;
@@ -161,7 +161,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     end
 
     k=k-1
-    return λ,Q,err[1:k,:],V[:,1:k]
+    return λ,Q,err[1:k,:],V[:,1:k],H[1:k,1:k]
 end
 
 function PrecomputeData()
@@ -216,6 +216,9 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
 # where T_i is the i-th Chebyshev polynomial of the first kind
 
+#    println("I am here")
+#    println("Value of Ttau")
+#    show(STDOUT, "text/plain", precomp.Ttau[:,1:10])
     Tc=precomp.Tc;
     Ttau=precomp.Ttau;
 
