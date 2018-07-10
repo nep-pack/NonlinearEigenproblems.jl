@@ -7,6 +7,7 @@ abstract type InnerSolver end;
 abstract type NewtonInnerSolver <: InnerSolver end;
 abstract type PolyeigInnerSolver <: InnerSolver end;
 abstract type DefaultInnerSolver <: InnerSolver end;
+abstract type IARInnerSolver <: InnerSolver end;
 
 """
   inner_solve(T,nep;kwargs...)
@@ -62,4 +63,21 @@ function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:Poly
     return polyeig(pep);
 end
 
-    
+
+function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;λv=[],kwargs...) where T<:IARInnerSolver
+    m=size(λv,1);
+    σ=mean(λv);
+    try 
+        λ,V=iar(nep,σ=σ,Neig=m+3,tol=1e-13,maxit=50);
+        return λ,V
+    catch e
+        if (isa(e, NoConvergenceException))
+            # If we fail to find the wanted number of eigvals, we can still
+            # return the ones we found
+            return e.λ,e.v
+        else
+            rethrow(e)
+        end
+    end
+end
+
