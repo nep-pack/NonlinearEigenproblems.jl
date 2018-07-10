@@ -1,18 +1,24 @@
 # Helper functions for methods based on inner-outer iterations
 
 export inner_solve;
+export InnerSolver;
 
 abstract type InnerSolver end;
-
 abstract type NewtonInnerSolver <: InnerSolver end;
 abstract type PolyeigInnerSolver <: InnerSolver end;
 abstract type DefaultInnerSolver <: InnerSolver end;
 
-function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:DefaultInnerSolver
+"""
+  inner_solve(T,nep;kwargs...)
 
+Solves the projected linear problem with solver specied with T. This is to be used
+as an inner solver in an inner-outer iteration. T specifies which method
+to use. The most common choice is `DefaultInnersolver`.
+"""
+function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:DefaultInnerSolver
     if (typeof(nep.orgnep)==NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver,nep;kwargs...);
-    else
+    else # Probably for DEP we want something else
         return inner_solve(NewtonInnerSolver,nep;kwargs...);
     end
 end
