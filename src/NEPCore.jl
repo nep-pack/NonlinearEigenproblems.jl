@@ -245,7 +245,7 @@ The given eltype<:Number is the type of the returned vector.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> x=ones(size(nep,1));
-julia> s=compute_rf(Float64,nep,x)[1]; # Take just first element 
+julia> s=compute_rf(Float64,nep,x)[1]; # Take just first element
 0.6812131933795569
 julia> x'*compute_Mlincomb(nep,s,x)
 -8.881784197001252e-16
