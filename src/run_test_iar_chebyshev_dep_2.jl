@@ -19,7 +19,10 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
 mm=80;  # number of iterations
 
 A1=zeros(A1);
-nep=SPMF_NEP([eye(n), A0],[λ->-λ^2,λ->eye(λ),λ->expm(-λ])
+#nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+nep=SPMF_NEP([eye(n), A0],[λ->-λ^2,λ->eye(λ)])
+
+
 
 # Then it is needed to create a type to access to this function
 import NEPSolver.ComputeY0Cheb
