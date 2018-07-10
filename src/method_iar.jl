@@ -36,7 +36,8 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     γ=one(T),
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
-    check_error_every=1)
+    check_error_every=1,
+    proj_solve=false)
 
     n = size(nep,1);
     m = maxit;
@@ -55,6 +56,10 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     v=ones(n,1);  # debug
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
+    local pnep::NEP;
+    if (proj_solve)
+        pnep=create_proj_NEP(nep);
+    end
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
@@ -74,9 +79,46 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
+            # Extract eigenvalues from Hessenberg matrix
             D,Z=eig(H[1:k,1:k]);
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=σ+γ./D;
+
+            if (proj_solve)  # Projected solve in iar
+                QQ,RR=qr(V[1:n,1:k]);
+                set_projectmatrices!(pnep,QQ,QQ);
+                @ifd(println("doing newton to improve it:",size(pnep)));
+                for k=1:size(λ,1)
+                    try
+                        v0=RR*Z[:,k]; # Starting vector for projected problem
+
+                        projerrmeasure=(λ,v) -> norm(compute_Mlincomb(pnep,λ,v))/norm(compute_Mder(pnep,λ));
+
+                        # Compute a solution to projected problem. Much hard-coded.
+                        λ1,vproj=newton(pnep,displaylevel=0,λ=λ[k],
+                                        v=v0,maxit=50,tol=tol/10,
+                                        errmeasure=projerrmeasure);
+                        enew=errmeasure(λ1,QQ*vproj);
+                        eold=errmeasure(λ[k],Q[:,k]);
+                        if ((enew<eold)  && (abs(λ1-λ[k])<0.1)) 
+                            @ifd(println("Managed to improve. Yeah:",enew/eold));
+                            λ[k]=λ1
+                            Q[:,k]=QQ*vproj;
+                        end
+                        
+                    catch e
+                        if (isa(e, NoConvergenceException))
+                            λ1=λ[k];
+                            vproj=QQ[:,k];
+                        else
+                            rethrow(e)
+                        end
+                    end
+                end
+            end
+            
+#            
+            
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
@@ -105,5 +147,6 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
+    
     return λ,Q,err[1:k,:],V[:,1:k]
 end

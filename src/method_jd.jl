@@ -110,17 +110,17 @@ end
 
 function default_proj_eig_solver(nep::ProjectableNEP)
     f=function(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
-        defaul_jd_inner_eig_solver(T_orig_nep, T, proj_nep, N)
+        default_jd_inner_eig_solver(T_orig_nep, T, proj_nep, N)
     end
     return f
 end
 
-function defaul_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
+function default_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
     λ,s = sgiter(T, proj_nep, N)
     return λ, s
 end
 
-function defaul_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: PEP}
+function default_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: PEP}
     pep_temp = PEP(get_Av(proj_nep))
     Dc,Vc = polyeig(T,pep_temp)
     c = sortperm(abs.(Dc))
