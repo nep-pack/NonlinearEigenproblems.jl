@@ -6,5 +6,5 @@ include("NEPTypes.jl");
 include("LinSolvers.jl");
 include("NEPSolver.jl");
 include("Gallery.jl");
-include("inner_solve.jl");
+include("inner_solver.jl");
 end
