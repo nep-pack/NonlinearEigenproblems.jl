@@ -69,5 +69,5 @@ for i=1:length(λ)
 end
 
 
-println(norm(V-V2))
-println(norm(H-H2))
+println(norm(V[:,1:10]-V2[:,1:10]))
+println(norm(H[1:10,1:10]-H2[1:10,1:10]))
