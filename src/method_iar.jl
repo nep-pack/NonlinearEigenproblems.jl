@@ -78,9 +78,11 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 
         # compute Ritz pairs (every check_error_every iterations)
-        if (rem(k,check_error_every)==0)||(k==m)
+        if (rem(k,check_error_every)==0)||(k==m)||(k>2)
             # Extract eigenvalues from Hessenberg matrix
             D,Z=eig(H[1:k,1:k]);
+            #println("Matrix H",show(STDOUT, "text/plain", H[1:k,1:k]))
+
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=σ+γ./D;
 
@@ -100,12 +102,12 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                                         errmeasure=projerrmeasure);
                         enew=errmeasure(λ1,QQ*vproj);
                         eold=errmeasure(λ[k],Q[:,k]);
-                        if ((enew<eold)  && (abs(λ1-λ[k])<0.1)) 
+                        if ((enew<eold)  && (abs(λ1-λ[k])<0.1))
                             @ifd(println("Managed to improve. Yeah:",enew/eold));
                             λ[k]=λ1
                             Q[:,k]=QQ*vproj;
                         end
-                        
+
                     catch e
                         if (isa(e, NoConvergenceException))
                             λ1=λ[k];
@@ -116,9 +118,9 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                     end
                 end
             end
-            
-#            
-            
+
+#
+
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
@@ -147,6 +149,6 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-    
+
     return λ,Q,err[1:k,:],V[:,1:k]
 end
