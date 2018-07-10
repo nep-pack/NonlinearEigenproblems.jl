@@ -36,7 +36,8 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
     check_error_every=1,
-    proj_solve=false)
+    proj_solve=false,
+    inner_solver_method=DefaultInnerSolver)
 
     n = size(nep,1);
     m = maxit;
@@ -85,11 +86,11 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=σ+γ./D;
 
-            if (proj_solve)  # Projected solve in iar
+            if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 QQ,RR=qr(VV); # Project on this space
                 set_projectmatrices!(pnep,QQ,QQ);
                 # Make a call to the inner solve method
-                λproj,Qproj=inner_solve(PolyeigInnerSolver,pnep,
+                λproj,Qproj=inner_solve(inner_solver_method,pnep,
                                         V=RR*Z,λv=copy(λ),
                                         tol=tol,displaylevel=displaylevel);
 

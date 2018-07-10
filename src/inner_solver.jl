@@ -11,9 +11,9 @@ abstract type DefaultInnerSolver <: InnerSolver end;
 function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:DefaultInnerSolver
 
     if (typeof(nep.orgnep)==NEPTypes.PEP)
-        return inner_solve(PolyeigInnerSolver,nep,kwargs...);
+        return inner_solve(PolyeigInnerSolver,nep;kwargs...);
     else
-        return inner_solve(NewtonInnerSolver,nep,kwargs...);
+        return inner_solve(NewtonInnerSolver,nep;kwargs...);
     end
 end
 
@@ -21,8 +21,7 @@ end
 function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:NewtonInnerSolver
 
     kvargsdict=Dict(kwargs);
-    λv=kv
-    argsdict[:λv];
+    λv=kvargsdict[:λv];
     V =kvargsdict[:V];
     tol =kvargsdict[:tol];
     for k=1:size(λv,1)
