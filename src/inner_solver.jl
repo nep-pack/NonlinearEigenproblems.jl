@@ -19,8 +19,13 @@ to use. The most common choice is `DefaultInnersolver`.
 function inner_solve(TT::Type{T},nep::NEPTypes.Proj_NEP;kwargs...) where T<:DefaultInnerSolver
     if (typeof(nep.orgnep)==NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver,nep;kwargs...);
-    else # Probably for DEP we want something else
-        return inner_solve(NewtonInnerSolver,nep;kwargs...);
+    elseif (typeof(nep.orgnep)==NEPTypes.DEP)
+        # Should be Cheb IAR
+        return inner_solve(IARInnerSolver,nep;kwargs...);
+    elseif (typeof(nep.orgnep)==NEPTypes.SPMF_NEP) # Default to IAR for SPMF
+        return inner_solve(IARInnerSolver,nep;kwargs...);
+    else
+        return inner_solve(NewtonInnerSolver,nep;kwargs...);        
     end
 end
 
