@@ -20,9 +20,6 @@ mm=80;  # number of iterations
 
 A1=zeros(A1);
 nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
-#nep=SPMF_NEP([eye(n), A0],[λ->-λ^2,λ->eye(λ)])
-
-
 
 # Then it is needed to create a type to access to this function
 import NEPSolver.ComputeY0Cheb
@@ -38,7 +35,7 @@ end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
     # split the problem as PEP+DEP
     # M(λ)=-λ^2 I + A0 + A1 exp(-τ λ) =
-    #     = (O I + λ I - λ^2 I) + (-λ I + A0 + A1 exp(-τ λ))
+    #     = (A0 + λ I - λ^2 I) + (-λ I + A1 exp(-τ λ))
 
     nep_pep=PEP([A0, eye(T,n,n), -eye(T,n,n)]); # the PEP part is defined as
     nep_dep=DEP([A1],[1.0]);     # the DEP part is defined as
@@ -59,7 +56,7 @@ end
 #TODO: fix this function
 v0=ones(n);
 
-errormeasure=default_errmeasure(nep);
+errormeasure=default_errmeasure(nep);   # TODO: understand why one needs to do this
 
 λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,errmeasure=errormeasure);
 
