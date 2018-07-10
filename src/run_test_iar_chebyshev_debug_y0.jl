@@ -24,7 +24,7 @@ nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 #nep=SPMF_NEP([eye(n), A0],[λ->-λ^2,λ->eye(λ)])
 
 
-λ,Q,err,V = iar(nep,maxit=mm,Neig=8,σ=0.0,γ=1,displaylevel=1,check_error_every=2);
+λ,Q,err,V = iar(nep,maxit=mm,Neig=8,σ=0.0,γ=1,displaylevel=1,check_error_every=1);
 
 errormeasure=default_errmeasure(nep);
 for i=1:length(λ)

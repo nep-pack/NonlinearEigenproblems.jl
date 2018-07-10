@@ -78,7 +78,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 
         # compute Ritz pairs (every check_error_every iterations)
-        if (rem(k,check_error_every)==0)||(k==m)||(k>2)
+        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             # Extract eigenvalues from Hessenberg matrix
             D,Z=eig(H[1:k,1:k]);
             #println("Matrix H",show(STDOUT, "text/plain", H[1:k,1:k]))
