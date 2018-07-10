@@ -1,7 +1,6 @@
 export iar
 using IterativeSolvers
 
-
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
 
@@ -110,8 +109,8 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 λ=λ[idx[1:min(length(λ),Neig)]]
                 Q=Q[:,idx[1:length(λ)]]
             end
-            @ifd(println(""));
         end
+        @ifd(println(""));
         k=k+1;
     end
 

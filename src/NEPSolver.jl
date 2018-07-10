@@ -33,6 +33,8 @@ Executes z if displaylevel>0.
     include("method_blocknewton.jl")
     include("method_broyden.jl")
 
+ 
+    include("inner_solver.jl");
 
     """
     ### compute_eigvec_from_eigval_lu
@@ -126,3 +128,4 @@ Executes z if displaylevel>0.
 
 
 end #End module
+
