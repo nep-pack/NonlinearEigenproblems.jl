@@ -50,6 +50,8 @@ end
 v0=ones(n);
 
 errormeasure=default_errmeasure(precomp.nep_dep);
+#errormeasure=default_errmeasure(nep);  # TODO: understand why this doesn't work
+
 λ2,Q2,err2,V2,H2 = iar_chebyshev(precomp.nep_dep,maxit=mm,Neig=mm,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,errmeasure=errormeasure);
 
 λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=mm,Neig=mm,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,errmeasure=errormeasure);

@@ -40,13 +40,9 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ
     # M(λ)=-λ^2 I + A0 + A1 exp(-τ λ) =
     #     = (O I + λ I - λ^2 I) + (-λ I + A0 + A1 exp(-τ λ))
 
-
     nep_pep=PEP([A0, eye(T,n,n), -eye(T,n,n)]); # the PEP part is defined as
     nep_dep=DEP([A1],[1.0]);     # the DEP part is defined as
-
-
     precomp_PEP=precompute_data(T,nep_pep,NEPSolver.ComputeY0ChebPEP,a,b,m,γ,σ);
-
     precomp_DEP=precompute_data(T,nep_dep,NEPSolver.ComputeY0ChebDEP,a,b,m,γ,σ);
 
     # combine the precomputations
@@ -63,10 +59,15 @@ end
 #TODO: fix this function
 v0=ones(n);
 
-λ2,Q2,err2,V2 = iar_chebyshev(nep,maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
-
-λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0);
 errormeasure=default_errmeasure(nep);
+
+λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,errmeasure=errormeasure);
+
+λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,v=v0,errmeasure=errormeasure);
 for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
+
+
+println(norm(V-V2))
+println(norm(H-H2))
