@@ -70,7 +70,11 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         set_projectmatrices!(proj_nep, W, W)
 
         # find the eigenvalue with smallest absolute value of projected NEP
-        λv,sv = inner_solve(inner_solver_method, proj_nep, j = conveig+1, λv = zeros(T,conveig+1))
+        λv,sv = inner_solve(inner_solver_method, proj_nep,
+                            j = conveig+1, # For SG-iter
+                            λv = zeros(T,conveig+1),
+                            σ=0,
+                            Neig=conveig+1)
         λ,s = jd_eig_sorter(λv, sv, conveig+1)
         s = s/norm(s)
 

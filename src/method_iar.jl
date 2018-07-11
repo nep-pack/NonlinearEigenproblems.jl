@@ -93,6 +93,8 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 # Make a call to the inner solve method
                 λproj,Qproj=inner_solve(inner_solver_method,pnep,
                                         V=RR*Z,λv=copy(λ),
+                                        Neig=size(λ,1)+3,
+                                        σ=mean(λ),
                                         tol=tol,displaylevel=displaylevel);
 
                 Q=QQ*Qproj;
