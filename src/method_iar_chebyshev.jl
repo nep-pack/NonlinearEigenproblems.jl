@@ -191,7 +191,17 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,�
     end
     return precomp;
 end
-function precompute_data(T,nep::Union{NEPTypes.PEP,NEPTypes.SPMF_NEP},::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
+function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
+    # TODO: write the documentation and include the computation of the matrix D (derivative).
+    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
+    cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
+    precomp=PrecomputeData();
+    precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
+    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
+    precomp.L=L
+    return precomp;
+end
+function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
     # TODO: write the documentation and include the computation of the matrix D (derivative).
     # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
@@ -261,19 +271,23 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     y0-=y*(view(Tc,1:N+1));
     return y0
 end
-function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},x,y,M0inv,precomp::AbstractPrecomputeData)
     Tc=precomp.Tc;
     L=precomp.L;
     N=size(x,2);   n=size(x,1);    T=eltype(y);
-
+    println("I am here!")
     # compute the derivation matrix
     LL=inv(L[1:N,1:N])
     D=vcat(zeros(1,N),LL[1:N-1,:]); # TODO: this matrix can be precomputed and moved in the precomputation function
 
     #DD0_mat_fun(T,f,S)
     # get the functions and matrices
-    f,A=get_fv(nep),get_Av(nep)
-    return x[:,1]
+    fv,Av=get_fv(nep),get_Av(nep)
+    for i=1:length(fv)
+        # TODO: DD0_mat_fun(T,f,S) can be precomputed
+        y0+=Av[i]*x*DD0_mat_fun(T,fv[i],D)*Tc
+    end
+    return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
     k=size(x,2);
