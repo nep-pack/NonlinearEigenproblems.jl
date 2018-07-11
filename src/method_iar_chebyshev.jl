@@ -15,7 +15,7 @@ abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 # Data collected in a precomputation phase
 abstract type AbstractPrecomputeData end
 type PrecomputeData <: AbstractPrecomputeData
-    Tc; L; Ttau; P; P_inv; α; γ; σ # TODO: add the derivative matrix here
+    Tc; L; Ttau; P; P_inv; α; γ; σ; DDf # TODO: add the derivative matrix here
 end
 
 """
@@ -169,7 +169,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
 end
 
 function PrecomputeData()
-    return PrecomputeData(0,0,0,0,0,0,0,0);
+    return PrecomputeData(0,0,0,0,0,0,0,0,0);
 end
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
@@ -210,7 +210,16 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
-    precomp.L=L
+
+    LL=inv(L[1:m,1:m])
+    D=vcat(zeros(1,m),LL[1:m-1,:]);
+
+    fv,Av=get_fv(nep),get_Av(nep)
+    DDf=Array{Array{Float64,2}}(length(fv))
+    for i=1:length(fv)
+        DDf[i]=DD0_mat_fun(T,fv[i],D)
+    end
+    precomp.DDf=DDf
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
@@ -232,9 +241,6 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
 # where T_i is the i-th Chebyshev polynomial of the first kind
 
-#    println("I am here")
-#    println("Value of Ttau")
-#    show(STDOUT, "text/plain", precomp.Ttau[:,1:10])
     Tc=precomp.Tc;
     Ttau=precomp.Ttau;
 
@@ -278,22 +284,21 @@ function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     L=precomp.L;
     n,N=size(x);
     T=eltype(y);
-
     # compute the derivation matrix
-    LL=inv(L[1:N,1:N])
-    D=vcat(zeros(1,N),LL[1:N-1,:]); # TODO: this matrix can be precomputed and moved in the precomputation function
+    #LL=inv(L[1:N,1:N])
+    #D=vcat(zeros(1,N),LL[1:N-1,:]); # TODO: this matrix can be precomputed and moved in the precomputation function
 
     #DD0_mat_fun(T,f,S)
     # get the functions and matrices
     fv,Av=get_fv(nep),get_Av(nep)
     y0=zeros(x)
     for i=1:length(fv)
-        # TODO: DD0_mat_fun(T,f,S) can be precomputed
-        y0+=Av[i]*x*DD0_mat_fun(T,fv[i],D)
+        y0+=Av[i]*x*precomp.DDf[i][1:N,1:N]
     end
     y0=y0*(vec(view(Tc,1:1,1:N)))
     y0=-lin_solve(M0inv,y0)
     y0-=y*(view(Tc,1:N+1));
+
     return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
