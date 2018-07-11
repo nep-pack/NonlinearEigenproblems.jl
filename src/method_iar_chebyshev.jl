@@ -287,13 +287,11 @@ function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     # get the functions and matrices
     fv,Av=get_fv(nep),get_Av(nep)
     y0=zeros(x)
-    #println("Matrix D "); Base.showarray(STDOUT,D,false); sleep(5); println("\n")
     for i=1:length(fv)
         # TODO: DD0_mat_fun(T,f,S) can be precomputed
         y0+=Av[i]*x*DD0_mat_fun(T,fv[i],D)
-        #println("Matrix ",i); Base.showarray(STDOUT,fv[i](D),false); sleep(5); println("\n")
     end
-    y0=y0*(Tc[1:N]')
+    y0=y0*(vec(view(Tc,1:1,1:N)))
     y0=-lin_solve(M0inv,y0)
     y0-=y*(view(Tc,1:N+1));
     return y0

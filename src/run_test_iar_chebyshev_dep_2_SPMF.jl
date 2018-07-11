@@ -1,5 +1,5 @@
-#workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
-import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
+workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
+#import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
 
 n=100; A0=rand(n,n); A1=rand(n,n);
 
@@ -14,6 +14,7 @@ for i=1:length(λ)
     println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
 end
 
+import NEPSolver.ComputeY0Cheb
 λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=mm,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,errmeasure=errormeasure,compute_y0_method=ComputeY0Cheb);
 
 
