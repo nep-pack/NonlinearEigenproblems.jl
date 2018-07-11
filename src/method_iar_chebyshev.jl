@@ -15,7 +15,7 @@ abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 # Data collected in a precomputation phase
 abstract type AbstractPrecomputeData end
 type PrecomputeData <: AbstractPrecomputeData
-    Tc; L; Ttau; P; P_inv; α; γ; σ; DDf # TODO: add the derivative matrix here
+    Tc; D; Ttau; P; P_inv; α; γ; σ; DDf # TODO: add the derivative matrix here
 end
 
 """
@@ -200,7 +200,7 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
-    precomp.L=L
+    L=inv(L[1:m,1:m]); precomp.D=vcat(zeros(1,m),L[1:m-1,:]);
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
@@ -210,9 +210,7 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
-
-    LL=inv(L[1:m,1:m])
-    D=vcat(zeros(1,m),LL[1:m-1,:]);
+    L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
     fv,Av=get_fv(nep),get_Av(nep)
     DDf=Array{Array{Float64,2}}(length(fv))
@@ -262,10 +260,6 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     L=precomp.L;
     N=size(x,2);   n=size(x,1);    T=eltype(y);
 
-    # compute the derivation matrix
-    LL=inv(L[1:N,1:N])
-    D=vcat(zeros(1,N),LL[1:N-1,:]); # TODO: this matrix can be precomputed and moved in the precomputation function
-
     d=length(nep.A)-1;  # degree of the PEP
 
     # sum for every coefficiet
@@ -273,23 +267,18 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     y0=zeros(T,n,1);
     for j=0:d-1
         y0+=nep.A[j+2]*(x*v);
-        v=D*v;
+        v=precomp.D[1:N,1:N]*v;
     end
     y0=-lin_solve(M0inv,y0)
     y0-=y*(view(Tc,1:N+1));
     return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+    # TODO: write the documentation
     Tc=precomp.Tc;
-    L=precomp.L;
     n,N=size(x);
     T=eltype(y);
-    # compute the derivation matrix
-    #LL=inv(L[1:N,1:N])
-    #D=vcat(zeros(1,N),LL[1:N-1,:]); # TODO: this matrix can be precomputed and moved in the precomputation function
 
-    #DD0_mat_fun(T,f,S)
-    # get the functions and matrices
     fv,Av=get_fv(nep),get_Av(nep)
     y0=zeros(x)
     for i=1:length(fv)
@@ -302,6 +291,7 @@ function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
+    # TODO: write the documentation
     k=size(x,2);
     α=precomp.α; σ=precomp.σ;
     y[:,2:k+1] = x*precomp.P[1:k,1:k]';
@@ -403,9 +393,13 @@ function DD0_mat_fun(T,f,S)
 	#
 	# f(S I) = (f(S) 		f[S,0]  )
 	#  (0 0)   (0			f(0)	)
+    #
+    # or, written in a more compact way, it is
+    #
+    # f([S I; 0 0])=[f(S) f[S,0]; 0 f(0)]
 	#
 	# Notice that f[S,0] is defined also for S singular.
-	# If S is not singular it holds f[S,0]=S^(-1)-(f(S)-f(0))
+	# If S is nonsingular it holds f[S,0]=S^(-1)-(f(S)-f(0))
 	# Example:
 	# n=10; S=rand(n,n); T=Complex128; f=x->expm(x)+x^2
 	# Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
