@@ -4,6 +4,9 @@ workspace()
 using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
 using Base.Test
 
+#import NEPSolver.inner_solve;
+#include("../src/inner_solver.jl");
+
 dep=nep_gallery("dep0",200);
 n=size(dep,1);
 @testset "Inner Solves" begin
@@ -27,4 +30,8 @@ n=size(dep,1);
     nn=norm(compute_Mlincomb(pnep,λv[1],V[:,1]));
     @test nn < eps()*100
 
+    λv,V=inner_solve(NEPSolver.ContourBeynInnerSolver,pnep,λv=[0,1]+0.0im,Neig=3);
+    nn=minimum(svdvals(compute_Mder(pnep,λv[1])))
+    @test nn < eps()*100
+    
 end

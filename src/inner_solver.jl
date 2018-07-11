@@ -10,6 +10,7 @@ abstract type DefaultInnerSolver <: InnerSolver end;
 abstract type IARInnerSolver <: InnerSolver end;
 abstract type IARChebInnerSolver <: InnerSolver end;
 abstract type SGIterInnerSolver <: InnerSolver end;
+abstract type ContourBeynInnerSolver <: InnerSolver end;
 
    """
   inner_solve(T,nep;kwargs...)
@@ -123,8 +124,16 @@ end
 
 
 function inner_solve(TT::Type{SGIterInnerSolver},nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...)
-    m=size(λv,1);
-    σ=mean(λv);
     λ,V=sgiter(nep,j)
     return [λ],reshape(V,size(V,1),1);
+end
+
+
+
+function inner_solve(TT::Type{ContourBeynInnerSolver},nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],Neig=10,kwargs...)
+    # Radius  computed as the largest distance σ and λv and a litte more 
+    radius=maximum(abs.(σ .- λv))*1.5;
+    Neig=min(Neig,size(nep,1));
+    λ,V= contour_beyn(nep,k=Neig,σ=σ,radius=radius);
+    return λ,V;
 end
