@@ -95,7 +95,8 @@ function y0=pep_y0(x,y,nep)
     
     y0=y0-y*Tc;
     
-    
+    D
+    pause
     
     
     
