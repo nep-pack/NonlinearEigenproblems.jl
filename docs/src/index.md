@@ -60,7 +60,7 @@ We have made benchmark examples available in the module `Gallery`. Use it
 by loading the module and calling the function `nep_gallery`:
 
 ```julia-repl
-julia> using Gallery
+julia> using NonlinearEigenproblems: Gallery
 julia> nep=nep_gallery("dep0",100);
 julia> size(nep)
 (100, 100)

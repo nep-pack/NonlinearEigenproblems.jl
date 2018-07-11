@@ -4,24 +4,6 @@ export nlar
 using IterativeSolvers
 ################################################################################################################
 
-function default_proj_solver(pnep::Proj_NEP,nev=10,σ=0.0)
-    #if (isa(pnep,Proj_))
-    #    return polyeig(pnep.nep_proj)
-    #else
-        try
-            λ,Q,err=iar(pnep,Neig=1+nev,σ=σ,maxit=100)
-            return λ,Q
-        catch e
-            # Return the eigenvalues we found even if
-            # we fail to find a sufficient number of projected
-            # eigenvalues
-            isa(e, NoConvergenceException) || rethrow(e)
-            return e.λ, e.v
-
-        end        
-    #end
-end
-
 
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
@@ -61,9 +43,9 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             v=randn(T,size(nep,1)),
             displaylevel=0,
             linsolvercreator::Function=default_linsolvercreator,
-            proj_solve::Function = default_proj_solver,
             eigval_sorter::Function = default_eigval_sorter,
-            qrfact_orth::Bool=false)
+            qrfact_orth::Bool=false,
+            inner_solver_method=DefaultInnerSolver)
 
         local σ::Complex128 = λ; #Initial pole
 
@@ -94,7 +76,7 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0 
             set_projectmatrices!(proj_nep,Vk,Vk);
 
-            dd,vv = proj_solve(proj_nep,nev,σ);
+            dd,vv = inner_solve(inner_solver_method,proj_nep,Neig=nev,σ=σ);
 
             ### Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
             ### in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the 

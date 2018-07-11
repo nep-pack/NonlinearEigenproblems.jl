@@ -72,6 +72,20 @@ TIAR=@testset "TIAR" begin
         @test norm(λ_tiar-λ_iar)<1e-6
         @test norm(Q_tiar-Q_iar)<1e-6
     end
+    @testset "Solve by projection" begin
+        n=1000;
+        
+        dep=nep_gallery("dep0",n);
+        nn=norm(compute_Mder(dep,0));
+        errmeasure= (λ,v) -> norm(compute_Mlincomb(dep,λ,v))/nn;
+
+        (λ,Q)=tiar(dep,σ=0,γ=3,Neig=3,v=ones(n),displaylevel=1,maxit=50,tol=sqrt(eps()),
+                   check_error_every=3,
+                   proj_solve=true,inner_solver_method=NEPSolver.IARInnerSolver,
+                   errmeasure=errmeasure);
+
+        @test errmeasure(λ[1],Q[:,1])<sqrt(eps())*10
+    end
 
 
 end

@@ -2,7 +2,7 @@ export jd
 
 using IterativeSolvers
 
-"""
+   """
     jd(nep::ProjectableNEP;orthmethod::Type{T_orth} = DGKS,errmeasure::Function = default_errmeasure(nep::NEP),linsolvercreator::Function=default_linsolvercreator,proj_eig_solver::Function = default_proj_eig_solver(nep::ProjectableNEP),Neig = 1,tol = eps(real(T))*100, maxit = 100, λ = zero(T), v0 = randn(size(nep,1)), displaylevel = 0)
 
 Runs the Jacobi-Davidson method with a projected solver in proj_eig_solver.
@@ -27,13 +27,13 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
                     orthmethod::Type{T_orth} = DGKS,
                     errmeasure::Function = default_errmeasure(nep::NEP),
                     linsolvercreator::Function=default_linsolvercreator,
-                    proj_eig_solver::Function = default_proj_eig_solver(nep::ProjectableNEP),
                     Neig = 1,
                     tol = eps(real(T))*100,
                     maxit = 100,
                     λ = zero(T),
                     v0 = randn(size(nep,1)),
-                    displaylevel = 0)
+                    displaylevel = 0,
+                    inner_solver_method = DefaultInnerSolver)
 
     n = size(nep,1)
     if (maxit > n)
@@ -70,7 +70,12 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         set_projectmatrices!(proj_nep, W, W)
 
         # find the eigenvalue with smallest absolute value of projected NEP
-        λ,s = proj_eig_solver(typeof(nep), T, proj_nep, conveig+1)
+        λv,sv = inner_solve(inner_solver_method, proj_nep,
+                            j = conveig+1, # For SG-iter
+                            λv = zeros(T,conveig+1),
+                            σ=0,
+                            Neig=conveig+1)
+        λ,s = jd_eig_sorter(λv, sv, conveig+1)
         s = s/norm(s)
 
         # the approximate eigenvector
@@ -108,23 +113,10 @@ function convergence_criterion(err, tol, λ, λ_vec, conveig, T)
     return (err < tol) && (conveig == 0 || all( abs.(λ - λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> eps(real(T))*1e5 ) )
 end
 
-function default_proj_eig_solver(nep::ProjectableNEP)
-    f=function(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
-        default_jd_inner_eig_solver(T_orig_nep, T, proj_nep, N)
-    end
-    return f
-end
-
-function default_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: ProjectableNEP}
-    λ,s = sgiter(T, proj_nep, N)
-    return λ, s
-end
-
-function default_jd_inner_eig_solver(::Type{T_orig_nep}, T, proj_nep, N) where {T_orig_nep <: PEP}
-    pep_temp = PEP(get_Av(proj_nep))
-    Dc,Vc = polyeig(T,pep_temp)
-    c = sortperm(abs.(Dc))
-    λ = Dc[c[N]]
-    s = Vc[:,c[N]]
+function jd_eig_sorter(λv::Array{T,1}, V, N) where T <: Number
+    NN = min(N, length(λv))
+    c = sortperm(abs.(λv))
+    λ = λv[c[NN]]
+    s = V[:,c[NN]]
     return λ, s
 end

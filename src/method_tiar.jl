@@ -44,7 +44,9 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     γ=one(T),
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
-    check_error_every=1
+    check_error_every=1,
+    proj_solve=false,
+    inner_solver_method=DefaultInnerSolver    
     )
 
     # initialization
@@ -73,9 +75,14 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);
     a[1,1,1]=one(T);
 
+    local pnep::NEP;
+    if (proj_solve)
+        pnep=create_proj_NEP(nep);
+    end
+
     k=1; conv_eig=0;
     while (k <= m)&(conv_eig<Neig)
-        if (displaylevel>0) && (rem(k,check_error_every)==0) || (k==m)
+        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
         end
 
@@ -151,8 +158,27 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             VV=Z[:,1:k]*(a[1,1:k,1:k].');	# extract proper subarray
             Q=VV*W; λ=σ+γ./D;
 
+            if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
+                set_projectmatrices!(pnep,Z[:,1:k],Z[:,1:k]);
+                # Make a call to the inner solve method
+                λproj,Qproj=inner_solve(inner_solver_method,pnep,
+                                        λv=copy(λ),
+                                        Neig=size(λ,1)+3,
+                                        σ=σ,
+                                        tol=tol/10,displaylevel=displaylevel);
+
+
+                II=sortperm(abs.(λproj .- σ));
+                λproj=λproj[II]; Qproj=Qproj[:,II];
+                Q=Z[:,1:k]*Qproj;
+                λ=λproj;
+                #println("size(Q)=",size(Q));
+                #println("size(λ)=",size(λ));                
+             end
+
+
             conv_eig=0;
-            for s=1:k
+            for s=1:min(size(λ,1),size(err,2))
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
                 if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
