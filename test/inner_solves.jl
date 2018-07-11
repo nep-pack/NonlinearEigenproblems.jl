@@ -14,10 +14,17 @@ n=size(dep,1);
     Q,R=qr(randn(n,5));
     set_projectmatrices!(pnep,Q,Q)
 
-    λv,V=inner_solve(NEPSolver.DefaultInnerSolver,pnep,λv=[0 1]);
+    λv,V=inner_solve(NEPSolver.DefaultInnerSolver,pnep,λv=[0.0,1.0]+0im);
     @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
 
-    λv,V=inner_solve(NEPSolver.NewtonInnerSolver,pnep,λv=[0 1],V=eye(5,2));
+    λv,V=inner_solve(NEPSolver.NewtonInnerSolver,pnep,λv=[0.0,1.0]+0im,V=eye(5,2),tol=eps()*100);
     @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+
+    #λv,V=inner_solve(NEPSolver.SGIterInnerSolver,pnep,λv=[0.0],j=1);
+    #@test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+
+    λv,V=inner_solve(NEPSolver.IARChebInnerSolver,pnep,λv=[0,1,2,3]+0.0im);
+    nn=norm(compute_Mlincomb(pnep,λv[1],V[:,1]));
+    @test nn < eps()*100
 
 end
