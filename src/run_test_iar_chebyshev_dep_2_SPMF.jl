@@ -1,5 +1,5 @@
-#workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
-import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
+workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
+#import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
 
 n=100; A0=rand(n,n); A1=rand(n,n);
 

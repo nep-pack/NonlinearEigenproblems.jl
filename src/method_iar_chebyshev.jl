@@ -102,7 +102,6 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     # hardcoded matrix L
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
 
-
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
@@ -224,8 +223,7 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
     warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
-    precomp.L=L
+
     precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
     precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
     precomp.σ=σ;
@@ -257,7 +255,6 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
 # where T(c) is the vector containing T_i(c) as coefficients, where T_i is the i-th Chebyshev polynomial of the first kind
 
     Tc=precomp.Tc;
-    L=precomp.L;
     N=size(x,2);   n=size(x,1);    T=eltype(y);
 
     d=length(nep.A)-1;  # degree of the PEP
@@ -267,7 +264,7 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     y0=zeros(T,n,1);
     for j=0:d-1
         y0+=nep.A[j+2]*(x*v);
-        v=precomp.D[1:N,1:N]*v;
+        v=view(precomp.D,1:N,1:N)*v;
     end
     y0=-lin_solve(M0inv,y0)
     y0-=y*(view(Tc,1:N+1));
@@ -282,7 +279,7 @@ function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     fv,Av=get_fv(nep),get_Av(nep)
     y0=zeros(x)
     for i=1:length(fv)
-        y0+=Av[i]*x*precomp.DDf[i][1:N,1:N]
+        y0+=Av[i]*x*view(precomp.DDf[i],1:N,1:N)
     end
     y0=y0*(vec(view(Tc,1:1,1:N)))
     y0=-lin_solve(M0inv,y0)
