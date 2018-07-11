@@ -1,11 +1,13 @@
-workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
-#import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
+#workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
+import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
 
 n=100; A0=rand(n,n); A1=rand(n,n);
 
 mm=80;  # number of iterations
 
-nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+#nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->sqrtm(λ+5*eye(λ))])
+
 
 errormeasure=default_errmeasure(nep);   # TODO: understand why one needs to do this
 
