@@ -29,12 +29,12 @@ function inner_solve(TT::Type{DefaultInnerSolver},nep::NEPTypes.Proj_NEP;kwargs.
     elseif (typeof(nep.orgnep)==NEPTypes.SPMF_NEP) # Default to IAR for SPMF
         return inner_solve(IARInnerSolver,nep;kwargs...);
     else
-        return inner_solve(NewtonInnerSolver,nep;kwargs...);        
+        return inner_solve(NewtonInnerSolver,nep;kwargs...);
     end
 end
 
 
-function inner_solve(TT::Type{NewtonInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...) 
+function inner_solve(TT::Type{NewtonInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...)
 
     kvargsdict=Dict(kwargs);
     λv=kvargsdict[:λv];
@@ -47,7 +47,7 @@ function inner_solve(TT::Type{NewtonInnerSolver},nep::NEPTypes.Proj_NEP;kwargs..
             # Compute a solution to projected problem with Newton's method
             λ1,vproj=augnewton(nep,displaylevel=0,λ=λv[k],
                                v=v0,maxit=50,tol=tol/10,
-                               errmeasure=projerrmeasure);            
+                               errmeasure=projerrmeasure);
             V[:,k]=vproj;
             λv[k]=λ1;
         catch e
@@ -59,12 +59,12 @@ function inner_solve(TT::Type{NewtonInnerSolver},nep::NEPTypes.Proj_NEP;kwargs..
             end
         end
 
-        
+
     end
     return λv,V
 end
 
-function inner_solve(TT::Type{PolyeigInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...) 
+function inner_solve(TT::Type{PolyeigInnerSolver},nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
         error("Wrong type");
     end
@@ -73,10 +73,10 @@ function inner_solve(TT::Type{PolyeigInnerSolver},nep::NEPTypes.Proj_NEP;kwargs.
 end
 
 
-function inner_solve(TT::Type{IARInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],kwargs...) 
+function inner_solve(TT::Type{IARInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],kwargs...)
     m=size(λv,1);
     σ=mean(λv);
-    try 
+    try
         λ,V=iar(nep,σ=σ,Neig=m+3,tol=1e-13,maxit=50);
         return λ,V
     catch e
@@ -90,7 +90,7 @@ function inner_solve(TT::Type{IARInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],kwar
     end
 end
 
-function inner_solve(TT::Type{IARChebInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],kwargs...) 
+function inner_solve(TT::Type{IARChebInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],kwargs...)
     m=size(λv,1);
     σ=mean(λv);
     if (typeof(nep.orgnep)==NEPTypes.DEP)
@@ -102,12 +102,12 @@ function inner_solve(TT::Type{IARChebInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],
         println("BB=",BB);;
         println("tauv=",nep.orgnep.tauv);
         println("m=",m);;
-        println("σ=",σ);;        
+        println("σ=",σ);;
         nep=DEP(BB,nep.orgnep.tauv)
     end
 
     println("typeof(nep)=",typeof(nep));
-    try 
+    try
         λ,V=iar_chebyshev(nep,σ=σ,Neig=m+3,tol=1e-13,maxit=50);
         return λ,V
     catch e
@@ -122,12 +122,12 @@ function inner_solve(TT::Type{IARChebInnerSolver},nep::NEPTypes.Proj_NEP;λv=[],
 end
 
 
-function inner_solve(TT::Type{SGIterInnerSolver},nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...) 
+function inner_solve(TT::Type{SGIterInnerSolver},nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...)
     m=size(λv,1);
     σ=mean(λv);
     λ,V=sgiter(nep,j)
-    return λ,V
-#    try 
+    return [λ],V
+#    try
 #        λ,V=sgiter(nep,j)
 #        return λ,V
 #    catch e
@@ -140,4 +140,3 @@ function inner_solve(TT::Type{SGIterInnerSolver},nep::NEPTypes.Proj_NEP;λv=[0],
 #        end
 #    end
 end
-
