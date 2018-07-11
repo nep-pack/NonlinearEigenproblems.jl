@@ -23,14 +23,17 @@ nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
 # Then it is needed to create a type to access to this function
 import NEPSolver.ComputeY0Cheb
+import NEPSolver.ComputeY0ChebPEP
+import NEPSolver.ComputeY0ChebDEP
 import NEPSolver.AbstractPrecomputeData
 import NEPSolver.precompute_data
+import NEPSolver.compute_y0_cheb
 
-abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
-import NEPSolver.precompute_data
-type PrecomputeData_QDEP <: AbstractPrecomputeData
-    precomp_PEP; precomp_DEP; nep_pep; nep_dep
-end
+
+# abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
+# type PrecomputeData_QDEP <: AbstractPrecomputeData
+#     precomp_PEP; precomp_DEP; nep_pep; nep_dep
+# end
 
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
     # split the problem as PEP+DEP
@@ -47,10 +50,8 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ
 
 end
 
-
-import NEPSolver.compute_y0_cheb
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::PrecomputeData_QDEP)
-    return compute_y0_cheb(T,precomp.nep_pep,NEPSolver.ComputeY0ChebPEP,x,y,M0inv,precomp.precomp_PEP)+ compute_y0_cheb(T,precomp.nep_dep,NEPSolver.ComputeY0ChebDEP,x,y,M0inv,precomp.precomp_DEP)
+    return compute_y0_cheb(T,precomp.nep_pep,ComputeY0ChebPEP,x,y,M0inv,precomp.precomp_PEP)+ compute_y0_cheb(T,precomp.nep_dep,ComputeY0ChebDEP,x,y,M0inv,precomp.precomp_DEP)
 end
 
 #TODO: fix this function
