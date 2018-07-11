@@ -8,7 +8,9 @@ using IterativeSolvers
 abstract type ComputeY0Cheb end;
 abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
 abstract type ComputeY0ChebPEP <: ComputeY0Cheb end;
+abstract type ComputeY0ChebSPMF_NEP <: ComputeY0Cheb end;
 abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
+
 
 # Data collected in a precomputation phase
 abstract type AbstractPrecomputeData end
@@ -190,11 +192,17 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,�
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
+    # TODO: write the documentation and include the computation of the matrix D (derivative)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeData();
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     precomp.L=L
+    return precomp;
+end
+function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
+    # TODO: write the documentation
+    precomp=PrecomputeData();
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
@@ -242,7 +250,7 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
 
     # compute the derivation matrix
     LL=inv(L[1:N,1:N])
-    D=vcat(zeros(1,N),LL[1:N-1,:]);
+    D=vcat(zeros(1,N),LL[1:N-1,:]); # TODO: this matrix can be precomputed and moved in the precomputation function
 
     d=length(nep.A)-1;  # degree of the PEP
 
@@ -257,7 +265,9 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     y0-=y*(view(Tc,1:N+1));
     return y0
 end
-
+function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+    return x[:,1]
+end
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
     k=size(x,2);
     α=precomp.α; σ=precomp.σ;
@@ -268,7 +278,6 @@ function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,pre
     y[:,:]=y*precomp.P_inv[1:k+1,1:k+1]';
     return y[:,1];
 end
-
 function mon2cheb(T,ρ,γ,a)
 #cheb2mon: Monomial basis to shifted-and-scaled Chebyshev basis conversion.
 #    c = cheb2mon(rho,gamma,a) converts a polynomial written in
