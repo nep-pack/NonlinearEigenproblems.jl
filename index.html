@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Description...">
+  <meta name="description" content="Nonlinear eigenvalue problems in julia">
   <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="./img/favicon.ico">
   <title>Introduction - NEPPACK</title>
@@ -174,7 +174,7 @@ julia&gt; norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
 <p><a id='Accessing-more-complicated-applications-1'></a></p>
 <h1 id="accessing-more-complicated-applications">Accessing more complicated applications</h1>
 <p>We have made benchmark examples available in the module <code>Gallery</code>. Use it by loading the module and calling the function <code>nep_gallery</code>:</p>
-<pre><code class="julia-repl">julia&gt; using Gallery
+<pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems: Gallery
 julia&gt; nep=nep_gallery(&quot;dep0&quot;,100);
 julia&gt; size(nep)
 (100, 100)
@@ -242,5 +242,5 @@ julia&gt; resnorm=norm(compute_Mlincomb(nep,λ,v))
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-06-11 12:03:41
+Build Date UTC : 2018-07-11 12:36:06
 -->
