@@ -176,7 +176,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     return λ,Q,err[1:k,:],V[:,1:k],H[1:k,1:k]
 end
 
-# contructors for the precomputed data
+# Contructors for the precomputed data
 function PrecomputeDataInit(::Type{ComputeY0ChebDEP})
     return PrecomputeDataDEP(0,0);
 end
@@ -259,11 +259,12 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
 
     Tc=precomp.Tc;
     Ttau=precomp.Ttau;
+    Av=get_Av(nep);
 
     N=size(x,2);   n=size(x,1);
     y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
     for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
-        y0-=nep.A[j]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
+        y0-=Av[j+1]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
     end
     y0=lin_solve(M0inv,y0)
     return y0

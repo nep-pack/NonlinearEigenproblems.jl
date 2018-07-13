@@ -36,6 +36,29 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     doubleGS_function!(V, v, h) end
 
 
+# The user can provide his own compute_y0_cheb and associated procumputation
+# Here there is a naive example for the QEP. Relate to the test "compute_y0 AS INPUT FOR QEP (naive)"
+# Import and create a type to overload the compute_y0_cheb function
+import NEPSolver.ComputeY0Cheb
+import NEPSolver.AbstractPrecomputeData
+import NEPSolver.precompute_data
+abstract type ComputeY0Cheb_QEP <: NEPSolver.ComputeY0Cheb end
+type PrecomputeData_QEP <: AbstractPrecomputeData
+    precomp_PEP; nep_pep
+end
+function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QEP},a,b,m,γ,σ)
+    A0,A1,A2=get_Av(nep)
+    nep_pep=PEP([A0,A1,A2])
+    precomp_PEP=precompute_data(T,nep_pep,NEPSolver.ComputeY0ChebPEP,a,b,m,γ,σ);
+    return PrecomputeData_QEP(precomp_PEP,nep_pep)
+end
+# overload the function compute_y0_cheb
+import NEPSolver.compute_y0_cheb
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QEP},x,y,M0inv,precomp::PrecomputeData_QEP)
+    return compute_y0_cheb(T,precomp.nep_pep,NEPSolver.ComputeY0ChebPEP,x,y,M0inv,precomp.precomp_PEP)
+end
+
+
 dep=nep_gallery("dep0");
 n=size(dep,1);
 
@@ -91,7 +114,7 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "IAR CHEB GENERIC Y0" begin
+        @testset "IAR CHEB GENERIC Y0 (DEP)" begin
 
             n=1000; I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(I, J, rand(3*n-2)); A1=sparse(I, J, rand(3*n-2))
@@ -131,9 +154,14 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        # @testset "compute_y0 AS INPUT FOR DEP" begin
-        #
-        # end
+        @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
+            srand(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
+            nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
+
+            λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+
+        end
 
 
 #        @testset "STOP HERE" begin
