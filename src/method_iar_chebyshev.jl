@@ -14,9 +14,19 @@ abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 
 # Data collected in a precomputation phase
 abstract type AbstractPrecomputeData end
-type PrecomputeData <: AbstractPrecomputeData
-    Tc; D; Ttau; P; P_inv; α; γ; σ; DDf # TODO: add the derivative matrix here
+type PrecomputeDataDEP <: AbstractPrecomputeData
+    Tc; Ttau;
 end
+type PrecomputeDataPEP <: AbstractPrecomputeData
+    Tc; D;
+end
+type PrecomputeDataSPMF <: AbstractPrecomputeData
+    Tc; DDf;
+end
+type PrecomputeDataNEP <: AbstractPrecomputeData
+    P; P_inv; α; γ; σ;
+end
+
 
 """
     iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1])
@@ -166,13 +176,24 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     return λ,Q,err[1:k,:],V[:,1:k],H[1:k,1:k]
 end
 
-function PrecomputeData()
-    return PrecomputeData(0,0,0,0,0,0,0,0,0);
+# contructors for the precomputed data
+function PrecomputeDataInit(::Type{ComputeY0ChebDEP})
+    return PrecomputeDataDEP(0,0);
 end
+function PrecomputeDataInit(::Type{ComputeY0ChebPEP})
+    return PrecomputeDataPEP(0,0);
+end
+function PrecomputeDataInit(::Type{ComputeY0ChebSPMF_NEP})
+    return PrecomputeDataSPMF(0,0);
+end
+function PrecomputeDataInit(::Type{ComputeY0Cheb})
+    return PrecomputeDataNEP(0,0,0,0,0);
+end
+
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
-    precomp=PrecomputeData();
+    precomp=PrecomputeDataInit(ComputeY0ChebDEP);
 
     # creating the vector containing T_i(c)
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
@@ -195,7 +216,7 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
     # TODO: write the documentation and include the computation of the matrix D (derivative).
     # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
-    precomp=PrecomputeData();
+    precomp=PrecomputeDataInit(ComputeY0ChebPEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     L=inv(L[1:m,1:m]); precomp.D=vcat(zeros(1,m),L[1:m-1,:]);
@@ -205,7 +226,7 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},
     # TODO: write the documentation and include the computation of the matrix D (derivative).
     # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
-    precomp=PrecomputeData();
+    precomp=PrecomputeDataInit(ComputeY0ChebSPMF_NEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
@@ -221,7 +242,7 @@ end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
     warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
-    precomp=PrecomputeData();
+    precomp=PrecomputeDataInit(ComputeY0Cheb);
 
     precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
     precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
