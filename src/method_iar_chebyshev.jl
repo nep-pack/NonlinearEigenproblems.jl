@@ -156,7 +156,8 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     end
 
     # NoConvergenceException
-    if  false #conv_eig<Neig
+    #if false
+    if conv_eig<Neig
         err=err[end,1:Neig];
         idx=sortperm(err); # sort the error
         λ=λ[idx];  Q=Q[:,idx]; err=err[idx];

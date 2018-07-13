@@ -36,7 +36,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     doubleGS_function!(V, v, h) end
 
 
-# The user can provide his own compute_y0_cheb and associated procumputation
+# The user can provide compute_y0_cheb and associated procumputation
 # Here there is a naive example for the QEP. Relate to the test "compute_y0 AS INPUT FOR QEP (naive)"
 # Import and create a type to overload the compute_y0_cheb function
 import NEPSolver.ComputeY0Cheb
@@ -58,11 +58,33 @@ function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QEP},x,y,M0inv
     return compute_y0_cheb(T,precomp.nep_pep,NEPSolver.ComputeY0ChebPEP,x,y,M0inv,precomp.precomp_PEP)
 end
 
+# A less trivial example on how the user can provide his own compute_y0_cheb and associated procumputation
+# Here there is a naive example for the QDEP. Relate to the test "compute_y0 AS INPUT FOR QEP (naive)"
+abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
+type PrecomputeData_QDEP <: AbstractPrecomputeData
+    precomp_PEP; precomp_DEP; nep_pep; nep_dep
+end
+function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
+    # split the problem as PEP+DEP
+    # M(λ)=-λ^2 I + A0 + A1 exp(-τ λ) =
+    #     = (I + λ I - λ^2 I) + (-λ A0 + A1 exp(-τ λ))
+    A0,A1=get_Av(nep)[2:3]
+    n=size(nep,1)
+    nep_pep=PEP([eye(T,n,n), eye(T,n,n), -eye(T,n,n)]); # the PEP part is defined as
+    nep_dep=DEP([A0,A1],[0.0,1.0]);     # the DEP part is defined as
+    precomp_PEP=precompute_data(T,nep_pep,NEPSolver.ComputeY0ChebPEP,a,b,m,γ,σ);
+    precomp_DEP=precompute_data(T,nep_dep,NEPSolver.ComputeY0ChebDEP,a,b,m,γ,σ);
+    # combine the precomputations
+    return PrecomputeData_QDEP(precomp_PEP,precomp_DEP,nep_pep,nep_dep)
+end
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0inv,precomp::PrecomputeData_QDEP)
+    return compute_y0_cheb(T,precomp.nep_pep,NEPSolver.ComputeY0ChebPEP,x,y,M0inv,precomp.precomp_PEP)+ compute_y0_cheb(T,precomp.nep_dep,NEPSolver.ComputeY0ChebDEP,x,y,M0inv,precomp.precomp_DEP)+y*(view(precomp.precomp_DEP.Tc,1:size(x,2)+1));
+    # y*Tc subtracted at each call of compute_y0iar_cheb. Therefore since we do two calls, we need to add it back once.
+end
 
-dep=nep_gallery("dep0");
-n=size(dep,1);
 
 IAR=@testset "IAR Chebyshev version" begin
+    dep=nep_gallery("dep0"); n=size(dep,1);
     @testset "accuracy eigenpairs" begin
         (λ,Q)=iar_chebyshev(dep,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100);
         @testset "IAR eigval[$i]" for i in 1:length(λ)
@@ -168,7 +190,6 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-
         @testset "PEP in SPMF format" begin
             srand(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
@@ -177,6 +198,18 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
             λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=0,check_error_every=1,compute_y0_method=ComputeY0Cheb,v=ones(n));
+
+            @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
+
+        end
+
+        @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
+            nep=nep_gallery("qdep1")
+            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(size(nep,1)));
+
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+
+            λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(size(nep,1)));
 
             @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
 
