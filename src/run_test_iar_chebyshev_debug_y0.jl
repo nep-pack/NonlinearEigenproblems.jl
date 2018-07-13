@@ -1,5 +1,5 @@
-#workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
-import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl"); import NEPSolver.iar; include("../src/method_iar.jl"); import NEPCore.compute_Mlincomb_from_MM!; include("../src/NEPCore.jl");
+workspace(); push!(LOAD_PATH, pwd()); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver
+#import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl"); import NEPSolver.iar; include("../src/method_iar.jl"); import NEPCore.compute_Mlincomb_from_MM!; include("../src/NEPCore.jl");
 
 #TODO: add this to the gallery
 n=4;
@@ -18,10 +18,7 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
 
 mm=80;  # number of iterations
 
-A1=zeros(A1);
-# something strange happen here
 nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
-#nep=SPMF_NEP([eye(n), A0],[λ->-λ^2,λ->eye(λ)])
 
 
 λ,Q,err,V = iar_chebyshev(nep,maxit=mm,Neig=8,σ=0.0,γ=1,displaylevel=1,check_error_every=1);

@@ -84,13 +84,14 @@ module Gallery
          -1.631513006819252 - 4.555484848248613i\\
          -1.677320660400946 + 7.496870451838560i\\
          -1.677320660400946 - 7.496870451838560i\\
-
 \\
      'qdep0' \\
-      Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear
-      eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
+     Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
 \\
 
+     'qdep1' \\
+      Quadratic delay eigenvalue problem in "A linear eigenvalue algorithm for the  nonlinear eigenvalue problem",      Elias Jarlebring, Wim Michiels, Karl Meerbergen \\
+\\
      'qep_fixed_eig'\\
      Create a quadratic eigenvalue problem with chosen eigenvalues
      * two optional parameters determining the size (default = 5)
@@ -253,7 +254,7 @@ module Gallery
 
 	  A0 = [4     0     1     1;
     		0     2     1     1;
-   		1     1     6    -2;
+            1     1     6    -2;
     		1     1    -2     3];
 
 
@@ -307,6 +308,18 @@ module Gallery
           AA=[-speye(A0),A0,A1]
           fi=[quadfun,constfun,expfun]
           return SPMF_NEP(AA,fi)
+
+      elseif (name=="qdep1")
+          n=4
+          A0=[0.3000   -0.6000         0    0.4000
+             -0.3000    0.4000   -0.8000    1.9000
+              0.1000   -1.6000   -1.3000         0
+             -1.4000   -0.9000    0.2000    0.9000];
+          A1=[0.8000    0.2000   -1.3000   -0.3000
+             -1.1000    0.9000    1.2000    0.5000
+              0.5000    0.2000   -1.6000   -1.3000
+              0.7000    0.4000   -0.4000         0];
+          return SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem

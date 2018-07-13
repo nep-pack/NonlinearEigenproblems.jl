@@ -15,10 +15,8 @@ A1=[0.8000    0.2000   -1.3000   -0.3000
 
 
 #n=100; A0=rand(n,n); A1=rand(n,n);
-
 mm=80;  # number of iterations
 
-A1=zeros(A1);
 nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
 
 # Then it is needed to create a type to access to this function
@@ -30,10 +28,10 @@ import NEPSolver.precompute_data
 import NEPSolver.compute_y0_cheb
 
 
-# abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
-# type PrecomputeData_QDEP <: AbstractPrecomputeData
-#     precomp_PEP; precomp_DEP; nep_pep; nep_dep
-# end
+abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
+type PrecomputeData_QDEP <: AbstractPrecomputeData
+    precomp_PEP; precomp_DEP; nep_pep; nep_dep
+end
 
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
     # split the problem as PEP+DEP
