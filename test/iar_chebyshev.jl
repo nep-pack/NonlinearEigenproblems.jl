@@ -102,7 +102,7 @@ IAR=@testset "IAR Chebyshev version" begin
     # Other types
     @testset "compute_y0_method for different types" begin
 
-        @testset "IAR CHEB PEP" begin
+        @testset "PEP" begin
             srand(0); n=100; d=3;
             A = Array{Array{Float64}}(d+1)
             for j=0:d
@@ -114,7 +114,7 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "IAR CHEB GENERIC Y0 (DEP)" begin
+        @testset "DEP WITH GENERIC Y0" begin
 
             n=1000; I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(I, J, rand(3*n-2)); A1=sparse(I, J, rand(3*n-2))
@@ -126,7 +126,7 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "IAR CHEB DEP DELAYS>1" begin
+        @testset "DEP WITH DELAYS>1" begin
             srand(0)
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
             tau1=0; tau2=2.3; tau3=.1;
@@ -136,14 +136,14 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "IAR CHEB DEP SHIFTED AND SCALED" begin
+        @testset "DEP SHIFTED AND SCALED" begin
             nep=nep_gallery("dep0_tridiag",1000)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "IAR CHEB PEP SHIFTED AND SCALED" begin
+        @testset "PEP SHIFTED AND SCALED" begin
             srand(0); n=100; d=3;
             A = Array{Array{Float64}}(d+1)
             for j=0:d
@@ -162,14 +162,21 @@ IAR=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "compute_y0 AS INPUT FOR PEP in format SPMF" begin
+        @testset "QDEP IN SPMF format" begin
+            nep=nep_gallery("qdep1")
+            λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=8,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+        end
+
+
+        @testset "PEP in SPMF format" begin
             srand(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(n));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
-            λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0_method=ComputeY0Cheb,v=ones(n));
+            λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=0,check_error_every=1,compute_y0_method=ComputeY0Cheb,v=ones(n));
 
             @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
 
