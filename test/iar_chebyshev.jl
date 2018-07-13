@@ -160,9 +160,20 @@ IAR=@testset "IAR Chebyshev version" begin
 
             λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
-
         end
 
+        @testset "compute_y0 AS INPUT FOR PEP in format SPMF" begin
+            srand(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
+            nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
+
+            λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(n));
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+
+            λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=1,check_error_every=1,compute_y0_method=ComputeY0Cheb,v=ones(n));
+
+            @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
+
+        end
 
 #        @testset "STOP HERE" begin
 #            @test false
