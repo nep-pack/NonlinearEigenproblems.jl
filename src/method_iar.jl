@@ -38,7 +38,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     check_error_every=1,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver)
-    
+
 
     n = size(nep,1);
     m = maxit;
@@ -54,7 +54,6 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     @ifd(println("Type in iar", typeof(λ)))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
-    v=ones(n,1);  # debug
     vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
     local pnep::NEP;
@@ -100,7 +99,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 Q=QQ*Qproj;
                 λ=λproj;
              end
-            
+
             conv_eig=0;
             for s=1:size(λ,1)
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
@@ -114,7 +113,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 Q=Q[:,idx[1:length(λ)]]
             end
         end
-        
+
         k=k+1;
     end
 

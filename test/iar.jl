@@ -1,6 +1,4 @@
-# Run tests for the dep_distributed example
-
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
+#Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
@@ -14,6 +12,8 @@ using Gallery
 using IterativeSolvers
 using Base.Test
 
+#import NEPSolver.iar;
+#include("../src/method_iar.jl");
 
 
 # The user can create his own orthogonalization function to use in IAR

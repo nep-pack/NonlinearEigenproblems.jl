@@ -83,7 +83,7 @@ function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0in
 end
 
 
-IAR=@testset "IAR Chebyshev version" begin
+IAR_cheb=@testset "IAR Chebyshev version" begin
     dep=nep_gallery("dep0"); n=size(dep,1);
     @testset "accuracy eigenpairs" begin
         (λ,Q)=iar_chebyshev(dep,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100);
@@ -114,10 +114,6 @@ IAR=@testset "IAR Chebyshev version" begin
            (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
            @test norm(V'*V-eye(size(V,2)))<1e-6
        end
-
-#       @testset "STOP HERE" begin
-#           @test false
-#       end
 
     end
 
@@ -215,11 +211,9 @@ IAR=@testset "IAR Chebyshev version" begin
 
         end
 
-#        @testset "STOP HERE" begin
-#            @test false
-#        end
     end
 end
 
 
-#TODO: add test for compute_y0 provided as input (dep+qep)
+
+1;
