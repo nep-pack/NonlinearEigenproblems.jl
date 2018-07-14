@@ -81,7 +81,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         end
     end
 
-    if ( σ!=zero(T) || γ!=one(T) ) && (isa(nep,DEP) || isa(nep,PEP))
+    if ( σ!=zero(T) || γ!=one(T) ) && (compute_y0_method!=ComputeY0Cheb)
             warn("The problem will be explicitly shifted and scaled. The shift and scaling feature is not supported in the general version of iar_chebyshev.")
             # TODO: use the original errmeasure and not compute_resnorm. I don't know why doesn't work
             errmeasure=function (μ,v) return compute_resnorm(nep,σ+γ*μ,v) end

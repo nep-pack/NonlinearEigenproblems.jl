@@ -211,7 +211,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
-            
+
             λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
                                              maxit=100,Neig=10,σ=0.0,γ=0.5,displaylevel=0,
                                              check_error_every=1,v=ones(size(nep,1)));
@@ -220,12 +220,13 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
 
             # Check scaling for QDEP
+            # NOTE: this test is failing because the scaling parameter γ has to be one. The user-provided method compute_y0_method does not depend on γ and it is implicitly assumed γ=1. Fix this function or change back γ=1 in order to pass this test.
             λ,Q,err,V3,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
                                         maxit=100,Neig=10,σ=0.0,γ=0.9,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
-        
+
 
     end
 end
