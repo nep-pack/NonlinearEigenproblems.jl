@@ -184,6 +184,10 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=8,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+            # with scaling
+            λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=8,σ=0.0,γ=0.9,displaylevel=0,check_error_every=1);
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+
         end
 
         @testset "PEP in SPMF format" begin
@@ -201,15 +205,27 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
-            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(size(nep,1)));
+            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
+                                        maxit=100,Neig=10,σ=0.0,γ=0.5,displaylevel=0,
+                                        check_error_every=1,v=ones(size(nep,1)));
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
-            λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(size(nep,1)));
+            
+            λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
+                                             maxit=100,Neig=10,σ=0.0,γ=0.5,displaylevel=0,
+                                             check_error_every=1,v=ones(size(nep,1)));
 
             @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
 
+
+            # Check scaling for QDEP
+            λ,Q,err,V3,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
+                                        maxit=100,Neig=10,σ=0.0,γ=0.9,displaylevel=0,
+                                        check_error_every=1,v=ones(size(nep,1)));
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
+        
 
     end
 end
