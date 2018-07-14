@@ -72,6 +72,14 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ
     n=size(nep,1)
     nep_pep=PEP([eye(T,n,n), eye(T,n,n), -eye(T,n,n)]); # the PEP part is defined as
     nep_dep=DEP([A0,A1],[0.0,1.0]);     # the DEP part is defined as
+
+    # NOTE: it should be enough this in order to pass the test
+    if σ!=zero(T) || γ!=one(T)
+        nep_pep=shift_and_scale(nep_pep,shift=σ,scale=γ)
+        nep_dep=shift_and_scale(nep_dep,shift=σ,scale=γ)
+        σ=zero(T); γ=one(T)
+    end
+
     precomp_PEP=precompute_data(T,nep_pep,NEPSolver.ComputeY0ChebPEP,a,b,m,γ,σ);
     precomp_DEP=precompute_data(T,nep_dep,NEPSolver.ComputeY0ChebDEP,a,b,m,γ,σ);
     # combine the precomputations
