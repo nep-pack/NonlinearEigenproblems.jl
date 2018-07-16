@@ -9,7 +9,6 @@ using NEPSolver
 using Gallery
 using IterativeSolvers
 using Base.Test
-using LinSolversMATLAB
 
 
 nep=nep_gallery("qdep0");
