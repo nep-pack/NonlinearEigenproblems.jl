@@ -232,37 +232,18 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
-            λ,Q = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
+            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
-        end
 
-        @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP) with shift and scaling" begin
-            # Check scaling for QDEP
-            # NOTE: this test cannot pass since the user-provided function for compute_y0 is based on ComputeY0Cheb_QDEP for DEP and PEP that does not support shift and scale in the method. This test will be removed.
-            nep=nep_gallery("qdep1")
-            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
-                                        maxit=100,Neig=10,σ=0.0,γ=0.5,displaylevel=0,
-                                        check_error_every=1,v=ones(size(nep,1)));
-
-            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
-
-            λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
-                                             maxit=100,Neig=10,σ=0.0,γ=0.5,displaylevel=0,
-                                             check_error_every=1,v=ones(size(nep,1)));
-
-            @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
-
-            λ,Q,err,V3,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
-                                        maxit=100,Neig=10,σ=0.0,γ=0.9,displaylevel=0,
+            λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+
+            @test norm(V[:,1:10]-V2[:,1:10])+norm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
+
         end
 
 
     end
 end
-
-
-
-1;
