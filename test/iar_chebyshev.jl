@@ -218,6 +218,18 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
         end
 
+        @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
+            srand(0); n=100; d=3;
+            A = Array{Array{Float64}}(d+1)
+            for j=0:d
+                A[j+1]=rand(n,n)
+            end
+            nep=PEP(A)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
+
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
+        end
+
 
         @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
