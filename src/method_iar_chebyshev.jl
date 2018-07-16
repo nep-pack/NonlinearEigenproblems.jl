@@ -81,7 +81,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
         end
     end
 
-    if ( σ!=zero(T) || γ!=one(T) ) && compute_y0_method<:Union{ComputeY0ChebDEP,ComputeY0ChebPEP,ComputeY0ChebSPMF_NEP}
+    if ( σ!=zero(T) || γ!=one(T) ) && compute_y0_method<:Union{ComputeY0ChebDEP,ComputeY0ChebPEP}
             warn("The problem will be explicitly shifted and scaled. The shift and scaling feature is not supported in the general version of iar_chebyshev.")
             # TODO: use the original errmeasure and not compute_resnorm. I don't know why doesn't work
             #errmeasure=(μ,v)-> errmeasure(σ+γ*μ,v) #this is what we want but it does not work
@@ -95,6 +95,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
 
     n = size(nep,1);
     m = maxit;
+
 
     # initialization
     V = zeros(T,n*(m+1),m+1);
@@ -244,10 +245,15 @@ function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
+    if (σ != zero(T))
+        error("Shifting not implemented in ComputeY0ChebSPMF_NEP")
+    end
+    
     fv,Av=get_fv(nep),get_Av(nep)
     DDf=Array{Array{Float64,2}}(length(fv))
     for i=1:length(fv)
-        DDf[i]=DD0_mat_fun(T,fv[i],D)
+        DDs=σ*eye(D)+γ*D;
+        DDf[i]=γ*DD0_mat_fun(T,fv[i],DDs)
     end
     precomp.DDf=DDf
     return precomp;
@@ -304,19 +310,20 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     y0-=y*(view(Tc,1:N+1));
     return y0
 end
-function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
     # TODO: write the documentation
     Tc=precomp.Tc;
-    n,N=size(x);
+    n,N=size(X);
+
 
     fv,Av=get_fv(nep),get_Av(nep)
-    y0=zeros(x)
+    y0=zeros(X)
     for i=1:length(fv)
-        y0+=Av[i]*x*view(precomp.DDf[i],1:N,1:N)
+        y0+=Av[i]*X*view(precomp.DDf[i],1:N,1:N)
     end
     y0=y0*(vec(view(Tc,1:1,1:N)))
     y0=-lin_solve(M0inv,y0)
-    y0-=y*(view(Tc,1:N+1));
+    y0-=Y*(view(Tc,1:N+1));
 
     return y0
 end
