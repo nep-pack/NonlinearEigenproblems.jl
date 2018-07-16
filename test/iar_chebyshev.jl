@@ -72,14 +72,6 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ
     n=size(nep,1)
     nep_pep=PEP([eye(T,n,n), eye(T,n,n), -eye(T,n,n)]); # the PEP part is defined as
     nep_dep=DEP([A0,A1],[0.0,1.0]);     # the DEP part is defined as
-
-    # NOTE: it should be enough this in order to pass the test
-    if σ!=zero(T) || γ!=one(T)
-        nep_pep=shift_and_scale(nep_pep,shift=σ,scale=γ)
-        nep_dep=shift_and_scale(nep_dep,shift=σ,scale=γ)
-        σ=zero(T); γ=one(T)
-    end
-
     precomp_PEP=precompute_data(T,nep_pep,NEPSolver.ComputeY0ChebPEP,a,b,m,γ,σ);
     precomp_DEP=precompute_data(T,nep_dep,NEPSolver.ComputeY0ChebDEP,a,b,m,γ,σ);
     # combine the precomputations
@@ -225,7 +217,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
                 A[j+1]=rand(n,n)
             end
             nep=PEP(A)
-            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2,Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
         end
@@ -238,6 +230,16 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
             λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+
+            @test norm(V[:,1:10]-V2[:,1:10])+norm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
+
+        end
+
+        @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP) scaled" begin
+            nep=nep_gallery("qdep1")
+            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
+                                        check_error_every=1,v=ones(size(nep,1)),σ=-1,γ=2);
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
             @test norm(V[:,1:10]-V2[:,1:10])+norm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;

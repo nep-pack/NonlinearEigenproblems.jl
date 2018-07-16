@@ -157,7 +157,6 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     end
 
     # NoConvergenceException
-    #if false
     if conv_eig<Neig
         err=err[end,1:Neig];
         idx=sortperm(err); # sort the error
@@ -194,6 +193,13 @@ end
 
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
+    # TODO: write the documentation
+    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
+
+    if ( σ!=zero(T) || γ!=one(T) )
+        error("This function does not support shift and scale parameters");
+    end
+
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebDEP);
 
@@ -215,8 +221,13 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,�
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
-    # TODO: write the documentation and include the computation of the matrix D (derivative).
+    # TODO: write the documentation
     # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
+
+    if ( σ!=zero(T) || γ!=one(T) )
+        error("This function does not support shift and scale parameters");
+    end
+
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebPEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
@@ -297,7 +308,6 @@ function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     # TODO: write the documentation
     Tc=precomp.Tc;
     n,N=size(x);
-    T=eltype(y);
 
     fv,Av=get_fv(nep),get_Av(nep)
     y0=zeros(x)
