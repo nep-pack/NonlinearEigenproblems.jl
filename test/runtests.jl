@@ -4,7 +4,13 @@
 using Base.Test
 
 # Add tests below if you wish that they are not run together with all tests
-tests_not_to_run = ["runtests.jl", "Beyn_parallel.jl"]::Array{String,1}
+tests_not_to_run = [
+    "runtests.jl", # this file
+    "Beyn_parallel.jl", # currently disabled
+    "fiber.jl", # needs MATLAB
+    "gun.jl", # needs MATLAB
+    "matlablinsolvers.jl", # needs MATLAB
+    ]::Array{String,1}
 
 
 base_path = string(@__DIR__)
@@ -25,4 +31,3 @@ file_list = readdir(base_path)
         end
     end
 end
-

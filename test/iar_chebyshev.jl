@@ -1,5 +1,3 @@
-#Run tests for the dep_distributed example
-
 #Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))

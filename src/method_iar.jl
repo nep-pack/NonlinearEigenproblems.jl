@@ -116,7 +116,7 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         k=k+1;
     end
-
+    k=k-1
     # NoConvergenceException
     if conv_eig<Neig
         err=err[end,1:Neig];
