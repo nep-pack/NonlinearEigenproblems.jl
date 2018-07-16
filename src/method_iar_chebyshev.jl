@@ -224,9 +224,7 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
     L=inv(L[1:m,1:m]); precomp.D=vcat(zeros(1,m),L[1:m-1,:]);
     return precomp;
 end
-# TODO: fix this function with a worning in case the nep is not DEP
-#function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
-function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
+function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
     # TODO: write the documentation and include the computation of the matrix D (derivative).
     # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
@@ -295,9 +293,7 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,
     y0-=y*(view(Tc,1:N+1));
     return y0
 end
-# TODO: fix this function with a worning in case the nep is not DEP
-#function compute_y0_cheb(T,nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebSPMF_NEP},x,y,M0inv,precomp::AbstractPrecomputeData)
-function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0ChebSPMF_NEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},x,y,M0inv,precomp::AbstractPrecomputeData)
     # TODO: write the documentation
     Tc=precomp.Tc;
     n,N=size(x);
