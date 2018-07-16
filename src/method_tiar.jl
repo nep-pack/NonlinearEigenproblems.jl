@@ -4,7 +4,7 @@ using IterativeSolvers
 """
     tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
 
-Runs the tensor infinite Arnoldi method which tries to find eigenvalues close to the shift σ. 
+Runs the tensor infinite Arnoldi method which tries to find eigenvalues close to the shift σ.
 
 # Example
 
@@ -15,14 +15,14 @@ julia> v0=ones(size(nep,1));
 julia> λ,v=iar(nep,v=v0,tol=1e-5,Neig=3);
 julia> λ
 3-element Array{Complex{Float64},1}:
- -0.156062-0.122734im   
- -0.156062+0.122734im   
+ -0.156062-0.122734im
+ -0.156062+0.122734im
   0.231692+4.82981e-17im
 julia> λ,v=iar(nep,v=v0,tol=1e-5,Neig=3);
 julia> λ  % Same eigenvalues are computed
 3-element Array{Complex{Float64},1}:
- -0.156062-0.122734im   
- -0.156062+0.122734im   
+ -0.156062-0.122734im
+ -0.156062+0.122734im
   0.231692+4.82981e-17im
 ```
 
@@ -46,7 +46,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     displaylevel=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver    
+    inner_solver_method=DefaultInnerSolver
     )
 
     # initialization
@@ -107,7 +107,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         end
 
         # compute h (orthogonalization with tensors factorization)
-        h=zero(h);
+        h=zeros(h);
         for l=1:k
             h[1:k]=h[1:k]+a[1:k,1:k,l]'*g[1:k,l];
         end
@@ -123,7 +123,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
-        hh=zero(hh);
+        hh=zeros(hh);
         for l=1:k
             hh[1:k]=hh[1:k]+a[1:k,1:k,l]'*f[1:k,l];
         end
@@ -173,7 +173,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 Q=Z[:,1:k]*Qproj;
                 λ=λproj;
                 #println("size(Q)=",size(Q));
-                #println("size(λ)=",size(λ));                
+                #println("size(λ)=",size(λ));
              end
 
 
