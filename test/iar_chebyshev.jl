@@ -211,6 +211,14 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         end
 
+        @testset "DEP format with ComputeY0ChebSPMF_NEP" begin
+            nep=nep_gallery("dep0_tridiag",1000)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
+
+            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
+        end
+
+
         @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,
