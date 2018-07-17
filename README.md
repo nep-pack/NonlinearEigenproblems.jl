@@ -45,7 +45,7 @@ Some links below are developer info on KTH. We will migrate them soon:
 
 * Checklist for first public version: https://github.com/nep-pack/NonlinearEigenproblems.jl/issues/26
 
-* NEP-page style "guide": https://github.com/nep-pack/NonlinearEigenproblems.jl/wiki/Editing-Style-guidelines-and-notes
+* NEP-page style "guide": https://github.com/nep-pack/NonlinearEigenproblems.jl/wiki/Style-guidelines-and-notes
 
 * GIT-usage: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki
 
