@@ -32,8 +32,10 @@ Executes z if displaylevel>0.
     include("method_beyncontour.jl")
     include("method_blocknewton.jl")
     include("method_broyden.jl")
+    include("method_ilan.jl")
 
- 
+
+
     include("inner_solver.jl");
 
     """
@@ -128,4 +130,3 @@ Executes z if displaylevel>0.
 
 
 end #End module
-

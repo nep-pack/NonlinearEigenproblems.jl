@@ -1,9 +1,6 @@
 export iar_chebyshev
 using IterativeSolvers
 
-#TODO: shift-and-scale for PEP
-#TODO: test compute_y0 as input
-
 # Types specifying which way to compute y0 in chebyshev iar
 abstract type ComputeY0Cheb end;
 abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
@@ -194,20 +191,14 @@ end
 
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
-    # TODO: write the documentation
-    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
-
     if ( σ!=zero(T) || γ!=one(T) )
         error("This function does not support shift and scale parameters");
     end
-
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebDEP);
-
     # creating the vector containing T_i(c)
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-
-    # creating the matrix containing T_i(-kk*nep.tauv[j]+cc)
+    # creating the matri  containing T_i(-kk*nep.tauv[j]+cc)
     precomp.Ttau=zeros(T,length(nep.tauv),m+2);    II=(0:m+1)';
     for j=1:length(nep.tauv)
         tauv_SS=-kk*nep.tauv[j]+cc;
@@ -222,13 +213,11 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,�
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
-    # TODO: write the documentation
-    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
-
+    # The matrix D is the derivation map, namely D_N [T_0(s),T_1(s), ..., T_{N-1}(s)]=[T_0'(s),T_1'(s), ..., T_{N-1}'(s)]
+    # NOTE: The matrix D_N is the submatrix D_M[1:N+1,1:N+1] for M>=N (larger derivarive matrix)
     if ( σ!=zero(T) || γ!=one(T) )
         error("This function does not support shift and scale parameters");
     end
-
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebPEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
@@ -238,14 +227,12 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
 end
 function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},a,b,m,γ,σ)
     # TODO: write the documentation and include the computation of the matrix D (derivative).
-    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebSPMF_NEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
-    
     fv,Av=get_fv(nep),get_Av(nep)
     DDf=Array{Array{T,2}}(length(fv))
     for i=1:length(fv)
@@ -260,14 +247,14 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0Cheb);
 
-    precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)        # P maps chebyshev to monomials as matrix vector action
-    precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)    # P_inv maps monomials to chebyshev as matrix vector action
+    precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)'        # P maps chebyshev to monomials as matrix vector action
+    precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)'    # P_inv maps monomials to chebyshev as matrix vector action
     precomp.σ=σ;
     precomp.γ=γ;
     precomp.α=γ.^(0:m);
     return precomp;
 end
-function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
 # compute_y0_dep computes y0 for the DEP
 # The formula is explicitly given by
 # y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
@@ -277,42 +264,38 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},x,y,M0inv,
     Ttau=precomp.Ttau;
     Av=get_Av(nep);
 
-    N=size(x,2);   n=size(x,1);
-    y0=sum(broadcast(*,x,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
+    n,N=size(X)
+    y0=sum(broadcast(*,X,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
     for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
-        y0-=Av[j+1]*sum(broadcast(*,y,view(Ttau,j:j,1:N+1)),2);
+        y0-=Av[j+1]*sum(broadcast(*,Y,view(Ttau,j:j,1:N+1)),2);
     end
     y0=lin_solve(M0inv,y0)
     return y0
 end
-function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},x,y,M0inv,precomp::AbstractPrecomputeData)
+function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
 # compute_y0_pep computes y0 for the PEP
 # The formula is explicitly given by
 # y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
 # where T(c) is the vector containing T_i(c) as coefficients, where T_i is the i-th Chebyshev polynomial of the first kind
 
     Tc=precomp.Tc;
-    N=size(x,2);   n=size(x,1);    T=eltype(y);
-
+    n,N=size(X)
     d=length(nep.A)-1;  # degree of the PEP
-
     # sum for every coefficiet
     v=view(Tc,1:N);
     y0=zeros(T,n,1);
     for j=0:d-1
-        y0+=nep.A[j+2]*(x*v);
+        y0+=nep.A[j+2]*(X*v);
         v=view(precomp.D,1:N,1:N)*v;
     end
     y0=-lin_solve(M0inv,y0)
-    y0-=y*(view(Tc,1:N+1));
+    y0-=Y*(view(Tc,1:N+1));
     return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
     # TODO: write the documentation
     Tc=precomp.Tc;
     n,N=size(X);
-
-
     fv,Av=get_fv(nep),get_Av(nep)
     y0=zeros(X)
     for i=1:length(fv)
@@ -324,16 +307,17 @@ function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
 
     return y0
 end
-function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
-    # TODO: write the documentation
-    k=size(x,2);
+function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},X,Y,M0inv,precomp::AbstractPrecomputeData)
+    # compute_y0_pep computes y0 for the NEP
+    # This function convert the coefficients x=vec(X) from the Chebyshev basis to the monomial basis, then compute the vector y=vec(Y) as in iar (Taylor version) and then convert y=vec(Y) in Chebyshev basis
+    k=size(X,2);
     α=precomp.α; σ=precomp.σ;
-    y[:,2:k+1] = x*precomp.P[1:k,1:k]';
-    broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
-    y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
-    y[:,1] = -lin_solve(M0inv,y[:,1]);
-    y[:,:]=y*precomp.P_inv[1:k+1,1:k+1]';
-    return y[:,1];
+    Y[:,2:k+1] = X*view(precomp.P,1:k,1:k);
+    broadcast!(/,view(Y,:,2:k+1),view(Y,:,2:k+1),(1:k)')
+    Y[:,1] = compute_Mlincomb(nep,σ,view(Y,:,1:k+1),a=α[1:k+1]);
+    Y[:,1] = -lin_solve(M0inv,Y[:,1]);
+    Y[:,:]=Y*view(precomp.P_inv,1:k+1,1:k+1);
+    return Y[:,1];
 end
 function mon2cheb(T,ρ,γ,a)
 #cheb2mon: Monomial basis to shifted-and-scaled Chebyshev basis conversion.
@@ -358,7 +342,6 @@ function mon2cheb(T,ρ,γ,a)
 #    in chapter 11 section 3
 #    available in the following link
 #    http://www.netlib.org/math/docpdf/ch11-03.pdf
-
     n=length(a)-1;
     α=1/(2*ρ);    β=-γ/ρ;
     b=zeros(T,n+3,1);
