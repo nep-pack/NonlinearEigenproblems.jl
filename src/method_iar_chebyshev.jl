@@ -1,9 +1,6 @@
 export iar_chebyshev
 using IterativeSolvers
 
-#TODO: shift-and-scale for PEP
-#TODO: test compute_y0 as input
-
 # Types specifying which way to compute y0 in chebyshev iar
 abstract type ComputeY0Cheb end;
 abstract type ComputeY0ChebDEP <: ComputeY0Cheb end;
@@ -194,8 +191,7 @@ end
 
 # Precompute data (depending on NEP-type and y0 computation method)
 function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,σ)
-    # TODO: write the documentation
-    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
+    # Generate data needed in compute_y0_cheb.
 
     if ( σ!=zero(T) || γ!=one(T) )
         error("This function does not support shift and scale parameters");
@@ -222,8 +218,8 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,γ,�
     return precomp;
 end
 function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,σ)
-    # TODO: write the documentation
-    # NOTE: The matrix Dk is the submatrix Dn[1:k,1:k] (larger derivarive matrix)
+    # Generate data needed in compute_y0_cheb.
+    # The matrix D is the derivation map, namely D_N [T_0,T_1, ..., T_(N-1)]=[T_0',T_1', ..., T_(N-1)']
 
     if ( σ!=zero(T) || γ!=one(T) )
         error("This function does not support shift and scale parameters");
@@ -245,7 +241,7 @@ function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
-    
+
     fv,Av=get_fv(nep),get_Av(nep)
     DDf=Array{Array{T,2}}(length(fv))
     for i=1:length(fv)
@@ -325,7 +321,8 @@ function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},x,y,M0inv,precomp::AbstractPrecomputeData)
-    # TODO: write the documentation
+    # compute_y0_pep computes y0 for the NEP
+    # This function convert the coefficients x from the Chebyshev basis to the monomial basis, then compute the vector y as in iar (Taylor version) and then convert y in Chebyshev basis
     k=size(x,2);
     α=precomp.α; σ=precomp.σ;
     y[:,2:k+1] = x*precomp.P[1:k,1:k]';
