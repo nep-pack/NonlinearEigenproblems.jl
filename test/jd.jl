@@ -1,13 +1,13 @@
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+# workspace()
+# push!(LOAD_PATH, string(@__DIR__, "/../src"))
+#
+# using NEPCore
+# using NEPTypes
+# using LinSolvers
+# using NEPSolver
+# using Gallery
+# using IterativeSolvers
+# using Base.Test
 
 
 
@@ -16,7 +16,7 @@ nep = nep_gallery("pep0",100)
 
 jdtest=@testset "Jacobi–Davidson" begin
 
-λ,u =jd(nep, tol=1e-10, maxit=80, Neig = 5, displaylevel=1)
+λ,u =jd(nep, tol=1e-10, maxit=80, Neig = 5, displaylevel=1, v0=ones(size(nep,1)))
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
 println("\n Smallest eigevalues found: \n λ: ",λ)
 Dc,Vc = polyeig(nep,DefaultEigSolver)
@@ -35,7 +35,7 @@ println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1
 
 
 println("\n Testing in only Complex64 precision (32 bit in real and 32 bit in imaginary)")
-λ,u =jd(Complex64, nep, tol=1e-4, maxit=80, Neig = 2, displaylevel = 1)
+λ,u =jd(Complex64, nep, tol=1e-4, maxit=80, Neig = 2, displaylevel = 1, v0=ones(size(nep,1)))
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
 println("\n Smallest eigevalue found: \n λ: ",λ)
 Dc,Vc = polyeig(Complex64,nep,DefaultEigSolver)
@@ -51,7 +51,7 @@ println("\n 5 smallest eigenvalues according to the absolute values: \n", Dc[c[1
 println("\n Testing an (almost) non-PEP")
 nep2 = nep_gallery("real_quadratic")
 nep2 = SPMF_NEP(get_Av(nep2), get_fv(nep2))
-λ,u =jd(Float64, nep2, tol=1e-10, maxit=80, displaylevel = 1, inner_solver_method = NEPSolver.SGIterInnerSolver)
+λ,u =jd(Float64, nep2, tol=1e-10, maxit=80, displaylevel = 1, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep2,1)))
 λ = λ[1]
 u = vec(u)
 println("\n Resnorm of computed solution: ",compute_resnorm(nep2,λ,u))
@@ -65,7 +65,7 @@ println("\n Testing IAR as projected solver")
 
 nep3 = nep_gallery("pep0",300)
 
-λ,u =jd(Complex128, nep3, tol=1e-10, maxit=80, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver)
+λ,u =jd(Complex128, nep3, tol=1e-10, maxit=80, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver, v0=ones(size(nep3,1)))
 λ = λ[1]
 u = vec(u)
 println("\n Resnorm of computed solution: ",compute_resnorm(nep3,λ,u))
