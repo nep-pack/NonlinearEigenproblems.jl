@@ -79,7 +79,7 @@ The example solves the problem with the method MSLP. The parameter `tol` specifi
 tolerance for iteration termination. Type `?mslp` for more information
 about this method.
 
-# A model of neuron
+# A model of a neuron
 
 The following (delay) differential equation models a neuron
 ```math
@@ -88,14 +88,16 @@ The following (delay) differential equation models a neuron
 ```math
 \dot{x}_2(t)=-\kappa x_2(t)+\beta\tanh(x_2(t-\tau_3))+a_2\tanh(x_1(t-\tau_1))
 ```
-It has been used in cite-shay and it is also available in DDE-BIFTOOL.
+See [L. P. Shayer and S. A. Campbell.  Stability, bifurcation and multistability in a system of two
+coupled neurons with multiple time delays. SIAM J. Applied Mathematics , 61(2):673–700, 2000](https://www.jstor.org/stable/3061744?seq=1#page_scan_tab_contents). It is
+also available as a first demo in [DDE-BIFTOOL](https://sourceforge.net/projects/ddebiftool/).
 The linear stability analysis of this problem requires the solution
 of a nonlinear eigenvalue eigenvalue problem
 ```math
 M(λ)=-λI+A_0+A_1e^{-\tau_1λ}+A_2e^{-\tau_2λ}+A_3e^{-\tau_3λ}
 ```
 where the matrices are the Jacobian at the stationary solution.
-For the stationary solution zero, the matrices are
+For the zero stationary solution, the matrices are
 ```julia-repl
 kappa=0.5; a2=2.34; a1=1; beta=-1;
 A0=-kappa*eye(2);
