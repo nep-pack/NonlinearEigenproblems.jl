@@ -51,7 +51,6 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
-    @ifd(println("Type in iar", typeof(λ)))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     vv[:]=v; vv[:]=vv[:]/norm(vv);
@@ -81,7 +80,6 @@ function iar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             # Extract eigenvalues from Hessenberg matrix
             D,Z=eig(H[1:k,1:k]);
-            #println("Matrix H",show(STDOUT, "text/plain", H[1:k,1:k]))
 
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=σ+γ./D;
