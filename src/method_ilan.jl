@@ -44,14 +44,15 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     m = maxit;
 
     # initialization
-    V = zeros(T,n*(m+1),m+1);
-    H = zeros(T,m+1,m);
-    y = zeros(T,n,m+1);
+
+    V = zeros(T,n*(m+1),3); # three term recurrence
+    H = zeros(T,m+1,m);     # projection matrix
+    y = zeros(T,n,m+1);     # auxiliary vector
+
     α=γ.^(0:m); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
-    @ifd(println("Type in iar", typeof(λ)))
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     vv[:]=v; vv[:]=vv[:]/norm(vv);
@@ -65,70 +66,24 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
         end
-        VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
-        vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
-        y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k);
+        # action of C in the last vector (identical to iar)
+        y[:,2:k+1] = reshape(V[1:1:n*k,2],n,k);
         broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
         y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
         y[:,1] = -lin_solve(M0inv,y[:,1]);
 
-        vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
+        V[1:(k+1)*n,3]=reshape(y[:,1:k+1],(k+1)*n,1);
+
         # orthogonalization
-        H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
+        # missing
 
-        # compute Ritz pairs (every check_error_every iterations)
-        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
-            # Extract eigenvalues from Hessenberg matrix
-            D,Z=eig(H[1:k,1:k]);
-            #println("Matrix H",show(STDOUT, "text/plain", H[1:k,1:k]))
 
-            VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=σ+γ./D;
-
-            if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
-                QQ,RR=qr(VV); # Project on this space
-                set_projectmatrices!(pnep,QQ,QQ);
-                # Make a call to the inner solve method
-                λproj,Qproj=inner_solve(inner_solver_method,pnep,
-                                        V=RR*Z,λv=copy(λ),
-                                        Neig=size(λ,1)+3,
-                                        σ=mean(λ),
-                                        tol=tol,displaylevel=displaylevel);
-
-                Q=QQ*Qproj;
-                λ=λproj;
-             end
-
-            conv_eig=0;
-            for s=1:size(λ,1)
-                err[k,s]=errmeasure(λ[s],Q[:,s]);
-                if err[k,s]<tol; conv_eig=conv_eig+1; end
-            end
-            idx=sortperm(err[k,1:k]); # sort the error
-            err[1:k,k]=err[idx,k];
-            # extract the converged Ritzpairs
-            if (k==m)||(conv_eig>=Neig)
-                λ=λ[idx[1:min(length(λ),Neig)]]
-                Q=Q[:,idx[1:length(λ)]]
-            end
-        end
 
         k=k+1;
     end
     k=k-1
-    # NoConvergenceException
-    if conv_eig<Neig
-        err=err[end,1:Neig];
-        idx=sortperm(err); # sort the error
-        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
-        msg="Number of iterations exceeded. maxit=$(maxit)."
-        if conv_eig<3
-            msg=string(msg, " Check that σ is not an eigenvalue.")
-        end
-        throw(NoConvergenceException(λ,Q,err,msg))
-    end
 
 
-    return λ,Q,err[1:k,:],V[:,1:k]
+    return V
 end
