@@ -54,13 +54,11 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 
-    vv=view(V,1:1:n,1); # next vector V[:,k+1]
-    vv[:]=v; vv[:]=vv[:]/norm(vv);
     k=1; conv_eig=0;
-    local pnep::NEP;
-    if (proj_solve)
-        pnep=create_proj_NEP(nep);
-    end
+
+    V[1:n,2]=v;
+    ω=zeros(T,m+1); # normalization coefficients
+    ω[1]=V[:,2]⋅B_action(T,nep,V[:,2]);
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
@@ -72,13 +70,24 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
         y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
         y[:,1] = -lin_solve(M0inv,y[:,1]);
-
         V[1:(k+1)*n,3]=reshape(y[:,1:k+1],(k+1)*n,1);
 
         # orthogonalization
-        # missing
+        z=B_action(T,nep,V[:,3]);
+        alpha=z⋅V[:,2]; gamma=z⋅V[:,3];
+        H[k,k]=alpha/ω[k];
+        V[:,3]=V[:,3]-H[k,k]*V[:,2];
+        ω[k+1]=gamma-2*H[k,k]*alpha+H[k,k]^2*ω[k];
 
+        if k>1
+            beta=z⋅V[:,1];
+            H[k-1,k]=beta/ω[k-1];
+            V[:,3]=V[:,3]-H[k-1,k]*V[:,1];
+            ω[k+1]=ω[k+1]-2*H[k-1,k]*beta+H[k-1,k]^2*ω[k-1];
+        end
 
+        # shift the three term recurrence
+        V[:,1:2]=V[:,2:3];
 
         k=k+1;
     end
@@ -86,4 +95,8 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
 
     return V
+end
+
+function B_action(T,nep::NEPTypes.NEP,z)
+    return z
 end
