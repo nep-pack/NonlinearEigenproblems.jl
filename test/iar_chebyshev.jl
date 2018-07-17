@@ -237,10 +237,9 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
         @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP) scaled" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
-                                        check_error_every=1,v=ones(size(nep,1)),σ=-1,γ=2);
+                                        check_error_every=1,v=ones(size(nep,1)));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
-            @test norm(V[:,1:10]-V2[:,1:10])+norm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
 
         end
 

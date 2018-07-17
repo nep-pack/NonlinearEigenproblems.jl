@@ -245,15 +245,12 @@ function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
-    if (σ != zero(T))
-        error("Shifting not implemented in ComputeY0ChebSPMF_NEP")
-    end
     
     fv,Av=get_fv(nep),get_Av(nep)
-    DDf=Array{Array{Float64,2}}(length(fv))
+    DDf=Array{Array{T,2}}(length(fv))
     for i=1:length(fv)
-        DDs=σ*eye(D)+γ*D;
-        DDf[i]=γ*DD0_mat_fun(T,fv[i],DDs)
+        DDs=σ*eye(T,size(D,1))+γ*D;
+        DDf[i]=γ*DD0_mat_fun(T,fv[i],DDs,σ)
     end
     precomp.DDf=DDf
     return precomp;
@@ -424,24 +421,28 @@ function cheb2mon(T,ρ,γ,c)
     end
     a=a[1:n+1,1];
 end
-function DD0_mat_fun(T,f,S)
-	# evaluete the divided differences matrix function
-	# f[S,0] by using the equality
-	#
-	# f(S I) = (f(S) 		f[S,0]  )
-	#  (0 0)   (0			f(0)	)
+function DD0_mat_fun(T,f,S,σ)
+    # evaluete the divided differences matrix function
+    # f[S,0] by using the equality
+    #
+    # f(S I) = (f(S) 		f[S,σI]  )
+    #  (0 0)   (0			f(0)	)
     #
     # or, written in a more compact way, it is
     #
-    # f([S I; 0 0])=[f(S) f[S,0]; 0 f(0)]
-	#
-	# Notice that f[S,0] is defined also for S singular.
-	# If S is nonsingular it holds f[S,0]=S^(-1)-(f(S)-f(0))
-	# Example:
-	# n=10; S=rand(n,n); T=Complex128; f=x->expm(x)+x^2
-	# Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
-	# norm(Y1-Y2)
+    # f([S I; 0 σI])=[f(S) f[S,σI]; 0 f(σ)I]
+    #
+    # Notice that f[S,0] is defined also for S singular.
+    # If S is nonsingular it holds f[S,0]=S^(-1)-(f(S)-f(0))
+    # Example:
+    # n=10; S=rand(n,n); T=Complex128; f=x->expm(x)+x^2
+    # Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
+    # norm(Y1-Y2)
 
-	n=size(S,1); A=zeros(T,2*n,2*n); A[1:n,1:n]=S; A[1:n,n+1:2*n]=eye(S);
-	return f(A)[1:n,n+1:end];
+    n=size(S,1);
+    A=zeros(T,2*n,2*n);
+    A[1:n,1:n]=S;
+    A[1:n,n+1:2*n]=eye(T,n,n);
+    A[n+(1:n),n+(1:n)]=σ*eye(T,n,n);
+    return f(A)[1:n,n+1:end];
 end
