@@ -4,8 +4,6 @@ workspace(); push!(LOAD_PATH, string(@__DIR__, "/../src"));push!(LOAD_PATH, stri
 
 #import NEPSolver.inner_solve; include("../src/inner_solver.jl");import NEPSolver.iar; include("../src/method_iar.jl");
 
-# TODO: iar has to be optimzied
-
 Profile.clear()
 nep=nep_gallery("dep0_tridiag",1000)
 Profile.init(n = 10^7, delay = 0.01)
