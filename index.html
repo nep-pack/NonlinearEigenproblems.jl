@@ -62,7 +62,7 @@
     <li class="toctree-l2"><a href="#accessing-more-complicated-applications">Accessing more complicated applications</a></li>
     
 
-    <li class="toctree-l2"><a href="#a-model-of-neuron">A model of neuron</a></li>
+    <li class="toctree-l2"><a href="#a-model-of-a-neuron">A model of a neuron</a></li>
     
 
     <li class="toctree-l2"><a href="#what-now">What now?</a></li>
@@ -191,8 +191,8 @@ julia&gt; resnorm=norm(compute_Mlincomb(nep,λ,v))
 </code></pre>
 
 <p>Information about the gallery can be found by typing <code>?nep_gallery</code>. The second arument in the call to <code>nep_gallery</code> is a problem parameter, in this case specifying that the  size of the problem should be <code>100</code>. The example solves the problem with the method MSLP. The parameter <code>tol</code> specifies the tolerance for iteration termination. Type <code>?mslp</code> for more information about this method.</p>
-<p><a id='A-model-of-neuron-1'></a></p>
-<h1 id="a-model-of-neuron">A model of neuron</h1>
+<p><a id='A-model-of-a-neuron-1'></a></p>
+<h1 id="a-model-of-a-neuron">A model of a neuron</h1>
 <p>The following (delay) differential equation models a neuron</p>
 <p>$$
 \dot{x}_1(t)=-\kappa x_1(t)+\beta\tanh(x_1(t-\tau_3))+a_1\tanh(x_2(t-\tau_2))
@@ -200,11 +200,11 @@ $$</p>
 <p>$$
 \dot{x}_2(t)=-\kappa x_2(t)+\beta\tanh(x_2(t-\tau_3))+a_2\tanh(x_1(t-\tau_1))
 $$</p>
-<p>It has been used in cite-shay and it is also available in DDE-BIFTOOL. The linear stability analysis of this problem requires the solution of a nonlinear eigenvalue eigenvalue problem</p>
+<p>See <a href="https://www.jstor.org/stable/3061744?seq=1#page_scan_tab_contents">L. P. Shayer and S. A. Campbell.  Stability, bifurcation and multistability in a system of two coupled neurons with multiple time delays. SIAM J. Applied Mathematics , 61(2):673–700, 2000</a>. It is also available as a first demo in <a href="https://sourceforge.net/projects/ddebiftool/">DDE-BIFTOOL</a>. The linear stability analysis of this problem requires the solution of a nonlinear eigenvalue eigenvalue problem</p>
 <p>$$
 M(λ)=-λI+A_0+A_1e^{-\tau_1λ}+A_2e^{-\tau_2λ}+A_3e^{-\tau_3λ}
 $$</p>
-<p>where the matrices are the Jacobian at the stationary solution. For the stationary solution zero, the matrices are</p>
+<p>where the matrices are the Jacobian at the stationary solution. For the zero stationary solution, the matrices are</p>
 <pre><code class="julia-repl">kappa=0.5; a2=2.34; a1=1; beta=-1;
 A0=-kappa*eye(2);
 A1=a2*[0 0; 1 0];
@@ -279,5 +279,5 @@ julia&gt; plot(real(λ),imag(λ),&quot;*&quot;)
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-07-17 14:11:16
+Build Date UTC : 2018-07-17 16:33:46
 -->
