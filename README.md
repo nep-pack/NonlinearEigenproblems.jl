@@ -1,8 +1,10 @@
 # NEP-PACK
 
+[![Build Status](https://travis-ci.org/nep-pack/NonlinearEigenproblems.jl.svg?branch=master)](https://travis-ci.org/nep-pack/NonlinearEigenproblems.jl)
+
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
 *<p align="center">M(λ)v=0</p>*
-where *M* is an nxn-matrix depending on a parameter. This package is a first version of algorithms for nonlinear eigenvalue problems in julia. 
+where *M* is an nxn-matrix depending on a parameter. This package is a first version of algorithms for nonlinear eigenvalue problems in julia.
 
 # How to use it?
 
@@ -40,7 +42,7 @@ If you find this software useful please cite
 If you use a specific method, please also give credit to the algorithm researcher.
 Reference to a corresponding algorithm paper can be found by in, e.g., by writing `?resinv`.
 
-Some links below are developer info on KTH. We will migrate them soon: 
+Some links below are developer info on KTH. We will migrate them soon:
 
 
 * Checklist for first public version: https://github.com/nep-pack/NonlinearEigenproblems.jl/issues/26
@@ -52,5 +54,3 @@ Some links below are developer info on KTH. We will migrate them soon:
 * NEP-methods: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/NEP-methods
 
 * NEP-applications: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/Applications
-
-
