@@ -3,7 +3,11 @@ os:
   - linux
 julia:
   - 0.6
+cache:
+  directories:
+  - $HOME/.julia/v0.6/HDF5
 script:
   - git fetch --unshallow
+  - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
   - julia --check-bounds=yes --color=yes -e 'Pkg.test("NonlinearEigenproblems", coverage=true)'
