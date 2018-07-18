@@ -1,3 +1,4 @@
+
 export sgiter
 
 """
@@ -24,7 +25,7 @@ julia> norm(v)
 """
 
 sgiter(nep::NEP, j::Integer; params...) = sgiter(Complex128, nep, j; params...)
-function sgiter{T}(::Type{T},
+function sgiter(::Type{T},
                    nep::NEP,
                    j::Integer;
                    λ_min = NaN,
@@ -35,7 +36,7 @@ function sgiter{T}(::Type{T},
                    maxit = 100,
                    displaylevel = 0,
                    eigsolvertype::DataType = DefaultEigSolver
-                   )
+                   ) where {T}
 
     n = size(nep,1)
     if (j > n) || (j <= 0)

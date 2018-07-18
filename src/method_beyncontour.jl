@@ -26,7 +26,7 @@ julia> minimum(svdvals(compute_Mder(nep,λv[1])))
 
 
 contour_beyn(nep::NEP;params...)=contour_beyn(Complex128,nep;params...)
-function contour_beyn{T}(::Type{T},
+function contour_beyn(::Type{T},
                          nep::NEP;
                          errmeasure::Function =
                          default_errmeasure(nep::NEP),
@@ -38,8 +38,8 @@ function contour_beyn{T}(::Type{T},
                          k=3, # Number of eigenvals to compute
                          radius=1, # integration radius
                          quad_method=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
-                         N=1000)  # Nof quadrature nodes 
-
+                         N=1000  # Nof quadrature nodes 
+                         )where{T<:Number}
     
     g=t -> radius*exp(1im*t)
     gp=t -> 1im*radius*exp(1im*t)

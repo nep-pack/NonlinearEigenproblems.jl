@@ -23,7 +23,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
 """
     infbilanczos(nep::NEP,nept::NEP;params...)=infbilanczos(Complex128,nep,nept;params...)
-    function infbilanczos{T<:Number}(::Type{T},
+    function infbilanczos(::Type{T},
                           nep::NEP,
                           nept::NEP;  # Transposed NEP
                           maxit=30,
@@ -38,7 +38,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           γ=1,
                           displaylevel=0,
                           check_error_every=1
-                                     )
+                                     ) where {T<:Number}
 
         
         n=size(nep,1);
@@ -197,7 +197,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
         throw(NoConvergenceException(λ,v,err,msg))
     end
 
-    function left_right_scalar_prod{T}(::Type{T}, nep,nept,At,B,ma,mb,σ)
+    function left_right_scalar_prod(::Type{T}, nep,nept,At,B,ma,mb,σ) where {T}
         # Compute the scalar product based on the function nep.M_lin_comb  
         c=0;
         # This is the nasty double loop, which brings
