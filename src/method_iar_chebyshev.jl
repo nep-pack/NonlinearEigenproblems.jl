@@ -87,6 +87,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
             σ_orig=σ; γ_orig=γ
             σ=zero(T); γ=one(T)
     end
+    @ifd(prinlnt("IAR Chebyshev with interval [",a,",",b,"]"));
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
@@ -114,7 +115,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
     while (k <= m) && (conv_eig<Neig)
-        if ((displaylevel>0) && (rem(k,check_error_every)==0)) || (k==m)
+        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
         end
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
