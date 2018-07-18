@@ -63,6 +63,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         err=Inf;
         v=v/dot(c,v);
 
+        println("hello world");
 
         try
             for k=1:maxit

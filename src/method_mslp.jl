@@ -32,7 +32,7 @@ julia> compute_Mlincomb(nep,λ,v)
 
 """
 mslp(nep::NEP;params...)=mslp(Complex128,nep;params...)
-function mslp{T}(::Type{T},
+function mslp(::Type{T},
                  nep::NEP;
                  errmeasure::Function =
                  default_errmeasure(nep::NEP),
@@ -40,7 +40,7 @@ function mslp{T}(::Type{T},
                  maxit=100,
                  λ=zero(T),
                  displaylevel=0,
-                 eigsolvertype::DataType=DefaultEigSolver)
+                 eigsolvertype::DataType=DefaultEigSolver) where {T}
 
     # Ensure types λ is of type T
     λ = T(λ)
