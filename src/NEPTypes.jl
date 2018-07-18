@@ -379,9 +379,9 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 # Compute the ith derivative of a PEP
     function compute_Mder(nep::PEP,λ::Number,i::Integer=0)
         if (issparse(nep))
-            Z=spzeros(size(nep,1),size(nep,1));
+            Z=spzeros(eltype(nep.A[1]),size(nep,1),size(nep,1));
         else
-            Z=zeros(size(nep,1),size(nep,1));
+            Z=zeros(eltype(nep.A[1]),size(nep,1),size(nep,1));
         end
         for j=(i+1):size(nep.A,1)
             # Derivatives of monimials
@@ -776,12 +776,13 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     size(nep::NEP,dim=-1)
  Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
+        return nep.n
+    end
+
+
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
+        return (nep.n,nep.n) 
     end
 
 """
