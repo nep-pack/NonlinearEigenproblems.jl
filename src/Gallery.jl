@@ -372,10 +372,23 @@ module Gallery
           A3=beta*diagm([(1-tanh(x[1])^2), (1-tanh(x[2])^2)]);
           dep=DEP([A0, A1,   A2, A3],tauv);
 
-      elseif (name == "nlevp_native_gun")
-          # In progress
-          nlevp_path="/home/jarl/jobb/src/nlevp3/private";
-          file = matopen(joinpath(nlevp_path,"/gun.mat"));
+       elseif (name == "nlevp_native_gun")
+          # Try to find NLEVP
+          nlevp_path=joinpath(ENV["HOME"],"src","nlevp");
+          try
+              nlevp_path=ENV["NLEVP_PATH"]
+          catch
+              # Environment variables was not set 
+          end
+
+          if (!isfile(joinpath(nlevp_path,"nlevp.m")))
+              println("Using nlevp path: ",nlevp_path);
+              error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable NLEVP_PATH to the directory containing nlevp.m in the zip-file in http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/")
+          end
+       
+          # We want the private directory
+          nlevp_path_private=joinpath(nlevp_path,"private")
+          file = matopen(joinpath(nlevp_path_private,"gun.mat"));
           K=read(file,"K");
           M=read(file,"M");
           W1=read(file,"W1");
