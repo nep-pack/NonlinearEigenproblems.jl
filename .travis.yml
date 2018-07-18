@@ -19,4 +19,4 @@ script:
   - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
   # filter out "method definition overwritten" warnings
-  - julia --check-bounds=yes --color=yes -e 'Pkg.test("NonlinearEigenproblems", coverage=true)' 2> >(grep -v "WARNING: Method definition.\+overwritten")
+  - "julia --check-bounds=yes --color=yes -e 'Pkg.test(\"NonlinearEigenproblems\", coverage=true)' 2> >(grep -v \"WARNING: Method definition.\\+overwritten\")"
