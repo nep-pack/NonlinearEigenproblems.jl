@@ -10,6 +10,7 @@ tests_not_to_run = [
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
+    "iar_chebyshev.jl", # currently contains a bug 
     ]::Array{String,1}
 
 
