@@ -11,6 +11,7 @@ before_cache:
   # ...except our own package
   - rm -rf $HOME/.julia/v0.6/NonlinearEigenproblems
 script:
+  - rm -rf $HOME/.julia/v0.6/HDF5
   - git fetch --unshallow
   - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
