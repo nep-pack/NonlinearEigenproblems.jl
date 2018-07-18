@@ -5,7 +5,11 @@ julia:
   - 0.6
 cache:
   directories:
-  - $HOME/.julia/v0.6/HDF5
+  # cache all packages
+  - $HOME/.julia/v0.6
+before_cache:
+  # ...except our own package
+  - rm -rf $HOME/.julia/v0.6/NonlinearEigenproblems
 script:
   - git fetch --unshallow
   - julia --color=yes -e 'Pkg.clone(pwd())'
