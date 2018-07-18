@@ -15,8 +15,10 @@ using Base.Test
 nep = nep_gallery("pep0",100)
 
 jdtest=@testset "Jacobi–Davidson" begin
-srand(0);
-λ,u =jd(nep, tol=1e-10, maxit=80, Neig = 5, displaylevel=1, v0=ones(size(nep,1)))
+    srand(0);
+    
+    λ,u =jd(nep, tol=1e-10, maxit=80, Neig = 5, displaylevel=1, v0=ones(size(nep,1)),
+            inner_solver_method=NEPSolver.IARInnerSolver)
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
 println("\n Smallest eigevalues found: \n λ: ",λ)
 Dc,Vc = polyeig(nep,DefaultEigSolver)
