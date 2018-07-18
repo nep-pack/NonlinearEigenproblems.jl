@@ -82,6 +82,17 @@ end
 
 
 IAR_cheb=@testset "IAR Chebyshev version" begin
+    dep=nep_gallery("neuron0"); n=size(dep,1);
+    @testset "Scale Cheb's to different interval w DEP" begin
+        a=-maximum(dep.tauv)
+        b=0;
+        (λ,Q)=iar_chebyshev(dep,a=a,b=b,Neig=20,maxit=100)
+        @testset "IAR eigval[$i]" for i in 1:length(λ)
+            @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<eps()*100;
+        end
+    end
+
+
     dep=nep_gallery("dep0"); n=size(dep,1);
     @testset "accuracy eigenpairs" begin
         (λ,Q)=iar_chebyshev(dep,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100);
