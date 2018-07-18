@@ -99,7 +99,7 @@ and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
 """
     type SPMF_NEP <: AbstractSPMF
-         n::Integer
+         n::Int
          A::Array   # Array of Array of matrices
          fi::Array  # Array of functions
          Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
@@ -242,7 +242,7 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 matrices A_i, and tauv is a vector of the values tau_i
 """
     type DEP <: AbstractSPMF
-        n::Integer
+        n::Int
         A::Array     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
         function DEP(AA,tauv=[0,1.0])
@@ -321,7 +321,7 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i �
 """
 
     type PEP <: AbstractSPMF
-        n::Integer
+        n::Int
         A::Array   # Monomial coefficients of PEP
     end
 """
@@ -506,7 +506,7 @@ sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
 matrices are of size n times n and s_i and q_i are polynomials.
 """
     type REP <: AbstractSPMF
-        n::Integer
+        n::Int
         A::Array   # Monomial coefficients of REP
         si::Array  # numerator polynomials
         qi::Array  # demonimator polynomials
