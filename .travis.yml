@@ -13,9 +13,10 @@ before_cache:
   # don't cache test coverage results
   - find $HOME/.julia/v0.6/NonlinearEigenproblems -name '*.jl.*cov' -delete
 script:
-  # remove any empty package cache directores
+  # remove any empty package cache directories
   - find $HOME/.julia/v0.6 -depth -maxdepth 1 -type d -empty -exec rmdir {} \;
   - git fetch --unshallow
   - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
-  - julia --check-bounds=yes --color=yes -e 'Pkg.test("NonlinearEigenproblems", coverage=true)'
+  # filter out "method definition overwritten" warnings
+  - julia --check-bounds=yes --color=yes -e 'Pkg.test("NonlinearEigenproblems", coverage=true)' 2> >(grep -v "WARNING: Method definition.\+overwritten")
