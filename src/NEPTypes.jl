@@ -776,12 +776,13 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     size(nep::NEP,dim=-1)
  Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
+        return nep.n
+    end
+
+
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
+        return (nep.n,nep.n) 
     end
 
 """
