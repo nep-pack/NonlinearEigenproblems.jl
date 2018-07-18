@@ -42,18 +42,18 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
 """
     newton(nep::NEP;params...)=newton(Complex128,nep;params...)
-    function newton{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
-                       default_errmeasure(nep::NEP),
-                       tol=eps(real(T))*100,
-                       maxit=10,
-                       λ=zero(T),
-                       v=randn(size(nep,1)),
-                       c=v,
-                       displaylevel=0,
-                       armijo_factor=1,
-                       armijo_max=5)
+    function newton(::Type{T},
+                    nep::NEP;
+                    errmeasure::Function =
+                    default_errmeasure(nep::NEP),
+                    tol=eps(real(T))*100,
+                    maxit=10,
+                    λ=zero(T),
+                    v=randn(size(nep,1)),
+                    c=v,
+                    displaylevel=0,
+                    armijo_factor=1,
+                    armijo_max=5) where {T<:Number}
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -62,8 +62,6 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
         err=Inf;
         v=v/dot(c,v);
-
-        println("hello world");
 
         try
             for k=1:maxit
@@ -86,7 +84,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                 # Compute update
                 delta=-J\F;  # Hardcoded backslash
 
-                Δv=delta[1:size(nep,1)];
+                Δv=Array{T,1}(delta[1:size(nep,1)]);
                 Δλ=T(delta[size(nep,1)+1]);
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
@@ -107,11 +105,12 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tol)
-                # We need to compute an eigvec somehow
-                v=compute_eigvec_from_eigval(nep,λ, default_linsolvercreator)
-                v=v/dot(c,v)
-            end
+            #if (errmeasure(λ,v)>tol) # Temporarily disabled for type stability
+            #    # We need to compute an eigvec somehow
+            #    v=compute_eigvec_from_eigval(nep,λ, default_linsolvercreator);
+            #    v=v/dot(c,v)
+            #end
+            v=Array{T,1}(v);
             return (λ,v)
         end
         msg="Number of iterations exceeded. maxit=$(maxit)."
