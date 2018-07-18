@@ -5,5 +5,5 @@ julia:
   - 0.6
 script:
   - git fetch --unshallow
-  - julia --color=yes -e "Pkg.build(\"${JL_PKG}\")"
-  - julia --check-bounds=yes --color=yes -e "Pkg.test(\"${JL_PKG}\", coverage=true)"
+  - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
+  - julia --check-bounds=yes --color=yes -e 'Pkg.test("NonlinearEigenproblems", coverage=true)'
