@@ -121,6 +121,7 @@ julia> using PyPlot;
 julia> plot(real(λ),imag(λ),"*")
 ```
 
+This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`.
 
 
 # What now?

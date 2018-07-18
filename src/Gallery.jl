@@ -345,6 +345,33 @@ module Gallery
           return nep
       elseif (name == "periodicdde")
           return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
+      elseif (name == "neuron0")
+          # This problem stems from
+          # L. P. Shayer and S. A. Campbell.  Stability, bifurcation and multistability in a system of two coupled neurons with multiple time delays. SIAM J. Applied Mathematics , 61(2):673–700, 2000
+ 
+          # It is also a benchmark example in DDE-BIFTOOL      
+
+
+          pars= [1/2; -1; 1; 2.34; 0.2; 0.2 ; 1.5]+0im;
+          kappa= pars[1];
+          beta=pars[2];
+          A=[0 pars[3]; pars[4] 0];
+
+          x=[0;0];  # The zero (trivial) stationary solution
+
+          # A non-trivial stationary solution
+          #x=[3.201081590416643561697725111745656884148241428177442574927999582405266342752249e-01
+          #   5.096324796647208606096018689631125587762848405395086474417800152349531876959548e-01]
+
+          
+          tauv=[0;0.2;0.2;1.5];
+
+          A0=-kappa*eye(2);
+          A1=A[2,1]*[0 0; (1-tanh(x[2])^2) 0];
+          A2=A[1,2]*[0 (1-tanh(x[1])^2); 0 0];
+          A3=beta*diagm([(1-tanh(x[1])^2), (1-tanh(x[2])^2)]);
+          dep=DEP([A0, A1,   A2, A3],tauv);
+
       elseif (name == "nlevp_native_gun")
           # In progress
           nlevp_path="/home/jarl/jobb/src/nlevp3/private";
