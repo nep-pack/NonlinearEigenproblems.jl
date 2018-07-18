@@ -1,5 +1,5 @@
 ##################
-# Run's all test #
+# Runs all tests #
 ##################
 using Base.Test
 
@@ -10,7 +10,7 @@ tests_not_to_run = [
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
-    "iar_chebyshev.jl", # currently contains a bug 
+    "iar_chebyshev.jl", # currently contains a bug
     ]::Array{String,1}
 
 
@@ -27,7 +27,8 @@ file_list = readdir(base_path)
                 is_in_norun_list = is_in_norun_list || (upp_file == uppercase(tests_not_to_run[k])) #OBS: Make no case difference
             end
             if(!is_in_norun_list)
-              include(base_path *"/" * file)
+                @printf("Running test %s\n", file)
+                @time include(base_path *"/" * file)
             end
         end
     end
