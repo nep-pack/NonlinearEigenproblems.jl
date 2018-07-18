@@ -8,10 +8,13 @@ cache:
   # cache all packages
   - $HOME/.julia/v0.6
 before_cache:
-  # ...except our own package
+  # don't cache our own package
   - rm -rf $HOME/.julia/v0.6/NonlinearEigenproblems
+  # don't cache test coverage results
+  - find $HOME/.julia/v0.6/NonlinearEigenproblems -name '*.jl.*cov' -delete
 script:
-  - rm -rf $HOME/.julia/v0.6/HDF5
+  # remove any empty package cache directores
+  - find $HOME/.julia/v0.6 -depth -maxdepth 1 -type d -empty -exec rmdir {} \;
   - git fetch --unshallow
   - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
