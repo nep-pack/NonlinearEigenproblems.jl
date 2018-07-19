@@ -1,23 +1,28 @@
-###########################################
-# Submits test coverage for relevant code #
-###########################################
-using Coverage
+################################################################################
+# Submits test coverage for relevant code to Coveralls and Codecov
+# Should be run from the package root folder
+################################################################################
 
-src_folder = normpath(string(@__DIR__) * "/../src")
+using Coverage
 
 # Add folders and jl files below if you want to exclude them from the test
 # coverage reports. Folders are excluded recursively. All names are case
 # insensitive, and relative to the src/ folder.
-excluded_folders_and_files = map(f -> uppercase(src_folder * "/" * f), [
+excluded_folders_and_files = map(f -> uppercase("src/" * f), [
     "bugs/",
     "extra_tests/",
     "tmp/",
     "trash/",
     ])
 
-coverage = process_folder(src_folder)
+coverage = process_folder()
+unfiltered_count = length(coverage)
 
 filter!(f -> !any(x -> startswith(uppercase(f.filename), x), excluded_folders_and_files), coverage)
+
+covered_lines, total_lines = get_summary(coverage)
+@printf("%d / %d lines covered by tests (%.2f %%), in %d source files (%d files excluded)\n",
+    covered_lines, total_lines, covered_lines * 100.0 / total_lines, length(coverage), unfiltered_count - length(coverage))
 
 Coveralls.submit(coverage)
 Codecov.submit(coverage)
