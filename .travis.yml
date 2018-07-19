@@ -17,6 +17,7 @@ before_cache:
 script:
   # remove any empty package cache directories
   - find $HOME/.julia/v0.6 -depth -maxdepth 1 -type d -empty -exec rmdir {} \;
+  - rm $HOME/.julia/v0.6/.cache
   - git fetch --unshallow
   - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
