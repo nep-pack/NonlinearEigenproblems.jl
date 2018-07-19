@@ -46,8 +46,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
 iar_chebyshev(nep::NEP;params...)=iar_chebyshev(Complex128,nep;params...)
-function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
-                       T_y0<:ComputeY0Cheb}(
+function iar_chebyshev(
     ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
@@ -64,7 +63,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
     a=-1.0,
     b=1.0
-    )
+    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:ComputeY0Cheb}
 
     if (compute_y0_method == ComputeY0ChebAuto)
         if (isa(nep,DEP))

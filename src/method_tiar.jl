@@ -31,7 +31,7 @@ julia> λ  % Same eigenvalues are computed
 
 """
 tiar(nep::NEP;params...)=tiar(Complex128,nep;params...)
-function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+function tiar(
     ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
@@ -47,7 +47,7 @@ function tiar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     check_error_every=1,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver
-    )
+    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     # initialization
     n = size(nep,1); m = maxit;
