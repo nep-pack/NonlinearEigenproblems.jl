@@ -61,8 +61,8 @@ function iar_chebyshev(
     displaylevel=0,
     check_error_every=1,
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
-    a=-1.0,
-    b=1.0
+    a = isa(nep,DEP)? -maximum(nep.tauv) : -1.0,
+    b = isa(nep,DEP)? 0.0 : 1.0
     )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:ComputeY0Cheb}
 
     if (compute_y0_method == ComputeY0ChebAuto)

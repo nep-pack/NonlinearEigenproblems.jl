@@ -1,4 +1,4 @@
-#Intended to be run from nep-pack/ directory or nep-pack/test directory
+# #Intended to be run from nep-pack/ directory or nep-pack/test directory
 workspace()
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
@@ -44,6 +44,8 @@ abstract type ComputeY0Cheb_QEP <: NEPSolver.ComputeY0Cheb end
 type PrecomputeData_QEP <: AbstractPrecomputeData
     precomp_PEP; nep_pep
 end
+
+
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QEP},a,b,m,γ,σ)
     A0,A1,A2=get_Av(nep)
     nep_pep=PEP([A0,A1,A2])
