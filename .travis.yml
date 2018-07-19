@@ -3,6 +3,8 @@ os:
   - linux
 julia:
   - 0.6
+notifications:
+  email: false
 cache:
   directories:
   # cache all packages
