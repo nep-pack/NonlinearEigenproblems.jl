@@ -8,21 +8,15 @@ notifications:
 cache:
   directories:
   # cache all packages
-  - $HOME/.julia/v0.6
-before_cache:
-  # don't cache our own package
-  - rm -rf $HOME/.julia/v0.6/NonlinearEigenproblems
-  # don't cache test coverage results
-  - find $HOME/.julia/v0.6 -name '*.jl.*cov' -delete
-  # don't cache log file, which changes after each test run
-  - rm -f $HOME/.julia/v0.6/CRlibm/deps/src/crlibm-1.0beta4/config.log
+  - $HOME/.julia
 script:
-  # remove any empty package cache directories
-  - find $HOME/.julia/v0.6 -depth -maxdepth 1 -type d -empty -exec rmdir {} \;
-  - rm -f $HOME/.julia/v0.6/.cache
+  # remove cache of our own package
+  - rm -rf $HOME/.julia/v0.6/NonlinearEigenproblems
   - git fetch --unshallow
   - julia --color=yes -e 'Pkg.clone(pwd())'
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
+  # delete old test coverage results
+  - find $HOME/.julia -name '*.jl.*cov' -delete
   # filter out "method definition overwritten" warnings
   - "julia --check-bounds=yes --color=yes -e 'Pkg.test(\"NonlinearEigenproblems\", coverage=true)' 2> >(grep -v \"WARNING: Method definition.\\+overwritten\")"
 after_success:
