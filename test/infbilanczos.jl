@@ -17,7 +17,7 @@ n=size(nep,1);
 
 @testset "Infbilanczos σ=0" begin
     m=40;
-    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=7,σ=0,displaylevel=1,
+    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=1,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
                          tol=1e-7);
 
@@ -26,14 +26,14 @@ n=size(nep,1);
              5.780562035399026  11.562308485001218 -18.839546184493731                   0
              0  18.839546184493734 -15.213756300995186   9.788512505128466
              0                   0   9.788512505128464  -0.120825360586847                                ]
-    n0=size(Tstar,1);
-    @test norm(Tstar-T[1:n0,1:n0])<1e-10
+    n0=min(size(Tstar,1),size(λ,1));
+    @test norm(Tstar[1:n0,1:n0]-T[1:n0,1:n0])<1e-10
 
     thiserr=ones(m)*NaN
     for i=1:length(λ)
         thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
     end
-    @test length(find(thiserr .< 1e-7)) == 7
+    @test length(find(thiserr .< 1e-7)) == 3
 end
 
 
