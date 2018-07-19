@@ -86,9 +86,9 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
     @testset "Scale Cheb's to different interval w DEP" begin
         a=-maximum(dep.tauv)
         b=0;
-        (λ,Q)=iar_chebyshev(dep,a=a,b=b,Neig=20,maxit=100)
+        (λ,Q)=iar_chebyshev(dep,a=a,b=b,Neig=10,maxit=100)
         @testset "IAR eigval[$i]" for i in 1:length(λ)
-            @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<eps()*100;
+            @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<1e-6;
         end
     end
 

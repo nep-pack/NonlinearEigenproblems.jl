@@ -203,9 +203,9 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},a,b,m,Î³,Ï
     precomp.Ttau=zeros(T,length(nep.tauv),m+2);    II=(0:m+1)';
     for j=1:length(nep.tauv)
         tauv_SS=-kk*nep.tauv[j]+cc;
-        if abs(tauv_SS)<1
+        if abs(tauv_SS)<=1
             precomp.Ttau[j,:]=cos.(II.*acos(tauv_SS));
-        elseif tauv_SS>1
+        elseif tauv_SS>=1
             precomp.Ttau[j,:]=cosh.(II.*acosh(tauv_SS));
         else
             precomp.Ttau[j,:]=((-1).^II).*cosh.(II.*acosh(-tauv_SS));
