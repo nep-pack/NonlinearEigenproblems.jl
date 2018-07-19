@@ -2,6 +2,7 @@
 # Runs all tests #
 ##################
 using Base.Test
+using TimerOutputs
 
 function to_uppercase_set(array)
     return Set{String}(map(uppercase, array))
@@ -22,9 +23,15 @@ tests_not_to_run = to_uppercase_set([
     file_list = readdir(base_path)
     tests_to_run = filter!(f -> ismatch(r"(?i)\.jl$", f) && !in(uppercase(f), tests_not_to_run), file_list)
 
+    to = TimerOutput()
+
     for i = 1:length(tests_to_run)
         file = tests_to_run[i]
-        @printf("Running test %s (%d / %d)\n", file, i, length(tests_to_run))
-        @time include(base_path *"/" * file)
+        test_name = replace(file, r"(?i)\.jl$", "")
+        @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
+        @timeit to test_name include(base_path * "/" * file)
     end
+
+    show(to; title = "Test Performace", compact = true)
+    println()
 end
