@@ -52,7 +52,18 @@ module NEPTypes
     """
     abstract ProjectableNEP <: NEP
 
-A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP.
+A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP. A NEP which is of this must have the function `create_proj_NEP(orgnep::ProjectableNEP)` implemented. This function must return a `Proj_NEP` See also `set_projectmatrices!".
+
+# Example: 
+julia> nep=nep_gallery("dep0");
+julia> typeof(nep)
+NEPTypes.DEP
+julia> isa(nep,ProjectableNEP)
+true
+julia> projnep=create_proj_NEP(nep)
+NEPTypes.Proj_SPMF_NEP(NEPTypes.DEP(5, Array{Float64,2}[[0.679107 0.297336 … -0.187573 -0.117138; 0.828413 0.0649475 … -1.60726 -0.601254; … ; -0.134854 -0.51421 … 2.27623 -0.0886163; 0.586617 1.57433 … 0.219693 0.279466], [0.111422 1.42305 … 0.481556 -0.185424; -0.357884 0.408387 … -0.321943 1.26972; … ; 0.300234 -0.296278 … -0.178789 -0.0671867; -0.762677 0.691111 … -1.47788 0.577282]], [0.0, 1.0]), #undef, #undef, #undef, Array{Float64,2}[[1.0 0.0 … 0.0 0.0; 0.0 1.0 … 0.0 0.0; … ; 0.0 0.0 … 1.0 0.0; 0.0 0.0 … 0.0 1.0], [0.679107 0.297336 … -0.187573 -0.117138; 0.828413 0.0649475 … -1.60726 -0.601254; … ; -0.134854 -0.51421 … 2.27623 -0.0886163; 0.586617 1.57433 … 0.219693 0.279466], [0.111422 1.42305 … 0.481556 -0.185424; -0.357884 0.408387 … -0.321943 1.26972; … ; 0.300234 -0.296278 … -0.178789 -0.0671867; -0.762677 0.691111 … -1.47788 0.577282]], Function[NEPTypes.#1, NEPTypes.#2, NEPTypes.#3])
+julia> set_projectmatrices!(projnep,eye(5,1),eye(5,1))
+NEPTypes.SPMF_NEP(1, Array{Float64,2}[[1.0], [0.679107], [0.111422]], Function[NEPTypes.#1, NEPTypes.#2, NEPTypes.#3], false, 1×1 SparseMatrixCSC{Float64,Int64} with 0 stored entries)
 
 """
     abstract type ProjectableNEP <: NEP end
@@ -243,7 +254,7 @@ matrices A_i, and tauv is a vector of the values tau_i
 """
     type DEP <: AbstractSPMF
         n::Int
-        A::Array     # An array of matrices (full or sparse matrices)
+        A::Array{<:AbstractMatrix}     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
         function DEP(AA,tauv=[0,1.0])
             n=size(AA[1],1)
