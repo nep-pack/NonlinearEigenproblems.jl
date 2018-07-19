@@ -36,18 +36,18 @@ n=size(nep,1);
     @test length(find(thiserr .< 1e-7)) == 3
 end
 
-
-@testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.1im)
-    m=30;
-    λ,V,T = infbilanczos(nep,nept,maxit=m,Neig=2,σ=x,tol=1e-7,
-                         v=ones(n),u=ones(n));
-    thiserr=ones(m)*NaN
-    for i=1:length(λ)
-        thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
-    end
-    @test length(find(thiserr .< 1e-7)) >= 2
-end
-
+# Disabled to improve unit test performance
+#@testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.1im)
+#    m=30;
+#    λ,V,T = infbilanczos(nep,nept,maxit=m,Neig=2,σ=x,tol=1e-7,
+#                         v=ones(n),u=ones(n));
+#    thiserr=ones(m)*NaN
+#    for i=1:length(λ)
+#        thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
+#    end
+#    @test length(find(thiserr .< 1e-7)) >= 2
+#end
+#
 
 
 
