@@ -26,7 +26,10 @@ end
     shift_and_scale(orgnep::NEP;shift=0,scale=1)
 Transforms the orgnep by defining a new NEP from the relation
 T(λ)=M(scale * λ+shift) where M is the orgnep. This function tries
- to preserve the NEP type.
+ to preserve the NEP type, e.g., a shift_and_scale operation on
+an SPMF-object, return an SPMF object. If it cannot preserve
+the type, it will return a nep of the type `ShiftScaledNEP`.
+
 #    Example
 ```julia-repl
 julia> nep0=nep_gallery("pep0")
@@ -112,9 +115,21 @@ end
 
 """
     mobius_transform(orgnep::NEP,[,a=1][,b=0][,c=0][,d=1])
-Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)). Usage of this transformation can slow down the algorithm.
+Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)).
+This function tries to preserve the type such that T
+and M are of the same NEP-type (see `shift_and_scale()`).
+If it cannot be preserved it will return a `MobiusTransformedNEP`.
+The use of `MobiusTransformedNEP` can considerably slow down the algorithm.
 
+# Example
+julia> nep0=nep_gallery("pep0")
+julia> a=1; b=3; c=4; d=5;
+julia> nep1=mobius_transform(nep0,a=a,b=b,c=c,d=d);
+julia> s=3;
+julia> norm(compute_Mder(nep0,(a*s+b)/(c*s+d))-compute_Mder(nep1,s))
+0.0
 """
+
 function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)
     return MobiusTransformedNEP(orgnep;a=a,b=b,c=c,d=d)
 end
@@ -192,9 +207,13 @@ end
 """
     effenberger_deflation(nep::NEP,S0,V0)
 
-A deflation procedure as described in the PhD thesis of Effenberger. More documentation to come.
+This function creates a deflated NEP based on (S0,V0), which
+are assumed to an invariant pair of `nep`. Effectively,
+the function should return a NEP which has the same
+solutions as orgnep, except those corresponding to (S0,V0).
 
-* Example:
+
+# Example:
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> (λ,v)=newton(nep);
@@ -206,6 +225,9 @@ julia> (λ2,v2)=augnewton(dnep);  # this converges to different eigval
 julia> minimum(svdvals(compute_Mder(nep,λ2)))
 9.323003321058995e-17
 ```
+
+# References
+* C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne 
 
 """
 
