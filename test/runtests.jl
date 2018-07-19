@@ -31,6 +31,6 @@ tests_not_to_run = to_uppercase_set([
         @timeit to test_name include(base_path * "/" * file)
     end
 
-    show(to; title = "Test Performace", compact = true)
+    show(to; title = "Test Performance", compact = true)
     println()
 end

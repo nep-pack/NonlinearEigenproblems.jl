@@ -23,3 +23,5 @@ script:
   - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
   # filter out "method definition overwritten" warnings
   - "julia --check-bounds=yes --color=yes -e 'Pkg.test(\"NonlinearEigenproblems\", coverage=true)' 2> >(grep -v \"WARNING: Method definition.\\+overwritten\")"
+after_success:
+  - julia -e 'cd(Pkg.dir("NonlinearEigenproblems")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
