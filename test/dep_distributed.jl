@@ -63,7 +63,8 @@ exact_eigvals=[
     end
 
 
-    @testset "Quasinewton eigval[$i]" for i in 1:length(exact_eigvals)
+
+    @testset "Quasinewton eigval[$i]" for i in 1:length(exact_eigvals[1:3])
         λ0=round(exact_eigvals[i]*10)/10
         λ,v=quasinewton(Complex128,dep,v=ones(n),λ=λ0,
                         #displaylevel=1,
