@@ -15,7 +15,6 @@ tests_not_to_run = to_uppercase_set([
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
-    "iar_chebyshev.jl", # currently contains a bug
     ])
 
 @testset "All tests" begin
