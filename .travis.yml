@@ -19,6 +19,9 @@ script:
   - find $HOME/.julia -name '*.jl.*cov' -delete
   # filter out "method definition overwritten" warnings
   - "julia --check-bounds=yes --color=yes -e 'Pkg.test(\"NonlinearEigenproblems\", coverage=true)' 2> >(grep -v \"WARNING: Method definition.\\+overwritten\")"
+before_cache:
+  # add Coverage package to cache, so that we don't have to install it on each run
+  - julia -e 'Pkg.add("Coverage");'
 after_success:
-  - julia -e 'cd(Pkg.dir("NonlinearEigenproblems")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  - julia -e 'cd(Pkg.dir("NonlinearEigenproblems")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'cd(Pkg.dir("NonlinearEigenproblems")); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'cd(Pkg.dir("NonlinearEigenproblems")); using Coverage; Codecov.submit(Codecov.process_folder())'
