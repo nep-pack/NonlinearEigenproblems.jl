@@ -8,7 +8,6 @@ using NEPSolver
 using Gallery
 using IterativeSolvers
 using Base.Test
-)
 
 @testset "Jacobi–Davidson" begin
 
