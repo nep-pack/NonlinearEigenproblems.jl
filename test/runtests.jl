@@ -11,6 +11,7 @@ end
 # Add tests below if you wish that they are not run together with all tests
 tests_not_to_run = to_uppercase_set([
     "runtests.jl", # this file
+    "submit_test_coverage.jl", # run by CI tool
     "Beyn_parallel.jl", # currently disabled
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
