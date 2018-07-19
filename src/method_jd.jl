@@ -33,7 +33,8 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
                     λ = zero(T),
                     v0 = randn(size(nep,1)),
                     displaylevel = 0,
-                    inner_solver_method = DefaultInnerSolver)
+                    inner_solver_method = NEPSolver.DefaultInnerSolver,
+                    isHerm = false)
 
     n = size(nep,1)
     if (maxit > n)
@@ -42,13 +43,25 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
     end
 
     λ_vec::Array{T,1} = Array{T,1}(Neig)
-    u_vec::Array{T,2} = Array{T,2}(n,Neig)
+    u_vec::Array{T,2} = zeros(T,n,Neig)
     u::Array{T,1} = Array{T,1}(v0)/norm(v0)
+    pk::Array{T,1} = zeros(T,n)
 
     proj_nep = create_proj_NEP(nep)
 
-    V::Array{T,2} = zeros(T, size(nep,1), maxit+1)
-    V[:,1] = u
+    V_memory::Array{T,2} = zeros(T, size(nep,1), maxit+1)
+    V_memory[:,1] = u
+
+    if( !isHerm )
+        W_memory = zeros(T, size(nep,1), maxit+1)
+        W_memory[:,1] = compute_Mlincomb(nep,λ,u);
+        if inner_solver_method == NEPSolver.SGIterInnerSolver
+            error("Cannot use SGITER if problem is not Hermitian")
+        end
+    else
+        W_memory = view(V_memory, :, :);
+    end
+
     dummy_vector = zeros(T,maxit+1)
     conveig = 0
 
@@ -65,9 +78,10 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         end
 
         # Projected matrices
-        W = view(V, :, 1:k) # extact subarrays, memory-CPU efficient
-        w = view(V, :, k+1) # next vector position
-        set_projectmatrices!(proj_nep, W, W)
+        V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
+        v = view(V_memory, :, k+1); w = view(W_memory, :, k+1)  # next vector position
+        set_projectmatrices!(proj_nep, W, V)
+
 
         # find the eigenvalue with smallest absolute value of projected NEP
         λv,sv = inner_solve(inner_solver_method, proj_nep,
@@ -79,17 +93,20 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         s = s/norm(s)
 
         # the approximate eigenvector
-        u[:] = W*s
+        u[:] = V*s
 
 
         # solve for basis extension using comment on top of page 367 to avoid
         # matrix access. The orthogonalization to u comes anyway since u in V
-        pk::Array{T,1} = compute_Mlincomb(nep,λ,u,[1],1)
+        pk[:] = compute_Mlincomb(nep,λ,u,[1],1)
         linsolver = linsolvercreator(nep,λ)
-        w[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
+        v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
+        orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
 
-        # orthogonalization
-        orthogonalize_and_normalize!(W, w, dummy_vector[1:k], orthmethod)
+        if( !isHerm )
+            w[:] = compute_Mlincomb(nep,λ,u);
+            orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
+        end
     end
 
     err=errmeasure(λ,u)
@@ -109,8 +126,10 @@ end
 
 
 function convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-    #Small error and not already found (expception if it is the first)
-    return (err < tol) && (conveig == 0 || all( abs.(λ - λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> eps(real(T))*1e5 ) )
+    # Small error and not already found (expception if it is the first)
+    # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
+    return (err < tol) && (conveig == 0 ||
+           all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
 end
 
 function jd_eig_sorter(λv::Array{T,1}, V, N) where T <: Number
