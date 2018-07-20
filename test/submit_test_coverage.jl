@@ -1,6 +1,5 @@
 ################################################################################
 # Submits test coverage for relevant code to Coveralls and Codecov
-# Should be run from the package root folder
 ################################################################################
 
 using Coverage
@@ -13,7 +12,7 @@ excluded_folders_and_files = map(f -> uppercase("src/" * f), [
     "extra_tests/",
     "tmp/",
     "trash/",
-    "src/gallery_extra/waveguide/waveguide_debug.jl   # Some code to make larger verifications agains MATLAB (development phase)
+    "gallery_extra/waveguide/waveguide_debug.jl",   # Some code to make larger verifications agains MATLAB (development phase)
     ])
 
 cd(Pkg.dir("NonlinearEigenproblems"))
