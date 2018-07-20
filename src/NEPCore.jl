@@ -93,7 +93,6 @@ julia> norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
         end
 
         error("You need to provide an implementation of compute_Mder for this NEP, or choose to use compute_Mder_from_MM"*extra_msg*".")
-        return 0;
     end
 
     """
@@ -287,7 +286,6 @@ Note: All NEPs must implement this function.
 """
     function size(nep::NEP,dim=-1)
         error("You need to provide an implementation of size for this NEP.")
-        return 0;
     end
 
 
