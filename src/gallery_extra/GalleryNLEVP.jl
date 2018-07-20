@@ -16,6 +16,7 @@ module GalleryNLEVP
     export NLEVP_NEP
 
     import Gallery.nep_gallery
+    import Gallery.fetch_nlevp_path
     export nep_gallery
 
     
@@ -28,11 +29,9 @@ module GalleryNLEVP
         n::Integer
         name::String
         Ai::Array
-        function NLEVP_NEP(name, nlevp_path)
-            if (~isfile(joinpath(nlevp_path,"nlevp.m")))
-                error("nlevp.m not found. You need to install the Berlin-Manchester collection (http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) and specify a nlevp_path. Path:"*nlevp_path)
-            end
-
+        function NLEVP_NEP(name)
+            nlevp_path=fetch_nlevp_path();
+            println("path:",nlevp_path);
             mat"""
             addpath($nlevp_path);
             [$Ai,funs] = nlevp($name);
@@ -108,11 +107,8 @@ Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems.
 """
     nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String) = nep_gallery(T,name,joinpath(@__DIR__, "..","..","..","nlevp3"))
-    function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String,nlevp_path::String)
-        if(!isabspath(nlevp_path)) #Check if path is relative, then make absoulte
-            nlevp_path = abspath(nlevp_path)
-        end
-        nep=NLEVP_NEP(name,nlevp_path)
+    function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String)
+        nep=NLEVP_NEP(name)
         return nep
     end
 

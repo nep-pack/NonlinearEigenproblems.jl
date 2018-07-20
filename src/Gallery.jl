@@ -9,6 +9,7 @@ module Gallery
     using MAT
 
     export nep_gallery
+    export nlevp_path
 
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra")) # Add the search-path to the extra galleries
 
@@ -373,19 +374,7 @@ module Gallery
           dep=DEP([A0, A1,   A2, A3],tauv);
 
        elseif (name == "nlevp_native_gun")
-          # Try to find NLEVP
-          nlevp_path=joinpath(ENV["HOME"],"src","nlevp");
-          try
-              nlevp_path=ENV["NLEVP_PATH"]
-          catch
-              # Environment variables was not set 
-          end
-
-          if (!isfile(joinpath(nlevp_path,"nlevp.m")))
-              println("Using nlevp path: ",nlevp_path);
-              error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable NLEVP_PATH to the directory containing nlevp.m in the zip-file in http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/")
-          end
-       
+          nlevp_path=fetch_nlevp_path();       
           # We want the private directory
           nlevp_path_private=joinpath(nlevp_path,"private")
           file = matopen(joinpath(nlevp_path_private,"gun.mat"));
@@ -408,6 +397,22 @@ module Gallery
 
   end
 
+  function fetch_nlevp_path()
+      # Try to find NLEVP
+      nlevp_path=joinpath(ENV["HOME"],"src","nlevp"); # default ~/src/nlevp
+      try
+          nlevp_path=ENV["NLEVP_PATH"]
+      catch
+          # Environment variables was not set 
+      end
+
+      if (!isfile(joinpath(nlevp_path,"nlevp.m")))
+          println("Using nlevp path: ",nlevp_path);
+          error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable NLEVP_PATH to the directory containing nlevp.m in the zip-file in http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/")
+      end
+      return nlevp_path;
+
+  end
 
 
 end
