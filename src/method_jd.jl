@@ -3,38 +3,44 @@ export jd
 using IterativeSolvers
 
    """
-    jd(nep::ProjectableNEP;orthmethod::Type{T_orth} = DGKS,errmeasure::Function = default_errmeasure(nep::NEP),linsolvercreator::Function=default_linsolvercreator,proj_eig_solver::Function = default_proj_eig_solver(nep::ProjectableNEP),Neig = 1,tol = eps(real(T))*100, maxit = 100, λ = zero(T), v0 = randn(size(nep,1)), displaylevel = 0)
-
-Runs the Jacobi-Davidson method with a projected solver in proj_eig_solver.
+    function jd([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v0 = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin])
+The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
+The projected problems are solved using a solver spcified through the type `inner_solver_method`.
+For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
+The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
+The value `λ` and the vector `v0` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
+By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence W^H T(λ) V is the projection considered. By specifying  `projtype` to be `:Galerkin` then W=V.
 
 
 # Example
 ```julia-repl
 julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
-julia> nep=nep_gallery("real_quadratic");
-julia> λ,v=jd(nep,tol=1e-5,maxit=100);
+julia> nep=nep_gallery("dep0",50);
+julia> λ,v=jd(nep,tol=1e-5,maxit=20);
 julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
-8.85629539860136e-12
+3.4016933647983415e-8
 ```
 
 # References
-* The Jacobi-Davidson method for nonlinear eigenvalue problems, Betcke.
+* T. Betcke and H. Voss, A Jacobi-Davidson-type projection method for nonlinear eigenvalue problems. Future Gener. Comput. Syst. 20, 3 (2004), pp. 363-372.
+* H. Voss, A Jacobi–Davidson method for nonlinear eigenproblems. In: International Conference on Computational Science. Springer, Berlin, Heidelberg, 2004. pp. 34-41.
+* C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
 """
 
 jd(nep::NEP;params...) = jd(Complex128,nep;params...)
-function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
-                    nep::ProjectableNEP;
-                    orthmethod::Type{T_orth} = DGKS,
-                    errmeasure::Function = default_errmeasure(nep::NEP),
-                    linsolvercreator::Function=default_linsolvercreator,
-                    Neig = 1,
-                    tol = eps(real(T))*100,
-                    maxit = 100,
-                    λ = zero(T),
-                    v0 = randn(size(nep,1)),
-                    displaylevel = 0,
-                    inner_solver_method = NEPSolver.DefaultInnerSolver,
-                    isHerm = false)
+function jd(::Type{T},
+            nep::ProjectableNEP;
+            orthmethod::Type{T_orth} = DGKS,
+            errmeasure::Function = default_errmeasure(nep::NEP),
+            linsolvercreator::Function=default_linsolvercreator,
+            Neig = 1,
+            tol = eps(real(T))*100,
+            maxit = 100,
+            λ = zero(T),
+            v0 = randn(size(nep,1)),
+            displaylevel = 0,
+            inner_solver_method = NEPSolver.DefaultInnerSolver,
+            projtype = :PetrovGalerkin)  where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     n = size(nep,1)
     if (maxit > n)
@@ -52,14 +58,16 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
     V_memory::Array{T,2} = zeros(T, size(nep,1), maxit+1)
     V_memory[:,1] = u
 
-    if( !isHerm )
+    if( projtype == :PetrovGalerkin ) # Petrov-Galerkin uses a left (test) and a right (trial) space
         W_memory = zeros(T, size(nep,1), maxit+1)
         W_memory[:,1] = compute_Mlincomb(nep,λ,u);
         if inner_solver_method == NEPSolver.SGIterInnerSolver
-            error("Cannot use SGITER if problem is not Hermitian")
+            error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
         end
-    else
+    elseif( projtype == :Galerkin ) # Galerkin uses the same trial and test space
         W_memory = view(V_memory, :, :);
+    else
+        error("Unsupported 'projtype'. The type '", projtype, "' is not supported.")
     end
 
     dummy_vector = zeros(T,maxit+1)
@@ -103,7 +111,7 @@ function jd{T, T_orth<:IterativeSolvers.OrthogonalizationMethod}(::Type{T},
         v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
 
-        if( !isHerm )
+        if( projtype == :PetrovGalerkin )
             w[:] = compute_Mlincomb(nep,λ,u);
             orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
         end
