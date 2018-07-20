@@ -5,16 +5,14 @@ using Base.Test
 using Serialization
 
 @testset "Serialization" begin
-    file = "sparse_matrix.zip"
+    file = "sparse_matrix.txt"
 
-    A1 = sprand(40, 20, 0.05)
-    A2 = sprand(20, 30, 0.1)
-    write_sparse_matrices(file, Dict("A1" => A1, "A2" => A2))
+    A = sprand(40, 20, 0.05)
+    write_sparse_matrix(file, A)
 
-    D = read_sparse_matrices(file)
+    B = read_sparse_matrix(file)
 
     rm(file)
 
-    @test A1 == D["A1"]
-    @test A2 == D["A2"]
+    @test A == B
 end

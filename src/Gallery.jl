@@ -293,11 +293,10 @@ module Gallery
           return gallery_dep_distributed();
 
       elseif (name=="qdep0")
-          qdepfile=joinpath(dirname(@__FILE__()),
-                            "gallery_extra", "qdep_infbilanczos.zip")
-          matrices=read_sparse_matrices(qdepfile)
-          A0=matrices["A0"]
-          A1=matrices["A1"]
+          qdepbase=joinpath(dirname(@__FILE__()),
+                            "gallery_extra", "qdep_infbilanczos")
+          A0=read_sparse_matrix(qdepbase * "_A0.txt")
+          A1=read_sparse_matrix(qdepbase * "_A1.txt")
           tau=1;
           quadfun= S -> S^2;
           constfun= S -> eye(S);
