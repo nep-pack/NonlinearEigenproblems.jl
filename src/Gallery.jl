@@ -389,6 +389,4 @@ module Gallery
 
   end
 
-
-
 end
