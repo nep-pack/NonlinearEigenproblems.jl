@@ -1,6 +1,15 @@
 ##################
 # Runs all tests #
 ##################
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+
 using Base.Test
 using TimerOutputs
 
@@ -22,7 +31,7 @@ tests_not_to_run = to_uppercase_set([
 @testset "All tests" begin
     base_path = string(@__DIR__)
     file_list = readdir(base_path)
-    tests_to_run = filter(f -> ismatch(r"(?i)\.jl$", f) && !in(uppercase(f), tests_not_to_run), file_list)
+    tests_to_run = ["jd.jl"] #filter(f -> ismatch(r"(?i)\.jl$", f) && !in(uppercase(f), tests_not_to_run), file_list)
 
     to = TimerOutput()
 
