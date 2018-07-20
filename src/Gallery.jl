@@ -407,7 +407,6 @@ module Gallery
       end
 
       if (!isfile(joinpath(nlevp_path,"nlevp.m")))
-          println("Using nlevp path: ",nlevp_path);
           error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable NLEVP_PATH to the directory containing nlevp.m in the zip-file in http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/")
       end
       return nlevp_path;
