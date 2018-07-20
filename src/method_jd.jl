@@ -30,7 +30,7 @@ julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 jd(nep::NEP;params...) = jd(Complex128,nep;params...)
 function jd(::Type{T},
             nep::ProjectableNEP;
-            orthmethod::Type{T_orth} = DGKS,
+            orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
             errmeasure::Function = default_errmeasure(nep::NEP),
             linsolvercreator::Function=default_linsolvercreator,
             Neig = 1,
@@ -84,7 +84,7 @@ function jd(::Type{T},
                 return (λ_vec,u_vec)
             end
         end
-
+println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
         # Projected matrices
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
         v = view(V_memory, :, k+1); w = view(W_memory, :, k+1)  # next vector position
