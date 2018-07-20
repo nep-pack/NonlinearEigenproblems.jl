@@ -15,6 +15,7 @@
 println("\nTesting a PEP")
 nep = nep_gallery("pep0",60)
 TOL = 1e-10;
+srand(0)
 λ,u = jd(nep, tol=TOL, maxit=55, Neig = 4, displaylevel=1, v0=ones(size(nep,1)))
             # inner_solver_method=NEPSolver.IARInnerSolver)
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
