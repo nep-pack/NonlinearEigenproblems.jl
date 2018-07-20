@@ -12,5 +12,7 @@ using Serialization
 
     B = read_sparse_matrix(file)
 
+    rm(file)
+
     @test A == B
 end
