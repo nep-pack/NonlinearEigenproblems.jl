@@ -294,9 +294,9 @@ module Gallery
 
       elseif (name=="qdep0")
           qdepbase=joinpath(dirname(@__FILE__()),
-                            "gallery_extra", "qdep_infbilanczos")
-          A0=read_sparse_matrix(qdepbase * "_A0.txt")
-          A1=read_sparse_matrix(qdepbase * "_A1.txt")
+                            "gallery_extra", "qdep_infbilanczos_")
+          A0=read_sparse_matrix(qdepbase * "A0.txt")
+          A1=read_sparse_matrix(qdepbase * "A1.txt")
           tau=1;
           quadfun= S -> S^2;
           constfun= S -> eye(S);
@@ -370,27 +370,11 @@ module Gallery
           dep=DEP([A0, A1,   A2, A3],tauv);
 
        elseif (name == "nlevp_native_gun")
-          # Try to find NLEVP
-          nlevp_path=joinpath(ENV["HOME"],"src","nlevp");
-          try
-              nlevp_path=ENV["NLEVP_PATH"]
-          catch
-              # Environment variables was not set
-          end
-
-          if (!isfile(joinpath(nlevp_path,"nlevp.m")))
-              println("Using nlevp path: ",nlevp_path);
-              error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable NLEVP_PATH to the directory containing nlevp.m in the zip-file in http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/")
-          end
-
-          # We want the private directory
-          nlevp_path_private=joinpath(nlevp_path,"private")
-          file = matopen(joinpath(nlevp_path_private,"gun.mat"));
-          K=read(file,"K");
-          M=read(file,"M");
-          W1=read(file,"W1");
-          W2=read(file,"W2");
-          close(file);
+          gunbase=joinpath(dirname(@__FILE__()), "gallery_extra", "gun_")
+          K=read_sparse_matrix(gunbase * "K.txt")
+          M=read_sparse_matrix(gunbase * "M.txt")
+          W1=read_sparse_matrix(gunbase * "W1.txt")
+          W2=read_sparse_matrix(gunbase * "W2.txt")
           minusop= S-> -S
           oneop= S -> eye(size(S,1),size(S,2))
           sqrt1op= S -> 1im*sqrtm(full(S))
