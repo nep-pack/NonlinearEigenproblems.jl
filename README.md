@@ -6,7 +6,7 @@
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
 *<p align="center">M(λ)v=0</p>*
-where *M* is an nxn-matrix depending on a parameter. This package is a first version of algorithms for nonlinear eigenvalue problems in julia.
+where *M* is an nxn-matrix depending on a parameter. This package provides state-of-the-art algorithms to solve this problem, as well as easy access to benchmark applications.
 
 # How to use it?
 
