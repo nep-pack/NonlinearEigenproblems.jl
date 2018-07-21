@@ -370,7 +370,8 @@ module Gallery
           dep=DEP([A0, A1,   A2, A3],tauv);
 
        elseif (name == "nlevp_native_gun")
-          gunbase=joinpath(dirname(@__FILE__()), "gallery_extra", "gun_")
+          gunbase=joinpath(dirname(@__FILE__()), "gallery_extra",
+            "converted_nlevp", "gun_")
           K=read_sparse_matrix(gunbase * "K.txt")
           M=read_sparse_matrix(gunbase * "M.txt")
           W1=read_sparse_matrix(gunbase * "W1.txt")
