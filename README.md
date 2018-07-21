@@ -1,7 +1,7 @@
 # NEP-PACK
 
 [![Build Status](https://travis-ci.org/nep-pack/NonlinearEigenproblems.jl.svg?branch=master)](https://travis-ci.org/nep-pack/NonlinearEigenproblems.jl)
-[![Coverage Status](https://coveralls.io/repos/github/nep-pack/NonlinearEigenproblems.jl/badge.svg?branch=master)](https://coveralls.io/github/nep-pack/NonlinearEigenproblems.jl?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/nep-pack/NonlinearEigenproblems.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/nep-pack/NonlinearEigenproblems.jl?branch=master)
 [![codecov](https://codecov.io/gh/nep-pack/NonlinearEigenproblems.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nep-pack/NonlinearEigenproblems.jl)
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
