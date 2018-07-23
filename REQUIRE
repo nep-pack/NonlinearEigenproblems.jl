@@ -1,6 +1,5 @@
 julia 0.6
 IterativeSolvers 0.5
-MAT 0.4
 Polynomials 0.3
 PolynomialZeros 0.1
 LinearMaps 1.0

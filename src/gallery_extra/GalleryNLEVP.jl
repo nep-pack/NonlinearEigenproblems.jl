@@ -4,22 +4,37 @@ module GalleryNLEVP
 
     using MATLAB
     using NEPCore
-    using NEPTypes    
-    using Gallery    
-    
+    using NEPTypes
+    using Gallery
+
     export nlevp_make_native
-    
+
     # We have to explicitly specify functions that we want "overload"
     import NEPCore.compute_Mder
     import NEPCore.size
-    
+
     export NLEVP_NEP
 
     import Gallery.nep_gallery
-    import Gallery.fetch_nlevp_path
     export nep_gallery
 
-    
+
+    function fetch_nlevp_path()
+        # Try to find NLEVP
+        nlevp_path=joinpath(ENV["HOME"],"src","nlevp"); # default ~/src/nlevp
+        try
+            nlevp_path=ENV["NLEVP_PATH"]
+        catch
+            # Environment variables was not set
+        end
+
+        if (!isfile(joinpath(nlevp_path,"nlevp.m")))
+            error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable NLEVP_PATH to the directory containing nlevp.m in the zip-file in http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/")
+        end
+        return nlevp_path;
+
+    end
+
 
     """
          NLEVP_NEP represents a NEP in the NLEVP-toolbox
@@ -42,7 +57,7 @@ module GalleryNLEVP
     end
 
 
-    
+
     function compute_Mder(nep::NLEVP_NEP,λ::Number,i::Integer=0)
         lambda=Complex{Float64}(λ)  # avoid type conversion problems
         #println("type",typeof(lambda))
@@ -77,8 +92,8 @@ module GalleryNLEVP
 
     # Return function values and derivatives of the current matlab session "funs"
     # stemming from a previous call to [Ai,funs]=nlevp(nepname).
-    # The returned matrix containing derivatives has (maxder+1) rows 
-    function call_current_fun(lambda,maxder::Integer=0)        
+    # The returned matrix containing derivatives has (maxder+1) rows
+    function call_current_fun(lambda,maxder::Integer=0)
         l::Complex128=Complex128(lambda)  # avoid type problems
         mat"""
     C=cell($maxder+1,1);
@@ -90,7 +105,7 @@ module GalleryNLEVP
 
 
 
-    
+
     # size for NLEVP_NEPs
     function size(nep::NLEVP_NEP,dim=-1)
         if (dim==-1)
@@ -144,7 +159,7 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
     #function fiber2(S)
     #    # poor-mans version of
     #    f0=z -> z.*(- besselk.(1, z)./z - besselk.(0, z))./besselk.(1,z)
-    #    f1=z -> 
+    #    f1=z ->
     #    zsamples=eps()+1+cos(linspace(0,pi,100))
     #
     #    a=eps();
@@ -152,7 +167,7 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
     #    α=-(a+b)/(b-a)
     #    β=2/(b-a);
     #
-    #    
+    #
     #end
     #
 end
