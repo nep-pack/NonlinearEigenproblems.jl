@@ -53,12 +53,12 @@ function jd(::Type{T},
     u_vec::Array{T,2} = zeros(T,n,Neig)
     u::Array{T,1} = Array{T,1}(v0); u[:] = u/norm(u);
     pk::Array{T,1} = zeros(T,n)
-
     proj_nep = create_proj_NEP(nep)
+    dummy_vector::Array{T,1} = zeros(T,maxit+1)
+    conveig::Int64 = 0
 
     V_memory::Array{T,2} = zeros(T, size(nep,1), maxit+1)
     V_memory[:,1] = u
-
     if( projtype == :PetrovGalerkin ) # Petrov-Galerkin uses a left (test) and a right (trial) space
         W_memory = zeros(T, size(nep,1), maxit+1)
         W_memory[:,1] = compute_Mlincomb(nep,λ,u);
@@ -71,20 +71,21 @@ function jd(::Type{T},
         error("Unsupported 'projtype'. The type '", projtype, "' is not supported.")
     end
 
-    dummy_vector::Array{T,1} = zeros(T,maxit+1)
-    conveig::Int64 = 0
 
-    for k=1:maxit
-        err = errmeasure(λ,u)
-        @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-        if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-            conveig += 1
-            λ_vec[conveig] = λ
-            u_vec[:,conveig] = u
-            if (conveig == Neig)
-                return (λ_vec,u_vec)
-            end
+    # Initial check for convergence
+    err = errmeasure(λ,u)
+    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+    if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
+        conveig += 1
+        λ_vec[conveig] = λ
+        u_vec[:,conveig] = u
+        if (conveig == Neig)
+            return (λ_vec,u_vec)
         end
+    end
+
+    # Main loop
+    for k=1:maxit
 println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
         # Projected matrices
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
@@ -105,6 +106,19 @@ println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
         u[:] = V*s
 
 
+        # Check for convergence
+        err = errmeasure(λ,u)
+        @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+        if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
+            conveig += 1
+            λ_vec[conveig] = λ
+            u_vec[:,conveig] = u
+            if (conveig == Neig)
+                return (λ_vec,u_vec)
+            end
+        end
+
+
         # solve for basis extension using comment on top of page 367 to avoid
         # matrix access. The orthogonalization to u comes anyway since u in V
         pk[:] = compute_Mlincomb(nep,λ,u,[1],1)
@@ -118,16 +132,7 @@ println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
         end
     end
 
-    err=errmeasure(λ,u)
-    # Check one last time since space was expanded since prevous
-    if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-        conveig += 1
-        λ_vec[conveig] = λ
-        u_vec[:,conveig] = u
-        if (conveig == Neig)
-            return (λ_vec,u_vec)
-        end
-    end
+
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
     throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
