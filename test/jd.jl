@@ -12,6 +12,13 @@
 
 @testset "Jacobi–Davidson" begin
 
+nep = nep_gallery("pep0",1)
+TOL = 1e-10;
+srand(0)
+λ,u = jd(nep, tol=TOL, maxit=1, Neig = 1, displaylevel=1, v0=ones(size(nep,1)))
+
+
+
 println("\nTesting a PEP")
 nep = nep_gallery("pep0",60)
 TOL = 1e-10;
