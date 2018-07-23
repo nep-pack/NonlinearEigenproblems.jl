@@ -5,11 +5,11 @@
 import NEPSolver.inner_solve; include("../src/inner_solver.jl");import NEPSolver.tiar; include("../src/method_tiar.jl");
 
 Profile.clear()
-nep=nep_gallery("dep0_tridiag",10000)
+nep=nep_gallery("dep0_tridiag",1000)
 import NEPCore.compute_Mlincomb
-function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
-    return compute_Mlincomb_from_Mder(nep,λ,V,a)
-end
+#function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
+#    return compute_Mlincomb_from_Mder(nep,λ,V,a)
+#end
 Profile.init(n = 10^7, delay = 0.01)
 @profile tiar(nep,σ=-1,γ=2;Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 #Profile.print()
