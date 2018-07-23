@@ -59,7 +59,7 @@ println("\n 4 smallest eigenvalues according to the absolute values: \n", Dc[c[1
 println("\nTesting SG as inner solver")
 nep = nep_gallery("real_quadratic")
 nep = SPMF_NEP(get_Av(nep), get_fv(nep))
-λ,u = jd(Float64, nep, tol=1e-10, maxit=80, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
+λ,u = jd(Float64, nep, tol=1e-10, maxit=4, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
 println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
