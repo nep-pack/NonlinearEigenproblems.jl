@@ -33,9 +33,9 @@ function jd(::Type{T},
             orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
             errmeasure::Function = default_errmeasure(nep::NEP),
             linsolvercreator::Function=default_linsolvercreator,
-            Neig = 1,
+            Neig::Int = 1,
             tol = eps(real(T))*100,
-            maxit = 100,
+            maxit::Int = 100,
             λ = zero(T),
             v0 = randn(size(nep,1)),
             displaylevel = 0,
@@ -48,9 +48,10 @@ function jd(::Type{T},
         maxit = n
     end
 
+    λ::T = T(λ)
     λ_vec::Array{T,1} = Array{T,1}(Neig)
     u_vec::Array{T,2} = zeros(T,n,Neig)
-    u::Array{T,1} = Array{T,1}(v0)/norm(v0)
+    u::Array{T,1} = Array{T,1}(v0); u[:] = u/norm(u);
     pk::Array{T,1} = zeros(T,n)
 
     proj_nep = create_proj_NEP(nep)
@@ -70,11 +71,11 @@ function jd(::Type{T},
         error("Unsupported 'projtype'. The type '", projtype, "' is not supported.")
     end
 
-    dummy_vector = zeros(T,maxit+1)
-    conveig = 0
+    dummy_vector::Array{T,1} = zeros(T,maxit+1)
+    conveig::Int64 = 0
 
     for k=1:maxit
-        err=errmeasure(λ,u)
+        err = errmeasure(λ,u)
         @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
         if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
             conveig += 1
@@ -95,7 +96,7 @@ println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
         λv,sv = inner_solve(inner_solver_method, proj_nep,
                             j = conveig+1, # For SG-iter
                             λv = zeros(T,conveig+1),
-                            σ=0,
+                            σ=zero(T),
                             Neig=conveig+1)
         λ,s = jd_eig_sorter(λv, sv, conveig+1)
         s = s/norm(s)
@@ -133,7 +134,7 @@ println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
 end
 
 
-function convergence_criterion(err, tol, λ, λ_vec, conveig, T)
+function convergence_criterion(err, tol, λ, λ_vec, conveig, T)::Bool
     # Small error and not already found (expception if it is the first)
     # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
     return (err < tol) && (conveig == 0 ||
@@ -143,7 +144,7 @@ end
 function jd_eig_sorter(λv::Array{T,1}, V, N) where T <: Number
     NN = min(N, length(λv))
     c = sortperm(abs.(λv))
-    λ = λv[c[NN]]
-    s = V[:,c[NN]]
+    λ::T = λv[c[NN]]
+    s::Array{T,1} = V[:,c[NN]]
     return λ, s
 end
