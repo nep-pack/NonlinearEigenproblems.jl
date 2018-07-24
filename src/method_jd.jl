@@ -30,12 +30,12 @@ julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 jd(nep::NEP;params...) = jd(Complex128,nep;params...)
 function jd(::Type{T},
             nep::ProjectableNEP;
-            orthmethod::Type{T_orth} = DGKS,
+            orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
             errmeasure::Function = default_errmeasure(nep::NEP),
             linsolvercreator::Function=default_linsolvercreator,
-            Neig = 1,
+            Neig::Int = 1,
             tol = eps(real(T))*100,
-            maxit = 100,
+            maxit::Int = 100,
             λ = zero(T),
             v0 = randn(size(nep,1)),
             displaylevel = 0,
@@ -48,16 +48,17 @@ function jd(::Type{T},
         maxit = n
     end
 
+    λ::T = T(λ)
     λ_vec::Array{T,1} = Array{T,1}(Neig)
     u_vec::Array{T,2} = zeros(T,n,Neig)
-    u::Array{T,1} = Array{T,1}(v0)/norm(v0)
+    u::Array{T,1} = Array{T,1}(v0); u[:] = u/norm(u);
     pk::Array{T,1} = zeros(T,n)
-
     proj_nep = create_proj_NEP(nep)
+    dummy_vector::Array{T,1} = zeros(T,maxit+1)
+    conveig::Int64 = 0
 
     V_memory::Array{T,2} = zeros(T, size(nep,1), maxit+1)
     V_memory[:,1] = u
-
     if( projtype == :PetrovGalerkin ) # Petrov-Galerkin uses a left (test) and a right (trial) space
         W_memory = zeros(T, size(nep,1), maxit+1)
         W_memory[:,1] = compute_Mlincomb(nep,λ,u);
@@ -70,21 +71,21 @@ function jd(::Type{T},
         error("Unsupported 'projtype'. The type '", projtype, "' is not supported.")
     end
 
-    dummy_vector = zeros(T,maxit+1)
-    conveig = 0
 
-    for k=1:maxit
-        err=errmeasure(λ,u)
-        @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-        if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-            conveig += 1
-            λ_vec[conveig] = λ
-            u_vec[:,conveig] = u
-            if (conveig == Neig)
-                return (λ_vec,u_vec)
-            end
+    # Initial check for convergence
+    err = errmeasure(λ,u)
+    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+    if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
+        conveig += 1
+        λ_vec[conveig] = λ
+        u_vec[:,conveig] = u
+        if (conveig == Neig)
+            return (λ_vec,u_vec)
         end
+    end
 
+    # Main loop
+    for k=1:maxit
         # Projected matrices
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
         v = view(V_memory, :, k+1); w = view(W_memory, :, k+1)  # next vector position
@@ -95,13 +96,26 @@ function jd(::Type{T},
         λv,sv = inner_solve(inner_solver_method, proj_nep,
                             j = conveig+1, # For SG-iter
                             λv = zeros(T,conveig+1),
-                            σ=0,
+                            σ=zero(T),
                             Neig=conveig+1)
         λ,s = jd_eig_sorter(λv, sv, conveig+1)
         s = s/norm(s)
 
         # the approximate eigenvector
         u[:] = V*s
+
+
+        # Check for convergence
+        err = errmeasure(λ,u)
+        @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+        if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
+            conveig += 1
+            λ_vec[conveig] = λ
+            u_vec[:,conveig] = u
+            if (conveig == Neig)
+                return (λ_vec,u_vec)
+            end
+        end
 
 
         # solve for basis extension using comment on top of page 367 to avoid
@@ -117,23 +131,14 @@ function jd(::Type{T},
         end
     end
 
-    err=errmeasure(λ,u)
-    # Check one last time since space was expanded since prevous
-    if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-        conveig += 1
-        λ_vec[conveig] = λ
-        u_vec[:,conveig] = u
-        if (conveig == Neig)
-            return (λ_vec,u_vec)
-        end
-    end
+
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
     throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
 end
 
 
-function convergence_criterion(err, tol, λ, λ_vec, conveig, T)
+function convergence_criterion(err, tol, λ, λ_vec, conveig, T)::Bool
     # Small error and not already found (expception if it is the first)
     # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
     return (err < tol) && (conveig == 0 ||
@@ -143,7 +148,7 @@ end
 function jd_eig_sorter(λv::Array{T,1}, V, N) where T <: Number
     NN = min(N, length(λv))
     c = sortperm(abs.(λv))
-    λ = λv[c[NN]]
-    s = V[:,c[NN]]
+    λ::T = λv[c[NN]]
+    s::Array{T,1} = V[:,c[NN]]
     return λ, s
 end
