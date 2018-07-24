@@ -18,10 +18,10 @@ println("\nTesting a PEP")
 nep = nep_gallery("pep0",60)
 TOL = 1e-10;
 λ,u = jd(nep, tol=TOL, maxit=55, Neig = 3, displaylevel=1, v0=ones(size(nep,1)))
-println("\n Smallest eigevalues found: \n λ: ",λ)
+println(" Smallest eigevalues found: \n λ: ",λ)
 Dc,Vc = polyeig(nep,DefaultEigSolver)
 c = sortperm(abs.(Dc))
-println("\n 6 smallest eigenvalues according to the absolute values: \n", Dc[c[1:6]])
+println(" 6 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:6]])
 
 # Test residuals
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
@@ -40,11 +40,11 @@ println("\nTesting in only Complex64 precision (32 bit in real and 32 bit in ima
 nep = nep_gallery("pep0",30)
 TOL = 1e-4;
 λ,u = jd(Complex64, nep, tol=TOL, maxit=25, Neig = 2, displaylevel = 1, v0=ones(size(nep,1)))
-println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
-println("\n Smallest eigevalue found: \n λ: ",λ)
+println(" Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
+println(" Smallest eigevalue found: \n λ: ",λ)
 Dc,Vc = polyeig(Complex64,nep,DefaultEigSolver)
 c = sortperm(abs.(Dc))
-println("\n 4 smallest eigenvalues according to the absolute values: \n", Dc[c[1:4]])
+println(" 4 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:4]])
 
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
@@ -61,8 +61,8 @@ TOL = 1e-10;
 @test_warn "maxit = 60 is larger than size of NEP = 4. Setting maxit = size(nep,1)" λ,u=jd(Float64, nep, tol=TOL, maxit=60, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
-println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
-println("\n Smallest eigevalue found: \n λ: ",λ)
+println(" Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
+println(" Smallest eigevalue found: \n λ: ",λ)
 
 @test norm(compute_Mlincomb(nep,λ,u)) < TOL
 
@@ -74,8 +74,8 @@ TOL = 1e-10;
 λ,u = jd(Complex128, nep, tol=TOL, maxit=30, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
-println("\n Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
-println("\n Smallest eigevalue found: \n λ: ",λ)
+println(" Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
+println(" Smallest eigevalue found: \n λ: ",λ)
 
 @test norm(compute_Mlincomb(nep,λ,u)) < TOL
 
@@ -92,11 +92,11 @@ u = vec(u)
 println("\nTesting errors thrown")
 nep = nep_gallery("pep0",4)
 # SG requires Galerkin projection type to keep Hermitian
-@test_throws ErrorException λ,u=jd(Float64, nep, tol=TOL, maxit=4, displaylevel = 1, projtype = :PetrovGalerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
+@test_throws ErrorException λ,u=jd(Float64, nep, tol=TOL, maxit=4, projtype = :PetrovGalerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 # An undefined projection type
-@test_throws ErrorException λ,u=jd(nep, tol=TOL, maxit=4, displaylevel = 1, projtype = :MYNOTDEFINED, v0=ones(size(nep,1)))
+@test_throws ErrorException λ,u=jd(nep, tol=TOL, maxit=4, projtype = :MYNOTDEFINED, v0=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ,u=jd(nep, tol=TOL, maxit=4, Neig=1000, displaylevel = 1, v0=ones(size(nep,1)))
+@test_throws NEPCore.NoConvergenceException λ,u=jd(nep, tol=TOL, maxit=4, Neig=1000, v0=ones(size(nep,1)))
 
 
 end
