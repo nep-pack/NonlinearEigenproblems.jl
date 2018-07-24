@@ -1,7 +1,10 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
+end
+
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))

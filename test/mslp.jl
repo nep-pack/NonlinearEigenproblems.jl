@@ -1,18 +1,21 @@
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
 
-using NEPCore
-using LinSolvers
-using IterativeSolvers
-using Base.Test
-using LinearMaps;
-using NEPTypes
-using Gallery;
-using NEPSolver;
-using NEPCore;
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+
+    using NEPCore
+    using LinSolvers
+    using IterativeSolvers
+    using Base.Test
+    using LinearMaps;
+    using NEPTypes
+    using Gallery;
+    using NEPSolver;
+    using NEPCore;
+end
 
 
 A=sprandn(100,100,0.1);

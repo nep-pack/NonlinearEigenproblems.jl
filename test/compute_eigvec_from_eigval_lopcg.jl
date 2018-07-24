@@ -1,16 +1,18 @@
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
 
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+end
 
 # explicit import needed for overloading functions from packages
 import NEPCore.compute_Mlincomb

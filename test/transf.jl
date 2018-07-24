@@ -1,18 +1,20 @@
 # Run tests for the NEP transformations
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using Base.Test
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using Base.Test
+end
 
 @testset "transformations" begin
 

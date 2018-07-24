@@ -1,5 +1,8 @@
 #  Tests for the Linear solvers
-workspace()
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
+end
+
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
 using NEPCore

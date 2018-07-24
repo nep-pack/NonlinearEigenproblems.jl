@@ -1,19 +1,21 @@
 # Run tests for the dep_distributed example
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+end
 
 
 # The user can create his own orthogonalization function to use in IAR
@@ -74,7 +76,7 @@ TIAR=@testset "TIAR" begin
     end
     @testset "Solve by projection" begin
         n=1000;
-        
+
         dep=nep_gallery("dep0",n);
         nn=norm(compute_Mder(dep,0));
         errmeasure= (λ,v) -> norm(compute_Mlincomb(dep,λ,v))/nn;

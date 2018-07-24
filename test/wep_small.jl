@@ -1,18 +1,22 @@
 # Run tests for the waveguide eigenvalue problem
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-#push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using GalleryWaveguide
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    #push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
-using Base.Test
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using GalleryWaveguide
+
+    using Base.Test
+end
+
 import NEPCore.compute_Mder;
 
 

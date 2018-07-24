@@ -1,8 +1,11 @@
 # Run tests for the inner solves
 
-workspace()
-using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
-using Base.Test
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
+
+    using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
+    using Base.Test
+end
 
 #import NEPSolver.inner_solve;
 #include("../src/inner_solver.jl");
@@ -33,5 +36,5 @@ n=size(dep,1);
     λv,V=inner_solve(NEPSolver.ContourBeynInnerSolver,pnep,λv=[0,1]+0.0im,Neig=3);
     nn=minimum(svdvals(compute_Mder(pnep,λv[1])))
     @test nn < eps()*100
-    
+
 end

@@ -1,18 +1,20 @@
 # Unit  tests for bigfloats. Type stability of methods.
 
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
 
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
 
-using Base.Test
+    using Base.Test
+end
 
 
 println("Test NEP-test with BigFloat")

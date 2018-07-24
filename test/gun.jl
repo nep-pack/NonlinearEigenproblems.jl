@@ -1,7 +1,10 @@
 # Run tests on Beyns contour integral method
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
+if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+    workspace()
+end
+
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
@@ -77,7 +80,7 @@ guntest=@testset "GUN (NLEVP interface)" begin
         z=ones(n); λ=150^2;
         @test norm(compute_Mlincomb(nep2,λ,z)-compute_Mlincomb(nep1,λ,z))
     end
-    
+
 end
 Base.Test.print_test_results(guntest)
 

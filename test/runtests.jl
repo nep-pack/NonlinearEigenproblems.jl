@@ -12,26 +12,50 @@ end
 tests_not_to_run = to_uppercase_set([
     "runtests.jl", # this file
     "submit_test_coverage.jl", # run by CI tool
+    "utils.jl", # test utilities
     "Beyn_parallel.jl", # currently disabled
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
     ])
 
-@testset "All tests" begin
-    base_path = string(@__DIR__)
-    file_list = readdir(base_path)
-    tests_to_run = filter(f -> ismatch(r"(?i)\.jl$", f) && !in(uppercase(f), tests_not_to_run), file_list)
+global global_running_all_tests = true
 
-    to = TimerOutput()
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
-    for i = 1:length(tests_to_run)
-        file = tests_to_run[i]
-        test_name = replace(file, r"(?i)\.jl$", "")
-        @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
-        @timeit to test_name include(base_path * "/" * file)
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using LinearMaps
+using GalleryPeriodicDDE
+using GalleryWaveguide
+using Serialization
+
+try
+    @testset "All tests" begin
+        base_path = string(@__DIR__)
+        file_list = readdir(base_path)
+        tests_to_run = filter(f -> ismatch(r"(?i)\.jl$", f) && !in(uppercase(f), tests_not_to_run), file_list)
+
+        to = TimerOutput()
+
+        for i = 1:length(tests_to_run)
+            file = tests_to_run[i]
+            test_name = replace(file, r"(?i)\.jl$", "")
+            #if test_name == "tiar" || test_name == "spmf" || test_name == "transf"
+                @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
+                @timeit to test_name include(base_path * "/" * file)
+            #end
+        end
+
+        show(to; title = "Test Performance", compact = true)
+        println()
     end
-
-    show(to; title = "Test Performance", compact = true)
-    println()
+finally
+    global_running_all_tests = false
 end
