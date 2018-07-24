@@ -18,7 +18,7 @@ script:
   # delete old test coverage results
   - find $HOME/.julia -name '*.jl.*cov' -delete
   # filter out "method definition overwritten" warnings
-  - "julia --check-bounds=yes --color=yes -e 'Pkg.test(\"NonlinearEigenproblems\", coverage=true)' 2> >(grep -v \"WARNING: Method definition.\\+overwritten\")"
+  - "julia --check-bounds=yes --color=yes -e 'Pkg.test(\"NonlinearEigenproblems\", coverage=true)' 2> >(grep -v \"WARNING: Method definition.\\+overwritten in module [Compat|SpecialFunctions|Polynomials|Missings|IterativeSolvers]\")"
 before_cache:
   # add Coverage package to cache, so that we don't have to install it on each run
   - julia -e 'Pkg.add("Coverage");'
