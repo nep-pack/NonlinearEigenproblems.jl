@@ -86,7 +86,6 @@ function jd(::Type{T},
 
     # Main loop
     for k=1:maxit
-println("    ....    ", V_memory[1,k], "     ", W_memory[1,k])
         # Projected matrices
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
         v = view(V_memory, :, k+1); w = view(W_memory, :, k+1)  # next vector position
