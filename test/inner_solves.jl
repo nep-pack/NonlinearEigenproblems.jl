@@ -17,21 +17,21 @@ n=size(dep,1);
     Q,R=qr(randn(n,5));
     set_projectmatrices!(pnep,Q,Q)
 
-    λv,V=inner_solve(NEPSolver.DefaultInnerSolver,pnep,λv=[0.0,1.0]+0im,Neig=3);
+    λv,V=inner_solve(NEPSolver.DefaultInnerSolver,Complex128,pnep,λv=[0.0,1.0]+0im,Neig=3);
     @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
 
-    λv,V=inner_solve(NEPSolver.NewtonInnerSolver,pnep,λv=[0.0,1.0]+0im,V=eye(5,2),tol=eps()*100);
+    λv,V=inner_solve(NEPSolver.NewtonInnerSolver,Complex128,pnep,λv=[0.0,1.0]+0im,V=eye(5,2),tol=eps()*100);
     @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
 
     #λv,V=inner_solve(NEPSolver.SGIterInnerSolver,pnep,λv=[0.0],j=1);
     #@test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
 
-    λv,V=inner_solve(NEPSolver.IARChebInnerSolver,pnep,λv=[0,1,2,3]+0.0im);
+    λv,V=inner_solve(NEPSolver.IARChebInnerSolver,Complex128,pnep,λv=[0,1,2,3]+0.0im);
     nn=norm(compute_Mlincomb(pnep,λv[1],V[:,1]));
     @test nn < eps()*100
 
-    λv,V=inner_solve(NEPSolver.ContourBeynInnerSolver,pnep,λv=[0,1]+0.0im,Neig=3);
+    λv,V=inner_solve(NEPSolver.ContourBeynInnerSolver,Complex128,pnep,λv=[0,1]+0.0im,Neig=3);
     nn=minimum(svdvals(compute_Mder(pnep,λv[1])))
     @test nn < eps()*100
-    
+
 end
