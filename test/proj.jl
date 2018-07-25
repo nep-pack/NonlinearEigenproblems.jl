@@ -1,15 +1,18 @@
 #  Tests for the projected NEPs
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
+if !isdefined(:global_modules_loaded)
+    workspace()
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
 #using Winston # For plotting
 
-using Base.Test
+    using Base.Test
+end
 
 projtest=@testset "Projected problems" begin
 

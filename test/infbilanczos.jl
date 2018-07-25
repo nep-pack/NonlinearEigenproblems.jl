@@ -1,14 +1,18 @@
 # Test for infinite Bi-Lanczos
 
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+if !isdefined(:global_modules_loaded)
+    workspace()
+
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+end
 
 
 nep=nep_gallery("qdep0");

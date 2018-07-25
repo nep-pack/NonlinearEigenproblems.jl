@@ -1,15 +1,19 @@
 # Run tests on block Newton
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+if !isdefined(:global_modules_loaded)
+    workspace()
+
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+end
 
 @testset "blocknewton" begin
     nep=nep_gallery("dep0",4);

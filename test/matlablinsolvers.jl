@@ -1,11 +1,16 @@
 #  Tests for the Linear solvers
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
+if !isdefined(:global_modules_loaded)
+    workspace()
 
-using NEPCore
-using LinSolvers
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using LinSolvers
+    using Base.Test
+end
+
+# Always run this, since it's not loaded by load_modules_for_tests.jl
 using LinSolversMATLAB
-using Base.Test
 
 @testset "LinSolvers" begin
     A=sparse(randn(5,5));

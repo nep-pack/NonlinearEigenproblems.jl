@@ -1,8 +1,11 @@
 # Run tests for the inner solves
 
-workspace()
-using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
-using Base.Test
+if !isdefined(:global_modules_loaded)
+    workspace()
+
+    using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
+    using Base.Test
+end
 
 #import NEPSolver.inner_solve;
 #include("../src/inner_solver.jl");

@@ -1,18 +1,19 @@
 # Tests for core functionality
 
-
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
+if !isdefined(:global_modules_loaded)
+    workspace()
 
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+end
 
 
 struct TestNEP <: NEP

@@ -8,20 +8,26 @@ function to_uppercase_set(array)
     return Set{String}(map(uppercase, array))
 end
 
+function is_test_script(file)
+    # only include .jl files containing the string '@test'
+    ismatch(r"(?i)\.jl$", file) && contains(open(readstring, file), "@test")
+end
+
 # Add tests below if you wish that they are not run together with all tests
 tests_not_to_run = to_uppercase_set([
     "runtests.jl", # this file
-    "submit_test_coverage.jl", # run by CI tool
     "Beyn_parallel.jl", # currently disabled
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
     ])
 
+include("load_modules_for_tests.jl")
+
 @testset "All tests" begin
     base_path = string(@__DIR__)
     file_list = readdir(base_path)
-    tests_to_run = filter(f -> ismatch(r"(?i)\.jl$", f) && !in(uppercase(f), tests_not_to_run), file_list)
+    tests_to_run = filter(f -> is_test_script(joinpath(base_path, f)) && !in(uppercase(f), tests_not_to_run), file_list)
 
     to = TimerOutput()
 

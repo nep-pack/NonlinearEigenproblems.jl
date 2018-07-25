@@ -1,14 +1,17 @@
 # Test of companion linearization
 
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
+if !isdefined(:global_modules_loaded)
+    workspace()
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using Base.Test
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using Base.Test
+end
 
 
 comaniontest = @testset "Companion Linearization" begin

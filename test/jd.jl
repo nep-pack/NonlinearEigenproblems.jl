@@ -1,13 +1,16 @@
-workspace()
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
+if !isdefined(:global_modules_loaded)
+    workspace()
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+end
 
 
 @testset "Jacobi–Davidson" begin
@@ -36,29 +39,13 @@ println(" 6 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:
 
 
 
-println("\nTesting in only Complex64 precision (32 bit in real and 32 bit in imaginary)")
-nep = nep_gallery("pep0",30)
-TOL = 1e-4;
-λ,u = jd(Complex64, nep, tol=TOL, maxit=25, Neig = 2, displaylevel = 1, v0=ones(size(nep,1)))
-println(" Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
-println(" Smallest eigevalue found: \n λ: ",λ)
-Dc,Vc = polyeig(Complex64,nep,DefaultEigSolver)
-c = sortperm(abs.(Dc))
-println(" 4 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:4]])
-
-@test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
-@test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
-@test  abs(Dc[c[1]]-λ[1])/abs(Dc[c[1]]) < TOL*50
-@test (abs(Dc[c[2]]-λ[2])/abs(Dc[c[2]]) < TOL*50) || (abs(Dc[c[3]]-λ[2])/abs(Dc[c[3]]) < TOL*50) #Complex conjugate eigenvalues
-
-
-
 println("\nTesting SG as inner solver")
 nep = nep_gallery("real_quadratic")
 nep = SPMF_NEP(get_Av(nep), get_fv(nep))
 TOL = 1e-10;
 # Also test that a warning is issued
 @test_warn "maxit = 60 is larger than size of NEP = 4. Setting maxit = size(nep,1)" λ,u=jd(Float64, nep, tol=TOL, maxit=60, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
+λ,u=jd(Float64, nep, tol=TOL, maxit=4, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
 println(" Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
