@@ -1,4 +1,6 @@
 language: julia
+sudo: required
+dist: precise
 os:
   - linux
 julia:
