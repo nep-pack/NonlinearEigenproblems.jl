@@ -12,7 +12,7 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R)
     dd2=copy(dd);
 
     ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
-    ## from each eigenvalue that as already converged(i.e. in D) 
+    ## from each eigenvalue that as already converged(i.e. in D)
     for i=1:size(dd,1)
         for j=1:size(D,1)
             if (abs(dd2[i]-D[j])<R)
@@ -69,17 +69,17 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
         proj_nep=create_proj_NEP(nep);
 
         local linsolver::LinSolver=linsolvercreator(nep,σ);
-        
+
 
         ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
         while (m < nev) && (k < maxit)
-            # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0 
+            # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             set_projectmatrices!(proj_nep,Vk,Vk);
 
-            dd,vv = inner_solve(inner_solver_method,proj_nep,Neig=nev,σ=σ);
+            dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
 
             ### Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
-            ### in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the 
+            ### in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
             ### eigenvalues in D.
             nuv,yv = eigval_sorter(dd,vv,σ,D, 4,0.01)
 

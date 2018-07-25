@@ -93,7 +93,7 @@ function jd(::Type{T},
 
 
         # find the eigenvalue with smallest absolute value of projected NEP
-        λv,sv = inner_solve(inner_solver_method, proj_nep,
+        λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             j = conveig+1, # For SG-iter
                             λv = zeros(T,conveig+1),
                             σ=zero(T),
