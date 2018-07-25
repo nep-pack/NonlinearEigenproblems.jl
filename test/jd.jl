@@ -39,23 +39,6 @@ println(" 6 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:
 
 
 
-println("\nTesting in only Complex64 precision (32 bit in real and 32 bit in imaginary)")
-nep = nep_gallery("pep0",30)
-TOL = 1e-4;
-λ,u = jd(Complex64, nep, tol=TOL, maxit=25, Neig = 2, displaylevel = 1, v0=ones(size(nep,1)))
-println(" Resnorm of computed solution: ",compute_resnorm(nep,λ[1],u[:,1]))
-println(" Smallest eigevalue found: \n λ: ",λ)
-Dc,Vc = polyeig(Complex64,nep,DefaultEigSolver)
-c = sortperm(abs.(Dc))
-println(" 4 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:4]])
-
-@test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
-@test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
-@test  abs(Dc[c[1]]-λ[1])/abs(Dc[c[1]]) < TOL*50
-@test (abs(Dc[c[2]]-λ[2])/abs(Dc[c[2]]) < TOL*50) || (abs(Dc[c[3]]-λ[2])/abs(Dc[c[3]]) < TOL*50) #Complex conjugate eigenvalues
-
-
-
 println("\nTesting SG as inner solver")
 nep = nep_gallery("real_quadratic")
 nep = SPMF_NEP(get_Av(nep), get_fv(nep))

@@ -27,7 +27,7 @@ include("load_modules_for_tests.jl")
 @testset "All tests" begin
     base_path = string(@__DIR__)
     file_list = readdir(base_path)
-    tests_to_run = filter(f -> is_test_script(f) && !in(uppercase(f), tests_not_to_run), file_list)
+    tests_to_run = filter(f -> is_test_script(joinpath(base_path, f)) && !in(uppercase(f), tests_not_to_run), file_list)
 
     to = TimerOutput()
 

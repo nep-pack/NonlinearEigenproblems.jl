@@ -1,20 +1,24 @@
 # Run tests on Beyns contour integral method
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-workspace()
+if !isdefined(:global_modules_loaded)
+    workspace()
 
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Base.Test
-using GalleryNLEVP
+    using NEPCore
+    using NEPTypes
+    using LinSolvers
+    using NEPSolver
+    using Gallery
+    using IterativeSolvers
+    using Base.Test
+    using GalleryNLEVP
+    using LinSolversMATLAB
+end
+
+# Always run this, since it's not loaded by load_modules_for_tests.jl
 using LinSolversMATLAB
 
 

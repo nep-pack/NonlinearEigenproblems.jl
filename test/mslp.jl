@@ -3,18 +3,16 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
 
     using NEPCore
     using LinSolvers
     using IterativeSolvers
     using Base.Test
-    using LinearMaps;
+    using LinearMaps
     using NEPTypes
-    using Gallery;
-    using NEPSolver;
-    using NEPCore;
+    using Gallery
+    using NEPSolver
+    using NEPCore
 end
 
 
