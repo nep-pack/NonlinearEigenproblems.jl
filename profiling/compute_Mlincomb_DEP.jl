@@ -3,10 +3,9 @@
 #workspace(); push!(LOAD_PATH, string(@__DIR__, "/../src"));push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra")); push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide")); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver; using Gallery; using IterativeSolvers; using Base.Test
 
 
-import NEPSolver.inner_solve; include("../src/inner_solver.jl");import NEPSolver.iar; include("../src/method_iar.jl");import NEPSolver.tiar; include("../src/method_tiar.jl");import NEPSolver.iar_chebyshev; include("../src/method_iar_chebyshev.jl");
 
 
-nep=nep_gallery("dep0_tridiag",3)
+nep=nep_gallery("dep0_tridiag",10000)
 #nep=nep_gallery("dep0")
 #nep.tauv[2]=0
 #nep.A[1]=zeros(nep.A[1])
@@ -22,9 +21,8 @@ function compute_Mlincomb_DEP(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 	Av=get_Av(nep)
 	z=zeros(V[:,1])
 	for j=1:length(nep.tauv)
-		w=expm(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1);
-		w=w';
-		z+=Av[j+1]*sum(broadcast(*,V,w),2);
+		w=exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1);
+		z+=Av[j+1]*sum(broadcast(*,V,w.'),2);
 	end
 	if k>1
 		z=-V[:,2]+z
@@ -37,7 +35,7 @@ end
 #compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_DEP(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 
 n=size(nep,1);	k=1;
-V=rand(n,k);	λ=1;	#TODO: if λ complex doesn't work. WHY?
+V=rand(n,k);	λ=im;	#TODO: if λ complex doesn't work. WHY?
 z1=compute_Mlincomb_DEP(nep,λ,V)
 @time z1=compute_Mlincomb_DEP(nep,λ,V)
 
@@ -47,4 +45,4 @@ z2=compute_Mlincomb(nep,λ,V)
 @time z2=compute_Mlincomb(nep,λ,V)
 
 
-println(norm(z1-z2))
+println("Error=",norm(z1-z2))
