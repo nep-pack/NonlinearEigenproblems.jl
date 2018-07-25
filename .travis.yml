@@ -1,6 +1,6 @@
 language: julia
 sudo: required
-dist: precise
+dist: trusty
 os:
   - linux
 julia:
