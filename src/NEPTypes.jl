@@ -815,18 +815,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
     include("nep_transformations.jl")
 
-    # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
-        n,k=size(V); Av=get_Av(nep)
-        V=broadcast(*,V,a.');
-        T=eltype(V)
-        z=zeros(T,n)
-        for j=1:length(nep.tauv)
-            w=exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1);
-            z+=Av[j+1]*sum(broadcast(*,V,w.'),2);
-        end
-        if k>1 z-=view(V,:,2:2) end
-        return z-λ*view(V,:,1:1)
-    end
+
 
 end

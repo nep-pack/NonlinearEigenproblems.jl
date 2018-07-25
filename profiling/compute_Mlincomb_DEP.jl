@@ -10,6 +10,22 @@ V=rand(n,k);	λ=rand()*im+rand();	#TODO: if λ complex doesn't work. WHY?
 a=rand(k)
 
 z1=compute_Mlincomb(nep,λ,copy(V),a=a)
+
+# structure exploitation for DEP (TODO: document this)
+import NEPCore.compute_Mlincomb
+function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
+    n,k=size(V); Av=get_Av(nep)
+    V=broadcast(*,V,a.');
+    T=eltype(V)
+    z=zeros(T,n)
+    for j=1:length(nep.tauv)
+        w=exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1);
+        z+=Av[j+1]*sum(broadcast(*,V,w.'),2);
+    end
+    if k>1 z-=view(V,:,2:2) end
+    return z-λ*view(V,:,1:1)
+end
+
 @time z1=compute_Mlincomb(nep,λ,copy(V),a=a)
 
 # old way of compute_Mlincomb used for DEP
