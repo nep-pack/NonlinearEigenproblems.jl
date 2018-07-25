@@ -194,7 +194,7 @@ function tiar(
     end
 
     # NoConvergenceException
-    if conv_eig<Neig
+    if conv_eig<Neig && false
        err=err[end,1:Neig];
        idx=sortperm(err); # sort the error
        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];

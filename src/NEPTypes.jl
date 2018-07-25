@@ -54,7 +54,7 @@ module NEPTypes
 
 A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP. A NEP which is of this must have the function `create_proj_NEP(orgnep::ProjectableNEP)` implemented. This function must return a `Proj_NEP` See also `set_projectmatrices!".
 
-# Example: 
+# Example:
 julia> nep=nep_gallery("dep0");
 julia> typeof(nep)
 NEPTypes.DEP
@@ -793,7 +793,7 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
 
 
     function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
-        return (nep.n,nep.n) 
+        return (nep.n,nep.n)
     end
 
 """
