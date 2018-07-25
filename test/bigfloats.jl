@@ -1,6 +1,6 @@
 # Unit  tests for bigfloats. Type stability of methods.
 
-if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../src"))

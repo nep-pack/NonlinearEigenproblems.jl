@@ -1,7 +1,5 @@
 #  Tests for the Linear solvers
-if !isdefined(:global_running_all_tests) || global_running_all_tests != true
-    workspace()
-end
+workspace()
 
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 

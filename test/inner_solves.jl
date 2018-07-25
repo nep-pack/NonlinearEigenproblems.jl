@@ -1,6 +1,6 @@
 # Run tests for the inner solves
 
-if !isdefined(:global_running_all_tests) || global_running_all_tests != true
+if !isdefined(:global_modules_loaded)
     workspace()
 
     using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
