@@ -87,7 +87,7 @@ function iar(
                 QQ,RR=qr(VV); # Project on this space
                 set_projectmatrices!(pnep,QQ,QQ);
                 # Make a call to the inner solve method
-                λproj,Qproj=inner_solve(inner_solver_method,pnep,
+                λproj,Qproj=inner_solve(inner_solver_method,T,pnep,
                                         V=RR*Z,λv=copy(λ),
                                         Neig=size(λ,1)+3,
                                         σ=mean(λ),

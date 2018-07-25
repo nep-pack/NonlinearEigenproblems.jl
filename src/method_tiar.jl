@@ -161,7 +161,7 @@ function tiar(
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 set_projectmatrices!(pnep,Z[:,1:k],Z[:,1:k]);
                 # Make a call to the inner solve method
-                λproj,Qproj=inner_solve(inner_solver_method,pnep,
+                λproj,Qproj=inner_solve(inner_solver_method,T,pnep,
                                         λv=copy(λ),
                                         Neig=size(λ,1)+3,
                                         σ=σ,
