@@ -20,6 +20,7 @@ tests_not_to_run = to_uppercase_set([
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
+    "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
     ])
 
 include("load_modules_for_tests.jl")

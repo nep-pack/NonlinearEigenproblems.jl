@@ -8,12 +8,12 @@ push!(LOAD_PATH, string(@__DIR__,"/../../"))	# looks for modules in the current 
 
 using MATLAB
 
-using Gallery
-using GalleryWaveguide
-using NEPSolver
 using NEPCore
 using NEPTypes
 using LinSolvers
+using NEPSolver
+using Gallery
+using GalleryWaveguide
 
 
 export matlab_debug_WEP_FD

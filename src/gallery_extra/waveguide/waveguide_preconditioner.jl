@@ -52,7 +52,7 @@
     function generate_smw_matrix(nep::WEP_FD, N::Integer, σ)
         # OBS: n = nz, and nz = nx + 4;
         if( (nep.nz+4) != nep.nx)
-            error("This implementation requires nz = nx + 4. Provided NEP has nz = ", nep.nz, " and nx = ", nep.nx)
+            error("This implementation requires nx = nz + 4. Provided NEP has nz = ", nep.nz, " and nx = ", nep.nx)
         end
         if( !isinteger(nep.nz/N) )
             error("This implementation is uniform in the blocking and therefore requires nz/N tobe an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )

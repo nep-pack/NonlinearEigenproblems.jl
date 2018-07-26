@@ -320,12 +320,11 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
                 D[j, jj] = der_coeff[jj]
             end
         end
-        
+
         #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         y2_temp::Array{Complex128,1} =
             (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]);
                                   nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
-        
         for jj = 2:na
             #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
             y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
@@ -594,4 +593,3 @@ function sqrt_derivative(a,b,c, d=0, x=0)
     end
     return derivatives
 end
-

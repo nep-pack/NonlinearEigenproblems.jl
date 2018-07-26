@@ -6,7 +6,10 @@ workspace()
 #OBS: Only needed to run the debug
 push!(LOAD_PATH, string(@__DIR__, "/../gallery_extra/waveguide")) # looks for modules in the correct directory
 using waveguide_debug
+using Base.Test
 
+
+@testset "WEP_large" begin
 
 
 println("===========================")
@@ -36,3 +39,5 @@ matlab_debug_Schur_WEP_FD(49, 45, delta)
 fft_debug_mateq(431, 427, delta)
 
 debug_Sylvester_SMW_WEP(109, 105, delta, 7)
+
+end

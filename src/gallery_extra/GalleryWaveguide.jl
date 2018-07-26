@@ -5,7 +5,7 @@ using NEPTypes
 using LinSolvers
 using IterativeSolvers
 using LinearMaps
-using Gallery    
+using Gallery
 
 
 export wep_generate_preconditioner
