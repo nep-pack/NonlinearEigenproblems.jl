@@ -828,7 +828,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             z+=Av[j+1]*sum(broadcast(*,V,w.'),2);
         end
         if k>1 z-=view(V,:,2:2) end
-        return z-λ*view(V,:,1:1)
+        return vec(z-λ*view(V,:,1:1))
     end
 
 end
