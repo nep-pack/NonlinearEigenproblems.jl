@@ -100,7 +100,7 @@ Executes z if displaylevel>0.
         errmeasure::Function = default_errmeasure(nep::NEP)
         )
 
-        A=v->compute_Mlincomb(nept,conj(λ),compute_Mlincomb(nep,λ,v))
+        A=v->compute_Mlincomb(nept,complex(conj(λ)),compute_Mlincomb(nep,complex(λ),complex(v)))
 
         # initialization
         x/=norm(x); v=A(x); ρ=x⋅v; q=zeros(Complex128,size(nep,1));

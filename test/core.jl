@@ -26,7 +26,7 @@ nep=nep_gallery("dep0");
 n=size(nep,1);
 
 ## Mlincomb_tests
-V=randn(n,3);
+V=complex(randn(n,3));
 λ=0.3+1im;
 z1=compute_Mlincomb(nep,λ,V)
 z2=compute_Mlincomb(nep,λ,V,a=[1,1,1])
