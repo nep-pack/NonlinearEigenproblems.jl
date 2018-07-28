@@ -6,7 +6,7 @@
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
 *<p align="center">M(λ)v=0</p>*
-where *M* is an *nxn*-matrix depending on a parameter. This package aims to provide state-of-the-art algorithms to solve this problem, as well as framework to formulate applications and easy access to benchmark problems.
+where *M* is an *nxn*-matrix depending on a parameter. This package aims to provide state-of-the-art algorithms to solve this problem, as well as a framework to formulate applications and easy access to benchmark problems.
 
 # How to use it?
 
