@@ -822,13 +822,14 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         Av=get_Av(nep)
         V=broadcast(*,V,a.');
         T=eltype(V)
-        z=zeros(T,n,1)
+        z=zeros(T,n)
         for j=1:length(nep.tauv)
             w=exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1);
-            z+=Av[j+1]*sum(broadcast(*,V,w.'),2);
+            z[:]+=Av[j+1]*sum(broadcast(*,V,w.'),2);
         end
-        if k>1 z-=view(V,:,2:2) end
-        return vec(z-λ*view(V,:,1:1))
+        if k>1 z[:]-=view(V,:,2:2) end
+        z[:]-=λ*view(V,:,1:1);
+        return z
     end
 
 end
