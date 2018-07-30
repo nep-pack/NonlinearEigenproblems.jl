@@ -49,6 +49,10 @@ function tiar(
     inner_solver_method=DefaultInnerSolver
     )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
+    # Ensure types σ and v are of type T
+    σ=T(σ)
+    v=Array{T,1}(v)
+
     # initialization
     n = size(nep,1); m = maxit;
 

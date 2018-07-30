@@ -39,6 +39,10 @@ function iar(
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
+    # Ensure types σ and v are of type T
+    σ=T(σ)
+    v=Array{T,1}(v)
+    
     n = size(nep,1);
     m = maxit;
 
