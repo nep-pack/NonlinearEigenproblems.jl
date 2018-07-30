@@ -168,6 +168,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         λ::T=T(λ)
         v=Array{T,1}(v)
         c=Array{T,1}(c)
+        n=size(v,1);
 
         local linsolver::LinSolver=linsolvercreator(nep,λ)
 
@@ -209,7 +210,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 
                 # Compute eigenvector update
-                Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,v)) #M*v);
+                Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
@@ -478,8 +479,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                        linsolvercreator::Function=default_linsolvercreator)
 
 
+        # Ensure types λ and v are of type T
+        λ=T(λ)
+        v=Array{T,1}(v)
+        c=Array{T,1}(c)
+
         n = size(nep,1);
-        v = Array{T,1}(v);
         local err;
 
         en = zeros(n);
@@ -504,7 +509,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 end
 
 
-                d = dot(Q[:,n],compute_Mlincomb(nep,λ,v,[T(1)],1));
+                d = dot(Q[:,n],compute_Mlincomb(nep,λ,reshape(v,n,1),[T(1)],1));
                 #d = dot(Q[:,n],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
                 λ = λ - R[n,n]/d;
             end
