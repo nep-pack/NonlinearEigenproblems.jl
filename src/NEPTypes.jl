@@ -252,15 +252,15 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 ```
 matrices A_i, and tauv is a vector of the values tau_i
 """
-    type DEP <: AbstractSPMF
+    type DEP{T<:AbstractMatrix} <: AbstractSPMF
         n::Int
-        A::Array{<:AbstractMatrix}     # An array of matrices (full or sparse matrices)
+        A::Array{T}     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
-        function DEP(AA,tauv=[0,1.0])
-            n=size(AA[1],1)
-            this=new(n,reshape(AA,size(AA,1)),tauv);   # allow for 1xn matrices
-            return this;
-        end
+    end
+    function DEP(AA::Array{T,1},tauv=[0,1.0]) where {T<:AbstractMatrix}
+        n=size(AA[1],1)
+        this=DEP{T}(n,AA,tauv);   # allow for 1xn matrices
+        return this;
     end
 
 # Compute the ith derivative of a DEP
@@ -829,6 +829,10 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         if k>1 z[:]-=view(V,:,2:2) end
         z[:]-=λ*view(V,:,1:1);
         return z
+    end
+    # Automatically promote to complex if λ is real 
+    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a=ones(Complex{T},size(V,2))) where T<:Real
+        return compute_Mlincomb(nep,complex(λ),V;a=a)
     end
 
 end
