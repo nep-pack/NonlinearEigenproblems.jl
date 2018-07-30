@@ -93,7 +93,7 @@ module LinSolvers
 """
       A linear solver based on GMRES (built into Julia)
 """
-    struct GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
+    mutable struct GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
         A::LinearMap{T_num}
         kwargs
         gmres_log::Bool
@@ -136,7 +136,7 @@ module LinSolvers
 """
     A linear EP solver that calls Julia's in-built eig()
 """
-    struct NativeEigSolver <: EigSolver
+    mutable struct NativeEigSolver <: EigSolver
         A
         B
 
@@ -171,7 +171,7 @@ module LinSolvers
 """
     A linear EP solve that calls Julia's in-built eigs()
 """
-    struct NativeEigSSolver <: EigSolver
+    mutable struct NativeEigSSolver <: EigSolver
         A
         B
 
@@ -219,7 +219,7 @@ module LinSolvers
 """
     Default linear EP solver which calls checks for sparsity and accordingly assigns an appropriate solver
 """
-    struct DefaultEigSolver <: EigSolver
+    mutable struct DefaultEigSolver <: EigSolver
         subsolver::EigSolver
 
         function DefaultEigSolver(A,B=zeros(eltype(A),0))

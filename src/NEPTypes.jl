@@ -679,7 +679,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
 #        end
 #    end
 
-    struct Proj_SPMF_NEP <: Proj_NEP
+    mutable struct Proj_SPMF_NEP <: Proj_NEP
         orgnep::AbstractSPMF
         V
         W

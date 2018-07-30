@@ -7,14 +7,14 @@ export effenberger_deflation
 
 
 """
-    type ShiftScaledNEP <: NEP
+    struct ShiftScaledNEP <: NEP
     ShiftScaleNEP(orgnep::NEP[,shift=0][,scale=1])
 
 Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M(scale*λ+shift). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
 
 """
 
-type ShiftScaledNEP <: NEP
+struct ShiftScaledNEP <: NEP
     shift::Number
     scale::Number
     orgnep::NEP
@@ -28,7 +28,7 @@ Transforms the orgnep by defining a new NEP from the relation
 T(λ)=M(scale * λ+shift) where M is the orgnep. This function tries
  to preserve the NEP type, e.g., a shift_and_scale operation on
 an SPMF-object, return an SPMF object. If it cannot preserve
-the type, it will return a nep of the type `ShiftScaledNEP`.
+the type, it will return a nep of the struct `ShiftScaledNEP`.
 
 #    Example
 ```julia-repl
@@ -153,7 +153,7 @@ end
 Hidden type representing a transformed NEP
 """
 
-type MobiusTransformedNEP <: NEP
+struct MobiusTransformedNEP <: NEP
     a::Number
     b::Number
     c::Number
@@ -236,7 +236,7 @@ function effenberger_deflation(nep::NEP,S0,V0)
 end
 
 
-type DeflatedNEP <: NEP
+struct DeflatedNEP <: NEP
     orgnep::NEP
     V0
     S0
