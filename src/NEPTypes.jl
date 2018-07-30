@@ -254,12 +254,12 @@ matrices A_i, and tauv is a vector of the values tau_i
 """
     type DEP{T<:AbstractMatrix} <: AbstractSPMF
         n::Int
-        A::Array{T}     # An array of matrices (full or sparse matrices)
+        A::Array{T,1}     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
     end
     function DEP(AA::Array{T,1},tauv=[0,1.0]) where {T<:AbstractMatrix}
         n=size(AA[1],1)
-        this=DEP{T}(n,AA,tauv);   # allow for 1xn matrices
+        this=DEP{T}(n,AA,tauv);  
         return this;
     end
 
