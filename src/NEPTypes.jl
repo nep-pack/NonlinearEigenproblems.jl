@@ -835,4 +835,8 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return compute_Mlincomb(nep,complex(λ),V;a=a)
     end
 
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Array{T,1};a=ones(T,size(V,2))) where T<:Number
+        return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
+    end
+
 end
