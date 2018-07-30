@@ -11,16 +11,16 @@ abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 
 # Data collected in a precomputation phase
 abstract type AbstractPrecomputeData end
-type PrecomputeDataDEP <: AbstractPrecomputeData
+struct PrecomputeDataDEP <: AbstractPrecomputeData
     Tc; Ttau;
 end
-type PrecomputeDataPEP <: AbstractPrecomputeData
+struct PrecomputeDataPEP <: AbstractPrecomputeData
     Tc; D;
 end
-type PrecomputeDataSPMF <: AbstractPrecomputeData
+struct PrecomputeDataSPMF <: AbstractPrecomputeData
     Tc; DDf;
 end
-type PrecomputeDataNEP <: AbstractPrecomputeData
+struct PrecomputeDataNEP <: AbstractPrecomputeData
     P; P_inv; α; γ; σ;
 end
 

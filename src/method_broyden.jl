@@ -6,7 +6,7 @@ export broyden;
 
 abstract type NEPBroydenDeflated <: NEP  end
 
-type NEPBroydenDeflatedEll1 <: NEPBroydenDeflated;
+struct NEPBroydenDeflatedEll1 <: NEPBroydenDeflated;
     orgnep::NEP;
     S::AbstractArray;
     X::AbstractArray;
@@ -17,7 +17,7 @@ type NEPBroydenDeflatedEll1 <: NEPBroydenDeflated;
     
 end
 
-type NEPBroydenDeflatedEll2 <: NEPBroydenDeflated;
+struct NEPBroydenDeflatedEll2 <: NEPBroydenDeflated;
     orgnep::NEP;
     S::AbstractArray;
     X::AbstractArray;

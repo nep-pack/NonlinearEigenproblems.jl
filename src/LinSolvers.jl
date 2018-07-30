@@ -37,7 +37,7 @@ module LinSolvers
     """
         The linear solver associated with julia factorize()
     """
-    type DefaultLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
+    struct DefaultLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
         A::T_mat
         Afact
 
@@ -66,7 +66,7 @@ module LinSolvers
 """
       A linear solver which calls backslash directly (no pre-factorization)
 """
-    type BackslashLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
+    struct BackslashLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
         A::T_mat
     end
     BackslashLinSolver{T_num}(A::AbstractMatrix{T_num}) = new(A)
@@ -93,7 +93,7 @@ module LinSolvers
 """
       A linear solver based on GMRES (built into Julia)
 """
-    type GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
+    struct GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
         A::LinearMap{T_num}
         kwargs
         gmres_log::Bool
@@ -136,7 +136,7 @@ module LinSolvers
 """
     A linear EP solver that calls Julia's in-built eig()
 """
-    type NativeEigSolver <: EigSolver
+    struct NativeEigSolver <: EigSolver
         A
         B
 
@@ -171,7 +171,7 @@ module LinSolvers
 """
     A linear EP solve that calls Julia's in-built eigs()
 """
-    type NativeEigSSolver <: EigSolver
+    struct NativeEigSSolver <: EigSolver
         A
         B
 
@@ -219,7 +219,7 @@ module LinSolvers
 """
     Default linear EP solver which calls checks for sparsity and accordingly assigns an appropriate solver
 """
-    type DefaultEigSolver <: EigSolver
+    struct DefaultEigSolver <: EigSolver
         subsolver::EigSolver
 
         function DefaultEigSolver(A,B=zeros(eltype(A),0))
