@@ -120,7 +120,7 @@ function jd(::Type{T},
 
         # solve for basis extension using comment on top of page 367 to avoid
         # matrix access. The orthogonalization to u comes anyway since u in V
-        pk[:] = compute_Mlincomb(nep,λ,u,[1],1)
+        pk[:] = compute_Mlincomb(nep,λ,u,[T(1)],1)
         linsolver = linsolvercreator(nep,λ)
         v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)

@@ -260,7 +260,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
         while (abs(Δλ)>TOL) & (count<max_iter)
             count = count+1
             z1 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1))
-            z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[1],1)
+            z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[T(1)],1)
 
             Δλ =- dot(y,z1)/dot(y,z2);
             λ_iter += Δλ

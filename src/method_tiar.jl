@@ -72,7 +72,7 @@ function tiar(
     h  = zeros(T,m+1);
     hh = zeros(T,m+1);
     y  = zeros(T,n,m+1);
-    α=γ.^(0:m); α[1]=zero(T);
+    α=Array{T,1}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m+1,m+1);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
