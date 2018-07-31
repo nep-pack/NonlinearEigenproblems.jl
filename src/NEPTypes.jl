@@ -98,7 +98,7 @@ Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ
     end
 
     """
-    type SPMF_NEP <: AbstractSPMF
+    struct SPMF_NEP <: AbstractSPMF
 
 An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions,
 i.e.,
@@ -109,7 +109,7 @@ All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
 """
-    type SPMF_NEP <: AbstractSPMF
+    struct SPMF_NEP <: AbstractSPMF
          n::Int
          A::Array   # Array of Array of matrices
          fi::Array  # Array of functions
@@ -333,12 +333,12 @@ matrices A_i, and tauv is a vector of the values tau_i
     #
 
     """
-    type PEP <: AbstractSPMF
+    struct PEP <: AbstractSPMF
 
 A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
 """
 
-    type PEP <: AbstractSPMF
+    struct PEP <: AbstractSPMF
         n::Int
         A::Array   # Monomial coefficients of PEP
     end
@@ -517,13 +517,13 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     ###########################################################
     # Rational eigenvalue problem - REP
 """
-    type REP <: AbstractSPMF
+    struct REP <: AbstractSPMF
 
 A REP represents a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
 matrices are of size n times n and s_i and q_i are polynomials.
 """
-    type REP <: AbstractSPMF
+    struct REP <: AbstractSPMF
         n::Int
         A::Array   # Monomial coefficients of REP
         si::Array  # numerator polynomials
@@ -675,7 +675,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
 
 
     # concrete types for projection of NEPs and PEPs
-#    type Proj_PEP <: Proj_NEP
+#    struct Proj_PEP <: Proj_NEP
 #        orgnep::PEP
 #        V
 #        W
@@ -686,7 +686,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
 #        end
 #    end
 
-    type Proj_SPMF_NEP <: Proj_NEP
+    mutable struct Proj_SPMF_NEP <: Proj_NEP
         orgnep::AbstractSPMF
         V
         W

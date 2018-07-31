@@ -310,14 +310,14 @@ Default behaviour: Check sparsity of `compute_Mder(nep,0)`
     #
 
     """
-    type NoConvergenceException
+    struct NoConvergenceException
 Exeption thrown in case an iterative method does not converge\\
 `λ` = current eigenvalue(s) approximation\\
 `v` = current eigenvector(s) approximation\\
 `errmeasure` = The error measure of the current eigenpair(s) approximation\\
 `msg`
 """
-    type NoConvergenceException <: Exception
+    struct NoConvergenceException <: Exception
         "current eigenvalue(s) approximation"
         λ
         "current eigenvector(s) approximation"
@@ -350,10 +350,10 @@ The default way of measuring error (residual norm).
     end
 
     """
-    type LostOrthogonalityException
+    struct LostOrthogonalityException
 `msg`
 """
-    type LostOrthogonalityException <: Exception
+    struct LostOrthogonalityException <: Exception
         msg
     end
 

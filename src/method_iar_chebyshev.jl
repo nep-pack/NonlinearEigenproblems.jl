@@ -9,18 +9,19 @@ abstract type ComputeY0ChebSPMF_NEP <: ComputeY0Cheb end;
 abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 
 
-# Data collected in a precomputation phase
+# Data collected in a precomputation phase. 
+# These are made mutable (could be made immutable by appropriate modification in precompute_data)
 abstract type AbstractPrecomputeData end
-type PrecomputeDataDEP <: AbstractPrecomputeData
+mutable struct PrecomputeDataDEP <: AbstractPrecomputeData
     Tc; Ttau;
 end
-type PrecomputeDataPEP <: AbstractPrecomputeData
+mutable struct PrecomputeDataPEP <: AbstractPrecomputeData
     Tc; D;
 end
-type PrecomputeDataSPMF <: AbstractPrecomputeData
+mutable struct PrecomputeDataSPMF <: AbstractPrecomputeData
     Tc; DDf;
 end
-type PrecomputeDataNEP <: AbstractPrecomputeData
+mutable struct PrecomputeDataNEP <: AbstractPrecomputeData
     P; P_inv; α; γ; σ;
 end
 
