@@ -168,6 +168,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         λ::T=T(λ)
         v=Array{T,1}(v)
         c=Array{T,1}(c)
+        n=size(v,1);
 
         local linsolver::LinSolver=linsolvercreator(nep,λ)
 
@@ -209,7 +210,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 
                 # Compute eigenvector update
-                Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,v)) #M*v);
+                Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
@@ -273,19 +274,19 @@ julia> λ1-λ2
 * Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.
 * A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 """
-    augnewton(nep::NEP;params...)=augnewton(Complex128,nep;params...)
-    function augnewton{T}(::Type{T},
-                          nep::NEP;
-                          errmeasure::Function = default_errmeasure(nep::NEP),
-                          tol=eps(real(T))*100,
-                          maxit=30,
-                          λ=zero(T),
-                          v=randn(real(T),size(nep,1)),
-                          c=v,
-                          displaylevel=0,
-                          linsolvercreator::Function=backslash_linsolvercreator,
-                          armijo_factor=1,
-                          armijo_max=5)
+    augnewton(nep::NEP;kwargs...)=augnewton(Complex128,nep::NEP;kwargs...)
+    function augnewton(::Type{T},
+                       nep::NEP;
+                       errmeasure::Function = default_errmeasure(nep::NEP),
+                       tol::Number=eps(real(T))*100,
+                       maxit::Int=30,
+                       λ::Number=zero(T),
+                       v::Vector=randn(real(T),size(nep,1)),
+                       c::Vector=v,
+                       displaylevel::Int=0,
+                       linsolvercreator::Function=backslash_linsolvercreator,
+                       armijo_factor::Number=one(real(T)),
+                       armijo_max::Int=5) where {T<:Number}
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -300,7 +301,7 @@ julia> λ1-λ2
         end
         v=v/dot(c,v);
         local linsolver::LinSolver;
-
+        local tempvec=Array{T,1}(size(nep,1));
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -316,7 +317,7 @@ julia> λ1-λ2
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
                 linsolver = linsolvercreator(nep,λ)
-                tempvec = Array{T,1}(lin_solve(linsolver, z, tol=tol));
+                tempvec[:] = Array{T,1}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
                     c = v /norm(v)^2
@@ -347,10 +348,10 @@ julia> λ1-λ2
             @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
-                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
-                v=v/dot(c,v)
+                #v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                #v=v/dot(c,v)
             end
-            return (λ,v)
+            return (λ,v)::Tuple{T,Array{T,1}}
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
@@ -478,8 +479,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                        linsolvercreator::Function=default_linsolvercreator)
 
 
+        # Ensure types λ and v are of type T
+        λ=T(λ)
+        v=Array{T,1}(v)
+        c=Array{T,1}(c)
+
         n = size(nep,1);
-        v = Array{T,1}(v);
         local err;
 
         en = zeros(n);
@@ -504,7 +509,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 end
 
 
-                d = dot(Q[:,n],compute_Mlincomb(nep,λ,v,[T(1)],1));
+                d = dot(Q[:,n],compute_Mlincomb(nep,λ,reshape(v,n,1),[T(1)],1));
                 #d = dot(Q[:,n],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
                 λ = λ - R[n,n]/d;
             end
