@@ -46,14 +46,14 @@ Iteration 14: Error: 2.525942e-15
 * D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372
 """
 function blocknewton(nep::AbstractSPMF;
-                     S=zeros(2,2),
-                     X=eye(size(nep,1),2),
+                     S::Matrix=zeros(2,2),
+                     X::Matrix=eye(size(nep,1),2),
                      errmeasure::Function =  default_block_errmeasure(nep::NEP),
-                     tol=eps(real(eltype(S)))*100,
-                     maxit=10,
-                     displaylevel=0,
-                     armijo_factor=1,
-                     armijo_max=5)
+                     tol::Real=eps(real(eltype(S)))*100,
+                     maxit::Integer=10,
+                     displaylevel::Integer=0,
+                     armijo_factor::Real=1,
+                     armijo_max::Integer=5)
     T=complex(eltype(S))    
     # This implementation is for complex arithmetic only
     # since the original paper is based on the Schur form (not real Schur form)
