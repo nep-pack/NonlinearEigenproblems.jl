@@ -266,11 +266,9 @@ matrices A_i, and tauv is a vector of the values tau_i
 # Compute the ith derivative of a DEP
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
         local M,I;
+        # T is eltype(nep.A[1]) unless λ complex, then T is complex(eltype(nep.A[1]))
         # T can be determined compile time, since DEP parametric type
-        T=eltype(nep.A[1]); 
-        if (isa(λ,Complex)) 
-            T=complex(T)
-        end
+        T=isa(λ,Complex)?complex(eltype(nep.A[1])) : eltype(nep.A[1]);
         
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
             M=spzeros(T,nep.n,nep.n)
@@ -282,7 +280,8 @@ matrices A_i, and tauv is a vector of the values tau_i
         if i==0; M=-λ*I;  end
         if i==1; M=-I; end
         for j=1:size(nep.A,1)
-            M+=nep.A[j]*(exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i)
+            a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
+            M += nep.A[j]*a
         end
         return M
     end
