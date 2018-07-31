@@ -43,7 +43,7 @@ function mslp(::Type{T},
                  eigsolvertype::DataType=DefaultEigSolver) where {T<:Number}
 
     # Ensure types λ is of type T
-    λ = T(λ)
+    λ::T = T(λ)
 
     # Allocate memory for the eigenvector approximation
     v = zeros(T,size(nep,1));
@@ -56,13 +56,14 @@ function mslp(::Type{T},
         # solve generalized eigenvalue problem
         solver=eigsolvertype(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1));
 
-        d,v = eig_solve(solver,target=0,nev=1);
+        # This will throw an error if the eigenvector is not of correct type
+        d,v[:] = eig_solve(solver,target=0,nev=1);
 
         # update eigenvalue
-        λ += -d
+        λ += -d # This will throw an error if the eigval update d is not of correct type
 
         # Normalize
-        v=v/norm(v);
+        normalize!(v)
 
         # Checck for convergence
         err=errmeasure(λ,v)
