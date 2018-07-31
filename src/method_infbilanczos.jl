@@ -26,24 +26,26 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
     function infbilanczos(::Type{T},
                           nep::NEP,
                           nept::NEP;  # Transposed NEP
-                          maxit=30,
+                          maxit::Integer=30,
                           linsolvercreator::Function=default_linsolvercreator,
                           linsolvertcreator::Function=linsolvercreator,
-                          v=randn(real(T),size(nep,1)),
-                          u=randn(real(T),size(nep,1)),
-                          tol=1e-12,
-                          Neig=5,                                  
+                          v::Vector=randn(real(T),size(nep,1)),
+                          u::Vector=randn(real(T),size(nep,1)),
+                          tol::Real=1e-12,
+                          Neig::Integer=5,
                           errmeasure::Function = default_errmeasure(nep::NEP),
-                          σ=0.0,
-                          γ=1,
-                          displaylevel=0,
-                          check_error_every=1
-                                     ) where {T<:Number}
+                          σ::Number=0.0,
+                          γ::Number=1,
+                          displaylevel::Integer=0,
+                          check_error_every::Integer=1
+                          ) where {T<:Number}
 
         
         n=size(nep,1);
         σ=T(σ);
-
+        v=Vector{T}(v);
+        u=Vector{T}(v);
+        
         # Linear systems solver for both M(σ) and M(σ)^H
 
         # Shift σ \neq 0 not implemented

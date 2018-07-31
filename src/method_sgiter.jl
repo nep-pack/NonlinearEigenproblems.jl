@@ -28,15 +28,15 @@ sgiter(nep::NEP, j::Integer; params...) = sgiter(Complex128, nep, j; params...)
 function sgiter(::Type{T},
                    nep::NEP,
                    j::Integer;
-                   λ_min = NaN,
-                   λ_max = NaN,
-                   λ = zero(real(T)),
+                   λ_min::Real = NaN,
+                   λ_max::Real = NaN,
+                   λ::Number = zero(real(T)),
                    errmeasure::Function = default_errmeasure(nep),
-                   tol = eps(real(T)) * 100,
-                   maxit = 100,
-                   displaylevel = 0,
+                   tol::Real = eps(real(T)) * 100,
+                   maxit::Integer = 100,
+                   displaylevel::Integer = 0,
                    eigsolvertype::DataType = DefaultEigSolver
-                   ) where {T}
+                   ) where {T<:Number}
 
     n = size(nep,1)
     if (j > n) || (j <= 0)

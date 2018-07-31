@@ -566,19 +566,20 @@ julia> broyden(nep,displaylevel=2,check_error_every=1);  % Prints out a lot more
 """
 broyden(nep::NEP;params...)=broyden(Complex128,nep,nep;params...)    
 broyden(nep::NEP,approxnep::NEP;params...)=broyden(Complex128,nep,approxnep;params...)    
-function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
+function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                  pmax::Integer=3,
-                 c=ones(TT,size(nep,1)),
-                 maxit=1000,addconj=false,
-                 check_error_every=10,
-                 print_error_every=1,
-                 broyden_variant=:T,threshold=0.2,
-                 tol=1e-12,
+                 c::Vector=ones(TT,size(nep,1)),
+                 maxit::Integer=1000,addconj=false,
+                 check_error_every::Integer=10,
+                 print_error_every::Integer=1,
+                 broyden_variant::Symbol=:T,
+                 threshold::Real=0.2,
+                 tol::Real=1e-12,
                  errmeasure::Function=broyden_default_errmeasure,
-                 add_nans=false,
-                 include_restart_timing=true,
-                 eigmethod=:eig,
-                 displaylevel=0
+                 add_nans::Bool=false,
+                 include_restart_timing::Bool=true,
+                 eigmethod::Symbol=:eig,
+                 displaylevel::Integer=0
                  ) where {TT<:Number}
 
     time0=time_ns();

@@ -30,15 +30,15 @@ function contour_beyn(::Type{T},
                          nep::NEP;
                          errmeasure::Function =
                          default_errmeasure(nep::NEP),
-                         tol=eps(real(T))*100,
-                         maxit=10,
-                         σ=zero(complex(T)),
-                         displaylevel=0,
+                         tol::Real=eps(real(T))*100,
+                         maxit::Integer=10,
+                         σ::Number=zero(complex(T)),
+                         displaylevel::Integer=0,
                          linsolvercreator::Function=backslash_linsolvercreator,
-                         k=3, # Number of eigenvals to compute
-                         radius=1, # integration radius
-                         quad_method=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
-                         N=1000  # Nof quadrature nodes 
+                         k::Integer=3, # Number of eigenvals to compute
+                         radius::Real=1, # integration radius
+                         quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
+                         N::Integer=1000  # Nof quadrature nodes 
                          )where{T<:Number}
     
     g=t -> radius*exp(1im*t)

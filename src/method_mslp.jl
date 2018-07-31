@@ -36,11 +36,11 @@ function mslp(::Type{T},
                  nep::NEP;
                  errmeasure::Function =
                  default_errmeasure(nep::NEP),
-                 tol=eps(real(T))*100,
-                 maxit=100,
-                 λ=zero(T),
-                 displaylevel=0,
-                 eigsolvertype::DataType=DefaultEigSolver) where {T}
+                 tol::Real=eps(real(T))*100,
+                 maxit::Integer=100,
+                 λ::Number=zero(T),
+                 displaylevel::Integer=0,
+                 eigsolvertype::DataType=DefaultEigSolver) where {T<:Number}
 
     # Ensure types λ is of type T
     λ = T(λ)
