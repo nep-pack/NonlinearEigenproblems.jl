@@ -278,14 +278,14 @@ julia> λ1-λ2
     function augnewton(::Type{T},
                        nep::NEP;
                        errmeasure::Function = default_errmeasure(nep::NEP),
-                       tol::Number=eps(real(T))*100,
+                       tol::Real=eps(real(T))*100,
                        maxit::Int=30,
                        λ::Number=zero(T),
                        v::Vector=randn(real(T),size(nep,1)),
                        c::Vector=v,
                        displaylevel::Int=0,
                        linsolvercreator::Function=backslash_linsolvercreator,
-                       armijo_factor::Number=one(real(T)),
+                       armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
         # Ensure types λ and v are of type T
         λ=T(λ)
