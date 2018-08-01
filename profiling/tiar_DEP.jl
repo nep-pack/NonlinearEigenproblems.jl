@@ -7,25 +7,15 @@ import NEPSolver.inner_solve; include("../src/inner_solver.jl");import NEPSolver
 nep=nep_gallery("dep0_tridiag",1000)
 #nep=nep_gallery("dep0",500)
 
-import NEPCore.compute_Mlincomb
-function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
-	n,k=size(V); Av=get_Av(nep)
-	V=broadcast(*,V,a.');
-	T=eltype(V)
-	z=zeros(T,n)
-	for j=1:length(nep.tauv)
-		w=exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1);
-		z+=Av[j+1]*sum(broadcast(*,V,w.'),2);
-	end
-	if k>1 z-=view(V,:,2:2) end
-	return z-λ*view(V,:,1:1)
-end
-
 v0=ones(size(nep,1))
 
 tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 @time tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 
+
+import NEPCore.compute_Mlincomb
+compute_Mlincomb_from_MMcompute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=
+compute_Mlincomb_from_MM(nep,λ,V,a)
 
 @profile tiar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 Profile.print(format=:flat,sortedby=:count)

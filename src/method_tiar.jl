@@ -88,7 +88,7 @@ function tiar(
 
         # computation of y[:,2], ..., y[:,k+1]
         y[:,2:k+1]=Z[:,1:k]*(a[1:k,k,1:k].');
-        y[:,2:k+1]=y[:,2:k+1]/diagm(1:1:k);
+        broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
 
         # computation of y[:,1]
         y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
