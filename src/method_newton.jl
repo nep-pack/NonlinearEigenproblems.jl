@@ -394,8 +394,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                            armijo_max::Int=5)
         # Ensure types λ and v are of type T
         λ=T(λ)
-        v=Array{T,1}(v)
-        ws=Array{T,1}(ws) # Left vector such that c'=w'M(λ0) where c normalization
+        v=Vector{T}(v)
+        ws=Vector{T}(ws) # Left vector such that c'=w'M(λ0) where c normalization
 
         err=Inf;
 
@@ -418,13 +418,13 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
                 # Compute u=M(λ)v and w=M'(λ)v
-                u=compute_Mlincomb(nep,λ,v,[T(1)],0);
-                w=compute_Mlincomb(nep,λ,v,[T(1)],1);
+                u::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],0);
+                w::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],1);
 
                 # Intermediate quantities
                 Δλ=-dot(ws,u)/dot(ws,w);
                 z=Δλ*w+u;
-                Δv=-lin_solve(linsolver, z, tol=tol);
+                Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
 
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
@@ -450,8 +450,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
             if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
-                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
-                v=v/dot(c,v)
+                v[:]= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                normalize!(v)
             end
             return (λ,v)
         end
