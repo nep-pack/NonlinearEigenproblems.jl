@@ -118,7 +118,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
         elseif (@method_concretely_defined(compute_Mder,nep))
             return compute_Mlincomb_from_Mder(nep,λ,V,a)
         else
-            error("No procedure to compute Mlincomb")
+            error("No procedure to compute Mlincomb λ::",typeof(λ), " V::",typeof(V))
         end
     end
 
@@ -260,7 +260,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
         while (abs(Δλ)>TOL) & (count<max_iter)
             count = count+1
             z1 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1))
-            z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[1],1)
+            z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[T(1)],1)
 
             Δλ =- dot(y,z1)/dot(y,z2);
             λ_iter += Δλ

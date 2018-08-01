@@ -99,7 +99,7 @@ function iar_chebyshev(
     V = zeros(T,n*(m+1),m+1);
     H = zeros(T,m+1,m);
     y = zeros(T,n,m+1);
-    α=γ.^(0:m); α[1]=zero(T);
+    α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);

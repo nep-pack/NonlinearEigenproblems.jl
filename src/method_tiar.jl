@@ -49,6 +49,10 @@ function tiar(
     inner_solver_method=DefaultInnerSolver
     )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
+    # Ensure types σ and v are of type T
+    σ=T(σ)
+    v=Array{T,1}(v)
+
     # initialization
     n = size(nep,1); m = maxit;
 
@@ -68,7 +72,7 @@ function tiar(
     h  = zeros(T,m+1);
     hh = zeros(T,m+1);
     y  = zeros(T,n,m+1);
-    α=γ.^(0:m); α[1]=zero(T);
+    α=Array{T,1}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = ones(m+1,m+1);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);

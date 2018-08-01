@@ -56,11 +56,11 @@ function rfi(nep::NEP,
                 local linsolver_t::LinSolver = linsolvercreator(nept,λ)
 
                 #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k)
-                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[1],1),tol = tol)
+                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[T(1)],1),tol = tol)
                 u = x/norm(x);
 
                 #S2: (T(λ_k)^H)y_(k+1) = (T'(λ_k)^H)v_(k)
-                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[1],1),tol = tol)
+                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
                 v = y/norm(y)
 
                 λ_vec = compute_rf(nep, u, y=v)
@@ -123,18 +123,18 @@ function rfi_b(nep::NEP,
                 end
 
                 #Construct C_k
-                C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[1],1);v'*compute_Mder(nep,λ,1) T(0.0)]
+                C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[T(1)],1);v'*compute_Mder(nep,λ,1) T(0.0)]
                 #local linsolver::LinSolver = BackslashLinSolver(C);
 
                 #C[s;μ] = -[T(λ)u;0]
                 #l1 = lin_solve(linsolver,-[compute_Mlincomb(nep,λ,u,[1],0);0],tol = tol);
-                l1 = C\-[compute_Mlincomb(nep,λ,u,[1],0);0]
+                l1 = C\-[compute_Mlincomb(nep,λ,u,[T(1)],0);0]
                 s = l1[1:end-1]
                 u = (u+s)/norm(u+s)
 
                 #C[t;ν] = -[T(λ)'v;0]
                 #l2 = lin_solve(linsolver,-[compute_Mlincomb(nept,λ,v,[1],0);0],tol = tol);
-                l2 = C\-[compute_Mlincomb(nept,λ,v,[1],0);0]
+                l2 = C\-[compute_Mlincomb(nept,λ,v,[T(1)],0);0]
                 t = l2[1:end-1]
                 v = (v+t)/norm(v+t)
 

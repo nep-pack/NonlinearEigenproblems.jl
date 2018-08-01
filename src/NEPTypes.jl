@@ -252,34 +252,40 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 ```
 matrices A_i, and tauv is a vector of the values tau_i
 """
-    type DEP <: AbstractSPMF
+    type DEP{T<:AbstractMatrix} <: AbstractSPMF
         n::Int
-        A::Array{<:AbstractMatrix}     # An array of matrices (full or sparse matrices)
+        A::Array{T,1}     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
-        function DEP(AA,tauv=[0,1.0])
-            n=size(AA[1],1)
-            this=new(n,reshape(AA,size(AA,1)),tauv);   # allow for 1xn matrices
-            return this;
-        end
+    end
+    function DEP(AA::Array{T,1},tauv=[0,1.0]) where {T<:AbstractMatrix}
+        n=size(AA[1],1)
+        this=DEP{T}(n,AA,tauv);  
+        return this;
     end
 
 # Compute the ith derivative of a DEP
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
         local M,I;
-        if issparse(nep)
-            M=spzeros(nep.n,nep.n)
-            I=speye(nep.n,nep.n)
+        # T is eltype(nep.A[1]) unless λ complex, then T is complex(eltype(nep.A[1]))
+        # T can be determined compile time, since DEP parametric type
+        T=isa(λ,Complex)?complex(eltype(nep.A[1])) : eltype(nep.A[1]);
+        
+        if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
+            M=spzeros(T,nep.n,nep.n)
+            I=speye(T,nep.n,nep.n)
         else
-            M=zeros(nep.n,nep.n)
-            I=eye(nep.n,nep.n)
+            M=zeros(T,nep.n,nep.n)
+            I=eye(T,nep.n,nep.n)
         end
         if i==0; M=-λ*I;  end
         if i==1; M=-I; end
         for j=1:size(nep.A,1)
-            M+=nep.A[j]*(exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i)
+            a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
+            M += nep.A[j]*a
         end
         return M
     end
+
 
 
 
@@ -816,12 +822,13 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
+    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T};
+                              a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
         n=size(V,1); k=1
         try k=size(V,2) end
         Av=get_Av(nep)
-        V=broadcast(*,V,a.');
-        T=eltype(V)
+        D=Diagonal(a);
+        V=V*D;
         z=zeros(T,n)
         for j=1:length(nep.tauv)
             w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
@@ -830,6 +837,14 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         if k>1 z[:]-=view(V,:,2:2) end
         z[:]-=λ*view(V,:,1:1);
         return z
+    end
+    # Automatically promote to complex if λ is real 
+    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
+        return compute_Mlincomb(nep,complex(λ),V;a=a)
+    end
+    # Allow vector-valued V
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
+        return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
     end
 
 end
