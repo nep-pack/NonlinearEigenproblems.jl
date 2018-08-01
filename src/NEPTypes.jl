@@ -263,8 +263,8 @@ matrices A_i, and tauv is a vector of the values tau_i
         if (real(eltype(AA[1])) != Float64)
             warning("The delay in a DEP has hardcoded type Float64");
         end
-        
-        this=DEP{T}(n,AA,tauvconv);  
+
+        this=DEP{T}(n,AA,tauvconv);
         return this;
     end
 
@@ -274,7 +274,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         # T is eltype(nep.A[1]) unless λ complex, then T is complex(eltype(nep.A[1]))
         # T can be determined compile time, since DEP parametric type
         T=isa(λ,Complex)?complex(eltype(nep.A[1])) : eltype(nep.A[1]);
-        
+
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
             M=spzeros(T,nep.n,nep.n)
             I=speye(T,nep.n,nep.n)
@@ -832,8 +832,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         n=size(V,1); k=1
         try k=size(V,2) end
         Av=get_Av(nep)
-        D=Diagonal(a);
-        V=V*D;
+        broadcast!(*,V,V,a.')
         z=zeros(T,n)
         for j=1:length(nep.tauv)
             w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
@@ -843,7 +842,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         z[:]-=λ*view(V,:,1:1);
         return z
     end
-    # Automatically promote to complex if λ is real 
+    # Automatically promote to complex if λ is real
     function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
         return compute_Mlincomb(nep,complex(λ),V;a=a)
     end
