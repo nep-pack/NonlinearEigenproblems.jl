@@ -28,7 +28,7 @@ nep=PEP([A0,A1,A2]);
 
 # Run augnewton once to get an accurate solution.
 v0=ones(T,4);
-λ0=T(0)
+λ0=T(0.2)
 itercount_star=0;
 λiterates_star=zeros(T,100)
 myerrmeasure= (λ,v) -> begin
@@ -58,16 +58,17 @@ bigfloattest=@testset "BigFloat comparison w $T" for T in
 
 
     v0=ones(T,4);
-    λ0=T(0)
+    λ0=T(0.2)
     λ,v=augnewton(T, nep1,v=v0,λ=λ0,
                   tol=eps(real(T))*2,
 #                  displaylevel=1,
                   errmeasure=myerrmeasure)
-    @test isa(λ,T) # Check type stable
+    @test isa(λ,T) # Check output type
+
     @test abs(T(λ-λstar))<eps(real(T))*8 # Check that we have a solution
 
     # Check that the kth iterate is the same as the bigfloat iteration
     k=4
-    @test abs(T(λiterates_star[k]-λiterates[k]))<eps(real(T))*8
+    @test abs(T(λiterates_star[k]-λiterates[k]))<eps(real(T))*10
 
 end
