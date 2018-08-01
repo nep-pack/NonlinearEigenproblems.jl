@@ -45,15 +45,15 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
     function newton(::Type{T},
                     nep::NEP;
                     errmeasure::Function =
-                    default_errmeasure(nep::NEP),
-                    tol=eps(real(T))*100,
-                    maxit=10,
-                    λ=zero(T),
-                    v=randn(size(nep,1)),
-                    c=v,
-                    displaylevel=0,
-                    armijo_factor=1,
-                    armijo_max=5) where {T<:Number}
+                      default_errmeasure(nep::NEP),
+                    tol::Real=eps(real(T))*100,
+                    maxit::Int=10,
+                    λ::Number=zero(T),
+                    v::Vector=randn(size(nep,1)),
+                    c::Vector=v,
+                    displaylevel::Int=0,
+                    armijo_factor::Real=1,
+                    armijo_max::Int=5) where {T<:Number}
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -154,15 +154,15 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                        nep::NEP;
                        errmeasure::Function =
                        default_errmeasure(nep::NEP),
-                       tol=eps(real(T))*100,
-                       maxit=100,
-                       λ=zero(T),
-                       v=randn(real(T),size(nep,1)),
-                       c=v,
-                       displaylevel=0,
+                       tol::Real=eps(real(T))*100,
+                       maxit::Int=100,
+                       λ::Number=zero(T),
+                       v::Vector=randn(real(T),size(nep,1)),
+                       c::Vector=v,
+                       displaylevel::Int=0,
                        linsolvercreator::Function=default_linsolvercreator,
-                       armijo_factor=1,
-                       armijo_max=5)
+                       armijo_factor::Real=1,
+                       armijo_max::Int=5)
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
@@ -383,16 +383,15 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     function quasinewton{T}(::Type{T},
                            nep::NEP;
                            errmeasure::Function = default_errmeasure(nep::NEP),
-                           tol=eps(real(T))*100,
-                           maxit=100,
-                           λ=zero(T),
-
-                            v=randn(real(T),size(nep,1)),
-                           ws=v,
-                           displaylevel=0,
+                           tol::Real=eps(real(T))*100,
+                           maxit::Int=100,
+                           λ::Number=zero(T),
+                           v::Vector=randn(real(T),size(nep,1)),
+                           ws::Vector=v,
+                           displaylevel::Int=0,
                            linsolvercreator::Function=default_linsolvercreator,
-                           armijo_factor=1,
-                           armijo_max=5)
+                           armijo_factor::Real=1,
+                           armijo_max::Int=5)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Array{T,1}(v)
@@ -469,13 +468,13 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     function newtonqr{T}(::Type{T},
                        nep::NEP;
                        errmeasure::Function =
-                       default_errmeasure(nep::NEP),
-                       tol=eps(real(T))*100,
-                       maxit=100,
-                       λ=zero(T),
-                       v=randn(real(T),size(nep,1)),
-                       c=v,
-                       displaylevel=0,
+                          default_errmeasure(nep::NEP),
+                       tol::Real=eps(real(T))*100,
+                       maxit::Int=100,
+                       λ::Number=zero(T),
+                       v::Vector=randn(real(T),size(nep,1)),
+                       c::Vector=v,
+                       displaylevel::Int=0,
                        linsolvercreator::Function=default_linsolvercreator)
 
 
@@ -606,4 +605,4 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             end
         end
         return  (Δλ,Δv,j,armijo_factor^j)
-end
+    end
