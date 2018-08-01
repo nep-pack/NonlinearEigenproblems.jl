@@ -37,13 +37,13 @@ myerrmeasure= (λ,v) -> begin
     λiterates_star[itercount_star]=λ;
     return norm(compute_Mlincomb(nep,λ,v))
 end
-
+println("Bigfloat precomputation");
 λstar,vstar=augnewton(T, nep,v=v0,λ=λ0,
                       tol=eps(T)*100,
                       errmeasure=myerrmeasure)
 
 bigfloattest=@testset "BigFloat comparison w $T" for T in
-    (Float16,Float32,Float64,Complex32,Complex64,Complex128)
+    (Float16,Complex32,Complex128)
 
     nep1=PEP(Array{Array{T,2},1}(nep.A))
     global itercount=0;
