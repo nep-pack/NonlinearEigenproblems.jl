@@ -163,7 +163,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 beta0=beta[2:(k+1)];    # we do not need \beta_1
                 gamma0=gamma[2:(k+1)];  # we do not need \gamma_1
                 
-                TT = full(spdiagm((beta0[1:k],alpha0[1:k],gamma0[1:k]), -1:1));
+                TT = Matrix(spdiagm((beta0[1:k],alpha0[1:k],gamma0[1:k]), -1:1));
                 
                 E=eigfact(TT);                
                 λ = σ+1./E.values;

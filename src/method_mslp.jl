@@ -15,7 +15,7 @@ computation is specified in eigsolvertype. See `newton` for other parameters.
 Create a rational NEP with SPMFs.
 ```julia-repl
 julia> Av=[ones(3,3),eye(3,3),triu(ones(3,3))];
-julia> fv=[S-> S, S -> S^2, S::AbstractArray -> inv(full(S)-eye(S)*10)]
+julia> fv=[S-> S, S -> S^2, S::AbstractArray -> inv(Matrix(S)-eye(S)*10)]
 julia> nep=SPMF_NEP(Av,fv)
 julia> (λ,v)=mslp(nep)
 julia> compute_Mlincomb(nep,λ,v)

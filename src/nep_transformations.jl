@@ -266,5 +266,5 @@ end
 
 function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
-    return full(compute_Mder_from_MM(nep,λ,i));
+    return Matrix(compute_Mder_from_MM(nep,λ,i));
 end

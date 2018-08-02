@@ -300,7 +300,7 @@ module Gallery
           tau=1;
           quadfun= S -> S^2;
           constfun= S -> eye(S);
-          expfun= S -> expm(-tau*full(S));
+          expfun= S -> expm(-tau*Matrix(S));
 
           AA=[-speye(A0),A0,A1]
           fi=[quadfun,constfun,expfun]
@@ -378,8 +378,8 @@ module Gallery
           W2=read_sparse_matrix(gunbase * "W2.txt")
           minusop= S-> -S
           oneop= S -> eye(size(S,1),size(S,2))
-          sqrt1op= S -> 1im*sqrtm(full(S))
-          sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+          sqrt1op= S -> 1im*sqrtm(Matrix(S))
+          sqrt2op= S -> 1im*sqrtm(Matrix(S)-108.8774^2*eye(S))
           AA=[K,M,W1,W2];
           nep=SPMF_NEP(AA,[oneop,minusop,sqrt1op,sqrt2op])
           return nep;

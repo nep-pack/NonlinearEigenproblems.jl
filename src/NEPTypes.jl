@@ -298,7 +298,7 @@ matrices A_i, and tauv is a vector of the values tau_i
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
         for j=1:size(nep.A,1)
-            Z+=nep.A[j]*V*expm(full(-nep.tauv[j]*S))
+            Z+=nep.A[j]*V*expm(Matrix(-nep.tauv[j]*S))
         end
         return Z
     end
@@ -324,7 +324,7 @@ matrices A_i, and tauv is a vector of the values tau_i
             if (nep.tauv[i]==0) # Zero delay means constant term
                 fv[i+1]=  (S-> eye(size(S,1)))
             else
-                fv[i+1]=  (S-> expm(-full(nep.tauv[i]*S)))
+                fv[i+1]=  (S-> expm(-Matrix(nep.tauv[i]*S)))
             end
 
         end
