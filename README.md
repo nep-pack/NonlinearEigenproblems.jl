@@ -10,7 +10,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 # How to use it?
 
-It's easy. Installation in a one-liner:
+It's easy on the current stable julia release (0.6.4). Installation in a one-liner:
 ```
 julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 ```
