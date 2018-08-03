@@ -30,14 +30,13 @@ end
     end
 
     @testset "Compute derivatives" begin
-        λ = 150^2+2im;
-        V = randn(n, 2);
-        z1 = compute_Mlincomb(nep, λ, V[:,1], [1.0], 1)
+        λ = 150^2+2im
+        v = randn(n)
+        z1 = compute_Mlincomb(nep, λ, v, [1.0], 1)
 
         # Compare with divided difference
         ee = 1e-4
-        v = V[:,1];
-        z2 = (compute_Mlincomb(nep, λ+ee, v) - compute_Mlincomb(nep, λ-ee, v)) / (2*ee);
+        z2 = (compute_Mlincomb(nep, λ+ee, v) - compute_Mlincomb(nep, λ-ee, v)) / (2*ee)
 
         @test norm(z2-z1) < (ee^2)*1000
     end
