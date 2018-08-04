@@ -53,19 +53,3 @@ end
 function det3p(q1x, q1y, q2x, q2y, px, py)
     (q1x - px) * (q2y - py) - (q2x - px) * (q1y - py)
 end
-
-if false
-    points = [x + y*im for x=-1:11 for y=-1:11]
-    polyx = [0, 0, 5, 10, 10]
-    polyy = [0, 10, 5, 10, 0]
-
-    # clock-wise
-    show(mapreduce(p -> inpolygon(real(p), imag(p), polyx, polyy), +, points))
-    show(mapreduce(p -> !inpolygon(real(p), imag(p), polyx, polyy), +, points))
-
-    # counter-clock-wise
-    reverse!(polyx)
-    reverse!(polyy)
-    show(mapreduce(p -> inpolygon(real(p), imag(p), polyx, polyy), +, points))
-    show(mapreduce(p -> !inpolygon(real(p), imag(p), polyx, polyy), +, points))
-end
