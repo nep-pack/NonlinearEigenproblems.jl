@@ -1,7 +1,3 @@
-push!(LOAD_PATH, string(@__DIR__, "/../../src/utils"))
-
-using Serialization
-
 function particle_init(interval)
     NLEP, brpts, U0 = particle_nlep(interval)
     n = size(NLEP["B"][1], 1)
@@ -26,7 +22,7 @@ function particle_init(interval)
     Sigma = [xmin + 0im, xmax + 0im]
 
     # options
-    srand(0)
+    srand(4)
     v0 = randn(n)
     nodes = linspace(xmin, xmax, 11)
     nodes = nodes[2:2:end]
@@ -86,14 +82,6 @@ function particle_nlep(interval)
     if norm(H_L - H_R) == 0
         # symmetric potential
         D,V = eig(H_L)
-        # TODO remove this, it's to make the signs the same as MATLAB
-        signs=[1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1,-1,-1,1,1]
-        for i in eachindex(signs)
-            if sign(V[1,i]) != signs[i]
-                V[:,i] .*= -1
-            end
-        end
-        # END TODO
         i = sortperm(D)
         d = D[i]
         V = V[:,i]
