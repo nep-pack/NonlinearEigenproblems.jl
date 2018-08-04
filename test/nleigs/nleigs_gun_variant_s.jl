@@ -1,4 +1,4 @@
-# Gun: variant R1 (fully rational case; only repeated nodes)
+# Gun: variant S
 
 using Base.Test
 
@@ -12,21 +12,21 @@ NLEP, Sigma, Xi, v0, nodes, funres = gun_init()
 
 options = Dict(
     "disp" => verbose ? 1 : 0,
+    "minit" => 70,
     "maxit" => 100,
     "v0" => v0,
     "funres" => funres,
-    "leja" => 0,
     "nodes" => nodes,
-    "reuselu" => 2)
+    "static" => true)
 
 # solve nlep
 @time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose)
 
-@testset "Gun: variant R1" begin
+@testset "NLEIGS: Gun variant S" begin
     nleigs_verify_lambdas(21, NLEP, X, lambda)
 end
 
 if verbose
     include("nleigs_residual_plot.jl")
-    nleigs_residual_plot("Gun: variant R1", solution_info, Sigma; ylims=[1e-17, 1e-1])
+    nleigs_residual_plot("Gun: variant S", solution_info, Sigma; ylims=[1e-17, 1e-1])
 end

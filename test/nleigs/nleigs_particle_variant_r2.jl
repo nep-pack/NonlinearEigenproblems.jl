@@ -22,7 +22,7 @@ options = Dict(
 # solve nlep
 @time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose)
 
-@testset "Particle: variant R2" begin
+@testset "NLEIGS: Particle variant R2" begin
     nleigs_verify_lambdas(2, NLEP, X, lambda)
 end
 
