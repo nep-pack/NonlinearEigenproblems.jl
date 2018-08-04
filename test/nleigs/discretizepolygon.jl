@@ -1,7 +1,7 @@
 using Base.Test
 
-include("../../src/nleigs/discretizepolygon.jl")
-include("../../src/nleigs/inpolygon.jl")
+include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
+include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
 poly = [0; 0+10im; 5+5im; 10+10im; 10+0im]
 

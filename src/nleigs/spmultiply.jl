@@ -19,14 +19,3 @@ end
 function spmultiply(A::SparseMatrixCSC{TA,IA}, v::AbstractVector{TV}) where {TA,IA,TV}
     spmultiply(A, sparse(v))
 end
-
-#test
-if false
-    n = 2_000_000
-    p = 2e-5
-    A = sprand(n, n, p)
-    v = sprand(n, 8/n)
-
-    @time A*v
-    @time spmultiply(A, v) # should be faster
-end
