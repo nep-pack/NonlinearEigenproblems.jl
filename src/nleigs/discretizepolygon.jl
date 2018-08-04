@@ -62,7 +62,6 @@ function discretizepolygon(
             end
 
             xnr = (maximum(real(z)) - minimum(real(z))) / (2*spacing)
-            println(xnr)
             xpts = linspace(minimum(real(z)), maximum(real(z)), trunc(Int, xnr))
             xpts = xpts[2:2:end]
 
@@ -77,37 +76,4 @@ function discretizepolygon(
     end
 
     return include_interior_points ? (zz, Z) : zz
-end
-
-if false
-poly = [0; 0+10im; 5+5im; 10+10im; 10+0im]
-
-expected_edge_points = [
-    0.000000 + 0.000000im
-    0.000000 + 2.207107im
-    0.000000 + 4.414214im
-    0.000000 + 6.621320im
-    0.000000 + 8.828427im
-    0.732233 + 9.267767im
-    2.292893 + 7.707107im
-    3.853553 + 6.146447im
-    5.414214 + 5.414214im
-    6.974874 + 6.974874im
-    8.535534 + 8.535534im
-    10.000000 + 9.863961im
-    10.000000 + 7.656854im
-    10.000000 + 5.449747im
-    10.000000 + 3.242641im
-    10.000000 + 1.035534im
-    8.828427 + 0.000000im
-    6.621320 + 0.000000im
-    4.414214 + 0.000000im
-    2.207107 + 0.000000im]
-
-#zz,Z = discretizepolygon(true, poly, 20, 100)
-zz,Z = discretizepolygon([], true, 20, 100)
-
-using Plots
-#scatter(real(zz), imag(zz))
-scatter(real(Z), imag(Z))
 end
