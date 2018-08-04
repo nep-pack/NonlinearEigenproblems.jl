@@ -22,7 +22,7 @@ function particle_init(interval)
     Sigma = [xmin + 0im, xmax + 0im]
 
     # options
-    srand(4)
+    srand(5)
     v0 = randn(n)
     nodes = linspace(xmin, xmax, 11)
     nodes = nodes[2:2:end]

@@ -6,12 +6,12 @@ include("nleigs_test_utils.jl")
 include("particle_test_utils.jl")
 include("../../src/nleigs/method_nleigs.jl")
 
-verbose = false
+verbose = 1
 
 NLEP, Sigma, Xi, v0, nodes, funres, xmin, xmax = particle_init(2)
 
 options = Dict(
-    "disp" => verbose ? 1 : 0,
+    "disp" => verbose > 0 ? 1 : 0,
     "maxdgr" => 50,
     "minit" => 30,
     "maxit" => 100,
@@ -20,13 +20,13 @@ options = Dict(
     "nodes" => nodes)
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose)
+@time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
 
 @testset "NLEIGS: Particle variant R2" begin
     nleigs_verify_lambdas(2, NLEP, X, lambda)
 end
 
-if verbose
+if verbose > 1
     include("nleigs_residual_plot.jl")
     approxSigma = [xmin-im*1e-10, xmin+im*1e-10, xmax+im*1e-10, xmax-im*1e-10]
     nleigs_residual_plot("Particle: variant R2", solution_info, approxSigma)

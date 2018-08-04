@@ -1,6 +1,6 @@
 using Base.Test
 
-include("../../src/nleigs/method_nleigs.jl")
+include("../../src/nleigs/inpolygon.jl")
 
 points = [x + y*im for x=-1:11 for y=-1:11]
 polyx = [0, 0, 5, 10, 10]
