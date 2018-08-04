@@ -10,8 +10,6 @@ function ratnewtoncoeffsm(fm, sigma, xi, beta)
     # build Hessenberg matrices
     K = Bidiagonal(ones(m+1), beta[2:m+1]./xi[1:m], 'L')
     H = Bidiagonal(sigma[1:m+1], beta[2:m+1], 'L')
-#    K = full(spdiagm(-1 => [beta[2:m+1]./xi(1:m); 0], 0 => ones(m+1, 1)))
-#    H = full(spdiags(-1 => [beta[2:m+1]; 0], 0 => sigma[1:m+1]))
 
     # column balancing
     P = Diagonal(1./maximum(abs.(K), 1)[:])

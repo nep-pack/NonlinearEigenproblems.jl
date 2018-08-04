@@ -82,8 +82,6 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
 =#
 function nleigs(A, Sigma::Vector{Complex{T}}; Xi = [Inf], options = Dict(), return_info = false) where T
 
-println("Starting nleigs")
-
 # The following variables are used when creating the return values, so put them in scope
 # TODO local lam, conv, ...
 D = lam = conv = X = res = Lam = Res = sigma = expand = xi = beta = nrmD = maxdgr = kconv = nothing
@@ -116,7 +114,6 @@ if return_info
     Res = zeros(b, b)
 end
 
-println("sigma discretization")
 # Discretization of Sigma --> Gamma & Leja-Bagby points
 if leja == 0 # use no leja nodes
     if isempty(nodes)
@@ -131,34 +128,20 @@ elseif leja == 1 # use leja nodes in expansion phase
         gamma,nodes = discretizepolygon(Sigma, true)
     else
         gamma = discretizepolygon(Sigma)
-        #GammaRealImag = read_sparse_matrix("src/nleigs/gun_gamma.txt")
-        #GammaRealImag = full(GammaRealImag)[:]
-        #ng = length(GammaRealImag)
-        #gamma = GammaRealImag[1:round(Int,ng/2)] + im*GammaRealImag[(round(Int,ng/2)+1):end]
     end
-    #@printf("sigma 1569: %s\n", Sigma[1569])
-    #@printf("gamma 6098: %s\n", gamma[6098])
     nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
     sigma,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, p)
-    #@printf("gamma: %s\n", norm(gamma))
-    #@printf("xi   : %s\n", norm(Xi))
-    #@printf("sigma: %s\n", norm(sigma))
-#    for i=1:length(sigma)
-#        @printf("%d: %s\n", i, sigma[i])
-#    end
 else # use leja nodes in both phases
     gamma = discretizepolygon(Sigma)
     max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
     sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, p)
 end
-# verified: gamma, nodes, sigma, xi, beta
 xi[maxdgr+2] = NaN # not used
 if (Ahandle || !isfunm) && length(sigma) != length(unique(sigma))
     error("All interpolation nodes must be distinct when no matrix " *
         "functions are used for computing the generalized divided differences.")
 end
 
-println("Rational Newton coefficients")
 # Rational Newton coefficients
 range = 1:maxdgr+2
 if Ahandle
@@ -167,8 +150,6 @@ if Ahandle
 else
     # Compute scalar generalized divided differences
     sgddp,sgddq = scgendivdiffs(sigma[range], xi[range], beta[range], pf, f, p, q, maxdgr, isfunm)
-    @printf("sgddp: size = %s, norm = %s, sum = %s\n", size(sgddp), norm(sgddp), sum(sum(sgddp)))
-    @printf("sgddq: size = %s, norm = %s, sum = %s\n", size(sgddq), norm(sgddq), sum(sum(sgddq)))
     # Construct first generalized divided difference
     if computeD
         D[1] = constructD(0, B, C, L, n, p, q, r, sgddp, sgddq)
@@ -183,16 +164,12 @@ end
 lureset()
 
 # Rational Krylov
-@printf("v0 A: size = %s, norm = %s, sum = %s\n", size(v0), norm(v0), sum(sum(v0))) # ~15 accurate digits
 if reuselu == 2
     v0 = lusolve(funA, sigma[1], v0/norm(v0))
 else
     v0 = funA(sigma[1]) \ (v0/norm(v0))
 end
-#v0 similar, but not exact due to rand
 V[1:n,1] = v0/norm(v0)
-@printf("v0 B: size = %s, norm = %s, sum = %s\n", size(v0), norm(v0), sum(sum(v0))) # ~14 accurate digits
-@printf("V[1:n,1]: size = %s, norm = %s, sum = %s\n", size(V[1:n,1]), norm(V[1:n,1]), sum(sum(V[1:n,1]))) # ~14 accurate digits
 expand = true
 kconv = Inf
 kn = n   # length of vectors in V
@@ -274,12 +251,10 @@ while k <= kmax
         end
         if Ahandle
             nrmD[k+1] = vecnorm(D[k+1]) # Frobenius norm
-            @printf("nrmD[k+1] (Ahandle) = %s\n", nrmD[k+1])
         else
             # The below can cause out of bounds in sgddp and sgddq if there's
             # no convergence (also happens in MATLAB implementation)
             nrmD[k+1] = maximum(abs.([sgddp[:,k+1]; sgddq[:,k+1]]))
-            @printf("nrmD[k+1] = %s\n", nrmD[k+1]) # starts out the same, drifts off slightly over the iterations, likely to be insignificant rounding issues only
         end
         if !isfinite(nrmD[k+1]) # check for NaN
             error("The generalized divided differences must be finite.");
@@ -348,15 +323,11 @@ while k <= kmax
         t = [zeros(l-1,1); 1]  # continuation combination TODO where is this used?
         wc = V[1:kn, l]        # continuation vector
         w = backslash(wc, funA, Ahandle, BB, CC, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, sgddp, sgddq, N, xi, expand, kconv)
-        @printf("kn = %d, l = %d\n", kn, l)
-        @printf("wc: size = %s, norm = %s, sum = %s\n", size(wc), norm(wc), sum(sum(wc))) # ~14 accurate digits
-        @printf("w: size = %s, norm = %s, sum = %s\n", size(w), norm(w), sum(sum(w))) # ~13 accurate digits
     end
 
     # orthogonalization
     if !static || (static && !expand)
         normw = norm(w)
-        #@printf("normw = %s\n", normw) # differs, first slightly, then more
         h = V[1:kn,1:l]' * w
         w -= V[1:kn,1:l] * h
         H[1:l,l] = h
@@ -372,11 +343,8 @@ while k <= kmax
     # new vector
     if !static || (static && !expand)
         H[l+1,l] = norm(w)
-        #@printf("H[l+1,l] = %s\n", H[l+1,l]) # differ
         K[l+1,l] = H[l+1,l] * sigma[k+1]
-        #@printf("K[l+1,l] = %s\n", K[l+1,l]) # differ
         V[1:kn,l+1] = w / H[l+1,l]
-        @printf("new vector V: size = %s, norm = %s, sum = %s\n", size(V[1:kn,l+1]), norm(V[1:kn,l+1]), sum(sum(V[1:kn,l+1]))) # ~12 accurate digits
     end
 
     # Ritz pairs
@@ -474,9 +442,6 @@ end
 
 return X[:,conv], lam[conv], res[conv], info
 end
-# ------------------------------------------------------------------------------
-# Nested functions
-# ------------------------------------------------------------------------------
 
 # checkInputs: error checks the inputs to NLEP and also derives some variables
 # '''''''''''' from them:
@@ -754,9 +719,6 @@ function scgendivdiffs(sigma, xi, beta, pf, f, p, q, maxdgr, isfunm)
     for ii = 1:q
         if isfunm
             sgddq[ii,:] = ratnewtoncoeffsm(f[ii], sigma, xi, beta)
-            #@printf("ii=%d, sgddq=%s\n", ii, norm(sgddq[ii,:]))
-            #@printf("sigma=%s\n", norm(sigma))
-            #@printf("beta=%s\n", norm(beta))
         else
             sgddq[ii,:] = ratnewtoncoeffs(f[ii], sigma, xi, beta)
         end
@@ -794,7 +756,6 @@ end # scgendivdiffs
 #   wc       continuation vector
     function backslash(wc, funA, Ahandle, BB, CC, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, sgddp, sgddq, N, xi, expand, kconv)
         shift = sigma[k+1]
-        @printf("shift = %s; k+1 = %d\n", shift, k+1) # same
 
         ## construction of B*wc
         Bw = zeros(eltype(wc), size(wc))
@@ -802,14 +763,12 @@ end # scgendivdiffs
         if r > 0
             i0b = (p-1)*n + 1
             i0e = p*n
-            @printf("i0b = %d, i0e = %d\n", i0b, i0e) # same
             if Ahandle || computeD
                 Bw[1:n] = -D[p+1] * wc[i0b:i0e] / beta[p+1]
             else
                 Bw[1:n] =
                     -sum(reshape(BB * wc[i0b:i0e], n, p+1) .* sgddp[:, p+1].', 2) / beta[p+1] -
                      sum(reshape(CC * wc[i0b:i0e], n, q) .* sgddq[:, p+1].', 2) / beta[p+1]
-                @printf("Bw[1:n]: size = %s, norm = %s, sum = %s\n", size(Bw[1:n]), norm(Bw[1:n]), sum(sum(Bw[1:n]))) # same
             end
         end
         # other blocks
@@ -828,15 +787,6 @@ end # scgendivdiffs
                 Bw[i1b:i1e] = wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
             else
                 Bw[i1b:i1e] = U' * wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
-#                @printf("ii = %d; U': sum = %s\n", ii, sum(U'))
-#                @printf("ii = %d; wc[i0b:i0e]: norm = %s, sum = %s\n", ii, norm(wc[i0b:i0e]), sum(wc[i0b:i0e]))
-#                @printf("ii = %d; U' * wc[i0b:i0e]: norm = %s, sum = %s\n", ii, norm(U' * wc[i0b:i0e]), sum(U' * wc[i0b:i0e]))
-#                UUj = real.(U' * wc[i0b:i0e])
-#                for ui in eachindex(UUj)
-#                    @printf("Uwc %d = %s, abs diff = %s, rel diff = %s\n", ui, UUj[ui], UUj[ui] - UU[ui], (UUj[ui] - UU[ui])/UUj[ui])
-#                end
-#                @printf("wc[i1b:i1e]: size = %s, norm = %s, sum = %s\n", size(wc[i1b:i1e]), norm(wc[i1b:i1e]), sum(sum(wc[i1b:i1e])))
-#                @printf("ii = %d; i1b=%d, i1e=%d, Bw[i1b:i1e]: size = %s, norm = %s, sum = %s\n", ii, i1b, i1e, size(Bw[i1b:i1e]), norm(Bw[i1b:i1e]), sum(sum(Bw[i1b:i1e])))
             end
             # range of next block i
             i0b = i1b
@@ -852,9 +802,7 @@ end # scgendivdiffs
             i1e = n + r
         end
         nu = beta[2]*(1 - shift/xi[1])
-        #@printf("A z[i1b:i1e]: size = %s, norm = %s, sum = %s\n", size(z[i1b:i1e]), norm(z[i1b:i1e]), sum(sum(z[i1b:i1e])))
         z[i1b:i1e] = 1/nu * z[i1b:i1e]
-        #@printf("B z[i1b:i1e]: size = %s, norm = %s, sum = %s\n", size(z[i1b:i1e]), norm(z[i1b:i1e]), sum(sum(z[i1b:i1e])))
         for ii = 1:N
             # range of block i+2
             i2b = i1e + 1
@@ -878,13 +826,7 @@ end # scgendivdiffs
                     end
                 elseif ii > p
                     dd = sgddq[:,ii+1]
-                    #@printf("A z[1:n]: size = %s, norm = %s, sum = %s\n", size(z[1:n]), norm(z[1:n]), sum(sum(z[1:n])))
-                    #@printf("LL: size = %s, sum = %s\n", size(LL), sum(sum(LL)))
-                    # this differs on it2:
-                    #@printf("i1b=%d, i1e=%d, z[i1b:i1e]: size = %s, norm = %s, sum = %s\n", i1b, i1e, size(z[i1b:i1e]), norm(z[i1b:i1e]), sum(sum(z[i1b:i1e])))
-                    #@printf("dd[iL]: size = %s, norm = %s, sum = %s\n", size(dd[iL]), norm(dd[iL]), sum(sum(dd[iL])))
                     z[1:n] -= LL*(z[i1b:i1e] .* dd[iL])
-                    #@printf("B z[1:n]: size = %s, norm = %s, sum = %s\n", size(z[1:n]), norm(z[1:n]), sum(sum(z[1:n])))
                 end
             end
             # update block i+2
@@ -892,11 +834,7 @@ end # scgendivdiffs
                 mu = shift - sigma[ii+1]
                 nu = beta[ii+2] * (1 - shift/xi[ii+1])
                 if r == 0 || ii != p-1
-                    #@printf("A mu=%s, nu=%s\n", mu, nu)
-                    #@printf("A i2b=%d, i2e=%d, z[i2b:i2e]: size = %s, norm = %s, sum = %s\n", i2b, i2e, size(z[i2b:i2e]), norm(z[i2b:i2e]), sum(sum(z[i2b:i2e])))
-                    #@printf("A i1b=%d, i1e=%d, z[i1b:i1e]: size = %s, norm = %s, sum = %s\n", i1b, i1e, size(z[i1b:i1e]), norm(z[i1b:i1e]), sum(sum(z[i1b:i1e])))
                     z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * z[i1b:i1e]
-                    #@printf("B i2b=%d, i2e=%d, z[i2b:i2e]: size = %s, norm = %s, sum = %s\n", i2b, i2e, size(z[i2b:i2e]), norm(z[i2b:i2e]), sum(sum(z[i2b:i2e])))
                 else # i == p-1
                     z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * U'*z[i1b:i1e]
                 end
@@ -910,11 +848,6 @@ end # scgendivdiffs
         w = zeros(eltype(wc), size(wc))
         if ((!expand || k > kconv) && reuselu == 1) || reuselu == 2
             w[1:n] = lusolve(funA, shift, z[1:n]/beta[1])
-            # the below differs on the 2nd iteration (1st is same) (note: lusolve above is a cache miss)
-            #@printf("z[1:n]: size = %s, norm = %s, sum = %s\n", size(z[1:n]), norm(z[1:n]), sum(sum(z[1:n])))
-            #@printf("beta[1]: size = %s, norm = %s, sum = %s\n", size(beta[1]), norm(beta[1]), sum(sum(beta[1])))
-            #@printf("z[1:n]/beta[1]: size = %s, norm = %s, sum = %s\n", size(z[1:n]/beta[1]), norm(z[1:n]/beta[1]), sum(sum(z[1:n]/beta[1])))
-            #@printf("w[1:n]: size = %s, norm = %s, sum = %s\n", size(w[1:n]), norm(w[1:n]), sum(sum(w[1:n])))
         else
             w[1:n] = funA(shift) \ (z[1:n]/beta[1])
         end
@@ -937,10 +870,6 @@ end # scgendivdiffs
                 w[i1b:i1e] = mu/nu * w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
             else
                 w[i1b:i1e] = mu/nu * U'*w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
-                #@printf("i0b = %d, i0e = %d, i1b = %d, i1e = %d, w[i1b:i1e]: norm = %s\n", i0b, i0e, i1b, i1e, norm(w[i1b:i1e]))
-                #@printf("mu = %s, nu = %s\n", mu, nu)
-                #@printf("U'*w[i0b:i0e] norm = %s\n", norm(U'*w[i0b:i0e]))
-                #@printf("Bw norm = %s\n", norm(Bw[i1b:i1e])) # much smaller
             end
             # range of next block i
             i0b = i1b

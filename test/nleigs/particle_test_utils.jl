@@ -170,11 +170,6 @@ function particle_nlep(interval)
 
     # nlep
     NLEP = Dict("B" => B, "C" => S, "L" => SL, "U" => SU, "f" => f)
-    for i=1:length(SU)
-        @printf("INIT %d: SU: sum = %s\n", i, sum(SU[i]))
-    end
-    Ucat = hcat(SU...)
-    @printf("INIT SUM: sum = %s\n", sum(Ucat))
 
     return NLEP, brpts, U0
 end

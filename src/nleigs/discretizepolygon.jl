@@ -21,7 +21,6 @@ function discretizepolygon(
     else
         z = [z[:]; z[1]] # close polygon
         L = sum(abs.(diff(z))) # length of polygon
-        #@printf("L = %s\n", L)
 
         # 0<=alph<=1 is position of current point between z[ind] and z[ind+1]
         ind = 1
@@ -30,9 +29,6 @@ function discretizepolygon(
         remL = L/npts
         while length(zz) < npts
             d = abs(z[ind+1] - z[ind])
-            #if length(zz) < 20
-            #   @printf("%d: d = %s, alph = %s, remL = %s\n", length(zz), d, alph, remL)
-            #end
             if (1-alph)*d < remL # can go to end of edge
                 ind += 1
                 remL -= (1-alph) * d
@@ -41,9 +37,6 @@ function discretizepolygon(
                 alph += remL / d
                 remL = L / npts
                 zz = [zz; z[ind] + alph * (z[ind+1] - z[ind])]
-#                if ind == 1569
-#                    @printf("%d: %s, alph = %s, remL = %s\n", length(zz), zz[end], alph, remL)
-#                end
             end
         end
     end
