@@ -13,12 +13,13 @@ tests_not_to_run = Set{String}(map(uppercase, [
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
+    "nleigs_test_utils.jl", # utilities used by other tests
     ]))
 
 include("load_modules_for_tests.jl")
 
 function is_test_script(file::AbstractString)
-    if ismatch(r"(?i)\.jl$", file)
+    if !contains(file, "nleigs") && ismatch(r"(?i)\.jl$", file)
         src = open(readstring, file)
         pos = 1
         while !done(src, pos)
