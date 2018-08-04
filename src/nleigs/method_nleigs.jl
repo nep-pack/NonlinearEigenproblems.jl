@@ -633,50 +633,25 @@ end
             else
                 error("'B' or 'C' must be non-empty.")
             end
-            if q == 0
-                if issparse(B[1])
-                    Amat = hcat(map(x -> x[:], B)...) # in: n * x * y; out: (x*y) * n
-                else
-                    Amat = cat(3, B...) # in: n * x * y; out: x * y * n
-                end
-                F = pf
-            elseif p < 0
-                if issparse(C[1])
-                    Amat = hcat(map(x -> x[:], C)...) # in: n * x * y, out: (x*y) * n
-                else
-                    Amat = cat(3, C...) # in: n * x * y; out: x * y * n
-                end
-                F = f[:]
-            else
-                if issparse(B[1])
-                    Amat = hcat(map(x -> x[:], B)..., map(x -> x[:], C)...)
-                else
-                    Amat = cat(3, B..., C...)
-                end
-                F = [pf[:]; f[:]]
-            end
-            if issparse(Amat)
-                funA = lambda -> begin
-                    if !isempty(B)
-                        A = complex.(copy(B[1]))
-                        for j = 2:length(B)
-                            # TODO: overwrite A
-                            A += lambda^(j-1) * B[j]
-                        end
-                        c1 = 1
-                    else
-                        A = complex.(f[1](lambda) * C[1])
-                        c1 = 2
+
+            funA = lambda -> begin
+                if !isempty(B)
+                    A = complex.(copy(B[1]))
+                    for j = 2:length(B)
+                        # TODO: overwrite A
+                        A += lambda^(j-1) * B[j]
                     end
-                    for j = c1:length(C)
-                        A += f[j](lambda) * C[j]
-                    end
-                    A
+                    c1 = 1
+                else
+                    A = complex.(f[1](lambda) * C[1])
+                    c1 = 2
                 end
-            else
-                # TODO: rewrite this similar to the version above
-                funA = lambda -> sum(Amat[:,:,i] * F[i](lambda) for i=1:length(F))
+                for j = c1:length(C)
+                    A += f[j](lambda) * C[j]
+                end
+                A
             end
+
             BB = vcat(B...)
             CC = vcat(C...)
         end
