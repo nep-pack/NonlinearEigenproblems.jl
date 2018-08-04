@@ -3,7 +3,7 @@ using Base.Test
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
-poly = [0; 0+10im; 5+5im; 10+10im; 10+0im]
+poly = [0.0; 0+10im; 5+5im; 10+10im; 10+0im]
 
 expected_boundary_points = [
     0 + 0im, 0 + 2.2071068im, 0 + 4.4142136im,

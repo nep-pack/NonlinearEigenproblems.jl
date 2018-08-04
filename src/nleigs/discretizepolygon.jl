@@ -25,7 +25,7 @@ function discretizepolygon(
         # 0<=alph<=1 is position of current point between z[ind] and z[ind+1]
         ind = 1
         alph = 0
-        zz = z[ind]
+        zz = [z[ind]]
         remL = L/npts
         while length(zz) < npts
             d = abs(z[ind+1] - z[ind])
@@ -36,12 +36,12 @@ function discretizepolygon(
             else # next point zz is between z[ind] and z[ind+1]
                 alph += remL / d
                 remL = L / npts
-                zz = [zz; z[ind] + alph * (z[ind+1] - z[ind])]
+                push!(zz, z[ind] + alph * (z[ind+1] - z[ind]))
             end
         end
     end
 
-    zz = [zz; z[:]]
+    append!(zz, z)
     Z = []
 
     if include_interior_points
