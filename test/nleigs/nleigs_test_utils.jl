@@ -4,7 +4,6 @@ function nleigs_verify_lambdas(nrlambda, NLEP, X, lambda, tol = 1e-5)
     @printf("Found %d lambdas:\n", length(lambda))
     for i in eachindex(lambda)
         λ = lambda[i]
-        #M = NLEP["B"][1] + λ*NLEP["B"][2] + NLEP["f"][1](λ)*NLEP["C"][1] + NLEP["f"][2](λ)*NLEP["C"][2]
         M = funM(NLEP, λ)
         v = X[:, i]
         nrm = norm(M*v)
