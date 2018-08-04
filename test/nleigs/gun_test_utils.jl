@@ -15,11 +15,6 @@ function gun_init()
     npts = 1000
     halfcircle = xmin + (xmax-xmin) * (cis.(linspace(0, pi, round(pi/2*npts) + 2)) / 2 + .5)
     Sigma = [halfcircle; xmin]
-    # temporary; linspace differs in the 16th decimal, which exp() blows up to 12th decimal differing:
-    SigmaRealImag = read_sparse_matrix(joinpath(dirname(@__FILE__()), "../../src/nleigs/gun_Sigma.txt"))
-    SigmaRealImag = full(SigmaRealImag)[:]
-    Sigma = SigmaRealImag[1:1574] + im*SigmaRealImag[1575:end]
-    #end temp
 
     # sequence of interpolation nodes
     Z = [2/3, (1+im)/3, 0, (-1+im)/3, -2/3].'
@@ -31,10 +26,6 @@ function gun_init()
     # options
     srand(1)
     v0 = randn(9956)
-    # temporary:
-    v0s = read_sparse_matrix(joinpath(dirname(@__FILE__()), "../../src/nleigs/gun_v0.txt"))
-    v0 = full(v0s)[:]
-    # end temp
     F = [x -> 1, x -> x, x -> im * sqrt(x), x -> im * sqrt(x - sigma2^2)]
 
     BC = vcat(NLEP["B"][1], NLEP["B"][2], NLEP["C"][1], NLEP["C"][2])

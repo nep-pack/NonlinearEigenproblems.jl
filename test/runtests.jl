@@ -19,7 +19,7 @@ tests_not_to_run = Set{String}(map(uppercase, [
 include("load_modules_for_tests.jl")
 
 function is_test_script(file::AbstractString)
-    if !contains(file, "nleigs") && ismatch(r"(?i)\.jl$", file)
+    if ismatch(r"(?i)\.jl$", file)
         src = open(readstring, file)
         pos = 1
         while !done(src, pos)

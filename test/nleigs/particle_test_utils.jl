@@ -26,11 +26,8 @@ function particle_init(interval)
     Sigma = [xmin + 0im, xmax + 0im]
 
     # options
-    #srand(0)
-    #v0 = randn(n)
-    # temporary:
-    v0s = read_sparse_matrix(joinpath(dirname(@__FILE__()), "../../src/nleigs/particle_v0.txt"))
-    v0 = full(v0s)[:]
+    srand(0)
+    v0 = randn(n)
     nodes = linspace(xmin, xmax, 11)
     nodes = nodes[2:2:end]
     funres = (Lam, X) -> particle_residual(Lam, X, NLEP)
