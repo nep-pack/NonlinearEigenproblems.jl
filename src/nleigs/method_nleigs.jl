@@ -1,5 +1,4 @@
 include("lusolver.jl")
-include("spmultiply.jl")
 include("discretizepolygon.jl")
 include("lejabagby.jl")
 include("ratnewtoncoeffs.jl")
