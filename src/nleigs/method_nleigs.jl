@@ -345,6 +345,7 @@ while k <= kmax
         H[l+1,l] = norm(w)
         K[l+1,l] = H[l+1,l] * sigma[k+1]
         V[1:kn,l+1] = w / H[l+1,l]
+#        @printf("new vector V: size = %s, norm = %s, sum = %s\n", size(V[1:kn,l+1]), norm(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
     end
 
     # Ritz pairs
@@ -656,8 +657,25 @@ end
                 F = [pf[:]; f[:]]
             end
             if issparse(Amat)
-                funA = lambda -> sparse(reshape(spmultiply(Amat, map(f -> f(lambda), F)), n, n))
+                funA = lambda -> begin
+                    if !isempty(B)
+                        A = complex.(copy(B[1]))
+                        for j = 2:length(B)
+                            # TODO: overwrite A
+                            A += lambda^(j-1) * B[j]
+                        end
+                        c1 = 1
+                    else
+                        A = complex.(f[1](lambda) * C[1])
+                        c1 = 2
+                    end
+                    for j = c1:length(C)
+                        A += f[j](lambda) * C[j]
+                    end
+                    A
+                end
             else
+                # TODO: rewrite this similar to the version above
                 funA = lambda -> sum(Amat[:,:,i] * F[i](lambda) for i=1:length(F))
             end
             BB = vcat(B...)
