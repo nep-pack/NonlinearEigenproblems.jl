@@ -79,7 +79,7 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(A, Sigma::Vector{Complex{T}}; Xi = [Inf], options = Dict(), return_info = false) where T
+function nleigs(A::Dict, Sigma::Vector{Complex{T}}; Xi = [Inf], options::Dict = Dict(), return_info = false) where T
 
 # The following variables are used when creating the return values, so put them in scope
 # TODO local lam, conv, ...
@@ -174,10 +174,7 @@ kconv = Inf
 kn = n   # length of vectors in V
 l = 0    # number of vectors in V
 N = 0    # degree of approximations
-kmax = maxit
-if static
-    kmax += maxdgr
-end
+kmax = static ? maxit + maxdgr : maxit
 k = 1
 while k <= kmax
     # allocation
@@ -234,9 +231,7 @@ while k <= kmax
 
     # rational divided differences
     if expand
-        if Ahandle
-            #
-        elseif computeD
+        if !Ahandle && computeD
             D[k+1] = constructD(k, B, C, L, n, p, q, r, sgddp, sgddq)
         end
         N += 1
@@ -311,21 +306,15 @@ while k <= kmax
         end
     end
 
-    if !static
-        l = k
-    else
-        l = k - N
-    end
+    l = static ? k - N : k
 
-    # shift-and-invert
     if !static || (static && !expand)
-        t = [zeros(l-1,1); 1]  # continuation combination TODO where is this used?
+        # shift-and-invert
+        t = [zeros(l-1,1); 1]  # continuation combination
         wc = V[1:kn, l]        # continuation vector
         w = backslash(wc, funA, Ahandle, BB, CC, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, sgddp, sgddq, N, xi, expand, kconv)
-    end
 
-    # orthogonalization
-    if !static || (static && !expand)
+        # orthogonalization
         normw = norm(w)
         h = V[1:kn,1:l]' * w
         w -= V[1:kn,1:l] * h
@@ -337,10 +326,8 @@ while k <= kmax
             H[1:l,l] += h
         end
         K[1:l,l] = H[1:l,l] * sigma[k+1] + t
-    end
 
-    # new vector
-    if !static || (static && !expand)
+        # new vector
         H[l+1,l] = norm(w)
         K[l+1,l] = H[l+1,l] * sigma[k+1]
         V[1:kn,l+1] = w / H[l+1,l]
@@ -479,7 +466,7 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-    function checkInputs(A, Sigma, Xi, options)
+    function checkInputs(A::Dict, Sigma, Xi, options::Dict)
         ## initialize
         B = []
         BB = []
@@ -503,9 +490,6 @@ end
         #end temp
 
         ## process the input A
-        if !isa(A, Dict)
-            error("The input 'A' must be a Dict representing the NLEP.")
-        end
         if haskey(A, "Fun")
             Ahandle = true
             # function handle for A(lambda)
@@ -614,15 +598,8 @@ end
         if Ahandle
             # dimension of A(lambda)
             n = get(A, "n", "missing")
-            if !isscalar(n) || !isreal(n) || n < 0 || !isfinite(n)
-                error("Size of problem 'n' must be a positive integer.")
-            end
-            if issparse(n)
-                n = full(n)
-            end
-            if round(n) != n
-                warn("WarnTests:convertTest: Size of problem 'n' must be a positive integer. Rounding input size.")
-                n = round(n)
+            if !isa(n, Integer) || n < 0
+                error("Size of problem 'n' must be a positive integer, got $n.")
             end
         else
             if p >= 0
@@ -656,12 +633,7 @@ end
             CC = vcat(C...)
         end
 
-        ## process the input options
-        if !isa(options, Dict)
-            error("The input argument 'options' must be a Dict.");
-        end
-
-        # extract options, with default values if missing
+        # extract input options, with default values if missing
         verbose = get(options, "disp", 0)
         maxdgr = get(options, "maxdgr", 100)
         minit = get(options, "minit", 20)
