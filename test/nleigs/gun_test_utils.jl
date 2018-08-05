@@ -28,8 +28,7 @@ function gun_init()
     v0 = randn(9956)
     F = [x -> 1, x -> x, x -> im * sqrt(x), x -> im * sqrt(x - sigma2^2)]
 
-    BC = vcat(NLEP["B"][1], NLEP["B"][2], NLEP["C"][1], NLEP["C"][2])
-    funres = (Lam, X) -> gun_residual(Lam, X, BC, F)
+    funres = (Lam, X) -> gun_residual(Lam, X, NLEP["B"][1], NLEP["B"][2], NLEP["C"][1], NLEP["C"][2], F)
 
     return NLEP, Sigma, Xi, v0, nodes, funres
 end
@@ -91,7 +90,7 @@ function compactlu(L, U)
     return Lc, Uc
 end
 
-function gun_residual(Lambda, X, A, F)
+function gun_residual(Lambda, X, B1, B2, C1, C2, F)
     # constants
     sigma1 = 0
     sigma2 = 108.8774
@@ -101,19 +100,11 @@ function gun_residual(Lambda, X, A, F)
     nW1 = 2.328612251920476e+00  # norm(W1, 1)
     nW2 = 3.793375498194695e+00  # norm(W2, 1)
 
-    # initialization
-    N,n = size(A)
-    m = round(Int, N / n)
-    k = length(Lambda)
-
     # Denominator
     Den = nK + abs.(Lambda) * nM + sqrt.(abs.(Lambda-sigma1^2)) * nW1 + sqrt.(abs.(Lambda-sigma2^2)) * nW2
 
     # 2-norm of A(lambda)*x
-    AX = reshape(A*X, (:, m, k))
-    FL = reshape([x(lam) for lam in Lambda for x in F], (1, size(AX, 2), :))
-    RR = sum(AX.*FL, 2)
-    R = map(i -> norm(RR[:,:,i]) / Den[i], 1:k)
+    R = map(i -> norm((B1 + B2*Lambda[i] + C1*im*sqrt(Lambda[i]) + C2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
 
     return R
 end

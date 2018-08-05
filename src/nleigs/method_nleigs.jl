@@ -335,9 +335,10 @@ while k <= kmax
     end
 
     # Ritz pairs
-    if !return_info && ((!expand && k >= N + minit &&
-            mod(k-(N+minit), resfreq) == 0) || (k >= kconv + minit &&
-            mod(k-(kconv+minit), resfreq) == 0) || k == kmax)
+    if !return_info && (
+        (!expand && k >= N + minit && mod(k-(N+minit), resfreq) == 0) ||
+        (k >= kconv + minit && mod(k-(kconv+minit), resfreq) == 0) ||
+        k == kmax)
         lambda,S = eig(K[1:l,1:l], H[1:l,1:l])
         # select eigenvalues
         ilam = 1:l
