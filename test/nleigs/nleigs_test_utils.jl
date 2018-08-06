@@ -27,7 +27,6 @@ end
 function funM(NLEP, λ)
     M = copy(NLEP["B"][1])
     for j = 2:length(NLEP["B"])
-        # TODO: M .+= ...
         M += λ^(j-1) * NLEP["B"][j]
     end
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)

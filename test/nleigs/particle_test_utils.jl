@@ -150,10 +150,10 @@ function particle_nlep(interval)
     # nonlinear functions
     f = Vector(length(brpts))
     for j = 1:interval-1
-        f[j] = lambda -> isa(lambda, Array) ? expm(im * sqrtm(full(m * (lambda - brpts[j] * eye(lambda))))) : cis(sqrt(m * (lambda - brpts[j])))
+        f[j] = lambda -> expm(im * sqrtm(full(m * (lambda - brpts[j] * eye(lambda)))))
     end
     for j = interval:length(brpts)
-        f[j] = lambda -> isa(lambda, Array) ? expm(-sqrtm(full(m * (-lambda + brpts[j] * eye(lambda))))) : exp(-sqrt(m * (-lambda + brpts[j])))
+        f[j] = lambda -> expm(-sqrtm(full(m * (-lambda + brpts[j] * eye(lambda)))))
     end
 
     # nlep
@@ -166,11 +166,11 @@ function particle_residual(Lambda, X, NLEP)
     function funA(lam, x)
         A = NLEP["B"][1] * x
         for j = 2:length(NLEP["B"])
-            # TODO: A .+= ...
             A += lam^(j-1) * (NLEP["B"][j]*x)
         end
+        as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
         for j = 1:length(NLEP["C"])
-            A += NLEP["f"][j](lam) * (NLEP["C"][j]*x)
+            A += NLEP["f"][j](as_matrix(lam))[1] * (NLEP["C"][j]*x)
         end
         return A
     end
