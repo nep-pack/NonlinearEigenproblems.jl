@@ -22,9 +22,8 @@ function gun_init()
     # options
     srand(1)
     v0 = randn(9956)
-    F = [x -> 1, x -> x, x -> im * sqrt(x), x -> im * sqrt(x - sigma2^2)]
 
-    funres = (Lam, X) -> gun_residual(Lam, X, NLEP["B"][1], NLEP["B"][2], NLEP["C"][1], NLEP["C"][2], F)
+    funres = (Lam, X) -> gun_residual(Lam, X, nep.A[1], nep.A[2], nep.A[3], nep.A[4])
 
     return nep, NLEP, Sigma, Xi, v0, nodes, funres
 end
@@ -82,7 +81,7 @@ function compactlu(L, U)
     return Lc, Uc
 end
 
-function gun_residual(Lambda, X, B1, B2, C1, C2, F)
+function gun_residual(Lambda, X, K, M, W1, W2)
     # constants
     sigma1 = 0
     sigma2 = 108.8774
@@ -96,7 +95,7 @@ function gun_residual(Lambda, X, B1, B2, C1, C2, F)
     Den = nK + abs.(Lambda) * nM + sqrt.(abs.(Lambda-sigma1^2)) * nW1 + sqrt.(abs.(Lambda-sigma2^2)) * nW2
 
     # 2-norm of A(lambda)*x
-    R = map(i -> norm((B1 + B2*Lambda[i] + C1*im*sqrt(Lambda[i]) + C2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
+    R = map(i -> norm((K - M*Lambda[i] + W1*im*sqrt(Lambda[i]) + W2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
 
     return R
 end
