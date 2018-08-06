@@ -88,7 +88,7 @@ element_type = eltype(Sigma)
 
 funA,Ahandle,B,BB,pf,C,CC,f,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
-    resfreq,verbose = checkInputs(A, Sigma, Xi, options)
+    resfreq,verbose,BC,BBCC,pff = checkInputs(A, Sigma, Xi, options)
 
 # Initialization
 if computeD
@@ -149,14 +149,14 @@ if Ahandle
 else
     # Compute scalar generalized divided differences
     sgddp,sgddq = scgendivdiffs(sigma[range], xi[range], beta[range], pf, f, p, q, maxdgr, isfunm)
+    sgdd = [sgddp; sgddq]
     # Construct first generalized divided difference
     if computeD
-        D[1] = constructD(0, B, C, L, n, p, q, r, sgddp, sgddq)
+        D[1] = constructD(0, L, n, p, q, r, BC, sgdd)
     end
     # Norm of first generalized divided difference
-    nrmD[1] = maximum(abs.([sgddp[:,1]; sgddq[:,1]]))
+    nrmD[1] = maximum(abs.(sgdd[:,1]))
 end
-# verified: sgddp, sgddq, nrmD
 if !isfinite(nrmD[1]) # check for NaN
     error("The generalized divided differences must be finite.");
 end
@@ -235,7 +235,7 @@ while k <= kmax
     # rational divided differences
     if expand
         if !Ahandle && computeD
-            D[k+1] = constructD(k, B, C, L, n, p, q, r, sgddp, sgddq)
+            D[k+1] = constructD(k, L, n, p, q, r, BC, sgdd)
         end
         N += 1
     end
@@ -251,7 +251,7 @@ while k <= kmax
         else
             # The below can cause out of bounds in sgddp and sgddq if there's
             # no convergence (also happens in MATLAB implementation)
-            nrmD[k+1] = maximum(abs.([sgddp[:,k+1]; sgddq[:,k+1]]))
+            nrmD[k+1] = maximum(abs.(sgdd[:,k+1]))
         end
         if !isfinite(nrmD[k+1]) # check for NaN
             error("The generalized divided differences must be finite.");
@@ -488,13 +488,9 @@ end
         p = -1
         q = 0
         r = 0
-
-        #temp
-        funA = []
-        residual = []
-        computeD = []
-        resfreq = []
-        #end temp
+        BBCC = []
+        pff = []
+        funA = nothing
 
         ## process the input A
         if haskey(A, "Fun")
@@ -637,6 +633,10 @@ end
 
             BB = vcat(B...)
             CC = vcat(C...)
+
+            BC = [B; C]
+            BBCC = isempty(BB) ? CC : isempty(CC) ? BB : [BB; CC]
+            pff = [pf; f]
         end
 
         # extract input options, with default values if missing
@@ -647,7 +647,8 @@ end
         tolres = get(options, "tolres", 1e-10)
         tollin = get(options, "tollin", max(tolres/10, 100*eps()))
         v0 = get(options, "v0", randn(n))
-        funres = get(options, "funres", residual)
+        residual = [] # TODO
+        funres = get(options, "funres", residual) # TODO: populate with default residual
         isfunm = get(options, "isfunm", true)
         static = get(options, "static", false)
         leja = get(options, "leja", 1)
@@ -665,7 +666,7 @@ end
 
         return funA,Ahandle,B,BB,pf,C,CC,f,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,
                 Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
-                funres,b,computeD,resfreq,verbose
+                funres,b,computeD,resfreq,verbose,BC,BBCC,pff
     end # checkInputs
 
 # ------------------------------------------------------------------------------
@@ -701,19 +702,16 @@ end # scgendivdiffs
 
 # constructD: Construct generalized divided difference
 #   nb  number
-    function constructD(nb, B, C, L, n, p, q, r, sgddp, sgddq)
+    function constructD(nb, L, n, p, q, r, BC, sgdd)
         if r == 0 || nb <= p
             D = spzeros(n, n)
-            for ii = 1:p+1
-                D += sgddp[ii,nb+1] * B[ii]
-            end
-            for ii = 1:q
-                D += sgddq[ii,nb+1] * C[ii]
+            for ii = 1:(p+1+q)
+                D += sgdd[ii,nb+1] * BC[ii]
             end
         else
             D = []
             for ii = 1:q
-                d = sgddq[ii,nb+1] * L[ii]
+                d = sgdd[p+1+ii,nb+1] * L[ii]
                 D = ii == 1 ? d : hcat(D, d)
             end
         end
