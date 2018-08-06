@@ -86,7 +86,7 @@ function nleigs(A::Dict, Sigma::Vector{Complex{T}}; Xi::AbstractVector{<:Number}
 D = lam = conv = X = res = Lam = Res = sigma = expand = xi = beta = nrmD = maxdgr = kconv = nothing
 element_type = eltype(Sigma)
 
-funA,Ahandle,B,BB,pf,C,CC,f,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
+funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
     resfreq,verbose,BC,BBCC,pff = checkInputs(A, Sigma, Xi, options)
 
@@ -148,8 +148,7 @@ if Ahandle
     nrmD[1] = vecnorm(D[1]) # Frobenius norm
 else
     # Compute scalar generalized divided differences
-    sgddp,sgddq = scgendivdiffs(sigma[range], xi[range], beta[range], pf, f, p, q, maxdgr, isfunm)
-    sgdd = [sgddp; sgddq]
+    sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], p, q, maxdgr, isfunm, pff)
     # Construct first generalized divided difference
     if computeD
         D[1] = constructD(0, L, n, p, q, r, BC, sgdd)
@@ -476,9 +475,7 @@ end
     function checkInputs(A::Dict, Sigma, Xi::AbstractVector{<:Number}, options::Dict)
         ## initialize
         B = []
-        BB = []
         C = []
-        CC = []
         pf = []
         f = []
         iL = 0
@@ -631,11 +628,8 @@ end
                 A
             end
 
-            BB = vcat(B...)
-            CC = vcat(C...)
-
             BC = [B; C]
-            BBCC = isempty(BB) ? CC : isempty(CC) ? BB : [BB; CC]
+            BBCC = isempty(B) ? vcat(C...) : isempty(C) ? vcat(B...) : [vcat(B...); vcat(C...)]
             pff = [pf; f]
         end
 
@@ -664,7 +658,7 @@ end
             maxdgr = maxit + 1;
         end
 
-        return funA,Ahandle,B,BB,pf,C,CC,f,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,
+        return funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,
                 Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
                 funres,b,computeD,resfreq,verbose,BC,BBCC,pff
     end # checkInputs
@@ -675,28 +669,17 @@ end
 #   sigma   discretization of target set
 #   xi      discretization of singularity set
 #   beta    scaling factors
-function scgendivdiffs(sigma, xi, beta, pf, f, p, q, maxdgr, isfunm)
-    ## Compute scalar generalized divided differences of polynomials part
-    sgddp = complex(zeros(p+1, maxdgr+2))
-    for ii = 1:p+1
+function scgendivdiffs(sigma, xi, beta, p, q, maxdgr, isfunm, pff)
+    sgdd = complex(zeros(p+1+q, maxdgr+2))
+    for ii = 1:p+1+q
         if isfunm
-            sgddp[ii,:] = ratnewtoncoeffsm(pf[ii], sigma, xi, beta)
+            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], sigma, xi, beta)
         else
-            sgddp[ii,:] = ratnewtoncoeffs(pf[ii], sigma, xi, beta)
+            sgdd[ii,:] = ratnewtoncoeffs(pff[ii], sigma, xi, beta)
         end
     end
-    ## Compute scalar generalized divided differences of nonlinear part
-    sgddq = complex(zeros(q, maxdgr+2))
-    for ii = 1:q
-        if isfunm
-            sgddq[ii,:] = ratnewtoncoeffsm(f[ii], sigma, xi, beta)
-        else
-            sgddq[ii,:] = ratnewtoncoeffs(f[ii], sigma, xi, beta)
-        end
-    end
-
-    return sgddp,sgddq
-end # scgendivdiffs
+    return sgdd
+end
 
 # ------------------------------------------------------------------------------
 
