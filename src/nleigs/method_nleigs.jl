@@ -318,7 +318,7 @@ while k <= kmax
         # shift-and-invert
         t = [zeros(l-1,1); 1]  # continuation combination
         wc = V[1:kn, l]        # continuation vector
-        w = backslash(wc, funA, Ahandle, BB, CC, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, sgddp, sgddq, N, xi, expand, kconv)
+        w = backslash(wc, funA, Ahandle, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
         # orthogonalization
         normw = norm(w)
@@ -722,7 +722,7 @@ end # scgendivdiffs
 
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
-    function backslash(wc, funA, Ahandle, BB, CC, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, sgddp, sgddq, N, xi, expand, kconv)
+    function backslash(wc, funA, Ahandle, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
         shift = sigma[k+1]
 
         ## construction of B*wc
@@ -734,9 +734,7 @@ end # scgendivdiffs
             if Ahandle || computeD
                 Bw[1:n] = -D[p+1] * wc[i0b:i0e] / beta[p+1]
             else
-                Bw[1:n] =
-                    -sum(reshape(BB * wc[i0b:i0e], n, p+1) .* sgddp[:, p+1].', 2) / beta[p+1] -
-                     sum(reshape(CC * wc[i0b:i0e], n, q) .* sgddq[:, p+1].', 2) / beta[p+1]
+                Bw[1:n] = -sum(reshape(BBCC * wc[i0b:i0e], n, :) .* sgdd[:,p+1].', 2) / beta[p+1];
             end
         end
         # other blocks
@@ -786,14 +784,9 @@ end # scgendivdiffs
                 end
             else
                 if r == 0 || ii < p
-                    if p >= 0
-                        z[1:n] -= sum(reshape(BB * z[i1b:i1e], n, p+1) .* sgddp[:,ii+1].', 2)
-                    end
-                    if q > 0
-                        z[1:n] -= sum(reshape(CC * z[i1b:i1e], n, q) .* sgddq[:,ii+1].', 2)
-                    end
+                    z[1:n] -= sum(reshape(BBCC * z[i1b:i1e], n, :) .* sgdd[:,ii+1].', 2)
                 elseif ii > p
-                    dd = sgddq[:,ii+1]
+                    dd = sgdd[p+2:end,ii+1]
                     z[1:n] -= LL*(z[i1b:i1e] .* dd[iL])
                 end
             end
