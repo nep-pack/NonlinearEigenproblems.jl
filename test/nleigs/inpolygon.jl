@@ -1,4 +1,6 @@
-using Base.Test
+if !isdefined(:global_modules_loaded)
+    using Base.Test
+end
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 

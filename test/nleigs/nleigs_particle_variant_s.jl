@@ -1,6 +1,16 @@
 # Particle: variant S
 
-using Base.Test
+# Intended to be run from nep-pack/ directory or nep-pack/test directory
+if !isdefined(:global_modules_loaded)
+    workspace()
+
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+
+    using NEPCore
+    using NEPTypes
+    using Gallery
+    using Base.Test
+end
 
 include("nleigs_test_utils.jl")
 include("particle_test_utils.jl")

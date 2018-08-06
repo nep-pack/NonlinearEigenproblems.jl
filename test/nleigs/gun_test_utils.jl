@@ -1,7 +1,3 @@
-push!(LOAD_PATH, string(@__DIR__, "/../../src/utils"))
-
-using Serialization
-
 function gun_init()
     NLEP = gun_nlep()
 
@@ -34,12 +30,12 @@ function gun_init()
 end
 
 function gun_nlep()
-    gunbase = joinpath(dirname(@__FILE__()), "../../src/", "gallery_extra",
-      "converted_nlevp", "gun_")
-    K = read_sparse_matrix(gunbase * "K.txt")
-    M = read_sparse_matrix(gunbase * "M.txt")
-    W1 = read_sparse_matrix(gunbase * "W1.txt")
-    W2 = read_sparse_matrix(gunbase * "W2.txt")
+    nep = nep_gallery("nlevp_native_gun")
+
+    K = nep.A[1]
+    M = nep.A[2]
+    W1 = nep.A[3]
+    W2 = nep.A[4]
 
     sigma2 = 108.8774
 
