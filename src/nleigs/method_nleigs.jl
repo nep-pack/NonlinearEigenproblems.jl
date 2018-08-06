@@ -185,7 +185,10 @@ while k <= kmax
             V[kn+b*n, nb*b+1] = 0
         else
             if expand && computeD
-                D[l+b+1] = []
+                if length(D) < l+b+1
+                    resize!(D, l+b+1)
+                end
+                D[l+b+1] = Array{Complex{Float64},2}(0, 0)
             end
             if expand
                 if r == 0 || l + b < p
@@ -501,7 +504,7 @@ end
         else
             Ahandle = false
             # polynomial part B
-            B = get(A, "B", "missing")
+            B = get(A, "B", [])
             if isempty(B)
                 p = -1
             elseif isa(B, Number)

@@ -51,7 +51,7 @@ end
     info_λ = info_λ[in_sigma]
 
     # test that eigenvalues in the info are the same as those returned by nleigs
-    @test length(length(info_λ)) == 4
+    @test length(info_λ) == 4
     @test length(union(lambda, info_λ)) == 4
 
     # test that the residuals are near 0
