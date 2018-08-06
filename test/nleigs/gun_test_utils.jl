@@ -1,5 +1,5 @@
 function gun_init()
-    NLEP = gun_nlep()
+    nep, NLEP = gun_nlep()
 
     gam = 300^2 - 200^2
     mu = 250^2
@@ -26,7 +26,7 @@ function gun_init()
 
     funres = (Lam, X) -> gun_residual(Lam, X, NLEP["B"][1], NLEP["B"][2], NLEP["C"][1], NLEP["C"][2], F)
 
-    return NLEP, Sigma, Xi, v0, nodes, funres
+    return nep, NLEP, Sigma, Xi, v0, nodes, funres
 end
 
 function gun_nlep()
@@ -68,7 +68,7 @@ function gun_nlep()
     f = [nep.fi[3], nep.fi[4]]
 
     # nlep
-    Dict("B" => B, "C" => C, "L" => [L1a, L2a], "U" => [U1a, U2a], "f" => f)
+    return nep, Dict("B" => B, "C" => C, "L" => [L1a, L2a], "U" => [U1a, U2a], "f" => f)
 end
 
 function compactlu(L, U)

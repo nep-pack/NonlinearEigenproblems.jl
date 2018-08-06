@@ -12,6 +12,18 @@ function nleigs_verify_lambdas(nrlambda, NLEP, X, lambda, tol = 1e-5)
     end
 end
 
+function nleigs_verify_lambdas(nrlambda, nep::SPMF_NEP, X, lambda, tol = 1e-5)
+    @test length(lambda) == nrlambda
+
+    @printf("Found %d lambdas:\n", length(lambda))
+    for i in eachindex(lambda)
+        λ = lambda[i]
+        nrm = norm(compute_Mlincomb(nep, λ, X[:, i]))
+        @test nrm < tol
+        @printf("λ[%d] = %s (norm = %.3g)\n", i, λ, nrm)
+    end
+end
+
 function funM(NLEP, λ)
     M = copy(NLEP["B"][1])
     for j = 2:length(NLEP["B"])

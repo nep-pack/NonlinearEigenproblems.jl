@@ -18,7 +18,7 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-NLEP, Sigma, Xi, v0, nodes, funres = gun_init()
+nep, NLEP, Sigma, Xi, v0, nodes, funres = gun_init()
 
 options = Dict(
     "disp" => verbose > 0 ? 1 : 0,
@@ -32,7 +32,7 @@ options = Dict(
 @time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
 
 @testset "NLEIGS: Gun variant R2" begin
-    nleigs_verify_lambdas(21, NLEP, X, lambda)
+    nleigs_verify_lambdas(21, nep, X, lambda)
 end
 
 if verbose > 1
