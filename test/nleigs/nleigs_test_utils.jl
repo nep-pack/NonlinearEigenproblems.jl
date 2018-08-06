@@ -18,8 +18,9 @@ function funM(NLEP, λ)
         # TODO: M .+= ...
         M += λ^(j-1) * NLEP["B"][j]
     end
+    as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
     for j = 1:length(NLEP["C"])
-        M += NLEP["f"][j](λ) * NLEP["C"][j]
+        M += NLEP["f"][j](as_matrix(λ))[1] * NLEP["C"][j]
     end
     return M
 end

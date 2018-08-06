@@ -612,6 +612,8 @@ end
                 error("'B' or 'C' must be non-empty.")
             end
 
+            as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
+
             funA = lambda -> begin
                 if !isempty(B)
                     A = complex.(copy(B[1]))
@@ -621,11 +623,11 @@ end
                     end
                     c1 = 1
                 else
-                    A = complex.(f[1](lambda) * C[1])
+                    A = complex.(f[1](as_matrix(lambda))[1] * C[1])
                     c1 = 2
                 end
                 for j = c1:length(C)
-                    A += f[j](lambda) * C[j]
+                    A += f[j](as_matrix(lambda))[1] * C[j]
                 end
                 A
             end

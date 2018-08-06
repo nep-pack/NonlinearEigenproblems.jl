@@ -65,11 +65,7 @@ function gun_nlep()
     U2a = U2a'
 
     # nonlinear functions
-    # TODO: make input S below always a 2d matrix
-    f = [S -> isa(S, Array) ? im*sqrtm(full(S)) : im*sqrt(S),
-         S -> isa(S, Array) ? im*sqrtm(full(S) - sigma2^2 * eye(S)) : im*sqrt(S - sigma2^2)];
-#    f = [S -> 1im*sqrtm(full(S)),
-#         S -> 1im*sqrtm(full(S) - sigma2^2 * eye(S))];
+    f = [nep.fi[3], nep.fi[4]]
 
     # nlep
     Dict("B" => B, "C" => C, "L" => [L1a, L2a], "U" => [U1a, U2a], "f" => f)
