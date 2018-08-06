@@ -58,20 +58,24 @@ function discretizepolygon(
         while length(Z) < nsigma
             iter += 1
             if iter > 10
-                error("Failed to find interior polygon points. (Note that intervals should be given their two endpoints only.)")
+                error("Failed to find interior polygon points. Sigma too narrow? (Note that intervals should be given by their two endpoints only.)")
             end
 
-            xnr = (maximum(real(z)) - minimum(real(z))) / (2*spacing)
-            xpts = linspace(minimum(real(z)), maximum(real(z)), trunc(Int, xnr))
+            xnr = trunc(Int, (maximum(real(z)) - minimum(real(z))) / (2*spacing))
+            ynr = trunc(Int, (maximum(imag(z)) - minimum(imag(z))) / (2*spacing))
+            spacing /= sqrt(sqrt(2))
+            if xnr <= 1 || ynr <= 1
+                continue
+            end
+
+            xpts = linspace(minimum(real(z)), maximum(real(z)), xnr)
             xpts = xpts[2:2:end]
 
-            ynr = (maximum(imag(z)) - minimum(imag(z))) / (2*spacing)
-            ypts = linspace(minimum(imag(z))-eps(), maximum(imag(z))+eps(), trunc(Int, ynr))
+            ypts = linspace(minimum(imag(z))-eps(), maximum(imag(z))+eps(), ynr)
             ypts = ypts[2:2:end]
 
             Z = [x + y*im for x in xpts for y in ypts]
             Z = filter(p -> inpolygon(real(p), imag(p), real(z), imag(z)), Z)
-            spacing /= sqrt(sqrt(2))
         end
     end
 

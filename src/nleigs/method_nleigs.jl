@@ -92,7 +92,7 @@ funA,Ahandle,B,BB,pf,C,CC,f,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
 
 # Initialization
 if computeD
-    D = zeros(b+1) # Array{}(b+1) ?
+    D = Array{Array{Complex{Float64},2}}(b+1)
 end
 if static
     V = zeros(element_type, n, 1)
@@ -533,7 +533,7 @@ end
                 elseif isa(L, Vector)
                     qL = length(L)
                 else
-                    error("The 'L-factor matrices of the nonlinear part 'C' must be a 1 dimensional array.")
+                    error("The 'L'-factor matrices of the nonlinear part 'C' must be a 1 dimensional array.")
                 end
                 U = A["U"]
                 if isa(U, Number)

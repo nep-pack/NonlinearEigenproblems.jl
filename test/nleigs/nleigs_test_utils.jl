@@ -30,7 +30,7 @@ function funM(NLEP, λ)
         M += λ^(j-1) * NLEP["B"][j]
     end
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-    for j = 1:length(NLEP["C"])
+    for j = 1:length(get(NLEP, "C", []))
         M += NLEP["f"][j](as_matrix(λ))[1] * NLEP["C"][j]
     end
     return M

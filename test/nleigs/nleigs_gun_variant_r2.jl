@@ -4,7 +4,7 @@
 if !isdefined(:global_modules_loaded)
     workspace()
 
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../../src"))
 
     using NEPCore
     using NEPTypes
