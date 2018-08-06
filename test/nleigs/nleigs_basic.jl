@@ -34,3 +34,27 @@ end
     @time X, lambda = nleigs(NLEP, Sigma, options=options)
     nleigs_verify_lambdas(4, NLEP, X, lambda)
 end
+
+@testset "NLEIGS: Non-convergent linearization (static)" begin
+    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true)
+    @time X, lambda = nleigs(NLEP, Sigma, options=options)
+    nleigs_verify_lambdas(4, NLEP, X, lambda)
+end
+
+@testset "NLEIGS: return_info" begin
+    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres)
+    @time X, lambda, res, solution_info = nleigs(NLEP, Sigma, options=options, return_info=true)
+    nleigs_verify_lambdas(4, NLEP, X, lambda)
+
+    info_λ = solution_info["Lam"][:,end]
+    in_sigma = map(p -> inpolygon(real(p), imag(p), real(Sigma), imag(Sigma)), info_λ)
+    info_λ = info_λ[in_sigma]
+
+    # test that eigenvalues in the info are the same as those returned by nleigs
+    @test length(length(info_λ)) == 4
+    @test length(union(lambda, info_λ)) == 4
+
+    # test that the residuals are near 0
+    info_res = solution_info["Res"][in_sigma,end]
+    @test all(r -> r < 1e-12, info_res)
+end
