@@ -175,11 +175,5 @@ function particle_residual(Lambda, X, NLEP)
         return A
     end
 
-    k = length(Lambda)
-
-    Lam = map(v -> real(v) + im * (sign(imag(v)) * imag(v)), Lambda)
-
-    R = map(i -> norm(funA(Lam[i], X[:,i])), 1:k)
-
-    return R
+    map(i -> norm(funA(Lambda[i], X[:,i])), 1:length(Lambda))
 end
