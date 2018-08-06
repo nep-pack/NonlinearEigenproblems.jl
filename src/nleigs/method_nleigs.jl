@@ -291,6 +291,9 @@ while k <= kmax
                 kconv = k
                 expand = false
                 if leja == 1
+                    if length(sigma) < kmax+1
+                        resize!(sigma, kmax+1)
+                    end
                     sigma[k+1:kmax+1] = nodes[1:kmax-k+1]
                 end
                 if static

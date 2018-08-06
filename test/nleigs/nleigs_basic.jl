@@ -23,10 +23,14 @@ funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + λ[i]^2*(B
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
-options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres)
+@testset "NLEIGS: Polynomial only" begin
+    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres)
+    @time X, lambda = nleigs(NLEP, Sigma, options=options)
+    nleigs_verify_lambdas(4, NLEP, X, lambda)
+end
 
-@time X, lambda = nleigs(NLEP, Sigma, options=options)
-
-@testset "NLEIGS: Polynomial" begin
+@testset "NLEIGS: Non-convergent linearization" begin
+    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres)
+    @time X, lambda = nleigs(NLEP, Sigma, options=options)
     nleigs_verify_lambdas(4, NLEP, X, lambda)
 end
