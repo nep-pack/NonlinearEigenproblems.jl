@@ -79,7 +79,7 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(A::Dict, Sigma::Vector{Complex{T}}; Xi = [Inf], options::Dict = Dict(), return_info = false) where T
+function nleigs(A::Dict, Sigma::Vector{Complex{T}}; Xi::AbstractVector{<:Number} = [Inf], options::Dict = Dict(), return_info = false) where T
 
 # The following variables are used when creating the return values, so put them in scope
 # TODO local lam, conv, ...
@@ -331,7 +331,7 @@ while k <= kmax
         H[l+1,l] = norm(w)
         K[l+1,l] = H[l+1,l] * sigma[k+1]
         V[1:kn,l+1] = w / H[l+1,l]
-#        @printf("new vector V: size = %s, norm = %s, sum = %s\n", size(V[1:kn,l+1]), norm(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
+#        @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
     end
 
     # Ritz pairs
@@ -467,7 +467,7 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-    function checkInputs(A::Dict, Sigma, Xi, options::Dict)
+    function checkInputs(A::Dict, Sigma, Xi::AbstractVector{<:Number}, options::Dict)
         ## initialize
         B = []
         BB = []
@@ -591,8 +591,6 @@ end
         ## process the input Xi
         if isempty(Xi)
             Xi = [Inf]
-        elseif !isa(Xi, Vector) || !(eltype(Xi) <: Number)
-            error("The poles set 'Xi' must be a numeric vector.")
         end
 
         ## set n and funA
@@ -618,7 +616,6 @@ end
                 if !isempty(B)
                     A = complex.(copy(B[1]))
                     for j = 2:length(B)
-                        # TODO: overwrite A
                         A += lambda^(j-1) * B[j]
                     end
                     c1 = 1
