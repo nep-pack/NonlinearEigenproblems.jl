@@ -18,7 +18,7 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-NLEP, Sigma, Xi, v0, nodes, funres, xmin, xmax = particle_init(2)
+nep, Sigma, Xi, v0, nodes, funres, xmin, xmax = particle_init(2)
 
 options = Dict(
     "disp" => verbose > 0 ? 1 : 0,
@@ -31,10 +31,10 @@ options = Dict(
     "static" => true)
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
 
 @testset "NLEIGS: Particle variant S" begin
-    nleigs_verify_lambdas(2, NLEP, X, lambda)
+    nleigs_verify_lambdas(2, nep, X, lambda)
 end
 
 if verbose > 1

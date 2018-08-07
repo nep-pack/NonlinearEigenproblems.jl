@@ -1,5 +1,5 @@
 function gun_init()
-    nep, NLEP = gun_nlep()
+    nep = gun_nlep()
 
     gam = 300^2 - 200^2
     mu = 250^2
@@ -23,9 +23,9 @@ function gun_init()
     srand(1)
     v0 = randn(nep.n)
 
-    funres = (Lam, X) -> gun_residual(Lam, X, nep.A[1], nep.A[2], nep.A[3], nep.A[4])
+    funres = (Lam, X) -> gun_residual(Lam, X, nep.B[1], nep.B[2], nep.C[1].A, nep.C[2].A)
 
-    return nep, NLEP, Sigma, Xi, v0, nodes, funres
+    return nep, Sigma, Xi, v0, nodes, funres
 end
 
 function gun_nlep()
@@ -38,7 +38,6 @@ function gun_nlep()
 
     sigma2 = 108.8774
 
-    B = [K, -M] # polynomial matrices
     C = [W1, W2] # nonlinear matrices
 
     # compute svd decomposition of C[1]
@@ -52,7 +51,7 @@ function gun_nlep()
     U1a[:, 9722:end] = U1
     U1a = U1a'
 
-    # compute svd decomposition of C{2}
+    # compute svd decomposition of C[2]
     W2 = C[2][1:479, 1:479]
     #lu = lufact(W2) # TODO use this
     L, U = lu(full(W2))
@@ -66,8 +65,10 @@ function gun_nlep()
     # nonlinear functions
     f = [nep.fi[3], nep.fi[4]]
 
-    # nlep
-    return nep, Dict("B" => B, "C" => C, "L" => [L1a, L2a], "U" => [U1a, U2a], "f" => f)
+    # finally assemble nep instance
+    c1 = SPMFLowRankMatrix(C[1], L1a, U1a, f[1])
+    c2 = SPMFLowRankMatrix(C[2], L2a, U2a, f[2])
+    return SPMFLowRankNEP(9956, [K, -M], [c1, c2])
 end
 
 function compactlu(L, U)
@@ -95,7 +96,7 @@ function gun_residual(Lambda, X, K, M, W1, W2)
     Den = nK + abs.(Lambda) * nM + sqrt.(abs.(Lambda-sigma1^2)) * nW1 + sqrt.(abs.(Lambda-sigma2^2)) * nW2
 
     # 2-norm of A(lambda)*x
-    R = map(i -> norm((K - M*Lambda[i] + W1*im*sqrt(Lambda[i]) + W2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
+    R = map(i -> norm((K + M*Lambda[i] + W1*im*sqrt(Lambda[i]) + W2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
 
     return R
 end

@@ -1,6 +1,5 @@
 function particle_init(interval)
-    NLEP, brpts, U0 = particle_nlep(interval)
-    n = size(NLEP["B"][1], 1)
+    nep, brpts, U0 = particle_nlep(interval)
 
     # interval
     sep = 1e-4
@@ -23,12 +22,12 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v0 = randn(n)
+    v0 = randn(nep.n)
     nodes = linspace(xmin, xmax, 11)
     nodes = nodes[2:2:end]
-    funres = (Lam, X) -> particle_residual(Lam, X, NLEP)
+    funres = (Lam, X) -> particle_residual(Lam, X, nep)
 
-    return NLEP, Sigma, Xi, v0, nodes, funres, xmin, xmax
+    return nep, Sigma, Xi, v0, nodes, funres, xmin, xmax
 end
 
 function particle_nlep(interval)
@@ -159,18 +158,22 @@ function particle_nlep(interval)
     # nlep
     NLEP = Dict("B" => B, "C" => S, "L" => SL, "U" => SU, "f" => f)
 
-    return NLEP, brpts, U0
+    # finally assemble nep instance
+    C = map(k -> SPMFLowRankMatrix(S[k], SL[k], SU[k], f[k]), 1:length(S))
+    nep = SPMFLowRankNEP(size(B[1], 1), B, C)
+
+    return nep, brpts, U0
 end
 
-function particle_residual(Lambda, X, NLEP)
+function particle_residual(Lambda, X, nep)
     function funA(lam, x)
-        A = NLEP["B"][1] * x
-        for j = 2:length(NLEP["B"])
-            A += lam^(j-1) * (NLEP["B"][j]*x)
+        A = nep.B[1] * x
+        for j = 2:length(nep.B)
+            A += lam^(j-1) * (nep.B[j]*x)
         end
         as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-        for j = 1:length(NLEP["C"])
-            A += NLEP["f"][j](as_matrix(lam))[1] * (NLEP["C"][j]*x)
+        for j = 1:length(nep.C)
+            A += nep.C[j].f(as_matrix(lam))[1] * (nep.C[j].A*x)
         end
         return A
     end

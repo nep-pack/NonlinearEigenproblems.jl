@@ -18,7 +18,7 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-nep, NLEP, Sigma, Xi, v0, nodes, funres = gun_init()
+nep, Sigma, Xi, v0, nodes, funres = gun_init()
 
 Xi = Float64[] # no pole candidates
 
@@ -32,7 +32,7 @@ options = Dict(
     "reuselu" => 2)
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(NLEP, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
 
 @testset "NLEIGS: Gun variant P" begin
     nleigs_verify_lambdas(17, nep, X, lambda)

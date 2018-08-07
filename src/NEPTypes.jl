@@ -8,6 +8,8 @@ module NEPTypes
     export SPMF_NEP
     export AbstractSPMF
 
+    export SPMFLowRankMatrix
+    export SPMFLowRankNEP
 
     export Proj_NEP;
     export Proj_SPMF_NEP;
@@ -232,9 +234,6 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             return compute_Mder_from_MM(nep,λ,i)
         end
     end
-
-
-
 
     ###########################################################
     # Delay eigenvalue problems - DEP
@@ -851,4 +850,35 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
     end
 
+    struct SPMFLowRankMatrix
+        A::AbstractMatrix
+        L::AbstractMatrix   # LU factors of A, can be used for low rank matrices (optional)
+        U::AbstractMatrix   # LU factors of A, can be used for low rank matrices (optional)
+        f                   # Function
+    end
+
+    struct SPMFLowRankNEP <: AbstractSPMF
+        n::Int                      # Matrix size (each matrix is n×n)
+        B::Array{AbstractMatrix}    # Polynomial part
+        C::Array{SPMFLowRankMatrix} # Array of nonlinear matrices
+    end
+
+    as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
+
+    function compute_Mlincomb(nep::SPMFLowRankNEP, λ::T, v::Vector{T}) where {T<:Number}
+        if !isempty(nep.B)
+            x = nep.B[1] * v
+            for j = 2:length(nep.B)
+                x .+= λ^(j-1) * (nep.B[j] * v)
+            end
+            c1 = 1
+        else
+            x = nep.C[1].f(as_matrix(λ))[1] * (nep.C[1].A * v)
+            c1 = 2
+        end
+        for j = c1:length(nep.C)
+            x .+= nep.C[j].f(as_matrix(λ))[1] * (nep.C[j].A * v)
+        end
+        x
+    end
 end

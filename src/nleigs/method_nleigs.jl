@@ -79,16 +79,15 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(A::Dict, Sigma::Vector{Complex{T}}; Xi::AbstractVector{<:Number} = [Inf], options::Dict = Dict(), return_info = false) where T
+function nleigs(nep::SPMFLowRankNEP, Sigma::Vector{Complex{T}}; Xi::AbstractVector{<:Number} = [Inf], options::Dict = Dict(), return_info = false) where T
 
 # The following variables are used when creating the return values, so put them in scope
-# TODO local lam, conv, ...
 D = lam = conv = X = res = Lam = Res = sigma = expand = xi = beta = nrmD = maxdgr = kconv = nothing
 element_type = eltype(Sigma)
 
 funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
-    resfreq,verbose,BC,BBCC,pff = checkInputs(A, Sigma, Xi, options)
+    resfreq,verbose,BC,BBCC,pff = checkInputs(nep, Sigma, Xi, options)
 
 # Initialization
 if computeD
@@ -248,7 +247,7 @@ while k <= kmax
         if Ahandle
             nrmD[k+1] = vecnorm(D[k+1]) # Frobenius norm
         else
-            # The below can cause out of bounds in sgddp and sgddq if there's
+            # The below can cause out of bounds in sgdd if there's
             # no convergence (also happens in MATLAB implementation)
             nrmD[k+1] = maximum(abs.(sgdd[:,k+1]))
         end
@@ -472,12 +471,8 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-    function checkInputs(A::Dict, Sigma, Xi::AbstractVector{<:Number}, options::Dict)
-        ## initialize
-        B = []
-        C = []
-        pf = []
-        f = []
+    function checkInputs(nep::SPMFLowRankNEP, Sigma, Xi::AbstractVector{<:Number}, options::Dict)
+        # initialize
         iL = 0
         L = []
         LL = []
@@ -489,125 +484,48 @@ end
         pff = []
         funA = nothing
 
-        ## process the input A
-        if haskey(A, "Fun")
+        if nep == "TODO: add support for function for A(λ)" # TODO
             Ahandle = true
-            # function handle for A(lambda)
-            funA = A["Fun"]
+            funA = nep.fun # function handle for A(λ)
+            n = nep.n
         else
             Ahandle = false
+
             # polynomial part B
-            B = get(A, "B", [])
-            if isempty(B)
-                p = -1
-            elseif isa(B, Number)
-                p = 0;
-                B = [B]
-            elseif isa(B, Vector)
-                p = length(B) - 1
-            else
-                error("The constant matrices of the polynomial part 'B' must be a 1 dimensional array.")
-            end
+            B = nep.B
+            p = length(B) - 1
+
             # nonlinear part C
-            if haskey(A, "C")
-                C = A["C"]
-                if isempty(C)
-                    qC = 0
-                elseif isa(C, Number)
-                    qC = 1
-                    C = [C]
-                elseif isa(C, Vector)
-                    qC = length(C)
-                else
-                    error("The constant matrices of the nonlinear part 'C' must be a 1 dimensional array.")
-                end
-                f = A["f"]
-            end
-            # L and U factors of the low rank nonlinear part C
-            if haskey(A, "L")
-                L = A["L"]
-                if isa(L, Number)
-                    qL = 1
-                    L = [L]
-                elseif isa(L, Vector)
-                    qL = length(L)
-                else
-                    error("The 'L'-factor matrices of the nonlinear part 'C' must be a 1 dimensional array.")
-                end
-                U = A["U"]
-                if isa(U, Number)
-                    qU = 1
-                    U = [U]
-                elseif isa(U, Vector)
-                    qU = length(U)
-                else
-                    error("The 'U'-factor matrices of the nonlinear part 'C' must be a 1 dimensional array.")
-                end
-                if qL != qU
-                    error("The number of 'L'- and 'U'-factors must be equal.")
-                end
-                if !haskey(A, "C")
-                    qC = qL
-                    C = zeros(qC)
-                    for ii = 1:qC
-                        C[ii] = L[ii]*U[ii]'
+            f = map(x -> x.f, nep.C)
+            C = map(x -> x.A, nep.C)
+            q = length(C)
+
+            if q > 0
+                # L and U factors of the low rank nonlinear part C
+                L = map(x -> x.L, nep.C)
+                U = map(x -> x.U, nep.C)
+
+                if !isempty(L[1])
+                    if isempty(C[1])
+                        # if C is not specified, create it from LU factors
+                        C = map(k -> L[k] * U[k]', 1:q)
                     end
-                elseif qC != qL
-                    error("The number of 'L'- and 'U'-factors must be equal to the number of constant matrices of the nonlinear part 'C'.")
-                end
-                U = hcat(U...) # input = 81 x 16281 x 2; output = 16281 x 162
-                r = size(U, 2)
-                iL = zeros(Int, r, 1)
-                c = 0
-                for ii = 1:qL
-                    ri = size(L[ii], 2)
-                    iL[c+1:c+ri] = ii
-                    c += ri
-                end
-                LL = hcat(L...)
-            end
-            # nonlinear function f
-            if haskey(A, "C") || haskey(A, "L")
-                f = A["f"]
-                if isempty(f)
-                    qf = 0
-                elseif !isempty(methods(f))
-                    qf = 1
-                    f = [f]
-                elseif isa(f, Vector)
-                    qf = length(f)
-                else
-                    error("The scalar functions 'f' of the nonlinear part 'C' must be a 1 dimensional array.")
-                end
-                if qC == qf
-                    q = qC
-                else
-                    error("The number of constant matrices 'C' and the number of scalar functions 'f' must be equal.")
-                end
-            end
-        end
 
-        ## process the input Xi
-        if isempty(Xi)
-            Xi = [Inf]
-        end
+                    U = hcat(U...) # input = 81 x 16281 x 2; output = 16281 x 162
+                    r = size(U, 2)
+                    iL = zeros(Int, r, 1)
+                    c = 0
+                    for ii = 1:q
+                        ri = size(L[ii], 2)
+                        iL[c+1:c+ri] = ii
+                        c += ri
+                    end
+                    LL = hcat(L...)
+                end
+            end
 
-        ## set n and funA
-        if Ahandle
-            # dimension of A(lambda)
-            n = get(A, "n", "missing")
-            if !isa(n, Integer) || n < 0
-                error("Size of problem 'n' must be a positive integer, got $n.")
-            end
-        else
-            if p >= 0
-                n = size(B[1], 1)
-                pf = monomials(p)
-            elseif q > 0
-                n = size(C[1], 1)
-            else
-                error("'B' or 'C' must be non-empty.")
-            end
+            # set n and funA
+            n = nep.n
 
             as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 
@@ -630,7 +548,12 @@ end
 
             BC = [B; C]
             BBCC = isempty(B) ? vcat(C...) : isempty(C) ? vcat(B...) : [vcat(B...); vcat(C...)]
-            pff = [pf; f]
+            pff = [monomials(p); f]
+        end
+
+        # process the input Xi
+        if isempty(Xi)
+            Xi = [Inf]
         end
 
         # extract input options, with default values if missing
@@ -661,7 +584,7 @@ end
         return funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,
                 Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
                 funres,b,computeD,resfreq,verbose,BC,BBCC,pff
-    end # checkInputs
+    end
 
 # ------------------------------------------------------------------------------
 
