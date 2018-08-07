@@ -38,37 +38,34 @@ function gun_nlep()
 
     sigma2 = 108.8774
 
-    C = [W1, W2] # nonlinear matrices
-
-    # compute svd decomposition of C[1]
-    W1 = C[1][9722:end, 9722:end]
-    #lu = lufact(W1) # TODO use this
-    L, U = lu(full(W1))
-    L1, U1 = compactlu(sparse(L), sparse(U))
-    L1a = spzeros(9956, size(L1, 2))
-    L1a[9722:end, :] = L1
-    U1a = spzeros(size(U1, 1), 9956)
-    U1a[:, 9722:end] = U1
-    U1a = U1a'
-
-    # compute svd decomposition of C[2]
-    W2 = C[2][1:479, 1:479]
-    #lu = lufact(W2) # TODO use this
-    L, U = lu(full(W2))
-    L2, U2 = compactlu(sparse(L), sparse(U))
-    L2a = spzeros(9956, size(L2, 2));
-    L2a[1:479, :] = L2
-    U2a = spzeros(size(U2, 1), 9956)
-    U2a[:, 1:479] = U2
-    U2a = U2a'
+    # exploit low rank structure in nonlinear matrices
+    L1a, U1a = svd_decompose(W1)
+    L2a, U2a = svd_decompose(W2)
 
     # nonlinear functions
     f = [nep.fi[3], nep.fi[4]]
 
     # finally assemble nep instance
-    c1 = SPMFLowRankMatrix(C[1], L1a, U1a, f[1])
-    c2 = SPMFLowRankMatrix(C[2], L2a, U2a, f[2])
-    return SPMFLowRankNEP(9956, [K, -M], [c1, c2])
+    c1 = SPMFLowRankMatrix(W1, L1a, U1a, f[1])
+    c2 = SPMFLowRankMatrix(W2, L2a, U2a, f[2])
+    return SPMFLowRankNEP(size(K, 1), [K, -M], [c1, c2])
+end
+
+function svd_decompose(A)
+    n = size(A, 1)
+    r, c = findn(A)
+    r = extrema(r)
+    c = extrema(c)
+    B = A[r[1]:r[2], c[1]:c[2]]
+    #lu = lufact(W1) # TODO use this
+    L, U = lu(full(B))
+    L1, U1 = compactlu(sparse(L), sparse(U))
+    L1a = spzeros(n, size(L1, 2))
+    L1a[r[1]:r[2], :] = L1
+    U1a = spzeros(size(U1, 1), n)
+    U1a[:, c[1]:c[2]] = U1
+    U1a = U1a'
+    return L1a, U1a
 end
 
 function compactlu(L, U)
