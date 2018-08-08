@@ -6,6 +6,10 @@ Implementation inspired by 'isinside' in Luxor
 (see https://github.com/JuliaGraphics/Luxor.jl/blob/master/src/polygons.jl)
 """
 function inpolygon(px, py, polyx, polyy)
+    if !isfinite(px) || !isfinite(py)
+        return false
+    end
+
     c = false
     @inbounds for idx in 1:length(polyx)
         q1x = polyx[idx]
