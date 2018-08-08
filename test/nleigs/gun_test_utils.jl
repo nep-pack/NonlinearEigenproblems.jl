@@ -57,15 +57,24 @@ function svd_decompose(A)
     r = extrema(r)
     c = extrema(c)
     B = A[r[1]:r[2], c[1]:c[2]]
-    #lu = lufact(W1) # TODO use this
     L, U = lu(full(B))
-    L1, U1 = compactlu(sparse(L), sparse(U))
-    L1a = spzeros(n, size(L1, 2))
-    L1a[r[1]:r[2], :] = L1
-    U1a = spzeros(size(U1, 1), n)
-    U1a[:, c[1]:c[2]] = U1
-    U1a = U1a'
-    return L1a, U1a
+    Lc, Uc = compactlu(sparse(L), sparse(U))
+    Lca = spzeros(n, size(Lc, 2))
+    Lca[r[1]:r[2], :] = Lc
+    Uca = spzeros(size(Uc, 1), n)
+    Uca[:, c[1]:c[2]] = Uc
+    Uca = Uca'
+    return Lca, Uca
+
+    # TODO use this; however we then need to support permutation and scaling
+    #F = lufact(B)
+    #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
+    #Lcaf = spzeros(n, size(Lcf, 2))
+    #Lcaf[r[1]:r[2], :] = Lcf
+    #Ucaf = spzeros(size(Ucf, 1), n)
+    #Ucaf[:, c[1]:c[2]] = Ucf
+    #Ucaf = Ucaf'
+    # END TEMP
 end
 
 function compactlu(L, U)

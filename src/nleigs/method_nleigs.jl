@@ -175,48 +175,34 @@ N = 0    # degree of approximations
 kmax = static ? maxit + maxdgr : maxit
 k = 1
 while k <= kmax
-    # allocation
+    # resize matrices if we're starting a new block
     if l > 0 && (b == 1 || mod(l+1, b) == 1)
         nb = round(Int, 1 + l/b)
         if Ahandle
-            V = ensure_size(V, kn+b*n, nb*b+1)
-            V[kn+b*n, nb*b+1] = 0
+            V = resize_matrix(V, kn+b*n, nb*b+1)
         else
             if expand && computeD
-                if length(D) < l+b+1
-                    resize!(D, l+b+1)
-                end
-                D[l+b+1] = Array{Complex{Float64},2}(0, 0)
+                resize!(D, l+b+1)
             end
             if expand
                 if r == 0 || l + b < p
-                    V = ensure_size(V, kn+b*n, nb*b+1)
-                    V[kn+b*n, nb*b+1] = 0
+                    V = resize_matrix(V, kn+b*n, nb*b+1)
                 elseif l < p-1
-                    V = ensure_size(V, p*n+(nb*b-p+1)*r, nb*b+1)
-                    V[p*n+(nb*b-p+1)*r, nb*b+1] = 0
+                    V = resize_matrix(V, p*n+(nb*b-p+1)*r, nb*b+1)
                 else # l => p-1
-                    V = ensure_size(V, kn+b*r, nb*b+1)
-                    V[kn+b*r, nb*b+1] = 0
+                    V = resize_matrix(V, kn+b*r, nb*b+1)
                 end
             else
-                V = ensure_size(V, size(V, 1), nb*b+1)
-                V[:, nb*b+1] = 0
+                V = resize_matrix(V, size(V, 1), nb*b+1)
             end
         end
-        # TODO: clean up
-        H = ensure_size(H, size(H, 1) + b, size(H, 2) + b)
-        H[size(H,1), size(H,2)] = 0
-        K = ensure_size(K, size(K, 1) + b, size(K, 2) + b)
-        K[size(K,1), size(K,2)] = 0
+        H = resize_matrix(H, size(H, 1) + b, size(H, 2) + b)
+        K = resize_matrix(K, size(K, 1) + b, size(K, 2) + b)
         if return_info
-            Lam = ensure_size(Lam, size(Lam, 1) + b, size(Lam, 2) + b)
-            Lam[size(Lam,1), size(Lam,2)] = 0
-            Res = ensure_size(Res, size(Res, 1) + b, size(Res, 2) + b)
-            Res[size(Res,1), size(Res,2)] = 0
+            Lam = resize_matrix(Lam, size(Lam, 1) + b, size(Lam, 2) + b)
+            Res = resize_matrix(Res, size(Res, 1) + b, size(Res, 2) + b)
             if expand
-                resize!(nrmD, length(nrmD) + b) # TODO: push?
-                nrmD[length(nrmD)] = 0
+                resize!(nrmD, length(nrmD) + b)
             end
         end
     end
@@ -280,8 +266,7 @@ while k <= kmax
                     else
                         kn -= r
                     end
-                    V = ensure_size(V, kn, b+1)
-                    V[kn, b+1] = 0
+                    V = resize_matrix(V, kn, b+1)
                 end
                 N -= 1
                 if verbose > 0
@@ -298,8 +283,7 @@ while k <= kmax
                     sigma[k+1:kmax+1] = nodes[1:kmax-k+1]
                 end
                 if static
-                    V = ensure_size(V, kn, b+1)
-                    V[kn, b+1] = 0
+                    V = resize_matrix(V, kn, b+1)
                 end
                 N -= 1
                 warn("NLEIGS:noconvergence: Linearization not converged after $maxdgr iterations")
@@ -752,7 +736,7 @@ end
 #   z      (complex) points
     function inSigma(z, Sigma, tolres)
         if length(Sigma) == 2 && isreal(Sigma)
-            realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]]) # note: sigma may be of complex type with 0 complex part
+            realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]]) # note: sigma may be real but of complex type with 0 complex part
             imagSigma = [-tolres; tolres; tolres; -tolres]
         else
             realSigma = real(Sigma)
@@ -792,13 +776,8 @@ function monomials(p)
     return map(i -> x -> x^(i-1), 1:p+1)
 end
 
-function ensure_size(A, rows, cols)
-    r = max(size(A, 1), rows)
-    c = max(size(A, 2), cols)
-    if r > size(A, 1) || c > size(A, 2)
-        expanded = zeros(eltype(A), r, c)
-        expanded[1:size(A, 1), 1:size(A, 2)] = A
-        A = expanded
-    end
-    return A
+function resize_matrix(A, rows, cols)
+    resized = zeros(eltype(A), rows, cols)
+    resized[1:size(A, 1), 1:size(A, 2)] = A
+    return resized
 end
