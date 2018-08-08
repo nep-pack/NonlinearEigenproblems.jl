@@ -79,7 +79,7 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(nep::SPMFLowRankNEP, Sigma::Vector{Complex{T}}; Xi::AbstractVector{<:Number} = [Inf], options::Dict = Dict(), return_info = false) where T
+function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
 
 # The following variables are used when creating the return values, so put them in scope
 D = lam = conv = X = res = Lam = Res = sigma = expand = xi = beta = nrmD = maxdgr = kconv = nothing
@@ -117,7 +117,7 @@ if leja == 0 # use no leja nodes
     if isempty(nodes)
         error("Interpolation nodes must be provided via 'options[\"nodes\"]' when no Leja-Bagby points (options[\"leja\"] == 0) are used.")
     end
-    gamma = discretizepolygon(Sigma)
+    gamma,_ = discretizepolygon(Sigma)
     max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
     sigma = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
     _,xi,beta = lejabagby(sigma[1:maxdgr+2], Xi, gamma, maxdgr+2, true, p)
@@ -125,12 +125,12 @@ elseif leja == 1 # use leja nodes in expansion phase
     if isempty(nodes)
         gamma,nodes = discretizepolygon(Sigma, true)
     else
-        gamma = discretizepolygon(Sigma)
+        gamma,_ = discretizepolygon(Sigma)
     end
     nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
     sigma,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, p)
 else # use leja nodes in both phases
-    gamma = discretizepolygon(Sigma)
+    gamma,_ = discretizepolygon(Sigma)
     max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
     sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, p)
 end
@@ -440,8 +440,7 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-    function checkInputs(nep::SPMFLowRankNEP, Sigma, Xi::AbstractVector{<:Number}, options::Dict)
-        # initialize
+    function checkInputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
         iL = 0
         L = []
         LL = []

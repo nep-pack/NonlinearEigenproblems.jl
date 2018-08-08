@@ -51,7 +51,7 @@ function gun_nep()
     return SPMFLowRankNEP(size(K, 1), [K, -M], [c1, c2])
 end
 
-function svd_decompose(A)
+function svd_decompose(A::SparseMatrixCSC{Float64,Int64})
     n = size(A, 1)
     r, c = findn(A)
     r = extrema(r)

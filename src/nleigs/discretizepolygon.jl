@@ -5,13 +5,13 @@ include("inpolygon.jl")
 # npts = nr of boundary points
 # nsigma = nr of interior points
 function discretizepolygon(
-    z = [0],
-    include_interior_points = false,
-    npts = 1e4,
-    nsigma = 5)
+    z::Vector{Complex{T}} = [],
+    include_interior_points::Bool = false,
+    npts::Int = 10000,
+    nsigma::Int = 5) where T<:Real
 
     if isempty(z) # return unit disk
-        z = [0]
+        z = [Complex{T}(0)]
     end
 
     if length(z) == 1 # return disk centered at z
@@ -24,7 +24,7 @@ function discretizepolygon(
 
         # 0<=alph<=1 is position of current point between z[ind] and z[ind+1]
         ind = 1
-        alph = 0
+        alph = 0.0
         zz = [z[ind]]
         remL = L/npts
         while length(zz) < npts
@@ -32,7 +32,7 @@ function discretizepolygon(
             if (1-alph)*d < remL # can go to end of edge
                 ind += 1
                 remL -= (1-alph) * d
-                alph = 0
+                alph = 0.0
             else # next point zz is between z[ind] and z[ind+1]
                 alph += remL / d
                 remL = L / npts
@@ -42,17 +42,19 @@ function discretizepolygon(
     end
 
     append!(zz, z)
-    Z = []
 
+    Z = Vector{Complex{T}}(0)
     if include_interior_points
         if length(z) == 2 # interval case
             xnr = 2*nsigma
             if (xnr&1) == 0 xnr += 1 end
             xpts = linspace(z[1], z[2], xnr)
-            Z = xpts[2:2:end]
+            Z = collect(xpts[2:2:end])
             return zz, Z
         end
 
+        realz = real.(z)
+        imagz = imag.(z)
         iter = 0
         spacing = (maximum(real(z)) - minimum(real(z))) / 2.0001 / sqrt(nsigma)
         while length(Z) < nsigma
@@ -74,10 +76,10 @@ function discretizepolygon(
             ypts = linspace(minimum(imag(z))-eps(), maximum(imag(z))+eps(), ynr)
             ypts = ypts[2:2:end]
 
-            Z = [x + y*im for x in xpts for y in ypts]
-            Z = filter(p -> inpolygon(real(p), imag(p), real(z), imag(z)), Z)
+            Z = [x + y*im for x in xpts for y in ypts]::Vector{Complex{T}}
+            Z = filter(p -> inpolygon(real(p), imag(p), realz, imagz), Z)
         end
     end
 
-    return include_interior_points ? (zz, Z) : zz
+    return zz, Z
 end

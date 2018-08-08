@@ -3,8 +3,8 @@
 #  1. Greedy search for a minimum is performed on B. If keepA is true then
 #  the points in the output a will be exactly those of A, otherwise the
 #  points in a are also chosen via greedy search on A. If forceInf is a
-#  positive integeger, the the first forceInf poles in b will be infinity.
-function lejabagby(A, B, C, m, keepA=false, forceInf=0)
+#  positive integer, the first forceInf poles in b will be infinity.
+function lejabagby(A::AbstractVector{Complex{T}}, B::AbstractVector{T}, C::AbstractVector{Complex{T}}, m::Int, keepA::Bool=false, forceInf::Int=0) where T<:Real
     if minimum(abs.(B)) < 1e-9
         warn("There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability.")
     end
