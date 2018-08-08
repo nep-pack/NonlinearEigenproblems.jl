@@ -768,7 +768,11 @@ end
 end # nleigs
 =#
 function monomials(p)
-    return map(i -> x -> x^(i-1), 1:p+1)
+    f = Vector{Any}(p+1)
+    for k=1:p+1
+        f[k] = x -> x^(k-1)
+    end
+    return f
 end
 
 function resize_matrix(A, rows, cols)
