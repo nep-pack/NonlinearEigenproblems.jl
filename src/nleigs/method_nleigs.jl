@@ -322,13 +322,13 @@ while k <= kmax
 
         # select eigenvalues
         if !all
-            lamin = inSigma(lambda, Sigma, tolres)
+            lamin = in_sigma(lambda, Sigma, tolres)
             ilam = [1:l;][lamin]
             lam = lambda[ilam]
         else
             ilam = [1:l;][isfinite.(lambda)]
             lam = lambda[ilam]
-            lamin = inSigma(lam, Sigma, tolres)
+            lamin = in_sigma(lam, Sigma, tolres)
         end
 
         nblamin = sum(lamin)
@@ -726,11 +726,11 @@ end
 
 # ------------------------------------------------------------------------------
 
-# inSigma: True for points inside Sigma
+# in_sigma: True for points inside Sigma
 #   z      (complex) points
-    function inSigma(z, Sigma, tolres)
+    function in_sigma(z::AbstractVector{Complex{T}}, Sigma::AbstractVector{Complex{T}}, tolres::T) where T<:Real
         if length(Sigma) == 2 && isreal(Sigma)
-            realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]]) # note: sigma may be real but of complex type with 0 complex part
+            realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]])
             imagSigma = [-tolres; tolres; tolres; -tolres]
         else
             realSigma = real(Sigma)
