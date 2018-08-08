@@ -337,7 +337,7 @@ while k <= kmax
         end
         X = V[1:n,1:l+1] * (H[1:l+1,1:l] * S[:,ilam])
         for i = 1:size(X,2)
-            normalize!(X[:,i])
+            X[:,i] /= norm(X[:,i])
         end
 
         # compute residuals & check for convergence
