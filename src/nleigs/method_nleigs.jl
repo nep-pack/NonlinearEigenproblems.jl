@@ -174,6 +174,8 @@ l = 0    # number of vectors in V
 N = 0    # degree of approximations
 kmax = static ? maxit + maxdgr : maxit
 k = 1
+nbconv = 0 # number of converged lambdas inside sigma
+nblamin = 0 # number of lambdas inside sigma, converged or not
 while k <= kmax
     # resize matrices if we're starting a new block
     if l > 0 && (b == 1 || mod(l+1, b) == 1)
@@ -315,66 +317,56 @@ while k <= kmax
 #        @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
     end
 
-    # Ritz pairs
-    if !return_info && (
-        (!expand && k >= N + minit && mod(k-(N+minit), resfreq) == 0) ||
-        (k >= kconv + minit && mod(k-(kconv+minit), resfreq) == 0) ||
-        k == kmax)
-        lambda,S = eig(K[1:l,1:l], H[1:l,1:l])
+    function update_lambdas(all)
+        lambda, S = eig(K[1:l,1:l], H[1:l,1:l])
+
         # select eigenvalues
-        ilam = 1:l
-        ilam = ilam[inSigma(lambda, Sigma, tolres)]
-        lam = lambda[ilam]
-        nblamin = length(lam)
+        if !all
+            lamin = inSigma(lambda, Sigma, tolres)
+            ilam = [1:l;][lamin]
+            lam = lambda[ilam]
+        else
+            ilam = [1:l;][isfinite.(lambda)]
+            lam = lambda[ilam]
+            lamin = inSigma(lam, Sigma, tolres)
+        end
+
+        nblamin = sum(lamin)
         for i = ilam
             S[:,i] /= norm(H[1:l+1,1:l] * S[:,i])
         end
         X = V[1:n,1:l+1] * (H[1:l+1,1:l] * S[:,ilam])
         for i = 1:size(X,2)
-            X[:,i] /= norm(X[:,i])
+            normalize!(X[:,i])
         end
-        # compute residuals
+
+        # compute residuals & check for convergence
         res = funres(lam, X) # needed for residual: funA, Ahandle, BB, pf, CC, f, p, q
-        # check for convergence
         conv = abs.(res) .< tolres
+        if all
+            resall = fill(NaN, l, 1)
+            resall[ilam] = res
+            # sort complex numbers by magnitude, then angle
+            si = sortperm(lambda, lt = (a,b) -> abs(a) < abs(b) || (abs(a) == abs(b) && angle(a) < angle(b)))
+            Res[1:l,l] = resall[si]
+            Lam[1:l,l] = lambda[si]
+            conv .&= lamin
+        end
+
         nbconv = sum(conv)
         if verbose > 0
             iteration = static ? k - N : k
             println("  iteration $iteration: $nbconv of $nblamin < $tolres")
         end
-    elseif return_info
-        if !static || (static && !expand)
-            lambda,S = eig(K[1:l,1:l], H[1:l,1:l])
-            # select eigenvalues
-            ilam = 1:l
-            ilam = ilam[isfinite.(lambda)]
-            lam = lambda[ilam]
-            lamin = inSigma(lam, Sigma, tolres)
-            nblamin = sum(lamin)
-            for i = ilam
-                S[:,i] /= norm(H[1:l+1,1:l] * S[:,i])
-            end
-            X = V[1:n,1:l+1] * (H[1:l+1,1:l] * S[:,ilam])
-            for i = 1:size(X,2)
-                X[:,i] /= norm(X[:,i])
-            end
-            # compute residuals
-            res = zeros(l,1)
-            res[isfinite.(lambda)] = NaN
-            res[ilam] = funres(lam, X) # needed for residual: funA, Ahandle, BB, pf, CC, f, p, q
-            # sort complex numbers by magnitude, then angle
-            si = sortperm(lambda, lt = (a,b) -> abs(a) < abs(b) || (abs(a) == abs(b) && angle(a) < angle(b)))
-            Res[1:l,l] = res[si]
-            Lam[1:l,l] = lambda[si]
-            # check for convergence
-            res = res[ilam]
-            conv = (abs.(res) .< tolres) .& lamin
-            nbconv = sum(conv)
-            if verbose > 0
-                iteration = static ? k - N : k
-                println("  iteration $iteration: $nbconv of $nblamin < $tolres")
-            end
-        end
+    end
+
+    # Ritz pairs
+    if !return_info && (
+        (!expand && k >= N + minit && mod(k-(N+minit), resfreq) == 0) ||
+        (k >= kconv + minit && mod(k-(kconv+minit), resfreq) == 0) || k == kmax)
+        update_lambdas(false)
+    elseif return_info && (!static || (static && !expand))
+        update_lambdas(true)
     end
 
     # stopping
