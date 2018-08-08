@@ -201,9 +201,6 @@ while k <= kmax
         if return_info
             Lam = resize_matrix(Lam, size(Lam, 1) + b, size(Lam, 2) + b)
             Res = resize_matrix(Res, size(Res, 1) + b, size(Res, 2) + b)
-            if expand
-                resize!(nrmD, length(nrmD) + b)
-            end
         end
     end
 
@@ -226,16 +223,12 @@ while k <= kmax
 
     # monitoring norms of divided difference matrices
     if expand
-        # TODO: can we pre-allocate nrmD?
-        if length(nrmD) < k+1
-            resize!(nrmD, k+1)
-        end
         if Ahandle
-            nrmD[k+1] = vecnorm(D[k+1]) # Frobenius norm
+            push!(nrmD, vecnorm(D[k+1])) # Frobenius norm
         else
             # The below can cause out of bounds in sgdd if there's
             # no convergence (also happens in MATLAB implementation)
-            nrmD[k+1] = maximum(abs.(sgdd[:,k+1]))
+            push!(nrmD, maximum(abs.(sgdd[:,k+1])))
         end
         if !isfinite(nrmD[k+1]) # check for NaN
             error("The generalized divided differences must be finite.");

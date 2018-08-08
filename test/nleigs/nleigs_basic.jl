@@ -42,7 +42,7 @@ end
 end
 
 @testset "NLEIGS: return_info" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres)
+    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
     @time X, lambda, res, solution_info = nleigs(nep, Sigma, options=options, return_info=true)
     nleigs_verify_lambdas(4, nep, X, lambda)
 
