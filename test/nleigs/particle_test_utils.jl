@@ -1,5 +1,5 @@
 function particle_init(interval)
-    nep, brpts, U0 = particle_nlep(interval)
+    nep, brpts, U0 = particle_nep(interval)
 
     # interval
     sep = 1e-4
@@ -30,7 +30,7 @@ function particle_init(interval)
     return nep, Sigma, Xi, v0, nodes, funres, xmin, xmax
 end
 
-function particle_nlep(interval)
+function particle_nep(interval)
     # MATLAB version author: William Vandenberghe
 
     # initialization
@@ -154,9 +154,6 @@ function particle_nlep(interval)
     for j = interval:length(brpts)
         f[j] = lambda -> expm(-sqrtm(full(m * (-lambda + brpts[j] * eye(lambda)))))
     end
-
-    # nlep
-    NLEP = Dict("B" => B, "C" => S, "L" => SL, "U" => SU, "f" => f)
 
     # finally assemble nep instance
     C = map(k -> SPMFLowRankMatrix(S[k], SL[k], SU[k], f[k]), 1:length(S))

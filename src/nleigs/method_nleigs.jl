@@ -166,16 +166,16 @@ if reuselu == 2
 else
     v0 = funA(sigma[1]) \ (v0/norm(v0))
 end
-V[1:n,1] = v0/norm(v0)
+V[1:n,1] .= v0 ./ norm(v0)
 expand = true
 kconv = Inf
 kn = n   # length of vectors in V
 l = 0    # number of vectors in V
 N = 0    # degree of approximations
-kmax = static ? maxit + maxdgr : maxit
-k = 1
 nbconv = 0 # number of converged lambdas inside sigma
 nblamin = 0 # number of lambdas inside sigma, converged or not
+kmax = static ? maxit + maxdgr : maxit
+k = 1
 while k <= kmax
     # resize matrices if we're starting a new block
     if l > 0 && (b == 1 || mod(l+1, b) == 1)
@@ -465,19 +465,29 @@ end
             p = length(B) - 1
 
             # nonlinear part C
-            f = map(x -> x.f, nep.C)
-            C = map(x -> x.A, nep.C)
-            q = length(C)
+            q = length(nep.C)
+            f = Vector{Any}(q)
+            C = Vector{Any}(q)
+            for k = 1:q
+                f[k] = nep.C[k].f
+                C[k] = nep.C[k].A
+            end
 
             if q > 0
                 # L and U factors of the low rank nonlinear part C
-                L = map(x -> x.L, nep.C)
-                U = map(x -> x.U, nep.C)
+                L = Vector{Any}(q)
+                U = Vector{Any}(q)
+                for k = 1:q
+                    L[k] = nep.C[k].L
+                    U[k] = nep.C[k].U
+                end
 
                 if !isempty(L[1])
                     if isempty(C[1])
                         # if C is not specified, create it from LU factors
-                        C = map(k -> L[k] * U[k]', 1:q)
+                        for k = 1:q
+                            C[k] = L[k] * U[k]'
+                        end
                     end
 
                     U = hcat(U...) # input = 81 x 16281 x 2; output = 16281 x 162

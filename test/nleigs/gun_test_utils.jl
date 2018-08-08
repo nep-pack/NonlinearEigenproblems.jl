@@ -1,5 +1,5 @@
 function gun_init()
-    nep = gun_nlep()
+    nep = gun_nep()
 
     gam = 300^2 - 200^2
     mu = 250^2
@@ -28,7 +28,7 @@ function gun_init()
     return nep, Sigma, Xi, v0, nodes, funres
 end
 
-function gun_nlep()
+function gun_nep()
     nep = nep_gallery("nlevp_native_gun")
 
     K = nep.A[1]
