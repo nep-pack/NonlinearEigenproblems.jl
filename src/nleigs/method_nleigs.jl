@@ -82,7 +82,12 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
 function nleigs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
 
 # The following variables are used when creating the return values, so put them in scope
-D = lam = conv = X = res = Lam = Res = sigma = expand = xi = beta = nrmD = maxdgr = kconv = nothing
+D = Vector{Matrix{Complex{T}}}(0)
+conv = BitVector(0)
+lam = Vector{Complex{T}}(0)
+X = Matrix{Complex{T}}(0, 0)
+res = Vector{T}(0)
+
 element_type = eltype(Sigma)
 
 #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
