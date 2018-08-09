@@ -850,22 +850,28 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
     end
 
-    struct SPMFLowRankMatrix
-        A::AbstractMatrix
-        L::AbstractMatrix   # LU factors of A, can be used for low rank matrices (optional)
-        U::AbstractMatrix   # LU factors of A, can be used for low rank matrices (optional)
-        f                   # Function
+    struct SPMFLowRankMatrix{S<:AbstractMatrix{<:Real}}
+        A::S
+        L::S    # LU factors of A, can be used for low rank matrices (optional)
+        U::S    # LU factors of A, can be used for low rank matrices (optional)
+        f       # Function
     end
 
-    struct SPMFLowRankNEP <: AbstractSPMF
-        n::Int                      # Matrix size (each matrix is n×n)
-        B::Array{AbstractMatrix}    # Polynomial part
-        C::Array{SPMFLowRankMatrix} # Array of nonlinear matrices
+    struct SPMFLowRankNEP{T<:Real, S<:AbstractMatrix{T}, V<:AbstractVector{S}, W<:AbstractVector{SPMFLowRankMatrix{S}}} <: AbstractSPMF
+        n::Int      # Matrix size (each matrix is n×n)
+        B::V        # Polynomial part
+        C::W        # Array of nonlinear matrices
+        dummy1::T   # Remove once upgraded to Julia 0.7
+        dummy2::S   # Remove once upgraded to Julia 0.7
     end
+
+    # Remove once upgraded to Julia 0.7
+    SPMFLowRankNEP(a, b, c) = SPMFLowRankNEP(a, b, c, eltype(eltype(b))(0),
+        eltype(b) <: SparseMatrixCSC ? spzeros(eltype(eltype(b)), 0, 0) : Matrix{eltype(eltype(b))}(0, 0))
 
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 
-    function compute_Mlincomb(nep::SPMFLowRankNEP, λ::T, v::Vector{T}) where {T<:Number}
+    function compute_Mlincomb(nep::SPMFLowRankNEP{T}, λ::Complex{T}, v::Vector{Complex{T}}) where T<:Real
         if !isempty(nep.B)
             x = nep.B[1] * v
             for j = 2:length(nep.B)

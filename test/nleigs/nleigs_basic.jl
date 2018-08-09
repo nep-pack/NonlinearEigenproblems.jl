@@ -16,8 +16,8 @@ include("nleigs_test_utils.jl")
 include("../../src/nleigs/method_nleigs.jl")
 
 n = 2
-B = Array{Array{Float64,2}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
-nep = SPMFLowRankNEP(n, B, [])
+B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
+nep = SPMFLowRankNEP(n, B, Vector{SPMFLowRankMatrix{Matrix{Float64}}}(0))
 
 funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + λ[i]^2*(B[3]*X[:,i])), 1:length(λ))
 
@@ -47,7 +47,7 @@ end
     nleigs_verify_lambdas(4, nep, X, lambda)
 
     info_λ = solution_info["Lam"][:,end]
-    in_sigma = map(p -> inpolygon(real(p), imag(p), real(Sigma), imag(Sigma)), info_λ)
+    local in_sigma = map(p -> inpolygon(real(p), imag(p), real(Sigma), imag(Sigma)), info_λ)
     info_λ = info_λ[in_sigma]
 
     # test that eigenvalues in the info are the same as those returned by nleigs

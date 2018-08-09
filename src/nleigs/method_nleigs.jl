@@ -79,15 +79,17 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
+function nleigs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
 
 # The following variables are used when creating the return values, so put them in scope
 D = lam = conv = X = res = Lam = Res = sigma = expand = xi = beta = nrmD = maxdgr = kconv = nothing
 element_type = eltype(Sigma)
 
+#@code_warntype prepare_inputs(nep, Sigma, Xi, options)
+#return
 funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
-    resfreq,verbose,BC,BBCC,pff = checkInputs(nep, Sigma, Xi, options)
+    resfreq,verbose,BC,BBCC,pff = prepare_inputs(nep, Sigma, Xi, options)
 
 # Initialization
 if computeD
@@ -440,15 +442,14 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-    function checkInputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
-        iL = 0
-        L = []
-        LL = []
-        U = []
+    function prepare_inputs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
+        iL = Vector{Int}(0)
+        L = Matrix{T}(0,0)
+        LL = Matrix{T}(0,0)
+        U = Matrix{T}(0,0)
         p = -1
         q = 0
         r = 0
-        BBCC = []
         pff = []
         funA = nothing
 
@@ -456,6 +457,9 @@ end
             Ahandle = true
             funA = nep.fun # function handle for A(λ)
             n = nep.n
+
+            BC = Matrix{T}(0,0)
+            BBCC = Matrix{T}(0,0)
         else
             Ahandle = false
 
@@ -466,7 +470,7 @@ end
             # nonlinear part C
             q = length(nep.C)
             f = Vector{Any}(q)
-            C = Vector{Any}(q)
+            C = Vector{AbstractMatrix{T}}(q)
             for k = 1:q
                 f[k] = nep.C[k].f
                 C[k] = nep.C[k].A
@@ -474,8 +478,8 @@ end
 
             if q > 0
                 # L and U factors of the low rank nonlinear part C
-                L = Vector{Any}(q)
-                U = Vector{Any}(q)
+                L = Vector{AbstractMatrix{T}}(q)
+                U = Vector{AbstractMatrix{T}}(q)
                 for k = 1:q
                     L[k] = nep.C[k].L
                     U[k] = nep.C[k].U
@@ -491,7 +495,7 @@ end
 
                     U = hcat(U...) # input = 81 x 16281 x 2; output = 16281 x 162
                     r = size(U, 2)
-                    iL = zeros(Int, r, 1)
+                    iL = zeros(Int, r)
                     c = 0
                     for ii = 1:q
                         ri = size(L[ii], 2)
@@ -535,21 +539,21 @@ end
         end
 
         # extract input options, with default values if missing
-        verbose = get(options, "disp", 0)
-        maxdgr = get(options, "maxdgr", 100)
-        minit = get(options, "minit", 20)
-        maxit = get(options, "maxit", 200)
-        tolres = get(options, "tolres", 1e-10)
-        tollin = get(options, "tollin", max(tolres/10, 100*eps()))
-        v0 = get(options, "v0", randn(n))
+        verbose = get(options, "disp", 0)::Int
+        maxdgr = get(options, "maxdgr", 100)::Int
+        minit = get(options, "minit", 20)::Int
+        maxit = get(options, "maxit", 200)::Int
+        tolres = get(options, "tolres", 1e-10)::T
+        tollin = get(options, "tollin", max(tolres/10, 100*eps()))::T
+        v0 = get(options, "v0", randn(n))::Vector{T}
         residual = [] # TODO
         funres = get(options, "funres", residual) # TODO: populate with default residual
-        isfunm = get(options, "isfunm", true)
-        static = get(options, "static", false)
-        leja = get(options, "leja", 1)
+        isfunm = get(options, "isfunm", true)::Bool
+        static = get(options, "static", false)::Bool
+        leja = get(options, "leja", 1)::Int
         nodes = get(options, "nodes", [])
-        reuselu = get(options, "reuselu", 1)
-        b = get(options, "blksize", 20)
+        reuselu = get(options, "reuselu", 1)::Int
+        b = get(options, "blksize", 20)::Int
 
         # extra defaults
         computeD = (n <= 400)
