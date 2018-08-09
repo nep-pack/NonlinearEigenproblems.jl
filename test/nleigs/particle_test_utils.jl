@@ -23,8 +23,8 @@ function particle_init(interval)
     # options
     srand(5)
     v0 = randn(nep.n)
-    nodes = linspace(xmin, xmax, 11)
-    nodes = nodes[2:2:end]
+    nodes = linspace(xmin + 0im, xmax + 0im, 11)
+    nodes = collect(nodes[2:2:end])
     funres = (Lam, X) -> particle_residual(Lam, X, nep)
 
     return nep, Sigma, Xi, v0, nodes, funres, xmin, xmax

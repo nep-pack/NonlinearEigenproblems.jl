@@ -87,7 +87,7 @@ element_type = eltype(Sigma)
 
 #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
 #return
-funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
+funA,Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
     resfreq,verbose,BC,BBCC,pff = prepare_inputs(nep, Sigma, Xi, options)
 
@@ -297,7 +297,7 @@ while k <= kmax
         # shift-and-invert
         t = [zeros(l-1,1); 1]  # continuation combination
         wc = V[1:kn, l]        # continuation vector
-        w = backslash(wc, funA, Ahandle, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+        w = backslash(wc, funA, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
         # orthogonalization
         normw = norm(w)
@@ -420,7 +420,7 @@ end
 #   iL         vector with indices of L-factors
 #   L          cell array {L1,L2,...,Lq}
 #   LL         matrix [L1,L2,...,Lq]
-#   U          matrix [U1,U2,...,Uq]
+#   UU         matrix [U1,U2,...,Uq]
 #   n          dimension of NLEP
 #   p          order of polynomial part (length of B = p + 1)
 #   q          length of f and C
@@ -444,9 +444,9 @@ end
 #   verbose    level of display [ {0} | 1 | 2 ]
     function prepare_inputs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
         iL = Vector{Int}(0)
-        L = Matrix{T}(0,0)
-        LL = Matrix{T}(0,0)
-        U = Matrix{T}(0,0)
+        L = Vector{eltype(nep.B)}(0)
+        LL = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
+        UU = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
         p = -1
         q = 0
         r = 0
@@ -459,7 +459,7 @@ end
             n = nep.n
 
             BC = Vector{eltype(nep.B)}(0)
-            BBCC = similar(eltype(nep.B), 0, 0)
+            BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
         else
             Ahandle = false
 
@@ -478,8 +478,8 @@ end
 
             if q > 0
                 # L and U factors of the low rank nonlinear part C
-                L = Vector{AbstractMatrix{T}}(q)
-                U = Vector{AbstractMatrix{T}}(q)
+                L = Vector{eltype(nep.B)}(q)
+                U = Vector{eltype(nep.B)}(q)
                 for k = 1:q
                     L[k] = nep.C[k].L
                     U[k] = nep.C[k].U
@@ -493,8 +493,8 @@ end
                         end
                     end
 
-                    U = hcat(U...) # input = 81 x 16281 x 2; output = 16281 x 162
-                    r = size(U, 2)
+                    UU = hcat(U...)::eltype(U)
+                    r = size(UU, 2)
                     iL = zeros(Int, r)
                     c = 0
                     for ii = 1:q
@@ -502,7 +502,7 @@ end
                         iL[c+1:c+ri] = ii
                         c += ri
                     end
-                    LL = hcat(L...)
+                    LL = hcat(L...)::eltype(L)
                 end
             end
 
@@ -555,7 +555,7 @@ end
         isfunm = get(options, "isfunm", true)::Bool
         static = get(options, "static", false)::Bool
         leja = get(options, "leja", 1)::Int
-        nodes = get(options, "nodes", [])
+        nodes = get(options, "nodes", Vector{Complex{T}}(0))::Vector{Complex{T}}
         reuselu = get(options, "reuselu", 1)::Int
         b = get(options, "blksize", 20)::Int
 
@@ -567,7 +567,7 @@ end
             maxdgr = maxit + 1;
         end
 
-        return funA,Ahandle,iL,L,LL,U,n,p,q,r,Sigma,leja,nodes,
+        return funA,Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,
                 Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
                 funres,b,computeD,resfreq,verbose,BC,BBCC,pff
     end
@@ -614,7 +614,7 @@ end
 
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
-    function backslash(wc, funA, Ahandle, iL, LL, U, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+    function backslash(wc, funA, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
         shift = sigma[k+1]
 
         ## construction of B*wc
@@ -644,7 +644,7 @@ end
             if r == 0 || ii != p
                 Bw[i1b:i1e] = wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
             else
-                Bw[i1b:i1e] = U' * wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
+                Bw[i1b:i1e] = UU' * wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
             end
             # range of next block i
             i0b = i1b
@@ -689,7 +689,7 @@ end
                 if r == 0 || ii != p-1
                     z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * z[i1b:i1e]
                 else # i == p-1
-                    z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * U'*z[i1b:i1e]
+                    z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * UU'*z[i1b:i1e]
                 end
             end
             # range of next block i+1
@@ -722,7 +722,7 @@ end
             if r == 0 || ii != p
                 w[i1b:i1e] = mu/nu * w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
             else
-                w[i1b:i1e] = mu/nu * U'*w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
+                w[i1b:i1e] = mu/nu * UU'*w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
             end
             # range of next block i
             i0b = i1b

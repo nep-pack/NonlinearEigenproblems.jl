@@ -13,7 +13,7 @@ function gun_init()
     Sigma = [halfcircle; xmin]
 
     # sequence of interpolation nodes
-    Z = [2/3, (1+im)/3, 0, (-1+im)/3, -2/3].'
+    Z = [2/3, (1+im)/3, 0, (-1+im)/3, -2/3]
     nodes = gam*Z + mu
 
     # define the set of pole candidates
