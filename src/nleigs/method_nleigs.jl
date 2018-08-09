@@ -458,8 +458,8 @@ end
             funA = nep.fun # function handle for A(λ)
             n = nep.n
 
-            BC = Matrix{T}(0,0)
-            BBCC = Matrix{T}(0,0)
+            BC = Vector{eltype(nep.B)}(0)
+            BBCC = similar(eltype(nep.B), 0, 0)
         else
             Ahandle = false
 
@@ -470,7 +470,7 @@ end
             # nonlinear part C
             q = length(nep.C)
             f = Vector{Any}(q)
-            C = Vector{AbstractMatrix{T}}(q)
+            C = Vector{eltype(nep.B)}(q)
             for k = 1:q
                 f[k] = nep.C[k].f
                 C[k] = nep.C[k].A
@@ -511,25 +511,29 @@ end
 
             as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 
-            funA = lambda -> begin
-                if !isempty(B)
-                    A = complex.(copy(B[1]))
-                    for j = 2:length(B)
-                        A += lambda^(j-1) * B[j]
+            # the let block is needed for type stability in variables closed over
+            # cf. https://github.com/JuliaLang/julia/issues/23618
+            let B=B, C=C, f=f
+                funA = lambda -> begin
+                    if !isempty(B)
+                        A = complex.(copy(B[1]))
+                        for j = 2:length(B)
+                            A += lambda^(j-1) * B[j]
+                        end
+                        c1 = 1
+                    else
+                        A = complex.(f[1](as_matrix(lambda))[1] * C[1])
+                        c1 = 2
                     end
-                    c1 = 1
-                else
-                    A = complex.(f[1](as_matrix(lambda))[1] * C[1])
-                    c1 = 2
+                    for j = c1:length(C)
+                        A += f[j](as_matrix(lambda))[1] * C[j]
+                    end
+                    A
                 end
-                for j = c1:length(C)
-                    A += f[j](as_matrix(lambda))[1] * C[j]
-                end
-                A
             end
 
             BC = [B; C]
-            BBCC = isempty(B) ? vcat(C...) : isempty(C) ? vcat(B...) : [vcat(B...); vcat(C...)]
+            BBCC = (isempty(B) ? vcat(C...) : isempty(C) ? vcat(B...) : [vcat(B...); vcat(C...)])::eltype(B)
             pff = [monomials(p); f]
         end
 
