@@ -13,7 +13,7 @@ struct LUFactors{T}
     LUFactors(A::U, LU::T) where {U<:AbstractArray, T<:Base.SparseArrays.UMFPACK.UmfpackLU} = new{T}([], LU)
 end
 
-function solve(LU::LUFactors{Base.LinAlg.LU{T,Matrix{T}}}, y::AbstractVector{T}) where T<:Number
+function solve(LU::LUFactors{Base.LinAlg.LU{Complex{Float64},Matrix{Complex{Float64}}}}, y::AbstractVector{<:Number})
     x = LU.LU \ y
     # improve accuracy
     resid = y - LU.A * x
@@ -21,7 +21,7 @@ function solve(LU::LUFactors{Base.LinAlg.LU{T,Matrix{T}}}, y::AbstractVector{T})
     x + err
 end
 
-function solve(LU::LUFactors{Base.SparseArrays.UMFPACK.UmfpackLU{T,Int64}}, y::AbstractVector{T}) where T<:Number
+function solve(LU::LUFactors{Base.SparseArrays.UMFPACK.UmfpackLU{Complex{Float64},Int64}}, y::AbstractVector{<:Number})
     x = LU.LU \ y
     # improve accuracy; seems not needed with UmfpackLU
 #    resid = y - LU.A * x
