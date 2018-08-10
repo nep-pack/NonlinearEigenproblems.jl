@@ -13,7 +13,7 @@ struct LUFactors{T}
     LUFactors(A::U, LU::T) where {U<:AbstractArray, T<:Base.SparseArrays.UMFPACK.UmfpackLU} = new{T}([], LU)
 end
 
-function solve(LU::LUFactors{Base.LinAlg.LU{Complex{Float64},Array{Complex{Float64},2}}}, y::AbstractArray{<:Number,1})
+function solve(LU::LUFactors{Base.LinAlg.LU{T,Matrix{T}}}, y::AbstractVector{T}) where T<:Number
     x = LU.LU \ y
     # improve accuracy
     resid = y - LU.A * x
@@ -21,7 +21,7 @@ function solve(LU::LUFactors{Base.LinAlg.LU{Complex{Float64},Array{Complex{Float
     x + err
 end
 
-function solve(LU::LUFactors{Base.SparseArrays.UMFPACK.UmfpackLU{Complex{Float64},Int64}}, y::AbstractArray{<:Number,1})
+function solve(LU::LUFactors{Base.SparseArrays.UMFPACK.UmfpackLU{T,Int64}}, y::AbstractVector{T}) where T<:Number
     x = LU.LU \ y
     # improve accuracy; seems not needed with UmfpackLU
 #    resid = y - LU.A * x
@@ -45,7 +45,7 @@ end
 # lusolve: Solve x for funA(v)*x = y, with cached lu-factors
 #   v  value for evaluating funA(v)
 #   y  right hand side
-function lusolve(funA, v, y)
+function lusolve(funA, v::T, y::Vector{T}) where T<:Number
     @log(1, "LU solve for $v (cache size: $(length(lucache)))")
     lu = get!(() -> lufactors(funA, v), lucache, v)
     solve(lu, y)
