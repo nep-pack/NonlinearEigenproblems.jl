@@ -213,25 +213,21 @@ while k <= kmax
         end
     end
 
-    # set length of vectors
     if expand
+        # set length of vectors
         if r == 0 || k < p
             kn += n
         else
             kn += r
         end
-    end
 
-    # rational divided differences
-    if expand
+        # rational divided differences
         if !Ahandle && computeD
             D[k+1] = constructD(k, L, n, p, q, r, BC, sgdd)
         end
         N += 1
-    end
 
-    # monitoring norms of divided difference matrices
-    if expand
+        # monitoring norms of divided difference matrices
         if Ahandle
             push!(nrmD, vecnorm(D[k+1])) # Frobenius norm
         else
@@ -300,27 +296,28 @@ while k <= kmax
 
     if !static || (static && !expand)
         # shift-and-invert
-        t = [zeros(l-1,1); 1]  # continuation combination
+        t = [zeros(l-1); 1]    # continuation combination
         wc = V[1:kn, l]        # continuation vector
         w = backslash(wc, funA, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
         # orthogonalization
         normw = norm(w)
-        h = V[1:kn,1:l]' * w
-        w -= V[1:kn,1:l] * h
+        Vview = view(V, 1:kn, 1:l)
+        h = Vview' * w
+        w .-= Vview * h
         H[1:l,l] = h
         eta = 1/sqrt(2)       # reorthogonalization constant
         if norm(w) < eta * normw
-            h = V[1:kn,1:l]' * w
-            w -= V[1:kn,1:l] * h
-            H[1:l,l] += h
+            h = Vview' * w
+            w .-= Vview * h
+            H[1:l,l] .+= h
         end
-        K[1:l,l] = H[1:l,l] * sigma[k+1] + t
+        K[1:l,l] .= view(H, 1:l, l) .* sigma[k+1] .+ t
 
         # new vector
         H[l+1,l] = norm(w)
         K[l+1,l] = H[l+1,l] * sigma[k+1]
-        V[1:kn,l+1] = w / H[l+1,l]
+        V[1:kn,l+1] .= w ./ H[l+1,l]
 #        @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
     end
 
