@@ -92,7 +92,7 @@ element_type = eltype(Sigma)
 
 #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
 #return
-funA,Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
+Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
     resfreq,verbose,BC,BBCC,pff = prepare_inputs(nep, Sigma, Xi, options)
 
@@ -150,7 +150,7 @@ end
 # Rational Newton coefficients
 range = 1:maxdgr+2
 if Ahandle
-    D = ratnewtoncoeffs(funA, sigma[range], xi[range], beta[range])
+    D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ), sigma[range], xi[range], beta[range])
     nrmD[1] = vecnorm(D[1]) # Frobenius norm
 else
     # Compute scalar generalized divided differences
@@ -169,9 +169,9 @@ lureset()
 
 # Rational Krylov
 if reuselu == 2
-    v0 = lusolve(funA, sigma[1], v0/norm(v0))
+    v0 = lusolve(λ -> compute_Mder(nep, λ), sigma[1], v0/norm(v0))
 else
-    v0 = funA(sigma[1]) \ (v0/norm(v0))
+    v0 = compute_Mder(nep, sigma[1]) \ (v0/norm(v0))
 end
 V[1:n,1] .= v0 ./ norm(v0)
 expand = true
@@ -298,7 +298,7 @@ while k <= kmax
         # shift-and-invert
         t = [zeros(l-1); 1]    # continuation combination
         wc = V[1:kn, l]        # continuation vector
-        w = backslash(wc, funA, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+        w = backslash(wc, nep, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
         # orthogonalization
         normw = norm(w)
@@ -453,11 +453,9 @@ end
         q = 0
         r = 0
         pff = []
-        funA = nothing
 
-        if nep == "TODO: add support for function for A(λ)" # TODO
+        if nep == "TODO: add support for custom function for A(λ)" # TODO
             Ahandle = true
-            funA = nep.fun # function handle for A(λ)
             n = nep.n
 
             BC = Vector{eltype(nep.B)}(0)
@@ -508,32 +506,7 @@ end
                 end
             end
 
-            # set n and funA
             n = nep.n
-
-            as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-
-            # the let block is needed for type stability in variables closed over
-            # cf. https://github.com/JuliaLang/julia/issues/23618
-            let B=B, C=C, f=f
-                funA = lambda -> begin
-                    if !isempty(B)
-                        A = complex.(copy(B[1]))
-                        for j = 2:length(B)
-                            A += lambda^(j-1) * B[j]
-                        end
-                        c1 = 1
-                    else
-                        A = complex.(f[1](as_matrix(lambda))[1] * C[1])
-                        c1 = 2
-                    end
-                    for j = c1:length(C)
-                        A += f[j](as_matrix(lambda))[1] * C[j]
-                    end
-                    A
-                end
-            end
-
             BC = [B; C]
             BBCC = (isempty(B) ? vcat(C...) : isempty(C) ? vcat(B...) : [vcat(B...); vcat(C...)])::eltype(B)
             pff = [monomials(p); f]
@@ -569,7 +542,7 @@ end
             maxdgr = maxit + 1;
         end
 
-        return funA,Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,
+        return Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,
                 Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
                 funres,b,computeD,resfreq,verbose,BC,BBCC,pff
     end
@@ -616,10 +589,10 @@ end
 
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
-    function backslash(wc, funA, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+    function backslash(wc, nep, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
         shift = sigma[k+1]
 
-        ## construction of B*wc
+        # construction of B*wc
         Bw = zeros(eltype(wc), size(wc))
         # first block (if low rank)
         if r > 0
@@ -653,7 +626,7 @@ end
             i0e = i1e
         end
 
-        ## construction of z0
+        # construction of z0
         z = copy(Bw)
         i1b = n + 1
         if r == 0 || p > 1
@@ -699,12 +672,12 @@ end
             i1e = i2e
         end
 
-        ## solving Alam x0 = z0
+        # solving Alam x0 = z0
         w = zeros(eltype(wc), size(wc))
         if ((!expand || k > kconv) && reuselu == 1) || reuselu == 2
-            w[1:n] = lusolve(funA, shift, z[1:n]/beta[1])
+            w[1:n] = lusolve(λ -> compute_Mder(nep, λ), shift, z[1:n]/beta[1])
         else
-            w[1:n] = funA(shift) \ (z[1:n]/beta[1])
+            w[1:n] = compute_Mder(nep, shift) \ (z[1:n]/beta[1])
         end
 
         ## substitutions x[i+1] = mu/nu*x[i] + 1/nu*Bw[i+1]

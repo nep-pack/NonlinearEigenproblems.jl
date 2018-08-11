@@ -871,6 +871,27 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 
+    function compute_Mder(nep::SPMFLowRankNEP{T}, λ::Complex{T}, i::Int = 0) where T<:Real
+        if i != 0
+            error("Derivatives not implemented")
+        else
+            if !isempty(nep.B)
+                M = complex.(copy(nep.B[1]))
+                for j = 2:length(nep.B)
+                    M += λ^(j-1) * nep.B[j]
+                end
+                c1 = 1
+            else
+                M = complex.(nep.C[1].f(as_matrix(λ))[1] * nep.C[1].A)
+                c1 = 2
+            end
+            for j = c1:length(nep.C)
+                M += nep.C[j].f(as_matrix(λ))[1] * nep.C[j].A
+            end
+            M
+        end
+    end
+
     function compute_Mlincomb(nep::SPMFLowRankNEP{T}, λ::Complex{T}, v::Vector{Complex{T}}) where T<:Real
         if !isempty(nep.B)
             x = nep.B[1] * v
