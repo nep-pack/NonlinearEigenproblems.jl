@@ -187,24 +187,24 @@ while k <= kmax
     # resize matrices if we're starting a new block
     if l > 0 && (b == 1 || mod(l+1, b) == 1)
         nb = round(Int, 1 + l/b)
+        Vrows = size(V, 1)
         if Ahandle
-            V = resize_matrix(V, kn+b*n, nb*b+1)
+            Vrows = kn+b*n
         else
             if expand && computeD
                 resize!(D, l+b+1)
             end
             if expand
                 if r == 0 || l + b < p
-                    V = resize_matrix(V, kn+b*n, nb*b+1)
+                    Vrows = kn+b*n
                 elseif l < p-1
-                    V = resize_matrix(V, p*n+(nb*b-p+1)*r, nb*b+1)
-                else # l => p-1
-                    V = resize_matrix(V, kn+b*r, nb*b+1)
+                    Vrows = p*n+(nb*b-p+1)*r
+                else # l >= p-1
+                    Vrows = kn+b*r
                 end
-            else
-                V = resize_matrix(V, size(V, 1), nb*b+1)
             end
         end
+        V = resize_matrix(V, Vrows, nb*b+1)
         H = resize_matrix(H, size(H, 1) + b, size(H, 2) + b)
         K = resize_matrix(K, size(K, 1) + b, size(K, 2) + b)
         if return_info
