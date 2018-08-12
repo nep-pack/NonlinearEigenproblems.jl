@@ -861,13 +861,10 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         n::Int      # Matrix size (each matrix is n×n)
         B::V        # Polynomial part
         C::W        # Array of nonlinear matrices
-        dummy1::T   # Remove once upgraded to Julia 0.7
-        dummy2::S   # Remove once upgraded to Julia 0.7
     end
 
     # Remove once upgraded to Julia 0.7
-    SPMFLowRankNEP(a, b, c) = SPMFLowRankNEP(a, b, c, eltype(eltype(b))(0),
-        eltype(b) <: SparseMatrixCSC ? spzeros(eltype(eltype(b)), 0, 0) : Matrix{eltype(eltype(b))}(0, 0))
+    SPMFLowRankNEP(a, b, c) = SPMFLowRankNEP{eltype(eltype(b)), eltype(typeof(b)), typeof(b), typeof(c)}(a, b, c)
 
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 
