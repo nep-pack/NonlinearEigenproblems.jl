@@ -22,7 +22,7 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v0 = randn(nep.spmf.n)
+    v0 = randn(nep.n)
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
     funres = (λ, X) -> map(i -> norm(compute_Mlincomb(nep, λ[i], X[:, i])), 1:length(λ))

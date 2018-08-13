@@ -859,6 +859,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
     struct SPMFLowRankNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
         spmf::SPMF_NEP
+        n::Int
         p::Int
         q::Int
         r::Int
@@ -895,7 +896,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         fii = [monomials(p); f]
 
         spmf = SPMF_NEP(AA, fii)
-        return SPMFLowRankNEP(spmf, p, q, r, L, U)
+        return SPMFLowRankNEP(spmf, spmf.n, p, q, r, L, U)
     end
 
     function monomials(p)

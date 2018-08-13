@@ -91,9 +91,10 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
 
     #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
     #return
-    Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
+    Ahandle,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,Xi,tollin,
         tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
-        resfreq,verbose,BC,BBCC,pff = prepare_inputs(nep, Sigma, Xi, options)
+        resfreq,verbose,BBCC = prepare_inputs(nep, Sigma, Xi, options)
+    n = nep.n
 
     # Initialization
     if static
@@ -150,9 +151,9 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
     else
         # Compute scalar generalized divided differences
-        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], p, q, maxdgr, isfunm, pff)
+        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], p, q, maxdgr, isfunm, nep.spmf.fi)
         # Construct first generalized divided difference
-        computeD && push!(D, constructD(0, L, n, p, q, r, BC, sgdd))
+        computeD && push!(D, constructD(0, L, n, p, q, r, nep.spmf.A, sgdd))
         # Norm of first generalized divided difference
         nrmD[1] = maximum(abs.(sgdd[:,1]))
     end
@@ -214,7 +215,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
 
             # rational divided differences
             if !Ahandle && computeD
-                push!(D, constructD(k, L, n, p, q, r, BC, sgdd))
+                push!(D, constructD(k, L, n, p, q, r, nep.spmf.A, sgdd))
             end
             N += 1
 
@@ -289,7 +290,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, nep, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+            w = backslash(wc, nep, Ahandle, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
             # orthogonalization
             normw = norm(w)
@@ -442,13 +443,9 @@ function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, 
     p = -1
     q = 0
     r = 0
-    pff = []
 
     if nep == "TODO: add support for custom function for A(λ)" # TODO
         Ahandle = true
-        n = nep.n
-
-        BC = Vector{eltype(nep.B)}(0)
         BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
     else
         Ahandle = false
@@ -471,10 +468,7 @@ function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, 
             end
         end
 
-        n = nep.spmf.n
-        BC = nep.spmf.A
-        BBCC = vcat(BC...)::eltype(BC)
-        pff = nep.spmf.fi
+        BBCC = vcat(nep.spmf.A...)::eltype(nep.spmf.A)
     end
 
     # process the input Xi
@@ -489,7 +483,7 @@ function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, 
     maxit = get(options, "maxit", 200)::Int
     tolres = get(options, "tolres", 1e-10)::T
     tollin = get(options, "tollin", max(tolres/10, 100*eps()))::T
-    v0 = get(options, "v0", randn(n))::Vector{T}
+    v0 = get(options, "v0", randn(nep.n))::Vector{T}
     residual = [] # TODO
     funres = get(options, "funres", residual) # TODO: populate with default residual
     isfunm = get(options, "isfunm", true)::Bool
@@ -500,16 +494,16 @@ function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, 
     b = get(options, "blksize", 20)::Int
 
     # extra defaults
-    computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
+    computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
     resfreq = 5
 
-    if n == 1
+    if nep.n == 1
         maxdgr = maxit + 1;
     end
 
-    return Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,
+    return Ahandle,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,
             Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
-            funres,b,computeD,resfreq,verbose,BC,BBCC,pff
+            funres,b,computeD,resfreq,verbose,BBCC
 end
 
 # scgendivdiffs: compute scalar generalized divided differences
@@ -548,7 +542,8 @@ end
 
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
-function backslash(wc, nep, Ahandle, iL, LL, UU, n, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+function backslash(wc, nep, Ahandle, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+    n = nep.n
     shift = sigma[k+1]
 
     # construction of B*wc

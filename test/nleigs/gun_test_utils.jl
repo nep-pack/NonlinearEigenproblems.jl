@@ -21,7 +21,7 @@ function gun_init()
 
     # options
     srand(1)
-    v0 = randn(nep.spmf.n)
+    v0 = randn(nep.n)
 
     funres = (Lam, X) -> gun_residual(Lam, X, nep.spmf.A[1], nep.spmf.A[2], nep.spmf.A[3], nep.spmf.A[4])
 
