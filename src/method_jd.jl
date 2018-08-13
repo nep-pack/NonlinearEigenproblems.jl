@@ -27,61 +27,83 @@ julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 * C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
 """
 
-jd(nep::NEP;params...) = jd(Complex128,nep;params...)
+jd(nep::NEP;kwargs...) = jd(Complex128,nep;kwargs...)
 function jd(::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
-            errmeasure::Function = default_errmeasure(nep::NEP),
-            linsolvercreator::Function=default_linsolvercreator,
-            Neig::Int = 1,
-            tol = eps(real(T))*100,
-            maxit::Int = 100,
-            λ = zero(T),
-            v0 = randn(size(nep,1)),
-            displaylevel = 0,
+            Neig = 1,
+            maxit = 100,
             inner_solver_method = NEPSolver.DefaultInnerSolver,
-            projtype = :PetrovGalerkin)  where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+            projtype = :PetrovGalerkin,
+            # deflation = false,
+            kwargs...)  where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
+    # Handle warnings and errors
     n = size(nep,1)
     if (maxit > n)
-        warn("maxit = ", maxit, " is larger than size of NEP = ", n,". Setting maxit = size(nep,1)")
-        maxit = n
+        error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
+    end
+    # if (deflation) && (Neig ==1)
+    #     error("Combination with deflation and Neig = 1 not valid. Try to run without deflation.")
+    # end
+    if (projtype != :Galerkin) && projtype != :PetrovGalerkin
+        error("Only accepted values of 'projtype' are :Galerkin and :PetrovGalerkin.")
+    end
+    if (projtype != :Galerkin) && (inner_solver_method == NEPSolver.SGIterInnerSolver)
+        error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
 
-    λ::T = T(λ)
-    λ_vec::Array{T,1} = Array{T,1}(Neig)
-    u_vec::Array{T,2} = zeros(T,n,Neig)
-    u::Array{T,1} = Array{T,1}(v0); u[:] = u/norm(u);
-    pk::Array{T,1} = zeros(T,n)
-    proj_nep = create_proj_NEP(nep)
-    dummy_vector::Array{T,1} = zeros(T,maxit+1)
-    conveig::Int64 = 0
+    # Run the method
+    # if deflation
+    #     return jd_inner_deflated
+    # else
+        return jd_inner(T, nep, maxit, Neig, projtype, inner_solver_method; kwargs...)
+    # end
 
-    V_memory::Array{T,2} = zeros(T, size(nep,1), maxit+1)
+end
+
+
+
+function jd_inner(::Type{T},
+                  nep::ProjectableNEP,
+                  maxit,
+                  Neig,
+                  projtype,
+                  inner_solver_method;
+                  orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                  errmeasure::Function = default_errmeasure(nep::NEP),
+                  linsolvercreator::Function=default_linsolvercreator,
+                  tol = eps(real(T))*100,
+                  λ = zero(T),
+                  v0 = randn(size(nep,1)),
+                  displaylevel = 0)  where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    # Allocations and preparations
+    n = size(nep,1)
+    λ::T = T(λ)
+    λ_vec::Vector{T} = Vector{T}(Neig)
+    u_vec::Matrix{T} = zeros(T,n,Neig)
+    u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u);
+    pk::Vector{T} = zeros(T,n)
+    proj_nep = create_proj_NEP(nep)
+    dummy_vector::Vector{T} = zeros(T,maxit+1)
+    conveig = 0
+
+    V_memory::Matrix{T} = zeros(T, size(nep,1), maxit+1)
     V_memory[:,1] = u
     if( projtype == :PetrovGalerkin ) # Petrov-Galerkin uses a left (test) and a right (trial) space
         W_memory = zeros(T, size(nep,1), maxit+1)
         W_memory[:,1] = compute_Mlincomb(nep,λ,u);
-        if inner_solver_method == NEPSolver.SGIterInnerSolver
-            error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
-        end
-    elseif( projtype == :Galerkin ) # Galerkin uses the same trial and test space
+    else # Galerkin uses the same trial and test space
         W_memory = view(V_memory, :, :);
-    else
-        error("Unsupported 'projtype'. The type '", projtype, "' is not supported.")
     end
-
 
     # Initial check for convergence
     err = errmeasure(λ,u)
     @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-    if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-        conveig += 1
-        λ_vec[conveig] = λ
-        u_vec[:,conveig] = u
-        if (conveig == Neig)
-            return (λ_vec,u_vec)
-        end
+    conveig = convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+    if (conveig == Neig)
+        return (λ_vec,u_vec)
     end
 
     # Main loop
@@ -90,7 +112,6 @@ function jd(::Type{T},
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
         v = view(V_memory, :, k+1); w = view(W_memory, :, k+1)  # next vector position
         set_projectmatrices!(proj_nep, W, V)
-
 
         # find the eigenvalue with smallest absolute value of projected NEP
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
@@ -104,23 +125,17 @@ function jd(::Type{T},
         # the approximate eigenvector
         u[:] = V*s
 
-
         # Check for convergence
         err = errmeasure(λ,u)
         @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-        if convergence_criterion(err, tol, λ, λ_vec, conveig, T)
-            conveig += 1
-            λ_vec[conveig] = λ
-            u_vec[:,conveig] = u
-            if (conveig == Neig)
-                return (λ_vec,u_vec)
-            end
+        conveig = convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+        if (conveig == Neig)
+            return (λ_vec,u_vec)
         end
-
 
         # solve for basis extension using comment on top of page 367 to avoid
         # matrix access. The orthogonalization to u comes anyway since u in V
-        pk[:] = compute_Mlincomb(nep,λ,u,[T(1)],1)
+        pk[:] = compute_Mlincomb(nep,λ,u,[one(T)],1)
         linsolver = linsolvercreator(nep,λ)
         v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
@@ -129,21 +144,28 @@ function jd(::Type{T},
             w[:] = compute_Mlincomb(nep,λ,u);
             orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
         end
-    end
-
-
+    end #End main loop
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
     throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
 end
 
 
-function convergence_criterion(err, tol, λ, λ_vec, conveig, T)::Bool
+
+function convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
     # Small error and not already found (expception if it is the first)
     # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
-    return (err < tol) && (conveig == 0 ||
-           all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
+    if (err < tol) && (conveig == 0 ||
+        all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
+
+           conveig += 1
+           λ_vec[conveig] = λ
+           u_vec[:,conveig] = u
+    end
+    return conveig
 end
+
+
 
 function jd_eig_sorter(λv::Array{T,1}, V, N) where T <: Number
     NN = min(N, length(λv))

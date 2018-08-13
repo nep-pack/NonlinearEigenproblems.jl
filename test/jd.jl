@@ -44,7 +44,6 @@ nep = nep_gallery("real_quadratic")
 nep = SPMF_NEP(get_Av(nep), get_fv(nep))
 TOL = 1e-10;
 # Also test that a warning is issued
-@test_warn "maxit = 60 is larger than size of NEP = 4. Setting maxit = size(nep,1)" λ,u=jd(Float64, nep, tol=TOL, maxit=60, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 λ,u=jd(Float64, nep, tol=TOL, maxit=4, displaylevel = 1, projtype = :Galerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
@@ -78,6 +77,8 @@ u = vec(u)
 
 println("\nTesting errors thrown")
 nep = nep_gallery("pep0",4)
+# Throw error if iterating more than the size of the NEP
+@test_throws ErrorException λ,u=jd(nep, tol=TOL, maxit=60, displaylevel = 1, v0=ones(size(nep,1)))
 # SG requires Galerkin projection type to keep Hermitian
 @test_throws ErrorException λ,u=jd(Float64, nep, tol=TOL, maxit=4, projtype = :PetrovGalerkin, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 # An undefined projection type
