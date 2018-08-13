@@ -97,9 +97,6 @@ Ahandle,iL,L,LL,UU,n,p,q,r,Sigma,leja,nodes,Xi,tollin,
     resfreq,verbose,BC,BBCC,pff = prepare_inputs(nep, Sigma, Xi, options)
 
 # Initialization
-if computeD
-    D = Array{Array{Complex{Float64},2}}(b+1)
-end
 if static
     V = zeros(element_type, n, 1)
 elseif Ahandle
@@ -156,9 +153,7 @@ else
     # Compute scalar generalized divided differences
     sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], p, q, maxdgr, isfunm, pff)
     # Construct first generalized divided difference
-    if computeD
-        D[1] = constructD(0, L, n, p, q, r, BC, sgdd)
-    end
+    computeD && push!(D, constructD(0, L, n, p, q, r, BC, sgdd))
     # Norm of first generalized divided difference
     nrmD[1] = maximum(abs.(sgdd[:,1]))
 end
@@ -191,9 +186,6 @@ while k <= kmax
         if Ahandle
             Vrows = kn+b*n
         else
-            if expand && computeD
-                resize!(D, l+b+1)
-            end
             if expand
                 if r == 0 || l + b < p
                     Vrows = kn+b*n
@@ -223,7 +215,7 @@ while k <= kmax
 
         # rational divided differences
         if !Ahandle && computeD
-            D[k+1] = constructD(k, L, n, p, q, r, BC, sgdd)
+            push!(D, constructD(k, L, n, p, q, r, BC, sgdd))
         end
         N += 1
 
