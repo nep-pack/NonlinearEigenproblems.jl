@@ -527,7 +527,7 @@ end
         b = get(options, "blksize", 20)::Int
 
         # extra defaults
-        computeD = (n <= 400)
+        computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
         resfreq = 5
 
         if n == 1
