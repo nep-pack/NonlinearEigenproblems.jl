@@ -24,19 +24,19 @@ funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + λ[i]^2*(B
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
 @testset "NLEIGS: Polynomial only" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres)
+    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
     @time X, lambda = nleigs(nep, Sigma, options=options)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
 
 @testset "NLEIGS: Non-convergent linearization" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres)
+    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "blksize" => 5)
     @time X, lambda = nleigs(nep, Sigma, options=options)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true)
+    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true, "blksize" => 5)
     @time X, lambda = nleigs(nep, Sigma, options=options)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
@@ -57,4 +57,24 @@ end
     # test that the residuals are near 0
     info_res = solution_info["Res"][in_sigma,end]
     @test all(r -> r < 1e-12, info_res)
+end
+
+struct TestNEP <: NEP
+    n::Int  # problem size; this is the only required field in the custom NEP type
+end
+
+# compute_Mder (for the 0:th derivative) has to be implemented to solve a custom NEP type with NLEIGS
+import NEPCore.compute_Mder
+compute_Mder(_::TestNEP, λ::Number) = compute_Mder(nep, λ)
+
+# compute_Mlincomb is needed for the test verification only
+import NEPCore.compute_Mlincomb
+compute_Mlincomb(_::TestNEP, λ::Number, v) = compute_Mlincomb(nep, λ, v)
+
+@testset "NLEIGS: Custom function" begin
+    testnep = TestNEP(nep.n)
+
+    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
+    @time X, lambda = nleigs(testnep, Sigma, options=options)
+    nleigs_verify_lambdas(4, nep, X, lambda)
 end

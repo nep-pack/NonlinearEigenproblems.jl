@@ -79,7 +79,7 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
+function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{Complex{T}}}(0)
     conv = BitVector(0)
@@ -91,7 +91,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
 
     #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
     #return
-    Ahandle,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,Xi,tollin,
+    spmf,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,Xi,tollin,
         tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
         resfreq,verbose,BBCC = prepare_inputs(nep, Sigma, Xi, options)
     n = nep.n
@@ -99,7 +99,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
     # Initialization
     if static
         V = zeros(element_type, n, 1)
-    elseif Ahandle
+    elseif !spmf
         V = zeros(element_type, (b+1)*n, b+1)
     else
         if r == 0 || b < p
@@ -139,16 +139,17 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
         sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, p)
     end
     xi[maxdgr+2] = NaN # not used
-    if (Ahandle || !isfunm) && length(sigma) != length(unique(sigma))
+    if (!spmf || !isfunm) && length(sigma) != length(unique(sigma))
         error("All interpolation nodes must be distinct when no matrix " *
             "functions are used for computing the generalized divided differences.")
     end
 
     # Rational Newton coefficients
     range = 1:maxdgr+2
-    if Ahandle
-        D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ), sigma[range], xi[range], beta[range])
+    if !spmf
+        D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), sigma[range], xi[range], beta[range])
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
+        sgdd = Matrix{Complex{T}}(0, 0)
     else
         # Compute scalar generalized divided differences
         sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], p, q, maxdgr, isfunm, nep.spmf.fi)
@@ -183,7 +184,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
         if l > 0 && (b == 1 || mod(l+1, b) == 1)
             nb = round(Int, 1 + l/b)
             Vrows = size(V, 1)
-            if Ahandle
+            if !spmf
                 Vrows = kn+b*n
             else
                 if expand
@@ -214,13 +215,13 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
             end
 
             # rational divided differences
-            if !Ahandle && computeD
+            if spmf && computeD
                 push!(D, constructD(k, L, n, p, q, r, nep.spmf.A, sgdd))
             end
             N += 1
 
             # monitoring norms of divided difference matrices
-            if Ahandle
+            if !spmf
                 push!(nrmD, vecnorm(D[k+1])) # Frobenius norm
             else
                 # The below can cause out of bounds in sgdd if there's
@@ -244,7 +245,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
                         end
                         sigma[k+1:kmax+1] = nodes[1:kmax-k+1]
                     end
-                    if Ahandle || computeD
+                    if !spmf || computeD
                         D = D[1:k]
                     end
                     xi = xi[1:k]
@@ -290,7 +291,7 @@ function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::Abst
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, nep, Ahandle, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+            w = backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
             # orthogonalization
             normw = norm(w)
@@ -435,20 +436,23 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
+function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
     iL = Vector{Int}(0)
-    L = Vector{eltype(nep.spmf.A)}(0)
-    LL = similar(nep.spmf.A[1], 0, 0)
-    UU = similar(nep.spmf.A[1], 0, 0)
+    L = Vector{Matrix{T}}(0)
+    LL = Matrix{T}(0, 0)
+    UU = Matrix{T}(0, 0)
+    #L = Vector{eltype(nep.spmf.A)}(0)
+    #LL = similar(nep.spmf.A[1], 0, 0)
+    #UU = similar(nep.spmf.A[1], 0, 0)
     p = -1
     q = 0
     r = 0
+    spmf = isa(nep, AbstractSPMF)
 
-    if nep == "TODO: add support for custom function for A(λ)" # TODO
-        Ahandle = true
-        BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
+    if !spmf
+        BBCC = Matrix{T}(0, 0)
+        #BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
     else
-        Ahandle = false
         p = nep.p
         q = nep.q
         if q > 0
@@ -501,7 +505,7 @@ function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, 
         maxdgr = maxit + 1;
     end
 
-    return Ahandle,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,
+    return spmf,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,
             Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
             funres,b,computeD,resfreq,verbose,BBCC
 end
@@ -516,7 +520,7 @@ function scgendivdiffs(sigma, xi, beta, p, q, maxdgr, isfunm, pff)
         if isfunm
             sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], sigma, xi, beta)
         else
-            sgdd[ii,:] = ratnewtoncoeffs(pff[ii], sigma, xi, beta)
+            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], sigma, xi, beta))
         end
     end
     return sgdd
@@ -542,7 +546,7 @@ end
 
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
-function backslash(wc, nep, Ahandle, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
     n = nep.n
     shift = sigma[k+1]
 
@@ -552,7 +556,7 @@ function backslash(wc, nep, Ahandle, iL, LL, UU, p, q, r, reuselu, computeD, sig
     if r > 0
         i0b = (p-1)*n + 1
         i0e = p*n
-        if Ahandle || computeD
+        if !spmf || computeD
             Bw[1:n] = -D[p+1] * wc[i0b:i0e] / beta[p+1]
         else
             Bw[1:n] = -sum(reshape(BBCC * wc[i0b:i0e], n, :) .* sgdd[:,p+1].', 2) / beta[p+1];
@@ -599,7 +603,7 @@ function backslash(wc, nep, Ahandle, iL, LL, UU, p, q, r, reuselu, computeD, sig
             i2e = i1e + r
         end
         # add extra term to z0
-        if Ahandle || computeD
+        if !spmf || computeD
             if r == 0 || ii != p
                 z[1:n] -= D[ii+1] * z[i1b:i1e]
             end
