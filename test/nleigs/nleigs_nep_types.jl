@@ -32,6 +32,13 @@ spmf_low_rank_nep = SPMFLowRankNEP(B, [SPMFLowRankMatrix(C[1], Array{Float64}(0,
     nleigs_verify_lambdas(4, spmf_low_rank_nep, X, lambda)
 end
 
+#@testset "NLEIGS: SPMF_NEP" begin
+#    spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
+#    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
+#    @time X, lambda = nleigs(spmf_nep, Sigma, options=options)
+#    nleigs_verify_lambdas(4, spmf_nep, X, lambda)
+#end
+
 struct CustomNLEIGSNEP <: NEP
     n::Int  # problem size; this is the only required field in a custom NEP type when used with NLEIGS
 end
@@ -45,8 +52,7 @@ import NEPCore.compute_Mlincomb
 compute_Mlincomb(_::CustomNLEIGSNEP, λ::Number, v) = compute_Mlincomb(spmf_low_rank_nep, λ, v)
 
 @testset "NLEIGS: Custom NEP type" begin
-    custom_nep = CustomNLEIGSNEP(nep.n)
-
+    custom_nep = CustomNLEIGSNEP(n)
     options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
     @time X, lambda = nleigs(custom_nep, Sigma, options=options)
     nleigs_verify_lambdas(4, custom_nep, X, lambda)
