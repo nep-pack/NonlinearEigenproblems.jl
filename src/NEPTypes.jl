@@ -857,52 +857,60 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         f       # Function
     end
 
-    struct SPMFLowRankNEP{T<:Real, S<:AbstractMatrix{T}, V<:AbstractVector{S}, W<:AbstractVector{SPMFLowRankMatrix{S}}} <: AbstractSPMF
-        n::Int      # Matrix size (each matrix is n×n)
-        B::V        # Polynomial part
-        C::W        # Array of nonlinear matrices
+    struct SPMFLowRankNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
+        spmf::SPMF_NEP
+        p::Int
+        q::Int
+        r::Int
+        L::Vector{S}
+        U::Vector{S}
     end
 
-    # Remove once upgraded to Julia 0.7
-    SPMFLowRankNEP(a, b, c) = SPMFLowRankNEP{eltype(eltype(b)), eltype(typeof(b)), typeof(b), typeof(c)}(a, b, c)
+    function SPMFLowRankNEP(B::AbstractVector{S}, Clr::AbstractVector{SPMFLowRankMatrix{S}}) where {T<:Real, S<:AbstractMatrix{T}}
+        p = length(B) - 1
+        q = length(Clr)
+        f = Vector{Function}(q)
+        C = Vector{S}(q)
+        # L and U factors of the low rank nonlinear part C
+        L = Vector{S}(q)
+        U = Vector{S}(q)
 
-    as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-
-    function compute_Mder(nep::SPMFLowRankNEP{T}, λ::Complex{T}, i::Int = 0) where T<:Real
-        if i != 0
-            error("Derivatives not implemented")
-        else
-            if !isempty(nep.B)
-                M = complex.(copy(nep.B[1]))
-                for j = 2:length(nep.B)
-                    M += λ^(j-1) * nep.B[j]
-                end
-                c1 = 1
-            else
-                M = complex.(nep.C[1].f(as_matrix(λ))[1] * nep.C[1].A)
-                c1 = 2
-            end
-            for j = c1:length(nep.C)
-                M += nep.C[j].f(as_matrix(λ))[1] * nep.C[j].A
-            end
-            M
+        r = 0
+        for k = 1:q
+            f[k] = Clr[k].f
+            C[k] = Clr[k].A
+            L[k] = Clr[k].L
+            U[k] = Clr[k].U
+            r += size(U[k], 2)
         end
+
+        # if C is not specified, create it from LU factors
+        if q > 0 && isempty(C[1])
+            for k = 1:q
+                C[k] = L[k] * U[k]'
+            end
+        end
+
+        AA = [B; C]
+        fii = [monomials(p); f]
+
+        spmf = SPMF_NEP(AA, fii)
+        return SPMFLowRankNEP(spmf, p, q, r, L, U)
     end
 
-    function compute_Mlincomb(nep::SPMFLowRankNEP{T}, λ::Complex{T}, v::Vector{Complex{T}}) where T<:Real
-        if !isempty(nep.B)
-            x = nep.B[1] * v
-            for j = 2:length(nep.B)
-                x .+= λ^(j-1) * (nep.B[j] * v)
-            end
-            c1 = 1
-        else
-            x = nep.C[1].f(as_matrix(λ))[1] * (nep.C[1].A * v)
-            c1 = 2
+    function monomials(p)
+        f = Vector{Function}(p+1)
+        for k=1:p+1
+            f[k] = x -> x^(k-1)
         end
-        for j = c1:length(nep.C)
-            x .+= nep.C[j].f(as_matrix(λ))[1] * (nep.C[j].A * v)
-        end
-        x
+        return f
+    end
+
+    function compute_Mder(nep::SPMFLowRankNEP, λ::T, i::Int = 0) where T<:Number
+        compute_Mder(nep.spmf, λ, i)
+    end
+
+    function compute_Mlincomb(nep::SPMFLowRankNEP, λ::T, v::Vector{T}) where T<:Number
+        compute_Mlincomb(nep.spmf, λ, v)
     end
 end

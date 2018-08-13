@@ -79,7 +79,7 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
+function nleigs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{Complex{T}}}(0)
     conv = BitVector(0)
@@ -309,7 +309,7 @@ function nleigs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}; Xi::A
             H[l+1,l] = norm(w)
             K[l+1,l] = H[l+1,l] * sigma[k+1]
             V[1:kn,l+1] .= w ./ H[l+1,l]
-    #        @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
+#            @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
         end
 
         function update_lambdas(all)
@@ -434,11 +434,11 @@ end
 #   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-function prepare_inputs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
+function prepare_inputs(nep::SPMFLowRankNEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
     iL = Vector{Int}(0)
-    L = Vector{eltype(nep.B)}(0)
-    LL = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
-    UU = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
+    L = Vector{eltype(nep.spmf.A)}(0)
+    LL = similar(nep.spmf.A[1], 0, 0)
+    UU = similar(nep.spmf.A[1], 0, 0)
     p = -1
     q = 0
     r = 0
@@ -452,54 +452,29 @@ function prepare_inputs(nep::SPMFLowRankNEP{T}, Sigma::AbstractVector{Complex{T}
         BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
     else
         Ahandle = false
-
-        # polynomial part B
-        B = nep.B
-        p = length(B) - 1
-
-        # nonlinear part C
-        q = length(nep.C)
-        f = Vector{Any}(q)
-        C = Vector{eltype(nep.B)}(q)
-        for k = 1:q
-            f[k] = nep.C[k].f
-            C[k] = nep.C[k].A
-        end
-
+        p = nep.p
+        q = nep.q
         if q > 0
             # L and U factors of the low rank nonlinear part C
-            L = Vector{eltype(nep.B)}(q)
-            U = Vector{eltype(nep.B)}(q)
-            for k = 1:q
-                L[k] = nep.C[k].L
-                U[k] = nep.C[k].U
-            end
-
-            if !isempty(L[1])
-                if isempty(C[1])
-                    # if C is not specified, create it from LU factors
-                    for k = 1:q
-                        C[k] = L[k] * U[k]'
-                    end
-                end
-
-                UU = hcat(U...)::eltype(U)
-                r = size(UU, 2)
+            L = nep.L
+            if !isempty(nep.L[1])
+                UU = hcat(nep.U...)::eltype(nep.U)
+                r = nep.r
                 iL = zeros(Int, r)
                 c = 0
                 for ii = 1:q
-                    ri = size(L[ii], 2)
+                    ri = size(nep.L[ii], 2)
                     iL[c+1:c+ri] = ii
                     c += ri
                 end
-                LL = hcat(L...)::eltype(L)
+                LL = hcat(nep.L...)::eltype(nep.L)
             end
         end
 
-        n = nep.n
-        BC = [B; C]
-        BBCC = (isempty(B) ? vcat(C...) : isempty(C) ? vcat(B...) : [vcat(B...); vcat(C...)])::eltype(B)
-        pff = [monomials(p); f]
+        n = nep.spmf.n
+        BC = nep.spmf.A
+        BBCC = vcat(BC...)::eltype(BC)
+        pff = nep.spmf.fi
     end
 
     # process the input Xi
@@ -729,13 +704,6 @@ end
         return R
     end
 =#
-function monomials(p)
-    f = Vector{Any}(p+1)
-    for k=1:p+1
-        f[k] = x -> x^(k-1)
-    end
-    return f
-end
 
 function resize_matrix(A, rows, cols)
     resized = zeros(eltype(A), rows, cols)

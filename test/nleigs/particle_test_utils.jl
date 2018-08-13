@@ -22,10 +22,10 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v0 = randn(nep.n)
+    v0 = randn(nep.spmf.n)
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
-    funres = (Lam, X) -> particle_residual(Lam, X, nep)
+    funres = (λ, X) -> map(i -> norm(compute_Mlincomb(nep, λ[i], X[:, i])), 1:length(λ))
 
     return nep, Sigma, Xi, v0, nodes, funres, xmin, xmax
 end
@@ -157,23 +157,7 @@ function particle_nep(interval)
 
     # finally assemble nep instance
     C = map(k -> SPMFLowRankMatrix(S[k], SL[k], SU[k], f[k]), 1:length(S))
-    nep = SPMFLowRankNEP(size(B[1], 1), B, C)
+    nep = SPMFLowRankNEP(B, C)
 
     return nep, brpts, U0
-end
-
-function particle_residual(Lambda, X, nep)
-    function funA(lam, x)
-        A = nep.B[1] * x
-        for j = 2:length(nep.B)
-            A += lam^(j-1) * (nep.B[j]*x)
-        end
-        as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-        for j = 1:length(nep.C)
-            A += nep.C[j].f(as_matrix(lam))[1] * (nep.C[j].A*x)
-        end
-        return A
-    end
-
-    map(i -> norm(funA(Lambda[i], X[:,i])), 1:length(Lambda))
 end

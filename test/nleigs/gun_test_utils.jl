@@ -21,9 +21,9 @@ function gun_init()
 
     # options
     srand(1)
-    v0 = randn(nep.n)
+    v0 = randn(nep.spmf.n)
 
-    funres = (Lam, X) -> gun_residual(Lam, X, nep.B[1], nep.B[2], nep.C[1].A, nep.C[2].A)
+    funres = (Lam, X) -> gun_residual(Lam, X, nep.spmf.A[1], nep.spmf.A[2], nep.spmf.A[3], nep.spmf.A[4])
 
     return nep, Sigma, Xi, v0, nodes, funres
 end
@@ -48,7 +48,7 @@ function gun_nep()
     # finally assemble nep instance
     c1 = SPMFLowRankMatrix(W1, L1a, U1a, f[1])
     c2 = SPMFLowRankMatrix(W2, L2a, U2a, f[2])
-    return SPMFLowRankNEP(size(K, 1), [K, -M], [c1, c2])
+    return SPMFLowRankNEP([K, -M], [c1, c2])
 end
 
 function svd_decompose(A::SparseMatrixCSC{Float64,Int64})
