@@ -277,7 +277,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
                         V = resize_matrix(V, kn, b+1)
                     end
                     N -= 1
-                    warn("NLEIGS:noconvergence: Linearization not converged after $maxdgr iterations")
+                    warn("NLEIGS: Linearization not converged after $maxdgr iterations")
                     if verbose > 0
                         println(" --> freeze linearization")
                     end
@@ -386,7 +386,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
             xi = xi[1:k]
             beta = beta[1:k]
             nrmD = nrmD[1:k]
-            warn("NLEIGS:noconvergence: Linearization not converged after $maxdgr iterations")
+            warn("NLEIGS: Linearization not converged after $maxdgr iterations")
         end
         info = Dict(
             "Lam" => Lam,

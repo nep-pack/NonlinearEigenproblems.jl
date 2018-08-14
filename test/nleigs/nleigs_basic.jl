@@ -31,13 +31,13 @@ end
 
 @testset "NLEIGS: Non-convergent linearization" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "blksize" => 5)
-    @time X, lambda = nleigs(nep, Sigma, options=options)
+    @test_warn "Linearization not converged" @time X, lambda = nleigs(nep, Sigma, options=options)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true, "blksize" => 5)
-    @time X, lambda = nleigs(nep, Sigma, options=options)
+    @test_warn "Linearization not converged" @time X, lambda = nleigs(nep, Sigma, options=options)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
 
