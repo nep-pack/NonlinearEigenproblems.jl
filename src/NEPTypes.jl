@@ -895,7 +895,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         #Ucaf = spzeros(size(Ucf, 1), n)
         #Ucaf[:, c[1]:c[2]] = Ucf
         #Ucaf = Ucaf'
-        # END TEMP
     end
 
     function compactlu(L, U)

@@ -383,9 +383,14 @@ module Gallery
           AA=[K,M,W1,W2];
           nep=SPMF_NEP(AA,[oneop,minusop,sqrt1op,sqrt2op])
           return nep;
-
+      elseif name == "nlevp_gun_pnep"
+          nep = nep_gallery("nlevp_native_gun")
+          K, M, W1, W2 = nep.A
+          c1 = LowRankMatrixAndFunction(W1, nep.fi[3])
+          c2 = LowRankMatrixAndFunction(W2, nep.fi[4])
+          return PNEP([K, -M], [c1, c2])
       else
-          error("The name '", name, "' is not supported in NEP-Gallery.")
+          error("The name $name is not supported in NEP-Gallery.")
       end
 
   end
