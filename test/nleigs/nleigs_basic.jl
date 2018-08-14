@@ -31,24 +31,26 @@ end
 
 @testset "NLEIGS: Non-convergent linearization" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "blksize" => 5)
-    X = lambda = nothing
-    @test_warn "Linearization not converged" @time X, lambda = nleigs(nep, Sigma, options=options)
-    nleigs_verify_lambdas(4, nep, X, lambda)
+    @test_warn "Linearization not converged" begin
+        @time X, lambda = nleigs(nep, Sigma, options=options)
+        nleigs_verify_lambdas(4, nep, X, lambda)
+    end
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true, "blksize" => 5)
-    X = lambda = nothing
-    @test_warn "Linearization not converged" @time X, lambda = nleigs(nep, Sigma, options=options)
-    nleigs_verify_lambdas(4, nep, X, lambda)
+    @test_warn "Linearization not converged" begin
+        @time X, lambda = nleigs(nep, Sigma, options=options)
+        nleigs_verify_lambdas(4, nep, X, lambda)
+    end
 end
 
-@testset "NLEIGS: return_info" begin
+@testset "NLEIGS: return_details" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
-    @time X, lambda, res, solution_info = nleigs(nep, Sigma, options=options, return_info=true)
+    @time X, lambda, res, details = nleigs(nep, Sigma, options=options, return_details=true)
     nleigs_verify_lambdas(4, nep, X, lambda)
 
-    info_λ = solution_info["Lam"][:,end]
+    info_λ = details.Lam[:,end]
     local in_sigma = map(p -> inpolygon(real(p), imag(p), real(Sigma), imag(Sigma)), info_λ)
     info_λ = info_λ[in_sigma]
 
@@ -57,6 +59,6 @@ end
     @test length(union(lambda, info_λ)) == 4
 
     # test that the residuals are near 0
-    info_res = solution_info["Res"][in_sigma,end]
+    info_res = details.Res[in_sigma,end]
     @test all(r -> r < 1e-12, info_res)
 end

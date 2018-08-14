@@ -58,16 +58,8 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
      options.blksize:  block size for pre-allocation
                        [ positive integer {20} ]
 
-   [X,lambda,res,info] = NLEIGS(NLEP,Sigma,[Xi]) also returns a structure info:
-     info.Lam:    matrix of Ritz values in each iteration
-     info.Res:    matrix of residuals in each iteraion
-     info.sigma:  vector of interpolation nodes
-     info.xi:     vector of poles
-     info.beta:   vector of scaling parameters
-     info.nrmD:   vector of norms of generalized divided differences (in
-                  function handle case) or maximum of absolute values of
-                  scalar divided differences in each iteration (in matrix
-                  function case)
+   [X,lambda,res,info] = NLEIGS(NLEP,Sigma,[Xi]) also returns a structure info,
+   as described in the NLEIGSSolutionDetails struct
 
    See also EIG, EIGS, NLEIGSPLOT.
 
@@ -79,7 +71,7 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_info = false) where T<:Real
+function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_details = false) where T<:Real
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{Complex{T}}}(0)
     conv = BitVector(0)
@@ -111,7 +103,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
     H = zeros(element_type, b+1, b)
     K = zeros(element_type, b+1, b)
     nrmD = Array{Float64}(1)
-    if return_info
+    if return_details
         Lam = zeros(element_type, b, b)
         Res = zeros(b, b)
     end
@@ -171,7 +163,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
     end
     V[1:n,1] .= v0 ./ norm(v0)
     expand = true
-    kconv = Inf
+    kconv = typemax(Int)/2
     kn = n   # length of vectors in V
     l = 0    # number of vectors in V
     N = 0    # degree of approximations
@@ -200,7 +192,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
             V = resize_matrix(V, Vrows, nb*b+1)
             H = resize_matrix(H, size(H, 1) + b, size(H, 2) + b)
             K = resize_matrix(K, size(K, 1) + b, size(K, 2) + b)
-            if return_info
+            if return_details
                 Lam = resize_matrix(Lam, size(Lam, 1) + b, size(Lam, 2) + b)
                 Res = resize_matrix(Res, size(Res, 1) + b, size(Res, 2) + b)
             end
@@ -358,11 +350,11 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
         end
 
         # Ritz pairs
-        if !return_info && (
+        if !return_details && (
             (!expand && k >= N + minit && mod(k-(N+minit), resfreq) == 0) ||
             (k >= kconv + minit && mod(k-(kconv+minit), resfreq) == 0) || k == kmax)
             update_lambdas(false)
-        elseif return_info && (!static || (static && !expand))
+        elseif return_details && (!static || (static && !expand))
             update_lambdas(true)
         end
 
@@ -376,9 +368,9 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
     end
     lureset()
 
-    info = Dict()
+    details = NLEIGSSolutionDetails{T}()
 
-    if return_info
+    if return_details
         Lam = Lam[1:l,1:l]
         Res = Res[1:l,1:l]
         sigma = sigma[1:k]
@@ -388,18 +380,28 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
             nrmD = nrmD[1:k]
             warn("NLEIGS: Linearization not converged after $maxdgr iterations")
         end
-        info = Dict(
-            "Lam" => Lam,
-            "Res" => Res,
-            "sigma" => sigma,
-            "xi" => xi,
-            "beta" => beta,
-            "nrmD" => nrmD,
-            "kconv" => kconv)
+        details = NLEIGSSolutionDetails(Lam, Res, sigma, xi, beta, nrmD, kconv)
     end
 
-    return X[:,conv], lam[conv], res[conv], info
+    return X[:,conv], lam[conv], res[conv], details
 end
+
+struct NLEIGSSolutionDetails{T<:Real}
+    Lam::AbstractMatrix{Complex{T}}     # matrix of Ritz values in each iteration
+    Res::AbstractMatrix{T}              # matrix of residuals in each iteraion
+    sigma::AbstractVector{Complex{T}}   # vector of interpolation nodes
+    xi::AbstractVector{T}               # vector of poles
+    beta::AbstractVector{T}             # vector of scaling parameters
+    # vector of norms of generalized divided differences (in function handle
+    # case) or maximum of absolute values of scalar divided differences in
+    # each iteration (in matrix function case)
+    nrmD::AbstractVector{T}
+    kconv::Int                          # number of iterations until linearization converged
+end
+
+NLEIGSSolutionDetails{T}() where T<:Real = NLEIGSSolutionDetails(
+    complex(Matrix{T}(0,0)), Matrix{T}(0, 0), complex(Vector{T}(0)),
+    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
 # checkInputs: error checks the inputs to NLEP and also derives some variables from them:
 #
@@ -463,17 +465,17 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
         if q > 0
             # L and U factors of the low rank nonlinear part C
             L = nep.L
-            if !isempty(nep.L)
+            if !isempty(L)
                 UU = hcat(nep.U...)::eltype(nep.U)
                 r = nep.r
                 iL = zeros(Int, r)
                 c = 0
                 for ii = 1:q
-                    ri = size(nep.L[ii], 2)
+                    ri = size(L[ii], 2)
                     iL[c+1:c+ri] = ii
                     c += ri
                 end
-                LL = hcat(nep.L...)::eltype(nep.L)
+                LL = hcat(L...)::eltype(L)
             end
         end
 

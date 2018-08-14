@@ -30,7 +30,7 @@ options = Dict(
     "nodes" => nodes)
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, return_info=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, return_details=verbose > 1)
 
 @testset "NLEIGS: Particle variant R2" begin
     nleigs_verify_lambdas(2, nep, X, lambda)

@@ -31,7 +31,7 @@ function particle_init(interval)
 end
 
 function particle_nep(interval)
-    # MATLAB version author: William Vandenberghe
+    # Original MATLAB version by William Vandenberghe
 
     # initialization
     # constants
