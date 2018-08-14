@@ -39,8 +39,8 @@ function gun_nep()
     sigma2 = 108.8774
 
     # exploit low rank structure in nonlinear matrices
-    L1a, U1a = svd_decompose(W1)
-    L2a, U2a = svd_decompose(W2)
+    L1a, U1a = low_rank_lu(W1)
+    L2a, U2a = low_rank_lu(W2)
 
     # nonlinear functions
     f = [nep.fi[3], nep.fi[4]]
@@ -51,7 +51,7 @@ function gun_nep()
     return PNEP([K, -M], [c1, c2])
 end
 
-function svd_decompose(A::SparseMatrixCSC{Float64,Int64})
+function low_rank_lu(A::SparseMatrixCSC{Float64,Int64})
     n = size(A, 1)
     r, c = findn(A)
     r = extrema(r)
@@ -63,8 +63,7 @@ function svd_decompose(A::SparseMatrixCSC{Float64,Int64})
     Lca[r[1]:r[2], :] = Lc
     Uca = spzeros(size(Uc, 1), n)
     Uca[:, c[1]:c[2]] = Uc
-    Uca = Uca'
-    return Lca, Uca
+    return Lca, Uca'
 
     # TODO use this; however we then need to support permutation and scaling
     #F = lufact(B)
@@ -79,13 +78,8 @@ end
 
 function compactlu(L, U)
     n = size(L, 1)
-
     select = map(i -> nnz(L[i:n, i]) > 1 || nnz(U[i, i:n]) > 0, 1:n)
-
-    Lc = L[:,select]
-    Uc = U[select,:]
-
-    return Lc, Uc
+    return L[:,select], U[select,:]
 end
 
 function gun_residual(Lambda, X, K, M, W1, W2)

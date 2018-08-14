@@ -24,12 +24,12 @@ funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + f[1](λ[i]
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
-spmf_low_rank_nep = PNEP(B, [LowRankMatrixAndFunction(C[1], Array{Float64}(0,n), Array{Float64}(0,n), f[1])])
+pnep = PNEP(B, [MatrixAndFunction(C[1], f[1])])
 
-@testset "NLEIGS: SPMFLowRankNEP" begin
+@testset "NLEIGS: PNEP" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
-    @time X, lambda = nleigs(spmf_low_rank_nep, Sigma, options=options)
-    nleigs_verify_lambdas(4, spmf_low_rank_nep, X, lambda)
+    @time X, lambda = nleigs(pnep, Sigma, options=options)
+    nleigs_verify_lambdas(4, pnep, X, lambda)
 end
 
 #@testset "NLEIGS: SPMF_NEP" begin
@@ -45,11 +45,11 @@ end
 
 # compute_Mder (for the 0:th derivative) has to be implemented to solve a custom NEP type with NLEIGS
 import NEPCore.compute_Mder
-compute_Mder(_::CustomNLEIGSNEP, λ::Number) = compute_Mder(spmf_low_rank_nep, λ)
+compute_Mder(_::CustomNLEIGSNEP, λ::Number) = compute_Mder(pnep, λ)
 
 # compute_Mlincomb is needed for the test verification only
 import NEPCore.compute_Mlincomb
-compute_Mlincomb(_::CustomNLEIGSNEP, λ::Number, v) = compute_Mlincomb(spmf_low_rank_nep, λ, v)
+compute_Mlincomb(_::CustomNLEIGSNEP, λ::Number, v) = compute_Mlincomb(pnep, λ, v)
 
 @testset "NLEIGS: Custom NEP type" begin
     custom_nep = CustomNLEIGSNEP(n)
