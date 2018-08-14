@@ -847,7 +847,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
     # Allow vector-valued V
     function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
+        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1);a=a)
     end
 
     struct SPMFLowRankMatrix{S<:AbstractMatrix{<:Real}}
