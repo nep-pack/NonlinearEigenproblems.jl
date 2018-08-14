@@ -447,10 +447,15 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
     p = -1
     q = 0
     r = 0
-    spmf = isa(nep, AbstractSPMF)
+    spmf = isa(nep, PNEP)
 
     if !spmf
         BBCC = Matrix{T}(0, 0)
+        if isa(nep, AbstractSPMF)
+            warn("NLEIGS performs better if the problem is split into a ",
+                "polynomial part and a nonlinear part. If possible, create ",
+                "the problem as a $PNEP instead of a $(typeof(nep).name).")
+        end
         #BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
     else
         p = nep.p

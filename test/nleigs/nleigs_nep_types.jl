@@ -32,12 +32,12 @@ pnep = PNEP(B, [MatrixAndFunction(C[1], f[1])])
     nleigs_verify_lambdas(4, pnep, X, lambda)
 end
 
-#@testset "NLEIGS: SPMF_NEP" begin
-#    spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
-#    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
-#    @time X, lambda = nleigs(spmf_nep, Sigma, options=options)
-#    nleigs_verify_lambdas(4, spmf_nep, X, lambda)
-#end
+@testset "NLEIGS: SPMF_NEP" begin
+    spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
+    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
+    @test_warn "create the problem as a NEPTypes.PNEP instead of a NEPTypes.SPMF_NEP" @time X, lambda = nleigs(spmf_nep, Sigma, options=options)
+    nleigs_verify_lambdas(4, spmf_nep, X, lambda)
+end
 
 struct CustomNLEIGSNEP <: NEP
     n::Int  # problem size; this is the only required field in a custom NEP type when used with NLEIGS
