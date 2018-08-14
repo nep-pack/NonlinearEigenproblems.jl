@@ -57,7 +57,7 @@ function jd(::Type{T},
     # if deflation
     #     return jd_inner_deflated
     # else
-        return jd_inner(T, nep, maxit, Neig, projtype, inner_solver_method; kwargs...)
+        return jd_inner(T, nep, maxit, Neig, projtype, inner_solver_method, orthmethod; kwargs...)
     # end
 
 end
@@ -66,17 +66,17 @@ end
 
 function jd_inner(::Type{T},
                   nep::ProjectableNEP,
-                  maxit,
-                  Neig,
-                  projtype,
-                  inner_solver_method;
-                  orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                  maxit::Int,
+                  Neig::Int,
+                  projtype::Symbol,
+                  inner_solver_method::Type,
+                  orthmethod::Type;
                   errmeasure::Function = default_errmeasure(nep::NEP),
                   linsolvercreator::Function=default_linsolvercreator,
                   tol = eps(real(T))*100,
                   λ = zero(T),
                   v0 = randn(size(nep,1)),
-                  displaylevel = 0)  where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                  displaylevel = 0)  where {T}
 
     # Allocations and preparations
     n = size(nep,1)
@@ -84,10 +84,20 @@ function jd_inner(::Type{T},
     λ_vec::Vector{T} = Vector{T}(Neig)
     u_vec::Matrix{T} = zeros(T,n,Neig)
     u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u);
+    conveig = 0
+
+    # Initial check for convergence
+    err = errmeasure(λ,u)
+    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+    conveig = convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+    if (conveig == Neig)
+        return (λ_vec,u_vec)
+    end
+
+    # More allocations and preparations
     pk::Vector{T} = zeros(T,n)
     proj_nep = create_proj_NEP(nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1)
-    conveig = 0
 
     V_memory::Matrix{T} = zeros(T, size(nep,1), maxit+1)
     V_memory[:,1] = u
@@ -98,13 +108,7 @@ function jd_inner(::Type{T},
         W_memory = view(V_memory, :, :);
     end
 
-    # Initial check for convergence
-    err = errmeasure(λ,u)
-    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-    conveig = convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
-    if (conveig == Neig)
-        return (λ_vec,u_vec)
-    end
+
 
     # Main loop
     for k=1:maxit
