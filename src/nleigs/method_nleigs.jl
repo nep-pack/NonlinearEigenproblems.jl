@@ -152,7 +152,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
         sgdd = Matrix{Complex{T}}(0, 0)
     else
         # Compute scalar generalized divided differences
-        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], p, q, maxdgr, isfunm, nep.spmf.fi)
+        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, nep.spmf.fi)
         # Construct first generalized divided difference
         computeD && push!(D, constructD(0, L, n, p, q, r, nep.spmf.A, sgdd))
         # Norm of first generalized divided difference
@@ -514,9 +514,9 @@ end
 #   sigma   discretization of target set
 #   xi      discretization of singularity set
 #   beta    scaling factors
-function scgendivdiffs(sigma, xi, beta, p, q, maxdgr, isfunm, pff)
-    sgdd = complex(zeros(p+1+q, maxdgr+2))
-    for ii = 1:p+1+q
+function scgendivdiffs(sigma, xi, beta, maxdgr, isfunm, pff)
+    sgdd = complex(zeros(length(pff), maxdgr+2))
+    for ii = 1:length(pff)
         if isfunm
             sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], sigma, xi, beta)
         else
