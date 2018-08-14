@@ -24,7 +24,7 @@ funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + f[1](λ[i]
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
-spmf_low_rank_nep = SPMFLowRankNEP(B, [SPMFLowRankMatrix(C[1], Array{Float64}(0,n), Array{Float64}(0,n), f[1])])
+spmf_low_rank_nep = PNEP(B, [LowRankMatrixAndFunction(C[1], Array{Float64}(0,n), Array{Float64}(0,n), f[1])])
 
 @testset "NLEIGS: SPMFLowRankNEP" begin
     options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)

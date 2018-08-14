@@ -141,10 +141,6 @@ function particle_nep(interval)
     for j = 1:length(SL)
         SL[j] = -1 / m / dx^2 * SL[j]
     end
-    S = Vector(length(brpts))
-    for j = 1:length(S)
-        S[j] = SL[j] * SU[j]'
-    end
 
     # nonlinear functions
     f = Vector(length(brpts))
@@ -155,9 +151,9 @@ function particle_nep(interval)
         f[j] = lambda -> expm(-sqrtm(full(m * (-lambda + brpts[j] * eye(lambda)))))
     end
 
-    # finally assemble nep instance
-    C = map(k -> SPMFLowRankMatrix(S[k], SL[k], SU[k], f[k]), 1:length(S))
-    nep = SPMFLowRankNEP(B, C)
+    # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only
+    C = map(k -> LowRankMatrixAndFunction(similar(SL[k], 0, 0), SL[k], SU[k], f[k]), 1:length(f))
+    nep = PNEP(B, C)
 
     return nep, brpts, U0
 end

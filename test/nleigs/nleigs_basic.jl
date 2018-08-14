@@ -17,7 +17,7 @@ include("../../src/nleigs/method_nleigs.jl")
 
 n = 2
 B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
-nep = SPMFLowRankNEP(B, Vector{SPMFLowRankMatrix{Matrix{Float64}}}(0))
+nep = PNEP(B, Vector{MatrixAndFunction{Matrix{Float64}}}(0))
 
 funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + λ[i]^2*(B[3]*X[:,i])), 1:length(λ))
 

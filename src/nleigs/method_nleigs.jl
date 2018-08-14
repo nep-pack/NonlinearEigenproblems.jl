@@ -458,7 +458,7 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
         if q > 0
             # L and U factors of the low rank nonlinear part C
             L = nep.L
-            if !isempty(nep.L[1])
+            if !isempty(nep.L)
                 UU = hcat(nep.U...)::eltype(nep.U)
                 r = nep.r
                 iL = zeros(Int, r)

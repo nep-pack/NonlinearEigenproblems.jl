@@ -8,8 +8,9 @@ module NEPTypes
     export SPMF_NEP
     export AbstractSPMF
 
-    export SPMFLowRankMatrix
-    export SPMFLowRankNEP
+    export MatrixAndFunction
+    export LowRankMatrixAndFunction
+    export PNEP
 
     export Proj_NEP;
     export Proj_SPMF_NEP;
@@ -850,53 +851,75 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
     end
 
-    struct SPMFLowRankMatrix{S<:AbstractMatrix{<:Real}}
+    ############################################################################
+
+    abstract type AbstractMatrixAndFunction{S<:AbstractMatrix{<:Real}} end
+
+    struct MatrixAndFunction{S<:AbstractMatrix{<:Real}} <: AbstractMatrixAndFunction{S}
         A::S
-        L::S    # LU factors of A, can be used for low rank matrices (optional)
-        U::S    # LU factors of A, can be used for low rank matrices (optional)
-        f       # Function
+        f::Function
     end
 
-    struct SPMFLowRankNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
+    struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}} <: AbstractMatrixAndFunction{S}
+        A::S
+        L::S        # L factor of LU-factorized A
+        U::S        # U factor of LU-factorized A
+        f::Function
+    end
+
+"""
+Polynomial plus Nonlinear Eigenvalue Problem: Consists of a polynomial part
+with monomial matrices plus a nonlinear part with matrices and functions.
+"""
+    struct PNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
         spmf::SPMF_NEP
-        n::Int
-        p::Int
-        q::Int
-        r::Int
-        L::Vector{S}
-        U::Vector{S}
+        n::Int          # Matrix size
+        p::Int          # Order of polynomial part
+        q::Int          # Number of nonlinear terms
+        r::Int          # If >0, sum of ranks of nonlinear matrices
+        L::Vector{S}    # L factors of low rank nonlinear matrices (optional)
+        U::Vector{S}    # U factors of low rank nonlinear matrices (optional)
     end
 
-    function SPMFLowRankNEP(B::AbstractVector{S}, Clr::AbstractVector{SPMFLowRankMatrix{S}}) where {T<:Real, S<:AbstractMatrix{T}}
+    function PNEP(B::AbstractVector{S}, C::AbstractVector{S}, f::AbstractVector{Function}) where {T<:Real, S<:AbstractMatrix{T}}
+        length(C) != length(f) && error("Nonlinear matrices 'C' and functions ",
+            "'f' must have same length; got C=$(length(C)) and f=$(length(f))")
         p = length(B) - 1
-        q = length(Clr)
+        spmf = SPMF_NEP([B; C], [monomials(p); f])
+        return PNEP(spmf, spmf.n, p, length(C), 0, [], [])
+    end
+
+    function PNEP(B::AbstractVector{S}, Cmf::AbstractVector{<:AbstractMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
+        p = length(B) - 1
+        q = length(Cmf)
+        r = 0
         f = Vector{Function}(q)
         C = Vector{S}(q)
         # L and U factors of the low rank nonlinear part C
-        L = Vector{S}(q)
-        U = Vector{S}(q)
+        L = Vector{S}(0)
+        U = Vector{S}(0)
 
-        r = 0
-        for k = 1:q
-            f[k] = Clr[k].f
-            C[k] = Clr[k].A
-            L[k] = Clr[k].L
-            U[k] = Clr[k].U
-            r += size(U[k], 2)
-        end
-
-        # if C is not specified, create it from LU factors
-        if q > 0 && isempty(C[1])
+        if q > 0
             for k = 1:q
-                C[k] = L[k] * U[k]'
+                f[k] = Cmf[k].f
+                C[k] = Cmf[k].A
+            end
+
+            if isa(Cmf[1], LowRankMatrixAndFunction)
+                L = Vector{S}(q)
+                U = Vector{S}(q)
+                for k = 1:q
+                    L[k] = Cmf[k].L
+                    U[k] = Cmf[k].U
+                    r += size(U[k], 2)
+                    # if C is not specified, create it from LU factors
+                    isempty(C[k]) && (C[k] = L[k] * U[k]')
+                end
             end
         end
 
-        AA = [B; C]
-        fii = [monomials(p); f]
-
-        spmf = SPMF_NEP(AA, fii)
-        return SPMFLowRankNEP(spmf, spmf.n, p, q, r, L, U)
+        spmf = SPMF_NEP([B; C], [monomials(p); f])
+        return PNEP(spmf, spmf.n, p, q, r, L, U)
     end
 
     function monomials(p)
@@ -907,11 +930,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return f
     end
 
-    function compute_Mder(nep::SPMFLowRankNEP, λ::T, i::Int = 0) where T<:Number
+    function compute_Mder(nep::PNEP, λ::T, i::Int = 0) where T<:Number
         compute_Mder(nep.spmf, λ, i)
     end
 
-    function compute_Mlincomb(nep::SPMFLowRankNEP, λ::T, v::Vector{T}) where T<:Number
+    function compute_Mlincomb(nep::PNEP, λ::T, v::Vector{T}) where T<:Number
         compute_Mlincomb(nep.spmf, λ, v)
     end
 end

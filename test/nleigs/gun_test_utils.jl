@@ -46,9 +46,9 @@ function gun_nep()
     f = [nep.fi[3], nep.fi[4]]
 
     # finally assemble nep instance
-    c1 = SPMFLowRankMatrix(W1, L1a, U1a, f[1])
-    c2 = SPMFLowRankMatrix(W2, L2a, U2a, f[2])
-    return SPMFLowRankNEP([K, -M], [c1, c2])
+    c1 = LowRankMatrixAndFunction(W1, L1a, U1a, f[1])
+    c2 = LowRankMatrixAndFunction(W2, L2a, U2a, f[2])
+    return PNEP([K, -M], [c1, c2])
 end
 
 function svd_decompose(A::SparseMatrixCSC{Float64,Int64})

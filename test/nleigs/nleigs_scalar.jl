@@ -21,10 +21,9 @@ as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 n = 1
 C = [as_matrix(0.2), as_matrix(-0.6)]
 f = [λ -> sqrtm(λ), λ -> sin.(2*λ)]
-# TODO: clean up the below
-c1 = SPMFLowRankMatrix(C[1], Array{Float64}(0,n), Array{Float64}(0,n), f[1])
-c2 = SPMFLowRankMatrix(C[2], Array{Float64}(0,n), Array{Float64}(0,n), f[2])
-nep = SPMFLowRankNEP(Vector{Matrix{Float64}}(0), [c1, c2])
+c1 = MatrixAndFunction(C[1], f[1])
+c2 = MatrixAndFunction(C[2], f[2])
+nep = PNEP(Vector{Matrix{Float64}}(0), [c1, c2])
 
 funres = (λ, X) -> map(i -> norm(f[1](λ[i])*(C[1]*X[:,i]) + f[2](λ[i])*(C[2]*X[:,i])), 1:length(λ))
 Sigma = complex([0.01, 4])
