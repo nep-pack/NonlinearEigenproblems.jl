@@ -38,48 +38,9 @@ function gun_nep()
 
     sigma2 = 108.8774
 
-    # exploit low rank structure in nonlinear matrices
-    L1a, U1a = low_rank_lu(W1)
-    L2a, U2a = low_rank_lu(W2)
-
-    # nonlinear functions
-    f = [nep.fi[3], nep.fi[4]]
-
-    # finally assemble nep instance
-    c1 = LowRankMatrixAndFunction(W1, L1a, U1a, f[1])
-    c2 = LowRankMatrixAndFunction(W2, L2a, U2a, f[2])
+    c1 = LowRankMatrixAndFunction(W1, nep.fi[3])
+    c2 = LowRankMatrixAndFunction(W2, nep.fi[4])
     return PNEP([K, -M], [c1, c2])
-end
-
-function low_rank_lu(A::SparseMatrixCSC{Float64,Int64})
-    n = size(A, 1)
-    r, c = findn(A)
-    r = extrema(r)
-    c = extrema(c)
-    B = A[r[1]:r[2], c[1]:c[2]]
-    L, U = lu(full(B))
-    Lc, Uc = compactlu(sparse(L), sparse(U))
-    Lca = spzeros(n, size(Lc, 2))
-    Lca[r[1]:r[2], :] = Lc
-    Uca = spzeros(size(Uc, 1), n)
-    Uca[:, c[1]:c[2]] = Uc
-    return Lca, Uca'
-
-    # TODO use this; however we then need to support permutation and scaling
-    #F = lufact(B)
-    #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
-    #Lcaf = spzeros(n, size(Lcf, 2))
-    #Lcaf[r[1]:r[2], :] = Lcf
-    #Ucaf = spzeros(size(Ucf, 1), n)
-    #Ucaf[:, c[1]:c[2]] = Ucf
-    #Ucaf = Ucaf'
-    # END TEMP
-end
-
-function compactlu(L, U)
-    n = size(L, 1)
-    select = map(i -> nnz(L[i:n, i]) > 1 || nnz(U[i, i:n]) > 0, 1:n)
-    return L[:,select], U[select,:]
 end
 
 function gun_residual(Lambda, X, K, M, W1, W2)

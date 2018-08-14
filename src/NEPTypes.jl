@@ -867,6 +867,43 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         f::Function
     end
 
+"""Creates low rank LU factorization of A"""
+    function LowRankMatrixAndFunction(A::AbstractMatrix{<:Real}, f::Function)
+        L, U = low_rank_lu_factors(A)
+        LowRankMatrixAndFunction(A, L, U, f)
+    end
+
+    function low_rank_lu_factors(A::SparseMatrixCSC{<:Real,Int64})
+        n = size(A, 1)
+        r, c = findn(A)
+        r = extrema(r)
+        c = extrema(c)
+        B = A[r[1]:r[2], c[1]:c[2]]
+        L, U = lu(full(B))
+        Lc, Uc = compactlu(sparse(L), sparse(U))
+        Lca = spzeros(n, size(Lc, 2))
+        Lca[r[1]:r[2], :] = Lc
+        Uca = spzeros(size(Uc, 1), n)
+        Uca[:, c[1]:c[2]] = Uc
+        return Lca, Uca'
+
+        # TODO use this; however we then need to support permutation and scaling
+        #F = lufact(B)
+        #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
+        #Lcaf = spzeros(n, size(Lcf, 2))
+        #Lcaf[r[1]:r[2], :] = Lcf
+        #Ucaf = spzeros(size(Ucf, 1), n)
+        #Ucaf[:, c[1]:c[2]] = Ucf
+        #Ucaf = Ucaf'
+        # END TEMP
+    end
+
+    function compactlu(L, U)
+        n = size(L, 1)
+        select = map(i -> nnz(L[i:n, i]) > 1 || nnz(U[i, i:n]) > 0, 1:n)
+        return L[:,select], U[select,:]
+    end
+
 """
 Polynomial plus Nonlinear Eigenvalue Problem: Consists of a polynomial part
 with monomial matrices plus a nonlinear part with matrices and functions.
@@ -882,7 +919,7 @@ with monomial matrices plus a nonlinear part with matrices and functions.
     end
 
     function PNEP(B::AbstractVector{S}, C::AbstractVector{S}, f::AbstractVector{Function}) where {T<:Real, S<:AbstractMatrix{T}}
-        length(C) != length(f) && error("Nonlinear matrices 'C' and functions ",
+        length(C) == length(f) || error("Nonlinear matrices 'C' and functions ",
             "'f' must have same length; got C=$(length(C)) and f=$(length(f))")
         p = length(B) - 1
         spmf = SPMF_NEP([B; C], [monomials(p); f])
