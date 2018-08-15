@@ -3,12 +3,13 @@ export jd
 using IterativeSolvers
 
    """
-    function jd([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v0 = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin])
+    function jd([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v0 = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v0` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
+The `target` is the center around which eiganvlues are computed.
 By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence W^H T(λ) V is the projection considered. By specifying  `projtype` to be `:Galerkin` then W=V.
 
 
@@ -29,23 +30,26 @@ julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 
 jd(nep::NEP;kwargs...) = jd(Complex128,nep;kwargs...)
 function jd(::Type{T},
-            nep::ProjectableNEP;
-            orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
-            Neig = 1,
-            maxit = 100,
-            inner_solver_method = NEPSolver.DefaultInnerSolver,
-            projtype = :PetrovGalerkin,
-            # deflation = false,
-            kwargs...)  where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                  nep::ProjectableNEP;
+                  maxit::Int = 100,
+                  Neig::Int = 1,
+                  projtype::Symbol = :PetrovGalerkin,
+                  inner_solver_method::Type = NEPSolver.DefaultInnerSolver,
+                  orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                  errmeasure::Function = default_errmeasure(nep::NEP),
+                  linsolvercreator::Function = default_linsolvercreator,
+                  tol::Number = eps(real(T))*100,
+                  λ::Number = zero(T),
+                  v0::Vector = randn(size(nep,1)),
+                  target::Number = zero(T),
+                  displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
-    # Handle warnings and errors
+    # Initial logical checks
     n = size(nep,1)
+
     if (maxit > n)
         error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
     end
-    # if (deflation) && (Neig ==1)
-    #     error("Combination with deflation and Neig = 1 not valid. Try to run without deflation.")
-    # end
     if (projtype != :Galerkin) && projtype != :PetrovGalerkin
         error("Only accepted values of 'projtype' are :Galerkin and :PetrovGalerkin.")
     end
@@ -53,34 +57,9 @@ function jd(::Type{T},
         error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
 
-    # Run the method
-    # if deflation
-    #     return jd_inner_deflated
-    # else
-        return jd_inner(T, nep, maxit, Neig, projtype, inner_solver_method, orthmethod; kwargs...)
-    # end
-
-end
-
-
-
-function jd_inner(::Type{T},
-                  nep::ProjectableNEP,
-                  maxit::Int,
-                  Neig::Int,
-                  projtype::Symbol,
-                  inner_solver_method::Type,
-                  orthmethod::Type;
-                  errmeasure::Function = default_errmeasure(nep::NEP),
-                  linsolvercreator::Function=default_linsolvercreator,
-                  tol = eps(real(T))*100,
-                  λ = zero(T),
-                  v0 = randn(size(nep,1)),
-                  displaylevel = 0)  where {T}
-
     # Allocations and preparations
-    n = size(nep,1)
     λ::T = T(λ)
+    target::T = T(target)
     λ_vec::Vector{T} = Vector{T}(Neig)
     u_vec::Matrix{T} = zeros(T,n,Neig)
     u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u);
@@ -123,7 +102,7 @@ function jd_inner(::Type{T},
                             λv = zeros(T,conveig+1),
                             σ=zero(T),
                             Neig=conveig+1)
-        λ,s = jd_eig_sorter(λv, sv, conveig+1)
+        λ,s = jd_eig_sorter(λv, sv, conveig+1, target)
         s = s/norm(s)
 
         # the approximate eigenvector
@@ -137,8 +116,9 @@ function jd_inner(::Type{T},
             return (λ_vec,u_vec)
         end
 
-        # solve for basis extension using comment on top of page 367 to avoid
-        # matrix access. The orthogonalization to u comes anyway since u in V
+        # Solve for basis extension using comment on top of page 367 of Betcke
+        # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
+        # since u in V. OBS: Non-standard in JD-literature
         pk[:] = compute_Mlincomb(nep,λ,u,[one(T)],1)
         linsolver = linsolvercreator(nep,λ)
         v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
@@ -160,20 +140,19 @@ function convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conve
     # Small error and not already found (expception if it is the first)
     # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
     if (err < tol) && (conveig == 0 ||
-        all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
-
-           conveig += 1
-           λ_vec[conveig] = λ
-           u_vec[:,conveig] = u
+            all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
+        conveig += 1
+        λ_vec[conveig] = λ
+        u_vec[:,conveig] = u
     end
     return conveig
 end
 
 
 
-function jd_eig_sorter(λv::Array{T,1}, V, N) where T <: Number
+function jd_eig_sorter(λv::Array{T,1}, V, N, target::T) where T <: Number
     NN = min(N, length(λv))
-    c = sortperm(abs.(λv))
+    c = sortperm(abs.(λv-target))
     λ::T = λv[c[NN]]
     s::Array{T,1} = V[:,c[NN]]
     return λ, s
