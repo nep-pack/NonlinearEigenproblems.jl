@@ -343,10 +343,7 @@ Exeption thrown in case an iterative method does not converge\\
 The default way of measuring error (residual norm).
 """
     function default_errmeasure(nep::NEP)
-        f=function (λ,v);
-            compute_resnorm(nep,λ,v)/norm(v)
-        end
-        return f
+        return (λ,v) -> compute_resnorm(nep,λ,v)/norm(v)
     end
 
     """
