@@ -110,7 +110,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
 
 ```
 """
-    function compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
+    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{Matrix,Vector},a::Vector=ones(size(V,2)))
 
         # determine a default behavior (may lead to loss of performance)
         if (@method_concretely_defined(compute_MM,nep))
@@ -130,10 +130,10 @@ Computes linear combination starting with derivative startder, i.e.,
 The default implementation of this can be slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
-    function compute_Mlincomb(nep::NEP,λ,V,a::Array{<:Number,1},startder::Integer)
+    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{Matrix,Vector},a::Vector,startder::Integer)
         aa=[zeros(startder);a];
         VV=[zeros(size(nep,1),startder) V]; # This is typically slow since copy is needed
-        return compute_Mlincomb(nep,λ,VV,a=aa)
+        return compute_Mlincomb(nep,λ,VV,aa)
     end
 
 """
