@@ -265,6 +265,10 @@ function compute_MM(nep::DeflatedNEP,S,V)
     R=compute_MM(orgnep, Stilde,Vtilde);
     return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
 end
+# Use the MM to compute Mlincomb for DeflatedNEP
+compute_Mlincomb(nep::DeflatedNEP,λ::Number,
+                 V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
 function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
