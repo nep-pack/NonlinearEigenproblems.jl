@@ -315,7 +315,7 @@ function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},X,Y,M0inv,pre
     α=precomp.α; σ=precomp.σ;
     Y[:,2:k+1] = X*view(precomp.P,1:k,1:k);
     broadcast!(/,view(Y,:,2:k+1),view(Y,:,2:k+1),(1:k)')
-    Y[:,1] = compute_Mlincomb(nep,σ,view(Y,:,1:k+1),a=α[1:k+1]);
+    Y[:,1] = compute_Mlincomb(nep,σ,view(Y,:,1:k+1),α[1:k+1]);
     Y[:,1] = -lin_solve(M0inv,Y[:,1]);
     Y[:,:]=Y*view(precomp.P_inv,1:k+1,1:k+1);
     return Y[:,1];
