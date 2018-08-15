@@ -4,9 +4,9 @@ include("evalrat.jl")
 # valued), using differencing. The sigma's need to be distinct. For scalar
 # functions or non-distinct sigma's it may be better to use
 # ratnewtoncoeffsm.
-function ratnewtoncoeffs(fun, sigma::AbstractVector{Complex{T}}, xi::AbstractVector{T}, beta::AbstractVector{T}) where T<:Real
+function ratnewtoncoeffs(fun, sigma::AbstractVector{T}, xi::AbstractVector{RT}, beta::AbstractVector{RT}) where {T<:Number, RT<:Real}
     m = length(sigma)
-    D = Vector{Matrix{Complex{T}}}(m)
+    D = Vector{Matrix{T}}(m)
 
     # compute divided differences D0,D1,...,Dm
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
@@ -14,7 +14,7 @@ function ratnewtoncoeffs(fun, sigma::AbstractVector{Complex{T}}, xi::AbstractVec
     n = size(D[1], 1)
     for j = 2:m
         # evaluate current linearizaion at sigma(j);
-        Qj = Complex{T}(0)
+        Qj = T(0)
         for k = 1:j-1
             Qj += D[k] * evalrat(sigma[1:k-1], xi[1:k-1], beta[1:k], [sigma[j]])[1]
         end

@@ -4,7 +4,7 @@
 #  the points in the output a will be exactly those of A, otherwise the
 #  points in a are also chosen via greedy search on A. If forceInf is a
 #  positive integer, the first forceInf poles in b will be infinity.
-function lejabagby(A::AbstractVector{Complex{T}}, B::AbstractVector{T}, C::AbstractVector{Complex{T}}, m::Int, keepA::Bool=false, forceInf::Int=0) where T<:Real
+function lejabagby(A::AbstractVector{T}, B::AbstractVector{RT}, C::AbstractVector{T}, m::Int, keepA::Bool=false, forceInf::Int=0) where {T<:Number, RT<:Real}
     if minimum(abs.(B)) < 1e-9
         warn("There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability.")
     end

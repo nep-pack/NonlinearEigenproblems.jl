@@ -459,11 +459,11 @@ NLEIGSSolutionDetails{T,RT}() where {T<:Number, RT<:Real} = NLEIGSSolutionDetail
 #   reuselu    positive integer for reuse of LU-factorizations of A(sigma)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
+function prepare_inputs(nep::NEP, Sigma::AbstractVector{T}, Xi::AbstractVector{RT}, options::Dict) where {T<:Number, RT<:Real}
     iL = Vector{Int}(0)
-    L = Vector{Matrix{T}}(0)
-    LL = Matrix{T}(0, 0)
-    UU = Matrix{T}(0, 0)
+    L = Vector{Matrix{RT}}(0)
+    LL = Matrix{RT}(0, 0)
+    UU = Matrix{RT}(0, 0)
     #L = Vector{eltype(nep.spmf.A)}(0)
     #LL = similar(nep.spmf.A[1], 0, 0)
     #UU = similar(nep.spmf.A[1], 0, 0)
@@ -473,7 +473,7 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
     spmf = isa(nep, PNEP)
 
     if !spmf
-        BBCC = Matrix{T}(0, 0)
+        BBCC = Matrix{RT}(0, 0)
         if isa(nep, AbstractSPMF)
             warn("NLEIGS performs better if the problem is split into a ",
                 "polynomial part and a nonlinear part. If possible, create ",
@@ -513,13 +513,13 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
     maxdgr = get(options, "maxdgr", 100)::Int
     minit = get(options, "minit", 20)::Int
     maxit = get(options, "maxit", 200)::Int
-    tolres = get(options, "tolres", 1e-10)::T
-    tollin = get(options, "tollin", max(tolres/10, 100*eps()))::T
-    v0 = get(options, "v0", randn(nep.n))::Vector{T}
+    tolres = get(options, "tolres", 1e-10)::RT
+    tollin = get(options, "tollin", max(tolres/10, 100*eps()))::RT
+    v0 = get(options, "v0", randn(nep.n))::Vector{RT}
     isfunm = get(options, "isfunm", true)::Bool
     static = get(options, "static", false)::Bool
     leja = get(options, "leja", 1)::Int
-    nodes = get(options, "nodes", Vector{Complex{T}}(0))::Vector{Complex{T}}
+    nodes = get(options, "nodes", Vector{T}(0))::Vector{T}
     reuselu = get(options, "reuselu", 1)::Int
     b = get(options, "blksize", 20)::Int
 
@@ -693,7 +693,7 @@ end
 
 # in_sigma: True for points inside Sigma
 #   z      (complex) points
-function in_sigma(z::AbstractVector{Complex{T}}, Sigma::AbstractVector{Complex{T}}, tolres::T) where T<:Real
+function in_sigma(z::AbstractVector{T}, Sigma::AbstractVector{T}, tolres::RT) where {T<:Number, RT<:Real}
     if length(Sigma) == 2 && isreal(Sigma)
         realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]])
         imagSigma = [-tolres; tolres; tolres; -tolres]

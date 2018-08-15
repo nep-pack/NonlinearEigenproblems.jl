@@ -5,13 +5,13 @@ include("inpolygon.jl")
 # npts = nr of boundary points
 # nsigma = nr of interior points
 function discretizepolygon(
-    z::Vector{Complex{T}} = [],
+    z::Vector{T} = [],
     include_interior_points::Bool = false,
     npts::Int = 10000,
-    nsigma::Int = 5) where T<:Real
+    nsigma::Int = 5) where T<:Number
 
     if isempty(z) # return unit disk
-        z = [Complex{T}(0)]
+        z = [T(0)]
     end
 
     if length(z) == 1 # return disk centered at z
@@ -43,7 +43,7 @@ function discretizepolygon(
 
     append!(zz, z)
 
-    Z = Vector{Complex{T}}(0)
+    Z = Vector{T}(0)
     if include_interior_points
         if length(z) == 2 # interval case
             xnr = 2*nsigma
@@ -76,7 +76,7 @@ function discretizepolygon(
             ypts = linspace(minimum(imag(z))-eps(), maximum(imag(z))+eps(), ynr)
             ypts = ypts[2:2:end]
 
-            Z = [x + y*im for x in xpts for y in ypts]::Vector{Complex{T}}
+            Z = [x + y*im for x in xpts for y in ypts]::Vector{T}
             Z = filter(p -> inpolygon(real(p), imag(p), realz, imagz), Z)
         end
     end
