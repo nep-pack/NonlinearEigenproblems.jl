@@ -61,7 +61,7 @@ end
     B1=3*eye(3,3)+ones(3,3);
     nep2=PEP([B0,B1]);
     λ=1+1im;
-    sumnep=SUMNEP(nep1,nep2);
+    sumnep=SumNEP(nep1,nep2);
     M=compute_Mder(sumnep,λ);
     M1=compute_Mder(nep1,λ);
     M2=compute_Mder(nep2,λ);
