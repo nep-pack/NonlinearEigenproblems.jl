@@ -955,7 +955,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T};
+    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T},
                               a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
         n=size(V,1); k=1
         try k=size(V,2) end
@@ -971,11 +971,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return z
     end
     # Automatically promote to complex if λ is real
-    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
-        return compute_Mlincomb(nep,complex(λ),V;a=a)
+    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2},a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
+        return compute_Mlincomb(nep,complex(λ),V,a)
     end
     # Allow vector-valued V
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1);a=a)
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T},a::Vector{T}=ones(T,1)) where T<:Number
+        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1),a)
     end
 end

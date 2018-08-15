@@ -96,7 +96,7 @@ julia> norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
     end
 
     """
-    compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
+    compute_Mlincomb(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)))
 Computes the linear combination of derivatives\\
 ``Σ_i a_i M^{(i)}(λ) v_i``
 
@@ -105,7 +105,7 @@ This example shows that `compute_Mder` gives a result consistent with `compute_M
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> v=ones(size(nep,1)); λ=-1+1im;
-julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
+julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 1.0778315928076987e-15
 
 ```
