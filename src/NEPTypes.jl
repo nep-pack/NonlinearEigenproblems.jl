@@ -235,6 +235,10 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             return compute_Mder_from_MM(nep,λ,i)
         end
     end
+    # Use MM to compute Mlincomb for SPMFs
+    compute_Mlincomb(nep::SPMF_NEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
     ###########################################################
     # Delay eigenvalue problems - DEP
@@ -383,6 +387,10 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         end
         return Z
     end
+    # Use MM to compute Mlincomb for PEPs
+    compute_Mlincomb(nep::PEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(Complex128,nep,x;params...)
     function compute_rf{T<:Real}(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
@@ -763,7 +771,10 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
 
     # Use delagation to the nep_proj
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
-    #compute_Mlincomb(nep::Proj_NEP,par...)=compute_Mlincomb(nep.nep_proj,par...) # does not work yet
+    # Use MM to compute Mlincomb for SPMFs
+    compute_Mlincomb(nep::Proj_SPMF_NEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 

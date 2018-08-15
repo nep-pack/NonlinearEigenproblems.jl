@@ -110,17 +110,17 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
 ```
 """
-    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{Matrix,Vector},a::Vector=ones(size(V,2)))
-
-        # determine a default behavior (may lead to loss of performance)
-        if (@method_concretely_defined(compute_MM,nep))
-            return compute_Mlincomb_from_MM(nep,λ,V,a)
-        elseif (@method_concretely_defined(compute_Mder,nep))
-            return compute_Mlincomb_from_Mder(nep,λ,V,a)
+    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector)
+        V2=copy(V);
+        if (isa(V,AbstractVector))
+            V2[:]=V*a[1];
         else
-            error("No procedure to compute Mlincomb for nep::$(typeof(nep)), λ::$(typeof(λ)), V::$(typeof(V))")
+            D=Diagonal(a);
+            # Scale columns with V2
+            rmul!(V2,D);
         end
-    end
+        return compute_Mlincomb(nep,λ,V2);
+    end    
 
 """
     compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
