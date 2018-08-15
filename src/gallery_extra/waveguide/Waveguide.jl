@@ -281,8 +281,8 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
  Computes the linear combination of derivatives\\
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
-    function compute_Mlincomb(nep::WEP_FD, λ::Number, V::Union{AbstractMatrix,AbstractVector};
-                              a=ones(Complex128,size(V,2)))
+    function compute_Mlincomb(nep::WEP_FD, λ::Number, V::Union{AbstractMatrix,AbstractVector},
+                              a::Vector=ones(Complex128,size(V,2)))
         na = size(a,1)
         nv = size(V,1)
         mv = size(V,2)
