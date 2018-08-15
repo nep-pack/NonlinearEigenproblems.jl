@@ -43,17 +43,10 @@ struct CustomNLEIGSNEP <: NEP
     n::Int  # problem size; this is the only required field in a custom NEP type when used with NLEIGS
 end
 
-# compute_Mder (for the 0:th derivative) has to be implemented to solve a custom NEP type with NLEIGS
-import NEPCore.compute_Mder
+# implement a few methods used by the solver
+import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
 compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pnep, λ)
-
-# compute_Mlincomb with matrix input is needed for the default error measure,
-# and with vector input is needed for the test verification below
-import NEPCore.compute_Mlincomb
 compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(pnep, λ, x)
-
-# size is needed for the default error measure
-import Base.size
 size(::CustomNLEIGSNEP, _) = n
 
 @testset "NLEIGS: Custom NEP type" begin

@@ -57,16 +57,6 @@ include("ratnewtoncoeffsm.jl")
 
    [X,lambda,res,info] = NLEIGS(NLEP,Sigma,[Xi]) also returns a structure info,
    as described in the NLEIGSSolutionDetails struct
-
-   See also EIG, EIGS, NLEIGSPLOT.
-
-   Reference:
-   S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class
-   of fully rational Krylov methods for nonlinear eigenvalue problems. SIAM J.
-   Sci. Comput., 36(6), A2842âA2864, 2014.
-
-   Roel Van Beeumen
-   April 5, 2016
 =#
 """
     nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}})
@@ -76,23 +66,30 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 # Arguments
 - `errmeasure::Function = default_errmeasure(nep::NEP)`: function for error measure
   (residual norm), called with arguments (λ,v)
+
+# References
+- S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class
+  of fully rational Krylov methods for nonlinear eigenvalue problems. SIAM J.
+  Sci. Comput., 36(6), A2842-A2864, 2014.
+- [NLEIGS Matlab toolbox](http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php)
 """
+nleigs(nep, Sigma; params...) = nleigs(Complex128, Float64, nep, Sigma; params...)
 function nleigs(
+        ::Type{T},
+        ::Type{RT},
         nep::NEP,
-        Sigma::AbstractVector{Complex{T}};
-        Xi::AbstractVector{T} = [Inf],
+        Sigma::AbstractVector{T};
+        Xi::AbstractVector{RT} = [Inf],
         options::Dict = Dict(),
         errmeasure::Function = default_errmeasure(nep::NEP),
-        return_details = false) where T<:Real
+        return_details = false) where {T<:Number, RT<:Real}
 
     # The following variables are used when creating the return values, so put them in scope
-    D = Vector{Matrix{Complex{T}}}(0)
+    D = Vector{Matrix{T}}(0)
     conv = BitVector(0)
-    lam = Vector{Complex{T}}(0)
-    X = Matrix{Complex{T}}(0, 0)
-    res = Vector{T}(0)
-
-    element_type = eltype(Sigma)
+    lam = Vector{T}(0)
+    X = Matrix{T}(0, 0)
+    res = Vector{RT}(0)
 
     #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
     #return
@@ -103,21 +100,21 @@ function nleigs(
 
     # Initialization
     if static
-        V = zeros(element_type, n, 1)
+        V = zeros(T, n, 1)
     elseif !spmf
-        V = zeros(element_type, (b+1)*n, b+1)
+        V = zeros(T, (b+1)*n, b+1)
     else
         if r == 0 || b < p
-            V = zeros(element_type, (b+1)*n, b+1)
+            V = zeros(T, (b+1)*n, b+1)
         else
-            V = zeros(element_type, p*n+(b-p+1)*r, b+1)
+            V = zeros(T, p*n+(b-p+1)*r, b+1)
         end
     end
-    H = zeros(element_type, b+1, b)
-    K = zeros(element_type, b+1, b)
-    nrmD = Array{Float64}(1)
+    H = zeros(T, b+1, b)
+    K = zeros(T, b+1, b)
+    nrmD = Array{RT}(1)
     if return_details
-        Lam = zeros(element_type, b, b)
+        Lam = zeros(T, b, b)
         Res = zeros(b, b)
     end
 
@@ -154,7 +151,7 @@ function nleigs(
     if !spmf
         D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), sigma[range], xi[range], beta[range])
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
-        sgdd = Matrix{Complex{T}}(0, 0)
+        sgdd = Matrix{T}(0, 0)
     else
         # Compute scalar generalized divided differences
         sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, nep.spmf.fi)
@@ -381,7 +378,7 @@ function nleigs(
     end
     lureset()
 
-    details = NLEIGSSolutionDetails{T}()
+    details = NLEIGSSolutionDetails{T,RT}()
 
     if return_details
         Lam = Lam[1:l,1:l]
@@ -399,34 +396,34 @@ function nleigs(
     return X[:,conv], lam[conv], res[conv], details
 end
 
-struct NLEIGSSolutionDetails{T<:Real}
+struct NLEIGSSolutionDetails{T<:Number, RT<:Real}
     "matrix of Ritz values in each iteration"
-    Lam::AbstractMatrix{Complex{T}}
+    Lam::AbstractMatrix{T}
 
     "matrix of residuals in each iteraion"
-    Res::AbstractMatrix{T}
+    Res::AbstractMatrix{RT}
 
     "vector of interpolation nodes"
-    sigma::AbstractVector{Complex{T}}
+    sigma::AbstractVector{T}
 
     "vector of poles"
-    xi::AbstractVector{T}
+    xi::AbstractVector{RT}
 
     "vector of scaling parameters"
-    beta::AbstractVector{T}
+    beta::AbstractVector{RT}
 
     "vector of norms of generalized divided differences (in function handle
     case) or maximum of absolute values of scalar divided differences in
     each iteration (in matrix function case)"
-    nrmD::AbstractVector{T}
+    nrmD::AbstractVector{RT}
 
     "number of iterations until linearization converged"
     kconv::Int
 end
 
-NLEIGSSolutionDetails{T}() where T<:Real = NLEIGSSolutionDetails(
-    complex(Matrix{T}(0,0)), Matrix{T}(0, 0), complex(Vector{T}(0)),
-    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
+NLEIGSSolutionDetails{T,RT}() where {T<:Number, RT<:Real} = NLEIGSSolutionDetails(
+    Matrix{T}(0,0), Matrix{RT}(0, 0), Vector{T}(0),
+    Vector{RT}(0), Vector{RT}(0), Vector{RT}(0), 0)
 
 # checkInputs: error checks the inputs to NLEP and also derives some variables from them:
 #
