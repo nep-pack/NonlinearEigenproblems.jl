@@ -25,9 +25,8 @@ c1 = MatrixAndFunction(C[1], f[1])
 c2 = MatrixAndFunction(C[2], f[2])
 nep = PNEP(Vector{Matrix{Float64}}(0), [c1, c2])
 
-funres = (λ, X) -> map(i -> norm(f[1](λ[i])*(C[1]*X[:,i]) + f[2](λ[i])*(C[2]*X[:,i])), 1:length(λ))
 Sigma = complex([0.01, 4])
-options = Dict("disp" => 1, "tol" => 100*eps(), "maxit" => 100, "v0" => ones(n), "funres" => funres, "leja" => 2, "isfunm" => false)
+options = Dict("disp" => 1, "tol" => 100*eps(), "maxit" => 100, "v0" => ones(n), "leja" => 2, "isfunm" => false)
 
 @testset "NLEIGS: Scalar (polynomial)" begin
     @time X, lambda = nleigs(nep, Sigma, options=options)

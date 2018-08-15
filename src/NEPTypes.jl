@@ -789,68 +789,8 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     end
 
 
-
-   #######################################################
-   ### Functions in common for many NEPs in NEPTypes
-
-   #
-"""
-    size(nep::NEP,dim=-1)
- Overloads the size functions for NEPs storing size in nep.n
-"""
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
-        return nep.n
-    end
-
-
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
-        return (nep.n,nep.n)
-    end
-
-"""
-    issparse(nep)
-Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
-"""
-    function issparse(nep::Union{DEP,PEP,REP,SPMF_NEP})
-        return issparse(nep.A[1])
-    end
-
-
-    function get_Av(nep::Union{SPMF_NEP,PEP,REP})
-        return nep.A;
-    end
-    function get_fv(nep::SPMF_NEP)
-        return nep.fi;
-    end
-
-
-    include("nep_transformations.jl")
-
-    # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T};
-                              a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
-        n=size(V,1); k=1
-        try k=size(V,2) end
-        Av=get_Av(nep)
-        broadcast!(*,V,V,a.')
-        z=zeros(T,n)
-        for j=1:length(nep.tauv)
-            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
-            z[:]+=Av[j+1]*(V*w);
-        end
-        if k>1 z[:]-=view(V,:,2:2) end
-        z[:]-=λ*view(V,:,1:1);
-        return z
-    end
-    # Automatically promote to complex if λ is real
-    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
-        return compute_Mlincomb(nep,complex(λ),V;a=a)
-    end
-    # Allow vector-valued V
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1);a=a)
-    end
-
+    ############################################################################
+    # PNEP (Polynomial plus Nonlinear Eigenvalue Problem)
     ############################################################################
 
     abstract type AbstractMatrixAndFunction{S<:AbstractMatrix{<:Real}} end
@@ -867,7 +807,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         f::Function
     end
 
-"""Creates low rank LU factorization of A"""
+    "Creates low rank LU factorization of A"
     function LowRankMatrixAndFunction(A::AbstractMatrix{<:Real}, f::Function)
         L, U = low_rank_lu_factors(A)
         LowRankMatrixAndFunction(A, L, U, f)
@@ -972,5 +912,70 @@ with monomial matrices plus a nonlinear part with matrices and functions.
 
     function compute_Mlincomb(nep::PNEP, λ::T, v::Vector{T}) where T<:Number
         compute_Mlincomb(nep.spmf, λ, v)
+    end
+
+    function compute_Mlincomb(nep::PNEP, λ::T, V::Matrix{T}) where T<:Number
+        compute_Mlincomb(nep.spmf, λ, V)
+    end
+
+   #######################################################
+   ### Functions in common for many NEPs in NEPTypes
+
+   #
+"""
+    size(nep::NEP,dim=-1)
+ Overloads the size functions for NEPs storing size in nep.n
+"""
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,PNEP},dim)
+        return nep.n
+    end
+
+
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,PNEP})
+        return (nep.n,nep.n)
+    end
+
+"""
+    issparse(nep)
+Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
+"""
+    function issparse(nep::Union{DEP,PEP,REP,SPMF_NEP})
+        return issparse(nep.A[1])
+    end
+
+
+    function get_Av(nep::Union{SPMF_NEP,PEP,REP})
+        return nep.A;
+    end
+    function get_fv(nep::SPMF_NEP)
+        return nep.fi;
+    end
+
+
+    include("nep_transformations.jl")
+
+    # structure exploitation for DEP (TODO: document this)
+    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T};
+                              a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
+        n=size(V,1); k=1
+        try k=size(V,2) end
+        Av=get_Av(nep)
+        broadcast!(*,V,V,a.')
+        z=zeros(T,n)
+        for j=1:length(nep.tauv)
+            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
+            z[:]+=Av[j+1]*(V*w);
+        end
+        if k>1 z[:]-=view(V,:,2:2) end
+        z[:]-=λ*view(V,:,1:1);
+        return z
+    end
+    # Automatically promote to complex if λ is real
+    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
+        return compute_Mlincomb(nep,complex(λ),V;a=a)
+    end
+    # Allow vector-valued V
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
+        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1);a=a)
     end
 end

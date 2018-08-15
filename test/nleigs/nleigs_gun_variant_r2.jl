@@ -25,11 +25,10 @@ options = Dict(
     "minit" => 60,
     "maxit" => 100,
     "v0" => v0,
-    "funres" => funres,
     "nodes" => nodes)
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant R2" begin
     nleigs_verify_lambdas(21, nep, X, lambda)

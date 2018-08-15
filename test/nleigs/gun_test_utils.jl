@@ -23,12 +23,12 @@ function gun_init()
     srand(1)
     v0 = randn(nep.n)
 
-    funres = (Lam, X) -> gun_residual(Lam, X, nep.spmf.A...)
+    funres = (λ, v) -> gun_residual(λ, v, nep.spmf.A...)
 
     return nep, Sigma, Xi, v0, nodes, funres
 end
 
-function gun_residual(Lambda, X, K, M, W1, W2)
+function gun_residual(λ, v, K, M, W1, W2)
     # constants
     sigma1 = 0
     sigma2 = 108.8774
@@ -39,10 +39,8 @@ function gun_residual(Lambda, X, K, M, W1, W2)
     nW2 = 3.793375498194695e+00  # norm(W2, 1)
 
     # Denominator
-    Den = nK + abs.(Lambda) * nM + sqrt.(abs.(Lambda-sigma1^2)) * nW1 + sqrt.(abs.(Lambda-sigma2^2)) * nW2
+    den = nK + abs(λ) * nM + sqrt(abs(λ-sigma1^2)) * nW1 + sqrt(abs(λ-sigma2^2)) * nW2
 
     # 2-norm of A(lambda)*x
-    R = map(i -> norm((K + M*Lambda[i] + W1*im*sqrt(Lambda[i]) + W2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
-
-    return R
+    norm((K + M*λ + W1*im*sqrt(λ) + W2*im*sqrt(λ - sigma2^2)) * v) / den
 end

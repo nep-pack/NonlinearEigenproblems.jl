@@ -5,7 +5,6 @@ include("ratnewtoncoeffs.jl")
 include("ratnewtoncoeffsm.jl")
 
 #=
-NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    lambda = NLEIGS(NLEP,Sigma,[Xi]) returns a vector of eigenvalues of the
    nonlinear eigenvalue problem NLEP inside the target set Sigma. NLEP is a
    structure representing the nonlinear eigenvalue problem as a function
@@ -43,8 +42,6 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
                        [ positive scalar {1e-11} ]
      options.v0:       starting vector
                        [ vector array {randn(n,1)} ]
-     options.funres:   function handle for residual (Lambda[vector], X[matrix])
-                       [ @(Lambda,X) {norm(A(lam)*x)} ]
      options.isfunm:   use matrix functions
                        [ boolean {true} ]
      options.static:   static version of nleigs
@@ -71,7 +68,23 @@ NLEIGS  Find a few eigenvalues and eigenvectors of a NLEP
    Roel Van Beeumen
    April 5, 2016
 =#
-function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{T} = [Inf], options::Dict = Dict(), return_details = false) where T<:Real
+"""
+    nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}})
+
+Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
+
+# Arguments
+- `errmeasure::Function = default_errmeasure(nep::NEP)`: function for error measure
+  (residual norm), called with arguments (λ,v)
+"""
+function nleigs(
+        nep::NEP,
+        Sigma::AbstractVector{Complex{T}};
+        Xi::AbstractVector{T} = [Inf],
+        options::Dict = Dict(),
+        errmeasure::Function = default_errmeasure(nep::NEP),
+        return_details = false) where T<:Real
+
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{Complex{T}}}(0)
     conv = BitVector(0)
@@ -84,7 +97,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
     #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
     #return
     spmf,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,Xi,tollin,
-        tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,funres,b,computeD,
+        tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,b,computeD,
         resfreq,verbose,BBCC = prepare_inputs(nep, Sigma, Xi, options)
     n = nep.n
 
@@ -330,7 +343,7 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
             end
 
             # compute residuals & check for convergence
-            res = funres(lam, X) # needed for residual: funA, Ahandle, BB, pf, CC, f, p, q
+            res = map(i -> errmeasure(lam[i], X[:,i]), 1:length(lam))
             conv = abs.(res) .< tolres
             if all
                 resall = fill(NaN, l, 1)
@@ -387,16 +400,28 @@ function nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}}; Xi::AbstractVector{
 end
 
 struct NLEIGSSolutionDetails{T<:Real}
-    Lam::AbstractMatrix{Complex{T}}     # matrix of Ritz values in each iteration
-    Res::AbstractMatrix{T}              # matrix of residuals in each iteraion
-    sigma::AbstractVector{Complex{T}}   # vector of interpolation nodes
-    xi::AbstractVector{T}               # vector of poles
-    beta::AbstractVector{T}             # vector of scaling parameters
-    # vector of norms of generalized divided differences (in function handle
-    # case) or maximum of absolute values of scalar divided differences in
-    # each iteration (in matrix function case)
+    "matrix of Ritz values in each iteration"
+    Lam::AbstractMatrix{Complex{T}}
+
+    "matrix of residuals in each iteraion"
+    Res::AbstractMatrix{T}
+
+    "vector of interpolation nodes"
+    sigma::AbstractVector{Complex{T}}
+
+    "vector of poles"
+    xi::AbstractVector{T}
+
+    "vector of scaling parameters"
+    beta::AbstractVector{T}
+
+    "vector of norms of generalized divided differences (in function handle
+    case) or maximum of absolute values of scalar divided differences in
+    each iteration (in matrix function case)"
     nrmD::AbstractVector{T}
-    kconv::Int                          # number of iterations until linearization converged
+
+    "number of iterations until linearization converged"
+    kconv::Int
 end
 
 NLEIGSSolutionDetails{T}() where T<:Real = NLEIGSSolutionDetails(
@@ -435,7 +460,6 @@ NLEIGSSolutionDetails{T}() where T<:Real = NLEIGSSolutionDetails(
 #   static     is true if static version is used
 #   v0         starting vector
 #   reuselu    positive integer for reuse of LU-factorizations of A(sigma)
-#   funres     function handle for residual R(Lambda,X)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
 function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::AbstractVector{T}, options::Dict) where T<:Real
@@ -495,8 +519,6 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
     tolres = get(options, "tolres", 1e-10)::T
     tollin = get(options, "tollin", max(tolres/10, 100*eps()))::T
     v0 = get(options, "v0", randn(nep.n))::Vector{T}
-    residual = [] # TODO
-    funres = get(options, "funres", residual) # TODO: populate with default residual
     isfunm = get(options, "isfunm", true)::Bool
     static = get(options, "static", false)::Bool
     leja = get(options, "leja", 1)::Int
@@ -514,7 +536,7 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{Complex{T}}, Xi::Abstrac
 
     return spmf,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,
             Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
-            funres,b,computeD,resfreq,verbose,BBCC
+            b,computeD,resfreq,verbose,BBCC
 end
 
 # scgendivdiffs: compute scalar generalized divided differences
@@ -684,32 +706,6 @@ function in_sigma(z::AbstractVector{Complex{T}}, Sigma::AbstractVector{Complex{T
     end
     return map(p -> inpolygon(real(p), imag(p), realSigma, imagSigma), z)
 end
-
-#=
-# residual: Residual of the NLEP for given eigenvalues and eigenvectors
-#   Lambda  eigenvalues
-#   X       eigenvectors (normalized)
-    function residual(Lambda, X, funA, Ahandle, BB, pf, CC, f, p, q)
-        R = zeros(length(Lambda), 1)
-        if Ahandle
-            for ii = 1:length(Lambda)
-                R[ii] = norm(funA(Lambda[ii]) * X[:,ii])
-            end
-        else
-            if p < 0
-                BCX = reshape(CC*X, [], q, size(X,2))
-            else
-                BCX = reshape([BB*X; CC*X], [], p+q+1, size(X,2))
-            end
-            FL = cell2mat(cellfun(@(x) arrayfun(x,Lambda),[pf[:]; f[:]]', 'UniformOutput',0))
-            RR = sum(bsxfun(@times, BCX, reshape(FL.', 1, size(BCX, 2), [])), 2)
-            for ii = 1:length(Lambda)
-                R[ii] = norm(RR[:, :, ii])
-            end
-        end
-        return R
-    end
-=#
 
 function resize_matrix(A, rows, cols)
     resized = zeros(eltype(A), rows, cols)

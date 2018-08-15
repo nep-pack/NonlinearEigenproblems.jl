@@ -19,18 +19,16 @@ n = 2
 B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
 nep = PNEP(B, Vector{MatrixAndFunction{Matrix{Float64}}}(0))
 
-funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + λ[i]^2*(B[3]*X[:,i])), 1:length(λ))
-
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
 @testset "NLEIGS: Polynomial only" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
+    options = Dict("maxit" => 10, "v0" => ones(n), "blksize" => 5)
     @time X, lambda = nleigs(nep, Sigma, options=options)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
 
 @testset "NLEIGS: Non-convergent linearization" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "blksize" => 5)
+    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "blksize" => 5)
     @test_warn "Linearization not converged" begin
         @time X, lambda = nleigs(nep, Sigma, options=options)
         nleigs_verify_lambdas(4, nep, X, lambda)
@@ -38,7 +36,7 @@ end
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true, "blksize" => 5)
+    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "static" => true, "blksize" => 5)
     @test_warn "Linearization not converged" begin
         @time X, lambda = nleigs(nep, Sigma, options=options)
         nleigs_verify_lambdas(4, nep, X, lambda)
@@ -46,7 +44,7 @@ end
 end
 
 @testset "NLEIGS: return_details" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
+    options = Dict("maxit" => 10, "v0" => ones(n), "blksize" => 5)
     @time X, lambda, res, details = nleigs(nep, Sigma, options=options, return_details=true)
     nleigs_verify_lambdas(4, nep, X, lambda)
 

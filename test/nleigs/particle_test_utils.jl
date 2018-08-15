@@ -25,9 +25,8 @@ function particle_init(interval)
     v0 = randn(nep.n)
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
-    funres = (λ, X) -> map(i -> norm(compute_Mlincomb(nep, λ[i], X[:, i])), 1:length(λ))
 
-    return nep, Sigma, Xi, v0, nodes, funres, xmin, xmax
+    return nep, Sigma, Xi, v0, nodes, xmin, xmax
 end
 
 function particle_nep(interval)

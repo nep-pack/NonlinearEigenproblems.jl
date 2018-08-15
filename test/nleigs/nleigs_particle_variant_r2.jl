@@ -18,7 +18,7 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-nep, Sigma, Xi, v0, nodes, funres, xmin, xmax = particle_init(2)
+nep, Sigma, Xi, v0, nodes, xmin, xmax = particle_init(2)
 
 options = Dict(
     "disp" => verbose > 0 ? 1 : 0,
@@ -26,7 +26,6 @@ options = Dict(
     "minit" => 30,
     "maxit" => 100,
     "v0" => v0,
-    "funres" => funres,
     "nodes" => nodes)
 
 # solve nlep
