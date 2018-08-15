@@ -22,11 +22,11 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v0 = randn(nep.n)
+    v = randn(nep.n)
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
 
-    return nep, Sigma, Xi, v0, nodes, xmin, xmax
+    return nep, Sigma, Xi, v, nodes, xmin, xmax
 end
 
 function particle_nep(interval)

@@ -21,11 +21,11 @@ function gun_init()
 
     # options
     srand(1)
-    v0 = randn(nep.n)
+    v = randn(nep.n)
 
     funres = (λ, v) -> gun_residual(λ, v, nep.spmf.A...)
 
-    return nep, Sigma, Xi, v0, nodes, funres
+    return nep, Sigma, Xi, v, nodes, funres
 end
 
 function gun_residual(λ, v, K, M, W1, W2)

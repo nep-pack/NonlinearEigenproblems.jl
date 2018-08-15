@@ -22,26 +22,26 @@ nep = PNEP(B, Vector{MatrixAndFunction{Matrix{Float64}}}(0))
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
 @testset "NLEIGS: Polynomial only" begin
-    @time X, lambda = nleigs(nep, Sigma, maxit=10, v0=ones(n), blksize=5)
+    @time X, lambda = nleigs(nep, Sigma, maxit=10, v=ones(n), blksize=5)
     nleigs_verify_lambdas(4, nep, X, lambda)
 end
 
 @testset "NLEIGS: Non-convergent linearization" begin
     @test_warn "Linearization not converged" begin
-        @time X, lambda = nleigs(nep, Sigma, maxit=10, v0=ones(n), maxdgr=5, blksize=5)
+        @time X, lambda = nleigs(nep, Sigma, maxit=10, v=ones(n), maxdgr=5, blksize=5)
         nleigs_verify_lambdas(4, nep, X, lambda)
     end
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
     @test_warn "Linearization not converged" begin
-        @time X, lambda = nleigs(nep, Sigma, maxit=10, v0=ones(n), maxdgr=5, blksize=5, static=true)
+        @time X, lambda = nleigs(nep, Sigma, maxit=10, v=ones(n), maxdgr=5, blksize=5, static=true)
         nleigs_verify_lambdas(4, nep, X, lambda)
     end
 end
 
 @testset "NLEIGS: return_details" begin
-    @time X, lambda, res, details = nleigs(nep, Sigma, maxit=10, v0=ones(n), blksize=5, return_details=true)
+    @time X, lambda, res, details = nleigs(nep, Sigma, maxit=10, v=ones(n), blksize=5, return_details=true)
     nleigs_verify_lambdas(4, nep, X, lambda)
 
     info_λ = details.Lam[:,end]

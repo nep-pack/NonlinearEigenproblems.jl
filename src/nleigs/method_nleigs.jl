@@ -4,68 +4,38 @@ include("lejabagby.jl")
 include("ratnewtoncoeffs.jl")
 include("ratnewtoncoeffsm.jl")
 
-#=
-   lambda = NLEIGS(NLEP,Sigma,[Xi]) returns a vector of eigenvalues of the
-   nonlinear eigenvalue problem NLEP inside the target set Sigma. NLEP is a
-   structure representing the nonlinear eigenvalue problem as a function
-   handle:
-     NLEP.Fun:  function handle A = NLEP.Fun(lambda)
-     NLEP.n:    size of A
-   or as a sum of constant matrices times scalar functions:
-     NLEP.B:    array of matrices of the polynomial part
-     NLEP.C:    array of matrices of the nonlinear part
-     NLEP.L:    array of L-factors of matrices C (optional)
-     NLEP.U:    array of U-factors of matrices C (optional)
-     NLEP.f:    array of the nonlinear scalar or matrix functions
-   Sigma is a vector containing the points of a polygonal target set in the
-   complex plane. Xi is a vector containing a discretization of the singularity
-   set. In case the singularity set is omitted Xi is set to Inf.
-
-   [X,lambda,res] = NLEIGS(NLEP,Sigma,[Xi]) returns a matrix X of eigenvectors
-   and a vector of corresponding eigenvalues of the nonlinear eigenvalue
-   problem NLEP inside the target set Sigma. The vector res contains the
-   corresponding residuals.
-
-   [X,lambda,res] = NLEIGS(NLEP,Sigma,Xi,options) sets the algorithm's
-   parameters to the values in the structure options:
-     options.disp:     level of display
-                       [ {0} | 1 | 2 ]
-     options.maxdgr:   max degree of approximation
-                       [ positive integer {100} ]
-     options.minit:    min number of iter. after linearization is converged
-                       [ positive integer {20} ]
-     options.maxit:    max number of total iterations
-                       [ positive integer {200} ]
-     options.tolres:   tolerance for residual
-                       [ positive scalar {1e-10} ]
-     options.tollin:   tolerance for convergence of linearization
-                       [ positive scalar {1e-11} ]
-     options.v0:       starting vector
-                       [ vector array {randn(n,1)} ]
-     options.isfunm:   use matrix functions
-                       [ boolean {true} ]
-     options.static:   static version of nleigs
-                       [ boolean {false} ]
-     options.leja:     use of Leja-Bagby points
-                       [ 0 (no) | {1} (only in expansion phase) | 2 (always) ]
-     options.nodes:    prefixed interpolation nodes (only with leja is 0 or 1)
-                       [ vector array | {[]} ]
-     options.reuselu:  reuse of LU-factorizations of A(sigma)
-                       [ 0 (no) | {1} (only after conv. lin) | 2 (always) ]
-     options.blksize:  block size for pre-allocation
-                       [ positive integer {20} ]
-
-   [X,lambda,res,info] = NLEIGS(NLEP,Sigma,[Xi]) also returns a structure info,
-   as described in the NLEIGSSolutionDetails struct
-=#
 """
     nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}})
 
 Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 
 # Arguments
-- `errmeasure::Function = default_errmeasure(nep::NEP)`: function for error measure
-  (residual norm), called with arguments (λ,v)
+- `nep`: An instance of a nonlinear eigenvalue problem. If the problem can be
+  expressed as a sum of constant matrices times scalar functions, use the PNEP
+  type for best performance.
+- `Sigma`: A vector containing the points of a polygonal target set in the complex plane.
+- `Xi`: A vector containing a discretization of the singularity set.
+- `disp`: Level of display (0, 1, 2).
+- `maxdgr`: Max degree of approximation.
+- `minit`: Min number of iterations after linearization is converged.
+- `maxit`: Max number of total iterations.
+- `tolres`: Tolerance for residual.
+- `tollin`: Tolerance for convergence of linearization.
+- `v`: Starting vector.
+- `errmeasure`: Function for error measure (residual norm). Called with arguments (λ,v).
+- `isfunm` : Whether to use matrix functions.
+- `static`: Whether to use static version of NLEIGS.
+- `leja`: Use of Leja-Bagby points (0 = no, 1 = only in expansion phase, 2 = always).
+- `nodes`: Prefixed interpolation nodes (only when leja is 0 or 1).
+- `reuselu`: Reuse of LU-factorizations (0 = no, 1 = only after converged linearization, 2 = always).
+- `blksize`: Block size for pre-allocation.
+- `return_details`: Whether to return solution details (see NLEIGSSolutionDetails).
+
+# Return values
+- `X`: Matrix of eigenvectors of the nonlinear eigenvalue problem NLEP inside the target set Sigma.
+- `λ`: Corresponding vector of eigenvalues.
+- `res`: Corresponding residuals.
+- `details`: Solution details, if requested (see NLEIGSSolutionDetails).
 
 # References
 - S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class
@@ -85,7 +55,7 @@ function nleigs(
         maxit::Int = 200,
         tolres::T = 1e-10,
         tollin::T = max(tolres/10, 100*eps()),
-        v0::Vector{T} = randn(T, size(nep, 1)),
+        v::Vector{T} = randn(T, size(nep, 1)),
         errmeasure::Function = default_errmeasure(nep::NEP),
         isfunm::Bool = true,
         static::Bool = false,
@@ -178,11 +148,11 @@ function nleigs(
 
     # Rational Krylov
     if reuselu == 2
-        v0 = lusolve(λ -> compute_Mder(nep, λ), sigma[1], v0/norm(v0))
+        v = lusolve(λ -> compute_Mder(nep, λ), sigma[1], v/norm(v))
     else
-        v0 = compute_Mder(nep, sigma[1]) \ (v0/norm(v0))
+        v = compute_Mder(nep, sigma[1]) \ (v/norm(v))
     end
-    V[1:n,1] .= v0 ./ norm(v0)
+    V[1:n,1] .= v ./ norm(v)
     expand = true
     kconv = typemax(Int)/2
     kn = n   # length of vectors in V

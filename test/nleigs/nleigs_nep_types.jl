@@ -25,14 +25,14 @@ Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 pnep = PNEP(B, [MatrixAndFunction(C[1], f[1])])
 
 @testset "NLEIGS: PNEP" begin
-    @time X, lambda = nleigs(pnep, Sigma, maxit=10, v0=ones(n), blksize=5)
+    @time X, lambda = nleigs(pnep, Sigma, maxit=10, v=ones(n), blksize=5)
     nleigs_verify_lambdas(4, pnep, X, lambda)
 end
 
 @testset "NLEIGS: SPMF_NEP" begin
     spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
     @test_warn "create the problem as a NEPTypes.PNEP instead of a NEPTypes.SPMF_NEP" begin
-        @time X, lambda = nleigs(spmf_nep, Sigma, maxit=10, v0=ones(n), blksize=5)
+        @time X, lambda = nleigs(spmf_nep, Sigma, maxit=10, v=ones(n), blksize=5)
         nleigs_verify_lambdas(4, spmf_nep, X, lambda)
     end
 end
@@ -49,6 +49,6 @@ size(::CustomNLEIGSNEP, _) = n
 
 @testset "NLEIGS: Custom NEP type" begin
     custom_nep = CustomNLEIGSNEP(n)
-    @time X, lambda = nleigs(custom_nep, Sigma, maxit=10, v0=ones(n), blksize=5)
+    @time X, lambda = nleigs(custom_nep, Sigma, maxit=10, v=ones(n), blksize=5)
     nleigs_verify_lambdas(4, custom_nep, X, lambda)
 end
