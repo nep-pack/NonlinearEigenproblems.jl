@@ -15,11 +15,11 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
   type for best performance.
 - `Sigma`: A vector containing the points of a polygonal target set in the complex plane.
 - `Xi`: A vector containing a discretization of the singularity set.
-- `disp`: Level of display (0, 1, 2).
+- `displaylevel`: Level of display (0, 1, 2).
 - `maxdgr`: Max degree of approximation.
 - `minit`: Min number of iterations after linearization is converged.
 - `maxit`: Max number of total iterations.
-- `tolres`: Tolerance for residual.
+- `tol`: Tolerance for residual.
 - `tollin`: Tolerance for convergence of linearization.
 - `v`: Starting vector.
 - `errmeasure`: Function for error measure (residual norm). Called with arguments (λ,v).
@@ -30,6 +30,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `reuselu`: Reuse of LU-factorizations (0 = no, 1 = only after converged linearization, 2 = always).
 - `blksize`: Block size for pre-allocation.
 - `return_details`: Whether to return solution details (see NLEIGSSolutionDetails).
+- `check_error_every`: Check for convergence / termination every this number of iterations.
 
 # Return values
 - `X`: Matrix of eigenvectors of the nonlinear eigenvalue problem NLEP inside the target set Sigma.
@@ -49,12 +50,12 @@ function nleigs(
         nep::NEP,
         Sigma::AbstractVector{CT};
         Xi::AbstractVector{T} = [Inf],
-        verbose::Int = 0, #displaylevel
+        displaylevel::Int = 0,
         maxdgr::Int = 100,
         minit::Int = 20,
         maxit::Int = 200,
-        tolres::T = 1e-10,
-        tollin::T = max(tolres/10, 100*eps()),
+        tol::T = 1e-10,
+        tollin::T = max(tol/10, 100*eps()),
         v::Vector{T} = randn(T, size(nep, 1)),
         errmeasure::Function = default_errmeasure(nep::NEP),
         isfunm::Bool = true,
@@ -63,7 +64,8 @@ function nleigs(
         nodes::Vector{CT} = Vector{CT}(0),
         reuselu::Int = 1,
         blksize::Int = 20,
-        return_details = false) where {T<:Real, CT<:Complex{T}}
+        return_details = false,
+        check_error_every::Int = 5) where {T<:Real, CT<:Complex{T}}
 
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{CT}}(0)
@@ -74,7 +76,7 @@ function nleigs(
 
     #@code_warntype prepare_inputs(nep, Sigma, Xi)
     #return
-    spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,resfreq,BBCC = prepare_inputs(nep, Sigma, Xi)
+    spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,BBCC = prepare_inputs(nep, Sigma, Xi)
     n = nep.n
     n == 1 && (maxdgr = maxit + 1)
     b = blksize
@@ -243,7 +245,7 @@ function nleigs(
                         V = resize_matrix(V, kn, b+1)
                     end
                     N -= 1
-                    if verbose > 0
+                    if displaylevel > 0
                         println("Linearization converged after $kconv iterations")
                         println(" --> freeze linearization")
                     end
@@ -261,7 +263,7 @@ function nleigs(
                     end
                     N -= 1
                     warn("NLEIGS: Linearization not converged after $maxdgr iterations")
-                    if verbose > 0
+                    if displaylevel > 0
                         println(" --> freeze linearization")
                     end
                 end
@@ -297,18 +299,18 @@ function nleigs(
 #            @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
         end
 
-        function update_lambdas(all)
+        function check_convergence(all)
             lambda, S = eig(K[1:l,1:l], H[1:l,1:l])
 
             # select eigenvalues
             if !all
-                lamin = in_sigma(lambda, Sigma, tolres)
+                lamin = in_sigma(lambda, Sigma, tol)
                 ilam = [1:l;][lamin]
                 lam = lambda[ilam]
             else
                 ilam = [1:l;][isfinite.(lambda)]
                 lam = lambda[ilam]
-                lamin = in_sigma(lam, Sigma, tolres)
+                lamin = in_sigma(lam, Sigma, tol)
             end
 
             nblamin = sum(lamin)
@@ -322,7 +324,7 @@ function nleigs(
 
             # compute residuals & check for convergence
             res = map(i -> errmeasure(lam[i], X[:,i]), 1:length(lam))
-            conv = abs.(res) .< tolres
+            conv = abs.(res) .< tol
             if all
                 resall = fill(T(NaN), l, 1)
                 resall[ilam] = res
@@ -334,19 +336,19 @@ function nleigs(
             end
 
             nbconv = sum(conv)
-            if verbose > 0
+            if displaylevel > 0
                 iteration = static ? k - N : k
-                println("  iteration $iteration: $nbconv of $nblamin < $tolres")
+                println("  iteration $iteration: $nbconv of $nblamin < $tol")
             end
         end
 
         # Ritz pairs
         if !return_details && (
-            (!expand && k >= N + minit && mod(k-(N+minit), resfreq) == 0) ||
-            (k >= kconv + minit && mod(k-(kconv+minit), resfreq) == 0) || k == kmax)
-            update_lambdas(false)
+            (!expand && k >= N + minit && mod(k-(N+minit), check_error_every) == 0) ||
+            (k >= kconv + minit && mod(k-(kconv+minit), check_error_every) == 0) || k == kmax)
+            check_convergence(false)
         elseif return_details && (!static || (static && !expand))
-            update_lambdas(true)
+            check_convergence(true)
         end
 
         # stopping
@@ -408,38 +410,16 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
 
 # checkInputs: error checks the inputs to NLEP and also derives some variables from them:
 #
-#   funA       function handle for A(lambda)
-#   Ahandle    is true if NLEP is given as function handle
-#   B          cell array {B0,B1,...,Bp}
-#   BB         matrix [B0;B1;...;Bp]
-#   pf         cell array {x^0,x^1,...,x^p}
-#   C          cell array {C1,C2,...,Cq}
-#   CC         matrix [C1;C2;...;Cq]
-#   f          cell array {f1,f2,...,fq}
+#   spmf       is false if NLEP is given as function handle
+#   BBCC       matrix [B0;B1;...;Bp;C1;C2;...;Cq]
 #   iL         vector with indices of L-factors
 #   L          cell array {L1,L2,...,Lq}
 #   LL         matrix [L1,L2,...,Lq]
 #   UU         matrix [U1,U2,...,Uq]
-#   n          dimension of NLEP
 #   p          order of polynomial part (length of B = p + 1)
 #   q          length of f and C
 #   r          sum of ranks of low rank matrices in C
-#   Sigma      vector with target set (polygon)
-#   leja       0: no leja, 1: leja in expansion phase, 2: always leja
-#   nodes      [] or given nodes
-#   Xi         vector with singularity set (discretized)
 #   computeD   is true if generalized divided differences are explicitly used
-#   tollin     tolerance for convergence of linearization
-#   tolres     tolerance for residual
-#   maxdgr     maximum degree of approximation
-#   minit      minimum number of iterations after linearization is converged
-#   maxit      maximum number of iterations
-#   isfunm     is true if f are matrix functions
-#   static     is true if static version is used
-#   v0         starting vector
-#   reuselu    positive integer for reuse of LU-factorizations of A(sigma)
-#   b          block size for pre-allocation
-#   verbose    level of display [ {0} | 1 | 2 ]
 function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
     iL = Vector{Int}(0)
     L = Vector{Matrix{T}}(0)
@@ -490,9 +470,8 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{
     end
 
     computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
-    resfreq = 5
 
-    return spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,resfreq,BBCC
+    return spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,BBCC
 end
 
 # scgendivdiffs: compute scalar generalized divided differences
@@ -652,10 +631,10 @@ end
 
 # in_sigma: True for points inside Sigma
 #   z      (complex) points
-function in_sigma(z::AbstractVector{CT}, Sigma::AbstractVector{CT}, tolres::T) where {T<:Real, CT<:Complex{T}}
+function in_sigma(z::AbstractVector{CT}, Sigma::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
     if length(Sigma) == 2 && isreal(Sigma)
         realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]])
-        imagSigma = [-tolres; tolres; tolres; -tolres]
+        imagSigma = [-tol; tol; tol; -tol]
     else
         realSigma = real(Sigma)
         imagSigma = imag(Sigma)
