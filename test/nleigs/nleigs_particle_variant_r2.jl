@@ -20,16 +20,8 @@ verbose = 1
 
 nep, Sigma, Xi, v0, nodes, xmin, xmax = particle_init(2)
 
-options = Dict(
-    "disp" => verbose > 0 ? 1 : 0,
-    "maxdgr" => 50,
-    "minit" => 30,
-    "maxit" => 100,
-    "v0" => v0,
-    "nodes" => nodes)
-
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, verbose=verbose > 0 ? 1 : 0, maxdgr=50, minit=30, maxit=100, v0=v0, nodes=nodes, return_details=verbose > 1)
 
 @testset "NLEIGS: Particle variant R2" begin
     nleigs_verify_lambdas(2, nep, X, lambda)

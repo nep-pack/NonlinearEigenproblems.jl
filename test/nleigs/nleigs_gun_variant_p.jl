@@ -22,16 +22,8 @@ nep, Sigma, Xi, v0, nodes, funres = gun_init()
 
 Xi = Float64[] # no pole candidates
 
-options = Dict(
-    "disp" => verbose > 0 ? 1 : 0,
-    "maxit" => 100,
-    "v0" => v0,
-    "leja" => 0,
-    "nodes" => nodes,
-    "reuselu" => 2)
-
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, errmeasure=funres, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, verbose=verbose > 0 ? 1 : 0, maxit=100, v0=v0, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant P" begin
     nleigs_verify_lambdas(17, nep, X, lambda)

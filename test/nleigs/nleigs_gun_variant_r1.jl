@@ -20,16 +20,8 @@ verbose = 1
 
 nep, Sigma, Xi, v0, nodes, funres = gun_init()
 
-options = Dict(
-    "disp" => verbose > 0 ? 1 : 0,
-    "maxit" => 100,
-    "v0" => v0,
-    "leja" => 0,
-    "nodes" => nodes,
-    "reuselu" => 2)
-
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, options=options, errmeasure=funres, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, verbose=verbose > 0 ? 1 : 0, maxit=100, v0=v0, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant R1" begin
     nleigs_verify_lambdas(21, nep, X, lambda)

@@ -79,8 +79,20 @@ function nleigs(
         nep::NEP,
         Sigma::AbstractVector{CT};
         Xi::AbstractVector{T} = [Inf],
-        options::Dict = Dict(),
+        verbose::Int = 0, #displaylevel
+        maxdgr::Int = 100,
+        minit::Int = 20,
+        maxit::Int = 200,
+        tolres::T = 1e-10,
+        tollin::T = max(tolres/10, 100*eps()),
+        v0::Vector{T} = randn(T, size(nep, 1)),
         errmeasure::Function = default_errmeasure(nep::NEP),
+        isfunm::Bool = true,
+        static::Bool = false,
+        leja::Int = 1,
+        nodes::Vector{CT} = Vector{CT}(0),
+        reuselu::Int = 1,
+        blksize::Int = 20,
         return_details = false) where {T<:Real, CT<:Complex{T}}
 
     # The following variables are used when creating the return values, so put them in scope
@@ -90,12 +102,12 @@ function nleigs(
     X = Matrix{CT}(0, 0)
     res = Vector{T}(0)
 
-    #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
+    #@code_warntype prepare_inputs(nep, Sigma, Xi)
     #return
-    spmf,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,Xi,tollin,
-        tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,b,computeD,
-        resfreq,verbose,BBCC = prepare_inputs(nep, Sigma, Xi, options)
+    spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,resfreq,BBCC = prepare_inputs(nep, Sigma, Xi)
     n = nep.n
+    n == 1 && (maxdgr = maxit + 1)
+    b = blksize
 
     # Initialization
     if static
@@ -120,7 +132,7 @@ function nleigs(
     # Discretization of Sigma --> Gamma & Leja-Bagby points
     if leja == 0 # use no leja nodes
         if isempty(nodes)
-            error("Interpolation nodes must be provided via 'options[\"nodes\"]' when no Leja-Bagby points (options[\"leja\"] == 0) are used.")
+            error("Interpolation nodes must be provided via 'nodes' when no Leja-Bagby points ('leja' == 0) are used.")
         end
         gamma,_ = discretizepolygon(Sigma)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
@@ -458,7 +470,7 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
 #   reuselu    positive integer for reuse of LU-factorizations of A(sigma)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{T}, options::Dict) where {T<:Real, CT<:Complex{T}}
+function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
     iL = Vector{Int}(0)
     L = Vector{Matrix{T}}(0)
     LL = Matrix{T}(0, 0)
@@ -507,32 +519,10 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{
         Xi = [T(Inf)]
     end
 
-    # extract input options, with default values if missing
-    verbose = get(options, "disp", 0)::Int
-    maxdgr = get(options, "maxdgr", 100)::Int
-    minit = get(options, "minit", 20)::Int
-    maxit = get(options, "maxit", 200)::Int
-    tolres = get(options, "tolres", 1e-10)::T
-    tollin = get(options, "tollin", max(tolres/10, 100*eps()))::T
-    v0 = get(options, "v0", randn(nep.n))::Vector{T}
-    isfunm = get(options, "isfunm", true)::Bool
-    static = get(options, "static", false)::Bool
-    leja = get(options, "leja", 1)::Int
-    nodes = get(options, "nodes", Vector{CT}(0))::Vector{CT}
-    reuselu = get(options, "reuselu", 1)::Int
-    b = get(options, "blksize", 20)::Int
-
-    # extra defaults
     computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
     resfreq = 5
 
-    if nep.n == 1
-        maxdgr = maxit + 1;
-    end
-
-    return spmf,iL,L,LL,UU,p,q,r,Sigma,leja,nodes,
-            Xi,tollin,tolres,maxdgr,minit,maxit,isfunm,static,v0,reuselu,
-            b,computeD,resfreq,verbose,BBCC
+    return spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,resfreq,BBCC
 end
 
 # scgendivdiffs: compute scalar generalized divided differences
