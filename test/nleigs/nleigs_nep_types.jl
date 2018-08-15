@@ -44,7 +44,7 @@ end
 # implement a few methods used by the solver
 import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
 compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pnep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(pnep, λ, x)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Union{AbstractMatrix,AbstractVector}) = compute_Mlincomb(pnep, λ, x)
 size(::CustomNLEIGSNEP, _) = n
 
 @testset "NLEIGS: Custom NEP type" begin
