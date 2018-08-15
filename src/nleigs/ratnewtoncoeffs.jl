@@ -4,9 +4,9 @@ include("evalrat.jl")
 # valued), using differencing. The sigma's need to be distinct. For scalar
 # functions or non-distinct sigma's it may be better to use
 # ratnewtoncoeffsm.
-function ratnewtoncoeffs(fun, sigma::AbstractVector{T}, xi::AbstractVector{RT}, beta::AbstractVector{RT}) where {T<:Number, RT<:Real}
+function ratnewtoncoeffs(fun, sigma::AbstractVector{CT}, xi::AbstractVector{T}, beta::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
     m = length(sigma)
-    D = Vector{Matrix{T}}(m)
+    D = Vector{Matrix{CT}}(m)
 
     # compute divided differences D0,D1,...,Dm
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)

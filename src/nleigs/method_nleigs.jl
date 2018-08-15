@@ -73,23 +73,22 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
   Sci. Comput., 36(6), A2842-A2864, 2014.
 - [NLEIGS Matlab toolbox](http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php)
 """
-nleigs(nep, Sigma; params...) = nleigs(Complex128, Float64, nep, Sigma; params...)
+nleigs(nep, Sigma; params...) = nleigs(Float64, nep, Sigma; params...)
 function nleigs(
         ::Type{T},
-        ::Type{RT},
         nep::NEP,
-        Sigma::AbstractVector{T};
-        Xi::AbstractVector{RT} = [Inf],
+        Sigma::AbstractVector{CT};
+        Xi::AbstractVector{T} = [Inf],
         options::Dict = Dict(),
         errmeasure::Function = default_errmeasure(nep::NEP),
-        return_details = false) where {T<:Number, RT<:Real}
+        return_details = false) where {T<:Real, CT<:Complex{T}}
 
     # The following variables are used when creating the return values, so put them in scope
-    D = Vector{Matrix{T}}(0)
+    D = Vector{Matrix{CT}}(0)
     conv = BitVector(0)
-    lam = Vector{T}(0)
-    X = Matrix{T}(0, 0)
-    res = Vector{RT}(0)
+    lam = Vector{CT}(0)
+    X = Matrix{CT}(0, 0)
+    res = Vector{T}(0)
 
     #@code_warntype prepare_inputs(nep, Sigma, Xi, options)
     #return
@@ -100,22 +99,22 @@ function nleigs(
 
     # Initialization
     if static
-        V = zeros(T, n, 1)
+        V = zeros(CT, n, 1)
     elseif !spmf
-        V = zeros(T, (b+1)*n, b+1)
+        V = zeros(CT, (b+1)*n, b+1)
     else
         if r == 0 || b < p
-            V = zeros(T, (b+1)*n, b+1)
+            V = zeros(CT, (b+1)*n, b+1)
         else
-            V = zeros(T, p*n+(b-p+1)*r, b+1)
+            V = zeros(CT, p*n+(b-p+1)*r, b+1)
         end
     end
-    H = zeros(T, b+1, b)
-    K = zeros(T, b+1, b)
-    nrmD = Array{RT}(1)
+    H = zeros(CT, b+1, b)
+    K = zeros(CT, b+1, b)
+    nrmD = Array{T}(1)
     if return_details
-        Lam = zeros(T, b, b)
-        Res = zeros(b, b)
+        Lam = zeros(CT, b, b)
+        Res = zeros(T, b, b)
     end
 
     # Discretization of Sigma --> Gamma & Leja-Bagby points
@@ -151,7 +150,7 @@ function nleigs(
     if !spmf
         D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), sigma[range], xi[range], beta[range])
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
-        sgdd = Matrix{T}(0, 0)
+        sgdd = Matrix{CT}(0, 0)
     else
         # Compute scalar generalized divided differences
         sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, nep.spmf.fi)
@@ -343,7 +342,7 @@ function nleigs(
             res = map(i -> errmeasure(lam[i], X[:,i]), 1:length(lam))
             conv = abs.(res) .< tolres
             if all
-                resall = fill(NaN, l, 1)
+                resall = fill(T(NaN), l, 1)
                 resall[ilam] = res
                 # sort complex numbers by magnitude, then angle
                 si = sortperm(lambda, lt = (a,b) -> abs(a) < abs(b) || (abs(a) == abs(b) && angle(a) < angle(b)))
@@ -378,7 +377,7 @@ function nleigs(
     end
     lureset()
 
-    details = NLEIGSSolutionDetails{T,RT}()
+    details = NLEIGSSolutionDetails{T,CT}()
 
     if return_details
         Lam = Lam[1:l,1:l]
@@ -396,34 +395,34 @@ function nleigs(
     return X[:,conv], lam[conv], res[conv], details
 end
 
-struct NLEIGSSolutionDetails{T<:Number, RT<:Real}
+struct NLEIGSSolutionDetails{T<:Real, CT<:Complex{T}}
     "matrix of Ritz values in each iteration"
-    Lam::AbstractMatrix{T}
+    Lam::AbstractMatrix{CT}
 
     "matrix of residuals in each iteraion"
-    Res::AbstractMatrix{RT}
+    Res::AbstractMatrix{T}
 
     "vector of interpolation nodes"
-    sigma::AbstractVector{T}
+    sigma::AbstractVector{CT}
 
     "vector of poles"
-    xi::AbstractVector{RT}
+    xi::AbstractVector{T}
 
     "vector of scaling parameters"
-    beta::AbstractVector{RT}
+    beta::AbstractVector{T}
 
     "vector of norms of generalized divided differences (in function handle
     case) or maximum of absolute values of scalar divided differences in
     each iteration (in matrix function case)"
-    nrmD::AbstractVector{RT}
+    nrmD::AbstractVector{T}
 
     "number of iterations until linearization converged"
     kconv::Int
 end
 
-NLEIGSSolutionDetails{T,RT}() where {T<:Number, RT<:Real} = NLEIGSSolutionDetails(
-    Matrix{T}(0,0), Matrix{RT}(0, 0), Vector{T}(0),
-    Vector{RT}(0), Vector{RT}(0), Vector{RT}(0), 0)
+NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDetails(
+    Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
+    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
 # checkInputs: error checks the inputs to NLEP and also derives some variables from them:
 #
@@ -459,11 +458,11 @@ NLEIGSSolutionDetails{T,RT}() where {T<:Number, RT<:Real} = NLEIGSSolutionDetail
 #   reuselu    positive integer for reuse of LU-factorizations of A(sigma)
 #   b          block size for pre-allocation
 #   verbose    level of display [ {0} | 1 | 2 ]
-function prepare_inputs(nep::NEP, Sigma::AbstractVector{T}, Xi::AbstractVector{RT}, options::Dict) where {T<:Number, RT<:Real}
+function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{T}, options::Dict) where {T<:Real, CT<:Complex{T}}
     iL = Vector{Int}(0)
-    L = Vector{Matrix{RT}}(0)
-    LL = Matrix{RT}(0, 0)
-    UU = Matrix{RT}(0, 0)
+    L = Vector{Matrix{T}}(0)
+    LL = Matrix{T}(0, 0)
+    UU = Matrix{T}(0, 0)
     #L = Vector{eltype(nep.spmf.A)}(0)
     #LL = similar(nep.spmf.A[1], 0, 0)
     #UU = similar(nep.spmf.A[1], 0, 0)
@@ -473,7 +472,7 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{T}, Xi::AbstractVector{R
     spmf = isa(nep, PNEP)
 
     if !spmf
-        BBCC = Matrix{RT}(0, 0)
+        BBCC = Matrix{T}(0, 0)
         if isa(nep, AbstractSPMF)
             warn("NLEIGS performs better if the problem is split into a ",
                 "polynomial part and a nonlinear part. If possible, create ",
@@ -505,7 +504,7 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{T}, Xi::AbstractVector{R
 
     # process the input Xi
     if isempty(Xi)
-        Xi = [Inf]
+        Xi = [T(Inf)]
     end
 
     # extract input options, with default values if missing
@@ -513,13 +512,13 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{T}, Xi::AbstractVector{R
     maxdgr = get(options, "maxdgr", 100)::Int
     minit = get(options, "minit", 20)::Int
     maxit = get(options, "maxit", 200)::Int
-    tolres = get(options, "tolres", 1e-10)::RT
-    tollin = get(options, "tollin", max(tolres/10, 100*eps()))::RT
-    v0 = get(options, "v0", randn(nep.n))::Vector{RT}
+    tolres = get(options, "tolres", 1e-10)::T
+    tollin = get(options, "tollin", max(tolres/10, 100*eps()))::T
+    v0 = get(options, "v0", randn(nep.n))::Vector{T}
     isfunm = get(options, "isfunm", true)::Bool
     static = get(options, "static", false)::Bool
     leja = get(options, "leja", 1)::Int
-    nodes = get(options, "nodes", Vector{T}(0))::Vector{T}
+    nodes = get(options, "nodes", Vector{CT}(0))::Vector{CT}
     reuselu = get(options, "reuselu", 1)::Int
     b = get(options, "blksize", 20)::Int
 
@@ -540,8 +539,8 @@ end
 #   sigma   discretization of target set
 #   xi      discretization of singularity set
 #   beta    scaling factors
-function scgendivdiffs(sigma, xi, beta, maxdgr, isfunm, pff)
-    sgdd = complex(zeros(length(pff), maxdgr+2))
+function scgendivdiffs(sigma::AbstractVector{CT}, xi, beta, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
+    sgdd = zeros(CT, length(pff), maxdgr+2)
     for ii = 1:length(pff)
         if isfunm
             sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], sigma, xi, beta)
@@ -554,9 +553,9 @@ end
 
 # constructD: Construct generalized divided difference
 #   nb  number
-function constructD(nb, L, n, p, q, r, BC, sgdd)
+function constructD(nb, L, n, p, q, r, BC, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     if r == 0 || nb <= p
-        D = spzeros(n, n)
+        D = spzeros(CT, n, n)
         for ii = 1:(p+1+q)
             D += sgdd[ii,nb+1] * BC[ii]
         end
@@ -693,7 +692,7 @@ end
 
 # in_sigma: True for points inside Sigma
 #   z      (complex) points
-function in_sigma(z::AbstractVector{T}, Sigma::AbstractVector{T}, tolres::RT) where {T<:Number, RT<:Real}
+function in_sigma(z::AbstractVector{CT}, Sigma::AbstractVector{CT}, tolres::T) where {T<:Real, CT<:Complex{T}}
     if length(Sigma) == 2 && isreal(Sigma)
         realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]])
         imagSigma = [-tolres; tolres; tolres; -tolres]
