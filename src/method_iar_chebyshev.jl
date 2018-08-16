@@ -87,7 +87,7 @@ function iar_chebyshev(
             σ_orig=σ; γ_orig=γ
             σ=zero(T); γ=one(T)
     end
-    @ifd(prinlnt("IAR Chebyshev with interval [",a,",",b,"]"));
+    @ifd(println("IAR Chebyshev with interval [",a,",",b,"]"));
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
