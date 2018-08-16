@@ -40,7 +40,7 @@ See also
 """
 jd_betcke(nep::NEP;kwargs...) = jd_betcke(Complex128,nep;kwargs...)
 function jd_betcke(::Type{T},
-                   nep::Union{ProjectableNEP};
+                   nep::ProjectableNEP;
                    maxit::Int = 100,
                    Neig::Int = 1,
                    projtype::Symbol = :PetrovGalerkin,
@@ -53,10 +53,8 @@ function jd_betcke(::Type{T},
                    v0::Vector = randn(size(nep,1)),
                    target::Number = zero(T),
                    displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
-
     # Initial logical checks
     n = size(nep,1)
-
     if (maxit > n)
         error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
     end
@@ -79,7 +77,11 @@ function jd_betcke(::Type{T},
     # Initial check for convergence
     err = errmeasure(λ,u)
     @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-    conveig = jd_convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+    if (err < tol) #Frist check, no other eiganvalues can be converged
+        conveig += 1
+        λ_vec[conveig] = λ
+        u_vec[:,conveig] = u
+    end
     if (conveig == Neig)
         return (λ_vec,u_vec)
     end
@@ -121,7 +123,12 @@ function jd_betcke(::Type{T},
         # Check for convergence
         err = errmeasure(λ,u)
         @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-        conveig = jd_convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+        if (err < tol) && (conveig == 0 ||
+                all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
+            conveig += 1
+            λ_vec[conveig] = λ
+            u_vec[:,conveig] = u
+        end
         if (conveig == Neig)
             return (λ_vec,u_vec)
         end
@@ -142,18 +149,6 @@ function jd_betcke(::Type{T},
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
     throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
-end
-
-function jd_convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig::TT, T)::TT where {TT<:Int}
-    # Small error and not already found (expception if it is the first)
-    # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
-    if (err < tol) && (conveig == zero(TT) ||
-            all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
-        conveig += one(TT)
-        λ_vec[conveig] = λ
-        u_vec[:,conveig] = u
-    end
-    return conveig
 end
 
 
@@ -177,10 +172,9 @@ See also
 """
 jd_effenberger(nep::NEP;kwargs...) = jd_effenberger(Complex128,nep;kwargs...)
 function jd_effenberger(::Type{T},
-                        nep::Union{ProjectableNEP};
+                        nep::ProjectableNEP;
                         maxit::Int = 100,
                         Neig::Int = 1,
-                        projtype::Symbol = :PetrovGalerkin,
                         inner_solver_method::Type = NEPSolver.DefaultInnerSolver,
                         orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
                         errmeasure::Function = default_errmeasure(nep::NEP),
@@ -190,6 +184,35 @@ function jd_effenberger(::Type{T},
                         v0::Vector = randn(size(nep,1)),
                         target::Number = zero(T),
                         displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    # Initial logical checks
+    n = size(nep,1)
+    if (maxit > n)
+        error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
+    end
+    if (inner_solver_method == NEPSolver.SGIterInnerSolver)
+        error("_Method SGITER not accepted as inner solver since deflated problem not min-max.")
+    end
+
+    # Allocations and preparations
+    λ::T = T(λ)
+    target::T = T(target)
+    tol::real(T) = real(T)(tol)
+    conveig = 0
+    Λ::Matrix{T} = zeros(T,Neig,Neig)
+    X::Matrix{T} = zeros(T,n,Neig)
+
+    # Initial check for convergence
+    err = errmeasure(λ,u)
+    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+    if (err < tol) #Frist check, no other eiganvalues can be converged
+        conveig += 1
+        Λ[conveig,conveig] = λ
+        X[:,conveig] = u
+    end
+    if (conveig == Neig)
+        return (Λ,X)
+    end
+
 
     error("Not implemented yet.")
 end
