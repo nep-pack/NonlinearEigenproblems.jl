@@ -49,13 +49,13 @@ function nleigs(
         ::Type{T},
         nep::NEP,
         Sigma::AbstractVector{CT};
-        Xi::AbstractVector{T} = [Inf],
+        Xi::AbstractVector{T} = [T(Inf)],
         displaylevel::Int = 0,
         maxdgr::Int = 100,
         minit::Int = 20,
         maxit::Int = 200,
         tol::T = 1e-10,
-        tollin::T = max(tol/10, 100*eps()),
+        tollin::T = max(tol/10, T(100*eps())),
         v::Vector{T} = randn(T, size(nep, 1)),
         errmeasure::Function = default_errmeasure(nep::NEP),
         isfunm::Bool = true,
@@ -74,11 +74,12 @@ function nleigs(
     X = Matrix{CT}(0, 0)
     res = Vector{T}(0)
 
-    #@code_warntype prepare_inputs(nep, Sigma, Xi)
+    #@code_warntype prepare_inputs{T}(nep)
     #return
-    spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,BBCC = prepare_inputs(nep, Sigma, Xi)
+    spmf,iL,L,LL,UU,p,q,r,BBCC = prepare_inputs{T}(nep)
     n = nep.n
     n == 1 && (maxdgr = maxit + 1)
+    computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
     b = blksize
 
     # Initialization
@@ -408,10 +409,8 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
     Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
     Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
-# checkInputs: error checks the inputs to NLEP and also derives some variables from them:
-#
-#   spmf       is false if NLEP is given as function handle
-#   BBCC       matrix [B0;B1;...;Bp;C1;C2;...;Cq]
+#  Derive some variables from the input NEP:
+#   spmf       whether the NEP is given as a PNEP type (sum of products of matrices and functions)
 #   iL         vector with indices of L-factors
 #   L          cell array {L1,L2,...,Lq}
 #   LL         matrix [L1,L2,...,Lq]
@@ -419,8 +418,8 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
 #   p          order of polynomial part (length of B = p + 1)
 #   q          length of f and C
 #   r          sum of ranks of low rank matrices in C
-#   computeD   is true if generalized divided differences are explicitly used
-function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
+#   BBCC       matrix [B0;B1;...;Bp;C1;C2;...;Cq]
+function prepare_inputs{T}(nep::NEP) where T<:Real
     iL = Vector{Int}(0)
     L = Vector{Matrix{T}}(0)
     LL = Matrix{T}(0, 0)
@@ -464,14 +463,7 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{
         BBCC = vcat(nep.spmf.A...)::eltype(nep.spmf.A)
     end
 
-    # process the input Xi
-    if isempty(Xi)
-        Xi = [T(Inf)]
-    end
-
-    computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
-
-    return spmf,iL,L,LL,UU,p,q,r,Sigma,Xi,computeD,BBCC
+    return spmf,iL,L,LL,UU,p,q,r,BBCC
 end
 
 # scgendivdiffs: compute scalar generalized divided differences
