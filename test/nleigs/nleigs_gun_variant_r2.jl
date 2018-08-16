@@ -9,6 +9,7 @@ if !isdefined(:global_modules_loaded)
     using NEPCore
     using NEPTypes
     using Gallery
+    using IterativeSolvers
     using Base.Test
 end
 

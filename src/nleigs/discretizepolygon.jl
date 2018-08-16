@@ -1,9 +1,21 @@
 include("inpolygon.jl")
 
-# ZZ = DISCRETIZEPOLYGON(Z)
-# Discretize the polygon given by the (complex) entries of Z.
-# npts = nr of boundary points
-# nsigma = nr of interior points
+"""
+Discretize the polygon given by the (complex) entries of Z.
+
+# Arguments
+- `z`: Polygon vertices given as complex values. Pass an empty array for the unit disk.
+  Pass a single value for a disk centered at that value. Pass two values for Chebyshev points.
+- `include_interior_points`: Whether to return interior points.
+- `npts`: Number of boundary points to return.
+- `nsigma`: Minimum number of interior points (more than this may be returned).
+
+# Return values
+- `boundary_points`: Boundary points (`npts` of these), followed by the input
+  polygon vertices, with an additional final vertex equal to the first vertex.
+- `interior_points`: Interior points, if specified to be returned, otherwise an
+  empty vector. If specified, there will be at least `nsigma` of these.
+"""
 function discretizepolygon(
     z::Vector{CT} = [],
     include_interior_points::Bool = false,
