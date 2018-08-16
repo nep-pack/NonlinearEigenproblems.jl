@@ -96,9 +96,12 @@ julia> norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
     end
 
     """
-    compute_Mlincomb(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)))
+    compute_Mlincomb(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
+    compute_Mlincomb!(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
 Computes the linear combination of derivatives\\
 ``Σ_i a_i M^{(i)}(λ) v_i``
+starting from derivative `startder`. The function `compute_Mlincomb!`
+does the same but may modify the `V` matrix/array.
 
 # Example
 This example shows that `compute_Mder` gives a result consistent with `compute_Mlincomb`. Note that `compute_Mlincomb` is in general faster since no matrix needs to be constructed.
@@ -110,24 +113,29 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
 ```
 """
-    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector)
+    function compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector)
         # This will manually scale the columns in V by the vector a. 
         if (ones(eltype(a),size(a,1))==a) # No scaling necessary
-            return compute_Mlincomb(nep,λ,V);
+            return compute_Mlincomb!(nep,λ,V);
         end
-        V2=copy(V); 
         if (isa(V,AbstractVector))
-            V2[:]=V*a[1];
+            V[:]=V*a[1];
         else
             D=Diagonal(a);
-            # Scale columns with V2
-            rmul!(V2,D);
+            rmul!(V,D);
         end
-        return compute_Mlincomb(nep,λ,V2);
-    end    
+        return compute_Mlincomb!(nep,λ,V);
+    end
+
+    # Make a copy of V and call compute_Mlincomb!, as default
+    # behaviour for compute_Mlincomb
+    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
+    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb!(nep,λ,copy(V), a)
+    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
 
 """
     compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
+
 Computes linear combination starting with derivative startder, i.e.,
 ``Σ_i a_i M^{(i+startder)}(λ) v_i``
 
