@@ -12,6 +12,7 @@ module NEPCore
     # Core interfaces
     export compute_Mder
     export compute_Mlincomb
+    export compute_Mlincomb!
     export compute_MM
 
     # NEP-functions

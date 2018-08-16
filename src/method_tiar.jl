@@ -95,7 +95,7 @@ function tiar(
         broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
 
         # computation of y[:,1]
-        y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],α[1:k+1]);
+        y[:,1] = compute_Mlincomb!(nep,σ,y[:,1:k+1],α[1:k+1]);
         y[:,1] = -lin_solve(M0inv,y[:,1]);
 
         # Gram–Schmidt orthogonalization in Z
