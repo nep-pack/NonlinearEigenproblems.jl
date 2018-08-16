@@ -1,6 +1,7 @@
 export jd
 
 using IterativeSolvers
+import NEPTypes.DeflatedNEP
 
    """
     function jd([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v0 = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
@@ -60,6 +61,7 @@ function jd(::Type{T},
     # Allocations and preparations
     λ::T = T(λ)
     target::T = T(target)
+    tol::real(T) = real(T)(tol)
     λ_vec::Vector{T} = Vector{T}(Neig)
     u_vec::Matrix{T} = zeros(T,n,Neig)
     u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u);
@@ -68,13 +70,21 @@ function jd(::Type{T},
     # Initial check for convergence
     err = errmeasure(λ,u)
     @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-    conveig = convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+    conveig = jd_convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
     if (conveig == Neig)
         return (λ_vec,u_vec)
     end
 
+    # Λ_mem::Matrix{T} = zeros(T,Neig,Neig)
+    # X_mem::Matrix{T} = zeros(T,n,Neig)
+    # Λ = view(Λ_mem, [], []) #Initially empty
+    # X = view(X_mem, :, []) #Initially empty
+    # deflated_nep = effenberger_deflation(nep, Λ, X)
+
+
     # More allocations and preparations
     pk::Vector{T} = zeros(T,n)
+    s::Vector{T} = zeros(T,n)
     proj_nep = create_proj_NEP(nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1)
 
@@ -90,44 +100,25 @@ function jd(::Type{T},
 
 
     # Main loop
-    for k=1:maxit
-        # Projected matrices
+    k = 1
+    while k <= maxit
+        # Projection matrices
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
-        v = view(V_memory, :, k+1); w = view(W_memory, :, k+1)  # next vector position
-        set_projectmatrices!(proj_nep, W, V)
+        v = view(V_memory, :, k+1); w = view(W_memory, :, k+1); # next vector position
 
-        # find the eigenvalue with smallest absolute value of projected NEP
-        λv,sv = inner_solve(inner_solver_method, T, proj_nep,
-                            j = conveig+1, # For SG-iter
-                            λv = zeros(T,conveig+1),
-                            σ=zero(T),
-                            Neig=conveig+1)
-        λ,s = jd_eig_sorter(λv, sv, conveig+1, target)
-        s = s/norm(s)
-
-        # the approximate eigenvector
-        u[:] = V*s
+        λ = jd_project_and_inner_eigsolve!(u, s, proj_nep, nep, V, W, conveig, target, inner_solver_method, k, T)
 
         # Check for convergence
         err = errmeasure(λ,u)
         @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
-        conveig = convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+        conveig = jd_convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
         if (conveig == Neig)
             return (λ_vec,u_vec)
         end
 
-        # Solve for basis extension using comment on top of page 367 of Betcke
-        # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
-        # since u in V. OBS: Non-standard in JD-literature
-        pk[:] = compute_Mlincomb(nep,λ,u,[one(T)],1)
-        linsolver = linsolvercreator(nep,λ)
-        v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
-        orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
+        jd_basis_extension!(pk, v, w, nep, λ, u, linsolvercreator, tol, dummy_vector, k, orthmethod, V, W, projtype)
 
-        if( projtype == :PetrovGalerkin )
-            w[:] = compute_Mlincomb(nep,λ,u);
-            orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
-        end
+        k += 1
     end #End main loop
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
@@ -136,12 +127,89 @@ end
 
 
 
-function convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig, T)
+function jd_project_and_inner_eigsolve!(u, s, proj_nep, nep, V, W, conveig, target, inner_solver_method, k, T)
+    set_projectmatrices!(proj_nep, W, V)
+
+    # find the eigenvalue with smallest absolute value of projected NEP
+    λv,sv = inner_solve(inner_solver_method, T, proj_nep,
+                        j = conveig+1, # For SG-iter
+                        λv = zeros(T,conveig+1),
+                        σ=zero(T),
+                        Neig=conveig+1)
+    λ,s[1:k] = jd_eig_sorter(λv, sv, conveig+1, target)
+    s[:] = s/norm(s)
+
+    # the approximate eigenvector
+    u[:] = V*s[1:k]
+    return λ
+end
+
+
+
+function jd_basis_extension!(pk, v, w, nep, λ::T, u::Vector{T}, linsolvercreator, tol, dummy_vector, k, orthmethod, V, W, projtype) where {T}
+    # Solve for basis extension using comment on top of page 367 of Betcke
+    # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
+    # since u in V. OBS: Non-standard in JD-literature
+    pk[:] = compute_Mlincomb(nep,λ,u,[one(T)],1)
+    linsolver = linsolvercreator(nep,λ)
+    v[:] = jd_inner_linear_solver(nep, λ, linsolver, pk, tol) # M(λ)\pk
+    orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
+
+    if( projtype == :PetrovGalerkin )
+        w[:] = compute_Mlincomb(nep,λ,u);
+        orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
+    end
+end
+
+
+
+function jd_inner_linear_solver(deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol)::Vector{T} where {T<:Number}
+    # If it is a deflated NEP we solve with a Schur complement strategy such that
+    # the user specified solve of M can be used.
+    # (M, U; X^T, 0)(v1;v2) = (y1;y2)
+    # OBS: Assume minimality index = 1
+    # OBS: Forms the Schur complement. Assume that only a few eigenvalues are deflated
+
+    X = deflated_nep.V0
+    Λ = deflated_nep.S0
+
+    n = size(deflated_nep.orgnep,1)
+    nn = size(Λ,1)
+    pk1 = pk[1:n]
+    pk2 = pk[n+1:(n+nn)]
+    if nn == 0 # Corner case, actually empty
+        U = X[:,[]]
+    else
+        U = (compute_MM(deflated_nep,Λ,X) - compute_MM(deflated_nep,λ.*one(Λ),X) ) / (Λ - λ.*one(Λ))
+    end
+
+    # Precompute some reused entities
+    pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
+    Z::Matrix{T} = zeros(T,n,nn)
+    for i = 1:nn
+        Z[:,i] = lin_solve(linsolver, vec(U[:,i]), tol=tol) # Z = M^{-1}U
+    end
+    S = -X'*Z #Schur complement
+    v2 = S\(pk2 - X'*pk1tilde)
+    v1 = pk1tilde - Z*v2
+    return vcat(v1,v2)
+end
+
+
+
+function jd_inner_linear_solver(nep::ProjectableNEP, λ::T, linsolver, pk::Vector{T}, tol)::Vector{T} where {T<:Number}
+    # CLassic projectable NEP. Do the linear solve.
+    return lin_solve(linsolver, pk, tol=tol)
+end
+
+
+
+function jd_convergence_criterion_and_update!(λ_vec, u_vec, err, tol, λ, u, conveig::TT, T)::TT where {TT<:Int}
     # Small error and not already found (expception if it is the first)
     # Exclude eigenvalues in a disc of radius of ϵ^(1/4)
-    if (err < tol) && (conveig == 0 ||
+    if (err < tol) && (conveig == zero(TT) ||
             all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
-        conveig += 1
+        conveig += one(TT)
         λ_vec[conveig] = λ
         u_vec[:,conveig] = u
     end
@@ -150,10 +218,10 @@ end
 
 
 
-function jd_eig_sorter(λv::Array{T,1}, V, N, target::T) where T <: Number
+function jd_eig_sorter(λv::Vector{T}, V, N, target::T) where T <: Number
     NN = min(N, length(λv))
     c = sortperm(abs.(λv-target))
     λ::T = λv[c[NN]]
-    s::Array{T,1} = V[:,c[NN]]
+    s::Vector{T} = V[:,c[NN]]
     return λ, s
 end
