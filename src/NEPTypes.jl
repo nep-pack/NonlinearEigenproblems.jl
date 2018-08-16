@@ -11,7 +11,7 @@ module NEPTypes
 
     export MatrixAndFunction
     export LowRankMatrixAndFunction
-    export PNEP
+    export LowRankFactorizedNEP
 
     export Proj_NEP;
     export Proj_SPMF_NEP;
@@ -807,19 +807,19 @@ julia> sumnep=SumNEP(nep1,nep2);
 julia> s=3.0;
 julia> M=compute_Mder(sumnep,s);
 3×3 Array{Float64,2}:
-  8.54014     6.71897   7.12007 
+  8.54014     6.71897   7.12007
  -0.943908  -13.0795   -0.621659
-  6.03155    -7.26726  -6.42828 
+  6.03155    -7.26726  -6.42828
 julia> M1=compute_Mder(nep1,s);
 julia> M2=compute_Mder(nep2,s);
 julia> M1+M2  # Same as M
 3×3 Array{Float64,2}:
-  8.54014     6.71897   7.12007 
+  8.54014     6.71897   7.12007
  -0.943908  -13.0795   -0.621659
-  6.03155    -7.26726  -6.42828 
+  6.03155    -7.26726  -6.42828
 ```
 """
-    struct SumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP 
+    struct SumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
         nep1::NEP1
         nep2::NEP2
     end
@@ -835,7 +835,7 @@ julia> M1+M2  # Same as M
         (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
 
 
-    
+
     ############################################################################
     # PNEP (Polynomial plus Nonlinear Eigenvalue Problem)
     ############################################################################
@@ -891,79 +891,55 @@ julia> M1+M2  # Same as M
     end
 
 """
-Polynomial plus Nonlinear Eigenvalue Problem: Consists of a polynomial part
-with monomial matrices plus a nonlinear part with matrices and functions.
+SPMF with low rank LU factors for each matrix.
 """
-    struct PNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
+    struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
         spmf::SPMF_NEP
-        n::Int          # Matrix size
-        p::Int          # Order of polynomial part
-        q::Int          # Number of nonlinear terms
-        r::Int          # If >0, sum of ranks of nonlinear matrices
-        L::Vector{S}    # L factors of low rank nonlinear matrices (optional)
-        U::Vector{S}    # U factors of low rank nonlinear matrices (optional)
+        r::Int          # Sum of ranks of matrices
+        L::Vector{S}    # Low rank L factors of matrices
+        U::Vector{S}    # Low rank U factors of matrices
     end
 
-    function PNEP(B::AbstractVector{S}, C::AbstractVector{S}, f::AbstractVector{Function}) where {T<:Real, S<:AbstractMatrix{T}}
-        length(C) == length(f) || error("Nonlinear matrices 'C' and functions ",
-            "'f' must have same length; got C=$(length(C)) and f=$(length(f))")
-        p = length(B) - 1
-        spmf = SPMF_NEP([B; C], [monomials(p); f])
-        return PNEP(spmf, spmf.n, p, length(C), 0, [], [])
-    end
-
-    function PNEP(B::AbstractVector{S}, Cmf::AbstractVector{<:AbstractMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
-        p = length(B) - 1
-        q = length(Cmf)
+    function LowRankFactorizedNEP(Amf::AbstractVector{<:AbstractMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
+        q = length(Amf)
         r = 0
         f = Vector{Function}(q)
-        C = Vector{S}(q)
-        # L and U factors of the low rank nonlinear part C
+        A = Vector{S}(q)
+        # L and U factors of low rank A
         L = Vector{S}(0)
         U = Vector{S}(0)
 
         if q > 0
             for k = 1:q
-                f[k] = Cmf[k].f
-                C[k] = Cmf[k].A
+                f[k] = Amf[k].f
+                A[k] = Amf[k].A
             end
 
-            if isa(Cmf[1], LowRankMatrixAndFunction)
+            if isa(Amf[1], LowRankMatrixAndFunction)
                 L = Vector{S}(q)
                 U = Vector{S}(q)
                 for k = 1:q
-                    L[k] = Cmf[k].L
-                    U[k] = Cmf[k].U
+                    L[k] = Amf[k].L
+                    U[k] = Amf[k].U
                     r += size(U[k], 2)
-                    # if C is not specified, create it from LU factors
-                    isempty(C[k]) && (C[k] = L[k] * U[k]')
+                    # if A is not specified, create it from LU factors
+                    isempty(A[k]) && (A[k] = L[k] * U[k]')
                 end
             end
         end
 
-        spmf = SPMF_NEP([B; C], [monomials(p); f])
-        return PNEP(spmf, spmf.n, p, q, r, L, U)
+        return LowRankFactorizedNEP(SPMF_NEP(A, f), r, L, U)
     end
 
-    function monomials(p)
-        f = Vector{Function}(p+1)
-        for k=1:p+1
-            f[k] = x -> x^(k-1)
-        end
-        return f
-    end
-
-    function compute_Mder(nep::PNEP, λ::T, i::Int = 0) where T<:Number
+    # forward function calls to SPMF
+    compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
         compute_Mder(nep.spmf, λ, i)
-    end
 
-    function compute_Mlincomb(nep::PNEP, λ::T, v::Vector{T}) where T<:Number
-        compute_Mlincomb(nep.spmf, λ, v)
-    end
+    compute_Mlincomb(nep::LowRankFactorizedNEP, λ::T, V::Union{Vector{T}, Matrix{T}}; a = ones(T, size(V, 2))) where T<:Number =
+        compute_Mlincomb(nep.spmf, λ, V, a=a)
 
-    function compute_Mlincomb(nep::PNEP, λ::T, V::Matrix{T}) where T<:Number
-        compute_Mlincomb(nep.spmf, λ, V)
-    end
+    size(nep::LowRankFactorizedNEP) = size(nep.spmf)
+    size(nep::LowRankFactorizedNEP, dim) = size(nep.spmf, dim)
 
    #######################################################
    ### Functions in common for many NEPs in NEPTypes
@@ -973,12 +949,12 @@ with monomial matrices plus a nonlinear part with matrices and functions.
     size(nep::NEP,dim=-1)
  Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,PNEP},dim)
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,LowRankFactorizedNEP},dim)
         return nep.n
     end
 
 
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,PNEP})
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,LowRankFactorizedNEP})
         return (nep.n,nep.n)
     end
 

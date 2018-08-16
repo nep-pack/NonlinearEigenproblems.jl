@@ -1,5 +1,5 @@
 function gun_init()
-    nep = nep_gallery("nlevp_gun_pnep")
+    nep = nep_gallery("nlevp_gun_low_rank_nep")
 
     gam = 300^2 - 200^2
     mu = 250^2
@@ -21,9 +21,9 @@ function gun_init()
 
     # options
     srand(1)
-    v = randn(nep.n)
+    v = randn(size(nep, 1))
 
-    funres = (λ, v) -> gun_residual(λ, v, nep.spmf.A...)
+    funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)
 
     return nep, Sigma, Xi, v, nodes, funres
 end

@@ -13,7 +13,7 @@ function ratnewtoncoeffs(fun, sigma::AbstractVector{CT}, xi::AbstractVector{T}, 
     D[1] = fun(as_matrix(sigma[1])) * beta[1]
     n = size(D[1], 1)
     for j = 2:m
-        # evaluate current linearizaion at sigma(j);
+        # evaluate current linearizaion at sigma[j]
         Qj = T(0)
         for k = 1:j-1
             Qj += D[k] * evalrat(sigma[1:k-1], xi[1:k-1], beta[1:k], [sigma[j]])[1]
