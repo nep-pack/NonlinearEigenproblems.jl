@@ -76,7 +76,7 @@ function nleigs(
 
     #@code_warntype prepare_inputs{T}(nep)
     #return
-    spmf,iL,L,LL,UU,p,q,r,BBCC = prepare_inputs{T}(nep)
+    spmf,iL,L,LL,UU,p,q,r,BBCC = prepare_inputs(T, nep)
     n = nep.n
     n == 1 && (maxdgr = maxit + 1)
     computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
@@ -280,23 +280,11 @@ function nleigs(
             w = backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
 
             # orthogonalization
-            normw = norm(w)
             Vview = view(V, 1:kn, 1:l)
-            h = Vview' * w
-            w .-= Vview * h
-            H[1:l,l] = h
-            eta = 1/sqrt(2)       # reorthogonalization constant
-            if norm(w) < eta * normw
-                h = Vview' * w
-                w .-= Vview * h
-                H[1:l,l] .+= h
-            end
+            H[l+1,l] = orthogonalize_and_normalize!(Vview, w, view(H, 1:l,l), DGKS)
             K[1:l,l] .= view(H, 1:l, l) .* sigma[k+1] .+ t
-
-            # new vector
-            H[l+1,l] = norm(w)
             K[l+1,l] = H[l+1,l] * sigma[k+1]
-            V[1:kn,l+1] .= w ./ H[l+1,l]
+            V[1:kn,l+1] = w
 #            @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
         end
 
@@ -419,7 +407,7 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
 #   q          length of f and C
 #   r          sum of ranks of low rank matrices in C
 #   BBCC       matrix [B0;B1;...;Bp;C1;C2;...;Cq]
-function prepare_inputs{T}(nep::NEP) where T<:Real
+function prepare_inputs(::Type{T}, nep::NEP) where T<:Real
     iL = Vector{Int}(0)
     L = Vector{Matrix{T}}(0)
     LL = Matrix{T}(0, 0)
