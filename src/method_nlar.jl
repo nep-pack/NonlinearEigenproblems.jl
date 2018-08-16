@@ -39,8 +39,8 @@ function nlar(::Type{T},
             errmeasure::Function = default_errmeasure(nep),
             tol = eps(real(T))*100,
             maxit::Int = 100,
-            λ = zero(T),
-            v = randn(T,size(nep,1)),
+            λ0 = zero(T),
+            v0 = randn(T,size(nep,1)),
             displaylevel::Int = 0,
             linsolvercreator::Function = default_linsolvercreator,
             R = 0.01,
@@ -49,14 +49,14 @@ function nlar(::Type{T},
             qrfact_orth::Bool = false,
             inner_solver_method = NEPSolver.DefaultInnerSolver) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
-        local σ::Complex128 = λ; #Initial pole
+        local σ::T = T(λ0); #Initial pole
 
         if (maxit > size(nep,1))
             warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
             maxit = size(nep,1);
         end
 
-        λ::T = T(λ);
+        λ0::T = T(λ0);
         #Initialize the basis V_1
         V = zeros(T, size(nep,1) ,maxit);
         X = zeros(T, size(nep,1) ,nev);
@@ -70,13 +70,13 @@ function nlar(::Type{T},
         m = 0; #Number of converged eigenvalues
         k = 1;
 
-        proj_nep=create_proj_NEP(nep);
+        proj_nep = create_proj_NEP(nep);
 
-        local linsolver::LinSolver=linsolvercreator(nep,σ);
+        local linsolver::LinSolver = linsolvercreator(nep,σ);
 
         err = Inf;
-        nu = λ;
-        u = v;
+        nu = λ0;
+        u = v0;
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             set_projectmatrices!(proj_nep,Vk,Vk);

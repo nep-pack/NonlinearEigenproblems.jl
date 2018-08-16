@@ -104,7 +104,6 @@ function jd(::Type{T},
         # the approximate eigenvector
         u[:] = V*s
 
-
         # Check for convergence
         err = errmeasure(λ,u)
         @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
@@ -116,7 +115,6 @@ function jd(::Type{T},
                 return (λ_vec,u_vec)
             end
         end
-
 
         # solve for basis extension using comment on top of page 367 to avoid
         # matrix access. The orthogonalization to u comes anyway since u in V
@@ -130,8 +128,6 @@ function jd(::Type{T},
             orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
         end
     end
-
-
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
     throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
