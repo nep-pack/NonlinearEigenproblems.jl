@@ -20,9 +20,10 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R)
             end
         end
     end
+
     ii = sortperm(abs.(dd2-σ));
 
-    mm_min=min(mm,length(ii));
+    mm_min = min(mm,length(ii));
     nu = dd2[ii[1:mm_min]];
     y = vv[:,ii[1:mm_min]];
 
@@ -30,29 +31,32 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R)
 end
 
 nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
-function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
-            ::Type{T},
+function nlar(::Type{T},
             nep::ProjectableNEP;
-            orthmethod::Type{T_orth}=ModifiedGramSchmidt,
-            nev=10,         #Number of eigenvalues required
-            submax_rest=30, #Maximum dimension of subspace before restarting
+            orthmethod::Type{T_orth} = ModifiedGramSchmidt,
+            nev::Int=10,                                     #Number of eigenvalues required
+            submax_rest::Int=30,                             #Maximum dimension of subspace before restarting
             errmeasure::Function = default_errmeasure(nep),
-            tol=1e-6,
-            maxit=100,
-            λ=zero(T),
-            v=randn(T,size(nep,1)),
-            displaylevel=0,
-            linsolvercreator::Function=default_linsolvercreator,
-            eigval_sorter::Function = default_eigval_sorter,
-            qrfact_orth::Bool=false,
-            inner_solver_method=DefaultInnerSolver)
+            tol = eps(real(T))*100,
+            maxit::Int = 100,
+            λ = zero(T),
+            v = randn(T,size(nep,1)),
+            displaylevel::Int = 0,
+            linsolvercreator::Function = default_linsolvercreator,
+            R = 0.01,
+            mm::Int = 4,
+            eigval_sorter::Function = default_eigval_sorter, #Function to sort eigenvalues of the projected NEP
+            qrfact_orth::Bool = false,
+            inner_solver_method = NEPSolver.DefaultInnerSolver) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
         local σ::Complex128 = λ; #Initial pole
 
-        if (maxit>size(nep,1))
+        if (maxit > size(nep,1))
             warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
-            maxit=size(nep,1);
+            maxit = size(nep,1);
         end
+
+        λ::T = T(λ);
         #Initialize the basis V_1
         V = zeros(T, size(nep,1) ,maxit);
         X = zeros(T, size(nep,1) ,nev);
@@ -70,18 +74,20 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         local linsolver::LinSolver=linsolvercreator(nep,σ);
 
-
-        ### TODO: What happens when k reaches maxit? NoConvergenceError? ###
+        err = Inf;
+        nu = λ;
+        u = v;
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             set_projectmatrices!(proj_nep,Vk,Vk);
 
+            #Use inner_solve() to solve the smaller projected problem
             dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
 
-            ### Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
-            ### in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
-            ### eigenvalues in D.
-            nuv,yv = eigval_sorter(dd,vv,σ,D, 4,0.01)
+            # Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
+            # in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
+            # eigenvalues in D.
+            nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
 
             # Select the eigenvalue with minimum distance from D
             nu=nuv[1];
@@ -106,16 +112,15 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             err_hyst[k,m+1]=err;    # Giampaolo's edit
             if(err < tol)
                 if(displaylevel == 1)
-                    println("\n\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n")
+                    println("\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n")
                 end
+
                 #Add to the set of converged eigenvalues and eigenvectors
                 D[m+1] = nu;
                 X[:,m+1] = u;
 
-                ## TODO: Check for restarting
-
                 ## Sort and select he eigenvalues of the projected problem as described before
-                nuv,yv = eigval_sorter(dd,vv,σ,D,4,0.01)
+                nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
                 nu1=nuv[1];
                 y1=yv[:,1];
 
@@ -128,12 +133,10 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             end
 
             #Compute new vector Δv to add to the search space V(k+1) = (Vk,Δv)
-
             Δv=lin_solve(linsolver,res)
 
             #Orthogonalize and normalize
             if (qrfact_orth)
-
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
                 # Slow but robust.
@@ -143,19 +146,6 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
                 #println("Size:",size(Vk), " N: ",norm(Vk[:,k+1]), " d:",norm(Δv))
             else
-
-                # Do our own (double) Gram-Schmidt
-                #=h = V[:,1:k]'*Δv;
-                V_k1 = Δv-V[:,1:k]*h;
-                g = V[:,1:k]'*V_k1;
-                V_k1 = V_k1-V[:,1:k]*g;
-                V_k1 = normalize(V_k1)
-
-                #Expand
-                V[:,k+1] = V_k1;
-                Vk = V[:,1:k+1];=#
-
-                #Use orthogonalization provided by the package "IterativeSolvers"
                 h=zeros(T,k);
                 orthogonalize_and_normalize!(Vk,Δv,h,orthmethod);
 
@@ -165,11 +155,18 @@ function nlar{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
             end
 
             #Check orthogonalization
-            if(k < 100)
-               #println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
-                #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
-            end
+            #if(k < 100)
+            #   println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+            #   println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
+            #end
             k = k+1;
+        end
+
+
+        #Throw no convergence exception if enough eigenvalues were not found.
+        if(k >= maxit && m < nev)
+            msg="Number of iterations exceeded. maxit=$(maxit) and only $(m) eigenvalues converged out of $(nev)."
+            throw(NoConvergenceException(nu,u,err,msg))
         end
 
         return D,X,err_hyst;
