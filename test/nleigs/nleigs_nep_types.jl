@@ -25,16 +25,18 @@ f = [λ -> λ^2]
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
-pnep = PNEP(B, [MatrixAndFunction(C[1], f[1])])
+pep = PEP(B)
+spmf = LowRankFactorizedNEP([MatrixAndFunction(C[1], f[1])])
+sumnep = SumNEP(pep, spmf)
 
-@testset "NLEIGS: PNEP" begin
-    @time X, lambda = nleigs(pnep, Sigma, maxit=10, v=ones(n), blksize=5)
-    nleigs_verify_lambdas(4, pnep, X, lambda)
+@testset "NLEIGS: SumNEP" begin
+    @time X, lambda = nleigs(sumnep, Sigma, maxit=10, v=ones(n), blksize=5)
+    nleigs_verify_lambdas(4, sumnep, X, lambda)
 end
 
 @testset "NLEIGS: SPMF_NEP" begin
     spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
-    @test_warn "create the problem as a NEPTypes.PNEP instead of a NEPTypes.SPMF_NEP" begin
+    @test_warn "create the problem as a" begin
         @time X, lambda = nleigs(spmf_nep, Sigma, maxit=10, v=ones(n), blksize=5)
         nleigs_verify_lambdas(4, spmf_nep, X, lambda)
     end
@@ -46,8 +48,8 @@ end
 
 # implement a few methods used by the solver
 import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
-compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pnep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(pnep, λ, x)
+compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(sumnep, λ)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(sumnep, λ, x)
 size(::CustomNLEIGSNEP, _) = n
 
 @testset "NLEIGS: Custom NEP type" begin
