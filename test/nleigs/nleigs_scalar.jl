@@ -7,9 +7,11 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
+    using NleigsTypes
     using Gallery
     using IterativeSolvers
     using Base.Test
@@ -22,9 +24,7 @@ as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 n = 1
 C = [as_matrix(0.2), as_matrix(-0.6)]
 f = [λ -> sqrtm(λ), λ -> sin.(2*λ)]
-c1 = MatrixAndFunction(C[1], f[1])
-c2 = MatrixAndFunction(C[2], f[2])
-nep = PNEP(Vector{Matrix{Float64}}(0), [c1, c2])
+nep = SPMF_NEP([C[1], C[2]], [f[1], f[2]])
 
 Sigma = complex([0.01, 4])
 

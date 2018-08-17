@@ -77,9 +77,9 @@ function nleigs(
     #@code_warntype prepare_inputs{T}(nep)
     #return
     spmf,iL,L,LL,UU,p,q,r,BBCC = prepare_inputs(T, nep)
-    n = nep.n
+    n = size(nep, 1)
     n == 1 && (maxdgr = maxit + 1)
-    computeD = (nep.n <= 400) # for small problems, explicitly use generalized divided differences
+    computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
     b = blksize
 
     # Initialization
@@ -138,9 +138,10 @@ function nleigs(
         sgdd = Matrix{CT}(0, 0)
     else
         # Compute scalar generalized divided differences
-        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, nep.spmf.fi)
+        functions = [monomials(p); nep.nep2.spmf.fi]
+        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, functions)
         # Construct first generalized divided difference
-        computeD && push!(D, constructD(0, L, n, p, q, r, nep.spmf.A, sgdd))
+        computeD && push!(D, constructD(0, L, n, p, q, r, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
         # Norm of first generalized divided difference
         nrmD[1] = maximum(abs.(sgdd[:,1]))
     end
@@ -202,7 +203,7 @@ function nleigs(
 
             # rational divided differences
             if spmf && computeD
-                push!(D, constructD(k, L, n, p, q, r, nep.spmf.A, sgdd))
+                push!(D, constructD(k, L, n, p, q, r, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
             end
             N += 1
 
@@ -418,25 +419,26 @@ function prepare_inputs(::Type{T}, nep::NEP) where T<:Real
     p = -1
     q = 0
     r = 0
-    spmf = isa(nep, PNEP)
+    # TODO: support other types of NEPs here, e.g. SumNEP{PEP, SPMF}
+    spmf = isa(nep, SPMFSumNEP{PEP,LowRankFactorizedNEP{N}} where N<:Any)
 
     if !spmf
         BBCC = Matrix{T}(0, 0)
         if isa(nep, AbstractSPMF)
             warn("NLEIGS performs better if the problem is split into a ",
                 "polynomial part and a nonlinear part. If possible, create ",
-                "the problem as a $PNEP instead of a $(typeof(nep).name).")
+                "the problem as a $(SPMFSumNEP{PEP,LowRankFactorizedNEP}) instead of a $(typeof(nep).name).")
         end
         #BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
     else
-        p = nep.p
-        q = nep.q
+        p = length(nep.nep1.A) - 1
+        q = length(nep.nep2.spmf.A)
         if q > 0
-            # L and U factors of the low rank nonlinear part C
-            L = nep.L
+            # L and U factors of the low rank nonlinear part
+            L = nep.nep2.L
             if !isempty(L)
-                UU = hcat(nep.U...)::eltype(nep.U)
-                r = nep.r
+                UU = hcat(nep.nep2.U...)::eltype(nep.nep2.U)
+                r = nep.nep2.r
                 iL = zeros(Int, r)
                 c = 0
                 for ii = 1:q
@@ -448,7 +450,7 @@ function prepare_inputs(::Type{T}, nep::NEP) where T<:Real
             end
         end
 
-        BBCC = vcat(nep.spmf.A...)::eltype(nep.spmf.A)
+        BBCC = vcat(nep.nep1.A..., nep.nep2.spmf.A...)::eltype(nep.nep1.A)
     end
 
     return spmf,iL,L,LL,UU,p,q,r,BBCC
@@ -491,7 +493,7 @@ end
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
 function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
-    n = nep.n
+    n = size(nep, 1)
     shift = sigma[k+1]
 
     # construction of B*wc
@@ -627,3 +629,11 @@ function resize_matrix(A, rows, cols)
     resized[1:size(A, 1), 1:size(A, 2)] = A
     return resized
 end
+
+function monomials(p)
+    f = Vector{Function}(p+1)
+    for k=1:p+1
+        f[k] = x -> x^(k-1)
+    end
+    return f
+ end

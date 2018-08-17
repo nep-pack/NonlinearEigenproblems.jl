@@ -7,10 +7,7 @@ module NEPTypes
     export REP
     export SPMF_NEP
     export AbstractSPMF
-
-    export MatrixAndFunction
-    export LowRankMatrixAndFunction
-    export PNEP
+    export SumNEP, SPMFSumNEP, GenericSumNEP
 
     export Proj_NEP;
     export Proj_SPMF_NEP;
@@ -141,7 +138,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Array{<:AbstractMatrix,1}, fii::Array{Function,1}, Schur_fact = false)
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function}, Schur_fact = false)
+
+         if (size(AA,1)==0)
+             return SPMF_NEP(0); # Create empty SPMF_NEP.
+         end
          n=size(AA[1],1);
 
          if     (size(AA,1) != 1) && (size(AA,2) == 1) # Stored as column vector - do nothing
@@ -178,7 +179,10 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          this=SPMF_NEP(n,AA,fii,Schur_fact,Zero);
          return this
     end
-
+    function SPMF_NEP(n) # Create an empty NEP of size n x n
+         Z=zeros(n,n)
+         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z);
+    end
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
             if (size(V)==size(nep))
@@ -366,7 +370,6 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         AA=reshape(AA,size(AA,1))
         return PEP(n,AA)
     end
-
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
@@ -788,135 +791,69 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
         return false; # A projected NEP is (essentially) never sparse
     end
 
+    """
+        type SumNEP{nep1::NEP,nep2::NEP} <: NEP
 
-    ############################################################################
-    # PNEP (Polynomial plus Nonlinear Eigenvalue Problem)
-    ############################################################################
+SumNEP corresponds to a sum of two NEPs, i.e., if nep is a SumNEP it
+is defined by
+```math
+M(λ)=M_1(λ)+M_2(λ)
+```
+where M_1 and M_2 are defined by `nep1` and `nep2`.
 
-    abstract type AbstractMatrixAndFunction{S<:AbstractMatrix{<:Real}} end
-
-    struct MatrixAndFunction{S<:AbstractMatrix{<:Real}} <: AbstractMatrixAndFunction{S}
-        A::S
-        f::Function
-    end
-
-    struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}} <: AbstractMatrixAndFunction{S}
-        A::S
-        L::S        # L factor of LU-factorized A
-        U::S        # U factor of LU-factorized A
-        f::Function
-    end
-
-    "Creates low rank LU factorization of A"
-    function LowRankMatrixAndFunction(A::AbstractMatrix{<:Real}, f::Function)
-        L, U = low_rank_lu_factors(A)
-        LowRankMatrixAndFunction(A, L, U, f)
-    end
-
-    function low_rank_lu_factors(A::SparseMatrixCSC{<:Real,Int64})
-        n = size(A, 1)
-        r, c = findn(A)
-        r = extrema(r)
-        c = extrema(c)
-        B = A[r[1]:r[2], c[1]:c[2]]
-        L, U = lu(full(B))
-        Lc, Uc = compactlu(sparse(L), sparse(U))
-        Lca = spzeros(n, size(Lc, 2))
-        Lca[r[1]:r[2], :] = Lc
-        Uca = spzeros(size(Uc, 1), n)
-        Uca[:, c[1]:c[2]] = Uc
-        return Lca, Uca'
-
-        # TODO use this; however we then need to support permutation and scaling
-        #F = lufact(B)
-        #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
-        #Lcaf = spzeros(n, size(Lcf, 2))
-        #Lcaf[r[1]:r[2], :] = Lcf
-        #Ucaf = spzeros(size(Ucf, 1), n)
-        #Ucaf[:, c[1]:c[2]] = Ucf
-        #Ucaf = Ucaf'
-    end
-
-    function compactlu(L, U)
-        n = size(L, 1)
-        select = map(i -> nnz(L[i:n, i]) > 1 || nnz(U[i, i:n]) > 0, 1:n)
-        return L[:,select], U[select,:]
-    end
-
+# Example:
+```julia-repl
+julia> nep1=DEP([ones(3,3),randn(3,3)])
+julia> nep2=PEP([ones(3,3),randn(3,3),randn(3,3)])
+julia> sumnep=SumNEP(nep1,nep2);
+julia> s=3.0;
+julia> M=compute_Mder(sumnep,s);
+3×3 Array{Float64,2}:
+  8.54014     6.71897   7.12007
+ -0.943908  -13.0795   -0.621659
+  6.03155    -7.26726  -6.42828
+julia> M1=compute_Mder(nep1,s);
+julia> M2=compute_Mder(nep2,s);
+julia> M1+M2  # Same as M
+3×3 Array{Float64,2}:
+  8.54014     6.71897   7.12007
+ -0.943908  -13.0795   -0.621659
+  6.03155    -7.26726  -6.42828
+```
 """
-Polynomial plus Nonlinear Eigenvalue Problem: Consists of a polynomial part
-with monomial matrices plus a nonlinear part with matrices and functions.
-"""
-    struct PNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
-        spmf::SPMF_NEP
-        n::Int          # Matrix size
-        p::Int          # Order of polynomial part
-        q::Int          # Number of nonlinear terms
-        r::Int          # If >0, sum of ranks of nonlinear matrices
-        L::Vector{S}    # L factors of low rank nonlinear matrices (optional)
-        U::Vector{S}    # U factors of low rank nonlinear matrices (optional)
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
+        nep1::NEP1
+        nep2::NEP2
     end
 
-    function PNEP(B::AbstractVector{S}, C::AbstractVector{S}, f::AbstractVector{Function}) where {T<:Real, S<:AbstractMatrix{T}}
-        length(C) == length(f) || error("Nonlinear matrices 'C' and functions ",
-            "'f' must have same length; got C=$(length(C)) and f=$(length(f))")
-        p = length(B) - 1
-        spmf = SPMF_NEP([B; C], [monomials(p); f])
-        return PNEP(spmf, spmf.n, p, length(C), 0, [], [])
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF
+        nep1::NEP1
+        nep2::NEP2
     end
 
-    function PNEP(B::AbstractVector{S}, Cmf::AbstractVector{<:AbstractMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
-        p = length(B) - 1
-        q = length(Cmf)
-        r = 0
-        f = Vector{Function}(q)
-        C = Vector{S}(q)
-        # L and U factors of the low rank nonlinear part C
-        L = Vector{S}(0)
-        U = Vector{S}(0)
-
-        if q > 0
-            for k = 1:q
-                f[k] = Cmf[k].f
-                C[k] = Cmf[k].A
-            end
-
-            if isa(Cmf[1], LowRankMatrixAndFunction)
-                L = Vector{S}(q)
-                U = Vector{S}(q)
-                for k = 1:q
-                    L[k] = Cmf[k].L
-                    U[k] = Cmf[k].U
-                    r += size(U[k], 2)
-                    # if C is not specified, create it from LU factors
-                    isempty(C[k]) && (C[k] = L[k] * U[k]')
-                end
-            end
-        end
-
-        spmf = SPMF_NEP([B; C], [monomials(p); f])
-        return PNEP(spmf, spmf.n, p, q, r, L, U)
+    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
+    # Creator functions for SumNEP
+    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
+        return SPMFSumNEP(nep1,nep2);
+    end
+    function SumNEP(nep1::NEP,nep2::NEP)
+        return GenericSumNEP(nep1,nep2);
     end
 
-    function monomials(p)
-        f = Vector{Function}(p+1)
-        for k=1:p+1
-            f[k] = x -> x^(k-1)
-        end
-        return f
-    end
+    # Delegate all interface functions
+    size(snep::AnySumNEP)=size(snep.nep1)
+    size(snep::AnySumNEP,d)=size(snep.nep1,d)
+    compute_Mlincomb(nep::AnySumNEP, λ::Number, V;a=ones(eltype(λ),size(V,2))) =
+        (compute_Mlincomb(nep.nep1, λ, V,a=a)+compute_Mlincomb(nep.nep2,λ,V,a=a))
+    compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
+        (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
+    compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
+        (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
 
-    function compute_Mder(nep::PNEP, λ::T, i::Int = 0) where T<:Number
-        compute_Mder(nep.spmf, λ, i)
-    end
+    # For SPMFSumNEP, also delegate the get_Av() and get_fv()
+    get_Av(nep::SPMFSumNEP)=[get_Av(nep.nep1),get_Av(nep.nep2)];
+    get_fv(nep::SPMFSumNEP)=[get_fv(nep.nep1),get_fv(nep.nep2)];
 
-    function compute_Mlincomb(nep::PNEP, λ::T, v::Vector{T}) where T<:Number
-        compute_Mlincomb(nep.spmf, λ, v)
-    end
-
-    function compute_Mlincomb(nep::PNEP, λ::T, V::Matrix{T}) where T<:Number
-        compute_Mlincomb(nep.spmf, λ, V)
-    end
 
    #######################################################
    ### Functions in common for many NEPs in NEPTypes
@@ -926,12 +863,12 @@ with monomial matrices plus a nonlinear part with matrices and functions.
     size(nep::NEP,dim=-1)
  Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,PNEP},dim)
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
         return nep.n
     end
 
 
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP,PNEP})
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
         return (nep.n,nep.n)
     end
 

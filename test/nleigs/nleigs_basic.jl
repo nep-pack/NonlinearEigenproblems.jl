@@ -5,9 +5,11 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
+    using NleigsTypes
     using Gallery
     using IterativeSolvers
     using Base.Test
@@ -18,7 +20,9 @@ include("../../src/nleigs/method_nleigs.jl")
 
 n = 2
 B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
-nep = PNEP(B, Vector{MatrixAndFunction{Matrix{Float64}}}(0))
+pep = PEP(B)
+emptynep = LowRankFactorizedNEP(Float64, 2) # Create empty low rank NEP
+nep = SumNEP(pep, emptynep)
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
