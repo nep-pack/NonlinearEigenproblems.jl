@@ -438,14 +438,14 @@ function prepare_inputs(nep::NEP, Sigma::AbstractVector{CT}, Xi::AbstractVector{
     q = 0
     r = 0
     # TODO: support other types of NEPs here, e.g. SumNEP{PEP, SPMF}
-    spmf = isa(nep, SumNEP{PEP,LowRankFactorizedNEP{N}} where N<:Any)
+    spmf = isa(nep, SPMFSumNEP{PEP,LowRankFactorizedNEP{N}} where N<:Any)
 
     if !spmf
         BBCC = Matrix{T}(0, 0)
         if isa(nep, AbstractSPMF)
             warn("NLEIGS performs better if the problem is split into a ",
                 "polynomial part and a nonlinear part. If possible, create ",
-                "the problem as a $(SumNEP{PEP,LowRankFactorizedNEP}) instead of a $(typeof(nep).name).")
+                "the problem as a $(SPMFSumNEP{PEP,LowRankFactorizedNEP}) instead of a $(typeof(nep).name).")
         end
         #BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
     else
