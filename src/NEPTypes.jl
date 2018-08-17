@@ -144,6 +144,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function}, Schur_fact = false)
 
+         if (size(AA,1)==0)
+             return SPMF_NEP(0); # Create empty SPMF_NEP. 
+         end
          n=size(AA[1],1);
 
          if     (size(AA,1) != 1) && (size(AA,2) == 1) # Stored as column vector - do nothing
@@ -948,8 +951,13 @@ SPMF with low rank LU factors for each matrix.
                 end
             end
         end
-
         return LowRankFactorizedNEP(SPMF_NEP(A, f), r, L, U)
+    end
+ 
+    function LowRankFactorizedNEP(n) # Create an empty LowRankFactorizedNEP
+        #LowRankFactorizedNEP(SPMF_NEP(n),0,Vector{Matrix{Float64}}(0),Vector{Matrix{Float64}}(0))
+        nep=LowRankFactorizedNEP(Vector{MatrixAndFunction{Matrix{Float64}}}(0)) # 
+        return nep
     end
 
     # forward function calls to SPMF
