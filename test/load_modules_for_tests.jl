@@ -4,6 +4,7 @@ push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
 using NEPCore
 using NEPTypes
+using NleigsTypes
 using LinSolvers
 using NEPSolver
 using Gallery
