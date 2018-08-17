@@ -387,8 +387,8 @@ module Gallery
           nep = nep_gallery("nlevp_native_gun")
           K, M = get_Av(nep.nep1);
           W1, W2 = get_Av(nep.nep2);
-          c1 = LowRankMatrixAndFunction(W1, nep.fi[3])
-          c2 = LowRankMatrixAndFunction(W2, nep.fi[4])
+          c1 = LowRankMatrixAndFunction(W1, get_fv(nep.nep2)[1])
+          c2 = LowRankMatrixAndFunction(W2, get_fv(nep.nep2)[2])
           return SumNEP(PEP([K, M]), LowRankFactorizedNEP([c1, c2]))
       else
           error("The name $name is not supported in NEP-Gallery.")
