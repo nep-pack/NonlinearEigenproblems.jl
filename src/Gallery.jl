@@ -376,19 +376,22 @@ module Gallery
           M=read_sparse_matrix(gunbase * "M.txt")
           W1=read_sparse_matrix(gunbase * "W1.txt")
           W2=read_sparse_matrix(gunbase * "W2.txt")
-          minusop= S-> -S
+          minusop= S-> S
           oneop= S -> eye(size(S,1),size(S,2))
           sqrt1op= S -> 1im*sqrtm(Matrix(S))
           sqrt2op= S -> 1im*sqrtm(Matrix(S)-108.8774^2*eye(S))
-          AA=[K,M,W1,W2];
-          nep=SPMF_NEP(AA,[oneop,minusop,sqrt1op,sqrt2op])
+          AA=[K,-M,W1,W2];
+          pep=PEP([K,-M]);
+          sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
+          nep=SumNEP(pep,sqrtnep);
           return nep;
       elseif name == "nlevp_gun_low_rank_nep"
           nep = nep_gallery("nlevp_native_gun")
-          K, M, W1, W2 = nep.A
+          K, M = get_Av(nep.nep1);
+          W1, W2 = get_Av(nep.nep2);
           c1 = LowRankMatrixAndFunction(W1, nep.fi[3])
           c2 = LowRankMatrixAndFunction(W2, nep.fi[4])
-          return SumNEP(PEP([K, -M]), LowRankFactorizedNEP([c1, c2]))
+          return SumNEP(PEP([K, M]), LowRankFactorizedNEP([c1, c2]))
       else
           error("The name $name is not supported in NEP-Gallery.")
       end
