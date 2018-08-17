@@ -371,7 +371,6 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         return PEP(n,AA)
     end
 
-
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
         if (issparse(nep))
