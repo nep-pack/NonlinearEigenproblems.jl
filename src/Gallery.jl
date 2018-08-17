@@ -376,12 +376,10 @@ module Gallery
           M=read_sparse_matrix(gunbase * "M.txt")
           W1=read_sparse_matrix(gunbase * "W1.txt")
           W2=read_sparse_matrix(gunbase * "W2.txt")
-          minusop= S-> S
-          oneop= S -> eye(size(S,1),size(S,2))
+          # The gun problem is a sum of a PEP and a problem containing square roots.
+          pep=PEP([K,-M]);
           sqrt1op= S -> 1im*sqrtm(Matrix(S))
           sqrt2op= S -> 1im*sqrtm(Matrix(S)-108.8774^2*eye(S))
-          AA=[K,-M,W1,W2];
-          pep=PEP([K,-M]);
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;
