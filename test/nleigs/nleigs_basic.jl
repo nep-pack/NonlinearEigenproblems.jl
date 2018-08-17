@@ -20,9 +20,9 @@ include("../../src/nleigs/method_nleigs.jl")
 
 n = 2
 B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
-pep = PEP(B);
-emptynep=LowRankFactorizedNEP(2) # Create empty lowrankNEP
-nep=SumNEP(pep,emptynep)
+pep = PEP(B)
+emptynep = LowRankFactorizedNEP(Float64, 2) # Create empty low rank NEP
+nep = SumNEP(pep, emptynep)
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 

@@ -100,11 +100,9 @@ function LowRankFactorizedNEP(Amf::AbstractVector{<:AbstractMatrixAndFunction{S}
     return LowRankFactorizedNEP(SPMF_NEP(A, f), r, L, U)
 end
 
-function LowRankFactorizedNEP(n) # Create an empty LowRankFactorizedNEP
-    #LowRankFactorizedNEP(SPMF_NEP(n),0,Vector{Matrix{Float64}}(0),Vector{Matrix{Float64}}(0))
-    nep=LowRankFactorizedNEP(Vector{MatrixAndFunction{Matrix{Float64}}}(0)) #
-    return nep
-end
+# Create an empty LowRankFactorizedNEP
+LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
+    LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(0), Vector{Matrix{T}}(0))
 
 # forward function calls to SPMF
 compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
