@@ -7,7 +7,7 @@ module NEPTypes
     export REP
     export SPMF_NEP
     export AbstractSPMF
-    export SumNEP
+    export SumNEP, SPMFSumNEP, GenericSumNEP
 
     export MatrixAndFunction
     export LowRankMatrixAndFunction
@@ -819,21 +819,38 @@ julia> M1+M2  # Same as M
   6.03155    -7.26726  -6.42828
 ```
 """
-    struct SumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
         nep1::NEP1
         nep2::NEP2
     end
 
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
+    # Creator functions for SumNEP
+    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
+        return SPMFSumNEP(nep1,nep2);
+    end
+    function SumNEP(nep1::NEP,nep2::NEP)
+        return GenericSumNEP(nep1,nep2);
+    end
+
     # Delegate all interface functions
-    size(snep::SumNEP)=size(snep.nep1)
-    size(snep::SumNEP,d)=size(snep.nep1,d)
-    compute_Mlincomb(nep::SumNEP, λ::Number, V;a=ones(eltype(λ),size(V,2))) =
+    size(snep::AnySumNEP)=size(snep.nep1)
+    size(snep::AnySumNEP,d)=size(snep.nep1,d)
+    compute_Mlincomb(nep::AnySumNEP, λ::Number, V;a=ones(eltype(λ),size(V,2))) =
         (compute_Mlincomb(nep.nep1, λ, V,a=a)+compute_Mlincomb(nep.nep2,λ,V,a=a))
-    compute_Mder(nep::SumNEP, λ::Number,i::Int = 0) =
+    compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
-    compute_MM(nep::SumNEP, S::Matrix,V::Matrix) =
+    compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
         (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
 
+    # For SPMFSumNEP, also delegate the get_Av() and get_fv()
+    get_Av(nep::SPMFSumNEP)=[get_Av(nep.nep1),get_Av(nep.nep2)];
+    get_fv(nep::SPMFSumNEP)=[get_fv(nep.nep1),get_fv(nep.nep2)];
 
 
     ############################################################################
