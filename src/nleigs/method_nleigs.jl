@@ -140,7 +140,7 @@ function nleigs(
         functions = [monomials(p); nep.nep2.spmf.fi]
         sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, functions)
         # Construct first generalized divided difference
-        computeD && push!(D, constructD(0, L, n, p, q, r, nep.nep2.spmf.A, sgdd))
+        computeD && push!(D, constructD(0, L, n, p, q, r, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
         # Norm of first generalized divided difference
         nrmD[1] = maximum(abs.(sgdd[:,1]))
     end
@@ -202,7 +202,7 @@ function nleigs(
 
             # rational divided differences
             if spmf && computeD
-                push!(D, constructD(k, L, n, p, q, r, nep.nep2.spmf.A, sgdd))
+                push!(D, constructD(k, L, n, p, q, r, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
             end
             N += 1
 
