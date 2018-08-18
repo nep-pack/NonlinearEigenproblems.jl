@@ -136,10 +136,9 @@ function nleigs(
         sgdd = Matrix{CT}(0, 0)
     else
         # Compute scalar generalized divided differences
-        functions = [monomials(P.p); nep.nep2.spmf.fi]
-        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, functions)
+        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, get_fv(nep))
         # Construct first generalized divided difference
-        computeD && push!(D, constructD(0, P, n, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
+        computeD && push!(D, constructD(0, P, sgdd))
         # Norm of first generalized divided difference
         nrmD[1] = maximum(abs.(sgdd[:,1]))
     end
@@ -201,7 +200,7 @@ function nleigs(
 
             # rational divided differences
             if P.spmf && computeD
-                push!(D, constructD(k, P, n, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
+                push!(D, constructD(k, P, sgdd))
             end
             N += 1
 
@@ -444,7 +443,9 @@ end
 
 # constructD: Construct generalized divided difference
 #   nb  number
-function constructD(nb, P, n, BC, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
+function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
+    n = size(P.nep, 1)
+    BC = get_Av(P.nep)
     if !P.is_low_rank || nb <= P.p
         D = spzeros(CT, n, n)
         for ii = 1:(P.p+1+P.q)
@@ -599,11 +600,3 @@ function resize_matrix(A, rows, cols)
     resized[1:size(A, 1), 1:size(A, 2)] = A
     return resized
 end
-
-function monomials(p)
-    f = Vector{Function}(p+1)
-    for k=1:p+1
-        f[k] = x -> x^(k-1)
-    end
-    return f
- end

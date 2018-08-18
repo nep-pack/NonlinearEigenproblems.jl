@@ -851,8 +851,8 @@ julia> M1+M2  # Same as M
         (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
 
     # For SPMFSumNEP, also delegate the get_Av() and get_fv()
-    get_Av(nep::SPMFSumNEP)=[get_Av(nep.nep1),get_Av(nep.nep2)];
-    get_fv(nep::SPMFSumNEP)=[get_fv(nep.nep1),get_fv(nep.nep2)];
+    get_Av(nep::SPMFSumNEP) = [get_Av(nep.nep1); get_Av(nep.nep2)]
+    get_fv(nep::SPMFSumNEP) = [get_fv(nep.nep1); get_fv(nep.nep2)]
 
 
    #######################################################

@@ -11,6 +11,8 @@ export LowRankFactorizedNEP
 import Base.size
 import NEPCore.compute_Mder
 import NEPCore.compute_Mlincomb
+import NEPTypes.get_Av
+import NEPTypes.get_fv
 
 struct NleigsNEP{S<:AbstractMatrix{<:Real}}
     nep::NEP            # Original NEP problem
@@ -138,5 +140,8 @@ compute_Mlincomb(nep::LowRankFactorizedNEP, λ::T, V::Union{Vector{T}, Matrix{T}
 
 size(nep::LowRankFactorizedNEP) = size(nep.spmf)
 size(nep::LowRankFactorizedNEP, dim) = size(nep.spmf, dim)
+
+get_Av(nep::LowRankFactorizedNEP) = get_Av(nep.spmf)
+get_fv(nep::LowRankFactorizedNEP) = get_fv(nep.spmf)
 
 end
