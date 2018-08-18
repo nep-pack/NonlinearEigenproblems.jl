@@ -55,7 +55,7 @@ function nleigs(
         minit::Int = 20,
         maxit::Int = 200,
         tol::T = 1e-10,
-        tollin::T = max(tol/10, T(100*eps())),
+        tollin::T = max(tol/10, 100*eps(T)),
         v::Vector{T} = randn(T, size(nep, 1)),
         errmeasure::Function = default_errmeasure(nep::NEP),
         isfunm::Bool = true,
@@ -74,9 +74,7 @@ function nleigs(
     X = Matrix{CT}(0, 0)
     res = Vector{T}(0)
 
-    #@code_warntype prepare_inputs{T}(nep)
-    #return
-    spmf,iL,L,LL,UU,p,q,r,BBCC = prepare_inputs(T, nep)
+    P = get_nleigs_nep(T, nep)
     n = size(nep, 1)
     n == 1 && (maxdgr = maxit + 1)
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
@@ -85,13 +83,13 @@ function nleigs(
     # Initialization
     if static
         V = zeros(CT, n, 1)
-    elseif !spmf
+    elseif !P.spmf
         V = zeros(CT, (b+1)*n, b+1)
     else
-        if r == 0 || b < p
+        if !P.is_low_rank || b < P.p
             V = zeros(CT, (b+1)*n, b+1)
         else
-            V = zeros(CT, p*n+(b-p+1)*r, b+1)
+            V = zeros(CT, P.p*n+(b-P.p+1)*P.r, b+1)
         end
     end
     H = zeros(CT, b+1, b)
@@ -110,7 +108,7 @@ function nleigs(
         gamma,_ = discretizepolygon(Sigma)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
         sigma = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
-        _,xi,beta = lejabagby(sigma[1:maxdgr+2], Xi, gamma, maxdgr+2, true, p)
+        _,xi,beta = lejabagby(sigma[1:maxdgr+2], Xi, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
         if isempty(nodes)
             gamma,nodes = discretizepolygon(Sigma, true)
@@ -118,30 +116,30 @@ function nleigs(
             gamma,_ = discretizepolygon(Sigma)
         end
         nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
-        sigma,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, p)
+        sigma,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
         gamma,_ = discretizepolygon(Sigma)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
-        sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, p)
+        sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, P.p)
     end
     xi[maxdgr+2] = NaN # not used
-    if (!spmf || !isfunm) && length(sigma) != length(unique(sigma))
+    if (!P.spmf || !isfunm) && length(sigma) != length(unique(sigma))
         error("All interpolation nodes must be distinct when no matrix " *
             "functions are used for computing the generalized divided differences.")
     end
 
     # Rational Newton coefficients
     range = 1:maxdgr+2
-    if !spmf
+    if !P.spmf
         D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), sigma[range], xi[range], beta[range])
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
         sgdd = Matrix{CT}(0, 0)
     else
         # Compute scalar generalized divided differences
-        functions = [monomials(p); nep.nep2.spmf.fi]
+        functions = [monomials(P.p); nep.nep2.spmf.fi]
         sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, functions)
         # Construct first generalized divided difference
-        computeD && push!(D, constructD(0, L, n, p, q, r, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
+        computeD && push!(D, constructD(0, P, n, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
         # Norm of first generalized divided difference
         nrmD[1] = maximum(abs.(sgdd[:,1]))
     end
@@ -171,16 +169,16 @@ function nleigs(
         if l > 0 && (b == 1 || mod(l+1, b) == 1)
             nb = round(Int, 1 + l/b)
             Vrows = size(V, 1)
-            if !spmf
+            if !P.spmf
                 Vrows = kn+b*n
             else
                 if expand
-                    if r == 0 || l + b < p
+                    if !P.is_low_rank || l + b < P.p
                         Vrows = kn+b*n
-                    elseif l < p-1
-                        Vrows = p*n+(nb*b-p+1)*r
-                    else # l >= p-1
-                        Vrows = kn+b*r
+                    elseif l < P.p-1
+                        Vrows = P.p*n+(nb*b-P.p+1)*P.r
+                    else # l >= P.p-1
+                        Vrows = kn+b*P.r
                     end
                 end
             end
@@ -195,20 +193,20 @@ function nleigs(
 
         if expand
             # set length of vectors
-            if r == 0 || k < p
+            if !P.is_low_rank || k < P.p
                 kn += n
             else
-                kn += r
+                kn += P.r
             end
 
             # rational divided differences
-            if spmf && computeD
-                push!(D, constructD(k, L, n, p, q, r, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
+            if P.spmf && computeD
+                push!(D, constructD(k, P, n, [nep.nep1.A; nep.nep2.spmf.A], sgdd))
             end
             N += 1
 
             # monitoring norms of divided difference matrices
-            if !spmf
+            if !P.spmf
                 push!(nrmD, vecnorm(D[k+1])) # Frobenius norm
             else
                 # The below can cause out of bounds in sgdd if there's
@@ -232,17 +230,17 @@ function nleigs(
                         end
                         sigma[k+1:kmax+1] = nodes[1:kmax-k+1]
                     end
-                    if !spmf || computeD
+                    if !P.spmf || computeD
                         D = D[1:k]
                     end
                     xi = xi[1:k]
                     beta = beta[1:k]
                     nrmD = nrmD[1:k]
                     if static
-                        if r == 0 || k < p
+                        if !P.is_low_rank || k < P.p
                             kn -= n
                         else
-                            kn -= r
+                            kn -= P.r
                         end
                         V = resize_matrix(V, kn, b+1)
                     end
@@ -278,7 +276,7 @@ function nleigs(
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
+            w = backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
 
             # orthogonalization
             Vview = view(V, 1:kn, 1:l)
@@ -398,62 +396,34 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
     Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
     Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
-#  Derive some variables from the input NEP:
-#   spmf       whether the NEP is given as a PNEP type (sum of products of matrices and functions)
-#   iL         vector with indices of L-factors
-#   L          cell array {L1,L2,...,Lq}
-#   LL         matrix [L1,L2,...,Lq]
-#   UU         matrix [U1,U2,...,Uq]
-#   p          order of polynomial part (length of B = p + 1)
-#   q          length of f and C
-#   r          sum of ranks of low rank matrices in C
-#   BBCC       matrix [B0;B1;...;Bp;C1;C2;...;Cq]
-function prepare_inputs(::Type{T}, nep::NEP) where T<:Real
-    iL = Vector{Int}(0)
-    L = Vector{Matrix{T}}(0)
-    LL = Matrix{T}(0, 0)
-    UU = Matrix{T}(0, 0)
-    #L = Vector{eltype(nep.spmf.A)}(0)
-    #LL = similar(nep.spmf.A[1], 0, 0)
-    #UU = similar(nep.spmf.A[1], 0, 0)
-    p = -1
-    q = 0
-    r = 0
-    # TODO: support other types of NEPs here, e.g. SumNEP{PEP, SPMF}
-    spmf = isa(nep, SPMFSumNEP{PEP,LowRankFactorizedNEP{N}} where N<:Any)
-
-    if !spmf
-        BBCC = Matrix{T}(0, 0)
-        if isa(nep, AbstractSPMF)
-            warn("NLEIGS performs better if the problem is split into a ",
-                "polynomial part and a nonlinear part. If possible, create ",
-                "the problem as a $(SPMFSumNEP{PEP,LowRankFactorizedNEP}) instead of a $(typeof(nep).name).")
-        end
-        #BBCC = isempty(nep.B) ? similar(nep.C[1].A, 0, 0) : similar(nep.B[1], 0, 0)
-    else
-        p = length(nep.nep1.A) - 1
-        q = length(nep.nep2.spmf.A)
-        if q > 0
-            # L and U factors of the low rank nonlinear part
-            L = nep.nep2.L
-            if !isempty(L)
-                UU = hcat(nep.nep2.U...)::eltype(nep.nep2.U)
-                r = nep.nep2.r
-                iL = zeros(Int, r)
-                c = 0
-                for ii = 1:q
-                    ri = size(L[ii], 2)
-                    iL[c+1:c+ri] = ii
-                    c += ri
-                end
-                LL = hcat(L...)::eltype(L)
-            end
-        end
-
-        BBCC = vcat(nep.nep1.A..., nep.nep2.spmf.A...)::eltype(nep.nep1.A)
+# Create NleigsNEP instance
+function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
+    if !isa(nep, SPMFSumNEP{PEP,LowRankFactorizedNEP{N}} where N<:Any)
+        return NleigsNEP(T, nep)
     end
 
-    return spmf,iL,L,LL,UU,p,q,r,BBCC
+    p = length(nep.nep1.A) - 1
+    q = length(nep.nep2.spmf.A)
+    BBCC = vcat(nep.nep1.A..., nep.nep2.spmf.A...)::eltype(nep.nep1.A)
+
+    if q == 0 || isempty(nep.nep2.L)
+        return NleigsNEP(nep, p, q, BBCC)
+    end
+
+    # L and U factors of the low rank nonlinear part
+    L = nep.nep2.L
+    UU = hcat(nep.nep2.U...)::eltype(nep.nep2.U)
+    r = nep.nep2.r
+    iL = zeros(Int, r)
+    c = 0
+    for ii = 1:q
+        ri = size(L[ii], 2)
+        iL[c+1:c+ri] = ii
+        c += ri
+    end
+    LL = hcat(L...)::eltype(L)
+
+    return NleigsNEP(nep, p, q, BBCC, r, iL, L, LL, UU)
 end
 
 # scgendivdiffs: compute scalar generalized divided differences
@@ -474,16 +444,16 @@ end
 
 # constructD: Construct generalized divided difference
 #   nb  number
-function constructD(nb, L, n, p, q, r, BC, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
-    if r == 0 || nb <= p
+function constructD(nb, P, n, BC, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
+    if !P.is_low_rank || nb <= P.p
         D = spzeros(CT, n, n)
-        for ii = 1:(p+1+q)
+        for ii = 1:(P.p+1+P.q)
             D += sgdd[ii,nb+1] * BC[ii]
         end
     else
         D = []
-        for ii = 1:q
-            d = sgdd[p+1+ii,nb+1] * L[ii]
+        for ii = 1:P.q
+            d = sgdd[P.p+1+ii,nb+1] * P.L[ii]
             D = ii == 1 ? d : hcat(D, d)
         end
     end
@@ -492,20 +462,20 @@ end
 
 # backslash: Backslash or left matrix divide
 #   wc       continuation vector
-function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, BBCC, sgdd)
-    n = size(nep, 1)
+function backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
+    n = size(P.nep, 1)
     shift = sigma[k+1]
 
     # construction of B*wc
     Bw = zeros(eltype(wc), size(wc))
     # first block (if low rank)
-    if r > 0
-        i0b = (p-1)*n + 1
-        i0e = p*n
-        if !spmf || computeD
-            Bw[1:n] = -D[p+1] * wc[i0b:i0e] / beta[p+1]
+    if P.is_low_rank
+        i0b = (P.p-1)*n + 1
+        i0e = P.p*n
+        if !P.spmf || computeD
+            Bw[1:n] = -D[P.p+1] * wc[i0b:i0e] / beta[P.p+1]
         else
-            Bw[1:n] = -sum(reshape(BBCC * wc[i0b:i0e], n, :) .* sgdd[:,p+1].', 2) / beta[p+1];
+            Bw[1:n] = -sum(reshape(P.BBCC * wc[i0b:i0e], n, :) .* sgdd[:,P.p+1].', 2) / beta[P.p+1];
         end
     end
     # other blocks
@@ -514,16 +484,16 @@ function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma,
     for ii = 1:N
         # range of block i+1
         i1b = i0e + 1
-        if r == 0 || ii < p
+        if !P.is_low_rank || ii < P.p
             i1e = i0e + n
         else
-            i1e = i0e + r
+            i1e = i0e + P.r
         end
         # compute block i+1
-        if r == 0 || ii != p
+        if !P.is_low_rank || ii != P.p
             Bw[i1b:i1e] = wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
         else
-            Bw[i1b:i1e] = UU' * wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
+            Bw[i1b:i1e] = P.UU' * wc[i0b:i0e] + beta[ii+1]/xi[ii]*wc[i1b:i1e]
         end
         # range of next block i
         i0b = i1b
@@ -533,42 +503,42 @@ function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma,
     # construction of z0
     z = copy(Bw)
     i1b = n + 1
-    if r == 0 || p > 1
+    if !P.is_low_rank || P.p > 1
         i1e = 2*n
     else
-        i1e = n + r
+        i1e = n + P.r
     end
     nu = beta[2]*(1 - shift/xi[1])
     z[i1b:i1e] = 1/nu * z[i1b:i1e]
     for ii = 1:N
         # range of block i+2
         i2b = i1e + 1
-        if r == 0 || ii < p-1
+        if !P.is_low_rank || ii < P.p-1
             i2e = i1e + n
         else
-            i2e = i1e + r
+            i2e = i1e + P.r
         end
         # add extra term to z0
-        if !spmf || computeD
-            if r == 0 || ii != p
+        if !P.spmf || computeD
+            if !P.is_low_rank || ii != P.p
                 z[1:n] -= D[ii+1] * z[i1b:i1e]
             end
         else
-            if r == 0 || ii < p
+            if !P.is_low_rank || ii < P.p
                 z[1:n] -= sum(reshape(BBCC * z[i1b:i1e], n, :) .* sgdd[:,ii+1].', 2)
-            elseif ii > p
-                dd = sgdd[p+2:end,ii+1]
-                z[1:n] -= LL*(z[i1b:i1e] .* dd[iL])
+            elseif ii > P.p
+                dd = sgdd[P.p+2:end,ii+1]
+                z[1:n] -= P.LL*(z[i1b:i1e] .* dd[P.iL])
             end
         end
         # update block i+2
         if ii < N
             mu = shift - sigma[ii+1]
             nu = beta[ii+2] * (1 - shift/xi[ii+1])
-            if r == 0 || ii != p-1
+            if !P.is_low_rank || ii != P.p-1
                 z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * z[i1b:i1e]
             else # i == p-1
-                z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * UU'*z[i1b:i1e]
+                z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * P.UU'*z[i1b:i1e]
             end
         end
         # range of next block i+1
@@ -579,9 +549,9 @@ function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma,
     # solving Alam x0 = z0
     w = zeros(eltype(wc), size(wc))
     if ((!expand || k > kconv) && reuselu == 1) || reuselu == 2
-        w[1:n] = lusolve(λ -> compute_Mder(nep, λ), shift, z[1:n]/beta[1])
+        w[1:n] = lusolve(λ -> compute_Mder(P.nep, λ), shift, z[1:n]/beta[1])
     else
-        w[1:n] = compute_Mder(nep, shift) \ (z[1:n]/beta[1])
+        w[1:n] = compute_Mder(P.nep, shift) \ (z[1:n]/beta[1])
     end
 
     # substitutions x[i+1] = mu/nu*x[i] + 1/nu*Bw[i+1]
@@ -590,18 +560,18 @@ function backslash(wc, nep, spmf, iL, LL, UU, p, q, r, reuselu, computeD, sigma,
     for ii = 1:N
         # range of block i+1
         i1b = i0e + 1
-        if r == 0 || ii < p
+        if !P.is_low_rank || ii < P.p
             i1e = i0e + n
         else
-            i1e = i0e + r
+            i1e = i0e + P.r
         end
         # compute block i+1
         mu = shift - sigma[ii]
         nu = beta[ii+1] * (1 - shift/xi[ii])
-        if r == 0 || ii != p
+        if !P.is_low_rank || ii != P.p
             w[i1b:i1e] = mu/nu * w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
         else
-            w[i1b:i1e] = mu/nu * UU'*w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
+            w[i1b:i1e] = mu/nu * P.UU'*w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
         end
         # range of next block i
         i0b = i1b

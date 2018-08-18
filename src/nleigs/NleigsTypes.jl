@@ -1,7 +1,9 @@
 module NleigsTypes
 
+using NEPCore
 using NEPTypes
 
+export NleigsNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
 export LowRankFactorizedNEP
@@ -9,6 +11,29 @@ export LowRankFactorizedNEP
 import Base.size
 import NEPCore.compute_Mder
 import NEPCore.compute_Mlincomb
+
+struct NleigsNEP{S<:AbstractMatrix{<:Real}}
+    nep::NEP            # Original NEP problem
+    spmf::Bool          # Whether this NEP is a sum a products of matrices and functions
+    p::Int              # Order of polynomial part
+    q::Int              # Number of nonlinear matrices and functions
+    BBCC::S             # The polynomial and nonlinear matrices concatenated vertically
+    is_low_rank::Bool   # Whether the nonlinear matrices of this NEP have an attached low rank LU factorization
+    r::Int              # Sum of ranks of low rank nonlinear matrices
+    iL::Vector{Int}     # Vector with indices of L-factors
+    L::Vector{S}        # Vector of L factors of low rank LU factorization of nonlinear part
+    LL::S               # The L factors concatenated vertically
+    UU::S               # The U factors concatenated vertically
+end
+
+NleigsNEP(::Type{T}, nep::NEP) where T<:Real =
+    NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{T}(0, 0), Matrix{T}(0, 0))
+
+NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Real =
+    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{T}(0, 0), Matrix{T}(0, 0))
+
+NleigsNEP(nep::NEP, p, q, BBCC, r, iL, L, LL, UU) =
+    NleigsNEP(nep, true, p, q, BBCC, true, r, iL, L, LL, UU)
 
 abstract type AbstractMatrixAndFunction{S<:AbstractMatrix{<:Real}} end
 

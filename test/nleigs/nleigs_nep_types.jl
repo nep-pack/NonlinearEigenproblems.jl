@@ -36,10 +36,8 @@ end
 
 @testset "NLEIGS: SPMF_NEP" begin
     spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
-    @test_warn "create the problem as a" begin
-        @time X, lambda = nleigs(spmf_nep, Sigma, maxit=10, v=ones(n), blksize=5)
-        nleigs_verify_lambdas(4, spmf_nep, X, lambda)
-    end
+    @time X, lambda = nleigs(spmf_nep, Sigma, maxit=10, v=ones(n), blksize=5)
+    nleigs_verify_lambdas(4, spmf_nep, X, lambda)
 end
 
 struct CustomNLEIGSNEP <: NEP
