@@ -1,9 +1,10 @@
 include("evalrat.jl")
 
-# Compute rational divided differences for the function fun (can be matrix
-# valued), using differencing. The sigma's need to be distinct. For scalar
-# functions or non-distinct sigma's it may be better to use
-# ratnewtoncoeffsm.
+"""
+Compute rational divided differences for the function fun (can be matrix
+valued), using differencing. The sigmas need to be distinct. For scalar
+functions or non-distinct sigmas it may be better to use `ratnewtoncoeffsm`.
+"""
 function ratnewtoncoeffs(fun, sigma::AbstractVector{CT}, xi::AbstractVector{T}, beta::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
     m = length(sigma)
     D = Vector{Matrix{CT}}(m)

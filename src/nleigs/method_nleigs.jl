@@ -410,10 +410,14 @@ function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
     return NleigsNEP(nep, p, q, BBCC, r, iL, L, LL, UU)
 end
 
-# scgendivdiffs: compute scalar generalized divided differences
-#   sigma   discretization of target set
-#   xi      discretization of singularity set
-#   beta    scaling factors
+"""
+Compute scalar generalized divided differences.
+
+# Arguments
+- `sigma`: Discretization of target set.
+- `xi`: Discretization of singularity set.
+- `beta`: Scaling factors.
+"""
 function scgendivdiffs(sigma::AbstractVector{CT}, xi, beta, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
     sgdd = zeros(CT, length(pff), maxdgr+2)
     for ii = 1:length(pff)
@@ -426,8 +430,7 @@ function scgendivdiffs(sigma::AbstractVector{CT}, xi, beta, maxdgr, isfunm, pff)
     return sgdd
 end
 
-# constructD: Construct generalized divided difference
-#   nb  number
+"Construct generalized divided difference for number `nb`."
 function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     n = size(P.nep, 1)
     BC = get_Av(P.nep)
@@ -446,8 +449,7 @@ function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     return D
 end
 
-# backslash: Backslash or left matrix divide
-#   wc       continuation vector
+"Backslash or left matrix divide for continuation vector `wc`."
 function backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
     n = size(P.nep, 1)
     shift = sigma[k+1]
@@ -567,8 +569,7 @@ function backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, k
     return w
 end
 
-# in_sigma: True for points inside Sigma
-#   z      (complex) points
+"True for complex points `z` inside polygonal set `Sigma`."
 function in_sigma(z::AbstractVector{CT}, Sigma::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
     if length(Sigma) == 2 && isreal(Sigma)
         realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]])

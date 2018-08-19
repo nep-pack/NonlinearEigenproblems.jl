@@ -1,5 +1,5 @@
 """
-Returns whether the given point (px, py) is inside or on the edge of the
+Return whether the given point (px, py) is inside or on the edge of the
 polygon defined by vertices (polyx, polyy). Uses Hormann-Agathos
 "Point in Polygon" algorithm to support arbitrary polygons.
 Implementation inspired by 'isinside' in Luxor

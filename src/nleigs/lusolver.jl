@@ -42,9 +42,7 @@ function lufactors(funA, v)
     LUFactors(A, lufact(A))
 end
 
-# lusolve: Solve x for funA(v)*x = y, with cached lu-factors
-#   v  value for evaluating funA(v)
-#   y  right hand side
+"Solve x for funA(v)*x = y, with cached lu-factors."
 function lusolve(funA, v, y)
     @log(1, "LU solve for $v (cache size: $(length(lucache)))")
     lu = get!(() -> lufactors(funA, v), lucache, v)

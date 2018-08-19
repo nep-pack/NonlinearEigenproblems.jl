@@ -1,5 +1,7 @@
-# Compute rational divided differences for the SCALAR function fun, using
-# matrix functions. fm has to be a handle to a matrix function fm(A).
+"""
+Compute rational divided differences for the scalar function fun, using matrix
+functions. `fm` has to be a function object representing a matrix function.
+"""
 function ratnewtoncoeffsm(fm, sigma::AbstractVector{CT}, xi::AbstractVector{T}, beta::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
     m = length(sigma) - 1
 

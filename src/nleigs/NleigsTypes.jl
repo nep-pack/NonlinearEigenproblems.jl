@@ -45,7 +45,7 @@ struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}}
     f::Function
 end
 
-"Creates low rank LU factorization of A"
+"Create low rank LU factorization of A."
 function LowRankMatrixAndFunction(A::AbstractMatrix{<:Real}, f::Function)
     L, U = low_rank_lu_factors(A)
     LowRankMatrixAndFunction(A, L, U, f)
@@ -81,9 +81,7 @@ function compactlu(L, U)
     return L[:,select], U[select,:]
 end
 
-"""
-SPMF with low rank LU factors for each matrix.
-"""
+"SPMF with low rank LU factors for each matrix."
 struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
     spmf::SPMF_NEP
     r::Int          # Sum of ranks of matrices
@@ -111,7 +109,7 @@ function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) 
     return LowRankFactorizedNEP(SPMF_NEP(A, f), r, L, U)
 end
 
-# Create an empty LowRankFactorizedNEP
+"Create an empty LowRankFactorizedNEP."
 LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
     LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(0), Vector{Matrix{T}}(0))
 

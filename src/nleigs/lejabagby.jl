@@ -1,9 +1,10 @@
-#LEJABAGBY generate Leja-Bagby points (a,b) on (A,B), with
-#  scaling factors beta such that the uniform norm on the control set C is
-#  1. Greedy search for a minimum is performed on B. If keepA is true then
-#  the points in the output a will be exactly those of A, otherwise the
-#  points in a are also chosen via greedy search on A. If forceInf is a
-#  positive integer, the first forceInf poles in b will be infinity.
+"""
+Generate Leja-Bagby points (a,b) on (A,B), with scaling factors beta such that
+the uniform norm on the control set C is 1. Greedy search for a minimum is
+performed on B. If keepA is true then the points in the output a will be exactly
+those of A, otherwise the points in a are also chosen via greedy search on A. If
+forceInf is a positive integer, the first forceInf poles in b will be infinity.
+"""
 function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVector{CT}, m::Int, keepA::Bool=false, forceInf::Int=0) where {T<:Real, CT<:Complex{T}}
     if minimum(abs.(B)) < 1e-9
         warn("There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability.")
