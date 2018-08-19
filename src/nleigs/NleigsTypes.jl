@@ -7,6 +7,7 @@ export NleigsNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
 export LowRankFactorizedNEP
+export NleigsSolutionDetails
 
 import Base.size
 import NEPCore.compute_Mder
@@ -126,5 +127,34 @@ size(nep::LowRankFactorizedNEP, dim) = size(nep.spmf, dim)
 
 get_Av(nep::LowRankFactorizedNEP) = get_Av(nep.spmf)
 get_fv(nep::LowRankFactorizedNEP) = get_fv(nep.spmf)
+
+struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
+    "matrix of Ritz values in each iteration"
+    Lam::AbstractMatrix{CT}
+
+    "matrix of residuals in each iteraion"
+    Res::AbstractMatrix{T}
+
+    "vector of interpolation nodes"
+    sigma::AbstractVector{CT}
+
+    "vector of poles"
+    xi::AbstractVector{T}
+
+    "vector of scaling parameters"
+    beta::AbstractVector{T}
+
+    "vector of norms of generalized divided differences (in function handle
+    case) or maximum of absolute values of scalar divided differences in
+    each iteration (in matrix function case)"
+    nrmD::AbstractVector{T}
+
+    "number of iterations until linearization converged"
+    kconv::Int
+end
+
+NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
+    Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
+    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
 end

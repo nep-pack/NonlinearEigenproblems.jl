@@ -29,14 +29,14 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `nodes`: Prefixed interpolation nodes (only when leja is 0 or 1).
 - `reuselu`: Reuse of LU-factorizations (0 = no, 1 = only after converged linearization, 2 = always).
 - `blksize`: Block size for pre-allocation.
-- `return_details`: Whether to return solution details (see NLEIGSSolutionDetails).
+- `return_details`: Whether to return solution details (see NleigsSolutionDetails).
 - `check_error_every`: Check for convergence / termination every this number of iterations.
 
 # Return values
 - `X`: Matrix of eigenvectors of the nonlinear eigenvalue problem NLEP inside the target set Sigma.
 - `λ`: Corresponding vector of eigenvalues.
 - `res`: Corresponding residuals.
-- `details`: Solution details, if requested (see NLEIGSSolutionDetails).
+- `details`: Solution details, if requested (see NleigsSolutionDetails).
 
 # References
 - S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class
@@ -348,7 +348,7 @@ function nleigs(
     end
     lureset()
 
-    details = NLEIGSSolutionDetails{T,CT}()
+    details = NleigsSolutionDetails{T,CT}()
 
     if return_details
         Lam = Lam[1:l,1:l]
@@ -360,40 +360,11 @@ function nleigs(
             nrmD = nrmD[1:k]
             warn("NLEIGS: Linearization not converged after $maxdgr iterations")
         end
-        details = NLEIGSSolutionDetails(Lam, Res, sigma, xi, beta, nrmD, kconv)
+        details = NleigsSolutionDetails(Lam, Res, sigma, xi, beta, nrmD, kconv)
     end
 
     return X[:,conv], lam[conv], res[conv], details
 end
-
-struct NLEIGSSolutionDetails{T<:Real, CT<:Complex{T}}
-    "matrix of Ritz values in each iteration"
-    Lam::AbstractMatrix{CT}
-
-    "matrix of residuals in each iteraion"
-    Res::AbstractMatrix{T}
-
-    "vector of interpolation nodes"
-    sigma::AbstractVector{CT}
-
-    "vector of poles"
-    xi::AbstractVector{T}
-
-    "vector of scaling parameters"
-    beta::AbstractVector{T}
-
-    "vector of norms of generalized divided differences (in function handle
-    case) or maximum of absolute values of scalar divided differences in
-    each iteration (in matrix function case)"
-    nrmD::AbstractVector{T}
-
-    "number of iterations until linearization converged"
-    kconv::Int
-end
-
-NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDetails(
-    Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
-    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
 "Create NleigsNEP instance, exploiting the type of the input NEP as much as possible"
 function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
