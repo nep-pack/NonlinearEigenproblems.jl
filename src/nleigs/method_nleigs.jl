@@ -395,17 +395,31 @@ NLEIGSSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NLEIGSSolutionDe
     Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
     Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
-# Create NleigsNEP instance
+"Create NleigsNEP instance, exploiting the type of the input NEP as much as possible"
 function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
-    if !isa(nep, SPMFSumNEP{PEP,LowRankFactorizedNEP{N}} where N<:Any)
+    # Most generic case: No coefficient matrices, all we have is M(λ)
+    if !isa(nep, AbstractSPMF)
         return NleigsNEP(T, nep)
     end
 
-    p = length(nep.nep1.A) - 1
-    q = length(nep.nep2.spmf.A)
-    BBCC = vcat(nep.nep1.A..., nep.nep2.spmf.A...)::eltype(nep.nep1.A)
+    Av = get_Av(nep)
+    BBCC = vcat(Av...)::eltype(Av)
 
-    if q == 0 || isempty(nep.nep2.L)
+    # Polynomial eigenvalue problem
+    if isa(nep, PEP)
+        return NleigsNEP(nep, length(Av) - 1, 0, BBCC)
+    end
+
+    # If we can't separate the problem into a PEP + SPMF, consider it purely SPMF
+    if !isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
+        return NleigsNEP(nep, -1, length(Av), BBCC)
+    end
+
+    p = length(get_Av(nep.nep1)) - 1
+    q = length(get_Av(nep.nep2))
+
+    # Case when there is no low rank structure to exploit
+    if q == 0 || !isa(nep.nep2, LowRankFactorizedNEP{S} where S<:Any)
         return NleigsNEP(nep, p, q, BBCC)
     end
 

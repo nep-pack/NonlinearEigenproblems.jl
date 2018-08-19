@@ -37,14 +37,7 @@ NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Real =
 NleigsNEP(nep::NEP, p, q, BBCC, r, iL, L, LL, UU) =
     NleigsNEP(nep, true, p, q, BBCC, true, r, iL, L, LL, UU)
 
-abstract type AbstractMatrixAndFunction{S<:AbstractMatrix{<:Real}} end
-
-struct MatrixAndFunction{S<:AbstractMatrix{<:Real}} <: AbstractMatrixAndFunction{S}
-    A::S
-    f::Function
-end
-
-struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}} <: AbstractMatrixAndFunction{S}
+struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}}
     A::S
     L::S        # L factor of LU-factorized A
     U::S        # U factor of LU-factorized A
@@ -97,33 +90,23 @@ struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
     U::Vector{S}    # Low rank U factors of matrices
 end
 
-function LowRankFactorizedNEP(Amf::AbstractVector{<:AbstractMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
+function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
     q = length(Amf)
     r = 0
     f = Vector{Function}(q)
     A = Vector{S}(q)
-    # L and U factors of low rank A
-    L = Vector{S}(0)
-    U = Vector{S}(0)
+    L = Vector{S}(q)
+    U = Vector{S}(q)
 
-    if q > 0
-        for k = 1:q
-            f[k] = Amf[k].f
-            A[k] = Amf[k].A
-        end
-
-        if isa(Amf[1], LowRankMatrixAndFunction)
-            L = Vector{S}(q)
-            U = Vector{S}(q)
-            for k = 1:q
-                L[k] = Amf[k].L
-                U[k] = Amf[k].U
-                r += size(U[k], 2)
-                # if A is not specified, create it from LU factors
-                isempty(A[k]) && (A[k] = L[k] * U[k]')
-            end
-        end
+    for k = 1:q
+        f[k] = Amf[k].f
+        L[k] = Amf[k].L
+        U[k] = Amf[k].U
+        # if A is not specified, create it from LU factors
+        A[k] = isempty(Amf[k].A) ? L[k] * U[k]' : Amf[k].A
+        r += size(U[k], 2)
     end
+
     return LowRankFactorizedNEP(SPMF_NEP(A, f), r, L, U)
 end
 
