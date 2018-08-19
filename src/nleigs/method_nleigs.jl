@@ -80,6 +80,8 @@ function nleigs(
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
     b = blksize
 
+    lu_cache = LUCache(CT, displaylevel > 1)
+
     # Initialization
     if static
         V = zeros(CT, n, 1)
@@ -145,11 +147,10 @@ function nleigs(
     if !isfinite(nrmD[1]) # check for NaN
         error("The generalized divided differences must be finite.");
     end
-    lureset()
 
     # Rational Krylov
     if reuselu == 2
-        v = lusolve(λ -> compute_Mder(nep, λ), sigma[1], v/norm(v))
+        v = lusolve(lu_cache, λ -> compute_Mder(nep, λ), sigma[1], v/norm(v))
     else
         v = compute_Mder(nep, sigma[1]) \ (v/norm(v))
     end
@@ -275,7 +276,7 @@ function nleigs(
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
+            w = backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
 
             # orthogonalization
             Vview = view(V, 1:kn, 1:l)
@@ -346,7 +347,6 @@ function nleigs(
         # increment k
         k += 1
     end
-    lureset()
 
     details = NleigsSolutionDetails{T,CT}()
 
@@ -450,7 +450,7 @@ function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
 end
 
 "Backslash or left matrix divide for continuation vector `wc`."
-function backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
+function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
     n = size(P.nep, 1)
     shift = sigma[k+1]
 
@@ -537,7 +537,7 @@ function backslash(wc, P, reuselu, computeD, sigma, k, D, beta, N, xi, expand, k
     # solving Alam x0 = z0
     w = zeros(eltype(wc), size(wc))
     if ((!expand || k > kconv) && reuselu == 1) || reuselu == 2
-        w[1:n] = lusolve(λ -> compute_Mder(P.nep, λ), shift, z[1:n]/beta[1])
+        w[1:n] = lusolve(lu_cache, λ -> compute_Mder(P.nep, λ), shift, z[1:n]/beta[1])
     else
         w[1:n] = compute_Mder(P.nep, shift) \ (z[1:n]/beta[1])
     end

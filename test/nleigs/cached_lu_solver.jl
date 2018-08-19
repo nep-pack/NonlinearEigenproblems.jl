@@ -4,25 +4,32 @@ end
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "lusolver.jl"))
 
-function lusolve_and_verify(funA, shift, y)
-    x = lusolve(funA, shift, y)
-    @test funA(shift) * x ≈ y
+new_cache() = LUCache(Float64, false)
+
+cache = new_cache()
+
+function lusolve_and_verify(fun, v, y)
+    x = lusolve(cache, fun, v, y)
+    @test fun(v) * x ≈ y
 end
 
 macro testcache(ex, cache_size)
     :(
         $(esc(ex));
-        @test length(lucache) == $cache_size
+        @test length(cache.lu) == $cache_size
     )
 end
 
-function run_tests(funA, y)
-    @testcache lureset() 0
-    @testcache lusolve_and_verify(funA, 2.5, y) 1
-    @testcache lusolve_and_verify(funA, 2.5, y) 1
-    @testcache lusolve_and_verify(funA, 3.5, y) 2
-    @testcache lureset() 0
-    @testcache lusolve_and_verify(funA, 2.5, y) 1
+function run_tests(fun, y)
+    global cache = new_cache()
+
+    @testcache lusolve_and_verify(fun, 2.5, y) 1
+    @testcache lusolve_and_verify(fun, 2.5, y) 1
+    @testcache lusolve_and_verify(fun, 3.5, y) 2
+
+    global cache = new_cache()
+
+    @testcache lusolve_and_verify(fun, 2.5, y) 1
 end
 
 srand(0)
@@ -34,13 +41,13 @@ y = collect(1.0:n)
 
     # sparse matrix
     A = sprandn(n, n, .1)
-    funA = shift -> A + im * shift * speye(n, n)
-    run_tests(funA, y)
+    fun = v -> A + im * v * speye(n, n)
+    run_tests(fun, y)
 
     # full matrix
     A = randn(n, n)
-    funA = shift -> A + im * shift * eye(n, n)
-    run_tests(funA, y)
+    fun = v -> A + im * v * eye(n, n)
+    run_tests(fun, y)
 end
 
 #=
