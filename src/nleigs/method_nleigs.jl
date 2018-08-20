@@ -405,9 +405,19 @@ function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
         iL[c+1:c+ri] = ii
         c += ri
     end
-    LL = hcat(L...)::eltype(L)
 
-    return NleigsNEP(nep, p, q, BBCC, r, iL, L, LL, UU)
+    # Store L factors in a compact format to speed up system solves later on
+    LL = Vector{SparseVector{eltype(L[1]),Int}}(0)
+    iLr = Vector{Int}(0)
+    for ri = 1:size(nep, 1)
+        row = reduce(vcat, [L[i][ri,:] for i=1:length(L)])
+        if nnz(row) > 0
+            push!(LL, row)
+            push!(iLr, ri)
+        end
+    end
+
+    return NleigsNEP(nep, p, q, BBCC, r, iL, iLr, L, LL, UU)
 end
 
 """
@@ -515,8 +525,12 @@ function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi,
             if !P.is_low_rank || ii < P.p
                 z[1:n] -= sum(reshape(BBCC * z[i1b:i1e], n, :) .* sgdd[:,ii+1].', 2)
             elseif ii > P.p
-                dd = sgdd[P.p+2:end,ii+1]
-                z[1:n] -= P.LL*(z[i1b:i1e] .* dd[P.iL])
+                @inbounds for i = 1:length(P.iLr)
+                    for j = 1:length(P.LL[i].nzval)
+                        ind = P.LL[i].nzind[j]
+                        z[P.iLr[i]] -= P.LL[i].nzval[j] * z[i1b+ind-1] * sgdd[P.p+1+P.iL[ind],ii+1]
+                    end
+                end
             end
         end
         # update block i+2

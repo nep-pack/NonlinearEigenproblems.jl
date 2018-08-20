@@ -23,7 +23,7 @@ function solve(LU::LUFactors{Base.LinAlg.LU{Complex{Float64},Matrix{Complex{Floa
 end
 
 function solve(LU::LUFactors{Base.SparseArrays.UMFPACK.UmfpackLU{Complex{Float64},Int64}}, y::AbstractVector{<:Number})
-    x = LU.LU \ y
+    LU.LU \ y
     # improving accuracy is not needed with UmfpackLU
 end
 

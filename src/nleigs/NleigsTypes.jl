@@ -15,7 +15,7 @@ import NEPCore.compute_Mlincomb
 import NEPTypes.get_Av
 import NEPTypes.get_fv
 
-struct NleigsNEP{S<:AbstractMatrix{<:Number}}
+struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
     nep::NEP            # Original NEP problem
     spmf::Bool          # Whether this NEP is a sum a products of matrices and functions
     p::Int              # Order of polynomial part
@@ -24,19 +24,20 @@ struct NleigsNEP{S<:AbstractMatrix{<:Number}}
     is_low_rank::Bool   # Whether the nonlinear matrices of this NEP have an attached low rank LU factorization
     r::Int              # Sum of ranks of low rank nonlinear matrices
     iL::Vector{Int}     # Vector with indices of L-factors
+    iLr::Vector{Int}    # Vector with row indices of L-factors that have any entries present
     L::Vector{S}        # Vector of L factors of low rank LU factorization of nonlinear part
-    LL::S               # The L factors concatenated vertically
+    LL::Vector{SparseVector{T,Int}} # Rows of L factors concatenated into vectors (only rows with nnz > 0 are stored)
     UU::S               # The U factors concatenated vertically
 end
 
 NleigsNEP(::Type{T}, nep::NEP) where T<:Number =
-    NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{T}(0, 0), Matrix{T}(0, 0))
+    NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(0), Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{SparseVector{T,Int}}(0, 0), Matrix{T}(0, 0))
 
 NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
-    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{T}(0, 0), Matrix{T}(0, 0))
+    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(0), Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{SparseVector{T,Int}}(0, 0), Matrix{T}(0, 0))
 
-NleigsNEP(nep::NEP, p, q, BBCC, r, iL, L, LL, UU) =
-    NleigsNEP(nep, true, p, q, BBCC, true, r, iL, L, LL, UU)
+NleigsNEP(nep::NEP, p, q, BBCC, r, iL, iLr, L, LL, UU) =
+    NleigsNEP(nep, true, p, q, BBCC, true, r, iL, iLr, L, LL, UU)
 
 struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Number}}
     A::S
