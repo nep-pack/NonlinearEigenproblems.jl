@@ -24,7 +24,7 @@ println("\n\nTest: Betcke-Voss")
 
 println("\nTesting a PEP")
 nep = nep_gallery("pep0",60)
-TOL = 1e-10;
+TOL = 1e-11;
 λ,u = jd_betcke(nep, tol=TOL, maxit=55, Neig = 3, displaylevel=1, v0=ones(size(nep,1)))
 println(" Smallest eigevalues found: \n λ: ",λ)
 Dc,Vc = polyeig(nep,DefaultEigSolver)
@@ -35,12 +35,6 @@ println(" 6 smallest eigenvalues according to the absolute values: \n ", Dc[c[1:
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
 @test norm(compute_Mlincomb(nep,λ[3],u[:,3])) < TOL
-
-# Test realtive errors in eig-values and take hight for complex conjuagte values
-@test  abs(Dc[c[1]]-λ[1])/abs(Dc[c[1]]) < TOL*1e2
-@test (abs(Dc[c[2]]-λ[2])/abs(Dc[c[2]]) < TOL && abs(Dc[c[3]]-λ[3])/abs(Dc[c[3]]) < TOL*1e2) ||
-      (abs(Dc[c[3]]-λ[2])/abs(Dc[c[3]]) < TOL && abs(Dc[c[2]]-λ[3])/abs(Dc[c[2]]) < TOL*1e2)
-
 
 
 
@@ -96,8 +90,12 @@ end
 @testset "Effenberger" begin
 println("\n\nTest: Effenberger")
 
-    nep = nep_gallery("pep0",4)
-    @test_throws ErrorException λ,u=jd_effenberger(nep)
+TOL = 1e-8
+nep = nep_gallery("pep0",200)
+λ,u=jd_effenberger(nep, Neig=2, displaylevel=1, tol=TOL, maxit=100)
+@test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
+@test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
+
 end
 
 end

@@ -3,6 +3,15 @@ export jd_betcke
 export jd_effenberger
 
 using IterativeSolvers
+using NEPTypes.DeflatedNEP
+
+import NEPTypes.create_proj_NEP
+import NEPTypes.set_projectmatrices!
+import Base.size
+import NEPCore.compute_Mder
+import NEPCore.compute_Mlincomb
+import NEPCore.compute_MM
+
 
 
    """
@@ -96,7 +105,7 @@ function jd_betcke(::Type{T},
     V_memory[:,1] = u
     if( projtype == :PetrovGalerkin ) # Petrov-Galerkin uses a left (test) and a right (trial) space
         W_memory = zeros(T, size(nep,1), maxit+1)
-        W_memory[:,1] = compute_Mlincomb(nep,λ,u);
+        W_memory[:,1] = compute_Mlincomb(nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
     else # Galerkin uses the same trial and test space
         W_memory = view(V_memory, :, :);
     end
@@ -195,86 +204,249 @@ function jd_effenberger(::Type{T},
 
     # Allocations and preparations
     λ::T = T(λ)
+    u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u)
     target::T = T(target)
     tol::real(T) = real(T)(tol)
     conveig = 0
-    Λ::Matrix{T} = zeros(T,Neig,Neig)
-    X::Matrix{T} = zeros(T,n,Neig)
+    #TODO: Optimize memory allocation here!
+    Λ::Matrix{T} = zeros(T,0,0)
+    X::Matrix{T} = zeros(T,n,0)
 
     # Initial check for convergence
     err = errmeasure(λ,u)
     @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
-        Λ[conveig,conveig] = λ
-        X[:,conveig] = u
+        Λ = reshape(λ,1,1)
+        X = reshape(u,n,1)
     end
     if (conveig == Neig)
         return (Λ,X)
     end
 
+    deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
+    tot_nrof_its = 0
 
-    error("Not implemented yet.")
+    while true
+
+        λ, u, nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig)
+        conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
+        tot_nrof_its += nrof_its
+
+        # Expand the partial Schur factorization with the computed solution
+        Λ = hcat(Λ, u[(n+1):end]);
+        Λ = vcat(Λ, hcat(zeros(size(Λ,1))',λ))
+        X = hcat(X, u[1:n]);
+
+        # Check for fulfillment. If so, compute the eigenpairs
+        if (conveig == Neig)
+            λ_vec,uv = eig(Λ)
+            u_vec = X * uv
+            return λ_vec, u_vec
+        end
+
+        deflated_nep = effenberger_deflation(nep,Λ,X)
+    end
+
+    error("This should not be possible.")
 end
 
-# function jd_project_and_inner_eigsolve!(u, s, proj_nep::Proj_NEP, deflated_nep::DeflatedNEP, V, W, conveig, target, inner_solver_method, k, T)
-#     X = deflated_nep.V0
-#     Λ = deflated_nep.S0
-#
-#     n = size(deflated_nep.orgnep,1)
-#     nn = size(Λ,1)
-#
-#     W1 = W[1:n,:]
-#     W2 = W[(n+1):(n+nn),:]
-#     V1 = V[1:n,:]
-#     V2 = V[(n+1):(n+nn),:]
-#     set_projectmatrices!(proj_nep, W1, V1)
-#
-# conveig = nn
-#
-#     # find the eigenvalue with smallest absolute value of projected NEP
-#     λv,sv = inner_solve(inner_solver_method, T, proj_nep,
-#                         j = conveig+1, # For SG-iter
-#                         λv = zeros(T,conveig+1),
-#                         σ=zero(T),
-#                         Neig=conveig+1)
-#     λ,s[1:k] = jd_eig_sorter(λv, sv, conveig+1, target)
-#     s[:] = s/norm(s)
-#
-#     # the approximate eigenvector
-#     u[:] = V*s[1:k]
-#     return λ
-# end
-#
-#
-# function jd_inner_linear_solver(deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol)::Vector{T} where {T<:Number}
-#     # If it is a deflated NEP we solve with a Schur complement strategy such that
-#     # the user specified solve of M can be used.
-#     # (M, U; X^T, 0)(v1;v2) = (y1;y2)
-#     # OBS: Assume minimality index = 1
-#     # OBS: Forms the Schur complement. Assume that only a few eigenvalues are deflated
-#
-#     X = deflated_nep.V0
-#     Λ = deflated_nep.S0
-#
-#     n = size(deflated_nep.orgnep,1)
-#     nn = size(Λ,1)
-#     pk1 = pk[1:n]
-#     pk2 = pk[n+1:(n+nn)]
-#     if nn == 0 # Corner case, actually empty
-#         U = X[:,[]]
-#     else
-#         U = (compute_MM(deflated_nep,Λ,X) - compute_MM(deflated_nep,λ.*one(Λ),X) ) / (Λ - λ.*one(Λ))
-#     end
-#
-#     # Precompute some reused entities
-#     pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
-#     Z::Matrix{T} = zeros(T,n,nn)
-#     for i = 1:nn
-#         Z[:,i] = lin_solve(linsolver, vec(U[:,i]), tol=tol) # Z = M^{-1}U
-#     end
-#     S = -X'*Z #Schur complement
-#     v2 = S\(pk2 - X'*pk1tilde)
-#     v1 = pk1tilde - Z*v2
-#     return vcat(v1,v2)
-# end
+
+
+function jd_effenberger_inner(::Type{T},
+                              deflated_nep::DeflatedNEP, #TODO: MY TYPE HERE!
+                              maxit::Int,
+                              nrof_its::Int,
+                              conveig::Int,
+                              inner_solver_method::Type,
+                              orthmethod::Type,
+                              errmeasure::Function,
+                              linsolvercreator::Function,
+                              tol::Number,
+                              target::Number,
+                              displaylevel::Int,
+                              Neig::Int) where {T<:Number}
+    # Allocations and preparations
+    X = deflated_nep.V0
+    Λ = deflated_nep.S0
+    orgnep = deflated_nep.orgnep
+
+    n = size(orgnep,1) # Size of original problem
+    m = size(Λ,1) # Size of deflated subspace
+
+    λ::T = T(target)
+    u::Vector{T} = rand(T,n+m); u[:] = u/norm(u)
+
+    pk::Vector{T} = zeros(T,n+m)
+    s::Vector{T} = zeros(T,maxit+1-nrof_its)
+    proj_nep = create_proj_NEP(deflated_nep)
+    dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
+
+    # TODO: This memory allocation can potentially be moved out to outer function for opimization
+    V_memory::Matrix{T} = zeros(T, n+m, maxit+1-nrof_its)
+    V_memory[:,1] = u
+    W_memory::Matrix{T} = zeros(T, n+m, maxit+1-nrof_its)
+    W_memory[:,1] = u#compute_Mlincomb(deflated_nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
+
+    TXΛ = compute_MM(orgnep, Λ, X) # TODO: This is 0 if Λ X is an invariant pair
+
+    err = Inf
+    for loop_counter = (nrof_its+1):maxit
+        k = loop_counter - nrof_its # Which index are we doing on THIS specific level of deflation
+        V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
+        v = view(V_memory, :, k+1); w = view(W_memory, :, k+1); # next vector position
+
+        # Project and solve the projected NEP
+        set_projectmatrices!(proj_nep, W, V)
+        λv,sv = inner_solve(inner_solver_method, T, proj_nep,
+                            λv = zeros(T,conveig+1),
+                            σ=zero(T),
+                            Neig=conveig+1)
+        λ,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
+        s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
+
+        # the approximate eigenvector
+        u[:] = V*s[1:k]
+
+        # Compute residual and check for convergence
+        rk = compute_Mder(deflated_nep,λ,0)*u # TODO: Optimize this without matrix access
+        err = norm(rk) # TODO: Can we use a custom error measure?  # TODO: #Error measure, see (9) in Effenberger
+        @ifd(print("Iteration: ", loop_counter, " converged eigenvalues: ", conveig, " errmeasure: ", err, " space dimension: ", k,"\n"))
+        if (err < tol) #Frist check, no other eiganvalues can be converged
+            @ifd(print("One eigenvalue converged. Deflating.\n"))
+            return (λ, u, loop_counter)
+        end
+
+        # Extend the basis
+        # The following analogy can be made if w is chosen as [y_k; v_k] in (26) in Effenberger
+        # Solve for basis extension using comment on top of page 367 of Betcke
+        # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
+        # since u in V. OBS: Non-standard in JD-literature
+        pk = compute_Mder(deflated_nep,λ,1)*u # TODO: Optimize this without matrix access
+        linsolver = linsolvercreator(orgnep, λ)
+        jd_inner_effenberger_linear_solver!(v, deflated_nep, λ, linsolver, pk, tol, TXΛ)
+        orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
+        w[:] = rk
+        orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
+
+
+
+    end
+
+    msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
+    throw(NoConvergenceException(zeros(3),zeros(3,3),err,msg)) # TODO: Fix this to a proper throw of converged eigenvalues
+
+end
+
+
+
+function compute_U(orgnep, μ, X, Λ, TXΛ)
+    if size(Λ,1) == 0 # Corner case, actually empty
+        U = X[:,[]]
+    else
+    μI = μ*one(Λ)
+    U = (TXΛ - compute_MM(orgnep, μI, X))/(Λ - μI)
+    end
+    return U
+end
+function compute_Uv(orgnep, μ, X, Λ, TXΛ, v)
+    μI = μ*one(Λ)
+    t = (Λ - μI)\v
+    return TXΛ*t - compute_MM(orgnep, μI, X)*t
+end
+
+
+
+function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol, TXΛ) where{T}
+    # If it is a deflated NEP we solve with a Schur complement strategy such that
+    # the user specified solve of M can be used.
+    # (M, U; X^T, 0)(v1;v2) = (y1;y2)
+    # OBS: Assume minimality index = 1
+    # OBS: Forms the Schur complement. Assume that only a few eigenvalues are deflated
+
+    X = deflated_nep.V0
+    Λ = deflated_nep.S0
+    orgnep = deflated_nep.orgnep
+    n = size(orgnep,1)
+    m = size(Λ,1)
+
+    v1 = view(v, 1:n)
+    v2 = view(v, (n+1):(n+m))
+    pk1 = pk[1:n]
+    pk2 = pk[(n+1):(n+m)]
+    U = compute_U(orgnep, λ, X, Λ, TXΛ)
+
+    # Precompute some reused entities
+    pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
+    Z::Matrix{T} = zeros(T,n,m)
+    for i = 1:m
+        Z[:,i] = lin_solve(linsolver, vec(U[:,i]), tol=tol) # Z = M^{-1}U
+    end
+    S = -X'*Z #Schur complement
+    v2[:] = S\(pk2 - X'*pk1tilde)
+    v1[:] = pk1tilde - Z*v2
+
+    # M = compute_Mder(deflated_nep,λ,0)
+    # vv = M\pk
+    # println(norm(v-vv))
+    return v
+end
+
+
+
+mutable struct JD_Inner_Effenberger_Projected_NEP <: Proj_NEP
+    orgnep
+    org_proj_nep
+    X
+    Λ
+    V1
+    V2
+    W1
+    W2
+    function JD_Inner_Effenberger_Projected_NEP(nep::DeflatedNEP)
+        org_proj_nep = create_proj_NEP(nep.orgnep)
+        this = new(nep, org_proj_nep, nep.V0, nep.S0)
+        return this
+    end
+end
+
+
+function create_proj_NEP(deflated_nep::DeflatedNEP)
+    if (size(deflated_nep.S0)==0) #OBS: Not type-stable. But avoids corner cases
+        return create_proj_NEP(deflated_nep.orgnep)
+    else
+        return JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
+    end
+end
+
+
+function set_projectmatrices!(nep::JD_Inner_Effenberger_Projected_NEP, W, V)
+    n = size(nep.X,1)
+    m = size(nep.Λ,1)
+    nep.V1 = V[1:n, :]
+    nep.V2 = V[(n+1):(n+m), :]
+    nep.W1 = W[1:n, :]
+    nep.W2 = W[(n+1):(n+m), :]
+    set_projectmatrices!(nep.org_proj_nep, nep.W1, nep.V1)
+end
+
+
+function size(nep::JD_Inner_Effenberger_Projected_NEP,dim=-1)
+    n = size(nep.W1, 2);
+    if (dim == -1)
+        return (n,n)
+    else
+        return n
+    end
+end
+
+
+compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number)=compute_Mder(nep,λ,0)
+function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Integer)
+# THIS IS WRONG!!!
+# TODO: Need to compute derivative of U and remove the third term for higher derivative computations
+    W1T_M_V1 = compute_Mder(nep.org_proj_nep,λ,i)
+    W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ, compute_MM(nep.orgnep.orgnep, nep.Λ, nep.X)) * nep.V2
+    W2T_A_V1 = nep.W2' * nep.X' * nep.V1 #OBS: Here we assume minimality index = 1
+    return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
+end
