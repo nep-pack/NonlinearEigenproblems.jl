@@ -5,7 +5,7 @@ end
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
-@testset "discretizepolygon" begin
+@testset "discretizepolygon: concave polygon" begin
     poly = [0.0; 0+10im; 5+5im; 10+10im; 10+0im]
 
     expected_boundary_points = [
@@ -34,11 +34,38 @@ include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
     @test length(interior) >= nr_interior
     @test all(p -> inpolygon(real(p), imag(p), real.(poly), imag.(poly)), interior)
+end
 
-    # test narrow sigma
+@testset "discretizepolygon: narrow sigma" begin
     boundary, interior = discretizepolygon([-10.0-2im, 10-2im, 10+2im, -10+2im], true, 100, 5)
     @test length(boundary) == 100 + 5
     @test length(interior) >= 5
+end
+
+@testset "discretizepolygon: too narrow sigma" begin
+    @test_throws ErrorException discretizepolygon([-10.0-0.2im, 10-0.2im, 10+0.2im, -10+0.2im], true, 100, 5)
+end
+
+@testset "discretizepolygon: unit disk" begin
+    boundary, interior = discretizepolygon(Vector{Complex128}(0), true, 100, 100)
+
+    @test length(boundary) == 101
+    @test all(isapprox.(abs.(boundary[1:100]), 1.0, rtol = 100*eps()))
+
+    @test length(interior) >= 100
+    @test all(abs.(interior) .< 1)
+end
+
+@testset "discretizepolygon: Chebyshev points" begin
+    p1 = -2.0 - 1im
+    p2 = 2.0 + 1im
+    boundary, interior = discretizepolygon([p1, p2], true, 100, 100)
+
+    @test length(boundary) == 102
+    @test all(imag((boundary-p1) / (p2-p1)) .== 0)
+
+    @test length(interior) >= 100
+    @test all(imag((interior-p1) / (p2-p1)) .== 0)
 end
 
 # To visualize:

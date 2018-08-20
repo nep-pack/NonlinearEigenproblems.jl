@@ -7,10 +7,13 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
+    using NleigsTypes
     using Gallery
+    using IterativeSolvers
     using Base.Test
 end
 
@@ -21,17 +24,12 @@ as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
 n = 1
 C = [as_matrix(0.2), as_matrix(-0.6)]
 f = [λ -> sqrtm(λ), λ -> sin.(2*λ)]
-# TODO: clean up the below
-c1 = SPMFLowRankMatrix(C[1], Array{Float64}(0,n), Array{Float64}(0,n), f[1])
-c2 = SPMFLowRankMatrix(C[2], Array{Float64}(0,n), Array{Float64}(0,n), f[2])
-nep = SPMFLowRankNEP(n, Vector{Matrix{Float64}}(0), [c1, c2])
+nep = SPMF_NEP([C[1], C[2]], [f[1], f[2]])
 
-funres = (λ, X) -> map(i -> norm(f[1](λ[i])*(C[1]*X[:,i]) + f[2](λ[i])*(C[2]*X[:,i])), 1:length(λ))
 Sigma = complex([0.01, 4])
-options = Dict("disp" => 1, "tol" => 100*eps(), "maxit" => 100, "v0" => ones(n), "funres" => funres, "leja" => 2, "isfunm" => false)
 
 @testset "NLEIGS: Scalar (polynomial)" begin
-    @time X, lambda = nleigs(nep, Sigma, options=options)
+    @time X, lambda = nleigs(nep, Sigma, displaylevel=1, maxit=100, v=ones(n), leja=2, isfunm=false)
 
     # single eigenvalue converges
     nleigs_verify_lambdas(1, nep, X, lambda)
@@ -41,7 +39,7 @@ end
     # set of poles candidates
     Xi = -logspace(-6, 5, 10000)
 
-    @time X, lambda = nleigs(nep, Sigma, Xi=Xi, options=options)
+    @time X, lambda = nleigs(nep, Sigma, Xi=Xi, displaylevel=1, maxit=100, v=ones(n), leja=2, isfunm=false)
 
     # three eigenvalues converge
     nleigs_verify_lambdas(3, nep, X, lambda)

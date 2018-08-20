@@ -22,16 +22,15 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v0 = randn(nep.n)
+    v = randn(size(nep, 1))
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
-    funres = (Lam, X) -> particle_residual(Lam, X, nep)
 
-    return nep, Sigma, Xi, v0, nodes, funres, xmin, xmax
+    return nep, Sigma, Xi, v, nodes, xmin, xmax
 end
 
 function particle_nep(interval)
-    # MATLAB version author: William Vandenberghe
+    # Original MATLAB version by William Vandenberghe
 
     # initialization
     # constants
@@ -141,10 +140,6 @@ function particle_nep(interval)
     for j = 1:length(SL)
         SL[j] = -1 / m / dx^2 * SL[j]
     end
-    S = Vector(length(brpts))
-    for j = 1:length(S)
-        S[j] = SL[j] * SU[j]'
-    end
 
     # nonlinear functions
     f = Vector(length(brpts))
@@ -155,25 +150,9 @@ function particle_nep(interval)
         f[j] = lambda -> expm(-sqrtm(full(m * (-lambda + brpts[j] * eye(lambda)))))
     end
 
-    # finally assemble nep instance
-    C = map(k -> SPMFLowRankMatrix(S[k], SL[k], SU[k], f[k]), 1:length(S))
-    nep = SPMFLowRankNEP(size(B[1], 1), B, C)
+    # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only
+    C = map(k -> LowRankMatrixAndFunction(similar(SL[k], 0, 0), SL[k], SU[k], f[k]), 1:length(f))
+    nep = SumNEP(PEP(B), LowRankFactorizedNEP(C))
 
     return nep, brpts, U0
-end
-
-function particle_residual(Lambda, X, nep)
-    function funA(lam, x)
-        A = nep.B[1] * x
-        for j = 2:length(nep.B)
-            A += lam^(j-1) * (nep.B[j]*x)
-        end
-        as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-        for j = 1:length(nep.C)
-            A += nep.C[j].f(as_matrix(lam))[1] * (nep.C[j].A*x)
-        end
-        return A
-    end
-
-    map(i -> norm(funA(Lambda[i], X[:,i])), 1:length(Lambda))
 end

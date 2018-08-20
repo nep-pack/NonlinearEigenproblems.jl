@@ -5,10 +5,13 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
+    using NleigsTypes
     using Gallery
+    using IterativeSolvers
     using Base.Test
 end
 
@@ -17,36 +20,53 @@ include("../../src/nleigs/method_nleigs.jl")
 
 n = 2
 B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])
-nep = SPMFLowRankNEP(n, B, Vector{SPMFLowRankMatrix{Matrix{Float64}}}(0))
-
-funres = (λ, X) -> map(i -> norm(B[1]*X[:,i] + λ[i]*(B[2]*X[:,i]) + λ[i]^2*(B[3]*X[:,i])), 1:length(λ))
+pep = PEP(B)
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
 @testset "NLEIGS: Polynomial only" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres)
-    @time X, lambda = nleigs(nep, Sigma, options=options)
-    nleigs_verify_lambdas(4, nep, X, lambda)
+    @time X, lambda = nleigs(pep, Sigma, maxit=10, v=ones(n), blksize=5)
+    nleigs_verify_lambdas(4, pep, X, lambda)
 end
 
 @testset "NLEIGS: Non-convergent linearization" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres)
-    @time X, lambda = nleigs(nep, Sigma, options=options)
-    nleigs_verify_lambdas(4, nep, X, lambda)
+    @test_warn "Linearization not converged" begin
+        @time X, lambda = nleigs(pep, Sigma, maxit=10, v=ones(n), maxdgr=5, blksize=5)
+        nleigs_verify_lambdas(4, pep, X, lambda)
+    end
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "maxdgr" => 5, "funres" => funres, "static" => true)
-    @time X, lambda = nleigs(nep, Sigma, options=options)
-    nleigs_verify_lambdas(4, nep, X, lambda)
+    @test_warn "Linearization not converged" begin
+        @time X, lambda = nleigs(pep, Sigma, maxit=10, v=ones(n), maxdgr=5, blksize=5, static=true)
+        nleigs_verify_lambdas(4, pep, X, lambda)
+    end
 end
 
-@testset "NLEIGS: return_info" begin
-    options = Dict("maxit" => 10, "v0" => ones(n), "funres" => funres, "blksize" => 5)
-    @time X, lambda, res, solution_info = nleigs(nep, Sigma, options=options, return_info=true)
-    nleigs_verify_lambdas(4, nep, X, lambda)
+@testset "NLEIGS: Non-convergent linearization (return_details)" begin
+    @test_warn "Linearization not converged" begin
+        @time X, lambda, _ = nleigs(pep, Sigma, maxit=5, v=ones(n), blksize=5, return_details=true)
+        nleigs_verify_lambdas(0, pep, X, lambda)
+    end
+end
 
-    info_λ = solution_info["Lam"][:,end]
+@testset "NLEIGS: Complex-valued matrices" begin
+    complex_B = map(X -> X + im*eye(2,2), B)
+    complex_pep = PEP(complex_B)
+    @time X, lambda, _ = nleigs(complex_pep, Sigma, maxit=10, v=ones(n), blksize=5, return_details=true)
+    nleigs_verify_lambdas(3, complex_pep, X, lambda)
+end
+
+@testset "NLEIGS: Complex-valued start vector" begin
+    @time X, lambda, _ = nleigs(pep, Sigma, maxit=10, v=ones(n) * (1+0.1im), blksize=5, return_details=true)
+    nleigs_verify_lambdas(4, pep, X, lambda)
+end
+
+@testset "NLEIGS: return_details" begin
+    @time X, lambda, res, details = nleigs(pep, Sigma, maxit=10, v=ones(n), blksize=5, return_details=true)
+    nleigs_verify_lambdas(4, pep, X, lambda)
+
+    info_λ = details.Lam[:,end]
     local in_sigma = map(p -> inpolygon(real(p), imag(p), real(Sigma), imag(Sigma)), info_λ)
     info_λ = info_λ[in_sigma]
 
@@ -55,6 +75,6 @@ end
     @test length(union(lambda, info_λ)) == 4
 
     # test that the residuals are near 0
-    info_res = solution_info["Res"][in_sigma,end]
+    info_res = details.Res[in_sigma,end]
     @test all(r -> r < 1e-12, info_res)
 end

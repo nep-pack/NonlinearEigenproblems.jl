@@ -7,9 +7,7 @@ module NEPTypes
     export REP
     export SPMF_NEP
     export AbstractSPMF
-
-    export SPMFLowRankMatrix
-    export SPMFLowRankNEP
+    export SumNEP, SPMFSumNEP, GenericSumNEP
 
     export Proj_NEP;
     export Proj_SPMF_NEP;
@@ -140,7 +138,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Array{<:AbstractMatrix,1}, fii::Array{Function,1}, Schur_fact = false)
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function}, Schur_fact = false)
+
+         if (size(AA,1)==0)
+             return SPMF_NEP(0); # Create empty SPMF_NEP.
+         end
          n=size(AA[1],1);
 
          if     (size(AA,1) != 1) && (size(AA,2) == 1) # Stored as column vector - do nothing
@@ -177,7 +179,10 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          this=SPMF_NEP(n,AA,fii,Schur_fact,Zero);
          return this
     end
-
+    function SPMF_NEP(n) # Create an empty NEP of size n x n
+         Z=zeros(n,n)
+         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z);
+    end
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
             if (size(V)==size(nep))
@@ -365,7 +370,6 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         AA=reshape(AA,size(AA,1))
         return PEP(n,AA)
     end
-
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
@@ -787,6 +791,68 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
         return false; # A projected NEP is (essentially) never sparse
     end
 
+    """
+        type SumNEP{nep1::NEP,nep2::NEP} <: NEP
+
+SumNEP corresponds to a sum of two NEPs, i.e., if nep is a SumNEP it
+is defined by
+```math
+M(λ)=M_1(λ)+M_2(λ)
+```
+where M_1 and M_2 are defined by `nep1` and `nep2`.
+
+# Example:
+```julia-repl
+julia> nep1=DEP([ones(3,3),randn(3,3)])
+julia> nep2=PEP([ones(3,3),randn(3,3),randn(3,3)])
+julia> sumnep=SumNEP(nep1,nep2);
+julia> s=3.0;
+julia> M=compute_Mder(sumnep,s);
+3×3 Array{Float64,2}:
+  8.54014     6.71897   7.12007
+ -0.943908  -13.0795   -0.621659
+  6.03155    -7.26726  -6.42828
+julia> M1=compute_Mder(nep1,s);
+julia> M2=compute_Mder(nep2,s);
+julia> M1+M2  # Same as M
+3×3 Array{Float64,2}:
+  8.54014     6.71897   7.12007
+ -0.943908  -13.0795   -0.621659
+  6.03155    -7.26726  -6.42828
+```
+"""
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
+    # Creator functions for SumNEP
+    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
+        return SPMFSumNEP(nep1,nep2);
+    end
+    function SumNEP(nep1::NEP,nep2::NEP)
+        return GenericSumNEP(nep1,nep2);
+    end
+
+    # Delegate all interface functions
+    size(snep::AnySumNEP)=size(snep.nep1)
+    size(snep::AnySumNEP,d)=size(snep.nep1,d)
+    compute_Mlincomb(nep::AnySumNEP, λ::Number, V;a=ones(eltype(λ),size(V,2))) =
+        (compute_Mlincomb(nep.nep1, λ, V,a=a)+compute_Mlincomb(nep.nep2,λ,V,a=a))
+    compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
+        (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
+    compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
+        (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
+
+    # For SPMFSumNEP, also delegate the get_Av() and get_fv()
+    get_Av(nep::SPMFSumNEP) = [get_Av(nep.nep1); get_Av(nep.nep2)]
+    get_fv(nep::SPMFSumNEP) = [get_fv(nep.nep1); get_fv(nep.nep2)]
 
 
    #######################################################
@@ -847,62 +913,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
     # Allow vector-valued V
     function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,complex(λ),reshape(V,size(V,1),1);a=a)
-    end
-
-    struct SPMFLowRankMatrix{S<:AbstractMatrix{<:Real}}
-        A::S
-        L::S    # LU factors of A, can be used for low rank matrices (optional)
-        U::S    # LU factors of A, can be used for low rank matrices (optional)
-        f       # Function
-    end
-
-    struct SPMFLowRankNEP{T<:Real, S<:AbstractMatrix{T}, V<:AbstractVector{S}, W<:AbstractVector{SPMFLowRankMatrix{S}}} <: AbstractSPMF
-        n::Int      # Matrix size (each matrix is n×n)
-        B::V        # Polynomial part
-        C::W        # Array of nonlinear matrices
-    end
-
-    # Remove once upgraded to Julia 0.7
-    SPMFLowRankNEP(a, b, c) = SPMFLowRankNEP{eltype(eltype(b)), eltype(typeof(b)), typeof(b), typeof(c)}(a, b, c)
-
-    as_matrix(x::Number) = (M = Matrix{eltype(x)}(1,1); M[1] = x; M)
-
-    function compute_Mder(nep::SPMFLowRankNEP{T}, λ::Complex{T}, i::Int = 0) where T<:Real
-        if i != 0
-            error("Derivatives not implemented")
-        else
-            if !isempty(nep.B)
-                M = complex.(copy(nep.B[1]))
-                for j = 2:length(nep.B)
-                    M += λ^(j-1) * nep.B[j]
-                end
-                c1 = 1
-            else
-                M = complex.(nep.C[1].f(as_matrix(λ))[1] * nep.C[1].A)
-                c1 = 2
-            end
-            for j = c1:length(nep.C)
-                M += nep.C[j].f(as_matrix(λ))[1] * nep.C[j].A
-            end
-            M
-        end
-    end
-
-    function compute_Mlincomb(nep::SPMFLowRankNEP{T}, λ::Complex{T}, v::Vector{Complex{T}}) where T<:Real
-        if !isempty(nep.B)
-            x = nep.B[1] * v
-            for j = 2:length(nep.B)
-                x .+= λ^(j-1) * (nep.B[j] * v)
-            end
-            c1 = 1
-        else
-            x = nep.C[1].f(as_matrix(λ))[1] * (nep.C[1].A * v)
-            c1 = 2
-        end
-        for j = c1:length(nep.C)
-            x .+= nep.C[j].f(as_matrix(λ))[1] * (nep.C[j].A * v)
-        end
-        x
+        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1);a=a)
     end
 end

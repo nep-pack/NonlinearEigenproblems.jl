@@ -1,17 +1,29 @@
 include("inpolygon.jl")
 
-# ZZ = DISCRETIZEPOLYGON(Z)
-# Discretize the polygon given by the (complex) entries of Z.
-# npts = nr of boundary points
-# nsigma = nr of interior points
+"""
+Discretize the polygon given by the (complex) entries of Z.
+
+# Arguments
+- `z`: Polygon vertices given as complex values. Pass an empty array for the unit disk.
+  Pass a single value for a disk centered at that value. Pass two values for Chebyshev points.
+- `include_interior_points`: Whether to return interior points.
+- `npts`: Number of boundary points to return.
+- `nsigma`: Minimum number of interior points (more than this may be returned).
+
+# Return values
+- `boundary_points`: Boundary points (`npts` of these), followed by the input
+  polygon vertices, with an additional final vertex equal to the first vertex.
+- `interior_points`: Interior points, if specified to be returned, otherwise an
+  empty vector. If specified, there will be at least `nsigma` of these.
+"""
 function discretizepolygon(
-    z::Vector{Complex{T}} = [],
+    z::Vector{CT} = [],
     include_interior_points::Bool = false,
     npts::Int = 10000,
-    nsigma::Int = 5) where T<:Real
+    nsigma::Int = 5) where CT<:Complex{<:Real}
 
     if isempty(z) # return unit disk
-        z = [Complex{T}(0)]
+        z = [CT(0)]
     end
 
     if length(z) == 1 # return disk centered at z
@@ -43,7 +55,7 @@ function discretizepolygon(
 
     append!(zz, z)
 
-    Z = Vector{Complex{T}}(0)
+    Z = Vector{CT}(0)
     if include_interior_points
         if length(z) == 2 # interval case
             xnr = 2*nsigma
@@ -53,30 +65,34 @@ function discretizepolygon(
             return zz, Z
         end
 
-        realz = real.(z)
-        imagz = imag.(z)
+        points = length(z) == 1 ? zz : z
+        realz = real(points)
+        imagz = imag(points)
+        real_min, real_max = extrema(realz)
+        imag_min, imag_max = extrema(imagz)
+
         iter = 0
-        spacing = (maximum(real(z)) - minimum(real(z))) / 2.0001 / sqrt(nsigma)
+        spacing = (real_max - real_min) / 2.0001 / sqrt(nsigma)
         while length(Z) < nsigma
             iter += 1
             if iter > 10
                 error("Failed to find interior polygon points. Sigma too narrow? (Note that intervals should be given by their two endpoints only.)")
             end
 
-            xnr = trunc(Int, (maximum(real(z)) - minimum(real(z))) / (2*spacing))
-            ynr = trunc(Int, (maximum(imag(z)) - minimum(imag(z))) / (2*spacing))
+            xnr = trunc(Int, (real_max - real_min) / (2*spacing))
+            ynr = trunc(Int, (imag_max - imag_min) / (2*spacing))
             spacing /= sqrt(sqrt(2))
             if xnr <= 1 || ynr <= 1
                 continue
             end
 
-            xpts = linspace(minimum(real(z)), maximum(real(z)), xnr)
+            xpts = linspace(real_min, real_max, xnr)
             xpts = xpts[2:2:end]
 
-            ypts = linspace(minimum(imag(z))-eps(), maximum(imag(z))+eps(), ynr)
+            ypts = linspace(imag_min-eps(), imag_max+eps(), ynr)
             ypts = ypts[2:2:end]
 
-            Z = [x + y*im for x in xpts for y in ypts]::Vector{Complex{T}}
+            Z = [x + y*im for x in xpts for y in ypts]::Vector{CT}
             Z = filter(p -> inpolygon(real(p), imag(p), realz, imagz), Z)
         end
     end

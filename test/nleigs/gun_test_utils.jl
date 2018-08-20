@@ -21,74 +21,23 @@ function gun_init()
 
     # options
     srand(1)
-    v0 = randn(nep.n)
+    v = randn(size(nep, 1))
 
-    funres = (Lam, X) -> gun_residual(Lam, X, nep.B[1], nep.B[2], nep.C[1].A, nep.C[2].A)
+    funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)
 
-    return nep, Sigma, Xi, v0, nodes, funres
+    return nep, Sigma, Xi, v, nodes, funres
 end
 
 function gun_nep()
     nep = nep_gallery("nlevp_native_gun")
-
-    K = nep.A[1]
-    M = nep.A[2]
-    W1 = nep.A[3]
-    W2 = nep.A[4]
-
-    sigma2 = 108.8774
-
-    # exploit low rank structure in nonlinear matrices
-    L1a, U1a = svd_decompose(W1)
-    L2a, U2a = svd_decompose(W2)
-
-    # nonlinear functions
-    f = [nep.fi[3], nep.fi[4]]
-
-    # finally assemble nep instance
-    c1 = SPMFLowRankMatrix(W1, L1a, U1a, f[1])
-    c2 = SPMFLowRankMatrix(W2, L2a, U2a, f[2])
-    return SPMFLowRankNEP(size(K, 1), [K, -M], [c1, c2])
+    K, M = get_Av(nep.nep1);
+    W1, W2 = get_Av(nep.nep2);
+    c1 = LowRankMatrixAndFunction(W1, get_fv(nep.nep2)[1])
+    c2 = LowRankMatrixAndFunction(W2, get_fv(nep.nep2)[2])
+    return SumNEP(PEP([K, M]), LowRankFactorizedNEP([c1, c2]))
 end
 
-function svd_decompose(A::SparseMatrixCSC{Float64,Int64})
-    n = size(A, 1)
-    r, c = findn(A)
-    r = extrema(r)
-    c = extrema(c)
-    B = A[r[1]:r[2], c[1]:c[2]]
-    L, U = lu(full(B))
-    Lc, Uc = compactlu(sparse(L), sparse(U))
-    Lca = spzeros(n, size(Lc, 2))
-    Lca[r[1]:r[2], :] = Lc
-    Uca = spzeros(size(Uc, 1), n)
-    Uca[:, c[1]:c[2]] = Uc
-    Uca = Uca'
-    return Lca, Uca
-
-    # TODO use this; however we then need to support permutation and scaling
-    #F = lufact(B)
-    #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
-    #Lcaf = spzeros(n, size(Lcf, 2))
-    #Lcaf[r[1]:r[2], :] = Lcf
-    #Ucaf = spzeros(size(Ucf, 1), n)
-    #Ucaf[:, c[1]:c[2]] = Ucf
-    #Ucaf = Ucaf'
-    # END TEMP
-end
-
-function compactlu(L, U)
-    n = size(L, 1)
-
-    select = map(i -> nnz(L[i:n, i]) > 1 || nnz(U[i, i:n]) > 0, 1:n)
-
-    Lc = L[:,select]
-    Uc = U[select,:]
-
-    return Lc, Uc
-end
-
-function gun_residual(Lambda, X, K, M, W1, W2)
+function gun_residual(λ, v, K, M, W1, W2)
     # constants
     sigma1 = 0
     sigma2 = 108.8774
@@ -99,10 +48,8 @@ function gun_residual(Lambda, X, K, M, W1, W2)
     nW2 = 3.793375498194695e+00  # norm(W2, 1)
 
     # Denominator
-    Den = nK + abs.(Lambda) * nM + sqrt.(abs.(Lambda-sigma1^2)) * nW1 + sqrt.(abs.(Lambda-sigma2^2)) * nW2
+    den = nK + abs(λ) * nM + sqrt(abs(λ-sigma1^2)) * nW1 + sqrt(abs(λ-sigma2^2)) * nW2
 
     # 2-norm of A(lambda)*x
-    R = map(i -> norm((K + M*Lambda[i] + W1*im*sqrt(Lambda[i]) + W2*im*sqrt(Lambda[i] - sigma2^2)) * X[:,i]) / Den[i], 1:length(Lambda))
-
-    return R
+    norm((K + M*λ + W1*im*sqrt(λ) + W2*im*sqrt(λ - sigma2^2)) * v) / den
 end

@@ -118,7 +118,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
         elseif (@method_concretely_defined(compute_Mder,nep))
             return compute_Mlincomb_from_Mder(nep,λ,V,a)
         else
-            error("No procedure to compute Mlincomb λ::",typeof(λ), " V::",typeof(V))
+            error("No procedure to compute Mlincomb for nep::$(typeof(nep)), λ::$(typeof(λ)), V::$(typeof(V))")
         end
     end
 
@@ -343,10 +343,7 @@ Exeption thrown in case an iterative method does not converge\\
 The default way of measuring error (residual norm).
 """
     function default_errmeasure(nep::NEP)
-        f=function (λ,v);
-            compute_resnorm(nep,λ,v)/norm(v)
-        end
-        return f
+        return (λ,v) -> compute_resnorm(nep,λ,v)/norm(v)
     end
 
     """
