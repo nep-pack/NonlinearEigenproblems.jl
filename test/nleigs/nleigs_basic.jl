@@ -43,15 +43,22 @@ end
     end
 end
 
+@testset "NLEIGS: Non-convergent linearization (return_details)" begin
+    @test_warn "Linearization not converged" begin
+        @time X, lambda, _ = nleigs(pep, Sigma, maxit=5, v=ones(n), blksize=5, return_details=true)
+        nleigs_verify_lambdas(0, pep, X, lambda)
+    end
+end
+
 @testset "NLEIGS: Complex-valued matrices" begin
     complex_B = map(X -> X + im*eye(2,2), B)
     complex_pep = PEP(complex_B)
-    @time X, lambda, res, details = nleigs(complex_pep, Sigma, maxit=10, v=ones(n), blksize=5, return_details=true)
+    @time X, lambda, _ = nleigs(complex_pep, Sigma, maxit=10, v=ones(n), blksize=5, return_details=true)
     nleigs_verify_lambdas(3, complex_pep, X, lambda)
 end
 
 @testset "NLEIGS: Complex-valued start vector" begin
-    @time X, lambda, res, details = nleigs(pep, Sigma, maxit=10, v=ones(n) * (1+0.1im), blksize=5, return_details=true)
+    @time X, lambda, _ = nleigs(pep, Sigma, maxit=10, v=ones(n) * (1+0.1im), blksize=5, return_details=true)
     nleigs_verify_lambdas(4, pep, X, lambda)
 end
 

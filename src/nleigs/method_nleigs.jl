@@ -156,7 +156,7 @@ function nleigs(
     end
     V[1:n,1] .= v ./ norm(v)
     expand = true
-    kconv = typemax(Int)/2
+    kconv = trunc(Int, typemax(Int)/2)
     kn = n   # length of vectors in V
     l = 0    # number of vectors in V
     N = 0    # degree of approximations
