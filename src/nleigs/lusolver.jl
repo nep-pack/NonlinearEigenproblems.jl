@@ -4,7 +4,6 @@ struct LUFactors{T}
 
     # only store A for full matrices (needed to improve the solution accuracy)
     LUFactors(A::U, LU::T) where {U<:AbstractMatrix, T<:Base.LinAlg.LU} = new{T}(A, LU)
-#    LUFactors(A::U, LU::T) where {U<:AbstractMatrix, T<:Base.SparseArrays.UMFPACK.UmfpackLU} = new{T}(A, LU)
     LUFactors(A::U, LU::T) where {U<:AbstractMatrix, T<:Base.SparseArrays.UMFPACK.UmfpackLU} = new{T}(reshape([], (0, 0)), LU)
 end
 
@@ -25,10 +24,7 @@ end
 
 function solve(LU::LUFactors{Base.SparseArrays.UMFPACK.UmfpackLU{Complex{Float64},Int64}}, y::AbstractVector{<:Number})
     x = LU.LU \ y
-    # improve accuracy; seems not needed with UmfpackLU
-#    resid = y - LU.A * x
-#    err = LU.LU \ resid
-#    x + err
+    # improving accuracy is not needed with UmfpackLU
 end
 
 function lufactors(fun, v, verbose)
