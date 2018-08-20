@@ -15,7 +15,7 @@ import NEPCore.compute_Mlincomb
 import NEPTypes.get_Av
 import NEPTypes.get_fv
 
-struct NleigsNEP{S<:AbstractMatrix{<:Real}}
+struct NleigsNEP{S<:AbstractMatrix{<:Number}}
     nep::NEP            # Original NEP problem
     spmf::Bool          # Whether this NEP is a sum a products of matrices and functions
     p::Int              # Order of polynomial part
@@ -29,16 +29,16 @@ struct NleigsNEP{S<:AbstractMatrix{<:Real}}
     UU::S               # The U factors concatenated vertically
 end
 
-NleigsNEP(::Type{T}, nep::NEP) where T<:Real =
+NleigsNEP(::Type{T}, nep::NEP) where T<:Number =
     NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{T}(0, 0), Matrix{T}(0, 0))
 
-NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Real =
+NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
     NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(0), Vector{Matrix{T}}(0), Matrix{T}(0, 0), Matrix{T}(0, 0))
 
 NleigsNEP(nep::NEP, p, q, BBCC, r, iL, L, LL, UU) =
     NleigsNEP(nep, true, p, q, BBCC, true, r, iL, L, LL, UU)
 
-struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}}
+struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Number}}
     A::S
     L::S        # L factor of LU-factorized A
     U::S        # U factor of LU-factorized A
@@ -46,12 +46,12 @@ struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Real}}
 end
 
 "Create low rank LU factorization of A."
-function LowRankMatrixAndFunction(A::AbstractMatrix{<:Real}, f::Function)
+function LowRankMatrixAndFunction(A::AbstractMatrix{<:Number}, f::Function)
     L, U = low_rank_lu_factors(A)
     LowRankMatrixAndFunction(A, L, U, f)
 end
 
-function low_rank_lu_factors(A::SparseMatrixCSC{<:Real,Int64})
+function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
     n = size(A, 1)
     r, c = findn(A)
     r = extrema(r)
@@ -82,14 +82,14 @@ function compactlu(L, U)
 end
 
 "SPMF with low rank LU factors for each matrix."
-struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Real}} <: AbstractSPMF
+struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Number}} <: AbstractSPMF
     spmf::SPMF_NEP
     r::Int          # Sum of ranks of matrices
     L::Vector{S}    # Low rank L factors of matrices
     U::Vector{S}    # Low rank U factors of matrices
 end
 
-function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Real, S<:AbstractMatrix{T}}
+function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
     q = length(Amf)
     r = 0
     f = Vector{Function}(q)
