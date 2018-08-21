@@ -266,9 +266,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 n = length(Z.nzval)
                 @inbounds for a = 2:length(nep.As)
                     x = T(nep.fi[a](reshape([λ],1,1))[1])
-                    for i = 1:n
-                        Z.nzval[i] += nep.As[a].nzval[i] * x
-                    end
+                    Z.nzval .+= nep.As[a].nzval .* x
                 end
                 return Z
             end
