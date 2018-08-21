@@ -117,7 +117,12 @@ for matrices in the standard matrix function sense.
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
+         As::Vector{SparseMatrixCSC{Complex128,Int}}  # A matrices with sparsity pattern of all matrices combined
     end
+
+    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
+        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Complex128,Int}}())
+
 """
      SPMF_NEP(AA,fii,Schur_fact=false)
 
@@ -165,18 +170,37 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
+         # TODO: make this parametric instead of hardcoded complex?
+         T = complex(eltype(AA[1]))
+         As = Vector{SparseMatrixCSC{T,Int}}()
+
          if (issparse(AA[1]))
-             Zero=spones(AA[1]);
+             # Merge the sparsity pattern of all matrices without dropping any zeros
+             Zero=spones(AA[1]);            # Julia 0.7+: Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
              for i=2:size(AA,1)
-                 Zero=Zero+spones(AA[i]);
+                 Zero=Zero+spones(AA[i]);   # Julia 0.7+: Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
              end
-             Zero=(Zero*1im)*0
+             Zero = T.(Zero)
+             Zero.nzval[:] .= T(0)
+
+             # Create a copy of each matrix with the sparsity pattern of all matrices combined
+             @inbounds for A in AA
+                 S = copy(Zero)
+
+                 for col = 1:size(A, 2)
+                    for j in nzrange(A, col)
+                        S[A.rowval[j], col] = A.nzval[j]
+                    end
+                 end
+
+                 push!(As, S)
+             end
          else
              Zero=zeros(n,n)
          end
 
 
-         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero);
+         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero,As);
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
@@ -228,11 +252,26 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
         if (i==0)
-            Z=copy(nep.Zero)
-            for i=1:size(nep.A,1)
-                Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
+            if isempty(nep.As)
+                Z=copy(nep.Zero)
+                for i=1:size(nep.A,1)
+                    Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
+                end
+                return Z
+            else
+                T = Complex{Float64}
+                x = T(nep.fi[1](reshape([λ],1,1))[1])
+                Z = copy(nep.As[1])
+                Z.nzval .*= x
+                n = length(Z.nzval)
+                @inbounds for a = 2:length(nep.As)
+                    x = T(nep.fi[a](reshape([λ],1,1))[1])
+                    for i = 1:n
+                        Z.nzval[i] += nep.As[a].nzval[i] * x
+                    end
+                end
+                return Z
             end
-            return Z
         else
             # This is typically slow for i>1 (can be optimized by
             # treating the SPMF-terms individually)
