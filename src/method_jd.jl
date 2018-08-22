@@ -228,10 +228,8 @@ function jd_effenberger(::Type{T},
     tot_nrof_its = 0
 
     while true
-
-        λ, u, nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig)
+        λ, u, tot_nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
-        tot_nrof_its += nrof_its
 
         # Expand the partial Schur factorization with the computed solution
         Λ = hcat(Λ, u[(n+1):end]);
@@ -297,9 +295,9 @@ function jd_effenberger_inner(::Type{T},
         # Project and solve the projected NEP
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
-                            λv = zeros(T,conveig+1),
-                            σ=zero(T),
-                            Neig=conveig+1)
+                            λv = zeros(T,1),
+                            σ = zero(T),
+                            Neig = 1)
         λ,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
 
