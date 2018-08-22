@@ -9,8 +9,8 @@ import NEPTypes.create_proj_NEP
 import NEPTypes.set_projectmatrices!
 import Base.size
 import NEPCore.compute_Mder
-import NEPCore.compute_Mlincomb
-import NEPCore.compute_MM
+#import NEPCore.compute_Mlincomb
+#import NEPCore.compute_MM
 
 
 
@@ -85,7 +85,7 @@ function jd_betcke(::Type{T},
 
     # Initial check for convergence
     err = errmeasure(λ,u)
-    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+    @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
         λ_vec[conveig] = λ
@@ -131,7 +131,7 @@ function jd_betcke(::Type{T},
 
         # Check for convergence
         err = errmeasure(λ,u)
-        @ifd(print("Iteration: ", k, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+        @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", k, conveig, err))
         if (err < tol) && (conveig == 0 ||
                 all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
             conveig += 1
@@ -214,7 +214,7 @@ function jd_effenberger(::Type{T},
 
     # Initial check for convergence
     err = errmeasure(λ,u)
-    @ifd(print("Iteration: ", 0, " converged eigenvalues: ", conveig, " errmeasure: ", err, "\n"))
+    @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
         Λ = reshape(λ,1,1)
@@ -254,7 +254,7 @@ end
 
 
 function jd_effenberger_inner(::Type{T},
-                              deflated_nep::DeflatedNEP, #TODO: MY TYPE HERE!
+                              deflated_nep::DeflatedNEP,
                               maxit::Int,
                               nrof_its::Int,
                               conveig::Int,
@@ -286,9 +286,7 @@ function jd_effenberger_inner(::Type{T},
     V_memory::Matrix{T} = zeros(T, n+m, maxit+1-nrof_its)
     V_memory[:,1] = u
     W_memory::Matrix{T} = zeros(T, n+m, maxit+1-nrof_its)
-    W_memory[:,1] = u#compute_Mlincomb(deflated_nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
-
-    TXΛ = compute_MM(orgnep, Λ, X) # TODO: This is 0 if Λ X is an invariant pair
+    W_memory[:,1] = compute_Mlincomb(deflated_nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
 
     err = Inf
     for loop_counter = (nrof_its+1):maxit
@@ -309,9 +307,9 @@ function jd_effenberger_inner(::Type{T},
         u[:] = V*s[1:k]
 
         # Compute residual and check for convergence
-        rk = compute_Mder(deflated_nep,λ,0)*u # TODO: Optimize this without matrix access
+        rk = compute_Mlincomb(deflated_nep,λ,u)
         err = norm(rk) # TODO: Can we use a custom error measure?  # TODO: #Error measure, see (9) in Effenberger
-        @ifd(print("Iteration: ", loop_counter, " converged eigenvalues: ", conveig, " errmeasure: ", err, " space dimension: ", k,"\n"))
+        @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %2d\n", loop_counter, conveig, err, k))
         if (err < tol) #Frist check, no other eiganvalues can be converged
             @ifd(print("One eigenvalue converged. Deflating.\n"))
             return (λ, u, loop_counter)
@@ -322,9 +320,9 @@ function jd_effenberger_inner(::Type{T},
         # Solve for basis extension using comment on top of page 367 of Betcke
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
-        pk = compute_Mder(deflated_nep,λ,1)*u # TODO: Optimize this without matrix access
+        pk = compute_Mlincomb(deflated_nep,λ,u,[one(T)],1)
         linsolver = linsolvercreator(orgnep, λ)
-        jd_inner_effenberger_linear_solver!(v, deflated_nep, λ, linsolver, pk, tol, TXΛ)
+        jd_inner_effenberger_linear_solver!(v, deflated_nep, λ, linsolver, pk, tol)
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
         w[:] = rk
         orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
@@ -334,30 +332,46 @@ function jd_effenberger_inner(::Type{T},
     end
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
-    throw(NoConvergenceException(zeros(3),zeros(3,3),err,msg)) # TODO: Fix this to a proper throw of converged eigenvalues
+    # Compute the eigenvalues we have and throw these.
+    λ_vec,uv = eig(Λ)
+    u_vec = X * uv
+    throw(NoConvergenceException(λ_vec, u_vec, err, msg))
 
 end
 
 
 
-function compute_U(orgnep, μ, X, Λ, TXΛ)
+function compute_U(orgnep, μ, X, Λ)
     if size(Λ,1) == 0 # Corner case, actually empty
         U = X[:,[]]
     else
-    μI = μ*one(Λ)
-    U = (TXΛ - compute_MM(orgnep, μI, X))/(Λ - μI)
+        μI = μ*one(Λ)
+        TXΛ = compute_TXΛ(orgnep, Λ, X)
+        U = (TXΛ - compute_MM(orgnep, μI, X))/(Λ - μI)
     end
     return U
 end
-function compute_Uv(orgnep, μ, X, Λ, TXΛ, v)
+function compute_Uv(orgnep, μ, X, Λ, v)
     μI = μ*one(Λ)
     t = (Λ - μI)\v
+    TXΛ = compute_TXΛ(orgnep, Λ, X)
     return TXΛ*t - compute_MM(orgnep, μI, X)*t
 end
 
 
+compute_TXΛ(deflated_nep::DeflatedNEP, Λ, X) = compute_TXΛ(deflated_nep.orgnep, Λ, X)
+function compute_TXΛ(orgnep::NEP, Λ, X)
+    return zero(X) # If X and Λ is an ivariant pair, then this block is zero. OBS: Assumed also in the derivation of the algorithm, see Effenberger Lemma 3.1
+    # if size(Λ,1) == 0 # Corner case, actually empty
+    #     TXΛ = X[:,[]]
+    # else
+    #     TXΛ = compute_MM(orgnep, Λ, X)
+    # end
+    # return TXΛ
+end
 
-function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol, TXΛ) where{T}
+
+function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol) where{T}
     # If it is a deflated NEP we solve with a Schur complement strategy such that
     # the user specified solve of M can be used.
     # (M, U; X^T, 0)(v1;v2) = (y1;y2)
@@ -374,7 +388,7 @@ function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T
     v2 = view(v, (n+1):(n+m))
     pk1 = pk[1:n]
     pk2 = pk[(n+1):(n+m)]
-    U = compute_U(orgnep, λ, X, Λ, TXΛ)
+    U = compute_U(orgnep, λ, X, Λ)
 
     # Precompute some reused entities
     pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
@@ -412,11 +426,7 @@ end
 
 
 function create_proj_NEP(deflated_nep::DeflatedNEP)
-    if (size(deflated_nep.S0)==0) #OBS: Not type-stable. But avoids corner cases
-        return create_proj_NEP(deflated_nep.orgnep)
-    else
-        return JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
-    end
+    return JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
 end
 
 
@@ -446,7 +456,7 @@ function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Inte
 # THIS IS WRONG!!!
 # TODO: Need to compute derivative of U and remove the third term for higher derivative computations
     W1T_M_V1 = compute_Mder(nep.org_proj_nep,λ,i)
-    W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ, compute_MM(nep.orgnep.orgnep, nep.Λ, nep.X)) * nep.V2
+    W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ) * nep.V2
     W2T_A_V1 = nep.W2' * nep.X' * nep.V1 #OBS: Here we assume minimality index = 1
     return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
 end

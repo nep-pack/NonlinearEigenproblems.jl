@@ -87,14 +87,21 @@ nep = nep_gallery("pep0",4)
 
 end
 
+
+
 @testset "Effenberger" begin
 println("\n\nTest: Effenberger")
 
 TOL = 1e-8
 nep = nep_gallery("pep0",200)
-λ,u=jd_effenberger(nep, Neig=2, displaylevel=1, tol=TOL, maxit=100)
+λ, u = jd_effenberger(nep, Neig=2, displaylevel=1, tol=TOL, maxit=40)
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
+
+
+println("\nTesting errors thrown")
+@test_throws NEPCore.NoConvergenceException λ,u = jd_effenberger(nep, Neig=1000, tol=TOL, maxit=5)
+
 
 end
 
