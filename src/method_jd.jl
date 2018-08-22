@@ -208,34 +208,22 @@ function jd_effenberger(::Type{T},
     target::T = T(target)
     tol::real(T) = real(T)(tol)
     conveig = 0
-    #TODO: Optimize memory allocation here!
-    Λ::Matrix{T} = zeros(T,0,0)
-    X::Matrix{T} = zeros(T,n,0)
+    Λ::Matrix{T} = zeros(T,Neig,Neig)
+    X::Matrix{T} = zeros(T,n,Neig)
 
     # Initial check for convergence
     err = errmeasure(λ,u)
-    @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
+    @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
-        Λ = reshape(λ,1,1)
-        X = reshape(u,n,1)
-    end
-    if (conveig == Neig)
-        return (Λ,X)
+        Λ[1,1] = λ
+        X[:,1] = u
     end
 
     deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
     tot_nrof_its = 0
 
     while true
-        λ, u, tot_nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig)
-        conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
-
-        # Expand the partial Schur factorization with the computed solution
-        Λ = hcat(Λ, u[(n+1):end]);
-        Λ = vcat(Λ, hcat(zeros(size(Λ,1))',λ))
-        X = hcat(X, u[1:n]);
-
         # Check for fulfillment. If so, compute the eigenpairs
         if (conveig == Neig)
             λ_vec,uv = eig(Λ)
@@ -243,7 +231,15 @@ function jd_effenberger(::Type{T},
             return λ_vec, u_vec
         end
 
-        deflated_nep = effenberger_deflation(nep,Λ,X)
+        λ, u, tot_nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig)
+        conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
+
+        # Expand the partial Schur factorization with the computed solution
+        Λ[1:(conveig-1),conveig] = u[(n+1):(n+conveig-1)]
+        Λ[conveig,conveig] = λ
+        X[:,conveig] = u[1:n]
+
+        deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
     end
 
     error("This should not be possible.")
@@ -307,7 +303,7 @@ function jd_effenberger_inner(::Type{T},
         # Compute residual and check for convergence
         rk = compute_Mlincomb(deflated_nep,λ,u)
         err = norm(rk) # TODO: Can we use a custom error measure?  # TODO: #Error measure, see (9) in Effenberger
-        @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %2d\n", loop_counter, conveig, err, k))
+        @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %3d\n", loop_counter, conveig, err, k))
         if (err < tol) #Frist check, no other eiganvalues can be converged
             @ifd(print("One eigenvalue converged. Deflating.\n"))
             return (λ, u, loop_counter)
