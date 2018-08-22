@@ -210,6 +210,8 @@ function jd_effenberger(::Type{T},
     conveig = 0
     Λ::Matrix{T} = zeros(T,Neig,Neig)
     X::Matrix{T} = zeros(T,n,Neig)
+    V_memory_base::Matrix{T} = zeros(T, n+Neig, maxit+1)
+    W_memory_base::Matrix{T} = zeros(T, n+Neig, maxit+1)
 
     # Initial check for convergence
     err = errmeasure(λ,u)
@@ -231,7 +233,9 @@ function jd_effenberger(::Type{T},
             return λ_vec, u_vec
         end
 
-        λ, u, tot_nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig)
+        V_memory = view(V_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
+        W_memory = view(W_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
+        λ, u, tot_nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig, V_memory, W_memory)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
         # Expand the partial Schur factorization with the computed solution
@@ -259,7 +263,9 @@ function jd_effenberger_inner(::Type{T},
                               tol::Number,
                               target::Number,
                               displaylevel::Int,
-                              Neig::Int) where {T<:Number}
+                              Neig::Int,
+                              V_memory,
+                              W_memory) where {T<:Number}
     # Allocations and preparations
     X = deflated_nep.V0
     Λ = deflated_nep.S0
@@ -276,10 +282,7 @@ function jd_effenberger_inner(::Type{T},
     proj_nep = create_proj_NEP(deflated_nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
 
-    # TODO: This memory allocation can potentially be moved out to outer function for opimization
-    V_memory::Matrix{T} = zeros(T, n+m, maxit+1-nrof_its)
     V_memory[:,1] = u
-    W_memory::Matrix{T} = zeros(T, n+m, maxit+1-nrof_its)
     W_memory[:,1] = compute_Mlincomb(deflated_nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
 
     err = Inf
