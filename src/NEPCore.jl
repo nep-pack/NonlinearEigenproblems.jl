@@ -130,12 +130,18 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
     # Make a copy of V and call compute_Mlincomb!, as default
     # behaviour for compute_Mlincomb
-    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
+
+    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
     compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb!(nep,λ,copy(V), a)
-    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
-    # And the converse without exclamation mark
+    # Note: The following function is commented out since default behaviour is
+    # by to manually create a bigger a-vector (and call without startder) see below
+    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
+
+# And the converse without exclamation mark
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
-    #compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a)
+    # Note: The following function is commented out since, default behaviour is 
+    # by manual scaling of columns (see above), not calling compute_Mlincomb()
+    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by  
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb(nep,λ,V)
 
 """
