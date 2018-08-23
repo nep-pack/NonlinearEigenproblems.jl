@@ -100,7 +100,7 @@ module LinSolvers
 
         function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs) where {T_num<:Number, T_nep<:NEP}
             function f(v::AbstractVector)
-              return compute_Mlincomb(nep, λ, v, a=[1])
+              return compute_Mlincomb(nep, λ, v)
             end
             A = LinearMap{T_num}(f, size(nep,1), ismutating=false)
             gmres_log = false

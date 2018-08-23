@@ -91,7 +91,11 @@ julia> compute_Mlincomb(nep,λ,v)
         return YY-Y0
     end
 
-    # For compute_Mlincomb we (implicitly) use compute_Mlincomb_from_MM 
+    # For compute_Mlincomb we use compute_Mlincomb_from_MM 
+    compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,
+                 V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
+
 
     function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
         if (der==0)

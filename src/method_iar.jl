@@ -72,7 +72,7 @@ function iar(
 
         y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k);
         broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
-        y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
+        y[:,1] = compute_Mlincomb!(nep,σ,y[:,1:k+1],α[1:k+1]);
         y[:,1] = -lin_solve(M0inv,y[:,1]);
 
         vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
