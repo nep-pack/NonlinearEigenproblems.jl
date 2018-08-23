@@ -49,14 +49,14 @@ function nleigs(
         ::Type{T},
         nep::NEP,
         Sigma::AbstractVector{CT};
-        Xi::AbstractVector{<:Number} = [T(Inf)],
+        Xi::Vector{T} = [T(Inf)],
         displaylevel::Int = 0,
         maxdgr::Int = 100,
         minit::Int = 20,
         maxit::Int = 200,
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
-        v::Vector{<:Number} = randn(T, size(nep, 1)),
+        v::Vector{CT} = CT.(randn(T, size(nep, 1))),
         errmeasure::Function = default_errmeasure(nep::NEP),
         isfunm::Bool = true,
         static::Bool = false,
@@ -64,7 +64,7 @@ function nleigs(
         nodes::Vector{CT} = Vector{CT}(0),
         reuselu::Int = 1,
         blksize::Int = 20,
-        return_details = false,
+        return_details::Bool = false,
         check_error_every::Int = 5) where {T<:Real, CT<:Complex{T}}
 
     # The following variables are used when creating the return values, so put them in scope
@@ -461,7 +461,7 @@ end
 
 "Backslash or left matrix divide for continuation vector `wc`."
 function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
-    n = size(P.nep, 1)
+    n = size(P.nep, 1)::Int
     shift = sigma[k+1]
 
     # construction of B*wc
@@ -525,10 +525,11 @@ function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi,
             if !P.is_low_rank || ii < P.p
                 z[1:n] -= sum(reshape(BBCC * z[i1b:i1e], n, :) .* sgdd[:,ii+1].', 2)
             elseif ii > P.p
+                dd = sgdd[P.p+2:end,ii+1]
                 @inbounds for i = 1:length(P.iLr)
                     for j = 1:length(P.LL[i].nzval)
                         ind = P.LL[i].nzind[j]
-                        z[P.iLr[i]] -= P.LL[i].nzval[j] * z[i1b+ind-1] * sgdd[P.p+1+P.iL[ind],ii+1]
+                        z[P.iLr[i]] -= P.LL[i].nzval[j] * z[i1b+ind-1] * dd[P.iL[ind]]
                     end
                 end
             end

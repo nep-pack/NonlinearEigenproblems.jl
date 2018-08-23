@@ -102,13 +102,14 @@ function compute_MM(nep::ShiftScaledNEP,S,V)
 end
 
 
-function compute_Mlincomb(nep::ShiftScaledNEP,λ::Number,V;a=ones(size(V,2)))
+function compute_Mlincomb(nep::ShiftScaledNEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+                          a::Vector=ones(size(V,2)))
     # Multiply the coefficient matrix V with a diagonal matrix
     # corresponding to the chain rule
     p=size(V,2);
     z=nep.scale.^Array{eltype(V),1}(0:p-1)
     W=V*diagm(z); # not very fast
-    return compute_Mlincomb(nep.orgnep,nep.scale*λ+nep.shift,W,a=a);
+    return compute_Mlincomb(nep.orgnep,nep.scale*λ+nep.shift,W,a);
 end
 
 
@@ -182,7 +183,8 @@ function compute_MM(nep::MobiusTransformedNEP,S,V)
     return compute_MM(nep.orgnep,(nep.a*S+nep.b*eye(S))/(nep.c*S+nep.d*eye(S)),V)
 end
 
-function compute_Mlincomb(nep::MobiusTransformedNEP,λ::Number,V;a=ones(size(V,2)))
+function compute_Mlincomb(nep::MobiusTransformedNEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}
+                          ,a::Vector=ones(size(V,2)))
     # I did not found a better way
     return compute_Mlincomb_from_MM(nep,λ,V,a)
 end
@@ -267,6 +269,10 @@ function compute_MM(nep::DeflatedNEP,S,V)
         return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
     end
 end
+# Use the MM to compute Mlincomb for DeflatedNEP
+compute_Mlincomb(nep::DeflatedNEP,λ::Number,
+                 V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
 function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.

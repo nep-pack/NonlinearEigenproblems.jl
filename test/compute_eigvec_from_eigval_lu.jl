@@ -20,7 +20,7 @@ nep_test_problems=["pep0_sparse_003","dep0","pep0"]
 eigeinvector_extraction_small=@testset "Eigenvector extraction (small scale)" begin
     @testset "Test problem: $nep_test_problem" for nep_test_problem in nep_test_problems
     nep=nep_gallery(nep_test_problem)
-    compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
+    compute_Mlincomb(nep::DEP,λ::Number,V,a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
     errormeasure=default_errmeasure(nep);
     λ,Q,err = iar(nep,maxit=50,Neig=5,σ=2.0,γ=3);
         @testset "default_linsolvercreator" begin
@@ -44,7 +44,7 @@ end
 eigeinvector_extraction_large=@testset "Eigenvector extraction (medium/large scale)" begin
     @testset "Test problem: $nep_test_problem" for nep_test_problem in nep_test_problems
     nep=nep_gallery(nep_test_problem,500)
-    compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
+    compute_Mlincomb(nep::DEP,λ::Number,V,a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
     errormeasure=default_errmeasure(nep);
     λ,Q,err = iar(nep,maxit=100,Neig=5);
         @testset "default_linsolvercreator" begin
