@@ -123,20 +123,20 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
             V[:]=V*a[1];
         else
             D=Diagonal(a);
-            rmul!(V,D);
+            V[:,:]=V*D; # julia 0.7: rmul!(V,D);
         end
         return compute_Mlincomb!(nep,λ,V);
     end
 
     # Make a copy of V and call compute_Mlincomb!, as default
     # behaviour for compute_Mlincomb
-    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
+    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
     compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb!(nep,λ,copy(V), a)
-    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
+    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
     # And the converse without exclamation mark
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
-    compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a)
-    compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,V)
+    #compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a)
+    compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb(nep,λ,V)
 
 """
     compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
