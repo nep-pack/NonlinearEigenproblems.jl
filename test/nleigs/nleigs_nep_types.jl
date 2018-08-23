@@ -1,14 +1,17 @@
-# Solves a few basic eigenvalue problems with different NEP types through NLEIGS
+# Solves a basic eigenvalue problem defined through different NEP types through NLEIGS
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
+    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
+    using NleigsTypes
     using Gallery
+    using IterativeSolvers
     using Base.Test
 end
 
@@ -22,33 +25,28 @@ f = [λ -> λ^2]
 
 Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
-pnep = PNEP(B, [MatrixAndFunction(C[1], f[1])])
-
-@testset "NLEIGS: PNEP" begin
-    @time X, lambda = nleigs(pnep, Sigma, maxit=10, v=ones(n), blksize=5)
-    nleigs_verify_lambdas(4, pnep, X, lambda)
-end
-
-@testset "NLEIGS: SPMF_NEP" begin
-    spmf_nep = SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])
-    @test_warn "create the problem as a NEPTypes.PNEP instead of a NEPTypes.SPMF_NEP" begin
-        @time X, lambda = nleigs(spmf_nep, Sigma, maxit=10, v=ones(n), blksize=5)
-        nleigs_verify_lambdas(4, spmf_nep, X, lambda)
-    end
-end
-
 struct CustomNLEIGSNEP <: NEP
     n::Int  # problem size; this is the only required field in a custom NEP type when used with NLEIGS
 end
 
 # implement a few methods used by the solver
 import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
-compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pnep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Union{AbstractMatrix,AbstractVector}) = compute_Mlincomb(pnep, λ, x)
+pep = PEP([B; C])
+compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pep, λ)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(pep, λ, x)
 size(::CustomNLEIGSNEP, _) = n
 
-@testset "NLEIGS: Custom NEP type" begin
-    custom_nep = CustomNLEIGSNEP(n)
-    @time X, lambda = nleigs(custom_nep, Sigma, maxit=10, v=ones(n), blksize=5)
-    nleigs_verify_lambdas(4, custom_nep, X, lambda)
+# define and solve the same problem in many different ways
+problems = [
+    ("SPMF_NEP", SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])),
+    ("PEP", PEP([B; C])),
+    ("PEP + SPMF", SumNEP(PEP(B), SPMF_NEP(C, f))),
+    ("PEP + LowRankFactorizedNEP", SumNEP(PEP(B), LowRankFactorizedNEP([LowRankMatrixAndFunction(sparse(C[1]), f[1])]))),
+    ("Custom NEP type", CustomNLEIGSNEP(n))]
+
+for problem in problems
+    @testset "NLEIGS: $(problem[1])" begin
+        @time X, lambda = nleigs(problem[2], Sigma, maxit=10, v=ones(n).+0im, blksize=5)
+        nleigs_verify_lambdas(4, problem[2], X, lambda)
+    end
 end

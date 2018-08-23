@@ -22,7 +22,7 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v = randn(nep.n)
+    v = randn(size(nep, 1)) .+ 0im
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
 
@@ -152,7 +152,7 @@ function particle_nep(interval)
 
     # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only
     C = map(k -> LowRankMatrixAndFunction(similar(SL[k], 0, 0), SL[k], SU[k], f[k]), 1:length(f))
-    nep = PNEP(B, C)
+    nep = SumNEP(PEP(B), LowRankFactorizedNEP(C))
 
     return nep, brpts, U0
 end

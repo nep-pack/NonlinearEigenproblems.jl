@@ -1,5 +1,5 @@
 function gun_init()
-    nep = nep_gallery("nlevp_gun_pnep")
+    nep = gun_nep()
 
     gam = 300^2 - 200^2
     mu = 250^2
@@ -21,11 +21,20 @@ function gun_init()
 
     # options
     srand(1)
-    v = randn(nep.n)
+    v = randn(size(nep, 1)) .+ 0im
 
-    funres = (λ, v) -> gun_residual(λ, v, nep.spmf.A...)
+    funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)
 
     return nep, Sigma, Xi, v, nodes, funres
+end
+
+function gun_nep()
+    nep = nep_gallery("nlevp_native_gun")
+    K, M = get_Av(nep.nep1);
+    W1, W2 = get_Av(nep.nep2);
+    c1 = LowRankMatrixAndFunction(W1, get_fv(nep.nep2)[1])
+    c2 = LowRankMatrixAndFunction(W2, get_fv(nep.nep2)[2])
+    return SumNEP(PEP([K, M]), LowRankFactorizedNEP([c1, c2]))
 end
 
 function gun_residual(λ, v, K, M, W1, W2)
