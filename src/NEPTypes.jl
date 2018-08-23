@@ -25,6 +25,7 @@ module NEPTypes
     # We overload these
     import ..NEPCore.compute_Mder
     import ..NEPCore.compute_Mlincomb
+    import ..NEPCore.compute_Mlincomb!
     import ..NEPCore.compute_MM
     import ..NEPCore.compute_resnorm
     import ..NEPCore.compute_rf
@@ -35,6 +36,7 @@ module NEPTypes
 
     export compute_Mder
     export compute_Mlincomb
+    export compute_Mlincomb!
     export compute_MM
     export compute_resnorm
     export compute_rf
@@ -239,6 +241,10 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             return compute_Mder_from_MM(nep,λ,i)
         end
     end
+    # Use MM to compute Mlincomb for SPMFs
+    compute_Mlincomb(nep::SPMF_NEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
     ###########################################################
     # Delay eigenvalue problems - DEP
@@ -386,6 +392,10 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         end
         return Z
     end
+    # Use MM to compute Mlincomb for PEPs
+    compute_Mlincomb(nep::PEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(Complex128,nep,x;params...)
     function compute_rf{T<:Real}(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
@@ -766,7 +776,10 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
 
     # Use delagation to the nep_proj
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
-    #compute_Mlincomb(nep::Proj_NEP,par...)=compute_Mlincomb(nep.nep_proj,par...) # does not work yet
+    # Use MM to compute Mlincomb for SPMFs
+    compute_Mlincomb(nep::Proj_SPMF_NEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
@@ -892,7 +905,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T};
+    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T},
                               a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
         n=size(V,1); k=1
         try k=size(V,2) end
@@ -908,11 +921,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return z
     end
     # Automatically promote to complex if λ is real
-    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2};a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
-        return compute_Mlincomb(nep,complex(λ),V;a=a)
+    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2},a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
+        return compute_Mlincomb(nep,complex(λ),V,a)
     end
     # Allow vector-valued V
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T};a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1);a=a)
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T},a::Vector{T}=ones(T,1)) where T<:Number
+        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1),a)
     end
 end
