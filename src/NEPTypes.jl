@@ -797,7 +797,7 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     end
 
     function get_fv(nep::Proj_SPMF_NEP)
-        return orgnep_fv
+        return nep.orgnep_fv
     end
 
     function issparse(nep::Proj_NEP)
