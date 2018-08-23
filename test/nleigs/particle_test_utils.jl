@@ -22,7 +22,7 @@ function particle_init(interval)
 
     # options
     srand(5)
-    v = randn(size(nep, 1))
+    v = randn(size(nep, 1)) .+ 0im
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
 
