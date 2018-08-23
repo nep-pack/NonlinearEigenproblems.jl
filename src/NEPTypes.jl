@@ -856,8 +856,8 @@ julia> M1+M2  # Same as M
     # Delegate all interface functions
     size(snep::AnySumNEP)=size(snep.nep1)
     size(snep::AnySumNEP,d)=size(snep.nep1,d)
-    compute_Mlincomb(nep::AnySumNEP, λ::Number, V;a=ones(eltype(λ),size(V,2))) =
-        (compute_Mlincomb(nep.nep1, λ, V,a=a)+compute_Mlincomb(nep.nep2,λ,V,a=a))
+    compute_Mlincomb(nep::AnySumNEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}) =
+        (compute_Mlincomb(nep.nep1, λ, V)+compute_Mlincomb(nep.nep2,λ,V))
     compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
     compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
