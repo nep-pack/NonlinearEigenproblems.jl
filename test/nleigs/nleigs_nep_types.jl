@@ -33,7 +33,7 @@ end
 import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
 pep = PEP([B; C])
 compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(pep, λ, x)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Matrix) = compute_Mlincomb(pep, λ, x)
 size(::CustomNLEIGSNEP, _) = n
 
 # define and solve the same problem in many different ways
