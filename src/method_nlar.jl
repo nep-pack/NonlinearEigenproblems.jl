@@ -1,3 +1,4 @@
+
 #The non-linear Arnoldi method, as introduced in "An Arnoldi method for non-linear eigenvalue problems" by H.Voss
 
 export nlar
@@ -8,7 +9,7 @@ using IterativeSolvers
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
 ## σ targets
-function  default_eigval_sorter(dd,vv,σ,D,mm,R)
+function  default_eigval_sorter(dd,vv,σ,D,mm,R,Vk)
     dd2=copy(dd);
 
     ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
@@ -82,12 +83,13 @@ function nlar(::Type{T},
             set_projectmatrices!(proj_nep,Vk,Vk);
 
             #Use inner_solve() to solve the smaller projected problem
+            println("Using inner solver:",inner_solver_method);
             dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
 
             # Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
             # in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
             # eigenvalues in D.
-            nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
+            nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R,Vk)
 
             # Select the eigenvalue with minimum distance from D
             nu=nuv[1];
@@ -120,7 +122,7 @@ function nlar(::Type{T},
                 X[:,m+1] = u;
 
                 ## Sort and select he eigenvalues of the projected problem as described before
-                nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
+                nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R,Vk)
                 nu1=nuv[1];
                 y1=yv[:,1];
 
