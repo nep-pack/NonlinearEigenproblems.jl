@@ -137,3 +137,10 @@ end
 
 
 end
+
+
+@test "implicitdet" begin
+    dep=nep_gallery("dep0")
+    λ,v=implicitdet(dep,v=ones(size(dep,1)))
+    @test norm(compute_Mlincomb(dep,λ,v))<eps()*100
+end
