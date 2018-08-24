@@ -135,7 +135,7 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
     Res::AbstractMatrix{T}
 
     "vector of interpolation nodes"
-    sigma::AbstractVector{CT}
+    σ::AbstractVector{CT}
 
     "vector of poles"
     xi::AbstractVector{T}

@@ -109,8 +109,8 @@ function nleigs(
         end
         gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
-        sigma = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
-        _,xi,beta = lejabagby(sigma[1:maxdgr+2], Xi, gamma, maxdgr+2, true, P.p)
+        σ = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
+        _,xi,beta = lejabagby(σ[1:maxdgr+2], Xi, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
         if isempty(nodes)
             gamma,nodes = discretizepolygon(Σ, true)
@@ -118,14 +118,14 @@ function nleigs(
             gamma,_ = discretizepolygon(Σ)
         end
         nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
-        sigma,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, P.p)
+        σ,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
         gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
-        sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, P.p)
+        σ,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, P.p)
     end
     xi[maxdgr+2] = NaN # not used
-    if (!P.spmf || !isfunm) && length(sigma) != length(unique(sigma))
+    if (!P.spmf || !isfunm) && length(σ) != length(unique(σ))
         error("All interpolation nodes must be distinct when no matrix " *
             "functions are used for computing the generalized divided differences.")
     end
@@ -133,12 +133,12 @@ function nleigs(
     # Rational Newton coefficients
     range = 1:maxdgr+2
     if !P.spmf
-        D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), sigma[range], xi[range], beta[range])
+        D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), σ[range], xi[range], beta[range])
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
         sgdd = Matrix{CT}(0, 0)
     else
         # Compute scalar generalized divided differences
-        sgdd = scgendivdiffs(sigma[range], xi[range], beta[range], maxdgr, isfunm, get_fv(nep))
+        sgdd = scgendivdiffs(σ[range], xi[range], beta[range], maxdgr, isfunm, get_fv(nep))
         # Construct first generalized divided difference
         computeD && push!(D, constructD(0, P, sgdd))
         # Norm of first generalized divided difference
@@ -150,9 +150,9 @@ function nleigs(
 
     # Rational Krylov
     if reuselu == 2
-        v = lusolve(lu_cache, λ -> compute_Mder(nep, λ), sigma[1], v/norm(v))
+        v = lusolve(lu_cache, λ -> compute_Mder(nep, λ), σ[1], v/norm(v))
     else
-        v = compute_Mder(nep, sigma[1]) \ (v/norm(v))
+        v = compute_Mder(nep, σ[1]) \ (v/norm(v))
     end
     V[1:n,1] .= v ./ norm(v)
     expand = true
@@ -160,8 +160,8 @@ function nleigs(
     kn = n   # length of vectors in V
     l = 0    # number of vectors in V
     N = 0    # degree of approximations
-    nbconv = 0 # number of converged lambdas inside sigma
-    nblamin = 0 # number of lambdas inside sigma, converged or not
+    nbconv = 0 # number of converged lambdas inside Σ
+    nblamin = 0 # number of lambdas inside Σ, converged or not
     kmax = static ? maxit + maxdgr : maxit
     k = 1
     while k <= kmax
@@ -224,11 +224,11 @@ function nleigs(
                     end
                     expand = false
                     if leja == 1
-                        # TODO: can we pre-allocate sigma?
-                        if length(sigma) < kmax+1
-                            resize!(sigma, kmax+1)
+                        # TODO: can we pre-allocate σ?
+                        if length(σ) < kmax+1
+                            resize!(σ, kmax+1)
                         end
-                        sigma[k+1:kmax+1] = nodes[1:kmax-k+1]
+                        σ[k+1:kmax+1] = nodes[1:kmax-k+1]
                     end
                     if !P.spmf || computeD
                         D = D[1:k]
@@ -253,10 +253,10 @@ function nleigs(
                     kconv = k
                     expand = false
                     if leja == 1
-                        if length(sigma) < kmax+1
-                            resize!(sigma, kmax+1)
+                        if length(σ) < kmax+1
+                            resize!(σ, kmax+1)
                         end
-                        sigma[k+1:kmax+1] = nodes[1:kmax-k+1]
+                        σ[k+1:kmax+1] = nodes[1:kmax-k+1]
                     end
                     if static
                         V = resize_matrix(V, kn, b+1)
@@ -276,13 +276,13 @@ function nleigs(
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
+            w = backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, beta, N, xi, expand, kconv, sgdd)
 
             # orthogonalization
             Vview = view(V, 1:kn, 1:l)
             H[l+1,l] = orthogonalize_and_normalize!(Vview, w, view(H, 1:l,l), DGKS)
-            K[1:l,l] .= view(H, 1:l, l) .* sigma[k+1] .+ t
-            K[l+1,l] = H[l+1,l] * sigma[k+1]
+            K[1:l,l] .= view(H, 1:l, l) .* σ[k+1] .+ t
+            K[l+1,l] = H[l+1,l] * σ[k+1]
             V[1:kn,l+1] = w
 #            @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
         end
@@ -292,13 +292,13 @@ function nleigs(
 
             # select eigenvalues
             if !all
-                lamin = in_sigma(lambda, Σ, tol)
+                lamin = in_Σ(lambda, Σ, tol)
                 ilam = [1:l;][lamin]
                 lam = lambda[ilam]
             else
                 ilam = [1:l;][isfinite.(lambda)]
                 lam = lambda[ilam]
-                lamin = in_sigma(lam, Σ, tol)
+                lamin = in_Σ(lam, Σ, tol)
             end
 
             nblamin = sum(lamin)
@@ -353,14 +353,14 @@ function nleigs(
     if return_details
         Lam = Lam[1:l,1:l]
         Res = Res[1:l,1:l]
-        sigma = sigma[1:k]
+        σ = σ[1:k]
         if expand
             xi = xi[1:k]
             beta = beta[1:k]
             nrmD = nrmD[1:k]
             warn("NLEIGS: Linearization not converged after $maxdgr iterations")
         end
-        details = NleigsSolutionDetails(Lam, Res, sigma, xi, beta, nrmD, kconv)
+        details = NleigsSolutionDetails(Lam, Res, σ, xi, beta, nrmD, kconv)
     end
 
     return X[:,conv], lam[conv], res[conv], details
@@ -424,17 +424,17 @@ end
 Compute scalar generalized divided differences.
 
 # Arguments
-- `sigma`: Discretization of target set.
+- `σ`: Discretization of target set.
 - `xi`: Discretization of singularity set.
 - `beta`: Scaling factors.
 """
-function scgendivdiffs(sigma::AbstractVector{CT}, xi, beta, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
+function scgendivdiffs(σ::AbstractVector{CT}, xi, beta, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
     sgdd = zeros(CT, length(pff), maxdgr+2)
     for ii = 1:length(pff)
         if isfunm
-            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], sigma, xi, beta)
+            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], σ, xi, beta)
         else
-            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], sigma, xi, beta))
+            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], σ, xi, beta))
         end
     end
     return sgdd
@@ -460,9 +460,9 @@ function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
 end
 
 "Backslash or left matrix divide for continuation vector `wc`."
-function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi, expand, kconv, sgdd)
+function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, beta, N, xi, expand, kconv, sgdd)
     n = size(P.nep, 1)::Int
-    shift = sigma[k+1]
+    shift = σ[k+1]
 
     # construction of B*wc
     Bw = zeros(eltype(wc), size(wc))
@@ -536,7 +536,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi,
         end
         # update block i+2
         if ii < N
-            mu = shift - sigma[ii+1]
+            mu = shift - σ[ii+1]
             nu = beta[ii+2] * (1 - shift/xi[ii+1])
             if !P.is_low_rank || ii != P.p-1
                 z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * z[i1b:i1e]
@@ -569,7 +569,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi,
             i1e = i0e + P.r
         end
         # compute block i+1
-        mu = shift - sigma[ii]
+        mu = shift - σ[ii]
         nu = beta[ii+1] * (1 - shift/xi[ii])
         if !P.is_low_rank || ii != P.p
             w[i1b:i1e] = mu/nu * w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
@@ -585,7 +585,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi,
 end
 
 "True for complex points `z` inside polygonal set `Σ`."
-function in_sigma(z::AbstractVector{CT}, Σ::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
+function in_Σ(z::AbstractVector{CT}, Σ::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
     if length(Σ) == 2 && isreal(Σ)
         realΣ = real([Σ[1]; Σ[1]; Σ[2]; Σ[2]])
         imagΣ = [-tol; tol; tol; -tol]

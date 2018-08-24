@@ -67,14 +67,14 @@ end
     nleigs_verify_lambdas(4, pep, X, lambda)
 
     info_λ = details.Lam[:,end]
-    local in_sigma = map(p -> inpolygon(real(p), imag(p), real(Σ), imag(Σ)), info_λ)
-    info_λ = info_λ[in_sigma]
+    local in_Σ = map(p -> inpolygon(real(p), imag(p), real(Σ), imag(Σ)), info_λ)
+    info_λ = info_λ[in_Σ]
 
     # test that eigenvalues in the info are the same as those returned by nleigs
     @test length(info_λ) == 4
     @test length(union(lambda, info_λ)) == 4
 
     # test that the residuals are near 0
-    info_res = details.Res[in_sigma,end]
+    info_res = details.Res[in_Σ,end]
     @test all(r -> r < 1e-12, info_res)
 end
