@@ -21,10 +21,10 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-nep, Σ, Xi, v, nodes, xmin, xmax = particle_init(2)
+nep, Σ, Ξ, v, nodes, xmin, xmax = particle_init(2)
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Σ, Xi=Xi, displaylevel=verbose > 0 ? 1 : 0, maxdgr=50, minit=30, maxit=100, v=v, nodes=nodes, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, maxdgr=50, minit=30, maxit=100, v=v, nodes=nodes, return_details=verbose > 1)
 
 @testset "NLEIGS: Particle variant R2" begin
     nleigs_verify_lambdas(2, nep, X, lambda)

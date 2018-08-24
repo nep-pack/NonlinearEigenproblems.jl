@@ -14,7 +14,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
   expressed as a sum of constant matrices times scalar functions, use the PNEP
   type for best performance.
 - `Σ`: A vector containing the points of a polygonal target set in the complex plane.
-- `Xi`: A vector containing a discretization of the singularity set.
+- `Ξ`: A vector containing a discretization of the singularity set.
 - `displaylevel`: Level of display (0, 1, 2).
 - `maxdgr`: Max degree of approximation.
 - `minit`: Min number of iterations after linearization is converged.
@@ -49,7 +49,7 @@ function nleigs(
         ::Type{T},
         nep::NEP,
         Σ::AbstractVector{CT};
-        Xi::Vector{T} = [T(Inf)],
+        Ξ::Vector{T} = [T(Inf)],
         displaylevel::Int = 0,
         maxdgr::Int = 100,
         minit::Int = 20,
@@ -110,7 +110,7 @@ function nleigs(
         gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
         σ = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
-        _,xi,β = lejabagby(σ[1:maxdgr+2], Xi, gamma, maxdgr+2, true, P.p)
+        _,ξ,β = lejabagby(σ[1:maxdgr+2], Ξ, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
         if isempty(nodes)
             gamma,nodes = discretizepolygon(Σ, true)
@@ -118,13 +118,13 @@ function nleigs(
             gamma,_ = discretizepolygon(Σ)
         end
         nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
-        σ,xi,β = lejabagby(gamma, Xi, gamma, maxdgr+2, false, P.p)
+        σ,ξ,β = lejabagby(gamma, Ξ, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
         gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
-        σ,xi,β = lejabagby(gamma, Xi, gamma, max_count, false, P.p)
+        σ,ξ,β = lejabagby(gamma, Ξ, gamma, max_count, false, P.p)
     end
-    xi[maxdgr+2] = NaN # not used
+    ξ[maxdgr+2] = NaN # not used
     if (!P.spmf || !isfunm) && length(σ) != length(unique(σ))
         error("All interpolation nodes must be distinct when no matrix " *
             "functions are used for computing the generalized divided differences.")
@@ -133,12 +133,12 @@ function nleigs(
     # Rational Newton coefficients
     range = 1:maxdgr+2
     if !P.spmf
-        D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), σ[range], xi[range], β[range])
+        D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), σ[range], ξ[range], β[range])
         nrmD[1] = vecnorm(D[1]) # Frobenius norm
         sgdd = Matrix{CT}(0, 0)
     else
         # Compute scalar generalized divided differences
-        sgdd = scgendivdiffs(σ[range], xi[range], β[range], maxdgr, isfunm, get_fv(nep))
+        sgdd = scgendivdiffs(σ[range], ξ[range], β[range], maxdgr, isfunm, get_fv(nep))
         # Construct first generalized divided difference
         computeD && push!(D, constructD(0, P, sgdd))
         # Norm of first generalized divided difference
@@ -233,7 +233,7 @@ function nleigs(
                     if !P.spmf || computeD
                         D = D[1:k]
                     end
-                    xi = xi[1:k]
+                    ξ = ξ[1:k]
                     β = β[1:k]
                     nrmD = nrmD[1:k]
                     if static
@@ -276,7 +276,7 @@ function nleigs(
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, xi, expand, kconv, sgdd)
+            w = backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
 
             # orthogonalization
             Vview = view(V, 1:kn, 1:l)
@@ -355,12 +355,12 @@ function nleigs(
         Res = Res[1:l,1:l]
         σ = σ[1:k]
         if expand
-            xi = xi[1:k]
+            ξ = ξ[1:k]
             β = β[1:k]
             nrmD = nrmD[1:k]
             warn("NLEIGS: Linearization not converged after $maxdgr iterations")
         end
-        details = NleigsSolutionDetails(Lam, Res, σ, xi, β, nrmD, kconv)
+        details = NleigsSolutionDetails(Lam, Res, σ, ξ, β, nrmD, kconv)
     end
 
     return X[:,conv], lam[conv], res[conv], details
@@ -425,16 +425,16 @@ Compute scalar generalized divided differences.
 
 # Arguments
 - `σ`: Discretization of target set.
-- `xi`: Discretization of singularity set.
+- `ξ`: Discretization of singularity set.
 - `β`: Scaling factors.
 """
-function scgendivdiffs(σ::AbstractVector{CT}, xi, β, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
+function scgendivdiffs(σ::AbstractVector{CT}, ξ, β, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
     sgdd = zeros(CT, length(pff), maxdgr+2)
     for ii = 1:length(pff)
         if isfunm
-            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], σ, xi, β)
+            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], σ, ξ, β)
         else
-            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], σ, xi, β))
+            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], σ, ξ, β))
         end
     end
     return sgdd
@@ -460,7 +460,7 @@ function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
 end
 
 "Backslash or left matrix divide for continuation vector `wc`."
-function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, xi, expand, kconv, sgdd)
+function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
     n = size(P.nep, 1)::Int
     shift = σ[k+1]
 
@@ -489,9 +489,9 @@ function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, xi, expa
         end
         # compute block i+1
         if !P.is_low_rank || ii != P.p
-            Bw[i1b:i1e] = wc[i0b:i0e] + β[ii+1]/xi[ii]*wc[i1b:i1e]
+            Bw[i1b:i1e] = wc[i0b:i0e] + β[ii+1]/ξ[ii]*wc[i1b:i1e]
         else
-            Bw[i1b:i1e] = P.UU' * wc[i0b:i0e] + β[ii+1]/xi[ii]*wc[i1b:i1e]
+            Bw[i1b:i1e] = P.UU' * wc[i0b:i0e] + β[ii+1]/ξ[ii]*wc[i1b:i1e]
         end
         # range of next block i
         i0b = i1b
@@ -506,7 +506,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, xi, expa
     else
         i1e = n + P.r
     end
-    nu = β[2]*(1 - shift/xi[1])
+    nu = β[2]*(1 - shift/ξ[1])
     z[i1b:i1e] = 1/nu * z[i1b:i1e]
     for ii = 1:N
         # range of block i+2
@@ -537,7 +537,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, xi, expa
         # update block i+2
         if ii < N
             mu = shift - σ[ii+1]
-            nu = β[ii+2] * (1 - shift/xi[ii+1])
+            nu = β[ii+2] * (1 - shift/ξ[ii+1])
             if !P.is_low_rank || ii != P.p-1
                 z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * z[i1b:i1e]
             else # i == p-1
@@ -570,7 +570,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, xi, expa
         end
         # compute block i+1
         mu = shift - σ[ii]
-        nu = β[ii+1] * (1 - shift/xi[ii])
+        nu = β[ii+1] * (1 - shift/ξ[ii])
         if !P.is_low_rank || ii != P.p
             w[i1b:i1e] = mu/nu * w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
         else

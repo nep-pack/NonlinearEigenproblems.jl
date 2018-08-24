@@ -17,7 +17,7 @@ function gun_init()
     nodes = gam*Z + mu
 
     # define the set of pole candidates
-    Xi = -logspace(-8, 8, 10000) + sigma2^2
+    Ξ = -logspace(-8, 8, 10000) + sigma2^2
 
     # options
     srand(1)
@@ -25,7 +25,7 @@ function gun_init()
 
     funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)
 
-    return nep, Σ, Xi, v, nodes, funres
+    return nep, Σ, Ξ, v, nodes, funres
 end
 
 function gun_nep()

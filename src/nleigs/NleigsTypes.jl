@@ -138,7 +138,7 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
     σ::AbstractVector{CT}
 
     "vector of poles"
-    xi::AbstractVector{T}
+    ξ::AbstractVector{T}
 
     "vector of scaling parameters"
     β::AbstractVector{T}

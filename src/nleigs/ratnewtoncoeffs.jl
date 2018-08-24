@@ -5,7 +5,7 @@ Compute rational divided differences for the function fun (can be matrix
 valued), using differencing. The σ need to be distinct. For scalar
 functions or non-distinct σ it may be better to use `ratnewtoncoeffsm`.
 """
-function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, xi::AbstractVector{T}, β::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
+function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β::AbstractVector{T}) where {T<:Real, CT<:Complex{T}}
     m = length(σ)
     D = Vector{Matrix{CT}}(m)
 
@@ -17,11 +17,11 @@ function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, xi::AbstractVector{T}, β:
         # evaluate current linearizaion at σ[j]
         Qj = T(0)
         for k = 1:j-1
-            Qj += D[k] * evalrat(σ[1:k-1], xi[1:k-1], β[1:k], [σ[j]])[1]
+            Qj += D[k] * evalrat(σ[1:k-1], ξ[1:k-1], β[1:k], [σ[j]])[1]
         end
 
         # get divided difference from recursion (could be done via Horner)
-        D[j] = (fun(as_matrix(σ[j])) - Qj) / evalrat(σ[1:j-1], xi[1:j-1], β[1:j], [σ[j]])[1]
+        D[j] = (fun(as_matrix(σ[j])) - Qj) / evalrat(σ[1:j-1], ξ[1:j-1], β[1:j], [σ[j]])[1]
     end
 
     return D

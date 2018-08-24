@@ -21,10 +21,10 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-nep, Σ, Xi, v, nodes, funres = gun_init()
+nep, Σ, Ξ, v, nodes, funres = gun_init()
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Σ, Xi=Xi, displaylevel=verbose > 0 ? 1 : 0, minit=70, maxit=100, v=v, nodes=nodes, static=true, errmeasure=funres, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, minit=70, maxit=100, v=v, nodes=nodes, static=true, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant S" begin
     nleigs_verify_lambdas(21, nep, X, lambda)
