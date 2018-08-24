@@ -1,3 +1,4 @@
+
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 if !isdefined(:global_modules_loaded)
     workspace()
@@ -35,4 +36,15 @@ nep=nep_gallery("dep0");
 
     @test λ1≈λ2 # They should be exactly the same
 
+
+    println("mslp noconv + double")
+    @testset  "mslp + double" begin 
+        nep=nep_gallery("dep_double");
+        @test_throws NoConvergenceException mslp(nep,λ=9im,maxit=10)
+        λ,v=mslp(nep,λ=9im,maxit=100)
+        @test norm(compute_Mlincomb(nep,λ,v))<eps()*100
+
+    end
+    
+    
 end
