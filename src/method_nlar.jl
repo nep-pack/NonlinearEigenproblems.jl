@@ -1,5 +1,5 @@
 
-#The non-linear Arnoldi method, as introduced in "An Arnoldi method for non-linear eigenvalue problems" by H.Voss
+# The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
 
 export nlar
 using IterativeSolvers
@@ -30,6 +30,11 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R,Vk)
 
     return nu,y
 end
+
+##Eigenvalue sorter using residual: TODO
+
+
+##Eigenvalue sorter using a combined distance and residual approach
 
 nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
 function nlar(::Type{T},
@@ -78,12 +83,16 @@ function nlar(::Type{T},
         err = Inf;
         nu = λ0;
         u = v0;
+
+        if(displaylevel == 1)
+            println("##### Using inner solver:",inner_solver_method," #####");
+        end
+
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             set_projectmatrices!(proj_nep,Vk,Vk);
 
             #Use inner_solve() to solve the smaller projected problem
-            println("Using inner solver:",inner_solver_method);
             dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
 
             # Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
@@ -142,7 +151,7 @@ function nlar(::Type{T},
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
                 # Slow but robust.
-                Q,R=qr(hcat(Vk,Δv),thin=true)
+                Q,_=qr(hcat(Vk,Δv),thin=true)
                 Vk=Q
                 V[:,1:k+1]=Q;
                 #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
@@ -157,10 +166,10 @@ function nlar(::Type{T},
             end
 
             #Check orthogonalization
-            #if(k < 100)
-            #   println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
-            #   println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
-            #end
+            if(k < 100)
+               println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+               #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
+            end
             k = k+1;
         end
 
