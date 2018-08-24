@@ -1,5 +1,5 @@
 """
-Generate Leja-Bagby points (a,b) on (A,B), with scaling factors beta such that
+Generate Leja-Bagby points (a,b) on (A,B), with scaling factors β such that
 the uniform norm on the control set C is 1. Greedy search for a minimum is
 performed on B. If keepA is true then the points in the output a will be exactly
 those of A, otherwise the points in a are also chosen via greedy search on A. If
@@ -12,7 +12,7 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
 
     a = [A[1]]
     b = [forceInf > 0 ? T(Inf) : B[1]]
-    beta = [T(1.)]
+    β = [T(1.)]
 
     sA = ones(A)
     sB = ones(eltype(A), size(B))
@@ -25,17 +25,17 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
 
         push!(a, A[keepA ? j+1 : indmax(abs.(sA))])
         push!(b, forceInf > j ? Inf : B[indmin(abs.(sB))])
-        push!(beta, maximum(abs.(sC)))
+        push!(β, maximum(abs.(sC)))
 
         # treat single point case
-        if beta[j+1] < eps()
-            beta[j+1] = 1
+        if β[j+1] < eps()
+            β[j+1] = 1
         end
 
-        sA /= beta[j+1]
-        sB /= beta[j+1]
-        sC /= beta[j+1]
+        sA /= β[j+1]
+        sB /= β[j+1]
+        sC /= β[j+1]
     end
 
-    return a, b, beta
+    return a, b, β
 end

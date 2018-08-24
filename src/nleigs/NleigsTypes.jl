@@ -141,7 +141,7 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
     xi::AbstractVector{T}
 
     "vector of scaling parameters"
-    beta::AbstractVector{T}
+    β::AbstractVector{T}
 
     "vector of norms of generalized divided differences (in function handle
     case) or maximum of absolute values of scalar divided differences in
