@@ -21,10 +21,10 @@ include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-nep, Sigma, _, v, nodes, funres = gun_init()
+nep, Σ, _, v, nodes, funres = gun_init()
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
+@time X, lambda, res, solution_info = nleigs(nep, Σ, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant P" begin
     nleigs_verify_lambdas(17, nep, X, lambda)
@@ -32,5 +32,5 @@ end
 
 if verbose > 1
     include("nleigs_residual_plot.jl")
-    nleigs_residual_plot("Gun: variant P", solution_info, Sigma; ylims=[1e-17, 1e-1])
+    nleigs_residual_plot("Gun: variant P", solution_info, Σ; ylims=[1e-17, 1e-1])
 end

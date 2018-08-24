@@ -17,8 +17,8 @@ function particle_init(interval)
         error("Invalid interval: $interval")
     end
 
-    # define target set Sigma
-    Sigma = [xmin + 0im, xmax + 0im]
+    # define target set Σ
+    Σ = [xmin + 0im, xmax + 0im]
 
     # options
     srand(5)
@@ -26,7 +26,7 @@ function particle_init(interval)
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
 
-    return nep, Sigma, Xi, v, nodes, xmin, xmax
+    return nep, Σ, Xi, v, nodes, xmin, xmax
 end
 
 function particle_nep(interval)

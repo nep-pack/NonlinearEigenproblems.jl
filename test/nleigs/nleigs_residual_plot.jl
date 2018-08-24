@@ -3,7 +3,7 @@ import GR
 
 include("../../src/nleigs/inpolygon.jl")
 
-function nleigs_residual_plot(title, solution_info, Sigma; plot_attributes...)
+function nleigs_residual_plot(title, solution_info, Σ; plot_attributes...)
     Lam = solution_info["Lam"]
     Res = solution_info["Res"]
 
@@ -30,7 +30,7 @@ function nleigs_residual_plot(title, solution_info, Sigma; plot_attributes...)
         ResC[i,i] = sRes[1]
     end
 
-    z = map(p -> inpolygon(real(p), imag(p), real(Sigma), imag(Sigma)), LamC[:,end])
+    z = map(p -> inpolygon(real(p), imag(p), real(Σ), imag(Σ)), LamC[:,end])
 
     ResIn = ResC[z,:]
     ResOut = ResC[.!z,:]
@@ -40,7 +40,7 @@ function nleigs_residual_plot(title, solution_info, Sigma; plot_attributes...)
     p = plot(title=title, xlabel="iteration", ylabel="residual", leg=false; plot_attributes...)
 
     for i = 1:n
-        color, style = isempty(Sigma) || z[i] ? (:red, :solid) : (:black, :dot)
+        color, style = isempty(Σ) || z[i] ? (:red, :solid) : (:black, :dot)
         p = plot!(p, i:n, ResC[i,i:n], yscale=:log10, linecolor=color, linestyle=style)
     end
 

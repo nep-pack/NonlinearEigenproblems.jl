@@ -5,7 +5,7 @@ include("ratnewtoncoeffs.jl")
 include("ratnewtoncoeffsm.jl")
 
 """
-    nleigs(nep::NEP, Sigma::AbstractVector{Complex{T}})
+    nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
 
 Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 
@@ -13,7 +13,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `nep`: An instance of a nonlinear eigenvalue problem. If the problem can be
   expressed as a sum of constant matrices times scalar functions, use the PNEP
   type for best performance.
-- `Sigma`: A vector containing the points of a polygonal target set in the complex plane.
+- `Σ`: A vector containing the points of a polygonal target set in the complex plane.
 - `Xi`: A vector containing a discretization of the singularity set.
 - `displaylevel`: Level of display (0, 1, 2).
 - `maxdgr`: Max degree of approximation.
@@ -33,7 +33,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `check_error_every`: Check for convergence / termination every this number of iterations.
 
 # Return values
-- `X`: Matrix of eigenvectors of the nonlinear eigenvalue problem NLEP inside the target set Sigma.
+- `X`: Matrix of eigenvectors of the nonlinear eigenvalue problem NLEP inside the target set Σ.
 - `λ`: Corresponding vector of eigenvalues.
 - `res`: Corresponding residuals.
 - `details`: Solution details, if requested (see NleigsSolutionDetails).
@@ -44,11 +44,11 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
   Sci. Comput., 36(6), A2842-A2864, 2014.
 - [NLEIGS Matlab toolbox](http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php)
 """
-nleigs(nep, Sigma; params...) = nleigs(Float64, nep, Sigma; params...)
+nleigs(nep, Σ; params...) = nleigs(Float64, nep, Σ; params...)
 function nleigs(
         ::Type{T},
         nep::NEP,
-        Sigma::AbstractVector{CT};
+        Σ::AbstractVector{CT};
         Xi::Vector{T} = [T(Inf)],
         displaylevel::Int = 0,
         maxdgr::Int = 100,
@@ -102,25 +102,25 @@ function nleigs(
         Res = zeros(T, b, b)
     end
 
-    # Discretization of Sigma --> Gamma & Leja-Bagby points
+    # Discretization of Σ --> Gamma & Leja-Bagby points
     if leja == 0 # use no leja nodes
         if isempty(nodes)
             error("Interpolation nodes must be provided via 'nodes' when no Leja-Bagby points ('leja' == 0) are used.")
         end
-        gamma,_ = discretizepolygon(Sigma)
+        gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
         sigma = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
         _,xi,beta = lejabagby(sigma[1:maxdgr+2], Xi, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
         if isempty(nodes)
-            gamma,nodes = discretizepolygon(Sigma, true)
+            gamma,nodes = discretizepolygon(Σ, true)
         else
-            gamma,_ = discretizepolygon(Sigma)
+            gamma,_ = discretizepolygon(Σ)
         end
         nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
         sigma,xi,beta = lejabagby(gamma, Xi, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
-        gamma,_ = discretizepolygon(Sigma)
+        gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
         sigma,xi,beta = lejabagby(gamma, Xi, gamma, max_count, false, P.p)
     end
@@ -292,13 +292,13 @@ function nleigs(
 
             # select eigenvalues
             if !all
-                lamin = in_sigma(lambda, Sigma, tol)
+                lamin = in_sigma(lambda, Σ, tol)
                 ilam = [1:l;][lamin]
                 lam = lambda[ilam]
             else
                 ilam = [1:l;][isfinite.(lambda)]
                 lam = lambda[ilam]
-                lamin = in_sigma(lam, Sigma, tol)
+                lamin = in_sigma(lam, Σ, tol)
             end
 
             nblamin = sum(lamin)
@@ -584,16 +584,16 @@ function backslash(wc, P, lu_cache, reuselu, computeD, sigma, k, D, beta, N, xi,
     return w
 end
 
-"True for complex points `z` inside polygonal set `Sigma`."
-function in_sigma(z::AbstractVector{CT}, Sigma::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
-    if length(Sigma) == 2 && isreal(Sigma)
-        realSigma = real([Sigma[1]; Sigma[1]; Sigma[2]; Sigma[2]])
-        imagSigma = [-tol; tol; tol; -tol]
+"True for complex points `z` inside polygonal set `Σ`."
+function in_sigma(z::AbstractVector{CT}, Σ::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
+    if length(Σ) == 2 && isreal(Σ)
+        realΣ = real([Σ[1]; Σ[1]; Σ[2]; Σ[2]])
+        imagΣ = [-tol; tol; tol; -tol]
     else
-        realSigma = real(Sigma)
-        imagSigma = imag(Sigma)
+        realΣ = real(Σ)
+        imagΣ = imag(Σ)
     end
-    return map(p -> inpolygon(real(p), imag(p), realSigma, imagSigma), z)
+    return map(p -> inpolygon(real(p), imag(p), realΣ, imagΣ), z)
 end
 
 function resize_matrix(A, rows, cols)
