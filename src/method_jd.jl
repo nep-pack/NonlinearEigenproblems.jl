@@ -9,8 +9,7 @@ import NEPTypes.create_proj_NEP
 import NEPTypes.set_projectmatrices!
 import Base.size
 import NEPCore.compute_Mder
-#import NEPCore.compute_Mlincomb
-#import NEPCore.compute_MM
+import NEPCore.compute_Mlincomb
 
 
 
@@ -186,7 +185,6 @@ function jd_effenberger(::Type{T},
                         Neig::Int = 1,
                         inner_solver_method::Type = NEPSolver.DefaultInnerSolver,
                         orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
-                        errmeasure::Function = default_errmeasure(nep::NEP),
                         linsolvercreator::Function = default_linsolvercreator,
                         tol::Number = eps(real(T))*100,
                         λ::Number = zero(T),
@@ -205,6 +203,8 @@ function jd_effenberger(::Type{T},
     # Allocations and preparations
     λ::T = T(λ)
     u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u)
+    u_init::Vector{T} = u
+
     target::T = T(target)
     tol::real(T) = real(T)(tol)
     conveig = 0
@@ -214,19 +214,20 @@ function jd_effenberger(::Type{T},
     W_memory_base::Matrix{T} = zeros(T, n+Neig, maxit+1)
 
     # Initial check for convergence
-    err = errmeasure(λ,u)
+    err = norm(compute_Mlincomb(nep,λ,u))
     @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
         Λ[1,1] = λ
         X[:,1] = u
+        u_init = rand(n+1)
     end
 
     deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
     tot_nrof_its = 0
 
-    while true
-        # Check for fulfillment. If so, compute the eigenpairs
+    while true # Can only escape the loop on convergence (return) or too many iterations (error)
+        # Check for fulfillment. If so, compute the eigenpairs and return
         if (conveig == Neig)
             λ_vec,uv = eig(Λ)
             u_vec = X * uv
@@ -235,7 +236,10 @@ function jd_effenberger(::Type{T},
 
         V_memory = view(V_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
         W_memory = view(W_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
-        λ, u, tot_nrof_its = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its, conveig, inner_solver_method, orthmethod, errmeasure, linsolvercreator, tol, target, displaylevel, Neig, V_memory, W_memory)
+        λ, u, tot_nrof_its, u_init = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its,
+                                                          conveig, inner_solver_method, orthmethod,
+                                                          linsolvercreator, tol, target, displaylevel,
+                                                          Neig, V_memory, W_memory, u_init)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
         # Expand the partial Schur factorization with the computed solution
@@ -245,8 +249,6 @@ function jd_effenberger(::Type{T},
 
         deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
     end
-
-    error("This should not be possible.")
 end
 
 
@@ -258,14 +260,14 @@ function jd_effenberger_inner(::Type{T},
                               conveig::Int,
                               inner_solver_method::Type,
                               orthmethod::Type,
-                              errmeasure::Function,
                               linsolvercreator::Function,
                               tol::Number,
                               target::Number,
                               displaylevel::Int,
                               Neig::Int,
                               V_memory,
-                              W_memory) where {T<:Number}
+                              W_memory,
+                              u::Vector{T}) where {T<:Number}
     # Allocations and preparations
     X = deflated_nep.V0
     Λ = deflated_nep.S0
@@ -275,7 +277,7 @@ function jd_effenberger_inner(::Type{T},
     m = size(Λ,1) # Size of deflated subspace
 
     λ::T = T(target)
-    u::Vector{T} = rand(T,n+m); u[:] = u/norm(u)
+    u[:] = u ./ norm(u)
 
     pk::Vector{T} = zeros(T,n+m)
     s::Vector{T} = zeros(T,maxit+1-nrof_its)
@@ -294,9 +296,9 @@ function jd_effenberger_inner(::Type{T},
         # Project and solve the projected NEP
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
-                            λv = zeros(T,1),
+                            λv = zeros(T,3),
                             σ = zero(T),
-                            Neig = 1)
+                            Neig = 3)
         λ,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
 
@@ -305,11 +307,22 @@ function jd_effenberger_inner(::Type{T},
 
         # Compute residual and check for convergence
         rk = compute_Mlincomb(deflated_nep,λ,u)
-        err = norm(rk) # TODO: Can we use a custom error measure?  # TODO: #Error measure, see (9) in Effenberger
+        err = norm(rk) #Error measure, see (9) in Effenberger # TODO: Can we use another error measure?
         @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %3d\n", loop_counter, conveig, err, k))
         if (err < tol) #Frist check, no other eiganvalues can be converged
-            @ifd(print("One eigenvalue converged. Deflating.\n"))
-            return (λ, u, loop_counter)
+            @ifd(print("One eigenvalue converged. Deflating and restarting.\n"))
+
+            # TODO: Here one can implement a continuation with the same basis as in Effenberger section 4.2.5
+            # What is here is only a light kind adapted to an "unknown" inner solver
+            λ2,s2 = jd_eig_sorter(λv, sv, 2, target)
+            if (size(sv,2) > 1) && (abs(λ-λ2)/abs(λ) > sqrt(eps(real(T))))
+                s2 = s2/norm(s2)
+                u2 = vcat(V*s2, zero(T))
+            else
+                u2 = Vector{T}(rand(n+m+1))
+            end
+            return (λ, u, loop_counter, u2)
+
         end
 
         # Extend the basis
@@ -448,7 +461,7 @@ function size(nep::JD_Inner_Effenberger_Projected_NEP,dim=-1)
 end
 
 
-compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number)=compute_Mder(nep,λ,0)
+compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number) = compute_Mder(nep,λ,0)
 function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Integer)
 # THIS IS WRONG!!!
 # TODO: Need to compute derivative of U and remove the third term for higher derivative computations
@@ -456,4 +469,11 @@ function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Inte
     W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ) * nep.V2
     W2T_A_V1 = nep.W2' * nep.X' * nep.V1 #OBS: Here we assume minimality index = 1
     return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
+end
+
+function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector})
+    return compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
+end
+function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}, a::Vector)
+    return compute_Mlincomb_from_Mder(nep, λ ,V,a)
 end
