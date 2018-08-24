@@ -154,8 +154,8 @@ The default implementation of this can be slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector,startder::Integer)
-        aa=[zeros(startder);a];
-        VV=[zeros(size(nep,1),startder) V]; # This is typically slow since copy is needed
+        aa=[zeros(eltype(a), startder);a];
+        VV=[zeros(eltype(V), size(nep,1),startder) V]; # This is typically slow since copy is needed
         return compute_Mlincomb(nep,λ,VV,aa)
     end
 
