@@ -130,13 +130,11 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
     # Recommend to make a copy of V and call compute_Mlincomb! if function not available
     function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})
-        warn("It seems you have not implemented compute_Mlincomb for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))\ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb!(nep,λ,copy(V), a) ")
-        error("No compute_Mlincomb implemented") 
-    end 
-    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)
-        warn("It seems you have not implemented compute_Mlincomb for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))\ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb!(nep,λ,copy(V), a) ")
-        error("No compute_Mlincomb implemented") 
+        warn("It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))")
+        error("No compute_Mlincomb(nep,λ,V) implemented") 
     end
+    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=
+           compute_Mlincomb!(nep,λ,copy(V), a)
 
     # Note: The following function is commented out since default behaviour is
     # by to manually create a bigger a-vector (and call without startder) see below
