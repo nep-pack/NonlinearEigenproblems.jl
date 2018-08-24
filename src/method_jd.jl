@@ -451,13 +451,13 @@ function set_projectmatrices!(nep::JD_Inner_Effenberger_Projected_NEP, W, V)
 end
 
 
-function size(nep::JD_Inner_Effenberger_Projected_NEP,dim=-1)
+function size(nep::JD_Inner_Effenberger_Projected_NEP,dim)
     n = size(nep.W1, 2);
-    if (dim == -1)
-        return (n,n)
-    else
-        return n
-    end
+    return n
+end
+function size(nep::JD_Inner_Effenberger_Projected_NEP)
+    n = size(nep.W1, 2);
+    return (n,n)
 end
 
 

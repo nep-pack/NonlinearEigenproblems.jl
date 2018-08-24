@@ -115,7 +115,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 ```
 """
     function compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector)
-        # This will manually scale the columns in V by the vector a. 
+        # This will manually scale the columns in V by the vector a.
         if (ones(eltype(a),size(a,1))==a) # No scaling necessary
             return compute_Mlincomb!(nep,λ,V);
         end
@@ -139,9 +139,9 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
 # And the converse without exclamation mark
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
-    # Note: The following function is commented out since, default behaviour is 
+    # Note: The following function is commented out since, default behaviour is
     # by manual scaling of columns (see above), not calling compute_Mlincomb()
-    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by  
+    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb(nep,λ,V)
 
 """
@@ -307,7 +307,10 @@ Overloads the size functions for NEP.\\
 Size returns the size of the matrix defining the NEP.
 Note: All NEPs must implement this function.
 """
-    function size(nep::NEP,dim=-1)
+    function size(nep::NEP,dim)
+        error("You need to provide an implementation of size for this NEP.")
+    end
+    function size(nep::NEP)
         error("You need to provide an implementation of size for this NEP.")
     end
 
