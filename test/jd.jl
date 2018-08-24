@@ -94,11 +94,19 @@ println("\n\nTest: Effenberger")
 
 TOL = 1e-8
 nep = nep_gallery("pep0",200)
-λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=100)#, v0=ones(Complex128,size(nep,1)))
+
+λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=100, v0=ones(Complex128,size(nep,1)))
 println(" Eigevalues found: \n λ: ",λ)
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
 @test norm(compute_Mlincomb(nep,λ[3],u[:,3])) < TOL
+
+
+# λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=100, inner_solver_method = NEPSolver.ContourBeynInnerSolver, v0=ones(Complex128,size(nep,1)))
+# println(" Eigevalues found: \n λ: ",λ)
+# @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
+# @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
+# @test norm(compute_Mlincomb(nep,λ[3],u[:,3])) < TOL
 
 
 println("\nTesting errors thrown")

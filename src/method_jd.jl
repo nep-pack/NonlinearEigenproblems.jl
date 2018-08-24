@@ -187,8 +187,8 @@ function jd_effenberger(::Type{T},
                         orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
                         linsolvercreator::Function = default_linsolvercreator,
                         tol::Number = eps(real(T))*100,
-                        λ::Number = zero(T),
-                        v0::Vector = randn(size(nep,1)),
+                        λ::Number = rand(T),
+                        v0::Vector = rand(T,size(nep,1)),
                         target::Number = zero(T),
                         displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
     # Initial logical checks
@@ -203,6 +203,7 @@ function jd_effenberger(::Type{T},
     # Allocations and preparations
     λ::T = T(λ)
     u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u)
+    λ_init::T = λ
     u_init::Vector{T} = u
 
     target::T = T(target)
@@ -220,6 +221,7 @@ function jd_effenberger(::Type{T},
         conveig += 1
         Λ[1,1] = λ
         X[:,1] = u
+        λ_init = T(rand())
         u_init = rand(n+1)
     end
 
@@ -236,10 +238,11 @@ function jd_effenberger(::Type{T},
 
         V_memory = view(V_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
         W_memory = view(W_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
-        λ, u, tot_nrof_its, u_init = jd_effenberger_inner(T, deflated_nep, maxit, tot_nrof_its,
+        λ, u, tot_nrof_its, u_init, λ_init = jd_effenberger_inner!(T, V_memory, W_memory,
+                                                          deflated_nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
                                                           linsolvercreator, tol, target, displaylevel,
-                                                          Neig, V_memory, W_memory, u_init)
+                                                          Neig, u_init, λ_init)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
         # Expand the partial Schur factorization with the computed solution
@@ -253,7 +256,9 @@ end
 
 
 
-function jd_effenberger_inner(::Type{T},
+function jd_effenberger_inner!(::Type{T},
+                              V_memory::SubArray,
+                              W_memory::SubArray,
                               deflated_nep::DeflatedNEP,
                               maxit::Int,
                               nrof_its::Int,
@@ -265,9 +270,8 @@ function jd_effenberger_inner(::Type{T},
                               target::Number,
                               displaylevel::Int,
                               Neig::Int,
-                              V_memory,
-                              W_memory,
-                              u::Vector{T}) where {T<:Number}
+                              u::Vector{T},
+                              λ::T) where {T<:Number}
     # Allocations and preparations
     X = deflated_nep.V0
     Λ = deflated_nep.S0
@@ -276,7 +280,6 @@ function jd_effenberger_inner(::Type{T},
     n = size(orgnep,1) # Size of original problem
     m = size(Λ,1) # Size of deflated subspace
 
-    λ::T = T(target)
     u[:] = u ./ norm(u)
 
     pk::Vector{T} = zeros(T,n+m)
@@ -296,14 +299,23 @@ function jd_effenberger_inner(::Type{T},
         # Project and solve the projected NEP
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
-                            λv = zeros(T,3),
-                            σ = zero(T),
-                            Neig = 3)
+                            λv = λ .* ones(T,3),
+                            σ = target,
+                            Neig = k)
         λ,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
+# # TODO: Create better chatches inside the projected solvers if convergence is weird (e.g. if Beyncontour does not converge to anything useful)
+# if abs(λ)>1/sqrt(eps(real(T)))
+#     λ = rand()
+# end
+# if any(isnan.(s[1:k]))
+#     s[1:k] = Vector{T}(rand(k))
+# end
         s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
 
         # the approximate eigenvector
         u[:] = V*s[1:k]
+# println(s[1:k])
+# println(norm(u))
 
         # Compute residual and check for convergence
         rk = compute_Mlincomb(deflated_nep,λ,u)
@@ -321,7 +333,7 @@ function jd_effenberger_inner(::Type{T},
             else
                 u2 = Vector{T}(rand(n+m+1))
             end
-            return (λ, u, loop_counter, u2)
+            return (λ, u, loop_counter, u2, λ2)
 
         end
 
@@ -351,7 +363,8 @@ end
 
 
 
-function compute_U(orgnep, μ, X, Λ)
+function compute_U(orgnep, μ, X, Λ, i=0)
+# TODO: Need to compute derivative of U -- THIS IS WRONG!!!
     if size(Λ,1) == 0 # Corner case, actually empty
         U = X[:,[]]
     else
@@ -361,7 +374,8 @@ function compute_U(orgnep, μ, X, Λ)
     end
     return U
 end
-function compute_Uv(orgnep, μ, X, Λ, v)
+function compute_Uv(orgnep, μ, X, Λ, v, i=0)
+# TODO: Need to compute derivative of U -- THIS IS WRONG!!!
     μI = μ*one(Λ)
     t = (Λ - μI)\v
     TXΛ = compute_TXΛ(orgnep, Λ, X)
@@ -463,11 +477,13 @@ end
 
 compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number) = compute_Mder(nep,λ,0)
 function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Integer)
-# THIS IS WRONG!!!
-# TODO: Need to compute derivative of U and remove the third term for higher derivative computations
+# println(λ)
     W1T_M_V1 = compute_Mder(nep.org_proj_nep,λ,i)
-    W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ) * nep.V2
+    W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ, i) * nep.V2
     W2T_A_V1 = nep.W2' * nep.X' * nep.V1 #OBS: Here we assume minimality index = 1
+    if i >= 1
+        W2T_A_V1 = zero(W2T_A_V1) # Lazy way out. If a derivative this part disappears since not depending on mu. Obs: Assuming minimality index = 1.
+    end
     return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
 end
 
@@ -475,5 +491,11 @@ function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V
     return compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
 end
 function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}, a::Vector)
-    return compute_Mlincomb_from_Mder(nep, λ ,V,a)
+    t = compute_Mlincomb(nep.org_proj_nep, λ, V, a)
+    t[:] = t + a[1] * (nep.W2' * (nep.X' * (nep.V1 * V[:,1])))
+    for i = 1:size(V,2)
+        t[:] = t + a[i] * nep.W1'*compute_Uv(nep.orgnep.orgnep, λ, nep.X, nep.Λ, nep.V2*V[:,i], i-1)
+    end
+    return t # The below seems, somehow, to require less allocations(?)
+    # return compute_Mlincomb_from_Mder(nep, λ ,V, a)
 end
