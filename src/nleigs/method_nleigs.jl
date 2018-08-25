@@ -369,7 +369,7 @@ function nleigs(
         details = NleigsSolutionDetails(Lam, Res, σ, ξ, β, nrmD, kconv)
     end
 
-    return X[:,conv], lam[conv], res[conv], details
+    return lam[conv], X[:,conv], res[conv], details
 end
 
 "Create NleigsNEP instance, exploiting the type of the input NEP as much as possible"

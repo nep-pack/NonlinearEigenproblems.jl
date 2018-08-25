@@ -46,7 +46,7 @@ problems = [
 
 for problem in problems
     @testset "NLEIGS: $(problem[1])" begin
-        @time X, lambda = nleigs(problem[2], Σ, maxit=10, v=ones(n).+0im, blksize=5)
+        @time lambda, X = nleigs(problem[2], Σ, maxit=10, v=ones(n).+0im, blksize=5)
         nleigs_verify_lambdas(4, problem[2], X, lambda)
     end
 end

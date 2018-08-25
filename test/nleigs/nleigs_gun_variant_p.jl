@@ -24,7 +24,7 @@ verbose = 1
 nep, Σ, _, v, nodes, funres = gun_init()
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Σ, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
+@time lambda, X, res, solution_info = nleigs(nep, Σ, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant P" begin
     nleigs_verify_lambdas(17, nep, X, lambda)

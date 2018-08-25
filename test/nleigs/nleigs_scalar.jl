@@ -29,7 +29,7 @@ nep = SPMF_NEP([C[1], C[2]], [f[1], f[2]])
 Σ = complex([0.01, 4])
 
 @testset "NLEIGS: Scalar (polynomial)" begin
-    @time X, lambda = nleigs(nep, Σ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
+    @time lambda, X = nleigs(nep, Σ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
     # single eigenvalue converges
     nleigs_verify_lambdas(1, nep, X, lambda)
@@ -39,7 +39,7 @@ end
     # set of poles candidates
     Ξ = -logspace(-6, 5, 10000)
 
-    @time X, lambda = nleigs(nep, Σ, Ξ=Ξ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
+    @time lambda, X = nleigs(nep, Σ, Ξ=Ξ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
     # three eigenvalues converge
     nleigs_verify_lambdas(3, nep, X, lambda)
