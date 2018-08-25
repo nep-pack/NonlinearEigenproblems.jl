@@ -1,3 +1,9 @@
+push!(LOAD_PATH, @__DIR__)
+
+using NleigsTypes
+
+export nleigs
+
 include("lusolver.jl")
 include("discretizepolygon.jl")
 include("lejabagby.jl")
