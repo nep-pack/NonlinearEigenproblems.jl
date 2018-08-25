@@ -54,7 +54,7 @@ nleigs(nep, Σ; params...) = nleigs(Float64, nep, Σ; params...)
 function nleigs(
         ::Type{T},
         nep::NEP,
-        Σ::AbstractVector{CT};
+        Σ::AbstractVector{CT}=Vector{CT}([-1.0-1im,-1+1im,+1+1im,1-1im]);
         Ξ::Vector{T} = [T(Inf)],
         displaylevel::Int = 0,
         maxdgr::Int = 100,
