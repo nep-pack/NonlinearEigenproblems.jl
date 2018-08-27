@@ -126,13 +126,17 @@ for matrices in the standard matrix function sense.
         SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Complex128,Int}}())
 
 """
-     SPMF_NEP(AA,fii,Schur_fact=false)
+     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true)
 
 Creates a SPMF_NEP consisting of matrices `AA` and functions `fii`. `fii` must
 be an array of functions defined for matrices. `AA` is an array of
 matrices. `Schur_fact` specifies if the computation of `compute_MM` should be
 done by first pre-computing a Schur-factorization (which can be faster).
-
+If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each
+matrix will be stored with a sparsity pattern matching the union of all `AA`
+matrices. This leads to more efficient calculation of `compute_Mder`. If
+the sparsity patterns are completely or mostly distinct, it may be more
+efficient to set this flag to false.
 
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
@@ -145,7 +149,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function}, Schur_fact = false)
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
+            Schur_fact = false, use_sparsity_pattern = true)
 
          if (size(AA,1)==0)
              return SPMF_NEP(0); # Create empty SPMF_NEP.
@@ -176,11 +181,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          T = complex(eltype(AA[1]))
          As = Vector{SparseMatrixCSC{T,Int}}()
 
-         if (issparse(AA[1]))
+         if use_sparsity_pattern && issparse(AA[1])
              # Merge the sparsity pattern of all matrices without dropping any zeros
-             Zero=spones(AA[1]);            # Julia 0.7+: Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
-             for i=2:size(AA,1)
-                 Zero=Zero+spones(AA[i]);   # Julia 0.7+: Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
+             Zero = spones(AA[1])           # Julia 0.7+: Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
+             for i = 2:size(AA,1)
+                 Zero += spones(AA[i])      # Julia 0.7+: Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
              end
              Zero = T.(Zero)
              Zero.nzval[:] .= T(0)
@@ -253,11 +258,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
-        if (i==0)
+        if i == 0
             if isempty(nep.As)
-                Z=copy(nep.Zero)
+                Z = copy(nep.Zero)
                 for i=1:size(nep.A,1)
-                    Z=Z+nep.A[i]*nep.fi[i](reshape([λ],1,1))[1]
+                    Z += nep.A[i] * nep.fi[i](reshape([λ],1,1))[1]
                 end
                 return Z
             else
