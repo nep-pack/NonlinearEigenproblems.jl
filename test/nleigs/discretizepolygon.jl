@@ -36,13 +36,13 @@ include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
     @test all(p -> inpolygon(real(p), imag(p), real.(poly), imag.(poly)), interior)
 end
 
-@testset "discretizepolygon: narrow sigma" begin
+@testset "discretizepolygon: narrow Σ" begin
     boundary, interior = discretizepolygon([-10.0-2im, 10-2im, 10+2im, -10+2im], true, 100, 5)
     @test length(boundary) == 100 + 5
     @test length(interior) >= 5
 end
 
-@testset "discretizepolygon: too narrow sigma" begin
+@testset "discretizepolygon: too narrow Σ" begin
     @test_throws ErrorException discretizepolygon([-10.0-0.2im, 10-0.2im, 10+0.2im, -10+0.2im], true, 100, 5)
 end
 

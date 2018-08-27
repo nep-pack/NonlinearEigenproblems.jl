@@ -63,8 +63,8 @@ function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.
             λv[k]=λ1;
         catch e
             if (isa(e, NoConvergenceException))
-                λ1=λv[k];
-                vproj=V[:,k];
+                V[:,k] = e.v
+                λv[k] = e.λ;
             else
                 rethrow(e)
             end

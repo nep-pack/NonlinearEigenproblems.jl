@@ -1,4 +1,5 @@
-#The non-linear Arnoldi method, as introduced in "An Arnoldi method for non-linear eigenvalue problems" by H.Voss
+
+# The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
 
 export nlar
 using IterativeSolvers
@@ -8,7 +9,7 @@ using IterativeSolvers
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
 ## σ targets
-function  default_eigval_sorter(dd,vv,σ,D,mm,R)
+function  default_eigval_sorter(dd,vv,σ,D,mm,R,Vk)
     dd2=copy(dd);
 
     ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
@@ -29,6 +30,11 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R)
 
     return nu,y
 end
+
+##Eigenvalue sorter using residual: TODO
+
+
+##Eigenvalue sorter using a combined distance and residual approach
 
 nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
 function nlar(::Type{T},
@@ -77,6 +83,11 @@ function nlar(::Type{T},
         err = Inf;
         nu = λ0;
         u = v0;
+
+        if(displaylevel == 1)
+            println("##### Using inner solver:",inner_solver_method," #####");
+        end
+
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             set_projectmatrices!(proj_nep,Vk,Vk);
@@ -87,7 +98,7 @@ function nlar(::Type{T},
             # Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
             # in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
             # eigenvalues in D.
-            nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
+            nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R,Vk)
 
             # Select the eigenvalue with minimum distance from D
             nu=nuv[1];
@@ -120,7 +131,7 @@ function nlar(::Type{T},
                 X[:,m+1] = u;
 
                 ## Sort and select he eigenvalues of the projected problem as described before
-                nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
+                nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R,Vk)
                 nu1=nuv[1];
                 y1=yv[:,1];
 
@@ -140,7 +151,7 @@ function nlar(::Type{T},
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
                 # Slow but robust.
-                Q,R=qr(hcat(Vk,Δv),thin=true)
+                Q,_=qr(hcat(Vk,Δv),thin=true)
                 Vk=Q
                 V[:,1:k+1]=Q;
                 #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
@@ -155,10 +166,10 @@ function nlar(::Type{T},
             end
 
             #Check orthogonalization
-            #if(k < 100)
-            #   println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
-            #   println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
-            #end
+            if(k < 100)
+               println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+               #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
+            end
             k = k+1;
         end
 

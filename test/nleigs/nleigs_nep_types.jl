@@ -23,7 +23,7 @@ B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6]])
 C = Vector{Matrix{Float64}}([[1 0; 0 1]])
 f = [λ -> λ^2]
 
-Sigma = [-10.0-2im, 10-2im, 10+2im, -10+2im]
+Σ = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
 struct CustomNLEIGSNEP <: NEP
     n::Int  # problem size; this is the only required field in a custom NEP type when used with NLEIGS
@@ -33,7 +33,7 @@ end
 import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
 pep = PEP([B; C])
 compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x) = compute_Mlincomb(pep, λ, x)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Matrix) = compute_Mlincomb(pep, λ, x)
 size(::CustomNLEIGSNEP, _) = n
 
 # define and solve the same problem in many different ways
@@ -46,7 +46,7 @@ problems = [
 
 for problem in problems
     @testset "NLEIGS: $(problem[1])" begin
-        @time X, lambda = nleigs(problem[2], Sigma, maxit=10, v=ones(n).+0im, blksize=5)
+        @time lambda, X = nleigs(problem[2], Σ, maxit=10, v=ones(n).+0im, blksize=5)
         nleigs_verify_lambdas(4, problem[2], X, lambda)
     end
 end

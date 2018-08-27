@@ -1,5 +1,7 @@
 module NleigsTypes
 
+push!(LOAD_PATH, joinpath(@__DIR__, ".."))
+
 using NEPCore
 using NEPTypes
 
@@ -118,8 +120,8 @@ LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
 compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
     compute_Mder(nep.spmf, λ, i)
 
-compute_Mlincomb(nep::LowRankFactorizedNEP, λ::T, V::Union{Vector{T}, Matrix{T}}; a = ones(T, size(V, 2))) where T<:Number =
-    compute_Mlincomb(nep.spmf, λ, V, a=a)
+compute_Mlincomb(nep::LowRankFactorizedNEP, λ::T, V::Union{Vector{T}, Matrix{T}}, a::Vector = ones(T, size(V, 2))) where T<:Number =
+    compute_Mlincomb(nep.spmf, λ, V, a)
 
 size(nep::LowRankFactorizedNEP) = size(nep.spmf)
 size(nep::LowRankFactorizedNEP, dim) = size(nep.spmf, dim)
@@ -135,13 +137,13 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
     Res::AbstractMatrix{T}
 
     "vector of interpolation nodes"
-    sigma::AbstractVector{CT}
+    σ::AbstractVector{CT}
 
     "vector of poles"
-    xi::AbstractVector{T}
+    ξ::AbstractVector{T}
 
     "vector of scaling parameters"
-    beta::AbstractVector{T}
+    β::AbstractVector{T}
 
     "vector of norms of generalized divided differences (in function handle
     case) or maximum of absolute values of scalar divided differences in

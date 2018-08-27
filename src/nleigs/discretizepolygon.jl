@@ -8,19 +8,19 @@ Discretize the polygon given by the (complex) entries of Z.
   Pass a single value for a disk centered at that value. Pass two values for Chebyshev points.
 - `include_interior_points`: Whether to return interior points.
 - `npts`: Number of boundary points to return.
-- `nsigma`: Minimum number of interior points (more than this may be returned).
+- `nptsint`: Minimum number of interior points (more than this may be returned).
 
 # Return values
 - `boundary_points`: Boundary points (`npts` of these), followed by the input
   polygon vertices, with an additional final vertex equal to the first vertex.
 - `interior_points`: Interior points, if specified to be returned, otherwise an
-  empty vector. If specified, there will be at least `nsigma` of these.
+  empty vector. If specified, there will be at least `nptsint` of these.
 """
 function discretizepolygon(
     z::Vector{CT} = [],
     include_interior_points::Bool = false,
     npts::Int = 10000,
-    nsigma::Int = 5) where CT<:Complex{<:Real}
+    nptsint::Int = 5) where CT<:Complex{<:Real}
 
     if isempty(z) # return unit disk
         z = [CT(0)]
@@ -58,7 +58,7 @@ function discretizepolygon(
     Z = Vector{CT}(0)
     if include_interior_points
         if length(z) == 2 # interval case
-            xnr = 2*nsigma
+            xnr = 2*nptsint
             if (xnr&1) == 0 xnr += 1 end
             xpts = linspace(z[1], z[2], xnr)
             Z = collect(xpts[2:2:end])
@@ -72,11 +72,11 @@ function discretizepolygon(
         imag_min, imag_max = extrema(imagz)
 
         iter = 0
-        spacing = (real_max - real_min) / 2.0001 / sqrt(nsigma)
-        while length(Z) < nsigma
+        spacing = (real_max - real_min) / 2.0001 / sqrt(nptsint)
+        while length(Z) < nptsint
             iter += 1
             if iter > 10
-                error("Failed to find interior polygon points. Sigma too narrow? (Note that intervals should be given by their two endpoints only.)")
+                error("Failed to find interior polygon points. Polygon too narrow? (Note that intervals should be given by their two endpoints only.)")
             end
 
             xnr = trunc(Int, (real_max - real_min) / (2*spacing))

@@ -128,14 +128,24 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
         return compute_Mlincomb!(nep,λ,V);
     end
 
-    # Make a copy of V and call compute_Mlincomb!, as default
-    # behaviour for compute_Mlincomb
+    # Recommend to make a copy of V and call compute_Mlincomb! if function not available
+    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})
+        warn("It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))")
+        error("No compute_Mlincomb(nep,λ,V) implemented") 
+    end
+    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=
+           compute_Mlincomb!(nep,λ,copy(V), a)
+
+    # Note: The following function is commented out since default behaviour is
+    # by to manually create a bigger a-vector (and call without startder) see below
     #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
-    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb!(nep,λ,copy(V), a)
-    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
-    # And the converse without exclamation mark
+
+
+    # Default behavior of the compute_Mlincomb! is to just call compute_Mlincomb
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
-    #compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a)
+    # Note: The following function is commented out since, default behaviour is 
+    # by manual scaling of columns (see above), not calling compute_Mlincomb()
+    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by  
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb(nep,λ,V)
 
 """
@@ -148,8 +158,8 @@ The default implementation of this can be slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector,startder::Integer)
-        aa=[zeros(startder);a];
-        VV=[zeros(size(nep,1),startder) V]; # This is typically slow since copy is needed
+        aa=[zeros(eltype(a), startder);a];
+        VV=[zeros(eltype(V), size(nep,1),startder) V]; # This is typically slow since copy is needed
         return compute_Mlincomb(nep,λ,VV,aa)
     end
 

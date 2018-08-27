@@ -7,17 +7,17 @@ function gun_init()
     xmin = gam*(-1) + mu
     xmax = gam*1 + mu
 
-    # define target set Sigma
+    # define target set Σ
     npts = 1000
     halfcircle = xmin + (xmax-xmin) * (cis.(linspace(0, pi, round(pi/2*npts) + 2)) / 2 + .5)
-    Sigma = [halfcircle; xmin]
+    Σ = [halfcircle; xmin]
 
     # sequence of interpolation nodes
     Z = [2/3, (1+im)/3, 0, (-1+im)/3, -2/3]
     nodes = gam*Z + mu
 
     # define the set of pole candidates
-    Xi = -logspace(-8, 8, 10000) + sigma2^2
+    Ξ = -logspace(-8, 8, 10000) + sigma2^2
 
     # options
     srand(1)
@@ -25,7 +25,7 @@ function gun_init()
 
     funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)
 
-    return nep, Sigma, Xi, v, nodes, funres
+    return nep, Σ, Ξ, v, nodes, funres
 end
 
 function gun_nep()
