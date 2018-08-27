@@ -1,4 +1,7 @@
 module NEPCore
+    using SparseArrays
+    using LinearAlgebra
+
     # Fundamental nonlinear eigenvalue problems
     export NEP
     #
@@ -31,7 +34,7 @@ module NEPCore
     export default_errmeasure
 
     import Base.size  # Overload for nonlinear eigenvalue problems
-    import Base.issparse  # Overload for nonlinear eigenvalue problems
+    import SparseArrays.issparse  # Overload for nonlinear eigenvalue problems
 
 
 
@@ -115,7 +118,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 ```
 """
     function compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector)
-        # This will manually scale the columns in V by the vector a. 
+        # This will manually scale the columns in V by the vector a.
         if (ones(eltype(a),size(a,1))==a) # No scaling necessary
             return compute_Mlincomb!(nep,λ,V);
         end
@@ -123,7 +126,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
             V[:]=V*a[1];
         else
             D=Diagonal(a);
-            V[:,:]=V*D; # julia 0.7: rmul!(V,D);
+            rmul!(V,D);
         end
         return compute_Mlincomb!(nep,λ,V);
     end
@@ -131,7 +134,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
     # Recommend to make a copy of V and call compute_Mlincomb! if function not available
     function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})
         warn("It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))")
-        error("No compute_Mlincomb(nep,λ,V) implemented") 
+        error("No compute_Mlincomb(nep,λ,V) implemented")
     end
     compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=
            compute_Mlincomb!(nep,λ,copy(V), a)
@@ -143,9 +146,9 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
     # Default behavior of the compute_Mlincomb! is to just call compute_Mlincomb
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
-    # Note: The following function is commented out since, default behaviour is 
+    # Note: The following function is commented out since, default behaviour is
     # by manual scaling of columns (see above), not calling compute_Mlincomb()
-    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by  
+    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by
     compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb(nep,λ,V)
 
 """
@@ -216,7 +219,8 @@ Same as [`compute_Mlincomb`](@ref), but modifies V and a.
         k=size(V,2);
         # we need to assume that the elements of a are is different than zero.
         V[:,find(x->x==0,a)]=0; a[find(x->x==0,a)]=1;
-        S=diagm(λ*ones(eltype(V),k))+diagm((a[2:k]./a[1:k-1]).*(1:k-1),1); S=S.';
+        S=diagm(λ*ones(eltype(V),k))+diagm(1 => (a[2:k]./a[1:k-1]).*(1:k-1));
+        S=copy(transpose(S))
         z=compute_MM(nep,S,V)[:,1];
         return a[1]*reshape(z,size(z,1))
     end
@@ -242,7 +246,7 @@ Computes the Mder function from MM using the fact that MM of
 a jordan block becomes derivatives
 """
     function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
-        J=sparse(jordan_matrix(typeof(λ),i+1,λ).')
+        J=sparse(transpose(jordan_matrix(typeof(λ),i+1,λ)))
         n=size(nep,1);
         S=kron(J,speye(n))
         V=factorial(i)*kron(speye(1,i+1)[:,end:-1:1],speye(n))
@@ -277,9 +281,9 @@ julia> x'*compute_Mlincomb(nep,s,x)
 -8.881784197001252e-16
 ```
 """
-    compute_rf(nep::NEP,x;params...) = compute_rf(Complex128,nep,x;params...)
-    function compute_rf{T}(::Type{T}, nep::NEP, x; y=x, target=zero(T), λ0=target,
-                        TOL=eps(real(T))*1e3, max_iter=10)
+    compute_rf(nep::NEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
+    function compute_rf(::Type{T}, nep::NEP, x; y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3, max_iter=10) where T
         # Ten steps of scalar Newton's method
         λ_iter = T(λ0);
         Δλ = T(Inf)
@@ -360,9 +364,9 @@ Exeption thrown in case an iterative method does not converge\\
 
 
 """ Returns a Jordan matrix """
-    jordan_matrix(n::Integer,λ::Number)=jordan_matrix(Complex128,n,λ)
-    function jordan_matrix{T<:Number}(::Type{T},n::Integer,λ::Number)
-        Z=T(λ)*eye(T,n)+diagm(ones(T,n-1),1);
+    jordan_matrix(n::Integer,λ::Number)=jordan_matrix(ComplexF64,n,λ)
+    function jordan_matrix(::Type{T},n::Integer,λ::Number) where T<:Number
+        Z = T(λ) * Matrix{T}(I, n, n) + diagm(1 => ones(T, n-1))
     end
 
     """
