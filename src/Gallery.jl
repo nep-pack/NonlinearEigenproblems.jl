@@ -11,8 +11,9 @@ module Gallery
 
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra")) # Add the search-path to the extra galleries
 
-    push!(LOAD_PATH, string(@__DIR__, "/utils"))
-    using Serialization
+#    push!(LOAD_PATH, string(@__DIR__, "/utils"))
+    include("utils/Serialization.jl")
+#    using Gallery.Serialization
 
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/periodic_dde.jl")
@@ -103,7 +104,7 @@ module Gallery
       * GalleryWaveguide\\
   """
   nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
-  function nep_gallery{T<:NEP}(::Type{T},name::String,params...;kwargs...)
+  function nep_gallery(::Type{T},name::String,params...;kwargs...) where T<:NEP
       local n
       if (name == "dep0")
           # A delay eigenvalue problem
@@ -173,8 +174,8 @@ module Gallery
           L=L/(h^2)
           L=kron(L,L)
 
-          b=broadcast((x,y)->100*abs(sin(x+y)),x,x.')
-          a=broadcast((x,y)->-8*sin(x)*sin(y),x,x.')
+          b=broadcast((x,y)->100*abs(sin(x+y)),x,transpose(x))
+          a=broadcast((x,y)->-8*sin(x)*sin(y),x,transpose(x))
           B=sparse(1:n^2,1:n^2,b[:])
           A=L+sparse(1:n^2,1:n^2,a[:])
 

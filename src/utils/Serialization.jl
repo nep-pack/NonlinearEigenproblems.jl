@@ -1,6 +1,6 @@
-module Serialization
-    export write_sparse_matrix
-    export read_sparse_matrix
+#module Serialization
+#    export write_sparse_matrix
+#    export read_sparse_matrix
 
     # Writes the sparse matrix M in text format to a file with the given name
     function write_sparse_matrix(filename, M)
@@ -26,4 +26,4 @@ module Serialization
         V = map(x -> parse(Float64, x), data[3+2*c:3+3*c-1])
         return sparse(I, J, V, m, n)
     end
-end
+#end
