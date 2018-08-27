@@ -119,11 +119,11 @@ for matrices in the standard matrix function sense.
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
-         As::Vector{SparseMatrixCSC{Complex128,Int}}  # A matrices with sparsity pattern of all matrices combined
+         As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
     end
 
     SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
-        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Complex128,Int}}())
+        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
 
 """
      SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true)
@@ -177,8 +177,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
-         # TODO: make this parametric instead of hardcoded complex?
-         T = complex(eltype(AA[1]))
+         T = eltype(AA[1])
          As = Vector{SparseMatrixCSC{T,Int}}()
 
          if use_sparsity_pattern && issparse(AA[1])
@@ -266,14 +265,18 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 end
                 return Z
             else
-                T = Complex{Float64}
-                x = T(nep.fi[1](reshape([λ],1,1))[1])
-                Z = copy(nep.As[1])
-                Z.nzval .*= x
-                @inbounds for a = 2:length(nep.As)
-                    x = T(nep.fi[a](reshape([λ],1,1))[1])
-                    Z.nzval .+= nep.As[a].nzval .* x
+                x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.As))
+
+                # figure out the return type, as the greatest type of all input
+                Tx = mapreduce(eltype, promote_type, x)
+                TA = mapreduce(eltype, promote_type, nep.As)
+                T = promote_type(Tx, TA)
+
+                Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n, nep.As[1].colptr, nep.As[1].rowval, convert.(T, nep.As[1].nzval .* x[1]))
+                @inbounds for i = 2:length(nep.As)
+                    Z.nzval .+= nep.As[i].nzval .* x[i]
                 end
+
                 return Z
             end
         else
