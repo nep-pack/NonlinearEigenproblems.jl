@@ -9,7 +9,7 @@ abstract type ComputeY0ChebSPMF_NEP <: ComputeY0Cheb end;
 abstract type ComputeY0ChebAuto <: ComputeY0Cheb end;
 
 
-# Data collected in a precomputation phase. 
+# Data collected in a precomputation phase.
 # These are made mutable (could be made immutable by appropriate modification in precompute_data)
 abstract type AbstractPrecomputeData end
 mutable struct PrecomputeDataDEP <: AbstractPrecomputeData
@@ -62,8 +62,8 @@ function iar_chebyshev(
     displaylevel=0,
     check_error_every=1,
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
-    a = isa(nep,DEP)? -maximum(nep.tauv) : -1.0,
-    b = isa(nep,DEP)? 0.0 : 1.0
+    a = isa(nep,DEP) ? -maximum(nep.tauv) : -1.0,
+    b = isa(nep,DEP) ? 0.0 : 1.0
     )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:ComputeY0Cheb}
 
     if (compute_y0_method == ComputeY0ChebAuto)
@@ -109,7 +109,8 @@ function iar_chebyshev(
     k=1; conv_eig=0;
 
     # hardcoded matrix L
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
+    L=diagm(0 => vcat(2, 1 ./ (2:m))) + diagm(-2 => -vcat(1 ./ (1:(m-2))))
+    L=L*(b-a)/4
 
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
@@ -168,8 +169,11 @@ function iar_chebyshev(
     end
 
     # eventually shift and rescale the eigenvalues if the problem was shifted and rescaled
+    # TODO: we shouldn't use the exception system for this, perhaps a Bool flag is a better choice
     try
         λ=σ_orig+γ_orig*λ
+    catch
+        # ignore
     end
 
     k=k-1
@@ -222,7 +226,8 @@ function precompute_data(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},a,b,m,γ,�
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebPEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
+    L=diagm(0 => vcat(2, 1 ./ (2:m))) + diagm(-2 => -vcat(1 ./ (1:(m-2))))
+    L=L*(b-a)/4
     L=inv(L[1:m,1:m]); precomp.D=vcat(zeros(1,m),L[1:m-1,:]);
     return precomp;
 end
@@ -231,7 +236,8 @@ function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0ChebSPMF_NEP);
     precomp.Tc=cos.((0:m)'.*acos(cc));  # vector containing T_i(c)
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2); L=L*(b-a)/4;
+    L=diagm(0 => vcat(2, 1 ./ (2:m))) + diagm(-2 => -vcat(1 ./ (1:(m-2))))
+    L=L*(b-a)/4
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
     fv,Av=get_fv(nep),get_Av(nep)

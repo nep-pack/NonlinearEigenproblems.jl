@@ -26,7 +26,6 @@ julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 * H. Voss, A Jacobi–Davidson method for nonlinear eigenproblems. In: International Conference on Computational Science. Springer, Berlin, Heidelberg, 2004. pp. 34-41.
 * C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
 """
-
 jd(nep::NEP;params...) = jd(Complex128,nep;params...)
 function jd(::Type{T},
             nep::ProjectableNEP;

@@ -91,7 +91,7 @@ function tiar(
         end
 
         # computation of y[:,2], ..., y[:,k+1]
-        y[:,2:k+1]=Z[:,1:k]*(a[1:k,k,1:k].');
+        y[:,2:k+1]=Z[:,1:k]*transpose(a[1:k,k,1:k])
         broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
 
         # computation of y[:,1]
@@ -159,7 +159,7 @@ function tiar(
         # compute Ritz pairs (every p iterations)
         if (rem(k,check_error_every)==0)||(k==m)
             D,W=eig(H[1:k,1:k]);
-            VV=Z[:,1:k]*(a[1,1:k,1:k].');	# extract proper subarray
+            VV=Z[:,1:k]*transpose(a[1,1:k,1:k])	# extract proper subarray
             Q=VV*W; λ=σ+γ./D;
 
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)

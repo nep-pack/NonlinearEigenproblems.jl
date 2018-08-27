@@ -1,5 +1,6 @@
-
 # Newton-like methods for NEPs
+
+using Printf
 
     export newton
     export resinv
@@ -150,19 +151,19 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 """
     resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
-    function resinv{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
-                       default_errmeasure(nep::NEP),
-                       tol::Real=eps(real(T))*100,
-                       maxit::Int=100,
-                       λ::Number=zero(T),
-                       v::Vector=randn(real(T),size(nep,1)),
-                       c::Vector=v,
-                       displaylevel::Int=0,
-                       linsolvercreator::Function=default_linsolvercreator,
-                       armijo_factor::Real=1,
-                       armijo_max::Int=5)
+    function resinv(::Type{T},
+                    nep::NEP;
+                    errmeasure::Function =
+                    default_errmeasure(nep::NEP),
+                    tol::Real=eps(real(T))*100,
+                    maxit::Int=100,
+                    λ::Number=zero(T),
+                    v::Vector=randn(real(T),size(nep,1)),
+                    c::Vector=v,
+                    displaylevel::Int=0,
+                    linsolvercreator::Function=default_linsolvercreator,
+                    armijo_factor::Real=1,
+                    armijo_max::Int=5) where T
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
@@ -380,18 +381,18 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 * Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492
 """
     quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
-    function quasinewton{T}(::Type{T},
-                           nep::NEP;
-                           errmeasure::Function = default_errmeasure(nep::NEP),
-                           tol::Real=eps(real(T))*100,
-                           maxit::Int=100,
-                           λ::Number=zero(T),
-                           v::Vector=randn(real(T),size(nep,1)),
-                           ws::Vector=v,
-                           displaylevel::Int=0,
-                           linsolvercreator::Function=default_linsolvercreator,
-                           armijo_factor::Real=1,
-                           armijo_max::Int=5)
+    function quasinewton(::Type{T},
+                         nep::NEP;
+                         errmeasure::Function = default_errmeasure(nep::NEP),
+                         tol::Real=eps(real(T))*100,
+                         maxit::Int=100,
+                         λ::Number=zero(T),
+                         v::Vector=randn(real(T),size(nep,1)),
+                         ws::Vector=v,
+                         displaylevel::Int=0,
+                         linsolvercreator::Function=default_linsolvercreator,
+                         armijo_factor::Real=1,
+                         armijo_max::Int=5) where T
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
@@ -465,17 +466,17 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     Newton-QR method.
 """
     newtonqr(nep::NEP;params...)=newtonqr(Complex128,nep;params...)
-    function newtonqr{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
+    function newtonqr(::Type{T},
+                      nep::NEP;
+                      errmeasure::Function =
                           default_errmeasure(nep::NEP),
-                       tol::Real=eps(real(T))*100,
-                       maxit::Int=100,
-                       λ::Number=zero(T),
-                       v::Vector=randn(real(T),size(nep,1)),
-                       c::Vector=v,
-                       displaylevel::Int=0,
-                       linsolvercreator::Function=default_linsolvercreator)
+                      tol::Real=eps(real(T))*100,
+                      maxit::Int=100,
+                      λ::Number=zero(T),
+                      v::Vector=randn(real(T),size(nep,1)),
+                      c::Vector=v,
+                      displaylevel::Int=0,
+                      linsolvercreator::Function=default_linsolvercreator) where T
 
 
         # Ensure types λ and v are of type T
@@ -534,17 +535,17 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     Implicit determinant method
 """
     implicitdet(nep::NEP;params...)=implicitdet(Complex128,nep;params...)
-    function implicitdet{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
-                       default_errmeasure(nep::NEP),
-                       tol=eps(real(T))*100,
-                       maxit=100,
-                       λ=zero(T),
-                       v=randn(real(T),size(nep,1)),
-                       c=v,
-                       displaylevel=0,
-                       linsolvercreator::Function=default_linsolvercreator)
+    function implicitdet(::Type{T},
+                         nep::NEP;
+                         errmeasure::Function =
+                         default_errmeasure(nep::NEP),
+                         tol=eps(real(T))*100,
+                         maxit=100,
+                         λ=zero(T),
+                         v=randn(real(T),size(nep,1)),
+                         c=v,
+                         displaylevel=0,
+                         linsolvercreator::Function=default_linsolvercreator) where T
 
 
         n = size(nep,1);

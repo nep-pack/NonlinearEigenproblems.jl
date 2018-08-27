@@ -1,3 +1,5 @@
+using SparseArrays
+
 export NleigsNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction

@@ -22,7 +22,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
 ilan(nep::NEP;params...)=ilan(Complex128,nep;params...)
-function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+function ilan(
     ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
@@ -37,7 +37,7 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     displaylevel=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver)
+    inner_solver_method=DefaultInnerSolver) where {T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
 
     n = size(nep,1);

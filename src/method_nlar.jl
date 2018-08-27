@@ -3,11 +3,7 @@ export default_eigval_sorter
 export residual_eigval_sorter
 export threshold_eigval_sorter
 using IterativeSolvers
-"""
- The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
-"""
 ###############################################################################################################
- 
 # Default ritzvalue sorter:
 # First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
 # Then sort by distance from the shift and select the mm-th furthest value from the pole.
@@ -15,7 +11,10 @@ using IterativeSolvers
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
 ## σ targets
-function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk) 
+"""
+ The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
+"""
+function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk)
     dd2=copy(dd);
 
     ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
@@ -60,7 +59,7 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function
     for i=1:size(dd,1)
         eig_res[i] = errmeasure(dd[i],Vk*vv[:,i]);
     end
-    
+
     #Sort according to methods
     ii = sortperm(eig_res.*abs.(dd2-σ));
 
@@ -99,7 +98,7 @@ function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Functio
             eig_res[i] = temp_res;
         end
     end
-    
+
     #Sort according to methods
     ii = sortperm(eig_res.*abs.(dd2-σ));
 
