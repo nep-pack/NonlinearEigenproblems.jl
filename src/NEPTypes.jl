@@ -259,7 +259,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
         if i == 0
-            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.As))
+            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
 
             if isempty(nep.As)
                 Z = copy(nep.Zero)
