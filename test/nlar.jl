@@ -36,15 +36,31 @@ end
     nep1 = shift_and_scale(nep1_spmf,shift=shift,scale=scale);
     
     #Run NLAR on the shifted and scaled NEP (nev set to 1 to save time. Method works for the case of finding multiple eigenvalues as well)
-    λ,u = nlar(nep1, tol=TOL, λ0 = 0,maxit=500, nev = 4, R=0.01,mm =1,displaylevel=1,v0=ones(n,1),eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false);
+    λ,u = nlar(nep1, tol=TOL, λ0 = 0,maxit=500, nev = 4, R=0.01,mm =1,displaylevel=1,v0=ones(n),eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false);
     λ_shifted = λ[1];v=u[:,1];
 
     #Rescale and shift back to the eigenvalue of the original problem
     λ_orig = shift+scale*λ_shifted;
 
-    #Test distance from reference eigenvalue
+    #Test residual and distance from reference eigenvalue
     @test norm(compute_Mlincomb(nep, λ_orig, v)) < TOL*100
     @test norm(compute_Mder(nep, λ_orig) * v) < TOL*100
     @test norm(λ_ref - λ_orig) < TOL*100
+    ###########################################################################################################3
+
+    #Testing PEP
+    println("\nTesting a PEP")
+    pepnep = nep_gallery("pep0",60)
+    Dc,Vc = polyeig(pepnep,DefaultEigSolver)
+    c = sortperm(abs.(Dc))
+    println(" 6 smallest eigenvalues found by polyeig() according to the absolute values: \n ", Dc[c[1:6]])
+    
+    λ,u = nlar(pepnep, tol=TOL, maxit=60, nev = 3, R=0.001,mm=1,displaylevel=1, λ0=Dc[4]+1e-2,v0=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false);
+    println(" Smallest eigevalues found: \n λ: ",λ)
+    
+    # Test residuals
+    @test norm(compute_Mlincomb(pepnep,λ[1],u[:,1])) < TOL
+    @test norm(compute_Mlincomb(pepnep,λ[2],u[:,2])) < TOL
+    @test norm(compute_Mlincomb(pepnep,λ[3],u[:,3])) < TOL
 
 end

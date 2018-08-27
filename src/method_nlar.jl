@@ -1,6 +1,7 @@
 export nlar
 export default_eigval_sorter
 export residual_eigval_sorter
+export threshold_eigval_sorter
 using IterativeSolvers
 """
  The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
@@ -37,9 +38,9 @@ function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk)
 end
 
 
-#   Residual-based Ritz value sorter:
-#   First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
-#   Then select that Ritz value which gives the mm-th minimum product of (residual and distance from pole).
+# Residual-based Ritz value sorter:
+# First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
+# Then select that Ritz value which gives the mm-th minimum product of (residual and distance from pole).
 function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function=default_errmeasure(nep))
 
     eig_res = zeros(size(dd,1));
@@ -60,7 +61,8 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function
         eig_res[i] = errmeasure(dd[i],Vk*vv[:,i]);
     end
     
-    ii = sortperm(eig_res.*abs(dd2-σ));
+    #Sort according to methods
+    ii = sortperm(eig_res.*abs.(dd2-σ));
 
     mm_min = min(mm,length(ii));
 
@@ -70,8 +72,44 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function
     return nu,y;
 end
 
+# Threshold residual based Ritz value sorter:
+# Same as residual_eigval_sorter() except that errors above a certain threshold are set to the threshold.
+function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function=default_errmeasure(nep),threshold=0.1)
 
-##Eigenvalue sorter using a combined distance and residual approach
+    eig_res = zeros(size(dd,1));
+    dd2=copy(dd);
+
+    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
+    ## from each eigenvalue that as already converged(i.e. in D)
+    for i=1:size(dd,1)
+        for j=1:size(D,1)
+            if (abs(dd2[i]-D[j])<R)
+                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
+            end
+        end
+    end
+
+    #Compute residuals for each Ritz value
+    temp_res = 0;
+    for i=1:size(dd,1)
+        temp_res = errmeasure(dd[i],Vk*vv[:,i]);
+        if(temp_res > threshold)
+            eig_res[i] = threshold;
+        else
+            eig_res[i] = temp_res;
+        end
+    end
+    
+    #Sort according to methods
+    ii = sortperm(eig_res.*abs.(dd2-σ));
+
+    mm_min = min(mm,length(ii));
+
+    nu = dd[ii[1:mm_min]];
+    y = vv[:,ii[1:mm_min]];
+
+    return nu,y;
+end
 
 nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
 function nlar(::Type{T},
