@@ -1,10 +1,3 @@
-module NleigsTypes
-
-push!(LOAD_PATH, joinpath(@__DIR__, ".."))
-
-using NEPCore
-using NEPTypes
-
 export NleigsNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
@@ -12,10 +5,10 @@ export LowRankFactorizedNEP
 export NleigsSolutionDetails
 
 import Base.size
-import NEPCore.compute_Mder
-import NEPCore.compute_Mlincomb
-import NEPTypes.get_Av
-import NEPTypes.get_fv
+import ..NEPCore.compute_Mder
+import ..NEPCore.compute_Mlincomb
+import ..NEPTypes.get_Av
+import ..NEPTypes.get_fv
 
 struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
     nep::NEP            # Original NEP problem
@@ -158,4 +151,4 @@ NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDe
     Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
     Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
-end
+include("method_nleigs.jl")

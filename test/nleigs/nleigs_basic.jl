@@ -5,18 +5,18 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
-    using NleigsTypes
+    using LinSolvers
+    using NEPSolver
     using Gallery
     using IterativeSolvers
     using Base.Test
 end
 
 include("nleigs_test_utils.jl")
-include("../../src/nleigs/method_nleigs.jl")
+include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
 n = 2
 B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6], [1 0; 0 1]])

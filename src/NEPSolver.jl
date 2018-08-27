@@ -33,7 +33,7 @@ Executes z if displaylevel>0.
     include("method_blocknewton.jl")
     include("method_broyden.jl")
     include("method_ilan.jl")
-    include("nleigs/method_nleigs.jl")
+    include("nleigs/NleigsTypes.jl")
 
 
 

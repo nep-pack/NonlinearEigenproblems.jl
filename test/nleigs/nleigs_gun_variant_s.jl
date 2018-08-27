@@ -5,11 +5,11 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
-    using NleigsTypes
+    using LinSolvers
+    using NEPSolver
     using Gallery
     using IterativeSolvers
     using Base.Test
@@ -17,7 +17,6 @@ end
 
 include("nleigs_test_utils.jl")
 include("gun_test_utils.jl")
-include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
