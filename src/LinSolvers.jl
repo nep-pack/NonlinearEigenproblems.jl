@@ -50,7 +50,7 @@ module LinSolvers
         return DefaultLinSolver{eltype(A),typeof(A)}(A, Afact)
     end
 
-    function lin_solve{T_num}(solver::DefaultLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
+    function lin_solve(solver::DefaultLinSolver{T_num}, x::Array; tol=eps(real(T_num))) where T_num
         return solver.Afact\x
     end
 
@@ -69,14 +69,14 @@ module LinSolvers
     struct BackslashLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
         A::T_mat
     end
-    BackslashLinSolver{T_num}(A::AbstractMatrix{T_num}) = new(A)
+    BackslashLinSolver(A::AbstractMatrix{T_num}) where T_num = new(A)
 
     function BackslashLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
         return BackslashLinSolver{eltype(A), typeof(A)}(A)
     end
 
-    function lin_solve{T_num}(solver::BackslashLinSolver{T_num}, x::Array; tol=eps(real(T_num)))
+    function lin_solve(solver::BackslashLinSolver{T_num}, x::Array; tol=eps(real(T_num))) where T_num
         return solver.A\x
     end
 
@@ -113,7 +113,7 @@ module LinSolvers
     end
 
 
-    function lin_solve{T_num, T_nep}(solver::GMRESLinSolver{T_num, T_nep}, x::Array; tol=eps(real(T_num)))
+    function lin_solve(solver::GMRESLinSolver{T_num, T_nep}, x::Array; tol=eps(real(T_num))) where {T_num, T_nep}
         if( solver.gmres_log )
             x, convhist = gmres(solver.A, x; tol=tol, solver.kwargs...)
         else
@@ -188,19 +188,19 @@ module LinSolvers
     function eig_solve(solver::NativeEigSSolver;nev=6,target=0)
         if(solver.B != spzeros(eltype(solver.A),0))
             # Julia's eigs(A,B) is currently broken for
-            # indefinite B 
+            # indefinite B
             # https://github.com/JuliaLang/julia/issues/24668
             # This is what we want to do:
             # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
             # We do a work-around by computing
-            # largest eigenvalue of (target B -A)\B 
+            # largest eigenvalue of (target B -A)\B
             C=target*solver.B-solver.A;
             Cfact=factorize(C);
             Atransformed=LinearMap(x->Cfact\(solver.B*x),
                                    size(solver.A,1),size(solver.A,1));
             D0,V =eigs(Atransformed;nev=nev,which=:LM);
             # And reverse transformation
-            D=target-inv.(D0); # Reverse transformation 
+            D=target-inv.(D0); # Reverse transformation
         else
             D,V = eigs(solver.A;nev=nev,sigma=target)
         end
