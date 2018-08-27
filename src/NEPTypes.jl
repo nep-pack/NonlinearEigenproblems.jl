@@ -1,4 +1,3 @@
-
 module NEPTypes
     # Specializalized NEPs
     export ProjectableNEP
@@ -19,6 +18,7 @@ module NEPTypes
     export set_projectmatrices!;
 
     using ..NEPCore
+    using SparseArrays
     using PolynomialZeros
     using Polynomials
 
@@ -31,7 +31,7 @@ module NEPTypes
     import ..NEPCore.compute_rf
 
     import Base.size
-    import Base.issparse
+    import SparseArrays.issparse
 
 
     export compute_Mder
@@ -263,8 +263,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
             if isempty(nep.As)
                 Z = copy(nep.Zero)
-                for i=1:size(nep.A,1)
-                    Z += nep.A[i] * x[i]
+                for k=1:size(nep.A,1)
+                    Z += nep.A[k] * x[k]
                 end
                 return Z
             else
@@ -274,8 +274,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 T = promote_type(Tx, TA)
 
                 Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n, nep.As[1].colptr, nep.As[1].rowval, convert.(T, nep.As[1].nzval .* x[1]))
-                for i = 2:length(nep.As)
-                    Z.nzval .+= nep.As[i].nzval .* x[i]
+                for k = 2:length(nep.As)
+                    Z.nzval .+= nep.As[k].nzval .* x[k]
                 end
 
                 return Z
@@ -307,7 +307,7 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 ```
 matrices A_i, and tauv is a vector of the values tau_i
 """
-    type DEP{T<:AbstractMatrix} <: AbstractSPMF
+    struct DEP{T<:AbstractMatrix} <: AbstractSPMF
         n::Int
         A::Array{T,1}     # An array of matrices (full or sparse matrices)
         tauv::Array{Float64,1} # the delays
@@ -328,7 +328,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         local M,I;
         # T is eltype(nep.A[1]) unless λ complex, then T is complex(eltype(nep.A[1]))
         # T can be determined compile time, since DEP parametric type
-        T=isa(λ,Complex)?complex(eltype(nep.A[1])) : eltype(nep.A[1]);
+        T=isa(λ,Complex) ? complex(eltype(nep.A[1])) : eltype(nep.A[1]);
 
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
             M=spzeros(T,nep.n,nep.n)
@@ -396,11 +396,11 @@ matrices A_i, and tauv is a vector of the values tau_i
 
 A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
 """
-
     struct PEP <: AbstractSPMF
         n::Int
         A::Array   # Monomial coefficients of PEP
     end
+
 """
     PEP(AA::Array)
 
@@ -443,8 +443,8 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(Complex128,nep,x;params...)
-    function compute_rf{T<:Real}(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
-                           TOL=eps(real(T))*1e3,max_iter=10)
+    function compute_rf(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3,max_iter=10) where T<:Real
 
         a=zeros(T,size(nep.A,1))
         for i=1:size(nep.A,1)
@@ -719,18 +719,18 @@ where ``M(λ)`` is represented by `orgnep`. Use
 `set_projectionmatrices!()` to specify projection matrices
 ``V`` and ``W``.
 """
-#    function create_proj_NEP(orgnep::ProjectableNEP)
-#        if (isa(orgnep,PEP))
-#            return Proj_PEP(orgnep);
-#        elseif (isa(orgnep,SPMF_NEP))
-#            return Proj_SPMF_NEP(orgnep);
-#        else
-#            error("Projection of this NEP is not available");
-#        end
-#    end
     function create_proj_NEP(orgnep::ProjectableNEP)
          error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
     end
+    #    function create_proj_NEP(orgnep::ProjectableNEP)
+    #        if (isa(orgnep,PEP))
+    #            return Proj_PEP(orgnep);
+    #        elseif (isa(orgnep,SPMF_NEP))
+    #            return Proj_SPMF_NEP(orgnep);
+    #        else
+    #            error("Projection of this NEP is not available");
+    #        end
+    #    end
     function create_proj_NEP(orgnep::AbstractSPMF)
          return Proj_SPMF_NEP(orgnep);
     end
@@ -952,10 +952,9 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     # structure exploitation for DEP (TODO: document this)
     function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T},
                               a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
-        n=size(V,1); k=1
-        try k=size(V,2) end
+        n,k=size(V)
         Av=get_Av(nep)
-        broadcast!(*,V,V,a.')
+        broadcast!(*,V,V,transpose(a))
         z=zeros(T,n)
         for j=1:length(nep.tauv)
             w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))

@@ -11,9 +11,7 @@ export effenberger_deflation
     ShiftScaleNEP(orgnep::NEP[,shift=0][,scale=1])
 
 Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M(scale*λ+shift). This can be used if the method does not have an easy implementation of shift and scaling. Usage of this transformation can slow down the algorithm.
-
 """
-
 struct ShiftScaledNEP <: NEP
     shift::Number
     scale::Number
@@ -130,7 +128,6 @@ julia> s=3;
 julia> norm(compute_Mder(nep0,(a*s+b)/(c*s+d))-compute_Mder(nep1,s))
 0.0
 """
-
 function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)
     return MobiusTransformedNEP(orgnep;a=a,b=b,c=c,d=d)
 end
@@ -153,7 +150,6 @@ end
 """
 Hidden type representing a transformed NEP
 """
-
 struct MobiusTransformedNEP <: NEP
     a::Number
     b::Number
@@ -190,12 +186,12 @@ function compute_Mlincomb(nep::MobiusTransformedNEP,λ::Number,V::Union{Abstract
 end
 
 
-   """
+# consider renaming this function
+"""
    transform_to_pep(orgnep::NEP[,d=2])
 
 Compute the truncated (with d term) Taylor series of a nep. The output is a PEP.
 """
-# consider rename this function
 function transform_to_pep(nep::NEP,d::Integer=2)
     A=Array{Array{Float64, 2}}(d+1)
     for i=0:d
@@ -229,10 +225,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ2)))
 ```
 
 # References
-* C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne 
-
+* C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne
 """
-
 function effenberger_deflation(nep::NEP,S0,V0)
     return DeflatedNEP(nep,V0,S0)
 end
