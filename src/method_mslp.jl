@@ -79,16 +79,3 @@ function mslp(::Type{T},
     throw(NoConvergenceException(λ,v,err,msg))
 end
 
-# A naive implementation of inverse iteration of generalized
-# linear eigenvalue problems
-function inv_it(nep::NEP,λ=0,v0=randn(nep.n),iters=2)
-    Mp=compute_Mder(nep,λ,1);
-    M=compute_Mder(nep,λ)
-    local w=copy(v0)
-    for i=1:iters
-        w=M\(Mp*w)
-        w=w/norm(w)
-    end
-    Δ=dot(w,M*w)/dot(w,Mp*w) # Comp delta with Rayleigh Quotient
-    return Δ,w
-end

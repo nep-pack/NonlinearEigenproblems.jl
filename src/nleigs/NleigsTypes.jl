@@ -1,8 +1,3 @@
-module NleigsTypes
-
-using NEPCore
-using NEPTypes
-
 export NleigsNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
@@ -10,10 +5,10 @@ export LowRankFactorizedNEP
 export NleigsSolutionDetails
 
 import Base.size
-import NEPCore.compute_Mder
-import NEPCore.compute_Mlincomb
-import NEPTypes.get_Av
-import NEPTypes.get_fv
+import ..NEPCore.compute_Mder
+import ..NEPCore.compute_Mlincomb
+import ..NEPTypes.get_Av
+import ..NEPTypes.get_fv
 
 struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
     nep::NEP            # Original NEP problem
@@ -135,13 +130,13 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
     Res::AbstractMatrix{T}
 
     "vector of interpolation nodes"
-    sigma::AbstractVector{CT}
+    σ::AbstractVector{CT}
 
     "vector of poles"
-    xi::AbstractVector{T}
+    ξ::AbstractVector{T}
 
     "vector of scaling parameters"
-    beta::AbstractVector{T}
+    β::AbstractVector{T}
 
     "vector of norms of generalized divided differences (in function handle
     case) or maximum of absolute values of scalar divided differences in
@@ -156,4 +151,4 @@ NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDe
     Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
     Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
 
-end
+include("method_nleigs.jl")

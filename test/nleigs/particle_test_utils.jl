@@ -6,19 +6,19 @@ function particle_init(interval)
     if interval == 1
         xmin = -U0
         xmax = brpts[interval] - sep
-        Xi = logspace(-6, 6, 10000) + brpts[interval]
+        Ξ = logspace(-6, 6, 10000) + brpts[interval]
     elseif interval > 1
         xmin = brpts[interval-1] + sep
         xmax = brpts[interval] - sep
-        Xi1 = -logspace(-6, 6, 5000) + brpts[interval-1]
-        Xi2 = logspace(-6, 6, 5000) + brpts[interval]
-        Xi = [Xi1; Xi2]
+        Ξ1 = -logspace(-6, 6, 5000) + brpts[interval-1]
+        Ξ2 = logspace(-6, 6, 5000) + brpts[interval]
+        Ξ = [Ξ1; Ξ2]
     else
         error("Invalid interval: $interval")
     end
 
-    # define target set Sigma
-    Sigma = [xmin + 0im, xmax + 0im]
+    # define target set Σ
+    Σ = [xmin + 0im, xmax + 0im]
 
     # options
     srand(5)
@@ -26,7 +26,7 @@ function particle_init(interval)
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
 
-    return nep, Sigma, Xi, v, nodes, xmin, xmax
+    return nep, Σ, Ξ, v, nodes, xmin, xmax
 end
 
 function particle_nep(interval)

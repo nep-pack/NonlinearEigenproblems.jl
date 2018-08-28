@@ -1,14 +1,21 @@
-#The non-linear Arnoldi method, as introduced in "An Arnoldi method for non-linear eigenvalue problems" by H.Voss
-
 export nlar
+export default_eigval_sorter
+export residual_eigval_sorter
+export threshold_eigval_sorter
 using IterativeSolvers
-################################################################################################################
-
+"""
+ The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
+"""
+###############################################################################################################
+ 
+# Default ritzvalue sorter:
+# First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
+# Then sort by distance from the shift and select the mm-th furthest value from the pole.
 
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
 ## σ targets
-function  default_eigval_sorter(dd,vv,σ,D,mm,R)
+function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk) 
     dd2=copy(dd);
 
     ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
@@ -16,7 +23,7 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R)
     for i=1:size(dd,1)
         for j=1:size(D,1)
             if (abs(dd2[i]-D[j])<R)
-                dd2[i]=Inf; #Discard all eigenvalues within a particular radius R
+                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
             end
         end
     end
@@ -27,7 +34,81 @@ function  default_eigval_sorter(dd,vv,σ,D,mm,R)
     nu = dd2[ii[1:mm_min]];
     y = vv[:,ii[1:mm_min]];
 
-    return nu,y
+    return nu,y;
+end
+
+
+# Residual-based Ritz value sorter:
+# First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
+# Then select that Ritz value which gives the mm-th minimum product of (residual and distance from pole).
+function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function=default_errmeasure(nep))
+
+    eig_res = zeros(size(dd,1));
+    dd2=copy(dd);
+
+    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
+    ## from each eigenvalue that as already converged(i.e. in D)
+    for i=1:size(dd,1)
+        for j=1:size(D,1)
+            if (abs(dd2[i]-D[j])<R)
+                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
+            end
+        end
+    end
+
+    #Compute residuals for each Ritz value
+    for i=1:size(dd,1)
+        eig_res[i] = errmeasure(dd[i],Vk*vv[:,i]);
+    end
+    
+    #Sort according to methods
+    ii = sortperm(eig_res.*abs.(dd2-σ));
+
+    mm_min = min(mm,length(ii));
+
+    nu = dd[ii[1:mm_min]];
+    y = vv[:,ii[1:mm_min]];
+
+    return nu,y;
+end
+
+# Threshold residual based Ritz value sorter:
+# Same as residual_eigval_sorter() except that errors above a certain threshold are set to the threshold.
+function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function=default_errmeasure(nep),threshold=0.1)
+
+    eig_res = zeros(size(dd,1));
+    dd2=copy(dd);
+
+    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
+    ## from each eigenvalue that as already converged(i.e. in D)
+    for i=1:size(dd,1)
+        for j=1:size(D,1)
+            if (abs(dd2[i]-D[j])<R)
+                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
+            end
+        end
+    end
+
+    #Compute residuals for each Ritz value
+    temp_res = 0;
+    for i=1:size(dd,1)
+        temp_res = errmeasure(dd[i],Vk*vv[:,i]);
+        if(temp_res > threshold)
+            eig_res[i] = threshold;
+        else
+            eig_res[i] = temp_res;
+        end
+    end
+    
+    #Sort according to methods
+    ii = sortperm(eig_res.*abs.(dd2-σ));
+
+    mm_min = min(mm,length(ii));
+
+    nu = dd[ii[1:mm_min]];
+    y = vv[:,ii[1:mm_min]];
+
+    return nu,y;
 end
 
 nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
@@ -45,7 +126,7 @@ function nlar(::Type{T},
             linsolvercreator::Function = default_linsolvercreator,
             R = 0.01,
             mm::Int = 4,
-            eigval_sorter::Function = default_eigval_sorter, #Function to sort eigenvalues of the projected NEP
+            eigval_sorter::Function = residual_eigval_sorter, #Function to sort eigenvalues of the projected NEP
             qrfact_orth::Bool = false,
             inner_solver_method = NEPSolver.DefaultInnerSolver) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
@@ -77,6 +158,11 @@ function nlar(::Type{T},
         err = Inf;
         nu = λ0;
         u = v0;
+
+        if(displaylevel == 1)
+            println("##### Using inner solver:",inner_solver_method," #####");
+        end
+
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             set_projectmatrices!(proj_nep,Vk,Vk);
@@ -87,11 +173,8 @@ function nlar(::Type{T},
             # Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
             # in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
             # eigenvalues in D.
-            nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
-
-            # Select the eigenvalue with minimum distance from D
-            nu=nuv[1];
-            y=yv[:,1];
+            nuv,yv = eigval_sorter(nep,dd,vv,σ,D,mm,R,Vk)
+            nu = nuv[1]; y=yv[:,1];
 
             if (isinf(nu))
                 error("We did not find any (non-converged) eigenvalues to target")
@@ -102,7 +185,7 @@ function nlar(::Type{T},
             u = Vk*y; # Note: y and u are vectors (not matrices)
 
             #Normalize and compute residual
-            u = normalize(u);
+            normalize!(u);
             res = compute_Mlincomb(nep,nu,u);
 
 
@@ -120,13 +203,13 @@ function nlar(::Type{T},
                 X[:,m+1] = u;
 
                 ## Sort and select he eigenvalues of the projected problem as described before
-                nuv,yv = eigval_sorter(dd,vv,σ,D,mm,R)
+                nuv,yv = eigval_sorter(nep,dd,vv,σ,D,mm,R,Vk)
                 nu1=nuv[1];
                 y1=yv[:,1];
 
                 #Compute residual again
                 u1 = Vk*y1;
-                u1 = normalize(u1);
+                normalize!(u1);
                 res = compute_Mlincomb(nep,nu1,u1);
 
                 m = m+1;
@@ -140,7 +223,7 @@ function nlar(::Type{T},
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
                 # Slow but robust.
-                Q,R=qr(hcat(Vk,Δv),thin=true)
+                Q,_=qr(hcat(Vk,Δv),thin=true)
                 Vk=Q
                 V[:,1:k+1]=Q;
                 #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
@@ -155,10 +238,10 @@ function nlar(::Type{T},
             end
 
             #Check orthogonalization
-            #if(k < 100)
-            #   println("CHECKING ORTHO  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
-            #   println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
-            #end
+            if(k < 100)
+               println("CHECKING BASIS ORTHOGONALITY  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+               #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
+            end
             k = k+1;
         end
 

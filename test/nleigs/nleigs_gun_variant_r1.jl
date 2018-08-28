@@ -5,11 +5,11 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../../src/nleigs"))
 
     using NEPCore
     using NEPTypes
-    using NleigsTypes
+    using LinSolvers
+    using NEPSolver
     using Gallery
     using IterativeSolvers
     using Base.Test
@@ -17,14 +17,13 @@ end
 
 include("nleigs_test_utils.jl")
 include("gun_test_utils.jl")
-include("../../src/nleigs/method_nleigs.jl")
 
 verbose = 1
 
-nep, Sigma, Xi, v, nodes, funres = gun_init()
+nep, Σ, Ξ, v, nodes, funres = gun_init()
 
 # solve nlep
-@time X, lambda, res, solution_info = nleigs(nep, Sigma, Xi=Xi, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
+@time lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reuselu=2, errmeasure=funres, return_details=verbose > 1)
 
 @testset "NLEIGS: Gun variant R1" begin
     nleigs_verify_lambdas(21, nep, X, lambda)
@@ -32,5 +31,5 @@ end
 
 if verbose > 1
     include("nleigs_residual_plot.jl")
-    nleigs_residual_plot("Gun: variant R1", solution_info, Sigma; ylims=[1e-17, 1e-1])
+    nleigs_residual_plot("Gun: variant R1", solution_info, Σ; ylims=[1e-17, 1e-1])
 end

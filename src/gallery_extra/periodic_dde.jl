@@ -1,5 +1,17 @@
 import Base.size;
 
+    import ..NEPCore.compute_Mder
+    import ..NEPCore.compute_Mlincomb
+    import ..NEPCore.compute_Mlincomb!
+    import ..NEPCore.compute_MM
+
+
+    export compute_Mder
+    export compute_Mlincomb
+    export compute_Mlincomb!
+    export compute_MM
+
+
 
 """
    type PeriodicDDE_NEP <: NEP
@@ -240,10 +252,6 @@ function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
     if (der==0)
         Z=zeros(typeof(λ),size(nep,1),size(nep,1));
         for k=1:size(nep,1)
-            if (mod(k,20)==1)
-                println("k=",k);
-            end
-            
             ek=copy(Z[:,k]); ek[k]=1;
             Z[:,k]=compute_Mlincomb(nep,λ,ek);
         end
