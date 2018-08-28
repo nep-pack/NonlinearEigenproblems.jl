@@ -1,5 +1,6 @@
-if !isdefined(:global_modules_loaded)
-    using Base.Test
+if @isdefined global_modules_loaded
+    using Random
+    using Test
 end
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "lusolver.jl"))
@@ -32,7 +33,7 @@ function run_tests(fun, y)
     @testcache lusolve_and_verify(fun, 2.5, y) 1
 end
 
-srand(0)
+Random.seed!(0)
 n = 20
 y = collect(1.0:n)
 
@@ -41,11 +42,11 @@ y = collect(1.0:n)
 
     # sparse matrix
     A = sprandn(n, n, .1)
-    fun = v -> A + im * v * speye(n, n)
+    fun = v -> A + im * v * I
     run_tests(fun, y)
 
     # full matrix
     A = randn(n, n)
-    fun = v -> A + im * v * eye(n, n)
+    fun = v -> A + im * v * I
     run_tests(fun, y)
 end

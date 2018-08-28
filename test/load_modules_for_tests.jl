@@ -15,4 +15,6 @@ using GalleryPeriodicDDE
 using GalleryWaveguide
 using Serialization
 
+using Random
+
 global global_modules_loaded = true
