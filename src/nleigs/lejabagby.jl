@@ -14,17 +14,18 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
     b = [forceInf > 0 ? T(Inf) : B[1]]
     β = [T(1.)]
 
-    sA = ones(A)
-    sB = ones(eltype(A), size(B))
-    sC = ones(eltype(A), size(C))
+    o = one(eltype(A))
+    sA = fill(o, size(A))
+    sB = fill(o, size(B))
+    sC = fill(o, size(C))
 
     for j = 1:m-1
-        sA .*= ((A-a[j]) ./ (1 - A/b[j]));
-        sB .*= ((B-a[j]) ./ (1 - B/b[j]));
-        sC .*= ((C-a[j]) ./ (1 - C/b[j]));
+        sA .*= ((A .- a[j]) ./ (1 .- A/b[j]));
+        sB .*= ((B .- a[j]) ./ (1 .- B/b[j]));
+        sC .*= ((C .- a[j]) ./ (1 .- C/b[j]));
 
-        push!(a, A[keepA ? j+1 : indmax(abs.(sA))])
-        push!(b, forceInf > j ? Inf : B[indmin(abs.(sB))])
+        push!(a, A[keepA ? j+1 : argmax(abs.(sA))])
+        push!(b, forceInf > j ? Inf : B[argmin(abs.(sB))])
         push!(β, maximum(abs.(sC)))
 
         # treat single point case

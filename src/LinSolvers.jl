@@ -1,5 +1,5 @@
 module LinSolvers
-    using ..NEPCore
+    using NEPCore
     using IterativeSolvers
     using LinearMaps
 

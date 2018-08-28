@@ -28,10 +28,10 @@ struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
 end
 
 NleigsNEP(::Type{T}, nep::NEP) where T<:Number =
-    NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(0), Vector{Int}(0), Vector{Matrix{T}}(0), Vector{SparseVector{T,Int}}(0), Matrix{T}(0, 0))
+    NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
 NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
-    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(0), Vector{Int}(0), Vector{Matrix{T}}(0), Vector{SparseVector{T,Int}}(0), Matrix{T}(0, 0))
+    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
 NleigsNEP(nep::NEP, p, q, BBCC, r, iL, iLr, L, LL, UU) =
     NleigsNEP(nep, true, p, q, BBCC, true, r, iL, iLr, L, LL, UU)
@@ -90,10 +90,10 @@ end
 function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
     q = length(Amf)
     r = 0
-    f = Vector{Function}(q)
-    A = Vector{S}(q)
-    L = Vector{S}(q)
-    U = Vector{S}(q)
+    f = Vector{Function}(undef, q)
+    A = Vector{S}(undef, q)
+    L = Vector{S}(undef, q)
+    U = Vector{S}(undef, q)
 
     for k = 1:q
         f[k] = Amf[k].f
@@ -109,7 +109,7 @@ end
 
 "Create an empty LowRankFactorizedNEP."
 LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
-    LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(0), Vector{Matrix{T}}(0))
+    LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(), Vector{Matrix{T}}())
 
 # forward function calls to SPMF
 compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
@@ -150,7 +150,7 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
 end
 
 NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
-    Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
-    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
+    Matrix{CT}(undef, 0, 0), Matrix{T}(undef, 0, 0), Vector{CT}(),
+    Vector{T}(), Vector{T}(), Vector{T}(), 0)
 
 include("method_nleigs.jl")

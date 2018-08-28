@@ -63,18 +63,18 @@ function nleigs(
         isfunm::Bool = true,
         static::Bool = false,
         leja::Int = 1,
-        nodes::Vector{CT} = Vector{CT}(0),
+        nodes::Vector{CT} = Vector{CT}(),
         reuselu::Int = 1,
         blksize::Int = 20,
         return_details::Bool = false,
         check_error_every::Int = 5) where {T<:Real, CT<:Complex{T}}
 
     # The following variables are used when creating the return values, so put them in scope
-    D = Vector{Matrix{CT}}(0)
-    conv = BitVector(0)
-    lam = Vector{CT}(0)
-    X = Matrix{CT}(0, 0)
-    res = Vector{T}(0)
+    D = Vector{Matrix{CT}}()
+    conv = BitVector()
+    lam = Vector{CT}()
+    X = Matrix{CT}(undef, 0, 0)
+    res = Vector{T}()
 
     P = get_nleigs_nep(T, nep)
     n = size(nep, 1)
@@ -98,7 +98,7 @@ function nleigs(
     end
     H = zeros(CT, b+1, b)
     K = zeros(CT, b+1, b)
-    nrmD = Array{T}(1)
+    nrmD = Array{T}(undef, 1)
     if return_details
         Lam = zeros(CT, b, b)
         Res = zeros(T, b, b)
@@ -111,7 +111,7 @@ function nleigs(
         end
         gamma,_ = discretizepolygon(Σ)
         max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
-        σ = repmat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
+        σ = repeat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
         _,ξ,β = lejabagby(σ[1:maxdgr+2], Ξ, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
         if isempty(nodes)
@@ -119,7 +119,7 @@ function nleigs(
         else
             gamma,_ = discretizepolygon(Σ)
         end
-        nodes = repmat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
+        nodes = repeat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
         σ,ξ,β = lejabagby(gamma, Ξ, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
         gamma,_ = discretizepolygon(Σ)
@@ -264,7 +264,7 @@ function nleigs(
                         V = resize_matrix(V, kn, b+1)
                     end
                     N -= 1
-                    warn("NLEIGS: Linearization not converged after $maxdgr iterations")
+                    @warn "NLEIGS: Linearization not converged after $maxdgr iterations"
                     if displaylevel > 0
                         println(" --> freeze linearization")
                     end
@@ -290,7 +290,7 @@ function nleigs(
         end
 
         function check_convergence(all)
-            lambda, S = eig(K[1:l,1:l], H[1:l,1:l])
+            lambda, S = eigen(K[1:l,1:l], H[1:l,1:l])
 
             # select eigenvalues
             if !all
@@ -360,7 +360,7 @@ function nleigs(
             ξ = ξ[1:k]
             β = β[1:k]
             nrmD = nrmD[1:k]
-            warn("NLEIGS: Linearization not converged after $maxdgr iterations")
+            @warn "NLEIGS: Linearization not converged after $maxdgr iterations"
         end
         details = NleigsSolutionDetails(Lam, Res, σ, ξ, β, nrmD, kconv)
     end
@@ -409,8 +409,8 @@ function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
     end
 
     # Store L factors in a compact format to speed up system solves later on
-    LL = Vector{SparseVector{eltype(L[1]),Int}}(0)
-    iLr = Vector{Int}(0)
+    LL = Vector{SparseVector{eltype(L[1]),Int}}()
+    iLr = Vector{Int}()
     for ri = 1:size(nep, 1)
         row = reduce(vcat, [L[i][ri,:] for i=1:length(L)])
         if nnz(row) > 0

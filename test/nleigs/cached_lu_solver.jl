@@ -1,4 +1,4 @@
-if @isdefined global_modules_loaded
+if !@isdefined global_modules_loaded
     using Random
     using Test
 end

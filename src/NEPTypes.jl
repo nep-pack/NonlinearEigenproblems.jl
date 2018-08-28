@@ -17,8 +17,9 @@ module NEPTypes
 
     export set_projectmatrices!;
 
-    using ..NEPCore
+    using NEPCore
     using SparseArrays
+    using LinearAlgebra
     using PolynomialZeros
     using Polynomials
 
@@ -429,7 +430,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             Si=speye(size(S,1))
         else
             Z=zeros(size(V))
-            Si=eye(size(S,1))
+            Si=Matrix(1.0I, size(S,1), size(S,1))
         end
         for i=1:size(nep.A,1)
             Z+=nep.A[i]*V*Si;
@@ -476,11 +477,11 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     #  Fetch the Fv's, since they are not explicitly stored in PEPs
     function get_fv(nep::PEP)
-        fv=Array{Function,1}(size(nep.A,1));
+        fv=Vector{Function}(undef, size(nep.A,1))
         # Construct monomial functions
         for i=1:size(nep.A,1)
             if (i==1); # optimization for constant and linear term
-                fv[1]=(S->eye(size(S,1)));
+                fv[1] = S -> Matrix(1.0I, size(S, 1), size(S, 1))
             elseif (i==2);
                 fv[2]=(S->S);
             else

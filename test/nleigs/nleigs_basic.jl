@@ -1,9 +1,7 @@
 # Solves a few basic eigenvalue problems to test various aspects of NLEIGS
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
+if !@isdefined global_modules_loaded
     push!(LOAD_PATH, string(@__DIR__, "/../../src"))
 
     using NEPCore
@@ -12,7 +10,7 @@ if !isdefined(:global_modules_loaded)
     using NEPSolver
     using Gallery
     using IterativeSolvers
-    using Base.Test
+    using Test
 end
 
 include("nleigs_test_utils.jl")
@@ -30,28 +28,28 @@ pep = PEP(B)
 end
 
 @testset "NLEIGS: Non-convergent linearization" begin
-    @test_warn "Linearization not converged" begin
+    @test_logs (:warn, r".*Linearization not converged.*") begin
         @time lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5)
         nleigs_verify_lambdas(4, pep, X, lambda)
     end
 end
 
 @testset "NLEIGS: Non-convergent linearization (static)" begin
-    @test_warn "Linearization not converged" begin
+    @test_logs (:warn, r".*Linearization not converged.*") begin
         @time lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5, static=true)
         nleigs_verify_lambdas(4, pep, X, lambda)
     end
 end
 
 @testset "NLEIGS: Non-convergent linearization (return_details)" begin
-    @test_warn "Linearization not converged" begin
+    @test_logs (:warn, r".*Linearization not converged.*") begin
         @time lambda, X, _ = nleigs(pep, Σ, maxit=5, v=ones(n).+0im, blksize=5, return_details=true)
         nleigs_verify_lambdas(0, pep, X, lambda)
     end
 end
 
 @testset "NLEIGS: Complex-valued matrices" begin
-    complex_B = map(X -> X + im*eye(2,2), B)
+    complex_B = map(X -> X + im*I, B)
     complex_pep = PEP(complex_B)
     @time lambda, X, _ = nleigs(complex_pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
     nleigs_verify_lambdas(3, complex_pep, X, lambda)
