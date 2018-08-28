@@ -1,4 +1,4 @@
-if !isdefined(:global_modules_loaded)
+if @isdefined global_modules_loaded
     using Base.Test
 end
 
@@ -28,7 +28,7 @@ include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
     @test boundary[nr_boundary+length(poly)+1] == poly[1]
 
     # points on polygon's boundary should count as inside; expand polygon a tiny bit to counteract rounding errors
-    t = eps()*5;
+    t = eps()*5
     expanded_poly = poly + [-t-t*im, -t+t*im, 0+t*im, t+t*im, t-t*im]
     @test all(p -> inpolygon(real(p), imag(p), real.(expanded_poly), imag.(expanded_poly)), boundary)
 
@@ -47,7 +47,7 @@ end
 end
 
 @testset "discretizepolygon: unit disk" begin
-    boundary, interior = discretizepolygon(Vector{Complex128}(0), true, 100, 100)
+    boundary, interior = discretizepolygon(Vector{ComplexF64}(), true, 100, 100)
 
     @test length(boundary) == 101
     @test all(isapprox.(abs.(boundary[1:100]), 1.0, rtol = 100*eps()))
@@ -62,10 +62,10 @@ end
     boundary, interior = discretizepolygon([p1, p2], true, 100, 100)
 
     @test length(boundary) == 102
-    @test all(imag((boundary-p1) / (p2-p1)) .== 0)
+    @test all(imag((boundary .- p1) / (p2-p1)) .== 0)
 
     @test length(interior) >= 100
-    @test all(imag((interior-p1) / (p2-p1)) .== 0)
+    @test all(imag((interior .- p1) / (p2-p1)) .== 0)
 end
 
 # To visualize:
