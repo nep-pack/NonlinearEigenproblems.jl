@@ -1,5 +1,5 @@
 if @isdefined global_modules_loaded
-    using Base.Test
+    using Test
 end
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
