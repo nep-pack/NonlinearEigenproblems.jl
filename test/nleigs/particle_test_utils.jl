@@ -6,12 +6,12 @@ function particle_init(interval)
     if interval == 1
         xmin = -U0
         xmax = brpts[interval] - sep
-        Ξ = logspace(-6, 6, 10000) + brpts[interval]
+        Ξ = 10 .^ range(-6, stop = 6, length = 10000) .+ brpts[interval]
     elseif interval > 1
         xmin = brpts[interval-1] + sep
         xmax = brpts[interval] - sep
-        Ξ1 = -logspace(-6, 6, 5000) + brpts[interval-1]
-        Ξ2 = logspace(-6, 6, 5000) + brpts[interval]
+        Ξ1 = -10 .^ range(-6, stop = 6, length = 5000) .+ brpts[interval-1]
+        Ξ2 = 10 .^ range(-6, stop = 6, length = 5000) .+ brpts[interval]
         Ξ = [Ξ1; Ξ2]
     else
         error("Invalid interval: $interval")
@@ -23,7 +23,7 @@ function particle_init(interval)
     # options
     Random.seed!(5)
     v = randn(size(nep, 1)) .+ 0im
-    nodes = linspace(xmin + 0im, xmax + 0im, 11)
+    nodes = range(xmin + 0im, stop = xmax + 0im, length = 11)
     nodes = collect(nodes[2:2:end])
 
     return nep, Σ, Ξ, v, nodes, xmin, xmax
@@ -54,8 +54,8 @@ function particle_nep(interval)
     dx = minimum(diff(x_x))
     dz = minimum(diff(z_z))
 
-    x = kron(x_x, ones(z_z))
-    z = kron(ones(x_x), z_z)
+    x = kron(x_x, z_z.^0)
+    z = kron(x_x.^0, z_z)
 
     w1 = 1 * nm
     w2 = 1.1 * nm
@@ -63,9 +63,9 @@ function particle_nep(interval)
     U0 = 3 * eV
 
     # potential U
-    U = zeros(x)
-    U[abs.(z) .< w1] = -U0
-    U[(abs.(z) .< w2) .& (abs.(x) .< l/2)] = -U0
+    U = zero(x)
+    U[abs.(z) .< w1] .= -U0
+    U[(abs.(z) .< w2) .& (abs.(x) .< l/2)] .= -U0
 
     # m
     m = 0.2
@@ -74,20 +74,20 @@ function particle_nep(interval)
     n = nx * nz
     Dxx_x = SymTridiagonal(ones(nx) * -2 / dx^2, ones(nx-1) / dx^2)
     Dzz_z = SymTridiagonal(ones(nz) * -2 / dx^2, ones(nz-1) / dz^2)
-    H_L = -1/m*Dzz_z + diagm(U[1:nz])
-    H_R = -1/m*Dzz_z + diagm(U[end-nz+(1:nz)])
+    H_L = -1/m*Dzz_z + diagm(0 => U[1:nz])
+    H_R = -1/m*Dzz_z + diagm(0 => U[end-nz.+(1:nz)])
 
     if norm(H_L - H_R) == 0
         # symmetric potential
-        D,V = eig(H_L)
+        D,V = eigen(H_L)
         i = sortperm(D)
         d = D[i]
         V = V[:,i]
         p = zeros(nz) # 0 (left+right)
     else
         # asymmetric potential
-        D_L,V_L = eig(H_L)
-        D_R,V_R = eig(H_R)
+        D_L,V_L = eigen(H_L)
+        D_R,V_R = eigen(H_R)
         V = [V_L; V_R]
         p = [-ones(nz); ones(nz)]
         DD = [D_L; D_R]
@@ -98,16 +98,16 @@ function particle_nep(interval)
     end
 
     # matrix H
-    H = -1/m * (kron(sparse(Dxx_x), speye(nz)) + kron(speye(nx), sparse(Dzz_z))) + sparse(Diagonal(U, 0, n, n))
+    H = -1/m * (kron(sparse(Dxx_x), sparse(1.0I, nz, nz)) + kron(sparse(1.0I, nx, nx), sparse(Dzz_z))) + sparse(Diagonal(U))
 
     # branch points
     brpts = unique(d)
 
     # polynomial matrices
-    B = [H, -speye(n)]
+    B = [H, sparse(-1.0I, n, n)]
 
     # nonlinear matrices
-    SL = Vector(length(brpts))
+    SL = Vector(undef, length(brpts))
     if p[1] < 0
         SL[1] = [V[:,1]; spzeros(n-nz, 1)]
     elseif p[1] == 0
@@ -142,12 +142,12 @@ function particle_nep(interval)
     end
 
     # nonlinear functions
-    f = Vector(length(brpts))
+    f = Vector(undef, length(brpts))
     for j = 1:interval-1
-        f[j] = lambda -> exp(im * sqrt(full(m * (lambda - brpts[j] * eye(lambda)))))
+        f[j] = lambda -> exp(im * sqrt(Matrix(m * (lambda - brpts[j] * I))))
     end
     for j = interval:length(brpts)
-        f[j] = lambda -> exp(-sqrt(full(m * (-lambda + brpts[j] * eye(lambda)))))
+        f[j] = lambda -> exp(-sqrt(Matrix(m * (-lambda + brpts[j] * I))))
     end
 
     # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only

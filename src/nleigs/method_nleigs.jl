@@ -325,7 +325,7 @@ function nleigs(
                 conv .&= lamin
             end
 
-            nbconv = sum(conv)
+            nbconv = isempty(conv) ? 0 : sum(conv)
             if displaylevel > 0
                 iteration = static ? k - N : k
                 println("  iteration $iteration: $nbconv of $nblamin < $tol")
