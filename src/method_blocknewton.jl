@@ -1,4 +1,6 @@
-    export blocknewton
+using LinearAlgebra
+
+export blocknewton
 
 function default_block_errmeasure(nep::NEP)
     errmeasure=(S,X) -> norm(compute_MM(nep,S,X))
@@ -70,7 +72,7 @@ function blocknewton(nep::AbstractSPMF;
     # reshape W to WW (3D matrix)
     WW=zeros(T,n,p,p)
     for j=1:size(W,2)
-        WW[:,:,j]=W[(j-1)*n+(1:n),:];
+        WW[:,:,j] = W[(j-1)*n .+ (1:n), :]
     end
 
     local err0=0
@@ -123,10 +125,11 @@ function blocknewton(nep::AbstractSPMF;
 
 
         # Carry out the orthogonalization
-        (W,R)=qr(Vl(Xt,St),thin=true);
+        W,R = qr(Vl(Xt,St))
+        W = W.factors   # thin factors
         # reshape W to WW (3D matrix)
         for j=1:size(W,2)
-            WW[:,:,j]=W[(j-1)*n+(1:n),:];
+            WW[:,:,j] = W[(j-1)*n .+ (1:n), :]
         end
         X[:]=Xt/R; S[:]=(R*St)/R;
     end

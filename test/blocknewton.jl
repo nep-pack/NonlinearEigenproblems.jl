@@ -15,7 +15,7 @@ end
 
 @testset "blocknewton" begin
     nep=nep_gallery("dep0",4);
-    V=eye(size(nep,1),3);
+    V = Matrix(1.0I, size(nep,1), 3)
     S0=zeros(3,3);
     S,V=blocknewton(nep,S=S0,X=V,displaylevel=1,
                     armijo_factor=0.5,

@@ -14,7 +14,7 @@ function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
     D[1] = fun(as_matrix(σ[1])) * β[1]
     for j = 2:m
         # evaluate current linearizaion at σ[j]
-        Qj = T(0)
+        Qj = zeros(T, size(D[1]))
         for k = 1:j-1
             Qj += D[k] * evalrat(σ[1:k-1], ξ[1:k-1], β[1:k], [σ[j]])[1]
         end
