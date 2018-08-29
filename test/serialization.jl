@@ -1,9 +1,8 @@
 if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src/utils"))
-
     using Test
-    using Serialization
 end
+
+include(normpath(string(@__DIR__), "..", "src", "utils", "Serialization.jl"))
 
 @testset "Serialization" begin
     file = "sparse_matrix.txt"

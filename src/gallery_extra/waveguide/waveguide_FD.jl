@@ -91,10 +91,10 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
 
     # Domain (First generate including the boundary)
     X = linspace(xm, xp, nx+2);
-    const hx = step(X);
+    hx = step(X);
     X = collect(X);
     Z =linspace(zm, zp, nz+1);
-    const hz = step(Z);
+    hz = step(Z);
     Z = collect(Z);
     # Removing the boundary
     X = X[2:end-1];
@@ -102,9 +102,9 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
 
 
     # The actual wavenumber
-    const k1 = sqrt(2.3)*pi;
-    const k2 = sqrt(3)*pi;
-    const k3 = pi;
+    k1 = sqrt(2.3)*pi;
+    k2 = sqrt(3)*pi;
+    k3 = pi;
     k = function(x,z)
             z_ones = ones(size(z)) #Placeholder of ones to expand x-vector
             k1*(x .<= 0) .* z_ones +
@@ -114,9 +114,9 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
             k3*(x.>(2/pi+0.4)) .* z_ones;
         end
 
-    const K = k(X', Z).^2;
-    const Km = k(-Inf, 1/2)[1];
-    const Kp = k(Inf, 1/2)[1];
+    K = k(X', Z).^2;
+    Km = k(-Inf, 1/2)[1];
+    Kp = k(Inf, 1/2)[1];
     return K, hx, hz, Km, Kp
 end
 
@@ -136,10 +136,10 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Num
 
     # Domain (First generate including the boundary)
     X = linspace(xm, xp, nx+2);
-    const hx = step(X);
+    hx = step(X);
     X = collect(X);
     Z =linspace(zm, zp, nz+1);
-    const hz = step(Z);
+    hz = step(Z);
     Z = collect(Z);
     # Removing the boundary
     X = X[2:end-1];
@@ -147,10 +147,10 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Num
 
 
     # The actual wavenumber
-    const k1 = sqrt(2.3)*pi;
-    const k2 = 2*sqrt(3)*pi;
-    const k3 = 4*sqrt(3)*pi;
-    const k4 = pi;
+    k1 = sqrt(2.3)*pi;
+    k2 = 2*sqrt(3)*pi;
+    k3 = 4*sqrt(3)*pi;
+    k4 = pi;
     k = function(x,z)
             z_ones = ones(size(z)) #Placeholder of ones to expand x-vector
             x_ones = ones(size(x)) #Placeholder of ones to expand z-vector
@@ -159,14 +159,14 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Num
             k4 *(x.>(-1+1.5)) .* (x.<=1) .* (z.<=0.4) +
             k3 *(x.>(-1+1)) .* (x.<=(-1+1.5)) .* z_ones +
             k3 *(x.>(-1+1.5)) .* (x.<=1) .* (z.>0.4) +
-            k3 *(x.>-1) .* (x.<=(-1+1)) .* (z.>0.5) .* (z.*x_ones-(x.*z_ones)/2.<=1) +
-            k2 *(x.>-1) .* (x.<=(-1+1)) .* (z.>0.5) .* (z.*x_ones-(x.*z_ones)/2.>1) +
-            k3 *(x.>-1) .* (x.<=(-1+1)) .* (z.<=0.5) .* (z.*x_ones+(x.*z_ones)/2.>0) +
-            k2 *(x.>-1) .* (x.<=(-1+1)) .* (z.<=0.5) .* (z.*x_ones+(x.*z_ones)/2.<=0);
+            k3 *(x.>-1) .* (x.<=(-1+1)) .* (z.>0.5) .* (z.*x_ones-(x.*z_ones)/2 .<= 1) +
+            k2 *(x.>-1) .* (x.<=(-1+1)) .* (z.>0.5) .* (z.*x_ones-(x.*z_ones)/2 .> 1) +
+            k3 *(x.>-1) .* (x.<=(-1+1)) .* (z.<=0.5) .* (z.*x_ones+(x.*z_ones)/2 .> 0) +
+            k2 *(x.>-1) .* (x.<=(-1+1)) .* (z.<=0.5) .* (z.*x_ones+(x.*z_ones)/2 .<= 0);
         end
 
-    const K = k(X', Z).^2;
-    const Km = k(-Inf, 1/2)[1];
-    const Kp = k(Inf, 1/2)[1];
+    K = k(X', Z).^2;
+    Km = k(-Inf, 1/2)[1];
+    Kp = k(Inf, 1/2)[1];
     return K, hx, hz, Km, Kp
 end

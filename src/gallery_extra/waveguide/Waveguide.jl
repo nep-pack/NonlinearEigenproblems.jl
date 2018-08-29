@@ -58,7 +58,7 @@ function generate_R_matvecs(nz::Integer)
     function R(X) # Note! Only works for vectors or one-dim matrices
         return flipdim(bb .* fft(vec(X)), 1);
     end
-    bbinv = 1./bb; # scaling to do before inverse FFT
+    bbinv = 1 ./ bb # scaling to do before inverse FFT
     function Rinv(X)
         return ifft(bbinv .* flipdim(vec(X),1));
     end
@@ -168,7 +168,7 @@ end
       Sylvester-based preconditioning for the waveguide eigenvalue problem,
       Linear Algebra and its Applications''
 """
-    type WEP_FD <: WEP
+    struct WEP_FD <: WEP
         nx::Int64
         nz::Int64
         hx::Float64
@@ -343,7 +343,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     # Matrix vector operations for the Schur complement (to be used in GMRES call)
     # Matrix-vector product according to Ringh (2.13) and (3.3)
-    type SchurMatVec
+    struct SchurMatVec
         nep::WEP_FD
         λ::ComplexF64
         SchurMatVec(nep::WEP_FD, λ::Union{ComplexF64,Float64}) = new(nep, λ)
@@ -376,7 +376,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
 
     # GMRES Solver
-    type WEPGMRESLinSolver<:LinSolver
+    struct WEPGMRESLinSolver<:LinSolver
         schur_comp::LinearMap{ComplexF64}
         kwargs
         gmres_log::Bool
@@ -409,7 +409,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
 
     # Direct Backslash solver
-    type WEPBackslashLinSolver<:LinSolver
+    struct WEPBackslashLinSolver<:LinSolver
         schur_comp::SparseMatrixCSC{ComplexF64,Int64}
         nep::WEP_FD
         λ::ComplexF64
@@ -430,7 +430,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
 
     # Direct pre-factorized solver
-    type WEPFactorizedLinSolver<:LinSolver
+    struct WEPFactorizedLinSolver<:LinSolver
         schur_comp_fact
         nep::WEP_FD
         λ::ComplexF64

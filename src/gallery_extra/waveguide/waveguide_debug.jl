@@ -52,14 +52,14 @@ import GalleryWaveguide.construct_WEP_schur_complement
 function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     R, Rinv = generate_R_matvecs(nz::Integer)
-    const p = (nz-1)/2;
+    p = (nz-1)/2;
 
     # Constants from the problem
-    const d0 = -3/(2*hx);
-    const a = ones(ComplexF64,nz);
-    const b = 4*pi*1im * (-p:p);
-    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+    d0 = -3/(2*hx);
+    a = ones(ComplexF64,nz);
+    b = 4*pi*1im * (-p:p);
+    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
 
     function betaM(γ)
@@ -69,8 +69,8 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
         return a*γ^2 + b*γ + cP
     end
 
-    const signM = 1im*sign.(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
-    const signP = 1im*sign.(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
+    signM = 1im*sign.(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
+    signP = 1im*sign.(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
 
     function sM(γ::Number)
         return signM.*sqrt.(betaM(γ))+d0;

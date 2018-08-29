@@ -1,5 +1,7 @@
 module GalleryWaveguide
 
+using SparseArrays
+using LinearAlgebra
 using NEPCore
 using NEPTypes
 using LinSolvers
@@ -33,13 +35,13 @@ export BackslashLinSolver
 
 import Base.size
 export size
-import Base.issparse
+import SparseArrays.issparse
 export issparse
 import Base.*
 export *
 import Base.eltype
 export eltype
-import Base.A_ldiv_B!
+import LinearAlgebra.A_ldiv_B!
 export A_ldiv_B!
 
 
@@ -74,9 +76,7 @@ include("waveguide/waveguide_preconditioner.jl")
     # neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
     # delta = 0.1,                     Slack from the absorbing boundary conditions
 """
-
-
-function nep_gallery{T<:WEP}(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1)
+function nep_gallery(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1) where T<:WEP
 
     waveguide = uppercase(benchmark_problem)
     neptype = uppercase(neptype)

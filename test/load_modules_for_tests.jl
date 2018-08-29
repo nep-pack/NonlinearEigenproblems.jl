@@ -12,7 +12,6 @@ using IterativeSolvers
 using LinearMaps
 using GalleryPeriodicDDE
 using GalleryWaveguide
-using Serialization
 
 using Random
 

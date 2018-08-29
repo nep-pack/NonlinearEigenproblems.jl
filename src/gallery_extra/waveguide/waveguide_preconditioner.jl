@@ -65,9 +65,9 @@
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
-        const scratch_pad_for_FFT::Array{ComplexF64,2} = zeros(ComplexF64, 2*(nx+1), nz)
-        const scratch_pad_for_transpose::Array{ComplexF64,2} = zeros(ComplexF64, nx, nz)
-        const scratch_pad_for_Z::Array{ComplexF64,2} = zeros(ComplexF64, nz, nx)
+        scratch_pad_for_FFT::Array{ComplexF64,2} = zeros(ComplexF64, 2*(nx+1), nz)
+        scratch_pad_for_transpose::Array{ComplexF64,2} = zeros(ComplexF64, nx, nz)
+        scratch_pad_for_Z::Array{ComplexF64,2} = zeros(ComplexF64, nz, nx)
         Linv! = function(rhs)
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
