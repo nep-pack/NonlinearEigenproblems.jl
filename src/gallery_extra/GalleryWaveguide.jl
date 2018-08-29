@@ -2,6 +2,7 @@ module GalleryWaveguide
 
 using SparseArrays
 using LinearAlgebra
+using FFTW
 using NEPCore
 using NEPTypes
 using LinSolvers
