@@ -144,7 +144,7 @@ function tiar(
         # update the orthogonalization coefficients
         h=h+hh; f=ff;
 
-        β=vecnorm(view(f,1:k+1,1:k+1)); # equivalent to Frobenius norm
+        β=norm(view(f,1:k+1,1:k+1)); # equivalent to Frobenius norm
 
         # extend the matrix H
         H[1:k,k]=h[1:k]; H[k+1,k]=β;

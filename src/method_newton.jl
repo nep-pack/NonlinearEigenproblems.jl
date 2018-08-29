@@ -501,7 +501,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 v = P*[-p;T(1)];#Right eigenvector
                 w = Q*en;#Left eigenvector
 
-                #err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
+                #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2);
                 err=errmeasure(λ,v);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
@@ -567,7 +567,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
                 vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
-                err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
+                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
                     @ifd(println(λ))

@@ -136,8 +136,8 @@ function nleigs(
     range = 1:maxdgr+2
     if !P.spmf
         D = ratnewtoncoeffs(λ -> compute_Mder(nep, λ[1]), σ[range], ξ[range], β[range])
-        nrmD[1] = vecnorm(D[1]) # Frobenius norm
-        sgdd = Matrix{CT}(0, 0)
+        nrmD[1] = norm(D[1]) # Frobenius norm
+        sgdd = Matrix{CT}(undef, 0, 0)
     else
         # Compute scalar generalized divided differences
         sgdd = scgendivdiffs(σ[range], ξ[range], β[range], maxdgr, isfunm, get_fv(nep))
@@ -209,7 +209,7 @@ function nleigs(
 
             # monitoring norms of divided difference matrices
             if !P.spmf
-                push!(nrmD, vecnorm(D[k+1])) # Frobenius norm
+                push!(nrmD, norm(D[k+1])) # Frobenius norm
             else
                 # The below can cause out of bounds in sgdd if there's
                 # no convergence (also happens in MATLAB implementation)
