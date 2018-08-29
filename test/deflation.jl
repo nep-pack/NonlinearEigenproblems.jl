@@ -13,7 +13,7 @@ if !@isdefined global_modules_loaded
 end
 
 nep=nep_gallery("dep0");
-nep.tauv=[0,0.8];
+nep = DEP(nep.n, nep.A, [0, 0.8])
 
 #nep=shift_and_scale(nep;shift=0,scale=2);
 @testset "Deflation (combined with MSLP)" begin
