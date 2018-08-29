@@ -43,7 +43,7 @@ println("Bigfloat precomputation");
                       errmeasure=myerrmeasure)
 
 bigfloattest=@testset "BigFloat comparison w $T" for T in
-    (Float16,Complex32,Complex128)
+    (Float16,Complex32,ComplexF64)
 
     nep1=PEP(Array{Array{T,2},1}(nep.A))
     global itercount=0;

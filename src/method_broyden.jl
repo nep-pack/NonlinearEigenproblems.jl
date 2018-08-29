@@ -563,8 +563,8 @@ julia> broyden(nep,displaylevel=2,check_error_every=1);  % Prints out a lot more
 * Jarlebring, Broyden’s method for nonlinear eigenproblems, 2018, https://arxiv.org/pdf/1802.07322
 
 """
-broyden(nep::NEP;params...)=broyden(Complex128,nep,nep;params...)
-broyden(nep::NEP,approxnep::NEP;params...)=broyden(Complex128,nep,approxnep;params...)
+broyden(nep::NEP;params...)=broyden(ComplexF64,nep,nep;params...)
+broyden(nep::NEP,approxnep::NEP;params...)=broyden(ComplexF64,nep,approxnep;params...)
 function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                  pmax::Integer=3,
                  c::Vector=ones(TT,size(nep,1)),
@@ -827,7 +827,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         warn("Too many eigenvalues requested. Reducing")
         pmax=size(nep,1);
     end
-    σ=Complex128(σ);
+    σ=ComplexF64(σ);
 
 
     # Step 1. Compute M0 and T0
@@ -836,8 +836,8 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
     T1=inv(M1);
 
 
-    X=zeros(Complex128,n,0);
-    S=zeros(Complex128,0,0);
+    X=zeros(ComplexF64,n,0);
+    S=zeros(ComplexF64,0,0);
 
     k=1;
 
@@ -896,7 +896,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
             dnep=NEPBroydenDeflatedEll2(nep,S,X);
 
 
-            (λm,vm,um,Tm,Wm,iter,errhist,timehist)=broyden_naive_J(Complex128,dnep,
+            (λm,vm,um,Tm,Wm,iter,errhist,timehist)=broyden_naive_J(ComplexF64,dnep,
                                                                    v1=v0,u1=u0,λ1=σ,
                                                                    CH=CH,T1=T1,W1=W1,
                                                                    S=S,X=X,
@@ -912,7 +912,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
             dnep=NEPBroydenDeflatedEll2(nep,S,X);
 
 
-            (λm,vm,um,Tm,Wm,iter,errhist,timehist)=broyden_naive_H(Complex128,dnep,
+            (λm,vm,um,Tm,Wm,iter,errhist,timehist)=broyden_naive_H(ComplexF64,dnep,
                                                                    v1=v0,u1=u0,λ1=σ,
                                                                    CH=CH,T1=T1,W1=W1,
                                                                    S=S,X=X,
@@ -986,10 +986,10 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
             beta=norm(v1t);
             X=[X v1t/beta];
             k=k+1;
-            S1=zeros(Complex128,k,k);
+            S1=zeros(ComplexF64,k,k);
             S1[1:(k-1),1:(k-1)]=S;
             S1[k,k]=λ1;
-            R=eye(Complex128,k,k);
+            R=eye(ComplexF64,k,k);
             R[1:k-1,end]=h; R[k,k]=beta;
             S=(R*S1)/R;
             #println("norm(XX-I)=",norm(X'*X-eye(size(X,2))))

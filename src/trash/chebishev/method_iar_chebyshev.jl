@@ -8,7 +8,7 @@ using IterativeSolvers
 Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
 by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.
 """
-iar_chebyshev(nep::NEP;params...)=iar_chebyshev(Complex128,nep;params...)
+iar_chebyshev(nep::NEP;params...)=iar_chebyshev(ComplexF64,nep;params...)
 function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     ::Type{T},
     nep::NEP;
@@ -101,7 +101,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
                 PP=P[1:k,1:k]'*D;
                 SS=diagm(σ*ones(TT,kk))+diagm((a[2:kk]./a[1:kk-1]).*(1:kk-1),1); SS=SS.';
                 QQ=zeros(kk,kk); QQ[1,1]=1; QQ[2:end,2:end]=PP;
-                S2=Array{Complex128,2}(QQ*SS/QQ);
+                S2=Array{ComplexF64,2}(QQ*SS/QQ);
 
                 ## Compute the y0
                 #println("eltype(VZ)=",eltype(VZ)," eltype(S2)=",eltype(S2));

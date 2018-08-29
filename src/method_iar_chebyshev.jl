@@ -46,7 +46,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
-iar_chebyshev(nep::NEP;params...)=iar_chebyshev(Complex128,nep;params...)
+iar_chebyshev(nep::NEP;params...)=iar_chebyshev(ComplexF64,nep;params...)
 function iar_chebyshev(
     ::Type{T},
     nep::NEP;
@@ -425,7 +425,7 @@ function DD0_mat_fun(T,f,S,σ)
     # Notice that f[S,0] is defined also for S singular.
     # If S is nonsingular it holds f[S,0]=S^(-1)-(f(S)-f(0))
     # Example:
-    # n=10; S=rand(n,n); T=Complex128; f=x->expm(x)+x^2
+    # n=10; S=rand(n,n); T=ComplexF64; f=x->expm(x)+x^2
     # Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
     # norm(Y1-Y2)
 

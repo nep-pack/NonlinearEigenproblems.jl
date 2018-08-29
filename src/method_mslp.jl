@@ -31,7 +31,7 @@ julia> compute_Mlincomb(nep,λ,v)
 
 
 """
-mslp(nep::NEP;params...)=mslp(Complex128,nep;params...)
+mslp(nep::NEP;params...)=mslp(ComplexF64,nep;params...)
 function mslp(::Type{T},
                  nep::NEP;
                  errmeasure::Function =

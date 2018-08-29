@@ -239,7 +239,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                                        # multiple of identity
                     Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
                 else  # Diagonal but not constant
-                    Fid=zeros(Complex128,size(S,1))
+                    Fid=zeros(ComplexF64,size(S,1))
                     for j=1:size(S,1)
                         Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
                     end
@@ -443,7 +443,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
                      V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
-    compute_rf(nep::PEP,x;params...) = compute_rf(Complex128,nep,x;params...)
+    compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
     function compute_rf(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
                         TOL=eps(real(T))*1e3,max_iter=10) where T<:Real
 
@@ -559,7 +559,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
 
 
-    interpolate(nep::NEP, intpoints::Array) = interpolate(Complex128, nep, intpoints)
+    interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
 
 
     """

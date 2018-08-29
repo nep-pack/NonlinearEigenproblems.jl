@@ -104,7 +104,7 @@ Executes z if displaylevel>0.
         A=v->compute_Mlincomb(nept,complex(conj(λ)),compute_Mlincomb(nep,complex(λ),complex(v)))
 
         # initialization
-        x/=norm(x); v=A(x); ρ=x⋅v; q=zeros(Complex128,size(nep,1));
+        x/=norm(x); v=A(x); ρ=x⋅v; q=zeros(ComplexF64,size(nep,1));
         k=1; err=1; tol=1e-12
         while (k<maxit)&&(err>tol)
           g=v-ρ*x;

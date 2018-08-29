@@ -94,7 +94,7 @@ module GalleryNLEVP
     # stemming from a previous call to [Ai,funs]=nlevp(nepname).
     # The returned matrix containing derivatives has (maxder+1) rows
     function call_current_fun(lambda,maxder::Integer=0)
-        l::Complex128=Complex128(lambda)  # avoid type problems
+        l::ComplexF64=ComplexF64(lambda)  # avoid type problems
         mat"""
     C=cell($maxder+1,1);
     [C{:}]=funs($l);

@@ -1,3 +1,5 @@
+using Random
+
 function gun_init()
     nep = gun_nep()
 

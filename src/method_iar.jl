@@ -21,7 +21,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
-iar(nep::NEP;params...)=iar(Complex128,nep;params...)
+iar(nep::NEP;params...)=iar(ComplexF64,nep;params...)
 function iar(
     ::Type{T},
     nep::NEP;

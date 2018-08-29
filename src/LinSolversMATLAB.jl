@@ -28,8 +28,8 @@ module LinSolversMATLAB
     function eig_solve(solver::MatlabEigSSolver;nev=6,target=0)
         #TODO: The real/complex partition is because of MATLAB.jl limitation in sparse-complex matrices
         eltype_A = eltype(solver.A)
-        if !( eltype_A <: Union{Float64, Complex128} )
-            error("This implementation only supports matrices of type 'Float64' and 'Complex128', you have supplied a matrix of type '", eltype_A,"'.")
+        if !( eltype_A <: Union{Float64, ComplexF64} )
+            error("This implementation only supports matrices of type 'Float64' and 'ComplexF64', you have supplied a matrix of type '", eltype_A,"'.")
         end
         aa_real = mxarray(real(solver.A))
         aa_complex = mxarray(imag(solver.A))

@@ -20,10 +20,10 @@ function slow(n::Integer)
 end
 
 function fast(n::Integer)
-    U = zeros(Complex128,n,n);
+    U = zeros(ComplexF64,n,n);
     for j = 1:n
         for i = 1:n
-            temp = zero(Complex128) #HERE IT IS CORRECTLY TYPED
+            temp = zero(ComplexF64) #HERE IT IS CORRECTLY TYPED
             for k = j:i
                 temp += (1 + 1im)
             end

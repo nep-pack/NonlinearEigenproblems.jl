@@ -299,7 +299,7 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
 * E. Bueler, Error Bounds for Approximate Eigenvalues of Periodic-Coefficient Linear Delay Differential Equations, SIAM J. Numer. Anal., 45(6), 2510–2536
 
 """
-function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=200,TT=Complex128)
+function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=200,TT=ComplexF64)
     if (name == "mathieu")
         δ=1; b=1/2; a=0.1; tau=2;
         A=t-> [0 1; -( δ+ a*cos(pi*t) ) -1];

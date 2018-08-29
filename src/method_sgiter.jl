@@ -23,7 +23,7 @@ julia> norm(v)
 * B. Werner. Das Spektrum von Operatorenscharen mit verallgemeinerten Rayleighquotienten. PhD thesis, Fachbereich Mathematik, Universität Hamburg, 1970
 
 """
-sgiter(nep::NEP, j::Integer; params...) = sgiter(Complex128, nep, j; params...)
+sgiter(nep::NEP, j::Integer; params...) = sgiter(ComplexF64, nep, j; params...)
 function sgiter(::Type{T},
                    nep::NEP,
                    j::Integer;

@@ -19,7 +19,7 @@ println("===========================")
 
 
 nep = nep_gallery("pep0_sparse_003")
-λ = rand(Complex128)
+λ = rand(ComplexF64)
 
 import LinSolvers.GMRESLinSolver
 gmres_kwargs = ((:maxiter,200), (:restart,200), (:log,true))
@@ -30,7 +30,7 @@ end
 first_solver = my_first_gmres_linsolvercreator(nep, λ)
 println("type = ", typeof(first_solver), "\n")
 
-b = rand(Complex128, 200)
+b = rand(ComplexF64, 200)
 
 x = lin_solve(first_solver, b)
 

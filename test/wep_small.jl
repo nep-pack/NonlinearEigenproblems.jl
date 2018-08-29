@@ -32,7 +32,7 @@ v2 = compute_Mlincomb(nep     , γ, ones(size(nep     ,1)))
 @test norm(v1-v2)/norm(v1) < 1e-14
 
 precond = wep_generate_preconditioner(nep, nz, γ)
-b1 = rand(Complex128, nx*nz)
+b1 = rand(ComplexF64, nx*nz)
 Schur_fun = SchurMatVec(nep, γ)
 b2 = A_ldiv_B!(precond, (Schur_fun*b1))
 @test norm(b1-b2)/norm(b1) < 1e-14
@@ -51,24 +51,24 @@ n=size(nep,1);
 
     myerrmeasure=(λ,v) -> abs(λ-λstar) # Use eigenvalue error as errmeasure
 
-   λ,v=@time resinv(Complex128,nep,displaylevel=1,λ=λ0,v=v0,
+   λ,v=@time resinv(ComplexF64,nep,displaylevel=1,λ=λ0,v=v0,
               errmeasure=myerrmeasure,tol=1e-12)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
-    λ,v=@time resinv(Complex128,nep,displaylevel=1,λ=λ0,v=v0,
+    λ,v=@time resinv(ComplexF64,nep,displaylevel=1,λ=λ0,v=v0,
                errmeasure=myerrmeasure,tol=1e-12,linsolvercreator=backslash_linsolvercreator)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
-    λ,v=@time quasinewton(Complex128,nep,displaylevel=1,λ=λ0,v=v0,
+    λ,v=@time quasinewton(ComplexF64,nep,displaylevel=1,λ=λ0,v=v0,
                     errmeasure=myerrmeasure,tol=1e-12)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
 
     nev=3
-    λ,v=@time iar(Complex128,nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
+    λ,v=@time iar(ComplexF64,nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
                   tol=1e-8);
 
     @test minimum(abs.(λstar-λ))<1e-10

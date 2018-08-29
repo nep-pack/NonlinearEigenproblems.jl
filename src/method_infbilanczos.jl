@@ -21,7 +21,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 * The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, arxiv: 1607.03454, to appear in SIAM J. Scientific Computing
 
 """
-    infbilanczos(nep::NEP,nept::NEP;params...)=infbilanczos(Complex128,nep,nept;params...)
+    infbilanczos(nep::NEP,nept::NEP;params...)=infbilanczos(ComplexF64,nep,nept;params...)
     function infbilanczos(::Type{T},
                           nep::NEP,
                           nept::NEP;  # Transposed NEP

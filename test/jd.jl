@@ -58,7 +58,7 @@ println(" Smallest eigevalue found: \n λ: ",λ)
 println("\nTesting IAR as projected solver")
 nep = nep_gallery("dep0_sparse",40)
 TOL = 1e-10;
-λ,u = jd(Complex128, nep, tol=TOL, maxit=30, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver, v0=ones(size(nep,1)))
+λ,u = jd(ComplexF64, nep, tol=TOL, maxit=30, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
 println(" Resnorm of computed solution: ",compute_resnorm(nep,λ,u))

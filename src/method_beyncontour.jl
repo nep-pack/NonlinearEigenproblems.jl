@@ -24,7 +24,7 @@ julia> minimum(svdvals(compute_Mder(nep,λv[1])))
 # References
 * Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
 """
-contour_beyn(nep::NEP;params...)=contour_beyn(Complex128,nep;params...)
+contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
 function contour_beyn(::Type{T},
                          nep::NEP;
                          errmeasure::Function =

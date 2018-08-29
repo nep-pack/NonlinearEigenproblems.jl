@@ -56,7 +56,7 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     # Constants from the problem
     const d0 = -3/(2*hx);
-    const a = ones(Complex128,nz);
+    const a = ones(ComplexF64,nz);
     const b = 4*pi*1im * (-p:p);
     const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
     const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
@@ -87,13 +87,13 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
     end
 
     # BUILD THE FOURTH BLOCK P
-    function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
+    function P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
         return vec( [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
                      R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ])
     end
 
     # BUILD THE DERIVATIVE OF P
-    function p_P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
+    function p_P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
         return vec( [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
                      R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ])
     end
@@ -108,13 +108,13 @@ end
 function sqrtm_schur(A::AbstractMatrix)
     n = size(A,1);
     (T, Q) = schur(complex(A))
-    U = zeros(Complex128,n,n);
+    U = zeros(ComplexF64,n,n);
     for i = 1:n
         U[i,i] = sqrt(T[i,i])
     end
     for j = 2:n
         for i = (j-1):-1:1
-            temp = zero(Complex128)
+            temp = zero(ComplexF64)
             for k = (i+1):(j-1)
                 temp += U[i,k]*U[k,j]
             end
@@ -151,7 +151,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
         Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
-        P_j = zeros(Complex128, 2*nz,2*nz)
+        P_j = zeros(ComplexF64, 2*nz,2*nz)
         Iz = eye(2*nz, 2*nz)
         for i = 1:2*nz
             P_j[:,i] = P(γ, Iz[:,i])
@@ -159,9 +159,9 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
         R, Rinv = generate_R_matvecs(nz)
         S = generate_S_function(nz, hx, Km, Kp)
-        P_j2 = zeros(Complex128, 2*nz,2*nz)
-        D1 = zeros(Complex128, nz,nz)
-        D2 = zeros(Complex128, nz,nz)
+        P_j2 = zeros(ComplexF64, 2*nz,2*nz)
+        D1 = zeros(ComplexF64, nz,nz)
+        D2 = zeros(ComplexF64, nz,nz)
         for j = 1:nz
             D1[j,j] = S(reshape([γ],1,1),j)[1]
         end
@@ -218,7 +218,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
         println("Difference P_m(γ) - P_2(γ) = ", norm(P_m-P_j2))
         println("Relative difference norm(P_m(γ) - P_2(γ))/norm(P_2(γ)) = ", norm(P_m-P_j2)/norm(full(P_j2)))
-        v = rand(Complex128,2*nz)
+        v = rand(ComplexF64,2*nz)
         println("Relative difference norm(v - Pinv_j((γ))*P_j(γ)*v)/norm(v) = ", norm(v - Pinv(γ,P(γ,v)) )/norm(v))
     end
     println("\n--- End Matrices FD against MATLAB ---\n")
@@ -314,7 +314,7 @@ end
 function debug_sqrt_derivative()
     println("\n\n--- Debugging derivatives of square root of polynomials against MATLAB symbolic ---\n")
     a = 2*rand()
-    b = 2*pi*rand(Complex128)
+    b = 2*pi*rand(ComplexF64)
     c = 1.67*rand()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
@@ -353,7 +353,7 @@ function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
     γ = -rand() - 1im*rand()
     gamma = γ
     n = nx*nz+2*nz
-    V = rand(Complex128, n, 4)
+    V = rand(ComplexF64, n, 4)
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
@@ -363,16 +363,16 @@ function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
         nep_SPMF = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
 
         for d = [0 1 2 5]
-            M_j = zeros(Complex128, n, n)
+            M_j = zeros(ComplexF64, n, n)
             for i = 1:n
-                V = zeros(Complex128, n)
+                V = zeros(ComplexF64, n)
                 V[i] = 1
                 M_j[:,i] += compute_Mlincomb(nep_j, γ, V, [1], d)
             end
 
-            M_SPMF = zeros(Complex128, n, n)
+            M_SPMF = zeros(ComplexF64, n, n)
             for i = 1:n
-                V = zeros(Complex128, n)
+                V = zeros(ComplexF64, n)
                 V[i] = 1
                 M_SPMF[:,i] += compute_Mlincomb(nep_SPMF, γ, V, [1], d)
             end
@@ -410,9 +410,9 @@ function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
         nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WEp", delta = delta)
         Schur_fun = SchurMatVec(nep_j, γ)
-        Schur_j = zeros(Complex128, n, n)
+        Schur_j = zeros(ComplexF64, n, n)
         for i = 1:n
-            V = zeros(Complex128, n)
+            V = zeros(ComplexF64, n)
             V[i] = 1
             Schur_j[:,i] += Schur_fun* V
         end
@@ -458,9 +458,9 @@ end
 # Test the FFT-based Sylvester solver against naive solver
 function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging FFT-Sylvester ---\n")
-    γ = -rand(Complex128)
+    γ = -rand(ComplexF64)
     gamma = γ
-    C = rand(Complex128, nz, nx);
+    C = rand(ComplexF64, nz, nx);
     waveguide = "JARLEBRING"
 
 
@@ -496,7 +496,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
 
     k_bar = mean(K)
 
-    A = full(Dzz + 2*γ*Dz + (γ^2+k_bar)*speye(Complex128, nz,nz))
+    A = full(Dzz + 2*γ*Dz + (γ^2+k_bar)*speye(ComplexF64, nz,nz))
     B = complex(full(Dxx))
 
     println("\nBuilt-in Sylvester solver (X_jj)")
@@ -504,7 +504,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("Relative residual norm = ", norm(A*X_jj+X_jj*B-C)/norm(C))
 
     println("FFT-based Sylvester solver for WG (X_j)")
-    X_j::Array{Complex128,2} = copy(C)
+    X_j::Array{ComplexF64,2} = copy(C)
     @time solve_wg_sylvester_fft!( X_j, γ, k_bar, hx, hz )
     println("Relative residual norm = ", norm(A*X_j+X_j*B-C)/norm(C))
 
@@ -605,7 +605,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
     nz = 3*3*5
     nx = nz + 4
 
-    γ = -rand(Complex128)
+    γ = -rand(ComplexF64)
     gamma = γ
 
 
@@ -616,18 +616,18 @@ function debug_WEP_FD_preconditioner(delta::Number)
         nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
 
 
-        bb = rand(Complex128, nx*nz)
+        bb = rand(ComplexF64, nx*nz)
         precond = wep_generate_preconditioner(nep, 45, γ)
         Schur_fun = SchurMatVec(nep, γ)
         bbb = A_ldiv_B!(precond, (Schur_fun*bb))
         println("    Preconditioner * (Schur complement * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
-        bb = rand(Complex128, nx*nz)
+        bb = rand(ComplexF64, nx*nz)
         bbb = A_ldiv_B!(precond, bb)
         bbb = Schur_fun * bbb
         println("    Schur complement * (Preconditioner * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
 
 
-        b = rand(Complex128, nx*nz+2*nz)
+        b = rand(ComplexF64, nx*nz+2*nz)
         for N = [1, 3, 9, 15, 45]
             println("    Testing for n = ", nz, " and N = ", N)
             precond = @time wep_generate_preconditioner(nep, N, γ)
@@ -684,7 +684,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_WEPFD = NaN
         eigvec_j_WEPFD = NaN
         try
-            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0, linsolvercreator=my_wep_gmres_linsolvercreator)
+            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=my_wep_gmres_linsolvercreator)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -699,7 +699,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF = NaN
         eigvec_j_SPMF = NaN
         try
-            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -713,7 +713,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF_pre = NaN
         eigvec_j_SPMF_pre = NaN
         try
-            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -793,7 +793,7 @@ function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
         # end
         #
         # srand(10524089)
-        # eigval, eigvec = @time resinv(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        # eigval, eigvec = @time resinv(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         #
         # println("Computed eigenvalue = ", eigval)
         #
@@ -812,7 +812,7 @@ function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
         # end
         #
         # srand(10524089)
-        # eigval, eigvec = @time augnewton(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        # eigval, eigvec = @time augnewton(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         #
         # println("Computed eigenvalue = ", eigval)
         #

@@ -26,7 +26,7 @@ mm=80;  # number of iterations
 function myexpm(A::Array{T,2}) where {T<:Number}
     println("call expm with ",typeof(A),"\n");
 
-    A=Array{Complex128,2}(A);
+    A=Array{ComplexF64,2}(A);
     F=zeros(T,size(A,1),size(A,2))
     if (size(A)==(1,1))
         F[:]=exp(A[1,1]);
@@ -37,7 +37,7 @@ function myexpm(A::Array{T,2}) where {T<:Number}
         F=F+Bi/factorial(real(T(k)));
         Bi=Bi*A;
     end
-    #F=Array{Complex128,2}(F);
+    #F=Array{ComplexF64,2}(F);
     err=norm(expm(A)-F,1)/norm(F,1);
     if(err>eps()*100)
         println("Warning: error large:",err, " size:",size(A), " norm(A):",norm(A));

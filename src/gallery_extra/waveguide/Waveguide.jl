@@ -7,20 +7,20 @@
  Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
-function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{Complex128,2},Array{Float64,2}}, Km, Kp, pre_Schur_fact::Bool)
-    Ix = speye(Complex128,nx,nx)
-    Iz = speye(Complex128,nz,nz)
+function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{ComplexF64,2},Array{Float64,2}}, Km, Kp, pre_Schur_fact::Bool)
+    Ix = speye(ComplexF64,nx,nx)
+    Iz = speye(ComplexF64,nz,nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
     A = Array{SparseMatrixCSC}(3+2*nz)
-    A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(Complex128,2*nz, 2*nz) )
-    A[2] = hvcat((2,2), Q1, spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), spzeros(Complex128,2*nz, 2*nz) )
-    A[3] = hvcat((2,2), Q2, spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), spzeros(Complex128,2*nz, 2*nz) )
+    A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(ComplexF64,2*nz, 2*nz) )
+    A[2] = hvcat((2,2), Q1, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
+    A[3] = hvcat((2,2), Q2, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
 
     f = Array{Function}(3+2*nz)
-    f[1] = λ -> eye(Complex128,size(λ,1),size(λ,2))
+    f[1] = λ -> eye(ComplexF64,size(λ,1),size(λ,2))
     f[2] = λ -> λ
     f[3] = λ -> λ^2
 
@@ -31,17 +31,17 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         f[j+3] = λ -> S(λ, j)
         e_j = zeros(nz)
         e_j[j] = 1
-        E_j = [R(e_j); spzeros(Complex128,nz)]
+        E_j = [R(e_j); spzeros(ComplexF64,nz)]
         E_j = E_j * (E_j/nz)'
-        A[j+3] =  hvcat((2,2), spzeros(Complex128,nx*nz,nx*nz), spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), E_j)
+        A[j+3] =  hvcat((2,2), spzeros(ComplexF64,nx*nz,nx*nz), spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), E_j)
     end
     for j = 1:nz
         f[j+nz+3] = λ -> S(λ, nz+j)
         e_j = zeros(nz)
         e_j[j] = 1
-        E_j = [spzeros(Complex128,nz); R(e_j)]
+        E_j = [spzeros(ComplexF64,nz); R(e_j)]
         E_j = E_j * (E_j/nz)'
-        A[j+nz+3] =  hvcat((2,2), spzeros(Complex128,nx*nz,nx*nz), spzeros(Complex128,nx*nz, 2*nz), spzeros(Complex128,2*nz, nx*nz), E_j)
+        A[j+nz+3] =  hvcat((2,2), spzeros(ComplexF64,nx*nz,nx*nz), spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), E_j)
     end
     return SPMF_NEP(A,f,pre_Schur_fact)
 end
@@ -79,17 +79,17 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
 
     # Note: γ should be scalar or matrix (not vector)
     betaM = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cM[j]*eye(Complex128,size(γ,1))
+        return γ^2 + b[j]*γ + cM[j]*eye(ComplexF64,size(γ,1))
     end
     betaP = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cP[j]*eye(Complex128,size(γ,1))
+        return γ^2 + b[j]*γ + cP[j]*eye(ComplexF64,size(γ,1))
     end
 
     sM = function(γ, j::Integer)
-        return  1im*sqrtm_schur_pos_imag(betaM(γ, j)) + d0*eye(Complex128, size(γ,1))
+        return  1im*sqrtm_schur_pos_imag(betaM(γ, j)) + d0*eye(ComplexF64, size(γ,1))
     end
     sP = function(γ, j::Integer)
-        return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + d0*eye(Complex128, size(γ,1))
+        return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + d0*eye(ComplexF64, size(γ,1))
     end
 
 
@@ -116,9 +116,9 @@ end
 """
 function sqrtm_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
-    AA = Array{Complex128,2}(A);
+    AA = Array{ComplexF64,2}(A);
     (T, Q, ) = schur(AA)
-    U = zeros(Complex128,n,n);
+    U = zeros(ComplexF64,n,n);
     for i = 1:n
         U[i,i] = sqrt_pos_imag(T[i,i])
     end
@@ -127,10 +127,10 @@ function sqrtm_schur_pos_imag(A::AbstractMatrix)
 end
 #Helper function executing the inner loop (more Juliaesque)
 function private_inner_loops_sqrt!(n, U, T)
-    temp = zero(Complex128);
+    temp = zero(ComplexF64);
     for j = 2:n
         for i = (j-1):-1:1
-            temp *= zero(Complex128);
+            temp *= zero(ComplexF64);
             for k = (i+1):(j-1)
                 temp += U[i,k]*U[k,j]
             end
@@ -140,11 +140,11 @@ function private_inner_loops_sqrt!(n, U, T)
 end
 
     """
-    sqrt_pos_imag(a::Complex128) and sqrt_pos_imag(a::Float64)
+    sqrt_pos_imag(a::ComplexF64) and sqrt_pos_imag(a::Float64)
  Helper function: Computes the scalar square root on the 'correct branch',
  that is, with positivt imaginary part.
 """
-function sqrt_pos_imag(a::Complex128)
+function sqrt_pos_imag(a::ComplexF64)
     imag_sign = sign(imag(a))
     if imag_sign == 0 #Real value in complex type
         sqrt(a)
@@ -193,9 +193,9 @@ end
         function WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
             k_bar = mean(K)
-            K_scaled = K-k_bar*ones(Complex128,nz,nx)
+            K_scaled = K-k_bar*ones(ComplexF64,nz,nx)
 
-            eye_scratch_pad = speye(Complex128, nz, nz)
+            eye_scratch_pad = speye(ComplexF64, nz, nz)
 
             A = function(λ, d=0)
                 if(d == 0)
@@ -205,14 +205,14 @@ end
                 elseif(d == 2)
                     return 2*eye_scratch_pad
                 else
-                    return spzeros(Complex128, nz, nz)
+                    return spzeros(ComplexF64, nz, nz)
                 end
             end
             B = function(λ, d=0)
                 if(d == 0)
                     return Dxx
                 else
-                    return spzeros(Complex128, nx, nx)
+                    return spzeros(ComplexF64, nx, nx)
                 end
             end
 
@@ -255,7 +255,7 @@ end
     #To be used in the Schur-complement- and SMW-context.
     function helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
         # S_k(σ) + d_0, as in Ringh - (2.3a)
-        coeffs = zeros(Complex128, 2*nz)
+        coeffs = zeros(ComplexF64, 2*nz)
             aa = 1.0
         for j = 1:2*nz
             bb = b[rem(j-1,nz)+1]
@@ -276,13 +276,13 @@ end
 
 
     """
-    compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(Complex128,size(V,2)))
+    compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(ComplexF64,size(V,2)))
 Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\\\\
  Computes the linear combination of derivatives\\
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
     function compute_Mlincomb(nep::WEP_FD, λ::Number, V::Union{AbstractMatrix,AbstractVector},
-                              a::Vector=ones(Complex128,size(V,2)))
+                              a::Vector=ones(ComplexF64,size(V,2)))
         na = size(a,1)
         nv = size(V,1)
         mv = size(V,2)
@@ -302,15 +302,15 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         V2 = view(V, nx*nz+1:n_nep, :)
 
         # Compute the top part (nx*nz)
-        y1_mat::Array{Complex128,2} = (nep.A(λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1])*a[1]
+        y1_mat::Array{ComplexF64,2} = (nep.A(λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1])*a[1]
         for d = 1:min(max_d,3)
             y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1] * a[d+1];
         end
-        y1::Array{Complex128,1} = y1_mat[:]
+        y1::Array{ComplexF64,1} = y1_mat[:]
         y1 += nep.C1 * V2[:,1] * a[1]
 
         # Compute the bottom part (2*nz)
-        D::Array{Complex128,2} = zeros(Complex128, 2*nz, na)
+        D::Array{ComplexF64,2} = zeros(ComplexF64, 2*nz, na)
         for j = 1:2*nz
             aa = 1
             bb = nep.b[rem(j-1,nz)+1]
@@ -322,7 +322,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         end
 
         #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
-        y2_temp::Array{Complex128,1} =
+        y2_temp::Array{ComplexF64,1} =
             (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]);
                                   nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
         for jj = 2:na
@@ -330,7 +330,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
                                    nep.Rinv(V2[nz+1:2*nz,jj])] *a[jj]
         end
-        y2::Array{Complex128,1} = [nep.R(y2_temp[1:nz,1]);
+        y2::Array{ComplexF64,1} = [nep.R(y2_temp[1:nz,1]);
                                    nep.R(y2_temp[nz+1:2*nz,1])]
         y2 += nep.C2T * V1[:,1]*a[1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
@@ -345,8 +345,8 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     # Matrix-vector product according to Ringh (2.13) and (3.3)
     type SchurMatVec
         nep::WEP_FD
-        λ::Complex128
-        SchurMatVec(nep::WEP_FD, λ::Union{Complex128,Float64}) = new(nep, λ)
+        λ::ComplexF64
+        SchurMatVec(nep::WEP_FD, λ::Union{ComplexF64,Float64}) = new(nep, λ)
     end
 
     function *(M::SchurMatVec,v::AbstractVector)
@@ -371,21 +371,21 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
     function eltype(M::SchurMatVec)
-        return Complex128
+        return ComplexF64
     end
 
 
     # GMRES Solver
     type WEPGMRESLinSolver<:LinSolver
-        schur_comp::LinearMap{Complex128}
+        schur_comp::LinearMap{ComplexF64}
         kwargs
         gmres_log::Bool
         nep::WEP_FD
-        λ::Complex128
+        λ::ComplexF64
 
-        function WEPGMRESLinSolver(nep::WEP_FD,λ::Union{Complex128,Float64},kwargs)
+        function WEPGMRESLinSolver(nep::WEP_FD,λ::Union{ComplexF64,Float64},kwargs)
             f = SchurMatVec(nep, λ)
-            schur_comp = LinearMap{Complex128}(f, nep.nx*nep.nz, ismutating=false, issymmetric=false, ishermitian=false);
+            schur_comp = LinearMap{ComplexF64}(f, nep.nx*nep.nz, ismutating=false, issymmetric=false, ishermitian=false);
             gmres_log = false
             for elem in kwargs
                 gmres_log |= ((elem[1] == :log) && elem[2])
@@ -410,11 +410,11 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     # Direct Backslash solver
     type WEPBackslashLinSolver<:LinSolver
-        schur_comp::SparseMatrixCSC{Complex128,Int64}
+        schur_comp::SparseMatrixCSC{ComplexF64,Int64}
         nep::WEP_FD
-        λ::Complex128
+        λ::ComplexF64
 
-        function WEPBackslashLinSolver(nep::WEP_FD, λ::Union{Complex128,Float64}, kwargs=())
+        function WEPBackslashLinSolver(nep::WEP_FD, λ::Union{ComplexF64,Float64}, kwargs=())
             schur_comp = construct_WEP_schur_complement(nep, λ)
             return new(schur_comp, nep, λ)
         end
@@ -433,9 +433,9 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     type WEPFactorizedLinSolver<:LinSolver
         schur_comp_fact
         nep::WEP_FD
-        λ::Complex128
+        λ::ComplexF64
 
-        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{Complex128,Float64}, kwargs=())
+        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{ComplexF64,Float64}, kwargs=())
             schur_comp_fact = factorize(construct_WEP_schur_complement(nep, λ))
             return new(schur_comp_fact, nep, λ)
         end
@@ -452,16 +452,16 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     # Helper functions for WEP LinSolvers. To avoid code repetition.
     # Assembls the full Schur-complement, used in both Backslash and LU solvers
-    function construct_WEP_schur_complement(nep::WEP_FD, λ::Union{Complex128,Float64})
+    function construct_WEP_schur_complement(nep::WEP_FD, λ::Union{ComplexF64,Float64})
         nz = nep.nz
         nx = nep.nx
-        Inz = speye(Complex128,nz,nz)
-        Inx = speye(Complex128,nx,nx)
+        Inz = speye(ComplexF64,nz,nz)
+        Inx = speye(ComplexF64,nx,nx)
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
-        Pinv_minus = Array{Complex128}(nz,nz)
-        Pinv_plus = Array{Complex128}(nz,nz)
-        e = zeros(Complex128,nz)
+        Pinv_minus = Array{ComplexF64}(nz,nz)
+        Pinv_plus = Array{ComplexF64}(nz,nz)
+        e = zeros(ComplexF64,nz)
         for i = 1:nz
             e[:] = 0
             e[i] = 1
@@ -514,7 +514,7 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
     # Constants from the problem
     d0 = -3/(2*hx);
-    a = ones(Complex128,nz);
+    a = ones(ComplexF64,nz);
     b = 4*pi*1im * (-p:p);
     cM = Km^2 - 4*pi^2 * ((-p:p).^2);
     cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
@@ -537,7 +537,7 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
     end
 
     # BUILD THE INVERSE OF THE FOURTH BLOCK P
-    function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
+    function P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
         return vec(  [R(Rinv(x[1:Int64(end/2)]) ./ sM(γ));
                       R(Rinv(x[Int64(end/2)+1:end]) ./ sP(γ))  ]  )
     end
@@ -565,7 +565,7 @@ function sqrt_derivative(a,b,c, d=0, x=0)
     bb = b + 2*a*x
     cc = c + a*x^2 + b*x
 
-    derivatives = zeros(Complex128,d+1)
+    derivatives = zeros(ComplexF64,d+1)
 
     yi = sqrt_pos_imag(cc)
     derivatives[1] = yi
@@ -580,7 +580,7 @@ function sqrt_derivative(a,b,c, d=0, x=0)
         return derivatives
     end
 
-    yip2 = zero(Complex128)
+    yip2 = zero(ComplexF64)
     for i = 2:d
         m = i - 2
         yip2 = - (2*aa*(m-1)*yi  +  bb*(1+2*m)*yip1) / (2*cc*(2+m))

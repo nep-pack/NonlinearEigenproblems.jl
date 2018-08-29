@@ -31,7 +31,7 @@ nep=nep_gallery("dep0")
 
 
 try
-    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(Complex128,size(nep,1)));
+    λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(ComplexF64,size(nep,1)));
 catch e
     # Only catch NoConvergence
     isa(e, NoConvergenceException) || rethrow(e)
@@ -129,7 +129,7 @@ println(λ1)
 println(x1)
 
 
-println("\nRunning Newton on interpolated sparse dep (interpolation with with BigFloat arithmetics, Newton with Complex128)")
+println("\nRunning Newton on interpolated sparse dep (interpolation with with BigFloat arithmetics, Newton with ComplexF64)")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(BigFloat, nep, intpoints)
 try

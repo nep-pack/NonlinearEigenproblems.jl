@@ -42,7 +42,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 * A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 
 """
-    newton(nep::NEP;params...)=newton(Complex128,nep;params...)
+    newton(nep::NEP;params...)=newton(ComplexF64,nep;params...)
     function newton(::Type{T},
                     nep::NEP;
                     errmeasure::Function =
@@ -150,7 +150,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 *  A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923
 
 """
-    resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
+    resinv(nep::NEP;params...)=resinv(ComplexF64,nep;params...)
     function resinv(::Type{T},
                     nep::NEP;
                     errmeasure::Function =
@@ -275,7 +275,7 @@ julia> λ1-λ2
 * Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.
 * A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 """
-    augnewton(nep::NEP;kwargs...)=augnewton(Complex128,nep::NEP;kwargs...)
+    augnewton(nep::NEP;kwargs...)=augnewton(ComplexF64,nep::NEP;kwargs...)
     function augnewton(::Type{T},
                        nep::NEP;
                        errmeasure::Function = default_errmeasure(nep::NEP),
@@ -361,7 +361,7 @@ julia> λ1-λ2
 
 
 """
-    quasinewton([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
+    quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
 
 An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference.
 The method involves one linear system solve per iteration corresponding with the
@@ -380,7 +380,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 # References
 * Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492
 """
-    quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
+    quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
                          errmeasure::Function = default_errmeasure(nep::NEP),
@@ -465,7 +465,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 """
     Newton-QR method.
 """
-    newtonqr(nep::NEP;params...)=newtonqr(Complex128,nep;params...)
+    newtonqr(nep::NEP;params...)=newtonqr(ComplexF64,nep;params...)
     function newtonqr(::Type{T},
                       nep::NEP;
                       errmeasure::Function =
@@ -534,7 +534,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 """
     Implicit determinant method
 """
-    implicitdet(nep::NEP;params...)=implicitdet(Complex128,nep;params...)
+    implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
     function implicitdet(::Type{T},
                          nep::NEP;
                          errmeasure::Function =

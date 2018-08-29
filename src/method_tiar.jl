@@ -30,7 +30,7 @@ julia> λ  % Same eigenvalues are computed
 * Algorithm 2 in Jarlebring, Mele, Runborg, The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method, SIAM J. Scient. computing, 39 (3), A1062-A1088, 2017
 
 """
-tiar(nep::NEP;params...)=tiar(Complex128,nep;params...)
+tiar(nep::NEP;params...)=tiar(ComplexF64,nep;params...)
 function tiar(
     ::Type{T},
     nep::NEP;

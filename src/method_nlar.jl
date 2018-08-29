@@ -110,7 +110,7 @@ function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Functio
     return nu,y;
 end
 
-nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
+nlar(nep::NEP;params...) = nlar(ComplexF64,nep::NEP;params...)
 function nlar(::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth} = ModifiedGramSchmidt,
@@ -238,7 +238,7 @@ function nlar(::Type{T},
 
             #Check orthogonalization
             if(k < 100)
-               println("CHECKING BASIS ORTHOGONALITY  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
+               println("CHECKING BASIS ORTHOGONALITY  ......     ",norm(Vk'*Vk-eye(ComplexF64,k+1)),"\n\n")
                #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
             end
             k = k+1;
