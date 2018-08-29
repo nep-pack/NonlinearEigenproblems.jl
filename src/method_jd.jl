@@ -393,7 +393,7 @@ function jd_effenberger_inner!(::Type{T},
     # Compute the eigenvalues we have and throw these.
     λ_vec,uv = eig(Λ)
     u_vec = X * uv
-    throw(NoConvergenceException([λ_vec, λ], [u_vec u], err, msg))
+    throw(NoConvergenceException([λ_vec; λ], [u_vec u[1:n]], err, msg))
 
 end
 
