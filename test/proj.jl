@@ -25,7 +25,7 @@ projtest=@testset "Projected problems" begin
         elseif (nepstr == "dep")
 
             n=5;
-            srand(1)
+            Random.seed!(1)
             A0=randn(5,5);
             A1=randn(5,5);
             t=3.0
@@ -40,7 +40,7 @@ projtest=@testset "Projected problems" begin
         elseif (nepstr == "sqrtm")
 
             n=8;
-            srand(1)
+            Random.seed!(1)
             A0=randn(n,n);
             A1=randn(n,n);
             A2=randn(n,n)/10;
@@ -67,7 +67,7 @@ projtest=@testset "Projected problems" begin
 
         # Create a projected NEP
         pnep=create_proj_NEP(nep);
-        srand(1);
+        Random.seed!(1);
         V=randn(size(nep,1),2)
         Q,R=qr(hcat(V,x)) # Make the eigenspace a part of the projection subspace
         set_projectmatrices!(pnep,Q,Q);

@@ -7,7 +7,7 @@ using NEPCore
 using NEPTypes
 using Gallery
 n=5;
-srand(0) # reset the random seed
+Random.seed!(0) # reset the random seed
 A0=randn(n,n);
 A1=randn(n,n);
 A2=randn(n,n);

@@ -17,7 +17,7 @@ module Gallery_old
           p=3; # Poly degree
 
           A=Array{Float64}(n,n,p)
-          srand(0)
+          Random.seed!(0)
           for i=1:p
               A[:,:,i]=randn(n,n);
           end
@@ -60,7 +60,7 @@ module Gallery_old
       elseif (name == "dep0")
           # A delay eigenvalue problem
           n=5;
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);
           I=eye(n,n);
@@ -82,7 +82,7 @@ module Gallery_old
       elseif (name == "dep0_sparse")
           # A delay eigenvalue problem with sparse matrices
           n=5;
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
           A0=sparse(randn(n,n));
           A1=sparse(randn(n,n));
           I=sparse(eye(n,n));

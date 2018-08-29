@@ -133,7 +133,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
     @testset "compute_y0_method for different types" begin
 
         @testset "PEP" begin
-            srand(0); n=100; d=3;
+            Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(d+1)
             for j=0:d
                 A[j+1]=rand(n,n)
@@ -157,7 +157,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
         end
 
         @testset "DEP WITH DELAYS>1" begin
-            srand(0)
+            Random.seed!(0)
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
             tau1=0; tau2=2.3; tau3=.1;
             nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
@@ -174,7 +174,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
         end
 
         @testset "PEP SHIFTED AND SCALED" begin
-            srand(0); n=100; d=3;
+            Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(d+1)
             for j=0:d
                 A[j+1]=rand(n,n)
@@ -185,7 +185,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
         end
 
         @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
-            srand(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
+            Random.seed!(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
@@ -203,7 +203,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
         end
 
         @testset "PEP in SPMF format" begin
-            srand(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
+            Random.seed!(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(n));
@@ -223,7 +223,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
         end
 
         @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
-            srand(0); n=100; d=3;
+            Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(d+1)
             for j=0:d
                 A[j+1]=rand(n,n)

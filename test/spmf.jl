@@ -20,7 +20,7 @@ end
 @testset "SPMF" begin
     # Create an SPMF
     n=5;
-    srand(1)
+    Random.seed!(1)
     A0=sparse(randn(n,n));
     A1=sparse(randn(n,n));
     t=3.0
@@ -125,7 +125,7 @@ end
     end
 
     @testset "REP" begin
-        srand(10)
+        Random.seed!(10)
         A0=randn(5,5);
         A1=randn(5,5);
         A2=randn(5,5);

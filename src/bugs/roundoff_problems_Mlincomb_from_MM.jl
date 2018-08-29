@@ -24,7 +24,7 @@ function DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
     return xx
 end
 
-srand(0);
+Random.seed!(0);
 # Setup the problem
 n=100
 A=randn(n,n)

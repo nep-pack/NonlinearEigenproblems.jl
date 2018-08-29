@@ -17,11 +17,11 @@ module NEPTypes
 
     export set_projectmatrices!;
 
-    using NEPCore
     using SparseArrays
     using LinearAlgebra
     using PolynomialZeros
     using Polynomials
+    using NEPCore
 
     # We overload these
     import ..NEPCore.compute_Mder
@@ -183,9 +183,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if use_sparsity_pattern && issparse(AA[1])
              # Merge the sparsity pattern of all matrices without dropping any zeros
-             Zero = spones(AA[1])           # Julia 0.7+: Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
+             Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
              for i = 2:size(AA,1)
-                 Zero += spones(AA[i])      # Julia 0.7+: Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
+                 Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
              end
              Zero = T.(Zero)
              Zero.nzval[:] .= T(0)

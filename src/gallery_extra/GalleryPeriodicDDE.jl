@@ -157,7 +157,7 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
             # 5.73989+0.732386im
             # 5.73989-0.732386im
 
-            srand(0);
+            Random.seed!(0);
             A0=sprandn(n,n,0.3)-speye(n,n)
             A1=sprandn(n,n,0.3)-speye(n,n)
             B0=sprandn(n,n,0.3)-speye(n,n);

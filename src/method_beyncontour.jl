@@ -44,7 +44,7 @@ function contour_beyn(::Type{T},
     gp=t -> 1im*radius*exp(1im*t)
 
     n=size(nep,1);
-    srand(10); # Reproducability
+    Random.seed!(10); # Reproducability
     Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
 
     if (k>n)

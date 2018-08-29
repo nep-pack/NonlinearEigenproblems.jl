@@ -315,7 +315,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         # 5.73989+0.732386im
         # 5.73989-0.732386im
 
-        srand(0);
+        Random.seed!(0);
         A0=sprandn(n,n,0.3)-speye(n,n)
         A1=sprandn(n,n,0.3)-speye(n,n)
         B0=sprandn(n,n,0.3)-speye(n,n);

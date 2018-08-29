@@ -4,9 +4,11 @@
   """
 module Gallery
     using Random
+    using LinearAlgebra
+    using SparseArrays
+    using PolynomialRoots
     using NEPCore
     using NEPTypes
-    using PolynomialRoots
 
     export nep_gallery
 
@@ -115,7 +117,7 @@ module Gallery
               n=5; # Default size
           end
 
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);
           tau=1;
@@ -134,7 +136,7 @@ module Gallery
               n=100;       # Default size
               p=0.25;      # Default fill density
           end
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
 
           A0=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
           A1=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
@@ -150,10 +152,10 @@ module Gallery
          else
             n=100; # Default size
          end
-         srand(0) # reset the random seed
-         I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
-         A0=sparse(I, J, rand(3*n-2))
-         A1=sparse(I, J, rand(3*n-2))
+         Random.seed!(0) # reset the random seed
+         K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
+         A0=sparse(K, J, rand(3*n-2))
+         A1=sparse(K, J, rand(3*n-2))
 
          tau=1;
          nep=DEP([A0,A1],[0,tau])
@@ -210,7 +212,7 @@ module Gallery
               n=200; # Default size
           end
 
-          srand(0)
+          Random.seed!(0)
           A0=randn(n,n)
           A1=randn(n,n)
           A2=randn(n,n)
@@ -226,7 +228,7 @@ module Gallery
               n = 200; # Default size
           end
 
-          srand(0)
+          Random.seed!(0)
           A0 = Symmetric(randn(n,n))
           A1 = Symmetric(randn(n,n))
           A2 = Symmetric(randn(n,n))
@@ -242,7 +244,7 @@ module Gallery
               n=200; # Default size
           end
 
-          srand(0)
+          Random.seed!(0)
           A0=sprandn(n,n,0.03)
           A1=sprandn(n,n,0.03)
           A2=sprandn(n,n, 0.03)
@@ -335,12 +337,12 @@ module Gallery
           end
 
 
-          srand(0) # reset the random seed
-          I=eye(n);
+          Random.seed!(0) # reset the random seed
+          K=eye(n);
           A1=diagm(E[1:n]);
           A2=diagm(E[n+1:2*n]);
 
-          nep=PEP([A1*A2,-A1-A2,I])
+          nep=PEP([A1*A2,-A1-A2,K])
           return nep
       elseif (name == "periodicdde")
           return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
@@ -380,8 +382,8 @@ module Gallery
           W2=read_sparse_matrix(gunbase * "W2.txt")
           # The gun problem is a sum of a PEP and a problem containing square roots.
           pep=PEP([K,-M]);
-          sqrt1op= S -> 1im*sqrtm(Matrix(S))
-          sqrt2op= S -> 1im*sqrtm(Matrix(S)-108.8774^2*eye(S))
+          sqrt1op= S -> 1im*sqrt(Matrix(S))
+          sqrt2op= S -> 1im*sqrt(Matrix(S)-108.8774^2*I)
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;

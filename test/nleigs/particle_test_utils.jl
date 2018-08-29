@@ -21,7 +21,7 @@ function particle_init(interval)
     Σ = [xmin + 0im, xmax + 0im]
 
     # options
-    srand(5)
+    Random.seed!(5)
     v = randn(size(nep, 1)) .+ 0im
     nodes = linspace(xmin + 0im, xmax + 0im, 11)
     nodes = collect(nodes[2:2:end])
@@ -144,10 +144,10 @@ function particle_nep(interval)
     # nonlinear functions
     f = Vector(length(brpts))
     for j = 1:interval-1
-        f[j] = lambda -> expm(im * sqrtm(full(m * (lambda - brpts[j] * eye(lambda)))))
+        f[j] = lambda -> exp(im * sqrt(full(m * (lambda - brpts[j] * eye(lambda)))))
     end
     for j = interval:length(brpts)
-        f[j] = lambda -> expm(-sqrtm(full(m * (-lambda + brpts[j] * eye(lambda)))))
+        f[j] = lambda -> exp(-sqrt(full(m * (-lambda + brpts[j] * eye(lambda)))))
     end
 
     # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only

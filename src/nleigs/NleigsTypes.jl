@@ -51,17 +51,17 @@ end
 
 function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
     n = size(A, 1)
-    r, c = findn(A)
-    r = extrema(r)
-    c = extrema(c)
+    idx = findall(!iszero, A)
+    r = extrema(getindex.(idx, 1))
+    c = extrema(getindex.(idx, 2))
     B = A[r[1]:r[2], c[1]:c[2]]
-    L, U = lu(full(B))
+    L, U = lu(Matrix(B); check = false)
     Lc, Uc = compactlu(sparse(L), sparse(U))
     Lca = spzeros(n, size(Lc, 2))
     Lca[r[1]:r[2], :] = Lc
     Uca = spzeros(size(Uc, 1), n)
     Uca[:, c[1]:c[2]] = Uc
-    return Lca, Uca'
+    return Lca, sparse(Uca')
 
     # TODO use this; however we then need to support permutation and scaling
     #F = lufact(B)

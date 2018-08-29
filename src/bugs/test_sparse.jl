@@ -1,7 +1,7 @@
 example = 1
 
 n = 10;
-srand(0)
+Random.seed!(0)
 
 if example == 1
 println("Example 1, force cast to sparse - Not working")

@@ -792,7 +792,7 @@ function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
         #     return wep_linsolvercreator(nep, λ, gmres_kwargs)
         # end
         #
-        # srand(10524089)
+        # Random.seed!(10524089)
         # eigval, eigvec = @time resinv(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         #
         # println("Computed eigenvalue = ", eigval)
@@ -811,7 +811,7 @@ function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
         #     return wep_linsolvercreator(nep, λ, gmres_kwargs)
         # end
         #
-        # srand(10524089)
+        # Random.seed!(10524089)
         # eigval, eigvec = @time augnewton(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         #
         # println("Computed eigenvalue = ", eigval)

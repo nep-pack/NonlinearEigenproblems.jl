@@ -11,18 +11,18 @@ function gun_init()
 
     # define target set Σ
     npts = 1000
-    halfcircle = xmin + (xmax-xmin) * (cis.(linspace(0, pi, round(pi/2*npts) + 2)) / 2 + .5)
+    halfcircle = xmin .+ (xmax-xmin) * (cis.(range(0, stop = pi, length = round(Int, pi/2*npts) + 2)) / 2 .+ .5)
     Σ = [halfcircle; xmin]
 
     # sequence of interpolation nodes
     Z = [2/3, (1+im)/3, 0, (-1+im)/3, -2/3]
-    nodes = gam*Z + mu
+    nodes = gam*Z .+ mu
 
     # define the set of pole candidates
-    Ξ = -logspace(-8, 8, 10000) + sigma2^2
+    Ξ = -10 .^ range(-8, stop = 8, length = 10000) .+ sigma2^2
 
     # options
-    srand(1)
+    Random.seed!(1)
     v = randn(size(nep, 1)) .+ 0im
 
     funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)

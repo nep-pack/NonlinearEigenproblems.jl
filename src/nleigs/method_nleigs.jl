@@ -404,7 +404,7 @@ function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
     c = 0
     for ii = 1:q
         ri = size(L[ii], 2)
-        iL[c+1:c+ri] = ii
+        iL[c+1:c+ri] .= ii
         c += ri
     end
 
@@ -475,7 +475,7 @@ function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, ξ, expa
         if !P.spmf || computeD
             Bw[1:n] = -D[P.p+1] * wc[i0b:i0e] / β[P.p+1]
         else
-            Bw[1:n] = -sum(reshape(P.BBCC * wc[i0b:i0e], n, :) .* transpose(sgdd[:,P.p+1]), 2) / β[P.p+1];
+            Bw[1:n] = -sum(reshape(P.BBCC * wc[i0b:i0e], n, :) .* transpose(sgdd[:,P.p+1]), dims = 2) / β[P.p+1];
         end
     end
     # other blocks
