@@ -49,8 +49,7 @@ end
 
 
 function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;
-                     V=eye(T_arit,size(nep,1),size(λv,1)),λv=zeros(T_arit,1),tol=sqrt(eps()),kwargs...)
-
+                     V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),λv=zeros(T_arit,1),tol=sqrt(eps()),kwargs...)
     for k=1:size(λv,1)
         try
             v0=V[:,k]; # Starting vector for projected problem
