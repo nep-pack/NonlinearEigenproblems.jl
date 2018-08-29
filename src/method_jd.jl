@@ -215,6 +215,7 @@ function jd_effenberger(::Type{T},
     target::T = T(target)
     tol::real(T) = real(T)(tol)
     conveig = 0
+    tot_nrof_its = 0
     Λ::Matrix{T} = zeros(T,Neig,Neig)
     X::Matrix{T} = zeros(T,n,Neig)
     V_memory_base::Matrix{T} = zeros(T, n+Neig, maxit+1)
@@ -223,16 +224,24 @@ function jd_effenberger(::Type{T},
     # Initial check for convergence
     err = norm(compute_Mlincomb(nep,λ,u))
     @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
-    if (err < tol) #Frist check, no other eiganvalues can be converged
-        conveig += 1
-        Λ[1,1] = λ
-        X[:,1] = u
+    if (err < tol) # Check if initial guess is good enough, otherwise compute initial invariant pair
         λ_init = T(rand())
         u_init = rand(n+1)
+    else
+        V_memory = view(V_memory_base, 1:n, tot_nrof_its+1:(maxit+1))
+        W_memory = view(W_memory_base, 1:n, tot_nrof_its+1:(maxit+1))
+        λ, u, tot_nrof_its, u_init, λ_init = jd_effenberger_inner!(T, V_memory, W_memory,
+                                                          nep, maxit, tot_nrof_its,
+                                                          conveig, inner_solver_method, orthmethod,
+                                                          linsolvercreator, tol, target, displaylevel,
+                                                          Neig, u_init, λ_init)
     end
 
+    conveig += 1
+    Λ[1,1] = λ
+    X[:,1] = u
     deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
-    tot_nrof_its = 0
+
 
     while true # Can only escape the loop on convergence (return) or too many iterations (error)
         # Check for fulfillment. If so, compute the eigenpairs and return
@@ -265,7 +274,7 @@ end
 function jd_effenberger_inner!(::Type{T},
                               V_memory::SubArray,
                               W_memory::SubArray,
-                              deflated_nep::DeflatedNEP,
+                              target_nep::NEP, # OBS: target_nep can either be a DeflatedNEP, or another NEP if we have no initial invariant pair
                               maxit::Int,
                               nrof_its::Int,
                               conveig::Int,
@@ -279,9 +288,15 @@ function jd_effenberger_inner!(::Type{T},
                               u::Vector{T},
                               λ::T) where {T<:Number}
     # Allocations and preparations
-    X = deflated_nep.V0
-    Λ = deflated_nep.S0
-    orgnep = deflated_nep.orgnep
+    if typeof(target_nep) == DeflatedNEP
+        X = target_nep.V0
+        Λ = target_nep.S0
+        orgnep = target_nep.orgnep
+    else
+        X = zeros(typeof(λ),size(target_nep,1),0)
+        Λ = zeros(typeof(λ),0,0)
+        orgnep = target_nep
+    end
 
     n = size(orgnep,1) # Size of original problem
     m = size(Λ,1) # Size of deflated subspace
@@ -292,11 +307,11 @@ function jd_effenberger_inner!(::Type{T},
     newton_step::Vector{T} = Vector{T}(rand(n+m))
     pk::Vector{T} = zeros(T,n+m)
     s::Vector{T} = zeros(T,maxit+1-nrof_its)
-    proj_nep = create_proj_NEP(deflated_nep)
+    proj_nep = create_proj_NEP(target_nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
 
     V_memory[:,1] = u
-    W_memory[:,1] = compute_Mlincomb(deflated_nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
+    W_memory[:,1] = compute_Mlincomb(target_nep, λ, u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
 
     err = Inf
     for loop_counter = (nrof_its+1):maxit
@@ -324,7 +339,7 @@ function jd_effenberger_inner!(::Type{T},
         end
 
         # Compute residual and check for convergence
-        rk = compute_Mlincomb(deflated_nep,λ,u)
+        rk = compute_Mlincomb(target_nep, λ, u)
         err = norm(rk) #Error measure, see (9) in Effenberger # TODO: Can we use another error measure?
         @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %3d\n", loop_counter, conveig, err, k))
         if (err < tol) #Frist check, no other eiganvalues can be converged
@@ -348,9 +363,9 @@ function jd_effenberger_inner!(::Type{T},
         # Solve for basis extension using comment on top of page 367 of Betcke
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
-        pk = compute_Mlincomb(deflated_nep, λ, u, [one(T)], 1)
+        pk = compute_Mlincomb(target_nep, λ, u, [one(T)], 1)
         linsolver = linsolvercreator(orgnep, λ)
-        jd_inner_effenberger_linear_solver!(v, deflated_nep, λ, linsolver, pk, tol)
+        jd_inner_effenberger_linear_solver!(v, target_nep, λ, linsolver, pk, tol)
         newton_step = copy(v)
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
         w[:] = rk
@@ -364,7 +379,7 @@ function jd_effenberger_inner!(::Type{T},
     # Compute the eigenvalues we have and throw these.
     λ_vec,uv = eig(Λ)
     u_vec = X * uv
-    throw(NoConvergenceException(λ_vec, u_vec, err, msg))
+    throw(NoConvergenceException([λ_vec, λ], [u_vec u], err, msg))
 
 end
 
@@ -372,25 +387,17 @@ end
 
 function compute_U(orgnep, μ, X, Λ, i=0)
 # TODO: Need to compute derivative of U -- THIS IS WRONG!!!
-    if size(Λ,1) == 0 # Corner case, actually empty
-        U = X[:,[]]
-    else
-        μI = μ*one(Λ)
-        TXΛ = compute_TXΛ(orgnep, Λ, X)
-        U = (TXΛ - compute_MM(orgnep, μI, X))/(Λ - μI)
-    end
+    μI = μ*one(Λ)
+    TXΛ = compute_TXΛ(orgnep, Λ, X)
+    U = (TXΛ - compute_MM(orgnep, μI, X))/(Λ - μI)
     return U
 end
 function compute_Uv(orgnep, μ, X, Λ, v, i=0)
 # TODO: Need to compute derivative of U -- THIS IS WRONG!!!
-    if size(Λ,1) == 0 # Corner case, actually empty
-        t = zeros(size(X,1))
-    else
-        μI = μ*one(Λ)
-        t = (Λ - μI)\v
-        TXΛ = compute_TXΛ(orgnep, Λ, X)
-        t = TXΛ*t - compute_MM(orgnep, μI, X)*t
-    end
+    μI = μ*one(Λ)
+    t = (Λ - μI)\v
+    TXΛ = compute_TXΛ(orgnep, Λ, X)
+    t = TXΛ*t - compute_MM(orgnep, μI, X)*t
     return t
 end
 
@@ -439,6 +446,11 @@ function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T
     # M = compute_Mder(deflated_nep,λ,0)
     # vv = M\pk
     # println(norm(v-vv))
+    return v
+end
+
+function jd_inner_effenberger_linear_solver!(v, nep::NEP, λ::T, linsolver, pk::Vector{T}, tol) where{T}
+    v[:] = lin_solve(linsolver, pk, tol=tol)
     return v
 end
 
