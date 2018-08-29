@@ -72,6 +72,9 @@ function jd_betcke(::Type{T},
     if (projtype != :Galerkin) && (inner_solver_method == NEPSolver.SGIterInnerSolver)
         error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
+    if (inner_solver_method == NEPSolver.ContourBeynInnerSolver) # TODO: Remove this when implemented
+        error("Eigenvector extraction not implemented in ContourBeynInnerSolver.")
+    end
 
     # Allocations and preparations
     λ::T = T(λ)
@@ -119,8 +122,8 @@ function jd_betcke(::Type{T},
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             j = conveig+1, # For SG-iter
-                            λv = zeros(T,conveig+1),
-                            σ=zero(T),
+                            λv = λ*ones(T,conveig+1),
+                            σ = target,
                             Neig=conveig+1)
         λ,s[1:k] = jd_eig_sorter(λv, sv, conveig+1, target)
         s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
@@ -198,6 +201,9 @@ function jd_effenberger(::Type{T},
     end
     if (inner_solver_method == NEPSolver.SGIterInnerSolver)
         error("_Method SGITER not accepted as inner solver since deflated problem not min-max.")
+    end
+    if (inner_solver_method == NEPSolver.ContourBeynInnerSolver) # TODO: Remove this when implemented
+        error("Eigenvector extraction not implemented in ContourBeynInnerSolver.")
     end
 
     # Allocations and preparations
@@ -282,6 +288,8 @@ function jd_effenberger_inner!(::Type{T},
 
     u[:] = u ./ norm(u)
 
+    λ_temp::T = λ
+    newton_step::Vector{T} = Vector{T}(rand(n+m))
     pk::Vector{T} = zeros(T,n+m)
     s::Vector{T} = zeros(T,maxit+1-nrof_its)
     proj_nep = create_proj_NEP(deflated_nep)
@@ -302,20 +310,18 @@ function jd_effenberger_inner!(::Type{T},
                             λv = λ .* ones(T,3),
                             σ = target,
                             Neig = k)
-        λ,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
-# # TODO: Create better chatches inside the projected solvers if convergence is weird (e.g. if Beyncontour does not converge to anything useful)
-# if abs(λ)>1/sqrt(eps(real(T)))
-#     λ = rand()
-# end
-# if any(isnan.(s[1:k]))
-#     s[1:k] = Vector{T}(rand(k))
-# end
+        λ_temp,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
 
-        # the approximate eigenvector
-        u[:] = V*s[1:k]
-# println(s[1:k])
-# println(norm(u))
+        # If inner solver converged to a solution to the projected problem use that.
+        # Otherwise take the "newton step". Not implemented exactly as in Effenbergerm but similar
+        if !isnan(λ_temp) && !any(isnan.(s[1:k])) && (norm(compute_Mlincomb(proj_nep, λ_temp, s[1:k])) < tol) # Has converged to an eigenvalue of the projected problem
+            u[:] = V*s[1:k] # The approximate eigenvector
+            λ = λ_temp
+        else
+            u[:] = u[:] + newton_step
+            u[:] = u[:] / norm(u)
+        end
 
         # Compute residual and check for convergence
         rk = compute_Mlincomb(deflated_nep,λ,u)
@@ -342,9 +348,10 @@ function jd_effenberger_inner!(::Type{T},
         # Solve for basis extension using comment on top of page 367 of Betcke
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
-        pk = compute_Mlincomb(deflated_nep,λ,u,[one(T)],1)
+        pk = compute_Mlincomb(deflated_nep, λ, u, [one(T)], 1)
         linsolver = linsolvercreator(orgnep, λ)
         jd_inner_effenberger_linear_solver!(v, deflated_nep, λ, linsolver, pk, tol)
+        newton_step = copy(v)
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
         w[:] = rk
         orthogonalize_and_normalize!(W, w, view(dummy_vector, 1:k), orthmethod)
@@ -376,10 +383,15 @@ function compute_U(orgnep, μ, X, Λ, i=0)
 end
 function compute_Uv(orgnep, μ, X, Λ, v, i=0)
 # TODO: Need to compute derivative of U -- THIS IS WRONG!!!
-    μI = μ*one(Λ)
-    t = (Λ - μI)\v
-    TXΛ = compute_TXΛ(orgnep, Λ, X)
-    return TXΛ*t - compute_MM(orgnep, μI, X)*t
+    if size(Λ,1) == 0 # Corner case, actually empty
+        t = zeros(size(X,1))
+    else
+        μI = μ*one(Λ)
+        t = (Λ - μI)\v
+        TXΛ = compute_TXΛ(orgnep, Λ, X)
+        t = TXΛ*t - compute_MM(orgnep, μI, X)*t
+    end
+    return t
 end
 
 
@@ -477,7 +489,6 @@ end
 
 compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number) = compute_Mder(nep,λ,0)
 function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Integer)
-# println(λ)
     W1T_M_V1 = compute_Mder(nep.org_proj_nep,λ,i)
     W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ, i) * nep.V2
     W2T_A_V1 = nep.W2' * nep.X' * nep.V1 #OBS: Here we assume minimality index = 1
@@ -487,9 +498,7 @@ function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Inte
     return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
 end
 
-function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector})
-    return compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
-end
+compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}) = compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
 function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}, a::Vector)
     t = compute_Mlincomb(nep.org_proj_nep, λ, V, a)
     t[:] = t + a[1] * (nep.W2' * (nep.X' * (nep.V1 * V[:,1])))
