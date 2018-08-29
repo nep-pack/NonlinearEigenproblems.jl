@@ -14,6 +14,7 @@ tests_not_to_run = Set{String}(map(uppercase, [
     "matlablinsolvers.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
     "nleigs_test_utils.jl", # utilities used by other tests
+    "nlar.jl", # temporarily disabled since it's very slow in Julia v0.7
     ]))
 
 include("load_modules_for_tests.jl")
