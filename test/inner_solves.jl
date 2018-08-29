@@ -1,7 +1,8 @@
 # Run tests for the inner solves
 
 if !@isdefined global_modules_loaded
-    using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
+    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+    using NEPCore, NEPTypes, NEPSolver, Gallery
     using Test
 end
 

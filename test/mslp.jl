@@ -27,7 +27,7 @@ nep=nep_gallery("dep0");
     @test norm(compute_Mlincomb(nep,λ1,v1))<1e-10
 
     Av=[sparse(nep.A[1]),sparse(nep.A[2])];
-    nep.A=Av;
+    nep = DEP(nep.n, Av, nep.tauv)
     # Sparse matrix test
     λ2,v2=mslp(nep)
     @test norm(compute_Mlincomb(nep,λ2,v2))<1e-10
