@@ -67,7 +67,7 @@ println(" Smallest eigevalue found: \n λ: ",λ)
 
 
 println("\nTesting convergence before starting")
-λ,u=jd(nep, tol=TOL, maxit=25, Neig=1, displaylevel=1, v0=ones(size(nep,1)), λ=λ, v0=u)
+λ,u=jd(nep, tol=TOL, maxit=25, Neig=1, displaylevel=1, λ=λ, v0=u)
 λ = λ[1]
 u = vec(u)
 @test norm(compute_Mlincomb(nep,λ,u)) < TOL
