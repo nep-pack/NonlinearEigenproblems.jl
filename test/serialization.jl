@@ -3,7 +3,7 @@ if !isdefined(:global_modules_loaded)
 
     push!(LOAD_PATH, string(@__DIR__, "/../src/utils"))
 
-    using Base.Test
+    using Test
     using Serialization
 end
 

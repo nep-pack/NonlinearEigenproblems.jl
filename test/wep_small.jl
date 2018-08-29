@@ -14,7 +14,7 @@ if !isdefined(:global_modules_loaded)
     using Gallery
     using GalleryWaveguide
 
-    using Base.Test
+    using Test
 end
 
 import GalleryWaveguide.SchurMatVec

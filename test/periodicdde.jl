@@ -13,7 +13,7 @@ if !isdefined(:global_modules_loaded)
     using NEPSolver
     using GalleryPeriodicDDE
 
-    using Base.Test
+    using Test
 end
 
 @testset "PeriodicDDE" begin

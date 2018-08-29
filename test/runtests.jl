@@ -2,7 +2,7 @@
 # Runs all .jl files in the directory of this script containing a @test or
 # @testset macro, except those specified to be excluded
 ################################################################################
-using Base.Test
+using Test
 using TimerOutputs
 
 # Add tests below if you wish that they are not run together with all tests

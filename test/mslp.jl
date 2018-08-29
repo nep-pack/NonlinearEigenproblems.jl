@@ -8,7 +8,7 @@ if !isdefined(:global_modules_loaded)
     using NEPCore
     using LinSolvers
     using IterativeSolvers
-    using Base.Test
+    using Test
     using LinearMaps
     using NEPTypes
     using Gallery

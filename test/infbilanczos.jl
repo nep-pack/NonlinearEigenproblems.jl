@@ -11,7 +11,7 @@ if !isdefined(:global_modules_loaded)
     using NEPSolver
     using Gallery
     using IterativeSolvers
-    using Base.Test
+    using Test
 end
 
 

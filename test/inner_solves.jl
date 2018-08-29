@@ -4,7 +4,7 @@ if !isdefined(:global_modules_loaded)
     workspace()
 
     using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver, Gallery
-    using Base.Test
+    using Test
 end
 
 #import NEPSolver.inner_solve;

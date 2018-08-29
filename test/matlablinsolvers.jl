@@ -6,7 +6,7 @@ if !isdefined(:global_modules_loaded)
 
     using NEPCore
     using LinSolvers
-    using Base.Test
+    using Test
 end
 
 # Always run this, since it's not loaded by load_modules_for_tests.jl

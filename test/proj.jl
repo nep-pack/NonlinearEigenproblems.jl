@@ -11,7 +11,7 @@ if !isdefined(:global_modules_loaded)
     using Gallery
 #using Winston # For plotting
 
-    using Base.Test
+    using Test
 end
 
 projtest=@testset "Projected problems" begin

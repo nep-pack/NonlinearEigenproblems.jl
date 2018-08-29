@@ -10,7 +10,7 @@ if !isdefined(:global_modules_loaded)
     using LinSolvers
     using NEPSolver
     using Gallery
-    using Base.Test
+    using Test
 end
 
 
