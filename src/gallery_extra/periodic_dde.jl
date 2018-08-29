@@ -335,14 +335,14 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         A0=t-> [0 1; -( δ+ a*cos(pi*t) ) -1]+eye(2)*((t-0.3)^2)*(t>0.3);
         B0=t-> [0 0; b 0];
         e=ones(n-1);
-        DD=sparse(Diagonal((e,-2*e,e),(-1,0,1)))
+        DD=spdiagm(-1 => e, 0 => -2*e, 1 => e)
         DD[1,1]=-1;
         h=1/n;
         DD=DD
         a=1;
         A=t-> [sparse(A0(t)) a*speye(2,n); a*speye(n,2) DD];
         B=t-> [sparse(B0(t)) spzeros(2,n); spzeros(n,2) -0*speye(n)];
-        #DD=full(sparse(Diagonal((e,-2*e,e),(-1,0,1))))
+        #DD=full(spdiagm(-1 => e, 0 => -2*e, 1 => e))
         #A=t-> [(A0(t)) eye(2,n); eye(n,2) DD];
         #B=t-> [(B0(t)) zeros(2,n); zeros(n,2) eye(n)];
 

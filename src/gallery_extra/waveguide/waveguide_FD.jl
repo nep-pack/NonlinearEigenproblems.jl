@@ -10,8 +10,8 @@ function generate_fd_interior_mat( nx, nz, hx, hz)
     ez = ones(nz)
 
     # DISCRETIZATION OF THE SECOND DERIVATIVE
-    Dxx = sparse(Diagonal((ex[1:end-1], -2*ex, ex[1:end-1]), (-1, 0, 1), nx, nx))
-    Dzz = sparse(Diagonal((ez[1:end-1], -2*ez, ez[1:end-1]), (-1, 0, 1), nz, nz))
+    Dxx = spdiagm(-1 => ex[1:end-1], 0 => -2*ex, 1 => ex[1:end-1])
+    Dzz = spdiagm(-1 => ez[1:end-1], 0 => -2*ez, 1 => ez[1:end-1])
     #IMPOSE PERIODICITY IN Z-DIRECTION
     Dzz[1, end] = 1;
     Dzz[end, 1] = 1;
@@ -20,7 +20,7 @@ function generate_fd_interior_mat( nx, nz, hx, hz)
     Dzz = Dzz/(hz^2);
 
     # DISCRETIZATION OF THE FIRST DERIVATIVE
-    Dz  = sparse(Diagonal((-ez[1:end-1], ez[1:end-1]), (-1, 1), nz, nz))
+    Dz  = spdiagm(-1 => -ez[1:end-1], 1 => ez[1:end-1])
 
     #IMPOSE PERIODICITY
     Dz[1, end] = -1;
