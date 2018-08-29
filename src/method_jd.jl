@@ -338,7 +338,7 @@ function jd_effenberger_inner!(::Type{T},
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             λv = λ .* ones(T,3),
                             σ = target,
-                            Neig = k)
+                            Neig = 3)
         λ_temp,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
 
