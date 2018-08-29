@@ -10,7 +10,7 @@ Sum of products of matrices and functions (SPMF)
 function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{ComplexF64,2},Array{Float64,2}}, Km, Kp, pre_Schur_fact::Bool)
     Ix = speye(ComplexF64,nx,nx)
     Iz = speye(ComplexF64,nz,nz)
-    Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + spdiagm(vec(K))
+    Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + sparse(Diagonal(vec(K)))
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
@@ -477,7 +477,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         EE[nx,nx-1] = nep.d2/(nep.hx^2)
 
         # Kronecker product form of Ringh - Proposition 3.1
-        return kron(nep.B(λ)', Inz) + kron(Inx, nep.A(λ)) + spdiagm(nep.K[:]) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
+        return kron(nep.B(λ)', Inz) + kron(Inx, nep.A(λ)) + sparse(Diagonal(nep.K[:])) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
     end
 
     # lin_solve function to wrapp all the WEP linear solvers.

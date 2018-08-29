@@ -98,7 +98,7 @@ function particle_nep(interval)
     end
 
     # matrix H
-    H = -1/m * (kron(sparse(Dxx_x), speye(nz)) + kron(speye(nx), sparse(Dzz_z))) + spdiagm(U, 0, n, n)
+    H = -1/m * (kron(sparse(Dxx_x), speye(nz)) + kron(speye(nx), sparse(Dzz_z))) + sparse(Diagonal(U, 0, n, n))
 
     # branch points
     brpts = unique(d)

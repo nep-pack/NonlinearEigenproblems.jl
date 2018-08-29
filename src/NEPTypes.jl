@@ -235,8 +235,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             ## Compute Fi=f_i(S) in an optimized way
             if (isdiag(S)) # optimize if S is diagonal
                 Sd=diag(S);
-                if (norm(Sd-Sd[1])==0) # Optimize further if S is a
-                                       # multiple of identity
+                if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
                     Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
                 else  # Diagonal but not constant
                     Fid=zeros(ComplexF64,size(S,1))
@@ -244,7 +243,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                         Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
                     end
                 end
-                Fi=spdiagm(Fid);
+                Fi=sparse(Diagonal(Fid))
             else  # Otherwise just compute the matrix function operation
                 if(nep.Schur_factorize_before)
                     Fi= Q*nep.fi[i](T)*Q'

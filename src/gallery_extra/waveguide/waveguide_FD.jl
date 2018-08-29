@@ -10,8 +10,8 @@ function generate_fd_interior_mat( nx, nz, hx, hz)
     ez = ones(nz)
 
     # DISCRETIZATION OF THE SECOND DERIVATIVE
-    Dxx = spdiagm((ex[1:end-1], -2*ex, ex[1:end-1]), (-1, 0, 1), nx, nx)
-    Dzz = spdiagm((ez[1:end-1], -2*ez, ez[1:end-1]), (-1, 0, 1), nz, nz)
+    Dxx = sparse(Diagonal((ex[1:end-1], -2*ex, ex[1:end-1]), (-1, 0, 1), nx, nx))
+    Dzz = sparse(Diagonal((ez[1:end-1], -2*ez, ez[1:end-1]), (-1, 0, 1), nz, nz))
     #IMPOSE PERIODICITY IN Z-DIRECTION
     Dzz[1, end] = 1;
     Dzz[end, 1] = 1;
@@ -20,7 +20,7 @@ function generate_fd_interior_mat( nx, nz, hx, hz)
     Dzz = Dzz/(hz^2);
 
     # DISCRETIZATION OF THE FIRST DERIVATIVE
-    Dz  = spdiagm((-ez[1:end-1], ez[1:end-1]), (-1, 1), nz, nz);
+    Dz  = sparse(Diagonal((-ez[1:end-1], ez[1:end-1]), (-1, 1), nz, nz))
 
     #IMPOSE PERIODICITY
     Dz[1, end] = -1;
@@ -69,7 +69,7 @@ function generate_wavenumber_fd( nx::Integer, nz::Integer, wg::String, delta::Nu
     if wg == "TAUSCH"
         return generate_wavenumber_fd_tausch( nx, nz, delta)
     elseif wg == "JARLEBRING"
-        return generate_wavenumber_fd_jarlebring( nx, nz, delta) 
+        return generate_wavenumber_fd_jarlebring( nx, nz, delta)
     end
     # Use early-bailout principle. If a supported waveguide is found, compute and return. Otherwise end up here and throw and error
     error("No wavenumber loaded: The given Waveguide '", wg ,"' is not supported in 'FD' discretization.")
@@ -170,4 +170,3 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Num
     const Kp = k(Inf, 1/2)[1];
     return K, hx, hz, Km, Kp
 end
-
