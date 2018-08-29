@@ -4,6 +4,12 @@ git-tree-sha1 = "0934728e53422c94232ed4f448eca627f70fb931"
 uuid = "6cc8125e-a04b-5e90-9cbf-894ba9b8047f"
 version = "0.1.0"
 
+[[Arpack]]
+deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Random", "SparseArrays", "Test"]
+git-tree-sha1 = "5b046410fb617d9cf2f8bc0edd5da05a2e5a2ad4"
+uuid = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
+version = "0.2.3"
+
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 

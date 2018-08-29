@@ -222,7 +222,8 @@ function nlar(::Type{T},
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
                 # Slow but robust.
-                Q,_=qr(hcat(Vk,Δv),thin=true)
+                Q,_ = qr(hcat(Vk,Δv))
+                Q = Q.factors   # thin factors
                 Vk=Q
                 V[:,1:k+1]=Q;
                 #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))

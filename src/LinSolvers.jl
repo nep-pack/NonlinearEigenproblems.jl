@@ -3,6 +3,7 @@ module LinSolvers
     using NEPCore
     using IterativeSolvers
     using LinearMaps
+    using Arpack
 
     # Linear system of equation solvers
     export LinSolver
