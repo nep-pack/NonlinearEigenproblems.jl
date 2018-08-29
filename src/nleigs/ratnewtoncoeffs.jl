@@ -16,7 +16,7 @@ function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
         # evaluate current linearizaion at σ[j]
         Qj = T(0)
         for k = 1:j-1
-            Qj += D[k][1] * evalrat(σ[1:k-1], ξ[1:k-1], β[1:k], [σ[j]])[1]
+            Qj += D[k] * evalrat(σ[1:k-1], ξ[1:k-1], β[1:k], [σ[j]])[1]
         end
 
         # get divided difference from recursion (could be done via Horner)
