@@ -3,13 +3,14 @@
 if !@isdefined global_modules_loaded
     push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
+    using Test
+    using LinearAlgebra
     using NEPCore
     using NEPTypes
     using LinSolvers
     using NEPSolver
     using Gallery
     using IterativeSolvers
-    using Test
 end
 
 nep=nep_gallery("dep0");
@@ -44,7 +45,7 @@ for k=1:6
 end
 
 # Transform partial Schur factorization to eigenpairs
-(λv,VS)=eig(S0)
+λv,VS=eigen(S0)
 V=V0*VS;
 
 # Test that λv and V are now eigpairs

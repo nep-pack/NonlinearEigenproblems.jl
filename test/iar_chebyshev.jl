@@ -149,7 +149,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
             nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ,λ->eye(λ),λ->expm(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
-            (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,displaylevel=0,a=-1,b=2)
+            (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end

@@ -1,4 +1,5 @@
 module LinSolvers
+    using LinearAlgebra
     using NEPCore
     using IterativeSolvers
     using LinearMaps
@@ -151,9 +152,9 @@ module LinSolvers
 
     function eig_solve(solver::NativeEigSolver;nev = 1, target = 0)
         if(solver.B != zeros(eltype(solver.A),0))
-            D,V = eig(solver.A,solver.B);
+            D,V = eigen(solver.A,solver.B)
         else
-            D,V = eig(solver.A);
+            D,V = eigen(solver.A)
         end
 
         #Sort the eigenvalues wrt distance from target, and permute

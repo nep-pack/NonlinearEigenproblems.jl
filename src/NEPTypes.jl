@@ -142,7 +142,7 @@ efficient to set this flag to false.
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
 julia> id_op=S -> eye(S)
-julia> exp_op=S -> expm(S)
+julia> exp_op=S -> exp(S)
 julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
 julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 2×2 Array{Float64,2}:
@@ -325,20 +325,20 @@ matrices A_i, and tauv is a vector of the values tau_i
 
 # Compute the ith derivative of a DEP
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
-        local M,I;
+        local M, J
         # T is eltype(nep.A[1]) unless λ complex, then T is complex(eltype(nep.A[1]))
         # T can be determined compile time, since DEP parametric type
         T=isa(λ,Complex) ? complex(eltype(nep.A[1])) : eltype(nep.A[1]);
 
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
             M=spzeros(T,nep.n,nep.n)
-            I=speye(T,nep.n,nep.n)
+            J=sparse(T(1)I, nep.n, nep.n)
         else
             M=zeros(T,nep.n,nep.n)
-            I=eye(T,nep.n,nep.n)
+            J=Matrix{T}(I, nep.n, nep.n)
         end
-        if i==0; M=-λ*I;  end
-        if i==1; M=-I; end
+        if i==0; M=-λ*J;  end
+        if i==1; M=-J; end
         for j=1:size(nep.A,1)
             a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
             M += nep.A[j]*a
@@ -353,7 +353,7 @@ matrices A_i, and tauv is a vector of the values tau_i
     function compute_MM(nep::DEP,S,V)
         Z=-V*S;
         for j=1:size(nep.A,1)
-            Z+=nep.A[j]*V*expm(Matrix(-nep.tauv[j]*S))
+            Z+=nep.A[j]*V*exp(Matrix(-nep.tauv[j]*S))
         end
         return Z
     end
@@ -374,12 +374,12 @@ matrices A_i, and tauv is a vector of the values tau_i
         # First function is -λ
         fv[1] =  S-> -S
 
-        # The other functions are expm(-tauv[j]*S)
+        # The other functions are exp(-tauv[j]*S)
         for i=1:size(nep.A,1)
             if (nep.tauv[i]==0) # Zero delay means constant term
                 fv[i+1]=  (S-> eye(size(S,1)))
             else
-                fv[i+1]=  (S-> expm(-Matrix(nep.tauv[i]*S)))
+                fv[i+1]=  (S-> exp(-Matrix(nep.tauv[i]*S)))
             end
 
         end
