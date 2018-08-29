@@ -1,7 +1,5 @@
 #  Tests for the projected NEPs
-if !isdefined(:global_modules_loaded)
-    workspace()
-
+if !@isdefined global_modules_loaded
     push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
     using NEPCore

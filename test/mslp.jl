@@ -1,8 +1,6 @@
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
+if !@isdefined global_modules_loaded
     push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
     using NEPCore
@@ -38,13 +36,13 @@ nep=nep_gallery("dep0");
 
 
     println("mslp noconv + double")
-    @testset  "mslp + double" begin 
+    @testset  "mslp + double" begin
         nep=nep_gallery("dep_double");
         @test_throws NoConvergenceException mslp(nep,λ=9im,maxit=10)
         λ,v=mslp(nep,λ=9im,maxit=100)
         @test norm(compute_Mlincomb(nep,λ,v))<eps()*100
 
     end
-    
-    
+
+
 end

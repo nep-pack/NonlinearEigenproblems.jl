@@ -3,9 +3,7 @@
 
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
+if !@isdefined global_modules_loaded
     push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
     using NEPCore

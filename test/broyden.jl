@@ -1,7 +1,5 @@
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
+if !@isdefined global_modules_loaded
     push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
     using NEPCore
@@ -17,7 +15,7 @@ end
     S,V=broyden(dep)
     # Broyden returns a Schur factorization so check with MM
     @test norm(compute_MM(dep,S,V))<eps()*1000
-    # test addconj 
+    # test addconj
     S,V=broyden(dep,addconj=true,pmax=5)
     # Test by computing the eigenpairs
     λv,X=eig(S)
@@ -27,4 +25,3 @@ end
         @test norm(compute_Mlincomb(dep,λv[k],V_eigvecs[:,k]))<eps()*1000
     end
 end
-
