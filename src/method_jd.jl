@@ -230,7 +230,7 @@ function jd_effenberger(::Type{T},
     else
         V_memory = view(V_memory_base, 1:n, tot_nrof_its+1:(maxit+1))
         W_memory = view(W_memory_base, 1:n, tot_nrof_its+1:(maxit+1))
-        λ, u, tot_nrof_its, u_init, λ_init = jd_effenberger_inner!(T, V_memory, W_memory,
+        λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
                                                           linsolvercreator, tol, target, displaylevel,
@@ -253,7 +253,7 @@ function jd_effenberger(::Type{T},
 
         V_memory = view(V_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
         W_memory = view(W_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
-        λ, u, tot_nrof_its, u_init, λ_init = jd_effenberger_inner!(T, V_memory, W_memory,
+        λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           deflated_nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
                                                           linsolvercreator, tol, target, displaylevel,
@@ -270,11 +270,35 @@ function jd_effenberger(::Type{T},
 end
 
 
+# Two dispatch functions depending on if it is a DeflatedNEP or a ProjectableNEP
+# A bit hacky, but avoids corner cases with "empty deflation"
+function dispatch_inner!(::Type{T},
+                              V_memory::SubArray,
+                              W_memory::SubArray,
+                              target_nep::DeflatedNEP,
+                              args...) where {T<:Number}
+return  jd_effenberger_inner!(T, V_memory, W_memory,
+                              target_nep, target_nep.V0, target_nep.S0, target_nep.orgnep,
+                              args...)
+end
+function dispatch_inner!(::Type{T},
+                              V_memory::SubArray,
+                              W_memory::SubArray,
+                              target_nep::ProjectableNEP,
+                              args...) where {T<:Number}
+return  jd_effenberger_inner!(T, V_memory, W_memory,
+                              target_nep, zeros(T,size(target_nep,1),0), zeros(T,0,0), target_nep,
+                              args...)
+end
+
 
 function jd_effenberger_inner!(::Type{T},
                               V_memory::SubArray,
                               W_memory::SubArray,
-                              target_nep::NEP, # OBS: target_nep can either be a DeflatedNEP, or another NEP if we have no initial invariant pair
+                              target_nep::Union{DeflatedNEP,ProjectableNEP}, # OBS: target_nep can either be a DeflatedNEP, or another NEP if we have no initial invariant pair
+                              X::Matrix{T}, # This is explicitly allocated by the dispatch_inner!(...)
+                              Λ::Matrix{T}, # This is explicitly allocated by the dispatch_inner!(...)
+                              orgnep::NEP, # This is explicitly allocated by the dispatch_inner!(...)
                               maxit::Int,
                               nrof_its::Int,
                               conveig::Int,
@@ -288,16 +312,6 @@ function jd_effenberger_inner!(::Type{T},
                               u::Vector{T},
                               λ::T) where {T<:Number}
     # Allocations and preparations
-    if typeof(target_nep) == DeflatedNEP
-        X = target_nep.V0
-        Λ = target_nep.S0
-        orgnep = target_nep.orgnep
-    else
-        X = zeros(typeof(λ),size(target_nep,1),0)
-        Λ = zeros(typeof(λ),0,0)
-        orgnep = target_nep
-    end
-
     n = size(orgnep,1) # Size of original problem
     m = size(Λ,1) # Size of deflated subspace
 
@@ -405,12 +419,7 @@ end
 compute_TXΛ(deflated_nep::DeflatedNEP, Λ, X) = compute_TXΛ(deflated_nep.orgnep, Λ, X)
 function compute_TXΛ(orgnep::NEP, Λ, X)
     return zero(X) # If X and Λ is an ivariant pair, then this block is zero. OBS: Assumed also in the derivation of the algorithm, see Effenberger Lemma 3.1
-    # if size(Λ,1) == 0 # Corner case, actually empty
-    #     TXΛ = X[:,[]]
-    # else
-    #     TXΛ = compute_MM(orgnep, Λ, X)
-    # end
-    # return TXΛ
+    # return compute_MM(orgnep, Λ, X)
 end
 
 
