@@ -1,3 +1,5 @@
+using SpecialFunctions
+
 export infbilanczos
 """
     λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
@@ -107,7 +109,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
             Qt_basis[:,k] = Qt1[:,1];
 
              # Step 1: Compute Z_{k+1}
-            Dk=diagm(0 => 1 ./ (exp.(lfact.(1:k))));
+            Dk=diagm(0 => 1 ./ (exp.(lfactorial.(1:k))));
             b1_tmp=compute_Mlincomb(nep,σ,Q1[:,1:k]*Dk,ones(k),1);
             b1=-lin_solve(M0inv,b1_tmp);
             Z2[:,k] = b1;
@@ -206,7 +208,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
         XX=zeros(T,size(B,1),mb); # pre-allocate
         for j=1:ma
             #dd=1 ./ factorial(j:(j+mb-1));
-            dd=1 ./ exp.(lfact.(j:(j+mb-1)));
+            dd=1 ./ exp.(lfactorial.(j:(j+mb-1)));
             XX=broadcast(*,B[:,1:mb],dd'); # diag scaling
             #XX=bsxfun(@times,B(:,1:mb),dd);  # Column scaling: Faster than constructing
 

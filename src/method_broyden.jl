@@ -1,3 +1,4 @@
+using LinearAlgebra
 using ..NEPCore, ..NEPTypes
 import ..NEPCore.compute_Mder;
 import ..NEPCore.compute_Mlincomb;
