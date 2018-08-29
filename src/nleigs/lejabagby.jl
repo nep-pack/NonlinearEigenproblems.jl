@@ -24,8 +24,8 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
         sB .*= ((B .- a[j]) ./ (1 .- B/b[j]));
         sC .*= ((C .- a[j]) ./ (1 .- C/b[j]));
 
-        push!(a, A[keepA ? j+1 : argmax(abs.(sA))])
-        push!(b, forceInf > j ? Inf : B[argmin(abs.(sB))])
+        push!(a, A[keepA ? j+1 : argmax([isnan(x) ? -Inf : abs.(x) for x in sA])])
+        push!(b, forceInf > j ? Inf : B[argmin([isnan(x) ? Inf : abs.(x) for x in sB])])
         push!(β, maximum(abs.(sC)))
 
         # treat single point case

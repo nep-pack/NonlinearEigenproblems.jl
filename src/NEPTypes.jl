@@ -426,7 +426,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     function compute_MM(nep::PEP,S,V)
         if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
-            Si=speye(size(S,1))
+            Si=sparse(1.0I, size(S,1), size(S,1))
         else
             Z=zeros(size(V))
             Si=Matrix(1.0I, size(S,1), size(S,1))
