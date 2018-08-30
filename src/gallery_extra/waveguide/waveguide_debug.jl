@@ -283,7 +283,7 @@ end
 function debug_sqrtm_schur(n::Integer)
     println("\n\n--- Debugging square root implementations ---\n")
     A = rand(n,n) + 0.1im*rand(n,n);
-    sqrtA = sqrtm(A);
+    sqrtA = sqrt(A);
     sqrtA2 = sqrtm_schur(A);
 
     println("Relative error between sqrtm and Schur-fact: ", norm(sqrtA-sqrtA2)/norm(sqrtA))

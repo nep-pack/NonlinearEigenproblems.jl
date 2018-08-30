@@ -137,8 +137,8 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
         if (nep.name == "gun")
             minusop= S-> -S
             oneop= S -> eye(size(S,1),size(S,2))
-            sqrt1op= S -> 1im*sqrtm(full(S))
-            sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+            sqrt1op= S -> 1im*sqrt(full(S))
+            sqrt2op= S -> 1im*sqrt(full(S)-108.8774^2*eye(S))
             # The nep.Ai object which comes from MATLAB
             # is Array{Any,2} (with one row). Reshape to correct type.
             AA=Array{AbstractMatrix,1}(vec(nep.Ai));

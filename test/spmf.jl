@@ -98,8 +98,8 @@ using Test
         # Same nonlinearities as the GUN NLEVP problem
         minusop= S-> -S
         oneop= S -> eye(size(S,1),size(S,2))
-        sqrt1op= S -> 1im*sqrtm(full(S))
-        sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+        sqrt1op= S -> 1im*sqrt(full(S))
+        sqrt2op= S -> 1im*sqrt(full(S)-108.8774^2*eye(S))
 
         A0=sparse(randn(n,n))+1im*sparse(randn(n,n));
         A1=sparse(randn(n,n))+1im*sparse(randn(n,n));
