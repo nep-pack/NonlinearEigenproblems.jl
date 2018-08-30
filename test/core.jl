@@ -43,7 +43,7 @@ z4=compute_Mlincomb(nep,λ,V[:,3],[T(1)], 2);
 my_test_NEP = TestNEP([1 2; 3 4])
 @test_throws ErrorException compute_Mder(my_test_NEP, 1+1im, 2)
 #@test_throws MethodError compute_Mlincomb(my_test_NEP , 1+1im, [1 2; 1 4])
-@test_throws ErrorException compute_MM(my_test_NEP,[1 2; 1 4],diagm([1,2]))
+@test_throws ErrorException compute_MM(my_test_NEP, [1 2; 1 4], diagm(0 => [1,2]))
 @test_throws ErrorException size(my_test_NEP,1)
 
 end

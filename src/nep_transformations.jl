@@ -106,7 +106,7 @@ function compute_Mlincomb(nep::ShiftScaledNEP,λ::Number,V::Union{AbstractMatrix
     # corresponding to the chain rule
     p=size(V,2);
     z=nep.scale.^Array{eltype(V),1}(0:p-1)
-    W=V*diagm(z); # not very fast
+    W=V * diagm(0 => z) # not very fast
     return compute_Mlincomb(nep.orgnep,nep.scale*λ+nep.shift,W,a);
 end
 

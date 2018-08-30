@@ -101,10 +101,10 @@ function contour_beyn(::Type{T},
     A1=A1/(2im*pi);
 
     @ifd(println("Computing SVD prepare for eigenvalue extraction "))
-    V,S,W = svd(A0);
-    V0=V[:,1:k];
-    W0=W[:,1:k];
-    B=(V0'*A1*W0)/diagm(S[1:k]);
+    V,S,W = svd(A0)
+    V0 = V[:,1:k]
+    W0 = W[:,1:k]
+    B = (V0'*A1*W0) / diagm(0 => S[1:k])
     if ((maximum(S)/minimum(S))>1/sqrt(eps()))
         warn("Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver")
         println(S)
@@ -114,7 +114,7 @@ function contour_beyn(::Type{T},
     @ifd(println("Computing eigenvalues "))
     λ,v=eigen(B)    # Eigenvector extraction not implemented yet
 
-    return (λ+σ,NaN*v)
+    return (λ.+σ, NaN*v)
 
 end
 
@@ -149,9 +149,9 @@ end
 
 # Trapezoidal rule for a periodic function f
 function ptrapz(f,a,b,N)
-    h=(b-a)/N
+    h = (b-a)/N
     t = range(a, stop = b-h, length = N)
-    S=zeros(f(t[1]))
+    S = zero(f(t[1]))
     for i=1:N
         S+=f(t[i])
     end

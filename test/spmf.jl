@@ -48,8 +48,8 @@ using Test
         N1=compute_MM(nep1,S,V);
         # Diagonalize S
         d,W = eigen(S)
-        D=diagm(d);
-        V1=V*W;
+        D = diagm(0 => d)
+        V1 = V*W
         #
         N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
                 compute_Mlincomb(nep1,d[2],V1[:,2]),
@@ -110,8 +110,8 @@ using Test
         N1=compute_MM(nep2,S,V);
         # Diagonalize S
         d,W = eigen(S)
-        D=diagm(d);
-        V1=V*W;
+        D = diagm(0 => d)
+        V1 = V*W
         #
         N2=hcat(compute_Mlincomb(nep2,d[1],V1[:,1]),
                 compute_Mlincomb(nep2,d[2],V1[:,2]),

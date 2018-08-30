@@ -26,8 +26,8 @@ d=4
 si=ones(d-1);
 be=ones(d-1);
 xi=ones(d-1);
-M = cat(2,diagm(si), zeros(d-1,1)) + cat(2,zeros(d-1,1), diagm(be));
-N = eye(d-1,d) + cat(2,zeros(d-1),diagm(be./xi));
+M = cat(2,diagm(0 => si), zeros(d-1,1)) + cat(2,zeros(d-1,1), diagm(0 => be))
+N = eye(d-1,d) + cat(2,zeros(d-1), diagm(0 => be./xi))
 
 
 #M=eye(d-1,d);

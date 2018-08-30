@@ -46,7 +46,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     k=1; conv_eig=0;
 
     # hardcoded matrix L
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
+    L=diagm(0 => vcat(2, 1./(2:m))) + diagm(-2 => -vcat(1./(1:(m-2))))
     L=L*(b-a)/4;
     setprecision(BigFloat, 100);
 
@@ -93,13 +93,14 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
                 # Compute the S-matrix
                 TT=BigFloat;
-                D=diagm(zeros(TT,k))
+                D=diagm(0 => zeros(TT,k))
                 for jj=1:k
                     D[jj,jj]=BigFloat(1/jj);
                 end
-                #D=diagm(1./(1:k))
+                #D=diagm(0 => 1./(1:k))
                 PP=P[1:k,1:k]'*D;
-                SS=diagm(σ*ones(TT,kk))+diagm((a[2:kk]./a[1:kk-1]).*(1:kk-1),1); SS=SS.';
+                SS=diagm(0 => σ*ones(TT,kk)) + diagm(1 => (a[2:kk]./a[1:kk-1]).*(1:kk-1))
+                SS=SS.'
                 QQ=zeros(kk,kk); QQ[1,1]=1; QQ[2:end,2:end]=PP;
                 S2=Array{ComplexF64,2}(QQ*SS/QQ);
 

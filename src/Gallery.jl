@@ -338,9 +338,9 @@ module Gallery
 
 
           Random.seed!(0) # reset the random seed
-          K=eye(n);
-          A1=diagm(E[1:n]);
-          A2=diagm(E[n+1:2*n]);
+          K = eye(n)
+          A1 = diagm(0 => E[1:n])
+          A2 = diagm(0 => E[n+1:2*n])
 
           nep=PEP([A1*A2,-A1-A2,K])
           return nep
@@ -370,7 +370,7 @@ module Gallery
           A0=-kappa*eye(2);
           A1=A[2,1]*[0 0; (1-tanh(x[2])^2) 0];
           A2=A[1,2]*[0 (1-tanh(x[1])^2); 0 0];
-          A3=beta*diagm([(1-tanh(x[1])^2), (1-tanh(x[2])^2)]);
+          A3=beta * diagm(0 => [(1-tanh(x[1])^2), (1-tanh(x[2])^2)])
           dep=DEP([A0, A1,   A2, A3],tauv);
 
        elseif (name == "nlevp_native_gun")

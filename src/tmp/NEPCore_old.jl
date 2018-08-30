@@ -98,7 +98,7 @@ end
 
 
     function jordan_matrix(n::Integer,λ::Number)
-        Z=λ*eye(n)+diagm(ones(n-1),1);
+        Z = λ*eye(n) + diagm(1 => ones(n-1))
     end
 
 end  # End Module

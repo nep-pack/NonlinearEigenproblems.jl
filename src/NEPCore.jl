@@ -175,7 +175,7 @@ This example shows that for diagonal `S`, the result of `compute_MM` can
 also be computed with `compute_Mlincomb`
 ```julia-repl
 julia> nep=nep_gallery("dep0");
-julia> D=diagm([1,2])
+julia> D=diagm(0 => [1,2])
 2×2 Array{Int64,2}:
  1  0
  0  2
