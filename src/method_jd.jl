@@ -349,7 +349,7 @@ function jd_effenberger_inner!(::Type{T},
 
         # Compute residual and check for convergence
         rk = compute_Mlincomb(target_nep, λ, u)
-        err = norm(rk) #Error measure, see (9) in Effenberger # TODO: Can we use another error measure?
+        err = norm(rk) #Error measure, see (9)/(3.2) in Effenberger # TODO: Can we use another error measure?
         @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %3d\n", loop_counter, conveig, err, k))
         if (err < tol) #Frist check, no other eiganvalues can be converged
             @ifd(print("One eigenvalue converged. Deflating and restarting.\n"))
@@ -369,7 +369,7 @@ function jd_effenberger_inner!(::Type{T},
         end
 
         # Extend the basis
-        # The following analogy can be made if w is chosen as [y_k; v_k] in (26) in Effenberger
+        # The following analogy can be made if w is chosen as [y_k; v_k] in (26)/(4.6) in Effenberger
         # Solve for basis extension using comment on top of page 367 of Betcke
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
