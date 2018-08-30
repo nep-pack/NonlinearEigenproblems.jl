@@ -1,3 +1,7 @@
+using LinearAlgebra
+using SparseArrays
+using Random
+
 function particle_init(interval)
     nep, brpts, U0 = particle_nep(interval)
 

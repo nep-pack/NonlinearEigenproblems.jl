@@ -4,6 +4,7 @@
 ################################################################################
 using Test
 using TimerOutputs
+using Printf
 
 # Add tests below if you wish that they are not run together with all tests
 tests_not_to_run = Set{String}(map(uppercase, [
@@ -18,11 +19,11 @@ tests_not_to_run = Set{String}(map(uppercase, [
     ]))
 
 function is_test_script(file::AbstractString)
-    if ismatch(r"(?i)\.jl$", file)
-        src = open(readstring, file)
+    if occursin(r"(?i)\.jl$", file)
+        src = read(file, String)
         pos = 1
-        while !done(src, pos)
-            expr, pos = parse(src, pos)
+        while pos <= length(src)
+            expr, pos = Meta.parse(src, pos)
             if contains_test_macro(expr)
                 return true
             end
@@ -47,7 +48,7 @@ end
 
     for i = 1:length(tests_to_run)
         file = tests_to_run[i]
-        test_name = replace(file, Regex("$root/?(.+).jl\$", "i"), s"\1")
+        test_name = replace(file, Regex("$root/?(.+).jl\$", "i") => s"\1")
         @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
         @timeit to test_name include(file)
     end

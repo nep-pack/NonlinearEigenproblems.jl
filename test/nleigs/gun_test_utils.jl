@@ -1,4 +1,5 @@
 using Random
+using LinearAlgebra
 
 function gun_init()
     nep = gun_nep()

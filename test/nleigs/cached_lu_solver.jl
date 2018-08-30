@@ -1,4 +1,5 @@
 using Random
+using SparseArrays
 using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "lusolver.jl"))
