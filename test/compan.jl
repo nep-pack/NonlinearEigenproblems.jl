@@ -83,9 +83,8 @@ while abs(d) > tolerance
 end
 
 println("Solving same problem with resinv")
-λ,v=resinv(BigFloat, pep, λ = (BigFloat(evp)+0.1), v = z[1:size(pep,1)], displaylevel=0, tol = tolerance)
+λ,v = resinv(BigFloat, pep, λ = (BigFloat(evp)+0.1), v = z[1:size(pep,1)], displaylevel=0, tol = tolerance)
 
 @test (abs(λ-evp)/abs(λ) < tolerance*10)
-
 
 end

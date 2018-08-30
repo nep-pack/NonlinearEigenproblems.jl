@@ -201,11 +201,11 @@ module LinSolvers
             Cfact=factorize(C);
             Atransformed=LinearMap(x->Cfact\(solver.B*x),
                                    size(solver.A,1),size(solver.A,1));
-            D0,V =eigs(Atransformed;nev=nev,which=:LM);
+            D0,V = eigs(Atransformed; nev=nev, which=:LM)
             # And reverse transformation
-            D=target-inv.(D0); # Reverse transformation
+            D = target .- inv.(D0) # Reverse transformation
         else
-            D,V = eigs(solver.A;nev=nev,sigma=target)
+            D,V = eigs(solver.A; nev=nev, sigma=target)
         end
 
         if(nev == 1)

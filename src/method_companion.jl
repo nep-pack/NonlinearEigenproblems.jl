@@ -9,26 +9,22 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
 """
     function companion(pep::PEP)
 
-        n = size(pep,1);#Size of monomial coefficient matrices
-
-        d = size(pep.A,1)-1;#Degree of pep
-
-        T = eltype(pep.A[1]);#Deduce the type of elements in the PEP matrices
-
-
+        n = size(pep,1) #Size of monomial coefficient matrices
+        d = size(pep.A,1)-1 #Degree of pep
+        T = eltype(pep.A[1]) #Deduce the type of elements in the PEP matrices
 
         ##### Check sparsity of the problem and allocate memory accordingly #####
-        if (issparse(pep))
-            E = spzeros(T,d*n,d*n);
-            A = spzeros(T,n*d,n*d);
+        if issparse(pep)
+            E = spzeros(T, d*n, d*n)
+            A = spzeros(T, n*d, n*d)
 
             #(d-1)n-by-(d-1)n matrix (Used to construct both E and A)
-            Iblock = sparse(kron(eye(T,d-1),eye(T,n)));
+            Iblock = sparse(kron(Matrix{T}(I, d-1, d-1), Matrix{T}(I, n, n)))
         else
-            E = zeros(T,d*n,d*n);
-            A = zeros(T,n*d,n*d);
+            E = zeros(T, d*n, d*n)
+            A = zeros(T, n*d, n*d)
 
-            Iblock = kron(eye(T,d-1),eye(T,n));
+            Iblock = kron(Matrix{T}(I, d-1, d-1), Matrix{T}(I, n, n))
         end
 
         E[1:n,1:n] = pep.A[d+1];#Fill block (1,1)
