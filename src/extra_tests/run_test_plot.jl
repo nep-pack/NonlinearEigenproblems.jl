@@ -10,8 +10,8 @@ t = -2:0.01:2
 st = sin(10pi*t)
 ct = cos(10pi*t)
 et = exp(abs(t/10))
-xx = linspace(1,10);
-yy = logspace(-10,1);
+xx = range(1, stop = 10, length = 50)
+yy = 10 .^ range(-10, stop = 1, length = 50)
 
 
 gcloseall()

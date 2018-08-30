@@ -90,10 +90,10 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
     xp = xp + delta;
 
     # Domain (First generate including the boundary)
-    X = linspace(xm, xp, nx+2);
+    X = range(xm, stop = xp, length = nx+2)
     hx = step(X);
     X = collect(X);
-    Z =linspace(zm, zp, nz+1);
+    Z = range(zm, stop = zp, length = nz+1)
     hz = step(Z);
     Z = collect(Z);
     # Removing the boundary
@@ -135,10 +135,10 @@ function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Num
     xp = xp + delta;
 
     # Domain (First generate including the boundary)
-    X = linspace(xm, xp, nx+2);
+    X = range(xm, stop = xp, length = nx+2)
     hx = step(X);
     X = collect(X);
-    Z =linspace(zm, zp, nz+1);
+    Z = range(zm, stop = zp, length = nz+1)
     hz = step(Z);
     Z = collect(Z);
     # Removing the boundary

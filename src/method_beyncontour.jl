@@ -148,7 +148,7 @@ end
 # Trapezoidal rule for a periodic function f
 function ptrapz(f,a,b,N)
     h=(b-a)/N
-    t=linspace(a,b-h,N);
+    t = range(a, stop = b-h, length = N)
     S=zeros(f(t[1]))
     for i=1:N
         S+=f(t[i])

@@ -171,7 +171,7 @@ module Gallery
           end
 
           L=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
-          x = linspace(0,pi,n)
+          x = range(0, stop = pi, length = n)
           h=x[2]-x[1];
           h=pi
           L=L/(h^2)

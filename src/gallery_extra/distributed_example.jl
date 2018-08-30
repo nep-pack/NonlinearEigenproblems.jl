@@ -105,7 +105,7 @@ end
 function  gauss_legendre_weights(N,a,b)
 
     N1=N; N2=N+1;
-    xu=linspace(-1,1,N1);
+    xu = range(-1, stop = 1, length = N1)
 
     # L will be the Legendre-Gauss Vandermonde Matrix
     L=zeros(N1,N2);

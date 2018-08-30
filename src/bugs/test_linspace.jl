@@ -20,7 +20,7 @@ end
 @mget hhh_m ccc_m X_m
 
 temp = 2/pi +0.4 + 0.1;
-X = linspace(-0.1, temp, nx+2)
+X = range(-0.1, stop = temp, length = nx+2)
 hhh = step(X)
 X = collect(X)
 hhh_naive = X[3] - X[2];

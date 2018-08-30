@@ -160,7 +160,7 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
     #    # poor-mans version of
     #    f0=z -> z.*(- besselk.(1, z)./z - besselk.(0, z))./besselk.(1,z)
     #    f1=z ->
-    #    zsamples=eps()+1+cos(linspace(0,pi,100))
+    #    zsamples=eps()+1+cos(range(0, stop = pi, length = 100))
     #
     #    a=eps();
     #    b=3;
