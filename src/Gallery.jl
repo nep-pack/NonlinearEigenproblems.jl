@@ -306,10 +306,9 @@ module Gallery
           constfun = S -> Matrix{eltype(S)}(I, size(S))
           expfun = S -> exp(-tau * Matrix(S))
 
-          AA=[-speye(A0),A0,A1]
-          fi=[quadfun,constfun,expfun]
-          return SPMF_NEP(AA,fi)
-
+          AA = [SparseMatrixCSC{eltype(A0)}(-I, size(A0)), A0, A1]
+          fi = [quadfun, constfun, expfun]
+          return SPMF_NEP(AA, fi)
       elseif (name=="qdep1")
           n=4
           A0=[0.3000   -0.6000         0    0.4000

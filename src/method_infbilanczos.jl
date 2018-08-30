@@ -150,10 +150,10 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
 
             # shift  the matrices:
-            (R1,R2)=(R2,R1);  R2[:,:]=0  # swap and reset forgotten variable
-            (Rt1,Rt2)=(Rt2,Rt1);  Rt2[:,:]=0
-            (Q0,Q1)=(Q1,Q0);  Q1[:,:]=0
-            (Qt0,Qt1)=(Qt1,Qt0);  Qt1[:,:]=0
+            (R1,R2)=(R2,R1);  R2[:,:] .= 0  # swap and reset forgotten variable
+            (Rt1,Rt2)=(Rt2,Rt1);  Rt2[:,:] .= 0
+            (Q0,Q1)=(Q1,Q0);  Q1[:,:] .= 0
+            (Qt0,Qt1)=(Qt1,Qt0);  Qt1[:,:] .= 0
 
             if (rem(k,check_error_every)==0)||(k==m)
                 # Check if we should terminate
@@ -167,9 +167,9 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
                 TT = Matrix(spdiagm(-1 => beta0[1:k], 0 => alpha0[1:k], 1 => gamma0[1:k]))
 
-                E=eigfact(TT);
-                λ = σ + 1 ./ E.values;
-                Z=E.vectors;
+                E = eigen(TT)
+                λ = σ .+ 1 ./ E.values
+                Z = E.vectors
                 #@ifd(println("size(Z)=",size(Z)))
                 #@ifd(println("size(TT)=",size(TT)))
                 Q=Q_basis[:,1:(k+1)]*Z

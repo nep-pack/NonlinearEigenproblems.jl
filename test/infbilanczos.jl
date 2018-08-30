@@ -33,7 +33,7 @@ n=size(nep,1);
     for i=1:length(λ)
         thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
     end
-    @test length(find(thiserr .< 1e-7)) == 3
+    @test length(findall(thiserr .< 1e-7)) == 3
 end
 
 # Disabled to improve unit test performance
