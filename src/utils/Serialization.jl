@@ -1,6 +1,7 @@
 #module Serialization
 #    export write_sparse_matrix
 #    export read_sparse_matrix
+    using SparseArrays
 
     # Writes the sparse matrix M in text format to a file with the given name
     function write_sparse_matrix(filename, M)

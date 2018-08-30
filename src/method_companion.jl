@@ -1,4 +1,6 @@
 #Methods to transform a PEP to a companion linearized form and solve the corresponding linearized pencil
+using SparseArrays
+
 export companion
 export polyeig #Wrapper around the solver for a linearized PEP pencil
 

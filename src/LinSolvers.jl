@@ -1,5 +1,6 @@
 module LinSolvers
     using LinearAlgebra
+    using SparseArrays
     using NEPCore
     using IterativeSolvers
     using LinearMaps

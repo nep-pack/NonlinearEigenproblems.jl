@@ -5,6 +5,7 @@ using NEPCore
 using LinSolvers
 using Test
 using LinearAlgebra
+using SparseArrays
 using LinSolversMATLAB
 
 @testset "LinSolvers" begin

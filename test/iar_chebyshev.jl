@@ -7,6 +7,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using IterativeSolvers
+using SparseArrays
 using LinearAlgebra
 using Test
 

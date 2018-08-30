@@ -9,6 +9,7 @@ using LinearMaps
 using NEPTypes
 using Gallery
 using LinearAlgebra
+using SparseArrays
 using NEPSolver
 using NEPCore
 

@@ -1,5 +1,6 @@
 module NEPSolver
     using LinearAlgebra
+    using SparseArrays
     using NEPCore
     using NEPTypes
     using LinSolvers

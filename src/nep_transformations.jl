@@ -1,4 +1,6 @@
 # Transformations between types
+using SparseArrays
+
 export transform_to_pep
 export shift_and_scale
 export mobius_transform

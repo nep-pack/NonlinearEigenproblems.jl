@@ -1,4 +1,10 @@
 module NEPTypes
+    using SparseArrays
+    using LinearAlgebra
+    using PolynomialZeros
+    using Polynomials
+    using NEPCore
+
     # Specializalized NEPs
     export ProjectableNEP
     export DEP
@@ -16,12 +22,6 @@ module NEPTypes
     export interpolate_cheb
 
     export set_projectmatrices!;
-
-    using SparseArrays
-    using LinearAlgebra
-    using PolynomialZeros
-    using Polynomials
-    using NEPCore
 
     # We overload these
     import ..NEPCore.compute_Mder

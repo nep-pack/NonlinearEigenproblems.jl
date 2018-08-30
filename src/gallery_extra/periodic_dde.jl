@@ -1,3 +1,5 @@
+using SparseArrays
+
 import Base.size;
 
     import ..NEPCore.compute_Mder

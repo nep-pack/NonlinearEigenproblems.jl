@@ -1,3 +1,5 @@
+using SparseArrays
+
 example = 1
 
 n = 10;
@@ -28,4 +30,3 @@ println(size(A))
 println(typeof(b))
 println(size(b))
 x = \(A,b)
-
