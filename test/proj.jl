@@ -28,11 +28,11 @@ projtest=@testset "Projected problems" begin
             t=3.0
 
             minusop= S-> -S
-            oneop= S -> eye(S)
-            expmop= S -> exp(full(-t*S))
+            oneop= S -> Matrix{eltype(S)}(I, size(S))
+            expmop= S -> exp(Matrix(-t*S))
             fi=[minusop, oneop, expmop];
 
-            nep=SPMF_NEP([eye(n),A0,A1],fi)
+            nep = SPMF_NEP([Matrix(1.0I, n, n), A0, A1], fi)
 
         elseif (nepstr == "sqrtm")
 
@@ -44,8 +44,8 @@ projtest=@testset "Projected problems" begin
             t=3.0
 
             minusop= S-> -S
-            oneop= S -> eye(S)
-            expmop= S -> sqrt(full(-t*S)+30*eye(S))
+            oneop= S -> Matrix{eltype(S)}(I, size(S))
+            expmop= S -> sqrt(Matrix(-t*S) + 30*I)
             fi=[minusop, oneop, expmop];
 
             nep=SPMF_NEP([A0,A1,A2],fi)
@@ -80,10 +80,10 @@ projtest=@testset "Projected problems" begin
         λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=1,
                  Neig=3,maxit=100, v=ones(size(pnep,1)))
 
-        println("Difference of solution from projected problem:",minimum(abs.(λv-λ_exact)))
-        @test minimum(abs.(λv-λ_exact))<sqrt(eps())
+        diff = minimum(abs.(λv .- λ_exact))
+        println("Difference of solution from projected problem:", diff)
+        @test diff < sqrt(eps())
     end
 end
 
-
-Base.Test.print_test_results(projtest)
+Test.print_test_results(projtest)

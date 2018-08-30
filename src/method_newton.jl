@@ -104,7 +104,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                 λ = λ+Δλ
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -231,11 +231,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
         catch e
 
-            if (!isa(e,Base.LinAlg.SingularException) && !isa(e,Base.LinAlg.LAPACKException))
+            if (!isa(e, SingularException) && !isa(e, LAPACKException))
                 rethrow(e);
             end
 
-            #isa(e, Base.LinAlg.SingularException) || ) || rethrow(e)
+            #isa(e, SingularException) || ) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
 
@@ -345,7 +345,7 @@ julia> λ1-λ2
             end
 
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -446,7 +446,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             end
 
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -516,7 +516,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 λ = λ - R[n,n]/d;
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -579,7 +579,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 λ = λ - v[n+1]/vp[n+1];
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))

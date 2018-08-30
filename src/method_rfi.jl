@@ -71,7 +71,7 @@ function rfi(nep::NEP,
                 λ = closest_to(λ_vec,  λ)
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             if (displaylevel>0)
@@ -146,7 +146,7 @@ function rfi_b(nep::NEP,
                 λ = closest_to(λ_vec,  λ)
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             if (displaylevel>0)

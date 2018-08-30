@@ -88,8 +88,9 @@ function iar(
             # Extract eigenvalues from Hessenberg matrix
             D,Z = eigen(H[1:k,1:k])
 
-            VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=σ+γ./D;
+            VV = view(V,1:1:n,1:k)
+            Q = VV*Z
+            λ = σ .+ γ ./ D
 
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 QQ,RR=qr(VV); # Project on this space
