@@ -1,7 +1,5 @@
-if !@isdefined global_modules_loaded
-    using Random
-    using Test
-end
+using Random
+using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "lusolver.jl"))
 

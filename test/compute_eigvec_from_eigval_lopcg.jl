@@ -1,14 +1,12 @@
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Test
-end
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using Test
 
 # explicit import needed for overloading functions from packages
 import NEPCore.compute_Mlincomb

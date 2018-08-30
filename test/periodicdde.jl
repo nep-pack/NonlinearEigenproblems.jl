@@ -1,18 +1,15 @@
 # Run tests on Periodic DDE
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using GalleryPeriodicDDE
-
-    using Test
-end
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using GalleryPeriodicDDE
+using Test
 
 @testset "PeriodicDDE" begin
     nep=nep_gallery(PeriodicDDE_NEP,name="mathieu")

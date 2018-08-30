@@ -1,16 +1,13 @@
 #  Tests for the projected NEPs
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
 #using Winston # For plotting
-
-    using Test
-end
+using Test
 
 projtest=@testset "Projected problems" begin
 

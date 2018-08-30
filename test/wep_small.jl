@@ -1,22 +1,18 @@
 # Run tests for the waveguide eigenvalue problem
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using GalleryWaveguide
-
-    using Test
-end
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using GalleryWaveguide
+using Test
 
 import GalleryWaveguide.SchurMatVec
-
 
 @testset "WEP" begin
 

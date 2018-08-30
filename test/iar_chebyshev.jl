@@ -1,15 +1,13 @@
 # #Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Test
-end
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using Test
 
 #import NEPSolver.iar_chebyshev;
 #include("../src/method_iar_chebyshev.jl");

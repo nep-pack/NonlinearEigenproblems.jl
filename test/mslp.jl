@@ -1,19 +1,15 @@
-
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using NEPCore
-    using LinSolvers
-    using IterativeSolvers
-    using Test
-    using LinearMaps
-    using NEPTypes
-    using Gallery
-    using NEPSolver
-    using NEPCore
-end
-
+using NEPCore
+using LinSolvers
+using IterativeSolvers
+using Test
+using LinearMaps
+using NEPTypes
+using Gallery
+using NEPSolver
+using NEPCore
 
 A=sprandn(100,100,0.1);
 B=sprandn(100,100,0.1);

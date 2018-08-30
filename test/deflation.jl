@@ -1,17 +1,15 @@
 # Run tests for the deflation
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using Test
-    using LinearAlgebra
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-end
+using Test
+using LinearAlgebra
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
 
 nep=nep_gallery("dep0");
 nep = DEP(nep.n, nep.A, [0, 0.8])

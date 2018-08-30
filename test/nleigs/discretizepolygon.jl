@@ -1,6 +1,4 @@
-if !@isdefined global_modules_loaded
-    using Test
-end
+using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))

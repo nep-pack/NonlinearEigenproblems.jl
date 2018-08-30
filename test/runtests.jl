@@ -17,8 +17,6 @@ tests_not_to_run = Set{String}(map(uppercase, [
     "nlar.jl", # temporarily disabled since it's very slow in Julia v0.7
     ]))
 
-include("load_modules_for_tests.jl")
-
 function is_test_script(file::AbstractString)
     if ismatch(r"(?i)\.jl$", file)
         src = open(readstring, file)

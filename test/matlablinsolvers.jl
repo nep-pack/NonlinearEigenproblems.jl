@@ -1,13 +1,9 @@
 #  Tests for the Linear solvers
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using NEPCore
-    using LinSolvers
-    using Test
-end
-
-# Always run this, since it's not loaded by load_modules_for_tests.jl
+using NEPCore
+using LinSolvers
+using Test
 using LinSolversMATLAB
 
 @testset "LinSolvers" begin

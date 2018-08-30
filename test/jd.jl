@@ -1,19 +1,14 @@
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Test
-end
-
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using Test
 
 @testset "Jacobi–Davidson" begin
-
-
 
 println("\nTesting a PEP")
 nep = nep_gallery("pep0",60)

@@ -1,23 +1,18 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Test
-    using GalleryNLEVP
-end
-
-# Always run this, since it's not loaded by load_modules_for_tests.jl
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using Test
+using GalleryNLEVP
 using LinSolversMATLAB
-
 
 nep_org=nep_gallery(NLEVP_NEP,"fiber");
 n=size(nep_org,1);

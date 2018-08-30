@@ -1,10 +1,7 @@
 # Run tests for the inner solves
-
-if !@isdefined global_modules_loaded
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    using NEPCore, NEPTypes, NEPSolver, Gallery
-    using Test
-end
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+using NEPCore, NEPTypes, NEPSolver, Gallery
+using Test
 
 #import NEPSolver.inner_solve;
 #include("../src/inner_solver.jl");
