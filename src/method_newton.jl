@@ -303,8 +303,8 @@ julia> λ1-λ2
             c = v /norm(v)^2
         end
         v=v/dot(c,v);
-        local linsolver::LinSolver;
-        local tempvec=Array{T,1}(size(nep,1));
+        local linsolver::LinSolver
+        local tempvec = Array{T,1}(undef, size(nep,1))
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
