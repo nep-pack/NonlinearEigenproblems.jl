@@ -1,4 +1,5 @@
 using LinearAlgebra
+using Random
 
 export rfi
 export rfi_b

@@ -5,6 +5,7 @@ using NEPCore
 using NEPTypes
 using Gallery
 using LinearAlgebra
+using Random
 
 # explicit import needed for overloading
 # functions from packages

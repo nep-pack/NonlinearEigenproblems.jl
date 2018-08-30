@@ -2,6 +2,7 @@
 
 using LinearAlgebra
 using Printf
+using Random
 
     export newton
     export resinv

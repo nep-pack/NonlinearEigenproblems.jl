@@ -1,5 +1,6 @@
 using IterativeSolvers
 using LinearAlgebra
+using Random
 
 export nlar
 export default_eigval_sorter

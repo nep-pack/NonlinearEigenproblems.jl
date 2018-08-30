@@ -6,6 +6,7 @@ using NEPTypes
 using Gallery
 using gplot_module
 using LinearAlgebra
+using Random
 
 nep=nep_gallery("pep0",100)
 #nep=nep_gallery("dep0",100)

@@ -4,6 +4,7 @@ using PyPlot
 using PyCall
 
 using LinearAlgebra
+using Random
 
 using NEPCore
 using NEPTypes

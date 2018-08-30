@@ -4,6 +4,7 @@
 # see also https://github.com/JuliaInterop/MATLAB.jl
 
 using LinearAlgebra
+using Random
 
 a = sprand(100,100,0.3);
 b = sprand(100,100,0.3);

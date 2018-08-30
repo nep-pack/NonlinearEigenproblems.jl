@@ -5,6 +5,8 @@ using NEPCore
 using NEPTypes
 using Gallery
 using LinearAlgebra
+using Random
+
 n=5;
 Random.seed!(0) # reset the random seed
 A0=randn(n,n);

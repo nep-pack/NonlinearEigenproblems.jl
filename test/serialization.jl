@@ -1,4 +1,5 @@
 using Test
+using Random
 
 include(normpath(string(@__DIR__), "..", "src", "utils", "Serialization.jl"))
 

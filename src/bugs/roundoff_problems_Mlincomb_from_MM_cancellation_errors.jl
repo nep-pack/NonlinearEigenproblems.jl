@@ -4,6 +4,7 @@ push!(LOAD_PATH, ".." )
 using NEPCore
 using NEPTypes
 using LinearAlgebra
+using Random
 
 # manually clc
 for jj=1:20

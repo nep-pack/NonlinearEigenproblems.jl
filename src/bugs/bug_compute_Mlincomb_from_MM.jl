@@ -4,6 +4,7 @@ push!(LOAD_PATH, ".." )	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 using Gallery
+using Random
 
 
 println("Load dep0")

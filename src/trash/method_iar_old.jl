@@ -1,4 +1,5 @@
 using LinearAlgebra
+using Random
 
     export iar_old
     #Infinite Arnoldi for a given number of max iters (No error measure yet)

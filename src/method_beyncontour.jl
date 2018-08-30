@@ -3,6 +3,7 @@
 #using QuadGK # Disabled to lessen requirements
 using Distributed
 using LinearAlgebra
+using Random
 
 export contour_beyn
 

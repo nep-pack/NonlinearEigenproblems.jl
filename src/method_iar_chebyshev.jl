@@ -1,6 +1,8 @@
 export iar_chebyshev
+
 using IterativeSolvers
 using LinearAlgebra
+using Random
 
 # Types specifying which way to compute y0 in chebyshev iar
 abstract type ComputeY0Cheb end;

@@ -11,6 +11,7 @@ using NEPSolver
 using Gallery
 using IterativeSolvers
 using LinearAlgebra
+using Random
 using Test
 using GalleryNLEVP
 using LinSolversMATLAB

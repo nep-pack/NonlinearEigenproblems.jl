@@ -2,6 +2,8 @@ module Gallery_old
   using NEPCore
   using PolynomialRoots
   using SparseArrays
+  using Random
+  
   export nep_gallery
   """
   Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. name decides which NEP. \\

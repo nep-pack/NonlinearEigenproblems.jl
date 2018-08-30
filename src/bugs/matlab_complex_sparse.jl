@@ -1,5 +1,4 @@
-workspace()
-
+using Random
 using MATLAB
 
 A = 1im*sprand(10,10,0.15)

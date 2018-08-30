@@ -5,6 +5,7 @@ using NEPCore
 using LinSolvers
 using Test
 using LinearAlgebra
+using Random
 using SparseArrays
 using LinSolversMATLAB
 

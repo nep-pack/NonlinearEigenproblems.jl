@@ -8,6 +8,7 @@ push!(LOAD_PATH, string(@__DIR__,"/../../"))	# looks for modules in the current 
 
 using MATLAB
 
+using Random
 using NEPCore
 using NEPTypes
 using LinSolvers

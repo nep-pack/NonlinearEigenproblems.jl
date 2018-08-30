@@ -9,6 +9,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using IterativeSolvers
+using Random
 using Test
 
 struct TestNEP <: NEP

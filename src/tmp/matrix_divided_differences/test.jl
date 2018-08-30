@@ -1,4 +1,5 @@
 using LinearAlgebra
+using Random
 
 function DD0_mat_fun(T,f,S)
 	# evaluete the divided differences matrix function

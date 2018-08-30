@@ -7,6 +7,7 @@ using NEPTypes
 using LinSolvers
 using Gallery
 using LinearAlgebra
+using Random
 
 
 println("===========================")

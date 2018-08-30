@@ -9,6 +9,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using LinearAlgebra
+using Random
 using SparseArrays
 using Test
 

@@ -3,6 +3,7 @@ module GalleryPeriodicDDE
     import Base.size;
     using NEPCore
     using Gallery
+    using Random
     import NEPCore.compute_Mlincomb
     import NEPCore.compute_Mder
     import NEPCore.compute_MM

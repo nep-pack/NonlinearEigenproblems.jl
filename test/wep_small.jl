@@ -11,6 +11,7 @@ using NEPSolver
 using Gallery
 using GalleryWaveguide
 using LinearAlgebra
+using Random
 using Test
 
 import GalleryWaveguide.SchurMatVec

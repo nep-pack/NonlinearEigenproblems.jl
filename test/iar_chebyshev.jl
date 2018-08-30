@@ -9,6 +9,7 @@ using Gallery
 using IterativeSolvers
 using SparseArrays
 using LinearAlgebra
+using Random
 using Test
 
 #import NEPSolver.iar_chebyshev;

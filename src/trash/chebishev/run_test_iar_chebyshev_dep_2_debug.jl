@@ -1,11 +1,13 @@
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
+
 using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
+using Random
 using PyPlot
 using PyCall
-76i8yuiytui
+
 n=4;
 A0=[0.3000   -0.6000         0    0.4000
    -0.3000    0.4000   -0.8000    1.9000

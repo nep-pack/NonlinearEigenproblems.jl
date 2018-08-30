@@ -9,6 +9,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using LinearAlgebra
+using Random
 using Test
 
 @testset "transformations" begin
