@@ -301,10 +301,10 @@ module Gallery
                             "gallery_extra", "qdep_infbilanczos_")
           A0=read_sparse_matrix(qdepbase * "A0.txt")
           A1=read_sparse_matrix(qdepbase * "A1.txt")
-          tau=1;
-          quadfun= S -> S^2;
-          constfun= S -> eye(S);
-          expfun= S -> exp(-tau*Matrix(S));
+          tau = 1
+          quadfun = S -> S^2
+          constfun = S -> Matrix{eltype(S)}(I, size(S))
+          expfun = S -> exp(-tau * Matrix(S))
 
           AA=[-speye(A0),A0,A1]
           fi=[quadfun,constfun,expfun]
@@ -338,7 +338,7 @@ module Gallery
 
 
           Random.seed!(0) # reset the random seed
-          K = eye(n)
+          K = Matrix(1.0I, n, n)
           A1 = diagm(0 => E[1:n])
           A2 = diagm(0 => E[n+1:2*n])
 

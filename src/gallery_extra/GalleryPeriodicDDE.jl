@@ -1,8 +1,9 @@
 # Time-periodic delay-differential equations
 module GalleryPeriodicDDE
-    import Base.size;
+    import Base.size
     using NEPCore
     using Gallery
+    using SparseArrays
     using Random
     import NEPCore.compute_Mlincomb
     import NEPCore.compute_Mder
@@ -10,8 +11,7 @@ module GalleryPeriodicDDE
     import Gallery.nep_gallery
 
     export PeriodicDDE_NEP
-    export nep_gallery;
-
+    export nep_gallery
 
     """
    struct PeriodicDDE_NEP <: NEP
@@ -86,7 +86,7 @@ julia> compute_Mlincomb(nep,λ,v)
         n=size(nep,1);
         # We are using (non-trivial) fact that
         # the MM satisfies an ODE (as well as the action)
-        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-full(nep.tau*S))-Y*S)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-Matrix(nep.tau*S))-Y*S)
         Y0=V;
         YY=ode_rk4(F, 0,nep.tau,nep.N,Y0);
         return YY-Y0
