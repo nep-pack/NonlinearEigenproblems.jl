@@ -1,4 +1,5 @@
 using LinearAlgebra
+using Arpack
 using ..NEPCore, ..NEPTypes
 import ..NEPCore.compute_Mder;
 import ..NEPCore.compute_Mlincomb;
@@ -51,7 +52,7 @@ end
 function extract_eigenpair(nep::NEPBroydenDeflatedEll1,λ)
     S=nep.S
     X=nep.X
-    (dd,VV)=eig(S);
+    dd,VV = eigen(S)
     I=indmin(abs.(dd-λ))
     w=X*VV[:,I]; w=w/norm(w);
     return (λ,w);
@@ -68,7 +69,7 @@ function deflated_errmeasure(nep::NEPBroydenDeflatedEll1,λ,v)
 
     S=[nep.S v[(n0+1):(n0+p)];zeros(1,p) λ]
     X=[nep.X v[1:n0]];
-    (dd,VV)=eig(S);
+    dd,VV = eigen(S)
     I=indmin(abs.(dd-λ))
     w=X*VV[:,I];
 
@@ -630,11 +631,11 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
 
         local d,V;
         if (eigmethod==:eig)
-            (d,V)=eig(MM);
+            d,V = eigen(MM)
         elseif (eigmethod==:eigs)
-            (d,V)=eigs(MM,which=:SM);
+            d,V = eigs(MM,which=:SM)
         elseif (eigmethod==:invpow)
-            (d,V)=eigs_invpow(MM,maxit=4000,sigma=0);
+            d,V = eigs_invpow(MM,maxit=4000,sigma=0)
         else
             error("Unknown eig method",eignmethod)
         end
@@ -863,7 +864,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
 
         # Step 6
         MM=[M1 U1; X'+σ*S'*X' S'*(X'*X)];
-        (d,V)=eig(MM);
+        d,V = eigen(MM)
         x=V[:,indmin(abs.(d))];
 
         # Not in MS yet:

@@ -6,6 +6,7 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
+using LinearAlgebra
 using Test
 
 @testset "broyden" begin
@@ -16,7 +17,7 @@ using Test
     # test addconj
     S,V=broyden(dep,addconj=true,pmax=5)
     # Test by computing the eigenpairs
-    λv,X=eig(S)
+    λv,X = eigen(S)
     V_eigvecs=V*X;
     for k=1:size(λv,1)
         normalize!(V_eigvecs[:,k])

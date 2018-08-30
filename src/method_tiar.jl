@@ -1,5 +1,6 @@
 export tiar
 using IterativeSolvers
+using LinearAlgebra
 
 """
     tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -158,7 +159,7 @@ function tiar(
 
         # compute Ritz pairs (every p iterations)
         if (rem(k,check_error_every)==0)||(k==m)
-            D,W=eig(H[1:k,1:k]);
+            D,W = eigen(H[1:k,1:k])
             VV=Z[:,1:k]*transpose(a[1,1:k,1:k])	# extract proper subarray
             Q=VV*W; λ=σ+γ./D;
 

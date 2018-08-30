@@ -2,6 +2,7 @@
 
 #using QuadGK # Disabled to lessen requirements
 using Distributed
+using LinearAlgebra
 
 export contour_beyn
 
@@ -110,7 +111,7 @@ function contour_beyn(::Type{T},
 
 
     @ifd(println("Computing eigenvalues "))
-    λ,v=eig(B);  # Eigenvector extraction not implemented yet
+    λ,v=eigen(B)    # Eigenvector extraction not implemented yet
 
     return (λ+σ,NaN*v)
 

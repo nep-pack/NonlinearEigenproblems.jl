@@ -8,6 +8,7 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
+using LinearAlgebra
 using Test
 
 @testset "SPMF" begin
@@ -44,7 +45,7 @@ using Test
 
         N1=compute_MM(nep1,S,V);
         # Diagonalize S
-        (d,W)=eig(S);
+        d,W = eigen(S)
         D=diagm(d);
         V1=V*W;
         #
@@ -106,7 +107,7 @@ using Test
 
         N1=compute_MM(nep2,S,V);
         # Diagonalize S
-        (d,W)=eig(S);
+        d,W = eigen(S)
         D=diagm(d);
         V1=V*W;
         #

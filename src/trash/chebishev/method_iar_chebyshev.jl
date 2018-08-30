@@ -1,6 +1,6 @@
 export iar_chebyshev
 using IterativeSolvers
-
+using LinearAlgebra
 
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -129,7 +129,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
-            D,Z=eig(H[1:k,1:k]);
+            D,Z = eigen(H[1:k,1:k])
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=1./D;
             conv_eig=0;

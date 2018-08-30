@@ -1,5 +1,6 @@
 export iar_chebyshev
 using IterativeSolvers
+using LinearAlgebra
 
 # Types specifying which way to compute y0 in chebyshev iar
 abstract type ComputeY0Cheb end;
@@ -137,7 +138,7 @@ function iar_chebyshev(
 
         # compute Ritz pairs (every check_error_every iterations)
         if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
-            D,Z=eig(H[1:k,1:k]);
+            D,Z = eigen(H[1:k,1:k])
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=σ+γ./D;
             conv_eig=0;

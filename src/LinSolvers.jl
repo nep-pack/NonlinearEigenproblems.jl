@@ -136,7 +136,7 @@ module LinSolvers
 
 ##############################################################################
 """
-    A linear EP solver that calls Julia's in-built eig()
+    A linear EP solver that calls Julia's in-built eigen()
 """
     mutable struct NativeEigSolver <: EigSolver
         A

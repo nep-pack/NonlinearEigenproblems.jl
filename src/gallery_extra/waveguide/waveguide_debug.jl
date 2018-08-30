@@ -289,7 +289,7 @@ function debug_sqrtm_schur(n::Integer)
 
     sqrtA3 = sqrtm_schur_pos_imag(A);
     println("Relative error between Schur-fact-pos-imag² and A: ", norm(A - sqrtA3^2)/norm(A))
-    (v,) = eig(sqrtA3)
+    v,_ = eigen(sqrtA3)
     test_var = zeros(n)
     TOL = 1e-15;
     for i = 1:n
