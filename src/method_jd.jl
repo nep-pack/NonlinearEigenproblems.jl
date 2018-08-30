@@ -50,7 +50,7 @@ function jd(::Type{T},
     end
 
     λ::T = T(λ)
-    λ_vec::Array{T,1} = Array{T,1}(Neig)
+    λ_vec::Array{T,1} = Array{T,1}(undef, Neig)
     u_vec::Array{T,2} = zeros(T,n,Neig)
     u::Array{T,1} = Array{T,1}(v0); u[:] = u/norm(u);
     pk::Array{T,1} = zeros(T,n)
@@ -131,7 +131,7 @@ function jd(::Type{T},
     end
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
-    throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
+    throw(NoConvergenceException(cat(λ_vec[1:conveig], λ, dims = 1), cat(u_vec[:,1:conveig], u, dims = 2), err, msg))
 end
 
 
