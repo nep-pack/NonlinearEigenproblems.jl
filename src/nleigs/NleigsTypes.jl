@@ -64,8 +64,8 @@ function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
     return Lca, sparse(Uca')
 
     # TODO use this; however we then need to support permutation and scaling
-    #F = lufact(B)
-    #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
+    #F = lu(B)
+    #Lcf,Ucf = compactlu(sparse(F.L),sparse(F.U))
     #Lcaf = spzeros(n, size(Lcf, 2))
     #Lcaf[r[1]:r[2], :] = Lcf
     #Ucaf = spzeros(size(Ucf, 1), n)

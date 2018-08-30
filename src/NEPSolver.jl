@@ -62,15 +62,16 @@ Executes z if displaylevel>0.
         local M0inv::LinSolver = linsolvercreator(nep,λ);
         n=size(nep,1);
 
-        if (isa(M0inv,DefaultLinSolver))
-            F=M0inv.Afact
+        if isa(M0inv,DefaultLinSolver)
+            F = M0inv.Afact
         else
-            F=lufact(compute_Mder(nep,λ)); # This requires matrix access
+            F = lu(compute_Mder(nep,λ)) # This requires matrix access
         end
-        x=[-F[:U][1:end-1,1:end-1]\F[:U][1:end-1,end]; 1]
+        x = [-F.U[1:end-1,1:end-1] \ F.U[1:end-1,end]; 1]
 
         if issparse(nep)
-            Q=zeros(Int64,n);   Q[F[:q]]=1:n;
+            Q = zeros(Int64, n)
+            Q[F.q] = 1:n
             return x[Q]
         else
             return x
