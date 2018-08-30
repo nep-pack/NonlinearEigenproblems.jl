@@ -1,5 +1,6 @@
 # Newton-like methods for NEPs
 
+using LinearAlgebra
 using Printf
 
     export newton

@@ -1,9 +1,9 @@
 # Illustrating scaling difficulties with compute_Mlincomb_from_MM
-workspace();
 push!(LOAD_PATH, pwd())
 push!(LOAD_PATH, ".." )
 using NEPCore
 using NEPTypes
+using LinearAlgebra
 
 # manually clc
 for jj=1:20

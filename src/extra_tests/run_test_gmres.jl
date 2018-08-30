@@ -1,21 +1,17 @@
-workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 #using Suppressor # Pkg.add("Suppressor");
 #@suppress_err begin
 using NEPSolver
 using NEPCore
 using NEPTypes
-
 using LinSolvers
 using Gallery
-
-
+using LinearAlgebra
 
 
 println("===========================")
 println("||  This is GMRES-test   ||")
 println("===========================")
-
 
 
 nep = nep_gallery("pep0_sparse_003")

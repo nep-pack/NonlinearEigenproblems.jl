@@ -3,7 +3,7 @@
 # the eigenvector is very often zero
 # see also https://github.com/JuliaInterop/MATLAB.jl
 
-workspace()
+using LinearAlgebra
 
 a = sprand(100,100,0.3);
 b = sprand(100,100,0.3);

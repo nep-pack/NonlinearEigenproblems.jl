@@ -9,6 +9,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using IterativeSolvers
+using LinearAlgebra
 using Test
 
 dep=nep_gallery("dep_distributed");

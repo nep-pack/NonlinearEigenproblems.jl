@@ -6,6 +6,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using IterativeSolvers
+using LinearAlgebra
 using Test
 
 @testset "Jacobi–Davidson" begin

@@ -7,6 +7,7 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
+using LinearAlgebra
 using Test
 
 comaniontest = @testset "Companion Linearization" begin

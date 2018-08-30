@@ -8,6 +8,7 @@ using Test
 using LinearMaps
 using NEPTypes
 using Gallery
+using LinearAlgebra
 using NEPSolver
 using NEPCore
 

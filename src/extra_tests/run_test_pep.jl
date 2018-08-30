@@ -1,5 +1,4 @@
 #  A Polynomial eigenvalue problem
-workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
@@ -27,7 +26,7 @@ println("Running Newton Raphson")
 ev2=zeros(0)
 
 abserrmeasure=function (λ,v)
-    e=abs(λ-λ_exact) # Error measure: abs error in λ 
+    e=abs(λ-λ_exact) # Error measure: abs error in λ
     global ev2=[ev2;compute_resnorm(nep,λ,v)] # store residual norm
     return e
 end
@@ -35,7 +34,7 @@ println("Running residual inverse iteration")
 #
 λ0=round.(λ_exact*10)/10; # Start value
 x0=round.(x*10)/10;       # Start vector
-λ,x =resinv(nep,λ=λ0,v=x0,displaylevel=1,errmeasure=abserrmeasure);	
+λ,x =resinv(nep,λ=λ0,v=x0,displaylevel=1,errmeasure=abserrmeasure);
 
 println("Resnorm of computed solution: ",compute_resnorm(nep,λ,x))
 

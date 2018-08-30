@@ -1,8 +1,11 @@
+using IterativeSolvers
+using LinearAlgebra
+
 export nlar
 export default_eigval_sorter
 export residual_eigval_sorter
 export threshold_eigval_sorter
-using IterativeSolvers
+
 ###############################################################################################################
 # Default ritzvalue sorter:
 # First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).

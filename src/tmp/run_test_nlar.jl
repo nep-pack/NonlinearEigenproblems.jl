@@ -1,6 +1,6 @@
-workspace()
 push!(LOAD_PATH, pwd()) # looks for modules in the current directory
 using NonlinearEigenproblems: NEPSolver, NEPCore, NEPTypes, LinSolvers, Gallery
+using LinearAlgebra
 #using gplot_module
 
 

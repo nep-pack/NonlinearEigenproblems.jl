@@ -8,6 +8,7 @@ using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
+using LinearAlgebra
 using Test
 
 nep=nep_gallery("dep0")

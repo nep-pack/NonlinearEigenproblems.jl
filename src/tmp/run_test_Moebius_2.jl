@@ -1,11 +1,10 @@
-workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPCore
 using NEPTypes
 using LinSolvers
 using NEPSolver
 using Gallery
-
+using LinearAlgebra
 
 nep=nep_gallery("dep0",100)
 import NEPCore.compute_Mder

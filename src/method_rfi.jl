@@ -1,5 +1,8 @@
+using LinearAlgebra
+
 export rfi
 export rfi_b
+
 """
     rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 

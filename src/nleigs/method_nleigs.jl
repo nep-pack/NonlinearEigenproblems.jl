@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 export nleigs
 
 include("lusolver.jl")

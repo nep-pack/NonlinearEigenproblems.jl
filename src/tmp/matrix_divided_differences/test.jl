@@ -1,4 +1,4 @@
-workspace()
+using LinearAlgebra
 
 function DD0_mat_fun(T,f,S)
 	# evaluete the divided differences matrix function

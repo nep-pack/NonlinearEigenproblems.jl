@@ -1,5 +1,7 @@
 # Helper functions for methods based on inner-outer iterations
 
+using LinearAlgebra
+
 export inner_solve;
 export InnerSolver;
 

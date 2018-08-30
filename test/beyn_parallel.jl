@@ -13,6 +13,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using IterativeSolvers
+using LinearAlgebra
 using Test
 
 nep=nep_gallery("dep0",500)

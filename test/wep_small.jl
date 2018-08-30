@@ -10,6 +10,7 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using GalleryWaveguide
+using LinearAlgebra
 using Test
 
 import GalleryWaveguide.SchurMatVec

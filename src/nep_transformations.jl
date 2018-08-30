@@ -1,10 +1,8 @@
-
 # Transformations between types
 export transform_to_pep
 export shift_and_scale
 export mobius_transform
 export effenberger_deflation
-
 
 """
     struct ShiftScaledNEP <: NEP

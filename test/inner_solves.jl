@@ -1,6 +1,7 @@
 # Run tests for the inner solves
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 using NEPCore, NEPTypes, NEPSolver, Gallery
+using LinearAlgebra
 using Test
 
 #import NEPSolver.inner_solve;

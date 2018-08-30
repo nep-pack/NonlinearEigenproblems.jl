@@ -1,8 +1,9 @@
-workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 
 using PyPlot
 using PyCall
+
+using LinearAlgebra
 
 using NEPCore
 using NEPTypes

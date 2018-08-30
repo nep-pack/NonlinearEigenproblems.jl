@@ -4,6 +4,7 @@ push!(LOAD_PATH, string(@__DIR__, "/../src"))
 using NEPCore
 using LinSolvers
 using Test
+using LinearAlgebra
 using LinSolversMATLAB
 
 @testset "LinSolvers" begin

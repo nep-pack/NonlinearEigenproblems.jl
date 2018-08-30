@@ -1,11 +1,9 @@
-workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
 using LinSolvers
-
 
 #=println("Running Newton on random dep")
 nep=nep_gallery("dep0")
@@ -108,9 +106,3 @@ println("Newton QR")
 
 #λ,x = (nep, λ=-0.36, v=ones(n), displaylevel=1 );
 #println("Resnorm:",compute_resnorm(nep,λ,x), " eig:",λ)
-
-
-
-
-
-

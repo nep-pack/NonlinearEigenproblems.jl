@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 n=5;
 A=rand(n,n);
 A[:,1]=0;
