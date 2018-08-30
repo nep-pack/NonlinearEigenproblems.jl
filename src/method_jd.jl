@@ -3,13 +3,13 @@ export jd_betcke
 export jd_effenberger
 
 using IterativeSolvers
-using NEPTypes.DeflatedNEP
+using ..NEPTypes.DeflatedNEP
 
-import NEPTypes.create_proj_NEP
-import NEPTypes.set_projectmatrices!
+import ..NEPTypes.create_proj_NEP
+import ..NEPTypes.set_projectmatrices!
 import Base.size
-import NEPCore.compute_Mder
-import NEPCore.compute_Mlincomb
+import ..NEPCore.compute_Mder
+import ..NEPCore.compute_Mlincomb
 
 
 
