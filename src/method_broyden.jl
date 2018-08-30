@@ -53,7 +53,7 @@ function extract_eigenpair(nep::NEPBroydenDeflatedEll1,λ)
     S=nep.S
     X=nep.X
     dd,VV = eigen(S)
-    I=indmin(abs.(dd-λ))
+    I=argmin(abs.(dd-λ))
     w=X*VV[:,I]; w=w/norm(w);
     return (λ,w);
 
@@ -70,7 +70,7 @@ function deflated_errmeasure(nep::NEPBroydenDeflatedEll1,λ,v)
     S=[nep.S v[(n0+1):(n0+p)];zeros(1,p) λ]
     X=[nep.X v[1:n0]];
     dd,VV = eigen(S)
-    I=indmin(abs.(dd-λ))
+    I=argmin(abs.(dd-λ))
     w=X*VV[:,I];
 
     return norm(compute_Mlincomb(nep.orgnep,λ,w))/norm(w)
@@ -214,7 +214,7 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
             errhist[j]=errmeasure(λ,vv+nep.X*((λ*II-nep.S)\uu),  F);
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
-                d=norm(CH*x[1:n]-flipdim(eye(TT,1+p,1),1));
+                d = norm(CH*x[1:n] - reverse(eye(TT,1+p,1), dims = 1))
                 @ifd(println(j," Normrk=",norm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
 
@@ -326,7 +326,7 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
             #errhist[j]=deflated_errmeasure(nep,x[n+p+1],x[1:n+p])
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
-                d=norm(CH*x[1:n]-flipdim(eye(TT,1+p,1),1));
+                d = norm(CH*x[1:n] - reverse(eye(TT,1+p,1), dims = 1))
                 @ifd(println(j," Normrk=",norm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
             #println(j," Normf=",norm(F), " λ=",xp[n+p+1]);
@@ -503,12 +503,12 @@ function broyden_T(::Type{TT},nep::NEP;
             #errhist[j]=norm(rkp);
             #errhist[j]=norm(rk)/norm(v+(X/(λ*II-S))*u);
             if (mod(j,print_error_every)==0)
-                d=norm(CH*v-flipdim(eye(TT,1+p,1),1));
+                d = norm(CH*v - reverse(eye(TT,1+p,1), dims = 1))
                 @ifd(println(j," err[j]=",errhist[j], " λ=",λ, " structure deviation=",d));
             end
 
             #if (d>1e-10)
-            #    println(CH*v-flipdim(eye(1+p,1),1))
+            #    println(CH*v - reverse(eye(1+p,1), dims = 1))
             #end
 
 
@@ -642,7 +642,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
 
 
         @ifd(println("."));
-        x=V[:,indmin(abs.(d))];
+        x=V[:,argmin(abs.(d))];
 
 
         if (TT <: Real)
@@ -757,7 +757,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         vm=vm/norm(vm[1:n]) # Normalize
         @ifd(println("Found an eigval ",k,":",λm));
         #println("Quality of eigval guess:", abs(λ0-λ1)/abs(λ1))
-        #I=indmin(abs.(λv-λ1))
+        #I=argmin(abs.(λv-λ1))
         #println("Best guess distance:", abs(λv[I]-λ1)/abs(λ1))
         #println("It was ",λv[I])
         #println(" not   ",λ0)
@@ -865,7 +865,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         # Step 6
         MM=[M1 U1; X'+σ*S'*X' S'*(X'*X)];
         d,V = eigen(MM)
-        x=V[:,indmin(abs.(d))];
+        x=V[:,argmin(abs.(d))];
 
         # Not in MS yet:
         # Orthogonalize
@@ -952,7 +952,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         vm=vm/β # Normalize
         println("Found an eigval ",k,":",λm);
         #println("Quality of eigval guess:", abs(λ0-λ1)/abs(λ1))
-        #I=indmin(abs.(λv-λ1))
+        #I=argmin(abs.(λv-λ1))
         #println("Best guess distance:", abs(λv[I]-λ1)/abs(λ1))
         #println("It was ",λv[I])
         #println(" not   ",λ0)

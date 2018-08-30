@@ -8,19 +8,19 @@
 Sum of products of matrices and functions (SPMF)
 """
 function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{ComplexF64,2},Array{Float64,2}}, Km, Kp, pre_Schur_fact::Bool)
-    Ix = speye(ComplexF64,nx,nx)
-    Iz = speye(ComplexF64,nz,nz)
+    Ix = sparse(ComplexF64(1)I, nx, nx)
+    Iz = sparse(ComplexF64(1)I, nz, nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + sparse(Diagonal(vec(K)))
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
-    A = Array{SparseMatrixCSC}(3+2*nz)
+    A = Array{SparseMatrixCSC}(undef, 3+2*nz)
     A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(ComplexF64,2*nz, 2*nz) )
     A[2] = hvcat((2,2), Q1, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
     A[3] = hvcat((2,2), Q2, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
 
-    f = Array{Function}(3+2*nz)
-    f[1] = λ -> eye(ComplexF64,size(λ,1),size(λ,2))
+    f = Array{Function}(undef, 3+2*nz)
+    f[1] = λ -> Matrix{ComplexF64}(I, size(λ,1),size(λ,2))
     f[2] = λ -> λ
     f[3] = λ -> λ^2
 
@@ -53,14 +53,14 @@ end
 # OBS: R' = nz * Rinv, as noted in Ringh between (2.8) and Remark 1
 function generate_R_matvecs(nz::Integer)
     # The scaled FFT-matrix R
-    p = (nz-1)/2;
-    bb = exp.(-2im*pi*((1:nz)-1)*(-p)/nz);  # scaling to do after FFT
+    p = (nz-1)/2
+    bb = exp.(-2im*pi*((1:nz).-1)*(-p)/nz)  # scaling to do after FFT
     function R(X) # Note! Only works for vectors or one-dim matrices
-        return flipdim(bb .* fft(vec(X)), 1);
+        return reverse(bb .* fft(vec(X)), dims = 1)
     end
     bbinv = 1 ./ bb # scaling to do before inverse FFT
     function Rinv(X)
-        return ifft(bbinv .* flipdim(vec(X),1));
+        return ifft(bbinv .* reverse(vec(X), dims = 1))
     end
     return R, Rinv
 end
@@ -71,25 +71,25 @@ end
 # Part of defining the P-matrix, see above, Jarlebring-(2.4) and Ringh-(2.8)(2.3)
 function generate_S_function(nz::Integer, hx, Km, Kp)
     # Constants from the problem
-    p = (nz-1)/2;
-    d0 = -3/(2*hx);
-    b = 4*pi*1im * (-p:p);
-    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+    p = (nz-1)/2
+    d0 = -3/(2*hx)
+    b = 4*pi*1im * (-p:p)
+    cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
+    cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
 
     # Note: γ should be scalar or matrix (not vector)
     betaM = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cM[j]*eye(ComplexF64,size(γ,1))
+        return γ^2 + b[j]*γ + Matrix{ComplexF64}(cM[j]*I, size(γ,1), size(γ,1))
     end
     betaP = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cP[j]*eye(ComplexF64,size(γ,1))
+        return γ^2 + b[j]*γ + Matrix{ComplexF64}(cP[j]*I, size(γ,1), size(γ,1))
     end
 
     sM = function(γ, j::Integer)
-        return  1im*sqrtm_schur_pos_imag(betaM(γ, j)) + d0*eye(ComplexF64, size(γ,1))
+        return  1im*sqrtm_schur_pos_imag(betaM(γ, j)) + Matrix{ComplexF64}(d0*I, size(γ,1), size(γ,1))
     end
     sP = function(γ, j::Integer)
-        return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + d0*eye(ComplexF64, size(γ,1))
+        return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + Matrix{ComplexF64}(d0*I, size(γ,1), size(γ,1))
     end
 
 
@@ -195,7 +195,7 @@ end
             k_bar = mean(K)
             K_scaled = K-k_bar*ones(ComplexF64,nz,nx)
 
-            eye_scratch_pad = speye(ComplexF64, nz, nz)
+            eye_scratch_pad = sparse(ComplexF64(1)I, nz, nz)
 
             A = function(λ, d=0)
                 if(d == 0)
@@ -223,8 +223,8 @@ end
             d2 = -1/(2*hx)
 
             b = 4*pi*1im * (-p:p)
-            cM = Km^2 - 4*pi^2 * ((-p:p).^2)
-            cP = Kp^2 - 4*pi^2 * ((-p:p).^2)
+            cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
+            cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
             cMP = vcat(cM, cP)
 
             R, Rinv = generate_R_matvecs(nz)
@@ -321,12 +321,12 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
             end
         end
 
-        #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+        #Multiplication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         y2_temp::Array{ComplexF64,1} =
-            (D[:,1] + nep.d0) .* [nep.Rinv(V2[1:nz,1]);
-                                  nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
+            (D[:,1] .+ nep.d0) .* [nep.Rinv(V2[1:nz,1]);
+                                   nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
         for jj = 2:na
-            #Multpilication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
+            #Multiplication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
             y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
                                    nep.Rinv(V2[nz+1:2*nz,jj])] *a[jj]
         end
@@ -455,15 +455,15 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     function construct_WEP_schur_complement(nep::WEP_FD, λ::Union{ComplexF64,Float64})
         nz = nep.nz
         nx = nep.nx
-        Inz = speye(ComplexF64,nz,nz)
-        Inx = speye(ComplexF64,nx,nx)
+        Inz = sparse(ComplexF64(1)I, nz, nz)
+        Inx = sparse(ComplexF64(1)I, nx, nx)
 
         P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
-        Pinv_minus = Array{ComplexF64}(nz,nz)
-        Pinv_plus = Array{ComplexF64}(nz,nz)
+        Pinv_minus = Array{ComplexF64}(undef, nz, nz)
+        Pinv_plus = Array{ComplexF64}(undef, nz, nz)
         e = zeros(ComplexF64,nz)
         for i = 1:nz
-            e[:] = 0
+            e[:] .= 0
             e[i] = 1
             Pinv_minus[:,i] = P_inv_m(e)
             Pinv_plus[:,i] = P_inv_p(e)
@@ -516,9 +516,8 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
     d0 = -3/(2*hx);
     a = ones(ComplexF64,nz);
     b = 4*pi*1im * (-p:p);
-    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
-
+    cM = Km^2 .- 4*pi^2 * ((-p:p).^2);
+    cP = Kp^2 .- 4*pi^2 * ((-p:p).^2);
 
     function betaM(γ)
         return a*γ^2 + b*γ + cM
@@ -529,11 +528,11 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
     function sM(γ::Number)
         bbeta = betaM(γ)
-        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta)+d0;
+        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ d0
     end
     function sP(γ::Number)
         bbeta = betaP(γ)
-        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta)+d0;
+        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ d0
     end
 
     # BUILD THE INVERSE OF THE FOURTH BLOCK P

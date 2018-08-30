@@ -41,7 +41,7 @@ function generate_fd_boundary_mat( nx, nz, hx, hz)
     e1[1] = 1
     en = spzeros(nx,1)
     en[end] = 1
-    Iz = speye(nz,nz)
+    Iz = sparse(1.0I, nz, nz)
     C1 = [kron(e1,Iz) kron(en,Iz)]/(hx^2);
 
 

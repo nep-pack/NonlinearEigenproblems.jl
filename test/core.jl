@@ -48,18 +48,17 @@ my_test_NEP = TestNEP([1 2; 3 4])
 
 end
 
-
 @testset "Types (sumnep)" begin
-    A0=ones(3,3);
-    A1=eye(3,3);
-    nep1=DEP([A0,A1])
-    B0=flipdim(eye(3,3),1)
-    B1=3*eye(3,3)+ones(3,3);
-    nep2=PEP([B0,B1]);
-    λ=1+1im;
-    sumnep=SumNEP(nep1,nep2);
-    M=compute_Mder(sumnep,λ);
-    M1=compute_Mder(nep1,λ);
-    M2=compute_Mder(nep2,λ);
-    @test (M1+M2)≈M
+    A0 = ones(3, 3)
+    A1 = Matrix(1.0I, 3, 3)
+    nep1 = DEP([A0,A1])
+    B0 = reverse(Matrix(1.0I, 3, 3), dims = 1)
+    B1 = Matrix(3.0I, 3, 3) + ones(3,3)
+    nep2 = PEP([B0,B1])
+    λ = 1+1im
+    sumnep = SumNEP(nep1, nep2)
+    M = compute_Mder(sumnep, λ)
+    M1 = compute_Mder(nep1, λ)
+    M2 = compute_Mder(nep2, λ)
+    @test (M1+M2) ≈ M
 end

@@ -3,7 +3,7 @@
 # Sylvester based preconditioner for the Waveguide eigenvalue problem
 # Implementing the Preconditioner in the optimized way described in Ringh et al.
 
-    """
+"""
     WEP_preconditioner
  A wrapper struct to be able to use the preconditioner. Update in GMRES for Julia v0.6 remove possibility to use a function directly.
 """
@@ -32,19 +32,19 @@
 
 
 
-    """
+# Ringh - Algorithm 2, step 10
+"""
     wep_generate_preconditioner(nep::WEP_FD, N::Integer, σ)
  Given a nep of type WEP_FD, the number of domains in z-direction N, and a fixed shift σ,\\
  this computes a functor (struct acting like a function) that acts as a Preconditioner for the WEP.
 """
-# Ringh - Algorithm 2, step 10
     function wep_generate_preconditioner(nep::WEP_FD, N::Integer, σ)
         M = generate_smw_matrix(nep, N, σ)
         return WEP_preconditioner(nep, M, σ)
     end
 
 
-    """
+"""
     generate_smw_matrix( nep::WEP_FD, N::Integer, σ)
  Given a nep of type WEP_FD, this computes the Sylvester-SMW matrix with N domains in z-direction\\
  and for fixed shift σ.
@@ -81,7 +81,7 @@
     end
 
 
-    """
+"""
     solve_smw(nep::WEP_FD, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
  Given a nep of type WEP_FD, an SMW-system matrix M computed with shift σ, and a right hand side C,\\
  This computes the solution to the SMW-matrix equation.
@@ -114,7 +114,7 @@
 
 #FFT diagonalization and solution to WEP matrix equation.
 #Ringh - Section 5.3
-    """
+"""
     solve_wg_sylvester_fft( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scratch_pad_for_transpose )
  Solves the Sylvester equation for the WEP, with C as right hand side.
  OBS: Writes the solution to the varaible C.
@@ -132,7 +132,7 @@ function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scr
     #eigenvalues of A
     v=zeros(ComplexF64, nz);   v[1]=-2;    v[2]=1;     v[nz]=1;   v=v/(hz^2);
     w=zeros(ComplexF64, nz);   w[2]=1;     w[nz]=-1;   w=w*(λ/hz);
-    D=fft(v+w)+alpha;
+    D = fft(v+w) .+ alpha
 
     # eigenvalues of B = Dxx
     S = -((4+0.0im)/hx^2) * sin.(pi*(1:nx)/(2*(nx+1))).^2
@@ -140,20 +140,20 @@ function solve_wg_sylvester_fft!( C, λ, k_bar, hx, hz, scratch_pad_for_FFT, scr
 
 
     # change variables
-    ctranspose!(scratch_pad_for_transpose, C)  # scratch_pad_for_transpose = C'
-    ctranspose!(C, Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )) # C = (Wh(C'))'
+    adjoint!(scratch_pad_for_transpose, C)  # scratch_pad_for_transpose = C'
+    adjoint!(C, Wh(scratch_pad_for_transpose, scratch_pad_for_FFT )) # C = (Wh(C'))'
     Vh!( C )  #In effect: C = Vh( Wh(C')' )
 
     # solve the diagonal matrix equation
-    scratch_pad_for_Z[:,:] = 0.0im
+    scratch_pad_for_Z[:,:] .= 0.0im
     for k=1:nx
-        scratch_pad_for_Z[:,k] += C[:,k]./(D+S[k])
+        scratch_pad_for_Z[:,k] += C[:,k] ./ (D .+ S[k])
     end
 
 
     # change variables
-    ctranspose!(scratch_pad_for_transpose, scratch_pad_for_Z)  # scratch_pad_for_transpose = Z'
-    ctranspose!(C, W(scratch_pad_for_transpose, scratch_pad_for_FFT ))  #C = (W(Z'))'
+    adjoint!(scratch_pad_for_transpose, scratch_pad_for_Z)  # scratch_pad_for_transpose = Z'
+    adjoint!(C, W(scratch_pad_for_transpose, scratch_pad_for_FFT ))  #C = (W(Z'))'
     V!( C ) #In effect: C = V( W(Z')' )
 
     return C
@@ -168,14 +168,14 @@ end
     # Compute the action of the eigenvectors of A = Dzz + Dz + c*I
         nx::ComplexF64 = size(X,2)
         fft!(X,1)#/sqrt(nx)
-        scale!(X, (1+0.0im)/sqrt(nx))
+        rmul!(X, (1+0.0im)/sqrt(nx))
     end
 
     function Vh!(X::Array{ComplexF64,2})
     # Compute the action of the transpose of the eigenvectors of A = Dzz + Dz + c*I
         nx::ComplexF64 = size(X,2)
         ifft!(X,1)#* sqrt(nx)
-        scale!(X, (1+0.0im)*sqrt(nx))
+        rmul!(X, (1+0.0im)*sqrt(nx))
     end
 
     function W(X::Array{ComplexF64,2}, scratch_pad::Array{ComplexF64,2})
@@ -186,7 +186,7 @@ end
         nz::ComplexF64 = size(X,1)
         WX::Array{ComplexF64,2} = F(X,scratch_pad)-Fh(X,scratch_pad)
 
-        scale!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
+        rmul!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
         return WX
 
     end
@@ -199,7 +199,7 @@ end
         nz::ComplexF64 = size(X,1)
         WX::Array{ComplexF64,2} = F(X,scratch_pad)-Fh(X,scratch_pad)
 
-        scale!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
+        rmul!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
         return WX
 
     end
@@ -210,7 +210,7 @@ end
         m=size(v,2)
         n=size(v,1) + 1
 
-        scratch_pad[:,:] = 0.0im
+        scratch_pad[:,:] .= 0.0im
         scratch_pad[2:n,:] = v
         fft!(scratch_pad,1)
         return scratch_pad[2:n,:]
@@ -222,7 +222,7 @@ end
         m=size(v,2)
         n=size(v,1) + 1
 
-        scratch_pad[:,:] = 0.0im
+        scratch_pad[:,:] .= 0.0im
         scratch_pad[2:n,:] = v
         ifft!(scratch_pad,1)
         return scratch_pad[2:n,:]*2*n
@@ -234,7 +234,7 @@ end
 ###########################################################
 # Sylvester SMW
 # Ringh - Section 4
-    """
+"""
     generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm, Pp, K)
  Computes the SMW matrix for the Sylvester SMW on rectangular domains, with n points in z-direction, n+4 points in x-direction,\\
  N domains in z-direction, N+4 domains in x-direction, and fixed shift.\\
@@ -256,7 +256,7 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, 
         return (i-1)*L+1:i*L
     end
     JJ = function(j::Integer) #x-direction, different if boundary or interior
-        return ((j-3)*L+1:(j-2)*L) + 2
+        return ((j-3)*L+1:(j-2)*L) .+ 2
     end
     JJ_2 = function(j::Integer)
         return (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
@@ -278,29 +278,29 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, 
 
     for k=1:mm
 
-        i,j = k2ij(k);
+        i,j = k2ij(k)
 
         # Ek tilde
-        EEk[:,:] = 0.0im
-        if (j==1)
+        EEk[:,:] .= 0.0im
+        if j==1
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
-            ek[:] = 0.0im
-            ek[II(i)] = dd1
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd1
             EEk[:, 1] += Pm(ek)
-        elseif (j==2)
+        elseif j==2
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
-            ek[:] = 0.0im
-            ek[II(i)] = dd2
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd2
             EEk[:, 1] += Pm(ek)
-        elseif (j==N+4)
+        elseif j==N+4
             EEk[II(i),JJ_2(j)] = K[II(i),JJ_2(j)]
-            ek[:] = 0.0im
-            ek[II(i)] = dd1
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd1
             EEk[:, nx] += Pp(ek)
-        elseif (j==N+3)
+        elseif j==N+3
             EEk[II(i), JJ_2(j)] = K[II(i), JJ_2(j)]
-            ek[:] = 0.0im
-            ek[II(i)] = dd2
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd2
             EEk[:, nx] += Pp(ek)
         else
             EEk[II(i), JJ(j)] = K[II(i), JJ(j)]
@@ -322,7 +322,7 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, 
         end
     end
 
-    M += eye(ComplexF64, mm)
+    M += Matrix{ComplexF64}(I, mm, mm)
 
     return factorize(M)
 
@@ -330,7 +330,7 @@ end
 
 
 
-    """
+"""
     solve_smw( M, C, Linv!::Function, dd1, dd2, Pm, Pp, K)
  Solves the matrix equation SMW system and computes the solution, on rectangular domains.\n
  With SMW-system matrix M, right hand side C, and matrix equation solver Linv! which was used to compute M.
@@ -352,7 +352,7 @@ function solve_smw( M, C::Array{ComplexF64,2}, Linv!::Function, dd1, dd2, Pm::Fu
         return (i-1)*L+1:i*L
     end
     JJ = function(j::Integer) #x-direction, different if boundary or interior
-        return ((j-3)*L+1:(j-2)*L) + 2
+        return ((j-3)*L+1:(j-2)*L) .+ 2
     end
     JJ_2 = function(j::Integer)
         return (j==1)*1 + (j==2)*2 + (j==N+3)*(n+3) + (j==N+4)*(n+4)
@@ -388,28 +388,28 @@ function solve_smw( M, C::Array{ComplexF64,2}, Linv!::Function, dd1, dd2, Pm::Fu
     ek::Array{ComplexF64,1} = zeros(ComplexF64, nz);
     for k=1:mm
 
-        i, j = k2ij(k);
+        i, j = k2ij(k)
 
         # Ek tilde implicitly created
-        if (j==1)
+        if j==1
             Y[II(i), 1] += alpha[k]*K[II(i), 1]
-            ek[:] = 0.0im
-            ek[II(i)] = dd1
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd1
             Y[:, 1] += alpha[k]*Pm(ek)
-        elseif (j==2)
+        elseif j==2
             Y[II(i), 2] += Y[II(i),2] + alpha[k]*K[II(i), 2]
-            ek[:] = 0.0im
-            ek[II(i)] = dd2
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd2
             Y[:, 1] += alpha[k]*Pm(ek)
-        elseif (j==N+4)
+        elseif j==N+4
             Y[II(i), nx] += alpha[k]*K[II(i), nx]
-            ek[:] = 0.0im
-            ek[II(i)] = dd1
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd1
             Y[:, nx] += alpha[k]*Pp(ek)
-        elseif (j==N+3)
+        elseif j==N+3
             Y[II(i), nx-1] += alpha[k]*K[II(i), nx-1]
-            ek[:] = 0.0im
-            ek[II(i)] = dd2
+            ek[:] .= 0.0im
+            ek[II(i)] .= dd2
             Y[:, nx] += alpha[k]*Pp(ek)
         else
             Y[II(i),JJ(j)] += alpha[k]*K[II(i), JJ(j)]

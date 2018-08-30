@@ -299,7 +299,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
         end
 
         # Return type is a vector of correct type
-        λ_star::Array{T,1} = Array{T,1}(1)
+        λ_star::Array{T,1} = Array{T,1}(undef, 1)
         if (T <: Real) && (typeof(λ_iter) != T) && (imag(λ_iter)/real(λ_iter) < TOL)
             # Looking for a real quantity (AND) iterate is not real (AND) complex part is negligible
             λ_star[1] = real(λ_iter) # Truncate to real

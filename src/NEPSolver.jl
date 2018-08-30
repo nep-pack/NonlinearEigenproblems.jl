@@ -113,7 +113,7 @@ Executes z if displaylevel>0.
           g=v-ρ*x;
           aa=[x -g q]'*[v -A(g) A(q)]; aa=(aa+aa')/2;
           mm=[x -g q]'*[x -g q]; mm=(mm+mm')/2;
-          D,V = eigen(aa,mm); ii=indmin(abs.(D));
+          D,V = eigen(aa,mm); ii=argmin(abs.(D));
           ρ=D[ii]; δ=V[:,ii]; q=[-g q]*δ[2:end];
           x=δ[1]*x+q; x/=norm(x); v=A(x); k+=1
           err=errmeasure(λ,x)
@@ -125,10 +125,9 @@ Executes z if displaylevel>0.
         σ = closest_to(λ_vec::Array{T,1},  λ::T) where {T<:Number}
 
     Finds the value `σ` in the vector `λ_vec` that is closes to the value `λ`.
-
     """
-    function closest_to(λ_vec::Array{T,1},  λ::T) where {T<:Number}
-        idx = indmin(abs.(λ_vec - λ))
+    function closest_to(λ_vec::Array{T,1}, λ::T) where {T<:Number}
+        idx = argmin(abs.(λ_vec .- λ))
         return λ_vec[idx]
     end
 
