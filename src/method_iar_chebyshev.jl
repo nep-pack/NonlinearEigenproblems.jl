@@ -428,7 +428,7 @@ function DD0_mat_fun(T,f,S,σ)
     # Notice that f[S,0] is defined also for S singular.
     # If S is nonsingular it holds f[S,0]=S^(-1)-(f(S)-f(0))
     # Example:
-    # n=10; S=rand(n,n); T=ComplexF64; f=x->expm(x)+x^2
+    # n=10; S=rand(n,n); T=ComplexF64; f=x->exp(x)+x^2
     # Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
     # norm(Y1-Y2)
 

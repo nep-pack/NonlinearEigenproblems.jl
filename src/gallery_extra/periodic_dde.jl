@@ -213,7 +213,7 @@ function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
     if size(S,1)==1
         F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-nep.tau*S[1,1])-Y*S[1,1])
     else
-        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-full(nep.tau*S))-Y*S)
     end
 
 
@@ -234,7 +234,7 @@ end
 #    n=size(nep,1);
 #    # We are using (non-trivial) fact that
 #    # the MM satisfies an ODE (as well as the action)
-#    F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+#    F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-full(nep.tau*S))-Y*S)
 #    Y0=V;
 #    t0=0;
 #    disconts_and_tau=[nep.disconts;nep.tau];

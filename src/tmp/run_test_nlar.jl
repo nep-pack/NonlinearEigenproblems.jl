@@ -10,7 +10,7 @@ nep = nep_gallery("dep0_sparse",200);
 t=1;
 minusop= S-> -S
 oneop= S -> eye(S)
-expmop= S -> expm(full(-t*S))
+expmop= S -> exp(full(-t*S))
 fi=[minusop, oneop, expmop];
 
 nep1=SPMF_NEP([speye(size(nep,1)),nep.A[1],nep.A[2]],fi)

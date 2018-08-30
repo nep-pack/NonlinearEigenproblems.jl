@@ -23,7 +23,7 @@ using Test
 
     minusop= S-> -S
     oneop= S -> eye(S)
-    expmop= S -> expm(full(-t*S))
+    expmop= S -> exp(full(-t*S))
     fi=[minusop, oneop, expmop];
 
     nep1=SPMF_NEP([speye(n),A0,A1],fi)
@@ -38,7 +38,7 @@ using Test
         # Check if prefactorize with Schur gives the same result
         @test norm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
         # Check compute_MM
-        @test norm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*expm(-t*S)))<sqrt(eps())
+        @test norm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*exp(-t*S)))<sqrt(eps())
 
 
         # Check if compute_MM is correct (by comparing against diagonalization of S).
@@ -65,12 +65,12 @@ using Test
         # Check compute_Mder_from_MM()
         λ=2
         T1=compute_Mder_from_MM(nep1,λ,1)
-        T2=-1*speye(n)-t*A1*expm(-t*λ)
+        T2=-1*speye(n)-t*A1*exp(-t*λ)
         @test norm(T1-T2)<sqrt(eps())
 
         λ=2
         T3=compute_Mder_from_MM(nep1,λ,2)
-        T4=t^2*A1*expm(-t*λ)
+        T4=t^2*A1*exp(-t*λ)
         @test norm(T3-T4)<sqrt(eps())
 
 

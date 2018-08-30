@@ -40,7 +40,7 @@ function gallery_dep_distributed()
         0.6    1.6    1.7];
     idop= S -> S
     oneop= S -> eye(size(S,1),size(S,2))
-    f1= S -> expm(-full(S))
+    f1= S -> exp(-full(S))
     N=10;
     f2= S -> distributed_kernel_gauss_legendre(full(S),N)
     #N=1000;
@@ -51,7 +51,7 @@ end
 
 function distributed_kernel_trapezoidal(S,N0)
 
-    function fS(x); return expm(x*S)*(exp((x+0.5)^2)-exp(1/4)); end
+    function fS(x); return exp(x*S)*(exp((x+0.5)^2)-exp(1/4)); end
 
     F=zeros(eltype(S),size(S,1),size(S,2));
 
@@ -79,17 +79,17 @@ function distributed_kernel_gauss_legendre(S,N)
     accumulative_expm_comp=true
     for i=1:length(xv)
         if (accumulative_expm_comp)
-            # An accumulative way to compute E=expm(xv[i]*S) which is
+            # An accumulative way to compute E=exp(xv[i]*S) which is
             # faster due to the fact that scaling and squaring
-            # for expm((xv[i]-xv[i-1])*S) is faster than
-            # expm(xv[i]*S)
+            # for exp((xv[i]-xv[i-1])*S) is faster than
+            # exp(xv[i]*S)
             if (i==1)
-                E=expm(xv[1]*S);
+                E=exp(xv[1]*S);
             else
-                E=E*expm((xv[i]-xv[i-1])*S)
+                E=E*exp((xv[i]-xv[i-1])*S)
             end
         else
-            E=expm(xv[i]*S);
+            E=exp(xv[i]*S);
 
         end
 

@@ -86,7 +86,7 @@ julia> compute_Mlincomb(nep,λ,v)
         n=size(nep,1);
         # We are using (non-trivial) fact that
         # the MM satisfies an ODE (as well as the action)
-        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-full(nep.tau*S))-Y*S)
         Y0=V;
         YY=ode_rk4(F, 0,nep.tau,nep.N,Y0);
         return YY-Y0

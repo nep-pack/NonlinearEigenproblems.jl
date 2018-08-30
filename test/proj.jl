@@ -29,7 +29,7 @@ projtest=@testset "Projected problems" begin
 
             minusop= S-> -S
             oneop= S -> eye(S)
-            expmop= S -> expm(full(-t*S))
+            expmop= S -> exp(full(-t*S))
             fi=[minusop, oneop, expmop];
 
             nep=SPMF_NEP([eye(n),A0,A1],fi)

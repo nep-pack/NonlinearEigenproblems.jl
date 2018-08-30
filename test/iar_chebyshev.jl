@@ -147,7 +147,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
             n=1000; I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(I, J, rand(3*n-2)); A1=sparse(I, J, rand(3*n-2))
-            nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ,λ->eye(λ),λ->expm(-λ)])
+            nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ,λ->eye(λ),λ->exp(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
             (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)

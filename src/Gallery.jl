@@ -304,7 +304,7 @@ module Gallery
           tau=1;
           quadfun= S -> S^2;
           constfun= S -> eye(S);
-          expfun= S -> expm(-tau*Matrix(S));
+          expfun= S -> exp(-tau*Matrix(S));
 
           AA=[-speye(A0),A0,A1]
           fi=[quadfun,constfun,expfun]
@@ -320,7 +320,7 @@ module Gallery
              -1.1000    0.9000    1.2000    0.5000
               0.5000    0.2000   -1.6000   -1.3000
               0.7000    0.4000   -0.4000         0];
-          return SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+          return SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->exp(-λ)])
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem
