@@ -133,7 +133,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
     # Recommend to make a copy of V and call compute_Mlincomb! if function not available
     function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})
-        warn("It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::"*string(typeof(nep))*",λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))")
+        @warn "It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::$(typeof(nep)),λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))"
         error("No compute_Mlincomb(nep,λ,V) implemented")
     end
     compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=

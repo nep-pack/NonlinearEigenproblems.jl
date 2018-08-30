@@ -46,7 +46,7 @@ function shift_and_scale(orgnep::PEP;shift=0,scale=1)
     At=copy(shift*scale*orgnep.A); # Allocate correct type (not so fast)
     m=size(At,1)-1
     for j=0:m
-        AA=zeros(At[j+1])
+        AA = zero(At[j+1])
         for i=j:m
             factor=((scale^j)*(shift^(i-j))*factorial(i)/factorial(i-j))/factorial(j)
             AA+=orgnep.A[i+1]*factor;
@@ -60,7 +60,8 @@ end
 
 # A shift and rescale of a DEP is DEP where the matrix coefficients and the delays are rescaled and another matrix coefficient with delay zero is added.
 function shift_and_scale(orgnep::DEP;shift=0,scale=1)
-    return DEP([broadcast(*,orgnep.A,exp.(-orgnep.tauv*shift)/scale); [-shift/scale*eye(orgnep.A[1])] ],[orgnep.tauv*scale; 0])
+    J = Matrix{eltype(orgnep.A[1])}(I, size(orgnep.A[1]))
+    return DEP([broadcast(*,orgnep.A,exp.(-orgnep.tauv*shift)/scale); [-shift/scale * J] ],[orgnep.tauv*scale; 0])
 end
 
 

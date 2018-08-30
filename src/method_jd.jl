@@ -45,7 +45,7 @@ function jd(::Type{T},
 
     n = size(nep,1)
     if (maxit > n)
-        warn("maxit = ", maxit, " is larger than size of NEP = ", n,". Setting maxit = size(nep,1)")
+        @warn "maxit = $maxit is larger than size of NEP = $n. Setting maxit = size(nep,1)"
         maxit = n
     end
 

@@ -586,7 +586,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
     time0=time_ns();
     n=size(nep,1);
     if (pmax>size(nep,1))
-        warn("Too many eigenvalues requested. Reducing")
+        @warn "Too many eigenvalues requested. Reducing"
         pmax=size(nep,1);
     end
     σ=TT(σ);
@@ -781,7 +781,7 @@ if (abs(imag(λm))>tol*10 && addconj)
     @ifd(println("Adding conjugate ",k,
                  " norm(res)=",rnorm));
     if (rnorm>tol*10)
-        warn("Trying to add a conjugate pair which does not have a very small residual.");
+        @warn "Trying to add a conjugate pair which does not have a very small residual."
     end
 
     h=X'*v1;
@@ -826,7 +826,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
     time0=time_ns();
     n=size(nep,1);
     if (pmax>2*size(nep,1))
-        warn("Too many eigenvalues requested. Reducing")
+        @warn "Too many eigenvalues requested. Reducing"
         pmax=size(nep,1);
     end
     σ=ComplexF64(σ);
@@ -980,7 +980,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
             println("Adding conjugate ",k,
                     " norm(res)=",rnorm);
             if (rnorm>tol*10)
-                warn("Trying to add a conjugate pair which does not have a very small residual.");
+                @warn "Trying to add a conjugate pair which does not have a very small residual."
             end
 
             h=X'*v1;

@@ -136,7 +136,7 @@ function nlar(::Type{T},
         local σ::T = T(λ0); #Initial pole
 
         if (maxit > size(nep,1))
-            warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
+            @warn "Maximum iteration count maxit=$maxit larger than problem size n=$(size(nep,1)). Reducing maxit."
             maxit = size(nep,1);
         end
 

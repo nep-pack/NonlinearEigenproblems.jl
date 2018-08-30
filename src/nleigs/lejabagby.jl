@@ -7,7 +7,7 @@ forceInf is a positive integer, the first forceInf poles in b will be infinity.
 """
 function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVector{CT}, m::Int, keepA::Bool=false, forceInf::Int=0) where {T<:Real, CT<:Complex{T}}
     if minimum(abs.(B)) < 1e-9
-        warn("There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability.")
+        @warn "There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability."
     end
 
     a = [A[1]]

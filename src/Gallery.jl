@@ -320,7 +320,7 @@ module Gallery
              -1.1000    0.9000    1.2000    0.5000
               0.5000    0.2000   -1.6000   -1.3000
               0.7000    0.4000   -0.4000         0];
-          return SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->exp(-λ)])
+          return SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ^2, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem
@@ -353,26 +353,24 @@ module Gallery
           # It is also a benchmark example in DDE-BIFTOOL
 
 
-          pars= [1/2; -1; 1; 2.34; 0.2; 0.2 ; 1.5]+0im;
-          kappa= pars[1];
-          beta=pars[2];
-          A=[0 pars[3]; pars[4] 0];
+          pars = [1/2; -1; 1; 2.34; 0.2; 0.2 ; 1.5] .+ 0im
+          kappa = pars[1]
+          beta = pars[2]
+          A = [0 pars[3]; pars[4] 0]
 
-          x=[0;0];  # The zero (trivial) stationary solution
+          x = [0; 0]  # The zero (trivial) stationary solution
 
           # A non-trivial stationary solution
           #x=[3.201081590416643561697725111745656884148241428177442574927999582405266342752249e-01
           #   5.096324796647208606096018689631125587762848405395086474417800152349531876959548e-01]
 
+          tauv = [0;0.2;0.2;1.5]
 
-          tauv=[0;0.2;0.2;1.5];
-
-          A0=-kappa*eye(2);
-          A1=A[2,1]*[0 0; (1-tanh(x[2])^2) 0];
-          A2=A[1,2]*[0 (1-tanh(x[1])^2); 0 0];
-          A3=beta * diagm(0 => [(1-tanh(x[1])^2), (1-tanh(x[2])^2)])
-          dep=DEP([A0, A1,   A2, A3],tauv);
-
+          A0 = -kappa * Matrix(1.0I, 2, 2)
+          A1 = A[2,1] * [0 0; (1-tanh(x[2])^2) 0]
+          A2 = A[1,2] * [0 (1-tanh(x[1])^2); 0 0]
+          A3 = beta * diagm(0 => [(1-tanh(x[1])^2), (1-tanh(x[2])^2)])
+          return DEP([A0, A1, A2, A3], tauv)
        elseif (name == "nlevp_native_gun")
           gunbase=joinpath(dirname(@__FILE__()), "gallery_extra",
             "converted_nlevp", "gun_")

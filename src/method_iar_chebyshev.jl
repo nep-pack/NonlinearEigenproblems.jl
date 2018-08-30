@@ -82,7 +82,7 @@ function iar_chebyshev(
     end
 
     if ( σ!=zero(T) || γ!=one(T) ) && compute_y0_method<:Union{ComputeY0ChebDEP,ComputeY0ChebPEP}
-            warn("The problem will be explicitly shifted and scaled. The shift and scaling feature is not supported in the general version of iar_chebyshev.")
+            @warn "The problem will be explicitly shifted and scaled. The shift and scaling feature is not supported in the general version of iar_chebyshev."
             # TODO: use the original errmeasure and not compute_resnorm. I don't know why doesn't work
             #errmeasure=(μ,v)-> errmeasure(σ+γ*μ,v) #this is what we want but it does not work
             errmeasure=function (μ,v) compute_resnorm(nep,σ+γ*μ,v) end
@@ -142,7 +142,8 @@ function iar_chebyshev(
         if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             D,Z = eigen(H[1:k,1:k])
             VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=σ+γ./D;
+            Q=VV*Z
+            λ=σ .+ γ ./ D
             conv_eig=0;
             for s=1:k
                 err[k,s]=errmeasure(λ[s],Q[:,s]);
@@ -174,7 +175,7 @@ function iar_chebyshev(
     # eventually shift and rescale the eigenvalues if the problem was shifted and rescaled
     # TODO: we shouldn't use the exception system for this, perhaps a Bool flag is a better choice
     try
-        λ=σ_orig+γ_orig*λ
+        λ = σ_orig .+ γ_orig * λ
     catch
         # ignore
     end
@@ -243,22 +244,22 @@ function precompute_data(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     L=L*(b-a)/4
     L=inv(L[1:m,1:m]); D=vcat(zeros(1,m),L[1:m-1,:]);
 
-    fv,Av=get_fv(nep),get_Av(nep)
-    DDf=Array{Array{T,2}}(length(fv))
-    for i=1:length(fv)
-        DDs=σ*eye(T,size(D,1))+γ*D;
-        DDf[i]=γ*DD0_mat_fun(T,fv[i],DDs,σ)
+    fv, Av = get_fv(nep), get_Av(nep)
+    DDf = Array{Array{T,2}}(undef, length(fv))
+    for i = 1:length(fv)
+        DDs = Matrix{T}(σ*I, size(D,1), size(D,1)) + γ*D
+        DDf[i] = γ * DD0_mat_fun(T, fv[i], DDs, σ)
     end
-    precomp.DDf=DDf
-    return precomp;
+    precomp.DDf = DDf
+    return precomp
 end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
-    warn("The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed.")
+    @warn "The nep does not belong to the class of DEP or PEP and the function compute_y0 is not provided. Check if the nep belongs to such classes and define it accordingly or provide the function compute_y0. If none of these options are possible, the method will be based on the convertsion between Chebyshev and monomial base and may be numerically unstable if many iterations are performed."
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
     precomp=PrecomputeDataInit(ComputeY0Cheb);
 
-    precomp.P=mapslices(x->cheb2mon(T,kk,cc,x),eye(T,m+1,m+1),1)'        # P maps chebyshev to monomials as matrix vector action
-    precomp.P_inv=mapslices(x->mon2cheb(T,kk,cc,x),eye(T,m+1,m+1),1)'    # P_inv maps monomials to chebyshev as matrix vector action
+    precomp.P = mapslices(x->cheb2mon(T,kk,cc,x), Matrix{T}(I,m+1,m+1), dims = 1)'        # P maps chebyshev to monomials as matrix vector action
+    precomp.P_inv = mapslices(x->mon2cheb(T,kk,cc,x), Matrix{T}(I,m+1,m+1), dims = 1)'    # P_inv maps monomials to chebyshev as matrix vector action
     precomp.σ=σ;
     precomp.γ=γ;
     precomp.α=γ.^(0:m);
@@ -275,9 +276,9 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},X,Y,M0inv,
     Av=get_Av(nep);
 
     n,N=size(X)
-    y0=sum(broadcast(*,X,view(Tc,1:1,1:N)),2); # \sum_{i=1}^N T_{i-1}(γ) x_i
+    y0=sum(broadcast(*,X,view(Tc,1:1,1:N)), dims = 2) # \sum_{i=1}^N T_{i-1}(γ) x_i
     for j=1:length(nep.tauv) # - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
-        y0-=Av[j+1]*sum(broadcast(*,Y,view(Ttau,j:j,1:N+1)),2);
+        y0-=Av[j+1]*sum(broadcast(*,Y,view(Ttau,j:j,1:N+1)), dims = 2)
     end
     y0=lin_solve(M0inv,y0)
     return y0
@@ -307,7 +308,7 @@ function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     Tc=precomp.Tc;
     n,N=size(X);
     fv,Av=get_fv(nep),get_Av(nep)
-    y0=zeros(X)
+    y0=zero(X)
     for i=1:length(fv)
         y0+=Av[i]*X*view(precomp.DDf[i],1:N,1:N)
     end
@@ -434,8 +435,8 @@ function DD0_mat_fun(T,f,S,σ)
 
     n=size(S,1);
     A=zeros(T,2*n,2*n);
-    A[1:n,1:n]=S;
-    A[1:n,n+1:2*n]=eye(T,n,n);
-    A[n+(1:n),n+(1:n)]=σ*eye(T,n,n);
+    A[1:n, 1:n] = S
+    A[1:n, n+1:2*n] = Matrix{T}(I, n, n)
+    A[n.+(1:n), n.+(1:n)] = Matrix{T}(σ*I, n, n)
     return f(A)[1:n,n+1:end];
 end

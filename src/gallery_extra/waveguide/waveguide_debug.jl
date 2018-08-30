@@ -134,7 +134,7 @@ end
 function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Matrices FD against MATLAB ---\n")
     if(nx > 200 || nz > 200)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
     #The error observed likely comes from difference in linspace-implementation.
@@ -232,7 +232,7 @@ end
 function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Full Matrix FD SPMF against MATLAB ---\n")
     if(nx > 40 || nz > 40)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
 
@@ -348,7 +348,7 @@ end
 function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Mlincomb (Full Matrix FD WEP-native-format against SPMF) ---\n")
     if(nx > 40 || nz > 40)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
 
@@ -398,7 +398,7 @@ end
 function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Schur-complement of native-WEP against MATLAB ---\n")
     if(nx > 50 || nz > 50)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
 

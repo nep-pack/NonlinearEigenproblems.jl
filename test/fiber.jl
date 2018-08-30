@@ -51,9 +51,8 @@ fibertest=@testset "NLEVP fiber" begin
                          tol=1e-14)
 
         @test abs(sol_val-λstar)/abs(λ) < 1e-10
-        if (imag(λstar) != 0)
-            warn("Newton switches to complex although it should be real"*
-                 string(λstar))
+        if imag(λstar) != 0
+            @warn "Newton switches to complex although it should be real: $λstar"
         end
 
         println("Running quasi-newton w armijo (with eigval error as termination)");
@@ -67,9 +66,8 @@ fibertest=@testset "NLEVP fiber" begin
                           tol=tol,armijo_factor=0.5,armijo_max=10)
 
         @test abs(sol_val-λ)/abs(λ) < tol
-        if (imag(λ) != 0)
-            warn("Quasinewton switches to complex although it should be real"*
-                 string(λ))
+        if imag(λ) != 0
+            @warn "Quasinewton switches to complex although it should be real: $λ"
         end
 
         println("Running resinv");
@@ -78,9 +76,8 @@ fibertest=@testset "NLEVP fiber" begin
                      displaylevel=1,errmeasure=myerrmeasure,
                      tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
-        if (imag(λ) != 0)
-            warn("resinv switches to complex although it should be real"*
-                 string(λ))
+        if imag(λ) != 0
+            @warn "resinv switches to complex although it should be real: $λ"
         end
 
         println("Running MSLP");
@@ -89,9 +86,8 @@ fibertest=@testset "NLEVP fiber" begin
                    displaylevel=1,errmeasure=myerrmeasure,
                    tol=tol, eigsolvertype=MatlabEigSSolver)
         @test abs(sol_val-λ)/abs(λ) < tol
-        if (imag(λ) != 0)
-            warn("mslp switches to complex although it should be real:"*
-                 string(λ))
+        if imag(λ) != 0
+            @warn "mslp switches to complex although it should be real: $λ"
         end
     end
 

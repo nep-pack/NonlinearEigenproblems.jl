@@ -19,11 +19,10 @@ using Test
 import NEPCore.compute_Mlincomb
 
 
-
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
     h[:]=VV'*vv; vv[:]=vv-VV*h; g=VV'*vv; vv[:]=vv-VV*g;
-    h[] = h[]+g[]; β=norm(vv); vv[:]=vv/β; return β
+    h[:] = h[:]+g[:]; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
 abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
@@ -41,7 +40,7 @@ import NEPSolver.ComputeY0Cheb
 import NEPSolver.AbstractPrecomputeData
 import NEPSolver.precompute_data
 abstract type ComputeY0Cheb_QEP <: NEPSolver.ComputeY0Cheb end
-type PrecomputeData_QEP <: AbstractPrecomputeData
+struct PrecomputeData_QEP <: AbstractPrecomputeData
     precomp_PEP; nep_pep
 end
 
@@ -61,7 +60,7 @@ end
 # A less trivial example on how the user can provide his own compute_y0_cheb and associated procumputation
 # Here there is a naive example for the QDEP. Relate to the test "compute_y0 AS INPUT FOR QEP (naive)"
 abstract type ComputeY0Cheb_QDEP <: NEPSolver.ComputeY0Cheb end
-type PrecomputeData_QDEP <: AbstractPrecomputeData
+struct PrecomputeData_QDEP <: AbstractPrecomputeData
     precomp_PEP; precomp_DEP; nep_pep; nep_dep
 end
 function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ,σ)
@@ -70,7 +69,8 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},a,b,m,γ
     #     = (I + λ I - λ^2 I) + (-λ A0 + A1 exp(-τ λ))
     A0,A1=get_Av(nep)[2:3]
     n=size(nep,1)
-    nep_pep=PEP([eye(T,n,n), eye(T,n,n), -eye(T,n,n)]); # the PEP part is defined as
+    J = Matrix{T}(I,n,n)
+    nep_pep=PEP([J, J, -J]) # the PEP part is defined as
     nep_dep=DEP([A0,A1],[0.0,1.0]);     # the DEP part is defined as
     precomp_PEP=precompute_data(T,nep_pep,NEPSolver.ComputeY0ChebPEP,a,b,m,γ,σ);
     precomp_DEP=precompute_data(T,nep_dep,NEPSolver.ComputeY0ChebDEP,a,b,m,γ,σ);
@@ -108,24 +108,23 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @testset "DGKS" begin
         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-        @test norm(V'*V-eye(size(V,2)))<1e-6
+        @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
      end
 
      @testset "User provided doubleGS" begin
          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-         @test norm(V'*V-eye(size(V,2)))<1e-6
+         @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
       end
 
       @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-          @test norm(V'*V-eye(size(V,2)))<1e-6
+          @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
       end
 
        @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-           @test norm(V'*V-eye(size(V,2)))<1e-6
+           @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
        end
-
     end
 
     # Other types
@@ -133,7 +132,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "PEP" begin
             Random.seed!(0); n=100; d=3;
-            A = Array{Array{Float64}}(d+1)
+            A = Array{Array{Float64}}(undef, d+1)
             for j=0:d
                 A[j+1]=rand(n,n)
             end
@@ -147,7 +146,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
             n=1000; I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(I, J, rand(3*n-2)); A1=sparse(I, J, rand(3*n-2))
-            nep=SPMF_NEP([eye(n), A0, A1],[λ->-λ,λ->eye(λ),λ->exp(-λ)])
+            nep = SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
             (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)
@@ -174,7 +173,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "PEP SHIFTED AND SCALED" begin
             Random.seed!(0); n=100; d=3;
-            A = Array{Array{Float64}}(d+1)
+            A = Array{Array{Float64}}(undef, d+1)
             for j=0:d
                 A[j+1]=rand(n,n)
             end
@@ -185,7 +184,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
             Random.seed!(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
-            nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
+            nep = SPMF_NEP([A0, A1, A2], [λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> λ, λ -> λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
@@ -203,7 +202,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "PEP in SPMF format" begin
             Random.seed!(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
-            nep=SPMF_NEP([A0, A1, A2],[λ->eye(λ),λ->λ,λ->λ^2])
+            nep = SPMF_NEP([A0, A1, A2], [λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> λ, λ -> λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(n));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
@@ -223,7 +222,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
         @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
             Random.seed!(0); n=100; d=3;
-            A = Array{Array{Float64}}(d+1)
+            A = Array{Array{Float64}}(undef, d+1)
             for j=0:d
                 A[j+1]=rand(n,n)
             end

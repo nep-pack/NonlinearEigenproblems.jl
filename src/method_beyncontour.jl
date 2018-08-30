@@ -106,7 +106,7 @@ function contour_beyn(::Type{T},
     W0 = W[:,1:k]
     B = (V0'*A1*W0) / diagm(0 => S[1:k])
     if ((maximum(S)/minimum(S))>1/sqrt(eps()))
-        warn("Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver")
+        @warn "Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver"
         println(S)
     end
 

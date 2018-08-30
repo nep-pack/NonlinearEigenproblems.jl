@@ -360,31 +360,30 @@ matrices A_i, and tauv is a vector of the values tau_i
 
     #  Fetch the Av's, since they are not explicitly stored in DEPs
     function get_Av(nep::DEP)
-        local I;
-        if (issparse(nep))
-            I=speye(eltype(nep.A[1]),nep.n)
+        local J
+        if issparse(nep)
+            J = sparse(eltype(nep.A[1])(1)I, nep.n, nep.n)
         else
-            I=eye(eltype(nep.A[1]),nep.n)
+            J = Matrix{eltype(nep.A[1])}(I, nep.n, nep.n)
         end
-        return [I,nep.A...];
+        return [J, nep.A...]
     end
     #  Fetch the Fv's, since they are not explicitly stored in DEPs
     function get_fv(nep::DEP)
-        fv=Array{Function,1}(size(nep.A,1)+1);
+        fv = Array{Function,1}(undef, size(nep.A,1)+1)
         # First function is -λ
-        fv[1] =  S-> -S
+        fv[1] = S -> -S
 
         # The other functions are exp(-tauv[j]*S)
         for i=1:size(nep.A,1)
-            if (nep.tauv[i]==0) # Zero delay means constant term
-                fv[i+1]=  (S-> eye(size(S,1)))
+            if nep.tauv[i] == 0 # Zero delay means constant term
+                fv[i+1] = S -> Matrix(1.0I, size(S,1), size(S,1))
             else
-                fv[i+1]=  (S-> exp(-Matrix(nep.tauv[i]*S)))
+                fv[i+1] = S -> exp(-Matrix(nep.tauv[i] * S))
             end
-
         end
 
-        return fv;
+        return fv
     end
 
     ###########################################################
