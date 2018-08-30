@@ -72,9 +72,6 @@ function jd_betcke(::Type{T},
     if (projtype != :Galerkin) && (inner_solver_method == NEPSolver.SGIterInnerSolver)
         error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
-    if (inner_solver_method == NEPSolver.ContourBeynInnerSolver) # TODO: Remove this when implemented
-        error("Eigenvector extraction not implemented in ContourBeynInnerSolver.")
-    end
 
     # Allocations and preparations
     λ::T = T(λ)
@@ -201,9 +198,6 @@ function jd_effenberger(::Type{T},
     end
     if (inner_solver_method == NEPSolver.SGIterInnerSolver)
         error("_Method SGITER not accepted as inner solver since deflated problem not min-max.")
-    end
-    if (inner_solver_method == NEPSolver.ContourBeynInnerSolver) # TODO: Remove this when implemented
-        error("Eigenvector extraction not implemented in ContourBeynInnerSolver.")
     end
 
     # Allocations and preparations
