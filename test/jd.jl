@@ -92,30 +92,31 @@ end
 @testset "Effenberger" begin
 println("\n\nTest: Effenberger")
 
-TOL = 1e-8
-nep = nep_gallery("pep0",200)
+TOL = 1e-12
+nep = nep_gallery("pep0",60)
+λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=55, λ=0.82+0.9im, v0=ones(Complex128,size(nep,1)))
+println(" Eigevalues found: \n λ: ",λ)
+@test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
+@test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
+@test norm(compute_Mlincomb(nep,λ[3],u[:,3])) < TOL
 
-λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=100, v0=ones(Complex128,size(nep,1)))
+TOL = 1e-12
+nep = nep_gallery("dep0",60)
+λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=55, λ=0.6+0im, v0=ones(Complex128,size(nep,1)) )#, inner_solver_method = NEPSolver.IARInnerSolver)
 println(" Eigevalues found: \n λ: ",λ)
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
 @test norm(compute_Mlincomb(nep,λ[3],u[:,3])) < TOL
 
 
-# λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=100, inner_solver_method = NEPSolver.ContourBeynInnerSolver, v0=ones(Complex128,size(nep,1)))
-# println(" Eigevalues found: \n λ: ",λ)
-# @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
-# @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
-# @test norm(compute_Mlincomb(nep,λ[3],u[:,3])) < TOL
-
-
 println("\nTesting errors thrown")
+nep = nep_gallery("pep0",50)
 # Throw error if iterating more than the size of the NEP
 @test_throws ErrorException λ, u = jd_effenberger(nep, tol=TOL, maxit=(size(nep,1)+1), v0=ones(size(nep,1)))
 # SG not possible with Effenberger
-@test_throws ErrorException λ, u = jd_effenberger(nep, tol=TOL, maxit=100, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
+@test_throws ErrorException λ, u = jd_effenberger(nep, tol=TOL, maxit=40, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, Neig=1000, tol=TOL, maxit=5, v0=ones(size(nep,1)))
+@test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, Neig=1000, tol=TOL, maxit=20, v0=ones(size(nep,1)))
 
 
 end

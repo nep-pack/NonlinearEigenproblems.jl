@@ -330,6 +330,7 @@ function jd_effenberger_inner!(::Type{T},
         # Project and solve the projected NEP
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
+                            tol = tol/10,
                             λv = λ .* ones(T,3),
                             σ = target,
                             Neig = 3)
@@ -338,7 +339,7 @@ function jd_effenberger_inner!(::Type{T},
 
         # If inner solver converged to a solution to the projected problem use that.
         # Otherwise take the "newton step". Not implemented exactly as in Effenbergerm but similar
-        if !isnan(λ_temp) && !any(isnan.(s[1:k])) && (norm(compute_Mlincomb(proj_nep, λ_temp, s[1:k])) < tol) # Has converged to an eigenvalue of the projected problem
+        if !isnan(λ_temp) && !any(isnan.(s[1:k])) && (norm(compute_Mlincomb(proj_nep, λ_temp, s[1:k])) < tol*10) # Has converged to an eigenvalue of the projected problem
             u[:] = V*s[1:k] # The approximate eigenvector
             λ = λ_temp
         else
@@ -360,6 +361,7 @@ function jd_effenberger_inner!(::Type{T},
                 s2 = s2/norm(s2)
                 u2 = vcat(V*s2, zero(T))
             else
+                λ2 = T(rand())
                 u2 = Vector{T}(rand(n+m+1))
             end
             return (λ, u, loop_counter, u2, λ2)
@@ -393,20 +395,37 @@ end
 
 
 
-function compute_U(orgnep, μ, X, Λ, i=0)
-# TODO: Need to compute derivative of U -- THIS IS WRONG!!!
-    μI = μ*one(Λ)
-    TXΛ = compute_TXΛ(orgnep, Λ, X)
-    U = (TXΛ - compute_MM(orgnep, μI, X))/(Λ - μI)
-    return U
+# function compute_U(orgnep::NEP, μ, X, Λ, i=0)
+#     n = size(orgnep,1)
+#     m = size(X,2)
+#     T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
+#     dot_TXμI = Vector{Matrix{T_arit}}(i+1)
+#     for k = 0:i
+# #compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
+#         dot_TXμI[k+1] = zeros(T_arit,n,m)
+#         for kk = 1:size(X,2)
+#             dot_TXμI[k+1][:,kk] = compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [one(T_arit)], k)
+#         end
+#     end
+# end
+function compute_U(orgnep::NEP, μ, X, Λ, i=0)
+# TODO: Implement this in a non-recursive way
+# U^(k)(μ) = (-(d/dμ)^k T(X,μI) + k⋅U^(k-1)(μ)) (Λ-μI)^{-1}
+    if i < 0
+        return zeros(X)
+    end
+    n = size(orgnep,1)
+    m = size(X,2)
+    T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
+    dots_TXμI = Matrix{T_arit}(n,m)
+    for kk = 1:size(X,2)
+        dots_TXμI[:,kk] = compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [one(T_arit)], i)
+    end
+    return (-dots_TXμI + i*compute_U(orgnep::NEP, μ, X, Λ, i-1))/(Λ-μ*one(Λ))
 end
-function compute_Uv(orgnep, μ, X, Λ, v, i=0)
-# TODO: Need to compute derivative of U -- THIS IS WRONG!!!
-    μI = μ*one(Λ)
-    t = (Λ - μI)\v
-    TXΛ = compute_TXΛ(orgnep, Λ, X)
-    t = TXΛ*t - compute_MM(orgnep, μI, X)*t
-    return t
+function compute_Uv(orgnep::NEP, μ, X, Λ, v, i=0)
+# TODO: Do this in a smart way
+    return compute_U(orgnep, μ, X, Λ, i)*v
 end
 
 
@@ -468,17 +487,13 @@ mutable struct JD_Inner_Effenberger_Projected_NEP <: Proj_NEP
     V2
     W1
     W2
-    function JD_Inner_Effenberger_Projected_NEP(nep::DeflatedNEP)
-        org_proj_nep = create_proj_NEP(nep.orgnep)
-        this = new(nep, org_proj_nep, nep.V0, nep.S0)
+    function JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
+        org_proj_nep = create_proj_NEP(deflated_nep.orgnep)
+        this = new(deflated_nep, org_proj_nep, deflated_nep.V0, deflated_nep.S0)
         return this
     end
 end
-
-
-function create_proj_NEP(deflated_nep::DeflatedNEP)
-    return JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
-end
+create_proj_NEP(deflated_nep::DeflatedNEP) = JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
 
 
 function set_projectmatrices!(nep::JD_Inner_Effenberger_Projected_NEP, W, V)
