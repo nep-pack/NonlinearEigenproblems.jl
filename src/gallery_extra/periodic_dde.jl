@@ -223,8 +223,7 @@ function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
     return YY-Y0
 end
 
-function compute_Mlincomb(nep::PeriodicDDE_NEP,λ,v)
-
+function compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,v::Union{AbstractMatrix,AbstractVector})
     return compute_MM(nep,[λ],v);
 end
 
