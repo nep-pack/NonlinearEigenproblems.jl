@@ -69,11 +69,11 @@ end
 function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
     orgfv=get_fv(orgnep);
     m=size(orgfv,1);
-    fv=Array{Function}(m)
+    fv = Vector{Function}(undef, m)
     # create anonymous functions corresponding to the
     # shift and scaled problem
     for i=1:m
-        fv[i]= S -> orgfv[i](scale*S+shift*eye(S))
+        fv[i] = S -> orgfv[i](scale*S + shift*I)
     end
     # create a new SPMF with transformed functions
     return SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
@@ -136,11 +136,11 @@ end
 function mobius_transform(orgnep::SPMF_NEP;a=1,b=0,c=0,d=1)
     orgfv=get_fv(orgnep);
     m=size(orgfv,1);
-    fv=Array{Function}(m)
+    fv = Vector{Function}(undef, m)
     # create anonymous functions corresponding to the
     # möbius transformed problem
     for i=1:m
-        fv[i]= S -> orgfv[i]((a*S+b*eye(S))/(c*S+d*eye(S)))
+        fv[i] = S -> orgfv[i]((a*S + b*I) / (c*S + d*I))
     end
     # create a new SPMF with transformed functions
     return SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
@@ -177,7 +177,7 @@ end
 
 function compute_MM(nep::MobiusTransformedNEP,S,V)
     # Just call orgnep with a different S
-    return compute_MM(nep.orgnep,(nep.a*S+nep.b*eye(S))/(nep.c*S+nep.d*eye(S)),V)
+    return compute_MM(nep.orgnep, (nep.a*S + nep.b*I) / (nep.c*S + nep.d*I), V)
 end
 
 function compute_Mlincomb(nep::MobiusTransformedNEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}

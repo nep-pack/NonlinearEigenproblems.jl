@@ -45,9 +45,9 @@ using Test
         α=3;
         pep1=shift_and_scale(pep0,shift=σ,scale=α)
         λ,v= quasinewton(pep0,λ=1+1im);
-        norm(compute_Mlincomb(pep0, λ,v))
+        norm(compute_Mlincomb(pep0, λ, v))
         λv,V=polyeig(pep1);
-        @test minimum(abs.(λv-(λ-σ)/α))<eps()*100
+        @test minimum(abs.(λv .- (λ-σ)/α)) < eps()*100
 
         # Check that real PEP with real transformation is still real
         σ=3;
@@ -102,8 +102,8 @@ using Test
         n=size(nep4,1);
         V=randn(n,5);
         S=randn(5,5);
-        s=eye(1,1)*3
-        W1=compute_MM(nep4,(c*S+d*eye(S))\(a*S+b*eye(S)),V);
+        s = Matrix(3.0*I, 1, 1)
+        W1 = compute_MM(nep4, (c*S + d*I) \ (a*S + b*I), V)
         W2=compute_MM(nep4_transf,S,V);
         @test norm(W1-W2)<sqrt(eps())
 
