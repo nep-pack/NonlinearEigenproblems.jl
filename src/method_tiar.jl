@@ -114,7 +114,7 @@ function tiar(
         end
 
         # compute h (orthogonalization with tensors factorization)
-        h=zeros(h);
+        h = zero(h)
         for l=1:k
             h[1:k]=h[1:k]+a[1:k,1:k,l]'*g[1:k,l];
         end
@@ -130,7 +130,7 @@ function tiar(
 
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
-        hh=zeros(hh);
+        hh = zero(hh)
         for l=1:k
             hh[1:k]=hh[1:k]+a[1:k,1:k,l]'*f[1:k,l];
         end
@@ -163,7 +163,8 @@ function tiar(
         if (rem(k,check_error_every)==0)||(k==m)
             D,W = eigen(H[1:k,1:k])
             VV=Z[:,1:k]*transpose(a[1,1:k,1:k])	# extract proper subarray
-            Q=VV*W; λ=σ+γ./D;
+            Q = VV*W
+            λ = σ .+ γ ./ D
 
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 set_projectmatrices!(pnep,Z[:,1:k],Z[:,1:k]);
