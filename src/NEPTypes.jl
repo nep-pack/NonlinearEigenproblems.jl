@@ -809,7 +809,7 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
         m = size(nep.orgnep_Av,1);
         B = Array{Array{eltype(W),2}}(undef, m);
         for i=1:m
-            B[i]=W'*nep.orgnep_Av[i]*V;
+            B[i]=copy(W')*nep.orgnep_Av[i]*V;
         end
         nep.W=W;
         nep.V=V;
