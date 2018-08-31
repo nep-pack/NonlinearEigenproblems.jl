@@ -2,9 +2,7 @@ using LinearAlgebra
 
 export blocknewton
 
-function default_block_errmeasure(nep::NEP)
-    errmeasure=(S,X) -> norm(compute_MM(nep,S,X))
-end
+default_block_errmeasure(nep::NEP) = (S,X) -> opnorm(compute_MM(nep,S,X))
 
 """
     (S,X)=blocknewton(nep [S,] [X,] [errmeasure,] [tol,] [maxit,] [armijo_factor,] [armijo_max,] [displaylevel])
@@ -19,7 +17,7 @@ the other parameters.
 
 # Example
 The example shows that `compute_MM()` becomes zero when a solution
-has been comptued.
+has been computed.
 ```julia-repl
 julia> nep=nep_gallery("dep0",3);
 julia> (S,X)= blocknewton(nep)
@@ -49,7 +47,7 @@ Iteration 14: Error: 2.525942e-15
 """
 function blocknewton(nep::AbstractSPMF;
                      S::Matrix=zeros(2,2),
-                     X::Matrix=eye(size(nep,1),2),
+                     X::Matrix=Matrix(1.0I, size(nep,1), 2),
                      errmeasure::Function =  default_block_errmeasure(nep::NEP),
                      tol::Real=eps(real(eltype(S)))*100,
                      maxit::Integer=10,
