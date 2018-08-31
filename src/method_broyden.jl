@@ -16,7 +16,6 @@ struct NEPBroydenDeflatedEll1 <: NEPBroydenDeflated;
         return new(orgnep,reshape(S,size(S,1),size(S,1)),
                    reshape(X,size(orgnep,1),size(X,2)))
     end
-
 end
 
 struct NEPBroydenDeflatedEll2 <: NEPBroydenDeflated;
@@ -27,9 +26,7 @@ struct NEPBroydenDeflatedEll2 <: NEPBroydenDeflated;
         return new(orgnep,reshape(S,size(S,1),size(S,1)),
                    reshape(X,size(orgnep,1),size(X,2)))
     end
-
 end
-
 
 function compute_Mder(nep::NEPBroydenDeflated,λ::Number,i::Integer=0)
     if (i>0)
@@ -44,7 +41,6 @@ function compute_Mder(nep::NEPBroydenDeflated,λ::Number,i::Integer=0)
     return M
 end
 
-
 function deflated_errmeasure(nep::NEP,λ,v)
     return norm(compute_Mlincomb(nep,λ,v))/norm(v);
 end
@@ -56,7 +52,6 @@ function extract_eigenpair(nep::NEPBroydenDeflatedEll1,λ)
     I=argmin(abs.(dd-λ))
     w=X*VV[:,I]; w=w/norm(w);
     return (λ,w);
-
 end
 
 function deflated_errmeasure(nep::NEPBroydenDeflatedEll1,λ,v)
@@ -66,7 +61,6 @@ function deflated_errmeasure(nep::NEPBroydenDeflatedEll1,λ,v)
         return norm(compute_Mlincomb(nep.orgnep,λ,v))/norm(v)
     end
 
-
     S=[nep.S v[(n0+1):(n0+p)];zeros(1,p) λ]
     X=[nep.X v[1:n0]];
     dd,VV = eigen(S)
@@ -75,7 +69,6 @@ function deflated_errmeasure(nep::NEPBroydenDeflatedEll1,λ,v)
 
     return norm(compute_Mlincomb(nep.orgnep,λ,w))/norm(w)
 end
-
 
 function size(nep::NEPBroydenDeflated,dim=-1)
     n0=size(nep.orgnep,1);
@@ -97,12 +90,11 @@ function compute_Mlincomb(nep::NEPBroydenDeflatedEll1,λ::Number,x::AbstractArra
         z=b1
         f=compute_Mlincomb(nep.orgnep,λ,z);
     else
-        z=b1+nep.X*((λ*eye(eltype(λ),p)-nep.S)\b2);
+        z = b1 + nep.X*((λ*Matrix{eltype(λ)}(I, p, p) - nep.S) \ b2)
         f=vcat(compute_Mlincomb(nep.orgnep,λ,z),nep.X'*b1);
     end
     return Array{eltype(x),1}(f);
 end
-
 
 function compute_Mlincomb(nep::NEPBroydenDeflatedEll2,λ::Number,x::AbstractArray)
     n0=size(nep.orgnep,1);
@@ -114,7 +106,7 @@ function compute_Mlincomb(nep::NEPBroydenDeflatedEll2,λ::Number,x::AbstractArra
         z=b1
         f=compute_Mlincomb(nep.orgnep,λ,z);
     else
-        z=b1+nep.X*((λ*eye(eltype(λ),p)-nep.S)\b2);
+        z = b1 + nep.X*((λ*Matrix{eltype(λ)}(I, p, p) - nep.S) \ b2)
         f1=compute_Mlincomb(nep.orgnep,λ,z);
         #f2=nep.X'*b1; # ell1
         # ell2
@@ -124,11 +116,6 @@ function compute_Mlincomb(nep::NEPBroydenDeflatedEll2,λ::Number,x::AbstractArra
     end
     return Array{eltype(x),1}(f);
 end
-
-
-
-
-
 
 function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
                          v1=0,u1=[],λ1=TT(0),
@@ -168,7 +155,7 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
     #F=vcat(y1,y2);
     errhist=Array{real(TT),1}(NaN*ones(real(TT),maxit));
     timehist=Vector{Float64}(maxit)*NaN;
-    II=eye(TT,p);
+    II = Matrix{TT}(I, p, p)
 
     for j=1:maxit
 
@@ -214,7 +201,7 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
             errhist[j]=errmeasure(λ,vv+nep.X*((λ*II-nep.S)\uu),  F);
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
-                d = norm(CH*x[1:n] - reverse(eye(TT,1+p,1), dims = 1))
+                d = norm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
                 @ifd(println(j," Normrk=",norm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
 
@@ -274,7 +261,7 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
     F=vcat(compute_Mlincomb(nep,x[n+p+1],x[1:(n+p)]),TT(0))
     errhist=Array{real(TT),1}(NaN*ones(real(TT),maxit));
     timehist=Vector{Float64}(maxit)*NaN;
-    II=eye(TT,p);
+    II = Matrix{TT}(I, p, p)
 
 
 
@@ -326,7 +313,7 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
             #errhist[j]=deflated_errmeasure(nep,x[n+p+1],x[1:n+p])
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
-                d = norm(CH*x[1:n] - reverse(eye(TT,1+p,1), dims = 1))
+                d = norm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
                 @ifd(println(j," Normrk=",norm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
             #println(j," Normf=",norm(F), " λ=",xp[n+p+1]);
@@ -399,23 +386,23 @@ function broyden_T(::Type{TT},nep::NEP;
     n=size(nep,1);
     p=size(S,1);
 
-    rk=compute_Mlincomb(nep,λ,v+(X*((λ*eye(TT,p)-S)\u)))
+    rk = compute_Mlincomb(nep, λ, v+(X*((λ*Matrix{TT}(I, p, p) - S) \ u)))
 
-    T=Array{TT,2}(T1);
-    Wext=Array{TT,2}(n,p+2);
-    W=view(Wext,1:n,1:p+1);
-    W[:,:]=Array{TT,2}(W1);
-    errhist=Array{real(TT),1}(NaN*ones(real(TT),maxit));
+    T = Matrix{TT}(T1)
+    Wext = Matrix{TT}(undef, n, p+2)
+    W = view(Wext, 1:n, 1:p+1)
+    W[:,:] = Matrix{TT}(W1)
+    errhist = Vector{real(TT)}(NaN * ones(real(TT), maxit))
 
-    timehist=Vector{Float64}(maxit)*NaN;
-    II=eye(TT,p);
+    timehist = Vector{Float64}(undef, maxit) * NaN
+    II = Matrix{TT}(I, p, p)
 
-    Z=Array{TT,2}(n,p+1);
-    Tztilde=Array{TT,1}(n);
-    aH=Array{TT,1}(p)';
-    Wold=copy(W);
-    ztilde=Array{TT,1}(n);
-    waH=Array{TT,1}(p)';
+    Z = Matrix{TT}(undef, n, p+1)
+    Tztilde = Vector{TT}(undef, n)
+    aH = Vector{TT}(undef, p)'
+    Wold = copy(W)
+    ztilde = Vector{TT}(undef, n)
+    waH = Vector{TT}(undef, p)'
     Z=T*W;
     for j=1:maxit
 
@@ -503,12 +490,12 @@ function broyden_T(::Type{TT},nep::NEP;
             #errhist[j]=norm(rkp);
             #errhist[j]=norm(rk)/norm(v+(X/(λ*II-S))*u);
             if (mod(j,print_error_every)==0)
-                d = norm(CH*v - reverse(eye(TT,1+p,1), dims = 1))
+                d = norm(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
                 @ifd(println(j," err[j]=",errhist[j], " λ=",λ, " structure deviation=",d));
             end
 
             #if (d>1e-10)
-            #    println(CH*v - reverse(eye(1+p,1), dims = 1))
+            #    println(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
             #end
 
 
@@ -607,7 +594,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
     all_timehist=[];
     all_iterhist=[];
     sumiter=1;
-    UU=eye(TT,n,pmax+1) # For storage
+    UU = Matrix{TT}(I, n, pmax+1) # For storage
     U1=view(UU,1:n,1:0);
     while (k<=pmax)
 
@@ -620,7 +607,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         for i=(p_U1+1):k-1
             #for i=1:k-1 # If you want to recompute
             ei=zeros(TT,size(S,1)); ei[i]=1;
-            f=((σ*eye(k-1)-S)\ei);
+            f = (σ * Matrix(1.0I, k-1, k-1) - S) \ ei
             vv=X*f;
             U1[:,i]=compute_Mlincomb(nep,σ,vv);
         end
@@ -656,7 +643,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         u0=x[n+1:end];
         h=X'*v0;
         v0=v0-X*h;
-        u0=u0+(σ*eye(TT,k-1,k-1)-S)*h;
+        u0 = u0 + (σ * Matrix{TT}(I, k-1, k-1) - S) * h
         CH=[X';c'];
 
         # Normalize it
@@ -673,7 +660,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         d=sqrt(eps(real(TT)));
         @ifd(@printf("Computing initial matrix"))
         f1a=(compute_Mlincomb(nep,σ+d,v0)-compute_Mlincomb(nep,σ-d,v0))/2d;
-        f1b=-U1*((σ*eye(TT,k-1,k-1)-S)\u0)
+        f1b = -U1 * ((σ * Matrix{TT}(I, k-1, k-1) - S) \ u0)
         @ifd(println("."));
         f1=f1a+f1b;
         W1=[U1 f1];
@@ -700,7 +687,6 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
             @ifd(println("Running J variant *********************************** n=",n));
             dnep=NEPBroydenDeflatedEll1(nep,S,X);
 
-
             (λm,vm,um,Tm,Wm,iter,errhist,timehist)=
             broyden_naive_J(TT,dnep,
                             v1=v0,u1=u0,λ1=σ,
@@ -713,11 +699,9 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                             tol=tol,
                             time0=time0,
                             displaylevel=displaylevel-1)
-
         elseif (broyden_variant == :H)
             @ifd(println("Running H variant *********************************** n=",n));
             dnep=NEPBroydenDeflatedEll1(nep,S,X);
-
 
             (λm,vm,um,Tm,Wm,iter,errhist,timehist)=
             broyden_naive_H(TT,dnep,
@@ -731,13 +715,12 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                             tol=tol,
                             time0=time0,
                             displaylevel=displaylevel-1)
-
         else
             error("Unknown broyden method");
         end
 
-        if (size(all_iterhist,1)>0)
-            iterhist=(1:size(errhist,1))+all_iterhist[end];
+        if size(all_iterhist,1) > 0
+            iterhist=(1:size(errhist,1)) .+ all_iterhist[end]
         else
             iterhist=(1:size(errhist,1))
         end
@@ -769,12 +752,12 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         #println("J=",[inv(Tm) Wm; CH zeros(k,k)]);
 
         #println("norm(MM)=",norm(compute_MM(nep,S,X)));
-#println("I-X'*X=",norm(eye(k)-X'*X))
+#println("I-X'*X=",norm(Matrix(1.0I, k, k)-X'*X))
 
 if (abs(imag(λm))>tol*10 && addconj)
 
 
-    v1=conj(vm+X[:,1:k-1]*((λm*eye(TT,k-1,k-1)-S[1:k-1,1:k-1])\um));
+    v1 = conj(vm + X[:,1:k-1] * ((λm * Matrix{TT}(I, k-1, k-1) - S[1:k-1,1:k-1]) \ um))
     λ1=conj(λm);
 
     rnorm=norm(compute_Mlincomb(nep,λ1,v1))
@@ -792,10 +775,10 @@ if (abs(imag(λm))>tol*10 && addconj)
     S1=zeros(TT,k,k);
     S1[1:(k-1),1:(k-1)]=S;
     S1[k,k]=λ1;
-    R=eye(TT,k,k);
+    R = Matrix{TT}(I, k, k)
     R[1:k-1,end]=h; R[k,k]=beta;
     S=(R*S1)/R;
-    #println("norm(XX-I)=",norm(X'*X-eye(size(X,2))))
+    #println("norm(XX-I)=",norm(X'*X-Matrix(1.0I, size(X,2), size(X,2))))
     #println("norm(MM)=",norm(compute_MM(nep,S,X)));
     #        X=[X v1]
     #      S=[S conj(v1[(n0+1):(n0+p)]);zeros(1,p) conj(λ1)]
@@ -847,7 +830,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
     all_timehist=[];
     all_iterhist=[];
     sumiter=1;
-    UU=eye(TT,n,pmax+1) # For storage
+    UU = Matrix{TT}(I, n, pmax+1) # For storage
     U1=view(UU,1:n,1:0);
     while (k<=pmax)
 
@@ -859,7 +842,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         for i=(p_U1+1):k-1
             #for i=1:k-1
             ei=zeros(TT,size(S,1)); ei[i]=1;
-            U1[:,i]=compute_Mlincomb(nep,σ,X*((σ*eye(k-1,k-1)-S)\ei));
+            U1[:,i] = compute_Mlincomb(nep, σ, X * ((σ*Matrix{TT}(I, k-1, k-1) - S) \ ei))
         end
 
         # Step 6
@@ -888,7 +871,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         # Step 7
         d=sqrt(eps(real(TT)));
         f1a=(compute_Mlincomb(approxnep,σ+d,v0)-compute_Mlincomb(approxnep,σ-d,v0))/2d;
-        f1b=-U1*((σ*eye(TT,k-1,k-1)-S)\u0)
+        f1b = -U1 * ((σ * Matrix{TT}(I, k-1, k-1) - S) \ u0)
         f1=f1a+f1b;
         W1=[U1 f1];
 
@@ -968,12 +951,12 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         #println("J=",[inv(Tm) Wm; CH zeros(k,k)]);
 
         #println("norm(MM)=",norm(compute_MM(nep,S,X)));
-        #println("I-X'*X=",norm(eye(k)-X'*X))
+        #println("I-X'*X=",norm(Matrix(1.0I, k, k)-X'*X))
 
         if (abs(imag(λm))>sqrt(eps()) && addconj)
 
 
-            v1=conj(vm+X[:,1:k-1]*((λm*eye(TT,k-1,k-1)-S[1:k-1,1:k-1])\um));
+            v1 = conj(vm + X[:,1:k-1] * ((λm * Matrix{TT}(I, k-1, k-1) - S[1:k-1,1:k-1]) \ um))
             λ1=conj(λm);
 
             rnorm=norm(compute_Mlincomb(nep,λ1,v1))
@@ -991,10 +974,10 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
             S1=zeros(ComplexF64,k,k);
             S1[1:(k-1),1:(k-1)]=S;
             S1[k,k]=λ1;
-            R=eye(ComplexF64,k,k);
+            R = Matrix{ComplexF64}(I, k, k)
             R[1:k-1,end]=h; R[k,k]=beta;
             S=(R*S1)/R;
-            #println("norm(XX-I)=",norm(X'*X-eye(size(X,2))))
+            #println("norm(XX-I)=",norm(X'*X-Matrix(1.0I, size(X, 2), size(X, 2))))
             #println("norm(MM)=",norm(compute_MM(nep,S,X)));
             #        X=[X v1]
             #      S=[S conj(v1[(n0+1):(n0+p)]);zeros(1,p) conj(λ1)]
@@ -1009,7 +992,7 @@ end
 
 
 function eigs_invpow(MM;maxit=10,sigma=0)
-    AA=factorize(MM-sigma*speye(size(MM,1)));
+    AA = factorize(MM - sigma * sparse(1.0I, size(MM,1), size(MM,1)))
     z=ones(size(AA,1));
     for k=1:maxit
         z=AA\z;
