@@ -114,7 +114,10 @@ Executes z if displaylevel>0.
           g=v-ρ*x;
           aa=[x -g q]'*[v -A(g) A(q)]; aa=(aa+aa')/2;
           mm=[x -g q]'*[x -g q]; mm=(mm+mm')/2;
-          D,V = eigen(aa,mm); ii=argmin(abs.(D));
+
+          D,V = eigen(aa,mm);
+          absD=argmin(abs.(D));
+          ii=argmin([isnan(x) ? Inf : x for x in absD]);
           ρ=D[ii]; δ=V[:,ii]; q=[-g q]*δ[2:end];
           x=δ[1]*x+q; x/=norm(x); v=A(x); k+=1
           err=errmeasure(λ,x)
