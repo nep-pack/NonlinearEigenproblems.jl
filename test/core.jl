@@ -10,6 +10,7 @@ using NEPSolver
 using Gallery
 using IterativeSolvers
 using Random
+using LinearAlgebra
 using Test
 
 struct TestNEP <: NEP

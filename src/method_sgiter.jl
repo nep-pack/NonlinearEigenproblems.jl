@@ -99,7 +99,7 @@ function choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
         if sum(idxes) == 0
             error("No λ found in the prescribed interval.")
         end
-        idx = find(idxes)[1]::Integer #This vector is only 1 element
+        idx = findall(idxes)[1]::Int #This vector is only 1 element
         return λ_vec[idx]
     end
 end
