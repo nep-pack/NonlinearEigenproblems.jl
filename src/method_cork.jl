@@ -65,6 +65,7 @@ module NEPSolver_CORK # Will change later
 
         # Compute the Q-matrix
         Q,U0 = qr(reshape(v0/norm(v0),n,1));
+        Q = Matrix(Q)
         r = size(Q,2);
 
         # Init tensor U

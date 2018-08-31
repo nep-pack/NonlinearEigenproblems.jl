@@ -42,6 +42,7 @@ m=5;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -61,6 +62,7 @@ m=10;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -83,6 +85,7 @@ m=20;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -104,6 +107,7 @@ m=50;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -128,6 +132,7 @@ m=100;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)

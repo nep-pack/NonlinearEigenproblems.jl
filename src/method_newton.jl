@@ -496,6 +496,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 A = compute_Mder(nep,λ);
                 Q,R,PI = qr(A, Val(true)) #QR factorization with pivoting.
+                Q = Matrix(Q)
 
                 P = Matrix{T}(I, n, n)[:,PI] #The permutation matrix corresponding to the pivoted QR.
 

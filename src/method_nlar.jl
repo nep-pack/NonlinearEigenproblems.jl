@@ -65,7 +65,7 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function
     end
 
     #Sort according to methods
-    ii = sortperm(eig_res.*abs.(dd2-σ));
+    ii = sortperm(eig_res .* abs.(dd2 .- σ))
 
     mm_min = min(mm,length(ii));
 
@@ -227,10 +227,10 @@ function nlar(::Type{T},
                 # together with Δv using QR-method.
                 # Slow but robust.
                 Q,_ = qr(hcat(Vk,Δv))
-                Q = Q.factors   # thin factors
+                Q = Matrix(Q)
                 Vk=Q
                 V[:,1:k+1]=Q;
-                #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
+                #println("Dist normalization:",norm(Vk'*Vk-I))
                 #println("Size:",size(Vk), " N: ",norm(Vk[:,k+1]), " d:",norm(Δv))
             else
                 h=zeros(T,k);
@@ -243,7 +243,7 @@ function nlar(::Type{T},
 
             #Check orthogonalization
             if(k < 100)
-               println("CHECKING BASIS ORTHOGONALITY  ......     ",norm(Vk'*Vk-eye(ComplexF64,k+1)),"\n\n")
+               println("CHECKING BASIS ORTHOGONALITY  ......     $(norm(Vk'*Vk - I))\n\n")
                #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
             end
             k = k+1;

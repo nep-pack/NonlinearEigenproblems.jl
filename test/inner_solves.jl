@@ -16,6 +16,7 @@ n=size(dep,1);
 
     pnep=create_proj_NEP(dep);
     Q,R=qr(randn(n,5));
+    Q = Matrix(Q)
     set_projectmatrices!(pnep,Q,Q)
 
     λv,V = inner_solve(NEPSolver.DefaultInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, Neig=3)

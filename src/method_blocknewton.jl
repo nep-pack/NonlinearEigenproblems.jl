@@ -126,7 +126,7 @@ function blocknewton(nep::AbstractSPMF;
 
         # Carry out the orthogonalization
         W,R = qr(Vl(Xt,St))
-        W = W.factors   # thin factors
+        W = Matrix(W)
         # reshape W to WW (3D matrix)
         for j=1:size(W,2)
             WW[:,:,j] = W[(j-1)*n .+ (1:n), :]

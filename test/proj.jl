@@ -67,6 +67,7 @@ projtest=@testset "Projected problems" begin
         Random.seed!(1);
         V=randn(size(nep,1),2)
         Q,R=qr(hcat(V,x)) # Make the eigenspace a part of the projection subspace
+        Q = Matrix(Q)
         set_projectmatrices!(pnep,Q,Q);
         println("Running Newton on projected problem with very good start value")
         λ1,z1=newton(pnep,λ=(λ_exact+0.00001),displaylevel=0,v=ones(size(pnep,1)))

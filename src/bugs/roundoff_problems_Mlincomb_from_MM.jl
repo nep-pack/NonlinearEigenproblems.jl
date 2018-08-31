@@ -41,6 +41,7 @@ m=10;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 x=compute_Mlincomb_from_MM(dep,0,V,alphav)
@@ -55,6 +56,7 @@ m=30;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
@@ -69,6 +71,7 @@ m=100;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 alphav[2]=0;
@@ -86,6 +89,7 @@ m=500;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 x=compute_Mlincomb_from_MM!(dep,0,V,alphav)

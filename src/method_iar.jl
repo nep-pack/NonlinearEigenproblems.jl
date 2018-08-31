@@ -94,6 +94,7 @@ function iar(
 
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 QQ,RR=qr(VV); # Project on this space
+                QQ = Matrix(QQ)
                 set_projectmatrices!(pnep,QQ,QQ);
                 # Make a call to the inner solve method
                 λproj,Qproj=inner_solve(inner_solver_method,T,pnep,
