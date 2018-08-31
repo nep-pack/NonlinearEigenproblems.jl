@@ -26,13 +26,13 @@ guntest=@testset "GUN (NLEVP interface)" begin
     @testset "Running alg" begin
         λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tol=tol,maxit=500);
 
-        v1=v1/norm(v1);
+        v1=v1/opnorm(v1);
 
         @test norm(compute_Mlincomb(nep1,λ1,v1))<tol*100
-        @test norm(compute_Mder(nep1,λ1)*v1)<tol*100
+        @test opnorm(compute_Mder(nep1,λ1)*v1)<tol*100
 
         @test norm(compute_Mlincomb(nep_org,λ1,v1))<tol*100
-        @test norm(compute_Mder(nep_org,λ1)*v1)<tol*100
+        @test opnorm(compute_Mder(nep_org,λ1)*v1)<tol*100
 
     end
     @testset "Compute derivatives" begin

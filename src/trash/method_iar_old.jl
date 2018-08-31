@@ -23,7 +23,7 @@ using Random
      err = zeros(m,m); # error history
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
-     V[1:n,1]=rand(n,1)/norm(randn(n,1));
+     V[1:n,1]=rand(n,1)/opnorm(randn(n,1));
 
      k=1; conv_eig=0;
      while (k <= m)&(conv_eig<=Neig)
@@ -43,7 +43,7 @@ using Random
       # orthogonalization
       h,vv = doubleGS(V,vv,k,n);
       H[1:k,k]=h;
-      beta=norm(vv);
+      beta=opnorm(vv);
 
       H[k+1,k]=beta;
       V[1:(k+1)*n,k+1]=vv/beta;

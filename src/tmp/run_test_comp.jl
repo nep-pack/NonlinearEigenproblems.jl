@@ -32,7 +32,7 @@ Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
 for i=1:d*n
-    if(norm(λa-Dc[i]) < 1e-12)
+    if(opnorm(λa-Dc[i]) < 1e-12)
         ind = i
         break
     end
@@ -68,7 +68,7 @@ Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
 for i=1:d*n
-    if(norm(λa-Dc[i]) < 1e-12)
+    if(opnorm(λa-Dc[i]) < 1e-12)
         ind = i
         break
     end
@@ -96,7 +96,7 @@ d=Inf; evp=Inf
 k=0;
 while abs(d)>TOL
     k=k+1
-    z=z/norm(z);
+    z=z/opnorm(z);
     z2=E\A*z
     evp_old=evp
     evp=dot(z,z2)

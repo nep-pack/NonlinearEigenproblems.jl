@@ -40,9 +40,9 @@ function myexpm(A::Array{T,2}) where {T<:Number}
         Bi=Bi*A;
     end
     #F=Array{ComplexF64,2}(F);
-    err=norm(exp(A)-F,1)/norm(F,1);
+    err=opnorm(exp(A)-F,1)/opnorm(F,1);
     if(err>eps()*100)
-        println("Warning: error large:",err, " size:",size(A), " norm(A):",norm(A));
+        println("Warning: error large:",err, " size:",size(A), " opnorm(A):",opnorm(A));
 
     end
 

@@ -86,7 +86,7 @@ julia> ϵ=1e-5;
 julia> Aminus=compute_Mder(nep,λ-ϵ);
 julia> Aminus=compute_Mder(nep,λ-ϵ);
 julia> Aplus=compute_Mder(nep,λ+ϵ);
-julia> norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
+julia> opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
 1.990970375089371e-11
 ```
 """

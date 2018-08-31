@@ -42,6 +42,6 @@ display(tt1b)
 # What we would really want is the Hausdorf distance (but it is
 # is not available in the julia core packages)
 
-@test norm(minimum(abs.(λ1*ones(1,3)-ones(3,1)*λ2'),1))<10*tol
+@test opnorm(minimum(abs.(λ1*ones(1,3)-ones(3,1)*λ2'),1))<10*tol
 
-@test norm(minimum(abs.(λ3*ones(1,3)-ones(3,1)*λ2'),1))<10*tol
+@test opnorm(minimum(abs.(λ3*ones(1,3)-ones(3,1)*λ2'),1))<10*tol

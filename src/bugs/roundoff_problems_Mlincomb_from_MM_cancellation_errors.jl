@@ -52,9 +52,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 # Setup a the coeff vector
@@ -72,9 +72,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -95,9 +95,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -117,9 +117,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -142,6 +142,6 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))

@@ -27,7 +27,7 @@ n=size(nep,1);
              0  18.839546184493734 -15.213756300995186   9.788512505128466
              0                   0   9.788512505128464  -0.120825360586847                                ]
     n0=min(size(Tstar,1),size(λ,1));
-    @test norm(Tstar[1:n0,1:n0]-T[1:n0,1:n0])<1e-10
+    @test opnorm(Tstar[1:n0,1:n0]-T[1:n0,1:n0])<1e-10
 
     thiserr=ones(m)*NaN
     for i=1:length(λ)

@@ -18,7 +18,7 @@ using LinSolversMATLAB
 
     λ1=λ[1];
     v1=V[:,1];
-    @test norm(A*v1-λ1*v1)/norm(v1)<eps()*100
+    @test opnorm(A*v1-λ1*v1)/opnorm(v1)<eps()*100
 
     DD2=MatlabEigSSolver(A)
     λ,V=eig_solve(DD2,nev=3)
@@ -26,7 +26,7 @@ using LinSolversMATLAB
 
     λ1=λ[1];
     v1=V[:,1];
-    @test norm(A*v1-λ1*v1)/norm(v1)<eps()*100
+    @test opnorm(A*v1-λ1*v1)/opnorm(v1)<eps()*100
 
 
     ## Eigs solvers for GEP (only MATLAB since julia buggy)
@@ -38,5 +38,5 @@ using LinSolversMATLAB
 
     λ1=λ[1];
     v1=V[:,1];
-    @test norm(A*v1-λ1*B*v1)/norm(v1)<eps()*100
+    @test opnorm(A*v1-λ1*B*v1)/opnorm(v1)<eps()*100
 end

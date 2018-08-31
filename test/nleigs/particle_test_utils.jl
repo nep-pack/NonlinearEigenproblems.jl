@@ -81,7 +81,7 @@ function particle_nep(interval)
     H_L = -1/m*Dzz_z + diagm(0 => U[1:nz])
     H_R = -1/m*Dzz_z + diagm(0 => U[end-nz.+(1:nz)])
 
-    if norm(H_L - H_R) == 0
+    if opnorm(H_L - H_R) == 0
         # symmetric potential
         D,V = eigen(H_L)
         i = sortperm(D)

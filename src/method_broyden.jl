@@ -196,16 +196,16 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
 
         if (mod(j,check_error_every)==0)
             #errhist[j]=deflated_errmeasure(nep,x[n+p+1],x[1:n+p])
-            #errhist[j]=norm(Fp);
+            #errhist[j]=opnorm(Fp);
             λ=x[end];  vv=x[1:nep.orgnep.n];  uu=x[(nep.orgnep.n+1):end-1];
             errhist[j]=errmeasure(λ,vv+nep.X*((λ*II-nep.S)\uu),  F);
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
-                d = norm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
-                @ifd(println(j," Normrk=",norm(F), " λ=",xp[n+p+1], " structure deviation=",d));
+                d = opnorm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
+                @ifd(println(j," Normrk=",opnorm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
 
-            #println(j," Normf=",norm(F), " λ=",xp[n+p+1]);
+            #println(j," Normf=",opnorm(F), " λ=",xp[n+p+1]);
             if (errhist[j]<tol)
                 return (x[n+p+1],x[1:n],x[(n+1):(n+p)],H,0,j,errhist[1:j],timehist[1:j])
             end
@@ -214,7 +214,7 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
 
     end
 
-    @ifd(println("Too many iterations:",x[n+1])); #" resnorm=",norm(rk));
+    @ifd(println("Too many iterations:",x[n+1])); #" resnorm=",opnorm(rk));
     #error("Too many iterations")
     return (x[n+p+1],x[1:n],x[(n+1):(n+p)],H,H[1:n,(n+1):end],maxit,errhist[1:end])
 
@@ -313,10 +313,10 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
             #errhist[j]=deflated_errmeasure(nep,x[n+p+1],x[1:n+p])
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
-                d = norm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
-                @ifd(println(j," Normrk=",norm(F), " λ=",xp[n+p+1], " structure deviation=",d));
+                d = opnorm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
+                @ifd(println(j," Normrk=",opnorm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
-            #println(j," Normf=",norm(F), " λ=",xp[n+p+1]);
+            #println(j," Normf=",opnorm(F), " λ=",xp[n+p+1]);
             if (errhist[j]<tol)
                 return (x[n+p+1],x[1:n],x[(n+1):(n+p)],J,0,j,errhist[1:j],timehist[1:j])
             end
@@ -325,7 +325,7 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
 
     end
 
-    @ifd(println("Too many iterations:",x[n+1]));#" resnorm=",norm(rk));
+    @ifd(println("Too many iterations:",x[n+1]));#" resnorm=",opnorm(rk));
     #error("Too many iterations")
     return (x[n+p+1],x[1:n],x[(n+1):(n+p)],J[1:n,1:n],J[1:n,(n+1):end],maxit,errhist[1:end])
 
@@ -487,10 +487,10 @@ function broyden_T(::Type{TT},nep::NEP;
         if (mod(j,check_error_every)==0)
             errhist[j]=errmeasure(λ,v+(X/(λ*II-S))*u,rk);
             timehist[j]=Float64((time_ns()-time0)*1e-9);
-            #errhist[j]=norm(rkp);
-            #errhist[j]=norm(rk)/norm(v+(X/(λ*II-S))*u);
+            #errhist[j]=opnorm(rkp);
+            #errhist[j]=opnorm(rk)/opnorm(v+(X/(λ*II-S))*u);
             if (mod(j,print_error_every)==0)
-                d = norm(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
+                d = opnorm(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
                 @ifd(println(j," err[j]=",errhist[j], " λ=",λ, " structure deviation=",d));
             end
 
@@ -507,7 +507,7 @@ function broyden_T(::Type{TT},nep::NEP;
 
     end
 
-    @ifd(println("Too many iterations:",λ));# " resnorm=",norm(rk));
+    @ifd(println("Too many iterations:",λ));# " resnorm=",opnorm(rk));
     #error("Too many iterations")
     #return (λ,[v;u],zeros(n+1,n+1),j,errhist[1:j])
     return (λ,v,u,T,W,maxit,errhist,timehist)
@@ -751,8 +751,8 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
 
         #println("J=",[inv(Tm) Wm; CH zeros(k,k)]);
 
-        #println("norm(MM)=",norm(compute_MM(nep,S,X)));
-#println("I-X'*X=",norm(Matrix(1.0I, k, k)-X'*X))
+        #println("opnorm(MM)=",opnorm(compute_MM(nep,S,X)));
+#println("I-X'*X=",opnorm(Matrix(1.0I, k, k)-X'*X))
 
 if (abs(imag(λm))>tol*10 && addconj)
 
@@ -778,8 +778,8 @@ if (abs(imag(λm))>tol*10 && addconj)
     R = Matrix{TT}(I, k, k)
     R[1:k-1,end]=h; R[k,k]=beta;
     S=(R*S1)/R;
-    #println("norm(XX-I)=",norm(X'*X-Matrix(1.0I, size(X,2), size(X,2))))
-    #println("norm(MM)=",norm(compute_MM(nep,S,X)));
+    #println("opnorm(XX-I)=",opnorm(X'*X-Matrix(1.0I, size(X,2), size(X,2))))
+    #println("opnorm(MM)=",opnorm(compute_MM(nep,S,X)));
     #        X=[X v1]
     #      S=[S conj(v1[(n0+1):(n0+p)]);zeros(1,p) conj(λ1)]
     #dnep=NEPBroydenDeflated(nep,S,X);
@@ -930,7 +930,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
         all_timehist=[all_timehist;timehist];
         all_iterhist=[all_iterhist;iterhist];
         sumiter=sumiter+iter;
-        β=norm(vcat(vm,X*um+λm*vm));
+        β=opnorm(vcat(vm,X*um+λm*vm));
         um=um/β
         vm=vm/β # Normalize
         println("Found an eigval ",k,":",λm);
@@ -950,8 +950,8 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
 
         #println("J=",[inv(Tm) Wm; CH zeros(k,k)]);
 
-        #println("norm(MM)=",norm(compute_MM(nep,S,X)));
-        #println("I-X'*X=",norm(Matrix(1.0I, k, k)-X'*X))
+        #println("opnorm(MM)=",opnorm(compute_MM(nep,S,X)));
+        #println("I-X'*X=",opnorm(Matrix(1.0I, k, k)-X'*X))
 
         if (abs(imag(λm))>sqrt(eps()) && addconj)
 
@@ -968,7 +968,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
 
             h=X'*v1;
             v1t=v1-X*h;
-            beta=norm(v1t);
+            beta=opnorm(v1t);
             X=[X v1t/beta];
             k=k+1;
             S1=zeros(ComplexF64,k,k);
@@ -977,8 +977,8 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
             R = Matrix{ComplexF64}(I, k, k)
             R[1:k-1,end]=h; R[k,k]=beta;
             S=(R*S1)/R;
-            #println("norm(XX-I)=",norm(X'*X-Matrix(1.0I, size(X, 2), size(X, 2))))
-            #println("norm(MM)=",norm(compute_MM(nep,S,X)));
+            #println("opnorm(XX-I)=",opnorm(X'*X-Matrix(1.0I, size(X, 2), size(X, 2))))
+            #println("opnorm(MM)=",opnorm(compute_MM(nep,S,X)));
             #        X=[X v1]
             #      S=[S conj(v1[(n0+1):(n0+p)]);zeros(1,p) conj(λ1)]
             #dnep=NEPBroydenDeflated(nep,S,X);
@@ -996,7 +996,7 @@ function eigs_invpow(MM;maxit=10,sigma=0)
     z=ones(size(AA,1));
     for k=1:maxit
         z=AA\z;
-        z=z/norm(z);
+        z=z/opnorm(z);
     end
     lambda=z'*MM*z;
     z=reshape(z,size(AA,1),1);

@@ -31,4 +31,4 @@ import NEPCore.compute_Mlincomb_from_MM
 z2=compute_Mlincomb_from_MM(nep,λ,V,a)
 @time z2=compute_Mlincomb_from_MM(nep,λ,V,a)
 
-println("Error=",norm(z1-z2))
+println("Error=",opnorm(z1-z2))

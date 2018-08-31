@@ -45,22 +45,22 @@ IAR=@testset "IAR" begin
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @testset "DGKS" begin
         (λ,Q,err,V)=iar(dep,orthmethod=DGKS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-        @test norm(V'*V - I) < 1e-6
+        @test opnorm(V'*V - I) < 1e-6
      end
 
      @testset "User provided doubleGS" begin
          (λ,Q,err,V)=iar(dep,orthmethod=DoubleGS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-         @test norm(V'*V - I) < 1e-6
+         @test opnorm(V'*V - I) < 1e-6
       end
 
       @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-          @test norm(V'*V - I) < 1e-6
+          @test opnorm(V'*V - I) < 1e-6
       end
 
        @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-           @test norm(V'*V - I) < 1e-6
+           @test opnorm(V'*V - I) < 1e-6
        end
     end
 

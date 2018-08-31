@@ -33,7 +33,7 @@ the type, it will return a nep of the struct `ShiftScaledNEP`.
 julia> nep0=nep_gallery("pep0")
 julia> σ=3; α=10;
 julia> nep1=shift_and_scale(nep0,shift=σ,scale=α)
-julia> norm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
+julia> opnorm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
 8.875435870738592e-12
 ```
 """
@@ -126,7 +126,7 @@ julia> nep0=nep_gallery("pep0")
 julia> a=1; b=3; c=4; d=5;
 julia> nep1=mobius_transform(nep0,a=a,b=b,c=c,d=d);
 julia> s=3;
-julia> norm(compute_Mder(nep0,(a*s+b)/(c*s+d))-compute_Mder(nep1,s))
+julia> opnorm(compute_Mder(nep0,(a*s+b)/(c*s+d))-compute_Mder(nep1,s))
 0.0
 """
 function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)

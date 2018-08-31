@@ -41,13 +41,13 @@ type NEP
         this.Md=Md
 
         this.resnorm=function (λ,v)
-            return norm(this.Md(λ,0)*v)
+            return opnorm(this.Md(λ,0)*v)
         end
 
         this.relresnorm=function (λ,v)
              # Giampaolo: I changed to 1-norm in order to expand
              # to sparse matrices
-            return this.resnorm(λ,v)/norm(Md(λ,0),1);
+            return this.resnorm(λ,v)/opnorm(Md(λ,0),1);
         end
 
         this.rf=function(x; y=x, target=0, λ0=target)

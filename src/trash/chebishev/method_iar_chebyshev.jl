@@ -42,7 +42,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     v=ones(n,1);  # debug
-    vv[:]=v; vv[:]=vv[:]/norm(vv);
+    vv[:]=v; vv[:]=vv[:]/opnorm(vv);
     k=1; conv_eig=0;
 
     # hardcoded matrix L

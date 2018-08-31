@@ -17,8 +17,8 @@ bb=mxarray(b)
 @matlab (vv,dd)=eigs(aa,bb);
 @mget dd vv;
 
-println("residual=",norm(a*v[:,2] - d[2]*b*v[:,2]))
-println("norm eigenvectors=",norm(v))
+println("residual=",opnorm(a*v[:,2] - d[2]*b*v[:,2]))
+println("norm eigenvectors=",opnorm(v))
 
-println("residual matlab=",norm(a*vv[:,2] - dd[2,2]*b*vv[:,2]))
-println("norm eigenvectors matlab=",norm(vv))
+println("residual matlab=",opnorm(a*vv[:,2] - dd[2,2]*b*vv[:,2]))
+println("norm eigenvectors matlab=",opnorm(vv))

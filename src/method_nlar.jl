@@ -230,8 +230,8 @@ function nlar(::Type{T},
                 Q = Matrix(Q)
                 Vk=Q
                 V[:,1:k+1]=Q;
-                #println("Dist normalization:",norm(Vk'*Vk-I))
-                #println("Size:",size(Vk), " N: ",norm(Vk[:,k+1]), " d:",norm(Δv))
+                #println("Dist normalization:",opnorm(Vk'*Vk-I))
+                #println("Size:",size(Vk), " N: ",opnorm(Vk[:,k+1]), " d:",opnorm(Δv))
             else
                 h=zeros(T,k);
                 orthogonalize_and_normalize!(Vk,Δv,h,orthmethod);
@@ -243,8 +243,8 @@ function nlar(::Type{T},
 
             #Check orthogonalization
             if(k < 100)
-               println("CHECKING BASIS ORTHOGONALITY  ......     $(norm(Vk'*Vk - I))\n\n")
-               #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
+               println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))\n\n")
+               #println("CHECKING ORTHO  ......     ",opnorm(Δv)," ....",h," .... ",g,"\n")
             end
             k = k+1;
         end

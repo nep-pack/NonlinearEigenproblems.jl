@@ -298,9 +298,9 @@ julia> λ1-λ2
         err=Inf;
         # If c is zero vector we take eigvec approx as normalization vector
         use_v_as_normalization_vector=false;
-        if (norm(c)==0)
+        if norm(c) == 0
             use_v_as_normalization_vector=true;
-            c = v /norm(v)^2
+            c = v / norm(v)^2
         end
         v=v/dot(c,v);
         local linsolver::LinSolver
@@ -323,7 +323,7 @@ julia> λ1-λ2
                 tempvec[:] = Array{T,1}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
-                    c = v /norm(v)^2
+                    c = v /opnorm(v)^2
                 end
                 α = T(1)/ dot(c,tempvec);
 
@@ -504,7 +504,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 v = P*[-p;T(1)];#Right eigenvector
                 w = Q*en;#Left eigenvector
 
-                #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2);
+                #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
                 err=errmeasure(λ,v);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
@@ -570,7 +570,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
                 vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
-                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2);
+                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
                     @ifd(println(λ))

@@ -13,9 +13,9 @@ This is an implementation of the two-sided Rayleigh functional Iteration. This m
 julia> nep=nep_gallery("dep0");
 julia> nept=DEP([nep.A[1]',nep.A[2]'])
 julia> λ,v,u=rfi(nep,nept,v=ones(size(nep,1)))
-julia> norm(compute_Mder(nep,λ)*v) % v is a right eigenvector
+julia> opnorm(compute_Mder(nep,λ)*v) % v is a right eigenvector
 5.4672143489065705e-16
-julia> norm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
+julia> opnorm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
 4.1447913221215544e-16
 
 # Reference

@@ -15,7 +15,7 @@ using Test
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
     h[:]=VV'*vv; vv[:]=vv-VV*h; g=VV'*vv; vv[:]=vv-VV*g;
-    h[] = h[]+g[]; β=norm(vv); vv[:]=vv/β; return β
+    h[] = h[]+g[]; β=opnorm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
 abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
@@ -41,22 +41,22 @@ TIAR=@testset "TIAR" begin
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @testset "DGKS" begin
         (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
-        @test norm(Z'*Z - I) < 1e-6
+        @test opnorm(Z'*Z - I) < 1e-6
      end
 
      @testset "User provided doubleGS" begin
          (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
-         @test norm(Z'*Z - I) < 1e-6
+         @test opnorm(Z'*Z - I) < 1e-6
       end
 
       @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
-          @test norm(Z'*Z - I) < 1e-6
+          @test opnorm(Z'*Z - I) < 1e-6
       end
 
        @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
-           @test norm(Z'*Z - I) < 1e-6
+           @test opnorm(Z'*Z - I) < 1e-6
        end
     end
 
@@ -72,7 +72,7 @@ TIAR=@testset "TIAR" begin
         np=1000;
 
         depp=nep_gallery("dep0",np);
-        nn=norm(compute_Mder(depp,0));
+        nn=opnorm(compute_Mder(depp,0));
         errmeasure= (λ,v) -> norm(compute_Mlincomb(depp,λ,v))/nn;
 
         λ,Q = tiar(depp, σ=0, γ=3, Neig=3, v=ones(np), displaylevel=0, maxit=50,

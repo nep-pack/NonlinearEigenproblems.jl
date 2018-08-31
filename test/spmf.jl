@@ -36,9 +36,9 @@ using Test
         V=randn(n,3);
 
         # Check if prefactorize with Schur gives the same result
-        @test norm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
+        @test opnorm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
         # Check compute_MM
-        @test norm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*exp(-t*S)))<sqrt(eps())
+        @test opnorm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*exp(-t*S)))<sqrt(eps())
 
 
         # Check if compute_MM is correct (by comparing against diagonalization of S).
@@ -54,7 +54,7 @@ using Test
         N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
                 compute_Mlincomb(nep1,d[2],V1[:,2]),
                 compute_Mlincomb(nep1,d[3],V1[:,3]))*inv(W)
-        @test norm(N1-N2)<sqrt(eps())
+        @test opnorm(N1-N2)<sqrt(eps())
 
     end
     @testset "compute_Mder_from_MM" begin
@@ -66,12 +66,12 @@ using Test
         λ=2
         T1=compute_Mder_from_MM(nep1,λ,1)
         T2 = -I - t*A1*exp(-t*λ)
-        @test norm(T1-T2)<sqrt(eps())
+        @test opnorm(T1-T2)<sqrt(eps())
 
         λ=2
         T3=compute_Mder_from_MM(nep1,λ,2)
         T4=t^2*A1*exp(-t*λ)
-        @test norm(T3-T4)<sqrt(eps())
+        @test opnorm(T3-T4)<sqrt(eps())
 
 
 

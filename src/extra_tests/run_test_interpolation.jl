@@ -63,7 +63,7 @@ println(λ2)
 println(x2)
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 
 println("\nRunning Newton on interpolated dep (interpolating pep of degree 8)")
@@ -85,7 +85,7 @@ println(λ2)
 println(x2)
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 
 println("\nRunning Newton on interpolated dep (BigFloat arithmetic, degree 2)")
@@ -106,7 +106,7 @@ println(λ2)
 println(x2)
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 
 #########################################################################################
@@ -147,7 +147,7 @@ println(λ2)
 println(x2)
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 
 #########################################################################################
@@ -185,13 +185,13 @@ println("Resnorm: ",compute_resnorm(pep,λ2,x2))
 println(λ2)
 #println(x2)
 println("\nCoefficient matrix differences (monomes): ")
-println(norm(nep.A[1]-pep.A[1]))
-println(norm(nep.A[2]-pep.A[2]))
-println(norm(nep.A[3]-pep.A[3]))
+println(opnorm(nep.A[1]-pep.A[1]))
+println(opnorm(nep.A[2]-pep.A[2]))
+println(opnorm(nep.A[3]-pep.A[3]))
 
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 
 
@@ -213,15 +213,15 @@ println("Resnorm: ",compute_resnorm(pep,λ2,x2))
 println(λ2)
 #println(x2)
 println("\nCoefficient matrix differences (monomes): ")
-println(norm(nep.A[1]-pep.A[1]))
-println(norm(nep.A[2]-pep.A[2]))
-println(norm(nep.A[3]-pep.A[3]))
-println(norm(pep.A[4]))
-println(norm(pep.A[5]))
+println(opnorm(nep.A[1]-pep.A[1]))
+println(opnorm(nep.A[2]-pep.A[2]))
+println(opnorm(nep.A[3]-pep.A[3]))
+println(opnorm(pep.A[4]))
+println(opnorm(pep.A[5]))
 
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 
 
@@ -264,9 +264,9 @@ println(λ2)
 #println(x2)
 
 println("\nDifferences\nEigenvalue ", abs(λ1-λ2))
-println("Error norm = ",norm(x1-x2), " Eigenvector norm = ", norm(x1))
+println("Error norm = ",opnorm(x1-x2), " Eigenvector norm = ", opnorm(x1))
 
 println("\nCoefficient matrix differences (monomes): ")
-println(norm(nep.A[1]-pep.A[1], Inf))
-println(norm(nep.A[2]-pep.A[2], Inf))
-println(norm(nep.A[3]-pep.A[3], Inf))
+println(opnorm(nep.A[1]-pep.A[1], Inf))
+println(opnorm(nep.A[2]-pep.A[2], Inf))
+println(opnorm(nep.A[3]-pep.A[3], Inf))

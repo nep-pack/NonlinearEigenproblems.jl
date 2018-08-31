@@ -18,4 +18,4 @@ b=[zeros(eltype(A),n); 1];
 #b=A*x;
 x=M\b;
 y=x[1:n];
-println("error=",norm(A*y))
+println("error=",opnorm(A*y))

@@ -13,7 +13,7 @@ function DD0_mat_fun(T,f,S)
 	# Example:
 	# n=10; S=rand(n,n); T=ComplexF64; f=x->exp(x)+x^2
 	# Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
-	# norm(Y1-Y2)
+	# opnorm(Y1-Y2)
 
 	n=size(S,1);
 	A=zeros(T,2*n,2*n);
@@ -24,4 +24,4 @@ end
 
 n=10; S=rand(n,n); T=ComplexF64; f=x->exp(x)+x^2
 Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
-norm(Y1-Y2)
+opnorm(Y1-Y2)

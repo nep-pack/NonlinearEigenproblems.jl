@@ -9,7 +9,7 @@ using Printf
 # Add tests below if you wish that they are not run together with all tests
 tests_not_to_run = Set{String}(map(uppercase, [
     "runtests.jl", # this file
-    "Beyn_parallel.jl", # currently disabled
+    "beyn_parallel.jl", # currently disabled
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB

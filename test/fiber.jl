@@ -33,7 +33,7 @@ fibertest=@testset "NLEVP fiber" begin
         Am=compute_Mder(nep_org,λ-δ)
         Mp_approx=(Ap-Am)/(2δ);
         Mp=compute_Mder(nep_org,λ,1)
-        @test norm(Mp-Mp_approx,1)<δ^2*100
+        @test opnorm(Mp-Mp_approx,1)<δ^2*100
 
 
         # Checking Mlincomb
@@ -43,7 +43,7 @@ fibertest=@testset "NLEVP fiber" begin
         z_minus=compute_Mlincomb(nep_org,λ-δ,x)
         zp=compute_Mlincomb(nep_org,λ,x,[1],1)
         zp-(z_plus-z_minus)/(2δ)
-        @test norm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
+        @test opnorm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
 
 
         println("Running Newton");

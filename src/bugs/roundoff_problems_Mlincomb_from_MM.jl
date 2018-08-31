@@ -47,7 +47,7 @@ V = Matrix(V)
 x=compute_Mlincomb_from_MM(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 ## Compute lin comb for larger m-value
 
@@ -62,9 +62,9 @@ V = Matrix(V)
 x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 # Setup a the coeff vector
 m=100;
@@ -78,9 +78,9 @@ alphav[2]=0;
 x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -95,6 +95,6 @@ V = Matrix(V)
 x=compute_Mlincomb_from_MM!(dep,0,V,alphav)
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))

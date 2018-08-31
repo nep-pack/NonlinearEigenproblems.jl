@@ -11,7 +11,7 @@ using Test
 dep=nep_gallery("dep0",200);
 n=size(dep,1);
 @testset "Inner Solves" begin
-    nn=norm(compute_Mder(dep,0));
+    nn=opnorm(compute_Mder(dep,0));
     errmeasure= (λ,v) -> norm(compute_Mlincomb(dep,λ,v))/nn;
 
     pnep=create_proj_NEP(dep);

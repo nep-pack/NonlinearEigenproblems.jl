@@ -108,22 +108,22 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @testset "DGKS" begin
         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-        @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
+        @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
      end
 
      @testset "User provided doubleGS" begin
          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-         @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
+         @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
       end
 
       @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-          @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
+          @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
       end
 
        @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-           @test norm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
+           @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
        end
     end
 
@@ -209,7 +209,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
 
             λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=0,check_error_every=1,compute_y0_method=ComputeY0Cheb,v=ones(n));
 
-            @test norm(V[:,1:10]-V2[:,1:10])<1e-6;
+            @test opnorm(V[:,1:10]-V2[:,1:10])<1e-6;
 
         end
 
@@ -242,7 +242,7 @@ IAR_cheb=@testset "IAR Chebyshev version" begin
                                         check_error_every=1,v=ones(size(nep,1)));
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
 
-            @test norm(V[:,1:10]-V2[:,1:10])+norm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
+            @test opnorm(V[:,1:10]-V2[:,1:10])+opnorm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
 
         end
 

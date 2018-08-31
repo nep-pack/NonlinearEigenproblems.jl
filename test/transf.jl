@@ -105,7 +105,7 @@ using Test
         s = Matrix(3.0*I, 1, 1)
         W1 = compute_MM(nep4, (c*S + d*I) \ (a*S + b*I), V)
         W2=compute_MM(nep4_transf,S,V);
-        @test norm(W1-W2)<sqrt(eps())
+        @test opnorm(W1-W2)<sqrt(eps())
 
         # Check that mobius_transformation becomes shift_and_scale
         c=0; d=1;

@@ -13,7 +13,7 @@ using Test
     dep=nep_gallery("dep0");
     S,V=broyden(dep)
     # Broyden returns a Schur factorization so check with MM
-    @test norm(compute_MM(dep,S,V))<eps()*1000
+    @test opnorm(compute_MM(dep,S,V))<eps()*1000
     # test addconj
     S,V=broyden(dep,addconj=true,pmax=5)
     # Test by computing the eigenpairs
