@@ -46,7 +46,7 @@ exact_eigvals=[
 
     myerrmeasure=(λ,v) -> begin
         global exact_eigvals,dep;
-        return minimum(abs.(λ-exact_eigvals)./abs(λ))
+        return minimum(abs.(λ .- exact_eigvals) ./ abs(λ))
         #return norm(compute_Mlincomb(dep,λ,v))/norm(compute_Mder(dep,λ))
     end
 

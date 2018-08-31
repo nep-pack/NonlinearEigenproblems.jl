@@ -28,7 +28,7 @@ function gallery_dep_distributed()
 
 
 
-    A0=-eye(3);
+    A0 = Matrix(-1.0I, 3, 3)
     A1=[2.5    2.8   -0.5
         1.8    0.3    0.3
         -2.3   -1.4    3.5];
@@ -39,19 +39,19 @@ function gallery_dep_distributed()
         1.4    0.7    1.0
         0.6    1.6    1.7];
     idop= S -> S
-    oneop= S -> eye(size(S,1),size(S,2))
-    f1= S -> exp(-full(S))
-    N=10;
-    f2= S -> distributed_kernel_gauss_legendre(full(S),N)
-    #N=1000;
-    #f2= S -> distributed_kernel_trapezoidal(full(S),N)
+    oneop = S -> Matrix(1.0I, size(S,1), size(S,2))
+    f1 = S -> exp(-Matrix(S))
+    N = 10
+    f2 = S -> distributed_kernel_gauss_legendre(Matrix(S), N)
+    #N = 1000
+    #f2 = S -> distributed_kernel_trapezoidal(Matrix(S), N)
     return SPMF_NEP([A0,A1,A2,A3],[idop,oneop,f1,f2])
 end
 
 
 function distributed_kernel_trapezoidal(S,N0)
 
-    function fS(x); return exp(x*S)*(exp((x+0.5)^2)-exp(1/4)); end
+    fS = x -> exp(x*S) * (exp((x+0.5)^2) - exp(1/4))
 
     F=zeros(eltype(S),size(S,1),size(S,2));
 
@@ -74,7 +74,7 @@ function distributed_kernel_gauss_legendre(S,N)
     f=x-> (exp((x+0.5)^2)-exp(1/4))
     F=zeros(eltype(S),size(S,1),size(S,1))
     xv,wv=gauss_legendre_weights(N,-1,0);
-    local E=eye(eltype(S),size(S,1),size(S,1));
+    local E = Matrix{eltype(S)}(I, size(S,1), size(S,1))
 
     accumulative_expm_comp=true
     for i=1:length(xv)
@@ -117,14 +117,15 @@ function  gauss_legendre_weights(N,a,b)
 
 
     # Starting values of Newton's method
-    y=cos.((2*(0:(N-1))+1)*pi/(2*(N-1)+2))+(0.27/N1)*sin.(pi*xu*(N-1)/N2);    y0=2;
+    y = cos.((2 * (0:(N-1)) .+ 1) * pi / (2 * (N-1) + 2)) + (0.27/N1) * sin.(pi * xu * (N-1) / N2)
+    y0 = 2
 
 
     local Lp0
     # Newton's method to decide points
     # Iterate until new points are uniformly within epsilon of old points
 
-    while maximum(abs.(y-y0))>eps()
+    while maximum(abs.(y .- y0)) > eps()
 
 
 
@@ -139,17 +140,17 @@ function  gauss_legendre_weights(N,a,b)
             L[:,k+1]=( (2*k-1)*(y).*L[:,k]-(k-1)*L[:,k-1] )/k;
         end
 
-        Lp0=(N2)*( L[:,N1]-(y).*L[:,N2] )./(1-y.^2);
+        Lp0 = N2 * (L[:,N1] - y .* L[:,N2]) ./ (1 .- y.^2)
 
         y0=y;
         y=y0-L[:,N2]./Lp0;
     end
 
     # Linear map from[-1,1] to [a,b]
-    x=(a*(1-y)+b*(1+y))/2;
+    x = (a * (1 .- y) + b * (1 .+ y)) / 2
 
     # Compute the weights
-    w=(b-a)./((1-y.^2).*Lp0.^2)*(N2/N1)^2;
+    w = (b-a) ./ ((1 .- y.^2) .* Lp0.^2) * (N2/N1)^2
 
     return x,w
 end
