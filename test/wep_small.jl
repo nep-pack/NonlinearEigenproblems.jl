@@ -67,7 +67,7 @@ n=size(nep,1);
     λ,v=@time iar(ComplexF64,nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
                   tol=1e-8);
 
-    @test minimum(abs.(λstar-λ))<1e-10
+    @test minimum(abs.(λstar .- λ)) < 1e-10
 
     #λ,v=@time tiar(nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
     #               tol=1e-8);

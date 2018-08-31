@@ -477,7 +477,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         EE[nx,nx-1] = nep.d2/(nep.hx^2)
 
         # Kronecker product form of Ringh - Proposition 3.1
-        return kron(nep.B(λ)', Inz) + kron(Inx, nep.A(λ)) + sparse(Diagonal(nep.K[:])) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
+        return kron(copy(nep.B(λ)'), Inz) + kron(Inx, nep.A(λ)) + sparse(Diagonal(nep.K[:])) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
     end
 
     # lin_solve function to wrapp all the WEP linear solvers.
