@@ -8,9 +8,10 @@ using Test
 #import NEPSolver.inner_solve;
 #include("../src/inner_solver.jl");
 
-dep=nep_gallery("dep0",200);
-n=size(dep,1);
 @testset "Inner Solves" begin
+    dep=nep_gallery("dep0",200);
+    n=size(dep,1);
+
     nn=opnorm(compute_Mder(dep,0));
     errmeasure= (λ,v) -> norm(compute_Mlincomb(dep,λ,v))/nn;
 

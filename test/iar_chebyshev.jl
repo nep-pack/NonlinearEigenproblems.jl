@@ -83,7 +83,7 @@ function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0in
 end
 
 
-IAR_cheb=@testset "IAR Chebyshev version" begin
+@testset "IAR Chebyshev version" begin
     dep=nep_gallery("neuron0"); n=size(dep,1);
     @testset "Scale Cheb's to different interval w DEP" begin
         a=-maximum(dep.tauv)

@@ -14,13 +14,14 @@ using SparseArrays
 using NEPSolver
 using NEPCore
 
-A=sprandn(100,100,0.1);
-B=sprandn(100,100,0.1);
-
-target=0;
-nev=3;
-nep=nep_gallery("dep0");
 @testset "MSLP" begin
+    A=sprandn(100,100,0.1);
+    B=sprandn(100,100,0.1);
+
+    target=0;
+    nev=3;
+    nep=nep_gallery("dep0");
+
     # Full matrix test
     λ1,v1=mslp(nep)
     @test norm(compute_Mlincomb(nep,λ1,v1))<1e-10

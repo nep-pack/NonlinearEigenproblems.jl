@@ -11,11 +11,11 @@ using IterativeSolvers
 using LinearAlgebra
 using Test
 
-nep=nep_gallery("qdep0");
-nept=SPMF_NEP([nep.A[1]',nep.A[2]',nep.A[3]'],nep.fi)
-n=size(nep,1);
-
 @testset "Infbilanczos σ=0" begin
+    nep=nep_gallery("qdep0");
+    nept=SPMF_NEP([nep.A[1]',nep.A[2]',nep.A[3]'],nep.fi)
+    n=size(nep,1);
+
     m=40;
     λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=1,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
@@ -47,13 +47,7 @@ end
 #    end
 #    @test length(find(thiserr .< 1e-7)) >= 2
 #end
-#
 
-
-
-
-
-#
 ##for i=1:m
 ## semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
 ##end

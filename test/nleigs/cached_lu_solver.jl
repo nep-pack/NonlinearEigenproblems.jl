@@ -32,11 +32,11 @@ function run_tests(fun, y)
     @testcache lusolve_and_verify(fun, 2.5, y) 1
 end
 
-Random.seed!(0)
-n = 20
-y = collect(1.0:n)
-
 @testset "cached_lu_solver" begin
+    Random.seed!(0)
+    n = 20
+    y = collect(1.0:n)
+
     @testcache () 0
 
     # sparse matrix

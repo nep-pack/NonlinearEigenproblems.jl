@@ -18,18 +18,21 @@ struct CustomNLEIGSNEP <: NEP
     n::Int  # problem size; this is the only required field in a custom NEP type when used with NLEIGS
 end
 
-n = 2
-B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6]])
-C = Vector{Matrix{Float64}}([[1 0; 0 1]])
+nep_types_test_n = 2
+nep_types_test_B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6]])
+nep_types_test_C = Vector{Matrix{Float64}}([[1 0; 0 1]])
 
 # implement a few methods used by the solver
 import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
-pep = PEP([B; C])
-compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(pep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Matrix) = compute_Mlincomb(pep, λ, x)
-size(::CustomNLEIGSNEP, _) = n
+nep_types_test_pep = PEP([nep_types_test_B; nep_types_test_C])
+compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(nep_types_test_pep, λ)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Matrix) = compute_Mlincomb(nep_types_test_pep, λ, x)
+size(::CustomNLEIGSNEP, _) = nep_types_test_n
 
 function nleigs_nep_types()
+    n = nep_types_test_n
+    B = nep_types_test_B
+    C = nep_types_test_C
     f = [λ -> λ^2]
     Σ = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 

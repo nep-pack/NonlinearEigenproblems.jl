@@ -27,11 +27,10 @@ import IterativeSolvers.orthogonalize_and_normalize!
 function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     doubleGS_function!(V, v, h) end
 
+@testset "IAR" begin
+    dep=nep_gallery("dep0");
+    n=size(dep,1);
 
-dep=nep_gallery("dep0");
-n=size(dep,1);
-
-IAR=@testset "IAR" begin
     @testset "accuracy eigenpairs" begin
         (λ,Q)=iar(dep,σ=3,Neig=5,v=ones(n),
                   displaylevel=0,maxit=100,tol=eps()*100);

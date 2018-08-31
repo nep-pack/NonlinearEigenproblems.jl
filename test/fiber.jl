@@ -16,14 +16,12 @@ using Test
 using GalleryNLEVP
 using LinSolversMATLAB
 
-nep_org=nep_gallery(NLEVP_NEP,"fiber");
-n=size(nep_org,1);
-
-# An exact eigenvalue according (reported in NLEVP collection)
-sol_val= 7.139494306065948e-07;
-
-
 fibertest=@testset "NLEVP fiber" begin
+    nep_org=nep_gallery(NLEVP_NEP,"fiber");
+    n=size(nep_org,1);
+
+    # An exact eigenvalue according (reported in NLEVP collection)
+    sol_val= 7.139494306065948e-07;
 
     @testset "basics" begin
         # Checking Mder

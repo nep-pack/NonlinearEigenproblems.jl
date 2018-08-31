@@ -11,7 +11,7 @@ using Random
 #using Winston # For plotting
 using Test
 
-projtest=@testset "Projected problems" begin
+@testset "Projected problems" begin
 
     @testset "Problem $nepstr" for nepstr in ("pep", "dep", "sqrtm")
 
@@ -86,5 +86,3 @@ projtest=@testset "Projected problems" begin
         @test diff < sqrt(eps())
     end
 end
-
-Test.print_test_results(projtest)

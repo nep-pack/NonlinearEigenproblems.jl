@@ -11,11 +11,11 @@ using NEPSolver
 using Gallery
 using IterativeSolvers
 
+@testset "Deflation (combined with MSLP)" begin
+
 nep=nep_gallery("dep0");
 nep = DEP(nep.n, nep.A, [0, 0.8])
-
 #nep=shift_and_scale(nep;shift=0,scale=2);
-@testset "Deflation (combined with MSLP)" begin
 
 n=size(nep,1);
 

@@ -25,10 +25,10 @@ import IterativeSolvers.orthogonalize_and_normalize!
 function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     doubleGS_function!(V, v, h) end
 
-n=100;
-dep=nep_gallery("dep0",n);
+@testset "TIAR" begin
+    n=100;
+    dep=nep_gallery("dep0",n);
 
-TIAR=@testset "TIAR" begin
     @testset "accuracy eigenpairs" begin
         (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
         @testset "TIAR eigval[$i]" for i in 1:length(λ)

@@ -11,8 +11,8 @@ using Gallery
 using LinearAlgebra
 using Test
 
-nep=nep_gallery("dep0")
 @testset "Newton iterations" begin
+    nep=nep_gallery("dep0")
 
     @testset "Newton and AugNewton" begin
         # newton and augnewton are equivalent, therefore I expect them

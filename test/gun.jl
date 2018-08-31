@@ -16,8 +16,7 @@ using Test
 using GalleryNLEVP
 using LinSolversMATLAB
 
-
-guntest=@testset "GUN (NLEVP interface)" begin
+@testset "GUN (NLEVP interface)" begin
 
     nep_org=nep_gallery(NLEVP_NEP,"gun");
     nep1=nlevp_make_native(nep_org);
@@ -79,6 +78,3 @@ guntest=@testset "GUN (NLEVP interface)" begin
     end
 
 end
-Base.Test.print_test_results(guntest)
-
-1;
