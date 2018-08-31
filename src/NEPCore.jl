@@ -1,6 +1,7 @@
 module NEPCore
     using SparseArrays
     using LinearAlgebra
+    using InteractiveUtils
 
     # Fundamental nonlinear eigenvalue problems
     export NEP

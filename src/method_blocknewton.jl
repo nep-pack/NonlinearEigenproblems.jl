@@ -168,7 +168,7 @@ function newtonstep_linsys(::Type{T},nep::AbstractSPMF,S, X, W, RT, RV, displayl
 
         # Construct the matrix in equation (20) in Kressner Num. Math.
         T11=compute_Mder(nep,s)
-        S_expanded=[S eye(S);zeros(S) s*eye(S)]
+        S_expanded = [S I; zero(S) s*I]
         # T12 = compute_MM(nep,[0*X X],S_expanded) # Can maybe be computed like this? Would avoid the explicit use of Av and and fv
         T12 = zeros(T,n,p);
         for j = 1:m
@@ -180,7 +180,7 @@ function newtonstep_linsys(::Type{T},nep::AbstractSPMF,S, X, W, RT, RV, displayl
         for j = 2:l
             T21 = T21 + s^(j-1) * W[:,:,j]';
         end
-        DS = eye(p);
+        DS = Matrix(1.0I, p, p)
         T22 = zeros(T,p,p);
         for j = 2:l
             T22 = T22 + W[:,:,j]'*X*DS;
@@ -196,7 +196,7 @@ function newtonstep_linsys(::Type{T},nep::AbstractSPMF,S, X, W, RT, RV, displayl
         if (i<p) # Updated RHS needed in the next for loop
             Z = zeros(T,p,p);
             Z[:,i] = dS[:,i]; DS = Z;
-            S2_expanded=[S Z;zeros(S) S];
+            S2_expanded = [S Z; zero(S) S]
             for j = 1:m  # Update\tilde{R}_{T2} according to equation (21)
                 Za=dX[:,i]*transpose(fS[i,i+1:p,j]) # First term
                 DF = fv[j](S2_expanded)
@@ -221,7 +221,7 @@ function Vl(X,S)
     p=size(S,1); n=size(X,1);
     V=zeros(eltype(S),n*p,p);
     for j=1:p
-        V[(j-1)*n+(1:n),:]=X*(S^(j-1));
+        V[(j-1)*n .+ (1:n), :] = X * (S^(j-1))
     end
     return V
 end
