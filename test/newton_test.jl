@@ -133,6 +133,6 @@ nep=nep_gallery("dep0")
     @testset "implicitdet" begin
         nepd=nep_gallery("periodicdde","mathieu")
         λ,v=implicitdet(nepd, v=ones(size(nepd,1)))
-        @test opnorm(compute_Mder(nepd,λ)*v) < eps()*100
+        @test norm(compute_Mder(nepd,λ)*v) < eps()*100
     end
 end
