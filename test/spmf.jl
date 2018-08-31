@@ -92,7 +92,8 @@ using Test
 
     @testset "Compute_Mlincomb" begin
 
-        S=randn(3,3);
+        Random.seed!(10)
+        S=randn(3,3)+120^2*I;
         V=randn(n,3);
 
         # Same nonlinearities as the GUN NLEVP problem
