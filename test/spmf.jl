@@ -21,14 +21,14 @@ using Test
     A1=sparse(randn(n,n));
     t=3.0
 
-    minusop= S-> -S
-    oneop= S -> eye(S)
-    expmop= S -> exp(full(-t*S))
+    minusop = S -> -S
+    oneop = S -> Matrix{eltype(S)}(I, size(S))
+    expmop = S -> exp(Matrix(-t*S))
     fi=[minusop, oneop, expmop];
 
-    nep1=SPMF_NEP([speye(n),A0,A1],fi)
-    nep2=SPMF_NEP([speye(n),A0,A1],fi, true)
-
+    J = SparseMatrixCSC(1.0I, n, n)
+    nep1 = SPMF_NEP([J, A0, A1], fi)
+    nep2 = SPMF_NEP([J, A0, A1], fi, true)
 
     @testset "compute_MM" begin
 
@@ -65,7 +65,7 @@ using Test
         # Check compute_Mder_from_MM()
         λ=2
         T1=compute_Mder_from_MM(nep1,λ,1)
-        T2=-1*speye(n)-t*A1*exp(-t*λ)
+        T2 = -I - t*A1*exp(-t*λ)
         @test norm(T1-T2)<sqrt(eps())
 
         λ=2
@@ -78,9 +78,9 @@ using Test
         # Check consistency of MM and Mder
 
         # Exact Mlincomb:
-        Zexact=(-λ*speye(n)+A0+A1*exp(-t*λ))*V[:,1]+
-        (-speye(n)-t*A1*exp(-t*λ))*V[:,2]+
-        (t^2*A1*exp(-t*λ))*V[:,3];
+        Zexact = (-λ*I + A0 + A1*exp(-t*λ)) * V[:,1] +
+            (-I - t*A1*exp(-t*λ)) * V[:,2] +
+            (t^2*A1*exp(-t*λ)) * V[:,3]
 
         Z1=compute_Mlincomb_from_MM(nep1,λ,V,[1.0,1.0,1.0])
         @test norm(Z1-Zexact)<sqrt(eps())
@@ -97,9 +97,9 @@ using Test
 
         # Same nonlinearities as the GUN NLEVP problem
         minusop= S-> -S
-        oneop= S -> eye(size(S,1),size(S,2))
-        sqrt1op= S -> 1im*sqrt(full(S))
-        sqrt2op= S -> 1im*sqrt(full(S)-108.8774^2*eye(S))
+        oneop = S -> Matrix(1.0I, size(S))
+        sqrt1op = S -> 1im * sqrt(Matrix(S))
+        sqrt2op = S -> 1im * sqrt(Matrix(S) - 108.8774^2*I)
 
         A0=sparse(randn(n,n))+1im*sparse(randn(n,n));
         A1=sparse(randn(n,n))+1im*sparse(randn(n,n));

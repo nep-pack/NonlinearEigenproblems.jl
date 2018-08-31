@@ -613,12 +613,12 @@ julia> compute_Mder(nep,3)
         n=size(AA[1],1)
         AA=reshape(AA,length(AA)) # allow for 1xn matrices
         # numerators
-        si=Array{Array{Number,1},1}(length(poles))
+        si = Vector{Vector{Number}}(undef, length(poles))
         for i =1:size(poles,1)
             si[i]=[1];
         end
         # denominators
-        qi=Array{Array{Number,1}}(length(poles))
+        qi = Vector{Vector{Number}}(undef, length(poles))
         for i =1:size(poles,1)
             if poles[i]!=0
                 qi[i]=[1,-1/poles[i]];
@@ -634,10 +634,10 @@ julia> compute_Mder(nep,3)
         local Z0;
         if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
-            Si=speye(S)
+            Si = SparseMatrixCSC{eltype(S)}(I, size(S))
         else
-            Z=zeros(V)
-            Si=eye(S)
+            Z = zero(V)
+            Si = Matrix{eltype(S)}(I, size(S))
         end
         # Sum all the elements
         for i=1:size(nep.A,1)
@@ -666,8 +666,8 @@ julia> compute_Mder(nep,3)
         if (i!=0) # Todo
             error("Higher order derivatives of REP's not implemented")
         end
-        S=speye(rep.n)*λ
-        V=speye(rep.n);
+        S = SparseMatrixCSC(λ*I, rep.n, rep.n)
+        V = SparseMatrixCSC(1.0I, rep.n, rep.n)
         return compute_MM(rep,S,V)  # This call can be slow
     end
 
@@ -678,7 +678,7 @@ julia> compute_Mder(nep,3)
     end
     #  Fetch the Fv's, since they are not explicitly stored in REPs
     function get_fv(nep::REP)
-        fv=Array{Function,1}(size(nep.qi,1))
+        fv = Vector{Function}(undef, size(nep.qi, 1))
         for i=1:size(fv,1)
             fv[i]=S -> (lpolyvalm(nep.qi[i],S)\lpolyvalm(nep.si[i],S))
         end
@@ -687,8 +687,8 @@ julia> compute_Mder(nep,3)
 
     # Evaluation of matrix polynomial with coefficient a
     function lpolyvalm(a::Array{<:Number,1},S::Array{<:Number,2})
-        Sp=eye(S);
-        Ssum=zeros(S);
+        Sp = Matrix{eltype(S)}(I, size(S))
+        Ssum = zero(S)
         for j=1:size(a,1)
             Ssum+= a[j]*Sp;
             Sp=Sp*S;
