@@ -12,22 +12,23 @@ using IterativeSolvers
 using LinearAlgebra
 using Test
 
+dep_distributed_exact_eigvals = [
+   -0.400236388049641 + 0.970633098237807im
+   -0.400236388049641 - 0.970633098237807im
+   2.726146249832675 + 0.000000000000000im
+   -1.955643591177653 + 3.364550574688863im
+   -1.955643591177653 - 3.364550574688863im
+   4.493937056300693 + 0.000000000000000im
+   -1.631513006819252 + 4.555484848248613im
+   -1.631513006819252 - 4.555484848248613im
+   -1.677320660400946 + 7.496870451838560im
+   -1.677320660400946 - 7.496870451838560im]
+
 @testset "gallery(dep_distributed" begin
     dep=nep_gallery("dep_distributed");
     n=size(dep,1);
-    exact_eigvals=[
-       -0.400236388049641 + 0.970633098237807im
-       -0.400236388049641 - 0.970633098237807im
-       2.726146249832675 + 0.000000000000000im
-       -1.955643591177653 + 3.364550574688863im
-       -1.955643591177653 - 3.364550574688863im
-       4.493937056300693 + 0.000000000000000im
-       -1.631513006819252 + 4.555484848248613im
-       -1.631513006819252 - 4.555484848248613im
-       -1.677320660400946 + 7.496870451838560im
-       -1.677320660400946 - 7.496870451838560im]
 
-    M1=compute_Mder(dep,exact_eigvals[1]);
+    M1=compute_Mder(dep, dep_distributed_exact_eigvals[1]);
     @test minimum(svdvals(M1))<eps()*100;
 
 
@@ -44,8 +45,7 @@ using Test
 
 
     myerrmeasure=(λ,v) -> begin
-        global exact_eigvals,dep;
-        return minimum(abs.(λ .- exact_eigvals) ./ abs(λ))
+        return minimum(abs.(λ .- dep_distributed_exact_eigvals) ./ abs(λ))
         #return norm(compute_Mlincomb(dep,λ,v))/norm(compute_Mder(dep,λ))
     end
 
@@ -57,19 +57,13 @@ using Test
         @test myerrmeasure(λ[i],V[:,i])<1e-10
     end
 
-
-
-    @testset "Quasinewton eigval[$i]" for i in 1:length(exact_eigvals[1:3])
-        λ0=round(exact_eigvals[i]*10)/10
+    @testset "Quasinewton eigval[$i]" for i in 1:length(dep_distributed_exact_eigvals[1:3])
+        λ0=round(dep_distributed_exact_eigvals[i]*10)/10
         λ,v=quasinewton(ComplexF64,dep,v=ones(n),λ=λ0,
                         #displaylevel=1,
                         armijo_factor=0.5,maxit=200,
                         errmeasure=myerrmeasure,
                         tol=eps()*100)
-        @test abs((exact_eigvals[i]-λ)/λ)<eps()*100
+        @test abs((dep_distributed_exact_eigvals[i]-λ)/λ)<eps()*100
     end
-
-
-
-
 end
