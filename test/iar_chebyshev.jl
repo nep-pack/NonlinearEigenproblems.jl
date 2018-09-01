@@ -144,8 +144,8 @@ end
 
         @testset "DEP WITH GENERIC Y0" begin
 
-            n=1000; I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
-            A0=sparse(I, J, rand(3*n-2)); A1=sparse(I, J, rand(3*n-2))
+            n=1000; K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
+            A0=sparse(K, J, rand(3*n-2)); A1=sparse(K, J, rand(3*n-2))
             nep = SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
