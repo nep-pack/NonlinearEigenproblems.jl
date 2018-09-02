@@ -32,6 +32,7 @@ using Test
 
     @testset "Newton QR" begin
 
+        println("Newton QR test")
         #Run derivative test for left and right eigenvectors returned by newtonqr
         λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=0,tol=eps()*10);
 
@@ -55,9 +56,12 @@ using Test
     end
 
     @testset "Resinv" begin
-        # basic functionality of resinv
-        λ4,x4 =  resinv(nep, λ=0, v=ones(size(nep,1)), displaylevel=0,tol=eps()*10);
-        r4=compute_resnorm(nep,λ4,x4)
+        println("resinv + periodicdde")
+        nep1=nep_gallery("periodicdde","rand0")
+        # basic functionality of resinv. Start close to solution to speed up unit test
+        λ4,x4 =  resinv(nep1, λ=-0.2447, v=[0.970208+0.0im, -0.242272+0.0im],
+                        displaylevel=1,tol=eps()*10);
+        r4=compute_resnorm(nep1,λ4,x4)
 
         @test r4 < eps()*100
     end

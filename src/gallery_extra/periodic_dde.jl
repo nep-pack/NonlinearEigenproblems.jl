@@ -7,6 +7,8 @@ import Base.size;
     import ..NEPCore.compute_Mlincomb
     import ..NEPCore.compute_Mlincomb!
     import ..NEPCore.compute_MM
+    import ..NEPCore.compute_Mlincomb_from_MM
+    import ..NEPCore.compute_Mlincomb_from_Mder
 
 
     export compute_Mder
@@ -223,8 +225,8 @@ function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
     return YY-Y0
 end
 
-function compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,v::Union{AbstractMatrix,AbstractVector})
-    return compute_MM(nep,[λ],v);
+function compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,V::Union{AbstractVector,AbstractMatrix})
+    return compute_Mlincomb_from_MM(nep,λ,V,ones(eltype(V),size(V,2)))
 end
 
 
