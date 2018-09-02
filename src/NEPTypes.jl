@@ -307,19 +307,17 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 ```
 matrices A_i, and tauv is a vector of the values tau_i
 """
-    struct DEP{T<:AbstractMatrix} <: AbstractSPMF
+    struct DEP{Z<:Number, T<:AbstractMatrix{Z}} <: AbstractSPMF
         n::Int
         A::Array{T,1}     # An array of matrices (full or sparse matrices)
-        tauv::Array{Float64,1} # the delays
+        tauv::Vector{Z} # the delays
     end
-    function DEP(AA::Array{T,1},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
+    function DEP(AA::Vector{T},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
         n=size(AA[1],1)
-        tauvconv=Vector{Float64}(tauv);
-        if (real(eltype(AA[1])) != Float64)
-            warn("The delay in a DEP has hardcoded type Float64");
-        end
+        tauvconv::Vector{eltype(AA[1])}=Vector{eltype(AA[1])}(tauv);
 
-        this=DEP{T}(n,AA,tauvconv);
+        println("typeof(AA)=",typeof(AA)," typeof(tauvconv)=",typeof(tauvconv));
+        this=DEP{eltype(tauvconv),T}(n,AA,tauvconv);
         return this;
     end
 

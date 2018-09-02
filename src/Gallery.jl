@@ -120,7 +120,7 @@ module Gallery
           Random.seed!(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);
-          tau=1;
+          tau=1.0;
           nep=DEP([A0,A1],[0,tau])
           return nep
 
