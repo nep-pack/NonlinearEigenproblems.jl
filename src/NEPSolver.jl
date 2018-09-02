@@ -19,6 +19,16 @@ Executes z if displaylevel>0.
         return esc(:( if (displaylevel > 0); $z; end ))
     end
 
+    export @ifdd
+
+    """
+    @ifd(z)
+Executes z if displaylevel>1.
+"""
+    macro ifdd(z)
+        return esc(:( if (displaylevel > 1); $z; end ))
+    end
+
     ## NEP-Methods
 
     include("method_newton.jl")

@@ -423,13 +423,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 # Compute u=M(λ)v and w=M'(λ)v
                 u::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],0);
                 w::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],1);
+                @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
 
                 # Intermediate quantities
                 Δλ=-dot(ws,u)/dot(ws,w);
                 z=Δλ*w+u;
                 Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
 
-                @ifd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
+                @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
