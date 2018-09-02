@@ -10,12 +10,14 @@ using LinSolvers
 using NEPSolver
 using Gallery
 using LinearAlgebra
+using Random
 using Test
 
 @testset "Nonlinear Arnoldi" begin
 	TOL = 1e-10;
 
     println("\nTesting gun problem")
+    Random.seed!(0)
 
     nep = nep_gallery("nlevp_native_gun")
     n = size(nep,1);
