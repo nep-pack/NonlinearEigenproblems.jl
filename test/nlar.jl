@@ -27,7 +27,7 @@ using Test
     scale = 330^2-220^2;
 
     #Run Quasi-Newton for initial guess obtained from the knowledge of the eigenvalue distribution
-    λ_ref,v_ref = quasinewton(nep, λ = shift+scale*(-0.131403+0.00759532im), v = ones(n), displaylevel = 0, tol = TOL, maxit = 500)
+    λ_ref,v_ref = quasinewton(nep, λ = shift+scale*(-0.131403+0.00759532im), v = ones(n), displaylevel = 1, tol = TOL, maxit = 500)
     println("Eigenvalue computed by quasi newton: ",λ_ref)
 
     #Shift and scale the NEP(mainly to avoid round-off errors because of the large entries in the coefficient matrices)
