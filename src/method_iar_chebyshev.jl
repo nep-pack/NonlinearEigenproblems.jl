@@ -71,7 +71,7 @@ function iar_chebyshev(
 
     if (compute_y0_method == ComputeY0ChebAuto)
         if (isa(nep,DEP))
-             compute_y0_method=ComputeY0ChebDEP;
+            compute_y0_method=ComputeY0ChebDEP;
         elseif (isa(nep,PEP))
             compute_y0_method=ComputeY0ChebPEP;
         elseif  (isa(nep,SPMF_NEP))

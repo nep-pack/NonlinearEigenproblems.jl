@@ -152,7 +152,7 @@ module Gallery
          else
             n=100; # Default size
          end
-         Random.seed!(0) # reset the random seed
+         Random.seed!(1) # reset the random seed
          K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
          A0=sparse(K, J, rand(3*n-2))
          A1=sparse(K, J, rand(3*n-2))

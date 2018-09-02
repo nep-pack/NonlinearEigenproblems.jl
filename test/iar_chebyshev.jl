@@ -129,7 +129,6 @@ end
 
     # Other types
     @testset "compute_y0_method for different types" begin
-
         @testset "PEP" begin
             Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(undef, d+1)
@@ -155,7 +154,7 @@ end
         end
 
         @testset "DEP WITH DELAYS>1" begin
-            Random.seed!(0)
+            Random.seed!(1)
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
             tau1=0; tau2=2.3; tau3=.1;
             nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
@@ -254,7 +253,6 @@ end
 
 
         end
-
 
     end
 end
