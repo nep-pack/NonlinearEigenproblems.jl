@@ -316,7 +316,7 @@ matrices A_i, and tauv is a vector of the values tau_i
         n=size(AA[1],1)
         tauvconv=Vector{Float64}(tauv);
         if (real(eltype(AA[1])) != Float64)
-            warning("The delay in a DEP has hardcoded type Float64");
+            warn("The delay in a DEP has hardcoded type Float64");
         end
 
         this=DEP{T}(n,AA,tauvconv);
