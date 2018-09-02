@@ -566,7 +566,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 L,U,PI = lu(AA);
 
 
-                P = eye(T,n+1)[PI,:];
+                P = Matrix{T}(I, n+1, n+1)[PI,:];
 
                 v = U\(L\(P*[zeros(T,n);T(1)]));
                 #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));

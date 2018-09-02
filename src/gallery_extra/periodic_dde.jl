@@ -215,7 +215,7 @@ function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
     if size(S,1)==1
         F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-nep.tau*S[1,1])-Y*S[1,1])
     else
-        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-full(nep.tau*S))-Y*S)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-Matrix(nep.tau*S))-Y*S)
     end
 
 

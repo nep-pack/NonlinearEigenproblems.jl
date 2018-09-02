@@ -1,6 +1,5 @@
 name = "NonlinearEigenproblems"
 uuid = "67991c06-a66a-11e8-39d6-6f5c0e02ffbd"
-authors = ["Max Bennedich <bennedich@gmail.com>"]
 version = "0.1.0"
 
 [deps]

@@ -243,8 +243,8 @@ function nlar(::Type{T},
 
             #Check orthogonalization
             if(k < 100)
-               println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))\n\n")
-               #println("CHECKING ORTHO  ......     ",opnorm(Δv)," ....",h," .... ",g,"\n")
+               println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))")
+               #println("CHECKING ORTHO  ......     ",opnorm(Δv)," ....",h," .... ",g)
             end
             k = k+1;
         end
