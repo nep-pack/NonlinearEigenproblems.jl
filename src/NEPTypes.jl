@@ -329,14 +329,14 @@ matrices A_i, and tauv is a vector of the values tau_i
         T=isa(λ,Complex) ? complex(eltype(nep.A[1])) : eltype(nep.A[1]);
 
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
-            M=spzeros(T,nep.n,nep.n)
+            M=one(λ)*spzeros(T,nep.n,nep.n)
             J=sparse(T(1)I, nep.n, nep.n)
         else
-            M=zeros(T,nep.n,nep.n)
+            M=one(λ)*zeros(T,nep.n,nep.n)
             J=Matrix{T}(I, nep.n, nep.n)
         end
         if i==0; M=-λ*J;  end
-        if i==1; M=-J; end
+        if i==1; M=-one(λ)*J; end
         for j=1:size(nep.A,1)
             a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
             M += nep.A[j]*a
