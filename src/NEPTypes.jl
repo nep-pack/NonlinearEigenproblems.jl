@@ -1,7 +1,7 @@
 module NEPTypes
     using SparseArrays
     using LinearAlgebra
-    using PolynomialZeros
+    #using PolynomialZeros
     using Polynomials
     using NEPCore
 
