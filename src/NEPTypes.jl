@@ -306,6 +306,16 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 \\frac{n!}{k!(n - k)!} = \\binom{n}{k}
 ```
 matrices A_i, and tauv is a vector of the values tau_i
+
+# Example:
+julia> A0=randn(3,3); A1=randn(3,3);
+julia> tauv=[0,0.2] # Vector with delays
+julia> dep=DEP([A0,A1],tauv)
+julia> λ=3.0;
+julia> M1=compute_Mder(dep,λ)
+julia> M2=-λ*I+A0+A1*exp(-tauv[2]*λ)
+julia> norm(M1-M2)
+0.0
 """
     struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF
         n::Int
@@ -955,10 +965,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T},
-                              a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+                              a::Vector=ones(eltype(V),size(V,2)))
         n,k=size(V)
         Av=get_Av(nep)
+        T=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]))
         broadcast!(*,V,V,transpose(a))
         z=zeros(T,n)
         for j=1:length(nep.tauv)

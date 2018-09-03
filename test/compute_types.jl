@@ -49,8 +49,8 @@ using Test
 
             displaylevel=1
 
-            @testset "compute_Mder. NEP eltype, typeof(λ)" begin
-                @testset "$eltype_nep, $Tλ" for Tλ in typelist
+            @testset "compute_Mder. NEP:$eltype_nep, typeof(λ)" begin
+                @testset "$Tλ" for Tλ in typelist
                     local λ::Tλ=one(Tλ);
 
                     M=compute_Mder(nep,λ)
@@ -69,8 +69,8 @@ using Test
             end
 
 
-            @testset "compute_Mlincomb. NEP eltype, eltype(V), typeof(λ)" begin
-                @testset "$eltype_nep, $TV, $Tλ" for Tλ in typelist, TV in typelist
+            @testset "compute_Mlincomb. NEP:$eltype_nep. eltype(V), typeof(λ)" begin
+                @testset "$TV, $Tλ" for Tλ in typelist, TV in typelist
                     local V::Matrix{TV}=ones(TV,n,3);
                     local λ::Tλ=one(Tλ);
                     y=compute_Mlincomb(nep,λ,V)
