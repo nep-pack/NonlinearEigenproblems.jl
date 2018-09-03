@@ -307,16 +307,15 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 ```
 matrices A_i, and tauv is a vector of the values tau_i
 """
-    struct DEP{Z<:Number, T<:AbstractMatrix{Z}} <: AbstractSPMF
+    struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF
         n::Int
         A::Array{T,1}     # An array of matrices (full or sparse matrices)
-        tauv::Vector{Z} # the delays
+        tauv::Vector{Z}   # the delays (which are always real)
     end
     function DEP(AA::Vector{T},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
         n=size(AA[1],1)
-        tauvconv::Vector{eltype(AA[1])}=Vector{eltype(AA[1])}(tauv);
+        tauvconv::Vector{real(eltype(AA[1]))}=Vector{real(eltype(AA[1]))}(tauv);
 
-        println("typeof(AA)=",typeof(AA)," typeof(tauvconv)=",typeof(tauvconv));
         this=DEP{eltype(tauvconv),T}(n,AA,tauvconv);
         return this;
     end
