@@ -439,12 +439,14 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
+        T=promote_type(promote_type(eltype(nep.A[1]),eltype(S)),eltype(V))
+        local Z
         if (issparse(nep))
-            Z=spzeros(size(V,1),size(V,2))
-            Si=sparse(1.0I, size(S,1), size(S,1))
+            Z=spzeros(T,size(V,1),size(V,2))
+            Si=sparse(one(T)*I, size(S,1), size(S,1))
         else
-            Z=zeros(size(V))
-            Si=Matrix(1.0I, size(S,1), size(S,1))
+            Z=zeros(T,size(V,1),size(V,2))
+            Si=Matrix(one(T)*I, size(S,1), size(S,1))
         end
         for i=1:size(nep.A,1)
             Z+=nep.A[i]*V*Si;
@@ -454,7 +456,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     # Use MM to compute Mlincomb for PEPs
     compute_Mlincomb(nep::PEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
@@ -967,25 +969,29 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     # structure exploitation for DEP (TODO: document this)
     function compute_Mlincomb(nep::DEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
                               a::Vector=ones(eltype(V),size(V,2)))
-        n,k=size(V)
+        n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
+        # determine type froom greates type of (eltype probtype and λ)
         T=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]))
-        broadcast!(*,V,V,transpose(a))
+        if (k>1)
+            broadcast!(*,V,V,transpose(a))
+        else
+            V=V*a[1];
+        end
+
+
         z=zeros(T,n)
         for j=1:length(nep.tauv)
-            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
-            z[:]+=Av[j+1]*(V*w);
+            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
+            if k>1
+                z[:]+=Av[j+1]*(V*w);
+            else
+                z[:]+=Av[j+1]*(V*w[1]);
+            end
         end
         if k>1 z[:]-=view(V,:,2:2) end
         z[:]-=λ*view(V,:,1:1);
         return z
     end
-    # Automatically promote to complex if λ is real
-    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2},a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
-        return compute_Mlincomb(nep,complex(λ),V,a)
-    end
-    # Allow vector-valued V
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T},a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1),a)
-    end
+
 end

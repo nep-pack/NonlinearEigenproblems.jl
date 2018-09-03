@@ -32,6 +32,7 @@ using Test
 
     # Put the NEPs to test in a list and specify which "element type"
     neplist=Array{NEP,1}([pep,pep_bigfloat,pep_complex,dep0,dep_bigfloat])
+    #neplist=Array{NEP,1}([pep,pep_bigfloat,pep_complex,dep0])
     neptype_list=Vector{Any}([Float64,BigFloat,ComplexF32,Float64,BigFloat]);
     nepreal_list=Array{Bool,1}([true,true,false,true,true]);
 
@@ -47,7 +48,8 @@ using Test
             n=size(nep,1);
             eltype_nep=neptype_list[i];
 
-            displaylevel=1
+
+            displaylevel=0
 
             @testset "compute_Mder. NEP:$eltype_nep, typeof(λ)" begin
                 @testset "$Tλ" for Tλ in typelist
@@ -86,9 +88,19 @@ using Test
                     else
                         @test complex(predict_type)==eltype(y)
                     end
-                end
 
+                    local v::Vector{TV}=ones(TV,n);
+                    y2=compute_Mlincomb(nep,λ,v);
+                    if (nepreal)
+                        @test predict_type==eltype(y2)
+                    else
+                        @test complex(predict_type)==eltype(y2)
+                    end
+                end
             end
+
+
+
         end
 
 
