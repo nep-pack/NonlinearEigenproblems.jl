@@ -200,23 +200,27 @@ end
     B0=randn(3,3); B1=randn(3,3);
     oneop= S-> 1im*S;
     sqrop= S-> Matrix(S)^2;
-    spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop])
-    push!(testlist,compute_types_metadata(spmf_nep,ComplexF64,false,[],[],[],false));
+    spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop])
+    push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false));
 
     # SPMF 3
     expmop= S -> exp(Matrix(S))
     B0b=Matrix{BigFloat}(B0);
     B1b=Matrix{BigFloat}(B1);
-    spmf_nep2=SPMF_NEP([B0b,B1b],[oneop,expmop])
+    spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop])
 
     # Skip these since expm not supported
     bigfloats_and_float16=[BigFloat,Complex{BigFloat},Float16,Complex{Float16}];
 
-    push!(testlist,compute_types_metadata(spmf_nep2,BigFloat,true,
+    push!(testlist,compute_types_metadata(spmf_nep3,BigFloat,true,
                                           bigfloats_and_float16,bigfloats_and_float16,
                                           bigfloats_and_float16,false));
 
 
+    # A complex sumnep
+    sumnep=SumNEP(pep_complex,spmf_nep2);
+    push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,
+                                          [],[],[],false));
 
     testlist=testlist[1:end]
 
