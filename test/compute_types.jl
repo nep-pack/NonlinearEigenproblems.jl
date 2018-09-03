@@ -39,54 +39,58 @@ using Test
     # All the vector types that should be tested
     typelist=[Float64,Float32,Float16,BigFloat,ComplexF16,ComplexF32,ComplexF64,Complex{BigFloat}];
 
-    @testset "Testing compute nep$i" for i in 1:size(neplist,1)
-        nep=neplist[i];
-        nepreal=nepreal_list[i];
-        n=size(nep,1);
-        eltype_nep=neptype_list[i];
 
-        displaylevel=1
+    for i in 1:size(neplist,1)
+        nep=neplist[i]; stype="$(typeof(nep))"
+        @testset "Testing compute nep$i: $stype" begin
+            nepreal=nepreal_list[i];
+            n=size(nep,1);
+            eltype_nep=neptype_list[i];
 
-        @testset "Compute Mder" begin
-            @testset "$eltype_nep, typeof(λ)=$Tλ" for Tλ in typelist
-                local λ::Tλ=one(Tλ);
+            displaylevel=1
 
-                M=compute_Mder(nep,λ)
-                # predicted type: greatest of typeof(λ) and eltype_nep
-                predict_type=promote_type(typeof(λ),eltype_nep)
+            @testset "compute_Mder. NEP eltype, typeof(λ)" begin
+                @testset "$eltype_nep, $Tλ" for Tλ in typelist
+                    local λ::Tλ=one(Tλ);
 
-                @ifd(println("typeof(λ)=",typeof(λ)))
-                @ifd(println(predict_type, " =? ",eltype(M)))
+                    M=compute_Mder(nep,λ)
+                    # predicted type: greatest of typeof(λ) and eltype_nep
+                    predict_type=promote_type(typeof(λ),eltype_nep)
 
-                if (nepreal)
-                    @test predict_type==eltype(M)
-                else
-                    @test complex(predict_type)==eltype(M)
-                end
-            end
-        end
+                    @ifd(println("typeof(λ)=",typeof(λ)))
+                    @ifd(println(predict_type, " =? ",eltype(M)))
 
-
-        @testset "Compute mlincomb" begin
-            @testset "$eltype_nep, eltype(V)=$TV, typeof(λ)=$Tλ" for Tλ in typelist, TV in typelist
-                local V::Matrix{TV}=ones(TV,n,3);
-                local λ::Tλ=one(Tλ);
-                y=compute_Mlincomb(nep,λ,V)
-
-                # the predicted type is the "greatest" of
-                # NEP type, typeof(λ) and eltype(V)
-                predict_type=promote_type(promote_type(typeof(λ),eltype(V)),eltype_nep)
-
-                @ifd(println("typeof(λ)=",typeof(λ), " eltype(V)=",eltype(V)))
-                @ifd(println(predict_type, " =? ",eltype(y)))
-                if (nepreal)
-                    @test predict_type==eltype(y)
-                else
-                    @test complex(predict_type)==eltype(y)
+                    if (nepreal)
+                        @test predict_type==eltype(M)
+                    else
+                        @test complex(predict_type)==eltype(M)
+                    end
                 end
             end
 
+
+            @testset "compute_Mlincomb. NEP eltype, eltype(V), typeof(λ)" begin
+                @testset "$eltype_nep, $TV, $Tλ" for Tλ in typelist, TV in typelist
+                    local V::Matrix{TV}=ones(TV,n,3);
+                    local λ::Tλ=one(Tλ);
+                    y=compute_Mlincomb(nep,λ,V)
+
+                    # the predicted type is the "greatest" of
+                    # NEP type, typeof(λ) and eltype(V)
+                    predict_type=promote_type(promote_type(typeof(λ),eltype(V)),eltype_nep)
+
+                    @ifd(println("typeof(λ)=",typeof(λ), " eltype(V)=",eltype(V)))
+                    @ifd(println(predict_type, " =? ",eltype(y)))
+                    if (nepreal)
+                        @test predict_type==eltype(y)
+                    else
+                        @test complex(predict_type)==eltype(y)
+                    end
+                end
+
+            end
         end
+
 
 
 
