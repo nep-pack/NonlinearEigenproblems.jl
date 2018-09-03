@@ -39,18 +39,6 @@ module NEPCore
 
 
 
-    """
-Determines if a method is defined for the concrete class.
-False will be returned if methodname is only defined for the
-abstract superclass of s.
-"""
-    macro method_concretely_defined(methodname,s)
-        return :( length(methodswith(typeof($(esc(s))), $(esc(methodname)), false))>0 )
-    end
-#    macro method_concretely_defined(methodname,s)
-#        return :(length(methodswith(typeof($s), $methodname, false))>0)
-#    end
-
 
     ############################################
     # Default NEP functions
@@ -91,13 +79,7 @@ julia> opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
 ```
 """
     function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
-
-        extra_msg=""
-        if (@method_concretely_defined(compute_MM,nep))
-            extra_msg=", or choose to call the compute_Mder_from_MM, which can be slow"
-        end
-
-        error("You need to provide an implementation of compute_Mder for this NEP, or choose to use compute_Mder_from_MM"*extra_msg*".")
+        error("You need to provide an implementation of compute_Mder for this NEP.\nIf you have a compute_MM-function you may want to define: \ncompute_Mder($(typeof(nep)),λ::Number,i::Integer)=compute_Mder_from_MM(nep,λ,i)")
     end
 
     """
