@@ -126,7 +126,7 @@ Executes z if displaylevel>1.
           mm=[x -g q]'*[x -g q]; mm=(mm+mm')/2;
 
           D,V = eigen(aa,mm);
-          absD=argmin(abs.(D));
+          absD=abs.(D);
           ii=argmin([isnan(x) ? Inf : x for x in absD]);
           ρ=D[ii]; δ=V[:,ii]; q=[-g q]*δ[2:end];
           x=δ[1]*x+q; x/=norm(x); v=A(x); k+=1
