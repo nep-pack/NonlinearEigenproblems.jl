@@ -193,7 +193,6 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
                 err=errmeasure(λ,v)
 
-
                 if (use_v_as_rf_vector)
                     c=v;
                 end
