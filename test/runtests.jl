@@ -45,7 +45,6 @@ end
         if is_test_script(joinpath(dir, file)) && !in(uppercase(file), tests_not_to_run)]
 
     to = TimerOutput()
-    tests_to_run = ["compute_types.jl","iar_chebyshev.jl"] # hack to make unit tests run faster
 
     for i = 1:length(tests_to_run)
         file = tests_to_run[i]
