@@ -367,7 +367,11 @@ julia> norm(M1-M2)
 
 #  Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
     function compute_MM(nep::DEP,S,V)
-        Z=-V*S;
+
+        T1=promote_type(promote_type(eltype(S),eltype(V)),eltype(nep.A[1]));
+        T=promote_type(T1,eltype(nep.tauv));
+
+        Z::Matrix{T}=-V*S;
         for j=1:size(nep.A,1)
             Z+=nep.A[j]*V*exp(Matrix(-nep.tauv[j]*S))
         end
