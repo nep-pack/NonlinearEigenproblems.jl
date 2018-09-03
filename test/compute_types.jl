@@ -44,20 +44,20 @@ end
     # A standard DEP (Float64)
     dep0=nep_gallery("dep0",10);
 
-    bigfloats=[BigFloat,Complex{BigFloat}]
-    push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloats));
+    bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
+    push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types));
 
     # A bigfloat DEP
     dep_bigfloat=DEP([A0,A1]);
 
-    push!(testlist,compute_types_metadata(dep_bigfloat,BigFloat,true,[],[],bigfloats));
+    push!(testlist,compute_types_metadata(dep_bigfloat,BigFloat,true,[],[],bigfloat_types));
 
     A0bc=Matrix{Complex{BigFloat}}(A0);
     A1bc=Matrix{Complex{BigFloat}}(A1);
     dep_cbigfloat=DEP([A0bc,A1bc]);
 
 
-    push!(testlist,compute_types_metadata(dep_cbigfloat,Complex{BigFloat},false,[],[],bigfloats));
+    push!(testlist,compute_types_metadata(dep_cbigfloat,Complex{BigFloat},false,[],[],bigfloat_types));
 
 
     # SPMF 1
