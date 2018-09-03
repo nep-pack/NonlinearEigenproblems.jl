@@ -11,7 +11,7 @@ using Test
 @testset "compute_types" begin
 
     # Standard PEP (Float64)
-    pep=nep_gallery("pep0",200);
+    pep=nep_gallery("pep0",5);
 
     # A bigfloat PEP
     A0=Matrix(I*one(BigFloat),3,3)*3
@@ -24,17 +24,20 @@ using Test
     pep_complex=PEP([A0c,A1c]);
 
     # A standard DEP (Float64)
-    dep0=nep_gallery("dep0",200);
+    dep0=nep_gallery("dep0",10);
 
     # A bigfloat DEP
     dep_bigfloat=DEP([A0,A1]);
 
+    A0bc=Matrix{Complex{BigFloat}}(A0);
+    A1bc=Matrix{Complex{BigFloat}}(A1);
+    dep_cbigfloat=DEP([A0bc,A1bc]);
 
     # Put the NEPs to test in a list and specify which "element type"
-    neplist=Array{NEP,1}([pep,pep_bigfloat,pep_complex,dep0,dep_bigfloat])
+    neplist=Array{NEP,1}([pep,pep_bigfloat,pep_complex,dep0,dep_bigfloat,dep_cbigfloat])
     #neplist=Array{NEP,1}([pep,pep_bigfloat,pep_complex,dep0])
-    neptype_list=Vector{Any}([Float64,BigFloat,ComplexF32,Float64,BigFloat]);
-    nepreal_list=Array{Bool,1}([true,true,false,true,true]);
+    neptype_list=Vector{Any}([Float64,BigFloat,ComplexF32,Float64,BigFloat,Complex{BigFloat}]);
+    nepreal_list=Array{Bool,1}([true,true,false,true,true,false]);
 
 
     # All the vector types that should be tested
@@ -49,6 +52,7 @@ using Test
             eltype_nep=neptype_list[i];
 
 
+            println("Testing compute functions for NEP:$(stype)");
             displaylevel=0
 
             @testset "compute_Mder. NEP:$eltype_nep, typeof(λ)" begin
@@ -89,12 +93,36 @@ using Test
                         @test complex(predict_type)==eltype(y)
                     end
 
+                    # Test also when v is just a vector
                     local v::Vector{TV}=ones(TV,n);
                     y2=compute_Mlincomb(nep,λ,v);
                     if (nepreal)
                         @test predict_type==eltype(y2)
                     else
                         @test complex(predict_type)==eltype(y2)
+                    end
+                end
+            end
+
+            @testset "compute_MM. NEP:$eltype_nep. eltype(S), eltype(V)" begin
+                @testset "$TS, $TV" for TS in typelist, TV in typelist
+                    # Exclude some tests since expm(::BigFloat) is not implemented
+                    if (!(isa(nep,DEP) & (TS==BigFloat || TS==Complex{BigFloat} ||
+                        eltype_nep==BigFloat || eltype_nep==Complex{BigFloat})))
+                        local S::Matrix{TS}=Matrix(one(TS)*I,2,2);
+                        local V::Matrix{TV}=ones(TV,n,2);
+                        Y=compute_MM(nep,S,V)
+
+                        # the predicted type is the "greatest" of
+                        # NEP type, eltype(S) and eltype(V)
+                        predict_type=promote_type(promote_type(eltype(S),eltype(V)),eltype_nep)
+
+                        if (nepreal)
+                            @test predict_type==eltype(Y)
+                        else
+                            @test complex(predict_type)==eltype(Y)
+                        end
+
                     end
                 end
             end
