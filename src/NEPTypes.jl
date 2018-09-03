@@ -314,7 +314,16 @@ matrices A_i, and tauv is a vector of the values tau_i
     end
     function DEP(AA::Vector{T},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
         n=size(AA[1],1)
+        if (!isreal(tauv))
+            error("Incorrect construction of DEP. The delays need to be real.")
+        end
+
         tauvconv::Vector{real(eltype(AA[1]))}=Vector{real(eltype(AA[1]))}(tauv);
+
+        if (real(eltype(AA[1]))!=eltype(tauvconv))
+            error("Incorrect construction of DEP. You need real(eltype(A[i]))==eltype(tauv).")
+        end
+
 
         this=DEP{eltype(tauvconv),T}(n,AA,tauvconv);
         return this;
