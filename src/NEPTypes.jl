@@ -259,21 +259,23 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
         if i == 0
-            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
 
+            # figure out the return type, as the greatest type of all input
+            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+            Tx = mapreduce(eltype, promote_type, x)
+            TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+            TZ=promote_type(TA,Tx)  # output type
             if isempty(nep.As)
-                Z = copy(nep.Zero)
+                # Full matrices
+                Z = zeros(TZ,size(nep,1),size(nep,1));
                 for k=1:size(nep.A,1)
                     Z += nep.A[k] * x[k]
                 end
                 return Z
             else
-                # figure out the return type, as the greatest type of all input
-                Tx = mapreduce(eltype, promote_type, x)
-                TA = mapreduce(eltype, promote_type, nep.As)
-                T = promote_type(Tx, TA)
-
-                Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n, nep.As[1].colptr, nep.As[1].rowval, convert.(T, nep.As[1].nzval .* x[1]))
+                Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
+                                    nep.As[1].colptr, nep.As[1].rowval,
+                                    convert.(TZ, nep.As[1].nzval .* x[1]))
                 for k = 2:length(nep.As)
                     Z.nzval .+= nep.As[k].nzval .* x[k]
                 end
