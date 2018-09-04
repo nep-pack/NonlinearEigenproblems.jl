@@ -257,31 +257,36 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
-    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
-        if i == 0
 
-            # figure out the return type, as the greatest type of all input
-            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
-            Tx = mapreduce(eltype, promote_type, x)
-            TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
-            TZ=promote_type(TA,Tx)  # output type
-            if isempty(nep.As)
-                # Full matrices
-                Z = zeros(TZ,size(nep,1),size(nep,1));
-                for k=1:size(nep.A,1)
-                    Z += nep.A[k] * x[k]
-                end
-                return Z
-            else
-                Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
-                                    nep.As[1].colptr, nep.As[1].rowval,
-                                    convert.(TZ, nep.As[1].nzval .* x[1]))
-                for k = 2:length(nep.As)
-                    Z.nzval .+= nep.As[k].nzval .* x[k]
-                end
+    function compute_Mder(nep::SPMF_NEP,λ::Number)
 
-                return Z
+        # figure out the return type, as the greatest type of all input
+        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+        Tx = mapreduce(eltype, promote_type, x)
+        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+        TZ=promote_type(TA,Tx)  # output type
+        if isempty(nep.As)
+            # Full matrices
+            Z = zeros(TZ,size(nep,1),size(nep,1));
+            for k=1:size(nep.A,1)
+                Z += nep.A[k] * x[k]
             end
+            return Z
+        else
+            Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
+                                nep.As[1].colptr, nep.As[1].rowval,
+                                convert.(TZ, nep.As[1].nzval .* x[1]))
+            for k = 2:length(nep.As)
+                Z.nzval .+= nep.As[k].nzval .* x[k]
+            end
+
+            return Z
+        end
+    end
+
+    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
+        if (i==0)
+            return compute_Mder(nep,λ);
         else
             # This is typically slow for i>1 (can be optimized by
             # treating the SPMF-terms individually)

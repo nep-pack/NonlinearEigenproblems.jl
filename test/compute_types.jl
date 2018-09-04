@@ -28,9 +28,6 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
     # All the vector types that should be tested
 
 
-    testresults=Vector{Any}();
-
-
 
     nep=metadata.nep; stype="$(typeof(nep))"
     @testset "Testing compute nep: $stype" begin
@@ -175,7 +172,7 @@ end
 
 
 
-    full_test=true;
+    full_test=false;
 
     local typelist
     if (full_test)
