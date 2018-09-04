@@ -1,7 +1,7 @@
 module NEPTypes
     using SparseArrays
     using LinearAlgebra
-    using PolynomialZeros
+    #using PolynomialZeros
     using Polynomials
     using NEPCore
 
@@ -257,29 +257,36 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
-    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
-        if i == 0
-            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
 
-            if isempty(nep.As)
-                Z = copy(nep.Zero)
-                for k=1:size(nep.A,1)
-                    Z += nep.A[k] * x[k]
-                end
-                return Z
-            else
-                # figure out the return type, as the greatest type of all input
-                Tx = mapreduce(eltype, promote_type, x)
-                TA = mapreduce(eltype, promote_type, nep.As)
-                T = promote_type(Tx, TA)
+    function compute_Mder(nep::SPMF_NEP,λ::Number)
 
-                Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n, nep.As[1].colptr, nep.As[1].rowval, convert.(T, nep.As[1].nzval .* x[1]))
-                for k = 2:length(nep.As)
-                    Z.nzval .+= nep.As[k].nzval .* x[k]
-                end
-
-                return Z
+        # figure out the return type, as the greatest type of all input
+        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+        Tx = mapreduce(eltype, promote_type, x)
+        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+        TZ=promote_type(TA,Tx)  # output type
+        if isempty(nep.As)
+            # Full matrices
+            Z = zeros(TZ,size(nep,1),size(nep,1));
+            for k=1:size(nep.A,1)
+                Z += nep.A[k] * x[k]
             end
+            return Z
+        else
+            Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
+                                nep.As[1].colptr, nep.As[1].rowval,
+                                convert.(TZ, nep.As[1].nzval .* x[1]))
+            for k = 2:length(nep.As)
+                Z.nzval .+= nep.As[k].nzval .* x[k]
+            end
+
+            return Z
+        end
+    end
+
+    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
+        if (i==0)
+            return compute_Mder(nep,λ);
         else
             # This is typically slow for i>1 (can be optimized by
             # treating the SPMF-terms individually)
@@ -306,20 +313,32 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 \\frac{n!}{k!(n - k)!} = \\binom{n}{k}
 ```
 matrices A_i, and tauv is a vector of the values tau_i
+
+# Example:
+julia> A0=randn(3,3); A1=randn(3,3);
+julia> tauv=[0,0.2] # Vector with delays
+julia> dep=DEP([A0,A1],tauv)
+julia> λ=3.0;
+julia> M1=compute_Mder(dep,λ)
+julia> M2=-λ*I+A0+A1*exp(-tauv[2]*λ)
+julia> norm(M1-M2)
+0.0
 """
-    struct DEP{T<:AbstractMatrix} <: AbstractSPMF
+    struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF
         n::Int
         A::Array{T,1}     # An array of matrices (full or sparse matrices)
-        tauv::Array{Float64,1} # the delays
+        tauv::Vector{Z}   # the delays (which are always real)
     end
-    function DEP(AA::Array{T,1},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
+    function DEP(AA::Vector{T},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
         n=size(AA[1],1)
-        tauvconv=Vector{Float64}(tauv);
-        if (real(eltype(AA[1])) != Float64)
-            warning("The delay in a DEP has hardcoded type Float64");
+        if (!isreal(tauv))
+            error("Incorrect construction of DEP. The delays need to be real.")
         end
 
-        this=DEP{T}(n,AA,tauvconv);
+        # Note: this enforces that eltype(tauv)=real(eltype(A[1]))
+        tauvconv::Vector{real(eltype(AA[1]))}=Vector{real(eltype(AA[1]))}(tauv);
+
+        this=DEP{eltype(tauvconv),T}(n,AA,tauvconv);
         return this;
     end
 
@@ -330,15 +349,16 @@ matrices A_i, and tauv is a vector of the values tau_i
         # T can be determined compile time, since DEP parametric type
         T=isa(λ,Complex) ? complex(eltype(nep.A[1])) : eltype(nep.A[1]);
 
+        TM=promote_type(eltype(λ),T); # output type
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
-            M=spzeros(T,nep.n,nep.n)
-            J=sparse(T(1)I, nep.n, nep.n)
+            M=spzeros(TM,nep.n,nep.n)
+            J=sparse(TM(1)I, nep.n, nep.n)
         else
-            M=zeros(T,nep.n,nep.n)
-            J=Matrix{T}(I, nep.n, nep.n)
+            M=zeros(TM,nep.n,nep.n)
+            J=Matrix{TM}(I, nep.n, nep.n)
         end
         if i==0; M=-λ*J;  end
-        if i==1; M=-J; end
+        if i==1; M=-one(TM)*J; end
         for j=1:size(nep.A,1)
             a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
             M += nep.A[j]*a
@@ -351,7 +371,11 @@ matrices A_i, and tauv is a vector of the values tau_i
 
 #  Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
     function compute_MM(nep::DEP,S,V)
-        Z=-V*S;
+
+        T1=promote_type(promote_type(eltype(S),eltype(V)),eltype(nep.A[1]));
+        T=promote_type(T1,eltype(nep.tauv));
+
+        Z::Matrix{T}=-V*S;
         for j=1:size(nep.A,1)
             Z+=nep.A[j]*V*exp(Matrix(-nep.tauv[j]*S))
         end
@@ -423,12 +447,14 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
+        T=promote_type(promote_type(eltype(nep.A[1]),eltype(S)),eltype(V))
+        local Z
         if (issparse(nep))
-            Z=spzeros(size(V,1),size(V,2))
-            Si=sparse(1.0I, size(S,1), size(S,1))
+            Z=spzeros(T,size(V,1),size(V,2))
+            Si=sparse(one(T)*I, size(S,1), size(S,1))
         else
-            Z=zeros(size(V))
-            Si=Matrix(1.0I, size(S,1), size(S,1))
+            Z=zeros(T,size(V,1),size(V,2))
+            Si=Matrix(one(T)*I, size(S,1), size(S,1))
         end
         for i=1:size(nep.A,1)
             Z+=nep.A[i]*V*Si;
@@ -438,7 +464,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     # Use MM to compute Mlincomb for PEPs
     compute_Mlincomb(nep::PEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
@@ -949,26 +975,31 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T},
-                              a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
-        n,k=size(V)
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+                              a::Vector=ones(eltype(V),size(V,2)))
+        n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
-        broadcast!(*,V,V,transpose(a))
+        # determine type froom greates type of (eltype probtype and λ)
+        T=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]))
+        if (k>1)
+            broadcast!(*,V,V,transpose(a))
+        else
+            V=V*a[1];
+        end
+
+
         z=zeros(T,n)
         for j=1:length(nep.tauv)
-            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
-            z[:]+=Av[j+1]*(V*w);
+            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
+            if k>1
+                z[:]+=Av[j+1]*(V*w);
+            else
+                z[:]+=Av[j+1]*(V*w[1]);
+            end
         end
         if k>1 z[:]-=view(V,:,2:2) end
         z[:]-=λ*view(V,:,1:1);
         return z
     end
-    # Automatically promote to complex if λ is real
-    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2},a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
-        return compute_Mlincomb(nep,complex(λ),V,a)
-    end
-    # Allow vector-valued V
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T},a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1),a)
-    end
+
 end

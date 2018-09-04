@@ -15,11 +15,13 @@ tests_not_to_run = Set{String}(map(uppercase, [
     "matlablinsolvers.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
     "nleigs_test_utils.jl", # utilities used by other tests
-    ]))
+    "compan.jl", "sgiter.jl" # due to PolynomialZeros problems #63
+]))
 
 function is_test_script(file::AbstractString)
     if occursin(r"(?i)\.jl$", file)
         src = read(file, String)
+
         pos = 1
         while pos <= length(src)
             expr, pos = Meta.parse(src, pos)
