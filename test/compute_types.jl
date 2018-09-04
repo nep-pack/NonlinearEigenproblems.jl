@@ -81,14 +81,21 @@ function test_one_nep(metadata::compute_types_metadata;fulltest=true)
                     !in(TV,skip_types_Mlincomb))
                     local V::Matrix{TV}=ones(TV,n,3);
                     local λ::Tλ=one(Tλ);
-                    y=compute_Mlincomb(nep,λ,V)
-
+                    @ifd(println("typeof(λ)=",typeof(λ), " eltype(V)=",eltype(V)))
+                    @ifd(println(predict_type, " =? ",eltype(y)))
                     # the predicted type is the "greatest" of
                     # NEP type, typeof(λ) and eltype(V)
                     predict_type=promote_type(promote_type(typeof(λ),eltype(V)),eltype_nep)
 
-                    @ifd(println("typeof(λ)=",typeof(λ), " eltype(V)=",eltype(V)))
-                    @ifd(println(predict_type, " =? ",eltype(y)))
+
+                    y=compute_Mlincomb(nep,λ,V)
+                    if (nepreal)
+                        @test predict_type==eltype(y)
+                    else
+                        @test complex(predict_type)==eltype(y)
+                    end
+
+                    y=compute_Mlincomb!(nep,λ,V)
                     if (nepreal)
                         @test predict_type==eltype(y)
                     else
@@ -108,8 +115,9 @@ function test_one_nep(metadata::compute_types_metadata;fulltest=true)
                         @test complex(predict_type)==eltype(y2)
                     end
 
-                    if check_type_stability
-                        @inferred compute_Mlincomb(nep,λ,v) # Type stability
+                    if check_type_stability # Type stability
+                        @inferred compute_Mlincomb(nep,λ,v)
+                        @inferred compute_Mlincomb!(nep,λ,v)
                     end
                 end
             end
