@@ -7,6 +7,7 @@ using LinearAlgebra
 using Random
 using Test
 
+import Base.exp
 
 struct compute_types_metadata
     nep::NEP
@@ -25,7 +26,7 @@ function test_one_nep(metadata::compute_types_metadata;fulltest=true)
     typelist=[Float64,Float32,Float16,BigFloat,ComplexF16,ComplexF32,ComplexF64,Complex{BigFloat}];
 
     if (!fulltest)
-        typelist=[typelist[1],typelist[5]];
+        typelist=[typelist[1],typelist[3],typelist[5]];
     end
 
     nep=metadata.nep; stype="$(typeof(nep))"
@@ -209,8 +210,11 @@ end
     B1b=Matrix{BigFloat}(B1);
     spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop])
 
+    exp(A::Matrix{Float16})=Matrix{Float16}(exp(Matrix{Float32}(A))) # Hack which makes exp(::Matrix{Float16}) available
+    exp(A::Matrix{ComplexF16})=Matrix{ComplexF16}(exp(Matrix{ComplexF32}(A))) # Hack which makes exp(::Matrix{Float32}) available
+
     # Skip these since expm not supported
-    bigfloats_and_float16=[BigFloat,Complex{BigFloat},Float16,Complex{Float16}];
+    bigfloats_and_float16=[BigFloat,Complex{BigFloat}];
 
     push!(testlist,compute_types_metadata(spmf_nep3,BigFloat,true,
                                           bigfloats_and_float16,bigfloats_and_float16,
