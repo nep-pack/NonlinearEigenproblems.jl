@@ -328,12 +328,8 @@ julia> norm(M1-M2)
             error("Incorrect construction of DEP. The delays need to be real.")
         end
 
+        # Note: this enforces that eltype(tauv)=real(eltype(A[1]))
         tauvconv::Vector{real(eltype(AA[1]))}=Vector{real(eltype(AA[1]))}(tauv);
-
-        if (real(eltype(AA[1]))!=eltype(tauvconv))
-            error("Incorrect construction of DEP. You need real(eltype(A[i]))==eltype(tauv).")
-        end
-
 
         this=DEP{eltype(tauvconv),T}(n,AA,tauvconv);
         return this;
@@ -346,15 +342,16 @@ julia> norm(M1-M2)
         # T can be determined compile time, since DEP parametric type
         T=isa(λ,Complex) ? complex(eltype(nep.A[1])) : eltype(nep.A[1]);
 
+        TM=promote_type(eltype(λ),T); # output type
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
-            M=one(λ)*spzeros(T,nep.n,nep.n)
-            J=sparse(T(1)I, nep.n, nep.n)
+            M=spzeros(TM,nep.n,nep.n)
+            J=sparse(TM(1)I, nep.n, nep.n)
         else
-            M=one(λ)*zeros(T,nep.n,nep.n)
-            J=Matrix{T}(I, nep.n, nep.n)
+            M=zeros(TM,nep.n,nep.n)
+            J=Matrix{TM}(I, nep.n, nep.n)
         end
         if i==0; M=-λ*J;  end
-        if i==1; M=-one(λ)*J; end
+        if i==1; M=-one(TM)*J; end
         for j=1:size(nep.A,1)
             a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
             M += nep.A[j]*a
