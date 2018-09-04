@@ -185,6 +185,17 @@ end
     bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
     push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
 
+
+    # A standard DEP (Float64 + sparse)
+    A0_sparse=Matrix(I*one(Float64),3,3)*3
+    A1_sparse=ones(Float64,3,3);
+    dep0_sparse=DEP([A0_sparse,A1_sparse])
+    push!(testlist,compute_types_metadata(dep0_sparse,Float64,true,[],[],bigfloat_types,true));
+
+
+    bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
+    push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
+
     # A bigfloat DEP
     dep_bigfloat=DEP([A0,A1]);
 
@@ -227,6 +238,13 @@ end
     push!(testlist,compute_types_metadata(spmf_nep3,BigFloat,true,
                                           bigfloats_and_float16,bigfloats_and_float16,
                                           bigfloats_and_float16,false));
+
+    # SPMF nep 4
+    oneop= S-> 1im*S;
+    sqrop= S-> Matrix(S)^2;
+    spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop])
+
+    push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false));
 
 
     # A complex sumnep
