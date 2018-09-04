@@ -20,14 +20,9 @@ struct compute_types_metadata
 end
 
 
-function test_one_nep(metadata::compute_types_metadata;fulltest=true)
+function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType})
     # All the vector types that should be tested
 
-    typelist=[Float64,Float32,Float16,BigFloat,ComplexF16,ComplexF32,ComplexF64,Complex{BigFloat}];
-
-    if (!fulltest)
-        typelist=[typelist[1],typelist[3],typelist[5]];
-    end
 
     nep=metadata.nep; stype="$(typeof(nep))"
     @testset "Testing compute nep: $stype" begin
@@ -50,6 +45,10 @@ function test_one_nep(metadata::compute_types_metadata;fulltest=true)
             @testset "$Tλ" for Tλ in typelist
                 if (!in(Tλ,skip_types_Mder)  && !in(eltype_nep,skip_types_MM))
                     local λ::Tλ=one(Tλ);
+
+                    if (!(Tλ<:Real))
+                        λ += 1im*one(Tλ)
+                    end
 
                     M=compute_Mder(nep,λ)
                     # predicted type: greatest of typeof(λ) and eltype_nep
@@ -158,104 +157,154 @@ end
 
 @testset "compute_types" begin
 
+    full_typelist=[Float64,Float32,Float16,BigFloat,ComplexF16,ComplexF32,ComplexF64,Complex{BigFloat}];
+    reduced_typelist=[Float64,Float32,Float16,BigFloat,ComplexF16,ComplexF32,ComplexF64,Complex{BigFloat}];
+
+
+    full_test=true;
+
+    local typelist
+    if (full_test)
+        typelist=full_typelist
+    else
+        typelist=reduced_typelist
+    end
+
+
+
+    bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
+
     testlist=Vector{compute_types_metadata}()
 
-    # Standard PEP (Float64)
-    pep=nep_gallery("pep0",5);
 
-    push!(testlist,compute_types_metadata(pep,Float64,true,[],[],[],false));
+    if (full_test)
+        for i=1:size(typelist,1)
+            T=typelist[i];
+            A0=Matrix(I*one(T),3,3)*3
+            A1=ones(T,3,3)
+            A2=ones(T,3,3)*3
+            if (!(T<:Real))
+                A0=A0+1im*ones(T,3,3)
+                A1=A1+1im*ones(T,3,3)
+                A2=A2+1im*Matrix(I*one(T),3,3)
+            end
 
-    # A bigfloat PEP
-    A0=Matrix(I*one(BigFloat),3,3)*3
-    A1=ones(BigFloat,3,3)
-    pep_bigfloat=PEP([A0,A1]);
+            dep_i=DEP([A0,A1]);
+            push!(testlist,compute_types_metadata(dep_i,T,T<:Real,[],[],bigfloat_types,true));
 
-    push!(testlist,compute_types_metadata(pep_bigfloat,BigFloat,true,[],[],[],false));
-
-    # a complex PEP
-    A0c=Matrix(I*one(ComplexF32),3,3)*3
-    A1c=ones(ComplexF32,3,3)
-    pep_complex=PEP([A0c,A1c]);
-
-    push!(testlist,compute_types_metadata(pep_complex,ComplexF32,false,[],[],[],false));
-
-    # A standard DEP (Float64)
-    dep0=nep_gallery("dep0",10);
-
-    bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
-    push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
+            pep_i=PEP([A0,A1,A2]);
+            push!(testlist,compute_types_metadata(pep_i,T,T<:Real,[],[],[],false));
 
 
-    # A standard DEP (Float64 + sparse)
-    A0_sparse=Matrix(I*one(Float64),3,3)*3
-    A1_sparse=ones(Float64,3,3);
-    dep0_sparse=DEP([A0_sparse,A1_sparse])
-    push!(testlist,compute_types_metadata(dep0_sparse,Float64,true,[],[],bigfloat_types,true));
+            oneop= S-> S;
+            sqrop= S-> Matrix(S)^2;
+            spmf_nep=SPMF_NEP([A0,A2],[oneop,sqrop])
+            push!(testlist,compute_types_metadata(spmf_nep,T,T<:Real,[],[],[],false));
+
+        end
+
+    else
+
+        # Standard PEP (Float64)
+        pep=nep_gallery("pep0",5);
+
+        push!(testlist,compute_types_metadata(pep,Float64,true,[],[],[],false));
+
+        # A bigfloat PEP
+        A0=Matrix(I*one(BigFloat),3,3)*3
+        A1=ones(BigFloat,3,3)
+        pep_bigfloat=PEP([A0,A1]);
+
+        push!(testlist,compute_types_metadata(pep_bigfloat,BigFloat,true,[],[],[],false));
+
+        # a complex PEP
+        A0c=Matrix(I*one(ComplexF32),3,3)*3
+        A1c=ones(ComplexF32,3,3)
+        pep_complex=PEP([A0c,A1c]);
+
+        push!(testlist,compute_types_metadata(pep_complex,ComplexF32,false,[],[],[],false));
+
+        # A standard DEP (Float64)
+        dep0=nep_gallery("dep0",10);
+
+        push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
 
 
-    bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
-    push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
-
-    # A bigfloat DEP
-    dep_bigfloat=DEP([A0,A1]);
-
-    push!(testlist,compute_types_metadata(dep_bigfloat,BigFloat,true,[],[],bigfloat_types,true));
-
-    A0bc=Matrix{Complex{BigFloat}}(A0);
-    A1bc=Matrix{Complex{BigFloat}}(A1);
-    dep_cbigfloat=DEP([A0bc,A1bc]);
+        # A standard DEP (Float64 + sparse)
+        A0_sparse=Matrix(I*one(Float64),3,3)*3
+        A1_sparse=ones(Float64,3,3);
+        dep0_sparse=DEP([A0_sparse,A1_sparse])
+        push!(testlist,compute_types_metadata(dep0_sparse,Float64,true,[],[],bigfloat_types,true));
 
 
-    push!(testlist,compute_types_metadata(dep_cbigfloat,Complex{BigFloat},false,[],[],bigfloat_types,false));
+        bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
+        push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
+
+        # A bigfloat DEP
+        dep_bigfloat=DEP([A0,A1]);
+
+        push!(testlist,compute_types_metadata(dep_bigfloat,BigFloat,true,[],[],bigfloat_types,true));
+
+        A0bc=Matrix{Complex{BigFloat}}(A0);
+        A1bc=Matrix{Complex{BigFloat}}(A1);
+        dep_cbigfloat=DEP([A0bc,A1bc]);
 
 
-    # SPMF 1
-    B0=randn(3,3); B1=randn(3,3);
-    oneop= S-> S;
-    sqrop= S-> Matrix(S)^2;
-    spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop])
-    push!(testlist,compute_types_metadata(spmf_nep,Float64,true,[],[],[],false));
-
-    # SPMF 2
-    B0=randn(3,3); B1=randn(3,3);
-    oneop= S-> 1im*S;
-    sqrop= S-> Matrix(S)^2;
-    spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop])
-    push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false));
-
-    # SPMF 3
-    expmop= S -> exp(Matrix(S))
-    B0b=Matrix{BigFloat}(B0);
-    B1b=Matrix{BigFloat}(B1);
-    spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop])
-
-    exp(A::Matrix{Float16})=Matrix{Float16}(exp(Matrix{Float32}(A))) # Hack which makes exp(::Matrix{Float16}) available
-    exp(A::Matrix{ComplexF16})=Matrix{ComplexF16}(exp(Matrix{ComplexF32}(A))) # Hack which makes exp(::Matrix{Float32}) available
-
-    # Skip these since expm not supported
-    bigfloats_and_float16=[BigFloat,Complex{BigFloat}];
-
-    push!(testlist,compute_types_metadata(spmf_nep3,BigFloat,true,
-                                          bigfloats_and_float16,bigfloats_and_float16,
-                                          bigfloats_and_float16,false));
-
-    # SPMF nep 4
-    oneop= S-> 1im*S;
-    sqrop= S-> Matrix(S)^2;
-    spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop])
-
-    push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false));
+        push!(testlist,compute_types_metadata(dep_cbigfloat,Complex{BigFloat},false,[],[],bigfloat_types,false));
 
 
-    # A complex sumnep
-    sumnep=SumNEP(pep_complex,spmf_nep2);
-    push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,
-                                          [],[],[],false));
+        # SPMF 1
+        B0=randn(3,3); B1=randn(3,3);
+        oneop= S-> S;
+        sqrop= S-> Matrix(S)^2;
+        spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop])
+        push!(testlist,compute_types_metadata(spmf_nep,Float64,true,[],[],[],false));
+
+        # SPMF 2
+        B0=randn(3,3); B1=randn(3,3);
+        oneop= S-> 1im*S;
+        sqrop= S-> Matrix(S)^2;
+        spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop])
+        push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false));
+
+        # SPMF 3
+        expmop= S -> exp(Matrix(S))
+        B0b=Matrix{BigFloat}(B0);
+        B1b=Matrix{BigFloat}(B1);
+        spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop])
+
+        exp(A::Matrix{Float16})=Matrix{Float16}(exp(Matrix{Float32}(A))) # Hack which makes exp(::Matrix{Float16}) available
+        exp(A::Matrix{ComplexF16})=Matrix{ComplexF16}(exp(Matrix{ComplexF32}(A))) # Hack which makes exp(::Matrix{Float32}) available
+
+        # Skip these since expm not supported
+        bigfloats_and_float16=[BigFloat,Complex{BigFloat}];
+
+        push!(testlist,compute_types_metadata(spmf_nep3,BigFloat,true,
+                                              bigfloats_and_float16,bigfloats_and_float16,
+                                              bigfloats_and_float16,false));
+
+        # SPMF nep 4
+        oneop= S-> 1im*S;
+        sqrop= S-> Matrix(S)^2;
+        spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop])
+
+        push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false));
+
+
+        # A complex sumnep
+        sumnep=SumNEP(pep_complex,spmf_nep2);
+        push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,
+                                              [],[],[],false));
+
+    end
+
 
     testlist=testlist[1:end]
 
+
+
     for i in 1:size(testlist,1)
-        test_one_nep(testlist[i],fulltest=true)
+        test_one_nep(testlist[i],typelist)
     end
 
 
