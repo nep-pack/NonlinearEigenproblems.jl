@@ -3,11 +3,11 @@
 # Intended to be run from nep-pack/ directory or nep-pack/test directory
 push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
 using LinearAlgebra
 using Test
 
