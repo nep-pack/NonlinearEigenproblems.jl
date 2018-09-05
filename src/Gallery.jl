@@ -100,6 +100,10 @@ module Gallery
      Create a quadratic eigenvalue problem with chosen eigenvalues
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\
+
+     'beam'\\
+     The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
+     * one optional parameter which is the size of the matrix       \\
 \\
 
    **See also the following galleries:**\\
@@ -384,7 +388,23 @@ module Gallery
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;
-      else
+      elseif (name == "beam")
+          n::Int=100
+          if (length(params)>0)
+             n=params[1]
+          end
+
+          h=1/n;
+          ee = ones(n);
+          A0 = spdiagm(-1 => ee[1:n-1], 0 => -2*ee, 1 => ee[1:n-1]);
+          A0[end,end]=1/h;
+          A0[end,end-1]=-1/h;
+          A1=sparse([n],[n],[1.0]); # A1=en*en'
+          tau=1.0;
+          return DEP([A0,A1],[0,tau]);
+
+       else
+
           error("The name $name is not supported in NEP-Gallery.")
       end
 

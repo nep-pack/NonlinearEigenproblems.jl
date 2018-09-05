@@ -20,7 +20,7 @@ using NEPCore
 
     target=0;
     nev=3;
-    nep=nep_gallery("dep0");
+    nep=nep_gallery("beam",5);
 
     # Full matrix test
     λ1,v1=mslp(nep)
