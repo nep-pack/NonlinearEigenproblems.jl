@@ -6,7 +6,7 @@ using LinearAlgebra
 using SparseArrays
 using Test
 
-@testset "Newton iterations" begin
+@testset "Gallery" begin
     println("Testing sine");
     nep=nep_gallery("sine")
     tol=1e-10;
