@@ -1,7 +1,6 @@
+using NonlinearEigenproblems.Serialization
 using Test
 using SparseArrays
-
-include(normpath(string(@__DIR__), "..", "src", "utils", "Serialization.jl"))
 
 @testset "Serialization" begin
     file = "sparse_matrix.txt"

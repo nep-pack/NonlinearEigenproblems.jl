@@ -3,6 +3,7 @@
   Look at the function 'nep_gallery()' for further instructions.
   """
 module Gallery
+    using NonlinearEigenproblems.Serialization
     using ..NEPCore
     using ..NEPTypes
     using Random
@@ -13,10 +14,6 @@ module Gallery
     export nep_gallery
 
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra")) # Add the search-path to the extra galleries
-
-#    push!(LOAD_PATH, string(@__DIR__, "/utils"))
-    include("utils/Serialization.jl")
-#    using Gallery.Serialization
 
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/periodic_dde.jl")
