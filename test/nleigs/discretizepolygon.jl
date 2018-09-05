@@ -3,7 +3,8 @@ using Test
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
-@testset "discretizepolygon: concave polygon" begin
+@testset "discretizepolygon" begin
+@testset "concave polygon" begin
     poly = [0.0; 0+10im; 5+5im; 10+10im; 10+0im]
 
     expected_boundary_points = [
@@ -34,17 +35,17 @@ include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
     @test all(p -> inpolygon(real(p), imag(p), real.(poly), imag.(poly)), interior)
 end
 
-@testset "discretizepolygon: narrow Σ" begin
+@testset "narrow Σ" begin
     boundary, interior = discretizepolygon([-10.0-2im, 10-2im, 10+2im, -10+2im], true, 100, 5)
     @test length(boundary) == 100 + 5
     @test length(interior) >= 5
 end
 
-@testset "discretizepolygon: too narrow Σ" begin
+@testset "too narrow Σ" begin
     @test_throws ErrorException discretizepolygon([-10.0-0.2im, 10-0.2im, 10+0.2im, -10+0.2im], true, 100, 5)
 end
 
-@testset "discretizepolygon: unit disk" begin
+@testset "unit disk" begin
     boundary, interior = discretizepolygon(Vector{ComplexF64}(), true, 100, 100)
 
     @test length(boundary) == 101
@@ -54,7 +55,7 @@ end
     @test all(abs.(interior) .< 1)
 end
 
-@testset "discretizepolygon: Chebyshev points" begin
+@testset "Chebyshev points" begin
     p1 = -2.0 - 1im
     p2 = 2.0 + 1im
     boundary, interior = discretizepolygon([p1, p2], true, 100, 100)
@@ -65,11 +66,10 @@ end
     @test length(interior) >= 100
     @test all(imag((interior .- p1) / (p2-p1)) .== 0)
 end
-
-# To visualize:
-if false
-    using Plots
-    import GR
-    scatter(real(zz), imag(zz))
-    scatter(real(Z), imag(Z))
 end
+
+# To visualize, use something like this:
+#using Plots
+#import GR
+#scatter(real(zz), imag(zz))
+#scatter(real(Z), imag(Z))
