@@ -17,7 +17,7 @@ On julia 0.6.4 you can install it by running
 ```
 julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 ```
-Due to the transition, you need also switch to git-tag 0.1. 
+Due to the transition, you need also switch to git-tag v0.1. 
 
 After that, check out "Getting started" in the user documentation
 https://nep-pack.github.io/NonlinearEigenproblems.jl
