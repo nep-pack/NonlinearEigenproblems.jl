@@ -146,79 +146,20 @@ V=compute_Mlincomb(nep::NEP,λ::Number,V::Array{&lt;:Number,2})
 MM=compute_MM(nep::NEP,S::Array{&lt;:Number,2},V::Array{&lt;:Number,2})
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L54-L67' class='documenter-source'>source</a><br></p>
 <p><a id='Accessing-the-NEP-1'></a></p>
 <h2 id="accessing-the-nep">Accessing the NEP</h2>
 <p>The nonlinear eigenvalue problem is defined by the data stored in the NEP-class, and the NEP-solvers access the data mainly through three main functions, <code>compute_Mder</code> <code>compute_Mlincomb</code> and <code>compute_MM</code>.</p>
-<p><a id='NonlinearEigenproblems.NEPCore.compute_Mder-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Integer}' href='#NonlinearEigenproblems.NEPCore.compute_Mder-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Integer}'>#</a>
-<strong><code>NonlinearEigenproblems.NEPCore.compute_Mder</code></strong> &mdash; <em>Method</em>.</p>
-<pre><code>compute_Mder(nep::NEP,λ::Number [,i::Integer=0])
+<pre><code>compute_Mder(nep::NEPCore.NEP, λ::Number, i::Integer) 
+compute_Mlincomb(nep::NEPCore.NEP, λ::Number, V; a)
+compute_MM
 </code></pre>
 
-<p>Computes the ith derivative of <code>nep</code> evaluated in <code>λ</code>.</p>
-<p><strong>Example</strong></p>
-<p>This example shows that <code>compute_Mder(nep,λ,1)</code> gives the first derivative.</p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
-julia&gt; ϵ=1e-5;
-julia&gt; Aminus=compute_Mder(nep,λ-ϵ);
-julia&gt; Aminus=compute_Mder(nep,λ-ϵ);
-julia&gt; Aplus=compute_Mder(nep,λ+ϵ);
-julia&gt; norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
-1.990970375089371e-11
-</code></pre>
-
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L71-L87' class='documenter-source'>source</a><br></p>
-<p><a id='NonlinearEigenproblems.NEPCore.compute_Mlincomb-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Any}' href='#NonlinearEigenproblems.NEPCore.compute_Mlincomb-Tuple{NonlinearEigenproblems.NEPCore.NEP,Number,Any}'>#</a>
-<strong><code>NonlinearEigenproblems.NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Method</em>.</p>
-<pre><code>compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
-</code></pre>
-
-<p>Computes the linear combination of derivatives
-$Σ_i a_i M^{(i)}(λ) v_i$</p>
-<p><strong>Example</strong></p>
-<p>This example shows that <code>compute_Mder</code> gives a result consistent with <code>compute_Mlincomb</code>. Note that <code>compute_Mlincomb</code> is in general faster since no matrix needs to be constructed.</p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
-julia&gt; v=ones(size(nep,1)); λ=-1+1im;
-julia&gt; norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
-1.0778315928076987e-15
-
-</code></pre>
-
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L99-L113' class='documenter-source'>source</a><br></p>
-<p><a id='NonlinearEigenproblems.NEPCore.compute_MM' href='#NonlinearEigenproblems.NEPCore.compute_MM'>#</a>
-<strong><code>NonlinearEigenproblems.NEPCore.compute_MM</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>compute_MM(nep::NEP,S,V)
-</code></pre>
-
-<p>Computes the sum $Σ_i M_i V f_i(S)$ for a NEP, where $S$ and $V$ are matrices, and the NEP satisfies $M(λ)=Σ_i M_i f_i(λ)$.</p>
-<p><strong>Example</strong></p>
-<p>This example shows that for diagonal <code>S</code>, the result of <code>compute_MM</code> can also be computed with <code>compute_Mlincomb</code></p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
-julia&gt; D=diagm([1,2])
-2×2 Array{Int64,2}:
- 1  0
- 0  2
-julia&gt; V=ones(size(n,1),2);
-julia&gt; W=compute_MM(nep,D,V);
-julia&gt; norm(W[:,1]-compute_Mlincomb(nep,D[1,1],V[:,1]))
-1.1102230246251565e-16
-julia&gt; norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
-0.0
-</code></pre>
-
-<p><strong>Reference</strong></p>
-<p>Properties of the quantity $Σ_i M_i V f_i(S)$ for non-polynomial nonlinear eigenvalue problems were extensively used in:</p>
-<ul>
-<li>D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372</li>
-<li>C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne</li>
-</ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L140-L167' class='documenter-source'>source</a><br></p>
 <p><a id='NEPTypes-1'></a></p>
 <h1 id="neptypes">NEPTypes</h1>
 <p>In order to use the methods, the user has the possibility to implement their own problem-specific functions above, or use one of the predefined types. The most common one is the <code>SPMF_NEP</code>.</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.SPMF_NEP' href='#NonlinearEigenproblems.NEPTypes.SPMF_NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.SPMF_NEP</code></strong> &mdash; <em>Type</em>.</p>
-<pre><code>type SPMF_NEP &lt;: AbstractSPMF
+<pre><code>struct SPMF_NEP &lt;: AbstractSPMF
 </code></pre>
 
 <p>An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions, i.e.,</p>
@@ -226,7 +167,6 @@ julia&gt; norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
 M(λ)=∑_i A_i f_i(λ).
 $$</p>
 <p>All of the matrices $A_0,...$ are of size $n×n$ and $f_i$ are a functions. The  functions $f_i$ must be defined for matrices in the standard matrix function sense.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPTypes.jl#L89-L100' class='documenter-source'>source</a><br></p>
 <p>In order to construct an <code>SPMF_NEP</code>, we need to provide the matrices and the functions.</p>
 <pre><code>SPMF_NEP(AA::Array, fii::Array{Function,1}) 
 </code></pre>
@@ -244,34 +184,17 @@ julia&gt; ϵ=1e-5;
 julia&gt; Aminus=compute_Mder(nep,λ-ϵ);
 julia&gt; Aminus=compute_Mder(nep,λ-ϵ);
 julia&gt; Aplus=compute_Mder(nep,λ+ϵ);
-julia&gt; norm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
+julia&gt; opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
 1.990970375089371e-11
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L71-L87' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPCore.compute_Mlincomb' href='#NonlinearEigenproblems.NEPCore.compute_Mlincomb'>#</a>
 <strong><code>NonlinearEigenproblems.NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>compute_Mlincomb(nep::NEP,λ::Number,V;a=ones(size(V,2)))
-</code></pre>
-
-<p>Computes the linear combination of derivatives
-$Σ_i a_i M^{(i)}(λ) v_i$</p>
-<p><strong>Example</strong></p>
-<p>This example shows that <code>compute_Mder</code> gives a result consistent with <code>compute_Mlincomb</code>. Note that <code>compute_Mlincomb</code> is in general faster since no matrix needs to be constructed.</p>
-<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
-julia&gt; v=ones(size(nep,1)); λ=-1+1im;
-julia&gt; norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),a=[0,1]))
-1.0778315928076987e-15
-
-</code></pre>
-
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L99-L113' class='documenter-source'>source</a><br></p>
 <pre><code>compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
 </code></pre>
 
 <p>Computes linear combination starting with derivative startder, i.e., $Σ_i a_i M^{(i+startder)}(λ) v_i$</p>
 <p>The default implementation of this can be slow. Overload for specific NEP if you want efficiency (for aug_newton, IAR, ..).</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/de5c206f1ebf21ac1527f85743a1e414bd07b6b2/src/NEPCore.jl#L126-L133' class='documenter-source'>source</a><br></p>
 <p>Let's try an equation $x=f(x)$. (a \ne 0)</p>
 <p>$$
 x=x_1+1
