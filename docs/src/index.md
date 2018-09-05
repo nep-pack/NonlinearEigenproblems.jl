@@ -1,33 +1,30 @@
 
-# NEPPACK 
+# NEPPACK
 
 NEPPACK is a package with implementations of methods to solve nonlinear eigenvalue problems of
 the type: Find ``(λ,v)\in\mathbb{C}\times\mathbb{C}^n`` such that
 ```math
 M(λ)v=0
 ```
-and ``v\neq 0``. 
+and ``v\neq 0``.
 
 
 # Getting started
 
-Install it as a contributed package 
+Install it as an unregistered package by
+writing `] add git:/..`:
 ```
-julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
+(v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 
-```
-NEP-PACK uses several contributed julia packages.
-These need to be installed the first time you use NEP-PACK,
-by running for the corresponding packages:
-```julia-repl
-julia> Pkg.add("IterativeSolvers")
 ```
 Then we can start to load some NEP-PACK packages
 ```julia-repl
-julia> using NonlinearEigenproblems: NEPSolver, NEPTypes
+julia> using NonlinearEigenproblems.NEPSolver
+julia> using NonlinearEigenproblems.NEPTypes
+julia> using LinearAlgebra
 ```
 We are now ready to create and solve a nonlinear eigenvalue problem, in this
-illustrative example we set 
+illustrative example we set
 
 ```math
 M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
@@ -37,19 +34,19 @@ M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 The following code creates this NEP (which is a so called polynomial eigenvalue problem)
 and solves it using the NEP solution method implemented in `polyeig()`:
 ```julia-repl
-julia> A0=[1 3; 5 6]; A1=[3 4; 6 6]
-julia> nep=PEP([A0,A1,eye(2)])
-NEPTypes.PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
+julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
+julia> nep=PEP([A0,A1,A2])
+PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
 julia> λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
 ```
-You have now solved your first nonlinear eigenvalue problem with NEPPACK. 
+You have now solved your first nonlinear eigenvalue problem with NEPPACK.
 
 In order to verify that we have a solution, we can check that  ``M(λ)`` is singular,
 with a singular vector ``v`` such that ``M(λ)v=0``:
 ```julia-repl
 julia> λ1=λ[1]; v1=v[:,1];
-julia> norm((A0+A1*λ1+eye(2)*λ1^2)*v1)/norm(v1)
+julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 1.1502634749464687e-14
 ```
 
@@ -60,7 +57,7 @@ We have made benchmark examples available in the module `Gallery`. Use it
 by loading the module and calling the function `nep_gallery`:
 
 ```julia-repl
-julia> using NonlinearEigenproblems: Gallery
+julia> using NonlinearEigenproblems.Gallery
 julia> nep=nep_gallery("dep0",100);
 julia> size(nep)
 (100, 100)
@@ -128,9 +125,3 @@ This problem is also available in the `Gallery` by calling `dep=nep_gallery("neu
 
 Now you are ready to have a look at the examples
 in [NEP methods](methods/) and  [NEP Gallery](gallery/).
-
-
-
-
-
-
