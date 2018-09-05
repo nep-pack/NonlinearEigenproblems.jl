@@ -104,6 +104,9 @@ module Gallery
      'beam'\\
      The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
      * one optional parameter which is the size of the matrix       \\
+
+     'sine' The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.
+
 \\
 
    **See also the following galleries:**\\
@@ -403,7 +406,25 @@ module Gallery
           tau=1.0;
           return DEP([A0,A1],[0,tau]);
 
-       else
+       elseif (name == "sine")
+          data_dir=joinpath(dirname(@__FILE__()), "gallery_extra",   "converted_sine")
+
+
+          A0=read_sparse_matrix(joinpath(data_dir,"sine_A0.txt"));
+          A1=read_sparse_matrix(joinpath(data_dir,"sine_A1.txt"));
+          A2=read_sparse_matrix(joinpath(data_dir,"sine_A2.txt"));
+          V=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_V.txt")));
+          Q=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_Q.txt")));
+
+          n=size(A0,1);
+          Z=spzeros(n,n);
+          pep=PEP([A0,A1,Z,Z,A2]);
+          # Matrix  sine function. Note that the Term is rank two which is not exploited here
+          sin_nep=SPMF_NEP([V*Q'], [S-> sin(Matrix(S))]);
+
+          nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
+          return nep;
+      else
 
           error("The name $name is not supported in NEP-Gallery.")
       end
