@@ -10,14 +10,16 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 # How to use it?
 
+On Julia 1.0.0 and Julia 0.7, install it as an unregistered package by writing `] add ...` at the REPL-prompt: 
+```
+(v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
+```
 
-We are currently in a transition phase to Julia 1.0 (or julia 0.7). Stay tuned.
-
-On julia 0.6.4 you can install it by running
+We don't support Julia 0.6, but it is possible to use it by running
 ```
 julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 ```
-Due to the transition, you need also switch to git-tag v0.1. 
+and switch to the git-tag v0.1. 
 
 After that, check out "Getting started" in the user documentation
 https://nep-pack.github.io/NonlinearEigenproblems.jl
