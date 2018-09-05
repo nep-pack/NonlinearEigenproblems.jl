@@ -11,7 +11,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 # How to use it?
 
 
-We are currently in a transition phase to Julia 1.0 (or 0.7). Stay tuned.
+We are currently in a transition phase to Julia 1.0 (or julia 0.7). Stay tuned.
 
 On julia 0.6.4 you can install it by running
 ```
