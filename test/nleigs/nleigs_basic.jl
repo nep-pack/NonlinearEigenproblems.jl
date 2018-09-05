@@ -1,15 +1,9 @@
 # Solves a few basic eigenvalue problems to test various aspects of NLEIGS
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
 using Test
+using LinearAlgebra
 
 include("nleigs_test_utils.jl")
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))

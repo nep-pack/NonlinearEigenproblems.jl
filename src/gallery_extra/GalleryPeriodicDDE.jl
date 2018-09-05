@@ -1,14 +1,15 @@
 # Time-periodic delay-differential equations
 module GalleryPeriodicDDE
-    import Base.size
-    using NEPCore
-    using Gallery
+    using NonlinearEigenproblems.NEPCore
+    using NonlinearEigenproblems.Gallery
     using SparseArrays
     using Random
-    import NEPCore.compute_Mlincomb
-    import NEPCore.compute_Mder
-    import NEPCore.compute_MM
-    import Gallery.nep_gallery
+
+    import Base.size
+    import NonlinearEigenproblems.NEPCore.compute_Mlincomb
+    import NonlinearEigenproblems.NEPCore.compute_Mder
+    import NonlinearEigenproblems.NEPCore.compute_MM
+    import NonlinearEigenproblems.Gallery.nep_gallery
 
     export PeriodicDDE_NEP
     export nep_gallery

@@ -1,18 +1,13 @@
 # Run tests for the waveguide eigenvalue problem
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using GalleryWaveguide
-using LinearAlgebra
-using Random
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems.LinSolvers
 using Test
+using LinearAlgebra
+
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+using GalleryWaveguide
 
 import GalleryWaveguide.SchurMatVec
 
@@ -32,9 +27,6 @@ b1 = rand(ComplexF64, nx*nz)
 Schur_fun = SchurMatVec(nep, γ)
 b2 = A_ldiv_B!(precond, (Schur_fun*b1))
 @test norm(b1-b2)/norm(b1) < 1e-14
-
-
-
 
 
 nep=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "WEP")

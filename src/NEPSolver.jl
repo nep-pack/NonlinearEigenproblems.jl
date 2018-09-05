@@ -1,10 +1,10 @@
 module NEPSolver
+    using ..NEPCore
+    using ..NEPTypes
+    using ..LinSolvers
     using LinearAlgebra
     using SparseArrays
     using Random
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
 
     export compute_eigvec_from_eigval_lu
     export compute_eigvec_from_eigval_lopcg

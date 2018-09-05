@@ -1,15 +1,12 @@
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
 
 # explicit import needed for overloading functions from packages
-import NEPCore.compute_Mlincomb
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
+
 @testset "compute eigvec lopcg" begin
     @testset "dep0_sparse" begin
         nep=nep_gallery("dep0_sparse",100);nept=DEP([nep.A[1]',nep.A[2]'],nep.tauv);

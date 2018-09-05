@@ -3,12 +3,12 @@
   Look at the function 'nep_gallery()' for further instructions.
   """
 module Gallery
+    using ..NEPCore
+    using ..NEPTypes
     using Random
     using LinearAlgebra
     using SparseArrays
     using PolynomialRoots
-    using NEPCore
-    using NEPTypes
 
     export nep_gallery
 

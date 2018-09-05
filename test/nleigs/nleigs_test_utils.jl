@@ -1,3 +1,6 @@
+using NonlinearEigenproblems.NEPCore
+using Printf
+
 function nleigs_verify_lambdas(nrlambda, nep::NEP, X, lambda, tol = 1e-5)
     @test length(lambda) == nrlambda
 

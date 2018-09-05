@@ -1,15 +1,10 @@
 # Run tests for the deflation
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
 
 @testset "Deflation (combined with MSLP)" begin
 

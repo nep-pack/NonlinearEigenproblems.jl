@@ -1,20 +1,18 @@
 #  Tests for the projected NEPs
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
 using LinearAlgebra
 using Random
+
 #using Winston # For plotting
-using Test
 
 @testset "Projected problems" begin
 
     @testset "Problem $nepstr" for nepstr in ("pep", "dep", "sqrtm")
-
 
         local nep::NEP
         if (nepstr == "pep")

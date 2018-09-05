@@ -1,16 +1,10 @@
 # Run tests for the NEP transformations
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using LinearAlgebra
-using Random
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 @testset "transformations" begin
 
@@ -27,16 +21,11 @@ using Test
         @test abs(λ1+σ-orgλ)<eps()*100 # check that we get the same eigvals
 
 
-
-
         # Test shift and scaling
         σ=-0.4+0.01im; α=0.5
         nep2=shift_and_scale(orgnep,shift=σ,scale=α);
         λ2,v2=quasinewton(nep2)
         @test abs((α*λ2+σ)-orgλ)<eps()*100
-
-
-
 
 
         # Check that PEP transformations correctly transform coefficients

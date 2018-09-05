@@ -1,5 +1,5 @@
 using Test
-using Random
+using SparseArrays
 
 include(normpath(string(@__DIR__), "..", "src", "utils", "Serialization.jl"))
 

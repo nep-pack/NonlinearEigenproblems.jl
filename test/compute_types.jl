@@ -1,11 +1,10 @@
-
 # Run tests for the compute type tests
 
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-using NEPCore, NEPTypes, NEPSolver, Gallery
-using LinearAlgebra, SparseArrays
-using Random
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 import Base.exp
 

@@ -1,16 +1,15 @@
 module GalleryWaveguide
 
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems.Gallery
 using SparseArrays
 using LinearAlgebra
 using Statistics
 using FFTW
-using NEPCore
-using NEPTypes
-using LinSolvers
 using IterativeSolvers
 using LinearMaps
-using Gallery
-
 
 export wep_generate_preconditioner
 export wep_gmres_linsolvercreator
@@ -22,17 +21,17 @@ export WEP
 export WEP_FD
 
 # We overload these
-import Gallery.nep_gallery
+import NonlinearEigenproblems.Gallery.nep_gallery
 export nep_gallery
-import NEPCore.compute_Mlincomb
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 export compute_Mlincomb
-import LinSolvers.lin_solve
+import NonlinearEigenproblems.LinSolvers.lin_solve
 export lin_solve
-import LinSolvers.default_linsolvercreator
+import NonlinearEigenproblems.LinSolvers.default_linsolvercreator
 export default_linsolvercreator
-import LinSolvers.DefaultLinSolver
+import NonlinearEigenproblems.LinSolvers.DefaultLinSolver
 export DefaultLinSolver
-import LinSolvers.BackslashLinSolver
+import NonlinearEigenproblems.LinSolvers.BackslashLinSolver
 export BackslashLinSolver
 
 import Base.size

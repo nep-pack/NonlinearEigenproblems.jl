@@ -1,20 +1,11 @@
 # Tests for core functionality
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using Random
-using LinearAlgebra
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
 
 struct TestNEP <: NEP
-       dummy
+   dummy
 end
 
 @testset "Core" begin

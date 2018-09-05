@@ -1,7 +1,7 @@
 module LinSolvers
+    using ..NEPCore
     using LinearAlgebra
     using SparseArrays
-    using NEPCore
     using IterativeSolvers
     using LinearMaps
     using Arpack

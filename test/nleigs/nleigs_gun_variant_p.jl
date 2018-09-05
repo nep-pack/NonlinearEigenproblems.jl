@@ -1,14 +1,6 @@
 # Gun: variant P (polynomial case; only repeated nodes)
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
+using NonlinearEigenproblems.NEPSolver
 using Test
 
 include("nleigs_test_utils.jl")

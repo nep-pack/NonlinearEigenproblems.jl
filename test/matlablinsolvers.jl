@@ -1,12 +1,8 @@
 #  Tests for the Linear solvers
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
 
-using NEPCore
-using LinSolvers
 using Test
 using LinearAlgebra
-using Random
-using SparseArrays
+
 using LinSolversMATLAB
 
 @testset "LinSolvers" begin

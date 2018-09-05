@@ -1,9 +1,9 @@
 module NEPTypes
+    using ..NEPCore
     using SparseArrays
     using LinearAlgebra
     #using PolynomialZeros
     using Polynomials
-    using NEPCore
 
     # Specializalized NEPs
     export ProjectableNEP

@@ -1,18 +1,10 @@
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using LinSolvers
-using IterativeSolvers
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
-using LinearMaps
-using NEPTypes
-using Gallery
 using LinearAlgebra
-using Random
 using SparseArrays
-using NEPSolver
-using NEPCore
 
 @testset "MSLP" begin
     A=sprandn(100,100,0.1);

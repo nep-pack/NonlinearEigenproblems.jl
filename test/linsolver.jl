@@ -1,17 +1,10 @@
 # Unit test for the lin-solve mehtods (in src/LinSolver.jl)
 # The "Gun" problem form gun_native.jl
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using LinearAlgebra
-using Random
+using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems.LinSolvers
 using Test
+using LinearAlgebra
 
 @testset "linsolvers" begin
     TOL = 1e-10;
@@ -71,8 +64,5 @@ using Test
     t=M\z;
     println("norm(M\\z-x)=",norm(t-x));
     @test norm(t-x)/M1norm < eps()
-
-
-
 
 end

@@ -1,12 +1,10 @@
 # Run tests for the inner solves
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-using NEPCore, NEPTypes, NEPSolver, Gallery
-using LinearAlgebra
-using Random
-using Test
 
-#import NEPSolver.inner_solve;
-#include("../src/inner_solver.jl");
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
 @testset "Inner Solves" begin
     dep=nep_gallery("dep0",200);

@@ -1,3 +1,5 @@
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Random
 using LinearAlgebra
 

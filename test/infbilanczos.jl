@@ -1,15 +1,10 @@
 # Test for infinite Bi-Lanczos
 
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using LinearAlgebra
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 @testset "Infbilanczos σ=0" begin
     nep=nep_gallery("qdep0");

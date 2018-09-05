@@ -1,16 +1,9 @@
 # Solves a basic eigenvalue problem defined through different NEP types through NLEIGS
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using SparseArrays
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
 using Test
+using SparseArrays
 
 include("nleigs_test_utils.jl")
 
@@ -23,7 +16,9 @@ nep_types_test_B = Vector{Matrix{Float64}}([[1 3; 5 6], [3 4; 6 6]])
 nep_types_test_C = Vector{Matrix{Float64}}([[1 0; 0 1]])
 
 # implement a few methods used by the solver
-import NEPCore.compute_Mder, NEPCore.compute_Mlincomb, Base.size
+import NonlinearEigenproblems.NEPCore.compute_Mder
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
+import Base.size
 nep_types_test_pep = PEP([nep_types_test_B; nep_types_test_C])
 compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(nep_types_test_pep, λ)
 compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Matrix) = compute_Mlincomb(nep_types_test_pep, λ, x)

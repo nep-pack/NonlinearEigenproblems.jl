@@ -1,13 +1,10 @@
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using LinearAlgebra
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems.LinSolvers
 using Test
+using LinearAlgebra
 
 @testset "Jacobi–Davidson" begin
 
@@ -79,7 +76,7 @@ nep = nep_gallery("pep0",4)
 # An undefined projection type
 @test_throws ErrorException λ,u=jd(nep, tol=TOL, maxit=4, projtype = :MYNOTDEFINED, v0=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ,u=jd(nep, tol=TOL, maxit=4, Neig=1000, v0=ones(size(nep,1)))
+@test_throws NoConvergenceException λ,u=jd(nep, tol=TOL, maxit=4, Neig=1000, v0=ones(size(nep,1)))
 
 
 end

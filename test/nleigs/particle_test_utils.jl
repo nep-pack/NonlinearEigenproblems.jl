@@ -1,3 +1,4 @@
+using NonlinearEigenproblems.NEPTypes
 using LinearAlgebra
 using SparseArrays
 using Random

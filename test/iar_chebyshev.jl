@@ -1,22 +1,14 @@
-# #Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
+using Random
 using SparseArrays
 using LinearAlgebra
-using Random
-using Test
-
-#import NEPSolver.iar_chebyshev;
-#include("../src/method_iar_chebyshev.jl");
+using IterativeSolvers
 
 #explicit import needed for overloading functions from packages
-import NEPCore.compute_Mlincomb
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 
 
 # The user can create his own orthogonalization function to use in IAR
@@ -36,9 +28,9 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 # The user can provide compute_y0_cheb and associated procumputation
 # Here there is a naive example for the QEP. Relate to the test "compute_y0 AS INPUT FOR QEP (naive)"
 # Import and create a type to overload the compute_y0_cheb function
-import NEPSolver.ComputeY0Cheb
-import NEPSolver.AbstractPrecomputeData
-import NEPSolver.precompute_data
+import NonlinearEigenproblems.NEPSolver.ComputeY0Cheb
+import NonlinearEigenproblems.NEPSolver.AbstractPrecomputeData
+import NonlinearEigenproblems.NEPSolver.precompute_data
 abstract type ComputeY0Cheb_QEP <: NEPSolver.ComputeY0Cheb end
 struct PrecomputeData_QEP <: AbstractPrecomputeData
     precomp_PEP; nep_pep
@@ -52,7 +44,7 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QEP},a,b,m,γ,
     return PrecomputeData_QEP(precomp_PEP,nep_pep)
 end
 # overload the function compute_y0_cheb
-import NEPSolver.compute_y0_cheb
+import NonlinearEigenproblems.NEPSolver.compute_y0_cheb
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QEP},x,y,M0inv,precomp::PrecomputeData_QEP)
     return compute_y0_cheb(T,precomp.nep_pep,NEPSolver.ComputeY0ChebPEP,x,y,M0inv,precomp.precomp_PEP)
 end

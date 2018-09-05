@@ -1,16 +1,9 @@
 # Run tests for the dep_distributed example
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using LinearAlgebra
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 dep_distributed_exact_eigvals = [
    -0.400236388049641 + 0.970633098237807im

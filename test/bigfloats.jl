@@ -1,14 +1,9 @@
 # Unit  tests for bigfloats. Type stability of methods.
 
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using LinearAlgebra
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
 using Test
+using LinearAlgebra
 
 function bigfloats()
     println("Test NEP-test with BigFloat")

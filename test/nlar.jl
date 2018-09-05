@@ -1,17 +1,13 @@
 # Unit test for the Nonlinear Arnoldi method (in src/method_nlar.jl)
 # The "Gun" problem form gun_native.jl
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems.Gallery
+using Test
 using LinearAlgebra
 using Random
-using Test
 
 @testset "Nonlinear Arnoldi" begin
 	TOL = 1e-10;

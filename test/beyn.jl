@@ -1,16 +1,9 @@
 # Run tests on Beyns contour integral method
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using LinearAlgebra
-using IterativeSolvers
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 @testset "Beyn contour" begin
     nep=nep_gallery("dep0")

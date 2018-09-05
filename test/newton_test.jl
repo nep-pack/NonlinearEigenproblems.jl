@@ -1,15 +1,10 @@
 # Run tests on Newton methods & rfi methods
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using LinearAlgebra
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 @testset "Newton iterations" begin
     nep=nep_gallery("dep0")
@@ -19,7 +14,6 @@ using Test
         # to generate identical results
         λ1,x1 =newton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tol=eps()*10);
         λ2,x2 =augnewton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tol=eps()*10);
-
 
         @test λ1 ≈ λ2
         @test x1 ≈ x2

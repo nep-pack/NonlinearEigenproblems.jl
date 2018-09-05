@@ -4,23 +4,16 @@
 # on your computer. On eight.math.kth.se you typically want to do
 # julia -p 20
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using LinearAlgebra
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
 
 nep=nep_gallery("dep0",500)
 
 tol=1e-5
 println("Contour integral with quadgk")
-tt1=@timev λ1,v1=contour_beyn(nep,displaylevel=0,radius=0.3,k=3,quad_method=:quadgk,tol=tol,displaylevel=0)
+tt1=@timev λ1,v1=contour_beyn(nep,displaylevel=0,radius=0.3,k=3,quad_method=:quadgk,tol=tol)
 display(tt1)
 
 println("Contour integral with quadg")
@@ -34,7 +27,7 @@ display(tt3)
 
 
 println("Contour integral with quadgk (again for verification)")
-tt1b=@timev λ1,v1=contour_beyn(nep,displaylevel=0,radius=0.3,k=3,quad_method=:quadgk,tol=1e-5,displaylevel=0)
+tt1b=@timev λ1,v1=contour_beyn(nep,displaylevel=0,radius=0.3,k=3,quad_method=:quadgk,tol=1e-5)
 display(tt1b)
 
 # Check distance between eigenvalue approximations taking

@@ -1,4 +1,3 @@
-#push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 #using Gallery
 #using GalleryWaveguide
 

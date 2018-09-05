@@ -1,22 +1,15 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-push!(LOAD_PATH, string(@__DIR__, "/../src"))
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-
-using NEPCore
-using NEPTypes
-using LinSolvers
-using NEPSolver
-using Gallery
-using IterativeSolvers
-using LinearAlgebra
-using Random
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
 using Test
+using LinearAlgebra
+
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 using GalleryNLEVP
 using LinSolversMATLAB
 
-fibertest=@testset "NLEVP fiber" begin
+@testset "NLEVP fiber" begin
     nep_org=nep_gallery(NLEVP_NEP,"fiber");
     n=size(nep_org,1);
 
