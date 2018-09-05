@@ -2,6 +2,7 @@ using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
+using Random
 using Test
 
 # explicit import needed for overloading functions from packages
