@@ -79,7 +79,8 @@ function jd_betcke(::Type{T},
     tol::real(T) = real(T)(tol)
     λ_vec::Vector{T} = Vector{T}(Neig)
     u_vec::Matrix{T} = zeros(T,n,Neig)
-    u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u);
+    u::Vector{T} = Vector{T}(v0)
+    normalize!(u)
     conveig = 0
 
     # Initial check for convergence
@@ -96,7 +97,7 @@ function jd_betcke(::Type{T},
 
     # More allocations and preparations
     pk::Vector{T} = zeros(T,n)
-    s::Vector{T} = zeros(T,n)
+    s_memory::Vector{T} = zeros(T,n)
     proj_nep = create_proj_NEP(nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1)
 
@@ -104,7 +105,8 @@ function jd_betcke(::Type{T},
     V_memory[:,1] = u
     if( projtype == :PetrovGalerkin ) # Petrov-Galerkin uses a left (test) and a right (trial) space
         W_memory = zeros(T, size(nep,1), maxit+1)
-        W_memory[:,1] = compute_Mlincomb(nep,λ,u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
+        W_memory[:,1] = compute_Mlincomb(nep,λ,u)
+        normalize!(view(W_memory,:,1))
     else # Galerkin uses the same trial and test space
         W_memory = view(V_memory, :, :);
     end
@@ -114,6 +116,7 @@ function jd_betcke(::Type{T},
         # Projection matrices
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
         v = view(V_memory, :, k+1); w = view(W_memory, :, k+1); # next vector position
+        s = view(s_memory,1:k)
 
         # Project and find the eigenvalue projected NEP
         set_projectmatrices!(proj_nep, W, V)
@@ -122,11 +125,11 @@ function jd_betcke(::Type{T},
                             λv = λ*ones(T,conveig+1),
                             σ = target,
                             Neig=conveig+1)
-        λ,s[1:k] = jd_eig_sorter(λv, sv, conveig+1, target)
-        s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
+        λ,s = jd_eig_sorter(λv, sv, conveig+1, target)
+        normalize!(s)
 
         # the approximate eigenvector
-        u[:] = V*s[1:k]
+        u[:] = V*s
 
         # Check for convergence
         err = errmeasure(λ,u)
@@ -202,7 +205,8 @@ function jd_effenberger(::Type{T},
 
     # Allocations and preparations
     λ::T = T(λ)
-    u::Vector{T} = Vector{T}(v0); u[:] = u/norm(u)
+    u::Vector{T} = Vector{T}(v0)
+    normalize!(u)
     λ_init::T = λ
     u_init::Vector{T} = u
 
@@ -271,18 +275,18 @@ function dispatch_inner!(::Type{T},
                               W_memory::SubArray,
                               target_nep::DeflatedNEP,
                               args...) where {T<:Number}
-return  jd_effenberger_inner!(T, V_memory, W_memory,
-                              target_nep, target_nep.V0, target_nep.S0, target_nep.orgnep,
-                              args...)
+    return  jd_effenberger_inner!(T, V_memory, W_memory,
+                                  target_nep, target_nep.V0, target_nep.S0, target_nep.orgnep,
+                                  args...)
 end
 function dispatch_inner!(::Type{T},
                               V_memory::SubArray,
                               W_memory::SubArray,
                               target_nep::ProjectableNEP,
                               args...) where {T<:Number}
-return  jd_effenberger_inner!(T, V_memory, W_memory,
-                              target_nep, zeros(T,size(target_nep,1),0), zeros(T,0,0), target_nep,
-                              args...)
+    return  jd_effenberger_inner!(T, V_memory, W_memory,
+                                  target_nep, zeros(T,size(target_nep,1),0), zeros(T,0,0), target_nep,
+                                  args...)
 end
 
 
@@ -309,23 +313,25 @@ function jd_effenberger_inner!(::Type{T},
     n = size(orgnep,1) # Size of original problem
     m = size(Λ,1) # Size of deflated subspace
 
-    u[:] = u ./ norm(u)
+    normalize!(u)
 
     λ_temp::T = λ
     newton_step::Vector{T} = Vector{T}(rand(n+m))
     pk::Vector{T} = zeros(T,n+m)
-    s::Vector{T} = zeros(T,maxit+1-nrof_its)
+    s_memory::Vector{T} = zeros(T,maxit+1-nrof_its)
     proj_nep = create_proj_NEP(target_nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
 
     V_memory[:,1] = u
-    W_memory[:,1] = compute_Mlincomb(target_nep, λ, u); W_memory[:,1] = W_memory[:,1]/norm(W_memory[:,1])
+    W_memory[:,1] = compute_Mlincomb(target_nep, λ, u)
+    normalize!(view(W_memory,:,1))
 
     err = Inf
     for loop_counter = (nrof_its+1):maxit
         k = loop_counter - nrof_its # Which index are we doing on THIS specific level of deflation
         V = view(V_memory, :, 1:k); W = view(W_memory, :, 1:k); # extact subarrays, memory-CPU efficient
         v = view(V_memory, :, k+1); w = view(W_memory, :, k+1); # next vector position
+        s = view(s_memory,1:k)
 
         # Project and solve the projected NEP
         set_projectmatrices!(proj_nep, W, V)
@@ -334,17 +340,17 @@ function jd_effenberger_inner!(::Type{T},
                             λv = λ .* ones(T,3),
                             σ = target,
                             Neig = 3)
-        λ_temp,s[1:k] = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
-        s[:] = s/norm(s) #OBS: Hack-ish since s is initilaized with zeros - Perserve type and memory
+        λ_temp,s = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
+        normalize!(s)
 
         # If inner solver converged to a solution to the projected problem use that.
         # Otherwise take the "newton step". Not implemented exactly as in Effenbergerm but similar
         if !isnan(λ_temp) && !any(isnan.(s[1:k])) && (norm(compute_Mlincomb(proj_nep, λ_temp, s[1:k])) < tol*10) # Has converged to an eigenvalue of the projected problem
-            u[:] = V*s[1:k] # The approximate eigenvector
+            u[:] = V*s # The approximate eigenvector
             λ = λ_temp
         else
             u[:] = u[:] + newton_step
-            u[:] = u[:] / norm(u)
+            normalize!(u)
         end
 
         # Compute residual and check for convergence
@@ -358,7 +364,7 @@ function jd_effenberger_inner!(::Type{T},
             # What is here is only a light kind adapted to an "unknown" inner solver
             λ2,s2 = jd_eig_sorter(λv, sv, 2, target)
             if (size(sv,2) > 1) && (abs(λ-λ2)/abs(λ) > sqrt(eps(real(T))))
-                s2 = s2/norm(s2)
+                normalize!(s2)
                 u2 = vcat(V*s2, zero(T))
             else
                 λ2 = T(rand())
