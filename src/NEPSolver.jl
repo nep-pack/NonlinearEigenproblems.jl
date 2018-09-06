@@ -119,14 +119,14 @@ Executes z if displaylevel>1.
 
         # initialization
         normalize!(x); v=A(x); ρ=x⋅v; q=zeros(ComplexF64,size(nep,1));
-        k=1; err=one(eltype(x)); tol=1e-12
+        k=1; err=one(real(eltype(x))); tol=1e-12
         while (k<maxit)&&(err>tol)
           g = v-ρ*x;
           xgq = [x -g q]
           aa = xgq' * [v -A(g) A(q)];
           aa = (aa+aa')/2;
           mm = xgq' * xgq;
-          mm = (mm+mm')/2; # why is this needed?
+          mm = (mm+mm')/2; # ensure exact symmetry (it's should be symmetric already, but there may be roundoff errors)
 
           D,V = eigen(aa,mm);
           absD=abs.(D);

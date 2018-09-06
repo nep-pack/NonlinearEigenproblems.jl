@@ -8,7 +8,7 @@ using LinearAlgebra
 
 @testset "Infbilanczos σ=0" begin
     nep=nep_gallery("qdep0");
-    nept=SPMF_NEP([nep.A[1]',nep.A[2]',nep.A[3]'],nep.fi)
+    nept=SPMF_NEP([copy(nep.A[1]'), copy(nep.A[2]'), copy(nep.A[3]')], nep.fi)
     n=size(nep,1);
 
     m=40;

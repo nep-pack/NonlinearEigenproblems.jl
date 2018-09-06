@@ -64,7 +64,7 @@ using LinearAlgebra
     @testset "Rayleigh Function Iteration" begin
         println("Running two-sided RFI on random dep")
         nepd=nep_gallery("dep0")
-        nept=DEP([nepd.A[1]',nepd.A[2]'],copy(nepd.tauv))
+        nept=DEP([copy(nepd.A[1]'), copy(nepd.A[2]')],copy(nepd.tauv))
 
         n=size(nepd,1);
         u0=ones(n);
