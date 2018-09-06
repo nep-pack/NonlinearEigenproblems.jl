@@ -118,18 +118,21 @@ Executes z if displaylevel>1.
         A=v->compute_Mlincomb(nept,complex(conj(λ)),compute_Mlincomb(nep,complex(λ),complex(v)))
 
         # initialization
-        x/=norm(x); v=A(x); ρ=x⋅v; q=zeros(ComplexF64,size(nep,1));
-        k=1; err=1; tol=1e-12
+        normalize!(x); v=A(x); ρ=x⋅v; q=zeros(ComplexF64,size(nep,1));
+        k=1; err=one(real(eltype(x))); tol=1e-12
         while (k<maxit)&&(err>tol)
-          g=v-ρ*x;
-          aa=[x -g q]'*[v -A(g) A(q)]; aa=(aa+aa')/2;
-          mm=[x -g q]'*[x -g q]; mm=(mm+mm')/2;
+          g = v-ρ*x;
+          xgq = [x -g q]
+          aa = xgq' * [v -A(g) A(q)];
+          aa = (aa+aa')/2;
+          mm = xgq' * xgq;
+          mm = (mm+mm')/2; # ensure exact symmetry (it's should be symmetric already, but there may be roundoff errors)
 
           D,V = eigen(aa,mm);
           absD=abs.(D);
           ii=argmin([isnan(x) ? Inf : x for x in absD]);
           ρ=D[ii]; δ=V[:,ii]; q=[-g q]*δ[2:end];
-          x=δ[1]*x+q; x/=norm(x); v=A(x); k+=1
+          x=δ[1]*x+q; normalize!(x); v=A(x); k+=1
           err=errmeasure(λ,x)
         end
         return x
