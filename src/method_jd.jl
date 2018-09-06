@@ -401,37 +401,50 @@ end
 
 
 
-# function compute_U(orgnep::NEP, μ, X, Λ, i=0)
-#     n = size(orgnep,1)
-#     m = size(X,2)
-#     T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
-#     dot_TXμI = Vector{Matrix{T_arit}}(i+1)
-#     for k = 0:i
-# #compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
-#         dot_TXμI[k+1] = zeros(T_arit,n,m)
-#         for kk = 1:size(X,2)
-#             dot_TXμI[k+1][:,kk] = compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [one(T_arit)], k)
-#         end
-#     end
-# end
 function compute_U(orgnep::NEP, μ, X, Λ, i=0)
-# TODO: Implement this in a non-recursive way
-# U^(k)(μ) = (-(d/dμ)^k T(X,μI) + k⋅U^(k-1)(μ)) (Λ-μI)^{-1}
-    if i < 0
-        return zeros(X)
-    end
     n = size(orgnep,1)
     m = size(X,2)
     T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
-    dots_TXμI = Matrix{T_arit}(n,m)
-    for kk = 1:size(X,2)
-        dots_TXμI[:,kk] = compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [one(T_arit)], i)
+
+    Uiμ = zeros(T_arit,n,m)
+    fact = one(T_arit)
+    the_inv = one(Λ)
+    LUmat = lufact(Λ-μ*I)
+    for k = i:-1:1
+        fact *= k
+        the_inv[:,:] = LUmat\the_inv
+        for kk = 1:m
+            Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], k) * the_inv[kk,:].'
+        end
     end
-    return (-dots_TXμI + i*compute_U(orgnep::NEP, μ, X, Λ, i-1))/(Λ-μ*one(Λ))
+    #Case k=0
+    the_inv[:,:] = LUmat\the_inv
+    for kk = 1:m
+        Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], 0) * the_inv[kk,:].'
+    end
+    Uiμ[:,:] = Uiμ[:,:] + fact * compute_TXΛ(orgnep, Λ, X) * the_inv
+    return Uiμ
 end
+
 function compute_Uv(orgnep::NEP, μ, X, Λ, v, i=0)
-# TODO: Do this in a smart way
-    return compute_U(orgnep, μ, X, Λ, i)*v
+    n = size(orgnep,1)
+    m = size(X,2)
+    T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
+
+    v_out = zeros(T_arit,n)
+    fact = one(T_arit)
+    the_inv = copy(v)
+    LUmat = lufact(Λ-μ*I)
+    for k = i:-1:1
+        fact *= k
+        the_inv[:] = LUmat\the_inv
+        v_out[:] = v_out[:] - compute_Mlincomb(orgnep, μ, X*the_inv, [fact], k)
+    end
+    #Case k=0
+    the_inv[:] = LUmat\the_inv
+    v_out[:] = v_out[:] - compute_Mlincomb(orgnep, μ, X*the_inv, [fact], 0)
+    v_out[:] = v_out[:] + fact * compute_TXΛ(orgnep, Λ, X) * the_inv
+    return v_out
 end
 
 
