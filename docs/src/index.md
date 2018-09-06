@@ -120,6 +120,26 @@ julia> plot(real(λ),imag(λ),"*")
 
 This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`.
 
+# The "gun" benchmark problem
+
+One of the most common benchmark problems for NEPs is the so-called "gun"-problem.
+It models an electromagnetic cavity, and it is directly available in the `Gallery`.
+(See `?nep_gallery` for references.) This is how you can solve it with the block Newton method:
+
+```julia-repl
+julia> nep=nep_gallery("nlevp_native_gun");
+julia> S=150^2*[1.0 0; 0 1]; V=[[1 0; 0 1]; zeros(n-2,2)];
+julia> (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
+Iteration 1: Error: 6.081316e+03
+Iteration 2: Error: 1.701970e-02 Armijo scaling=0.031250
+Iteration 3: Error: 1.814887e-02 Armijo scaling=0.250000
+...
+Iteration 13: Error: 6.257442e-09
+Iteration 14: Error: 2.525942e-15
+```
+The solutions are eigenvalues of `Z`.
+
+julia>
 
 # What now?
 

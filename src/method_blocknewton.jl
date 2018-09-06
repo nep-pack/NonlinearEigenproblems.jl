@@ -29,10 +29,9 @@ julia> compute_MM(nep,S,X)
 ```
 This example solves the `gun` problem from the Berlin-Manchester collection
 ```julia-repl
-julia> using GalleryNLEVP
-julia> nep_org=nep_gallery(NLEVP_NEP,"gun");
-julia> nep=nlevp_make_native(nep_org);
-julia> S=150^2*eye(2); V=eye(size(nep,1),2);
+julia> using NonlinearEigenproblems.Gallery
+julia> nep=nep_gallery("nlevp_native_gun");
+julia> II=[1.0 0; 0 1]; S=150^2*II; V=[II;zeros(size(nep,1)-2,2)];
 julia> (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
 Iteration 1: Error: 6.081316e+03
 Iteration 2: Error: 1.701970e-02 Armijo scaling=0.031250

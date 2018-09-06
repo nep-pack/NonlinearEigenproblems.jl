@@ -931,7 +931,7 @@ julia> M1+M2  # Same as M
     compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
     compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
-        (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
+        (compute_MM(nep.nep1,S,V)+compute_MM(nep.nep2,S,V))
 
     # For SPMFSumNEP, also delegate the get_Av() and get_fv()
     get_Av(nep::SPMFSumNEP) = [get_Av(nep.nep1); get_Av(nep.nep2)]
