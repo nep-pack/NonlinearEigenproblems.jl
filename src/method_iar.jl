@@ -1,5 +1,9 @@
 export iar
+
 using IterativeSolvers
+using LinearAlgebra
+using Random
+using Statistics
 
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -21,7 +25,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
-iar(nep::NEP;params...)=iar(Complex128,nep;params...)
+iar(nep::NEP;params...)=iar(ComplexF64,nep;params...)
 function iar(
     ::Type{T},
     nep::NEP;
@@ -42,7 +46,7 @@ function iar(
     # Ensure types σ and v are of type T
     σ=T(σ)
     v=Array{T,1}(v)
-    
+
     n = size(nep,1);
     m = maxit;
 
@@ -82,13 +86,15 @@ function iar(
         # compute Ritz pairs (every check_error_every iterations)
         if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             # Extract eigenvalues from Hessenberg matrix
-            D,Z=eig(H[1:k,1:k]);
+            D,Z = eigen(H[1:k,1:k])
 
-            VV=view(V,1:1:n,1:k);
-            Q=VV*Z; λ=σ+γ./D;
+            VV = view(V,1:1:n,1:k)
+            Q = VV*Z
+            λ = σ .+ γ ./ D
 
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 QQ,RR=qr(VV); # Project on this space
+                QQ = Matrix(QQ)
                 set_projectmatrices!(pnep,QQ,QQ);
                 # Make a call to the inner solve method
                 λproj,Qproj=inner_solve(inner_solver_method,T,pnep,

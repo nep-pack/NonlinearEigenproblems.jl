@@ -94,7 +94,7 @@ module GalleryNLEVP
     # stemming from a previous call to [Ai,funs]=nlevp(nepname).
     # The returned matrix containing derivatives has (maxder+1) rows
     function call_current_fun(lambda,maxder::Integer=0)
-        l::Complex128=Complex128(lambda)  # avoid type problems
+        l::ComplexF64=ComplexF64(lambda)  # avoid type problems
         mat"""
     C=cell($maxder+1,1);
     [C{:}]=funs($l);
@@ -137,8 +137,8 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
         if (nep.name == "gun")
             minusop= S-> -S
             oneop= S -> eye(size(S,1),size(S,2))
-            sqrt1op= S -> 1im*sqrtm(full(S))
-            sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+            sqrt1op= S -> 1im*sqrt(full(S))
+            sqrt2op= S -> 1im*sqrt(full(S)-108.8774^2*eye(S))
             # The nep.Ai object which comes from MATLAB
             # is Array{Any,2} (with one row). Reshape to correct type.
             AA=Array{AbstractMatrix,1}(vec(nep.Ai));
@@ -160,7 +160,7 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
     #    # poor-mans version of
     #    f0=z -> z.*(- besselk.(1, z)./z - besselk.(0, z))./besselk.(1,z)
     #    f1=z ->
-    #    zsamples=eps()+1+cos(linspace(0,pi,100))
+    #    zsamples=eps()+1+cos(range(0, stop = pi, length = 100))
     #
     #    a=eps();
     #    b=3;

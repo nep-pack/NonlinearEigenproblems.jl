@@ -1,28 +1,15 @@
 # Run tests on Beyns contour integral method
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-    using GalleryNLEVP
-    using LinSolversMATLAB
-end
-
-# Always run this, since it's not loaded by load_modules_for_tests.jl
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+using GalleryNLEVP
 using LinSolversMATLAB
 
-
-guntest=@testset "GUN (NLEVP interface)" begin
+@testset "GUN (NLEVP interface)" begin
 
     nep_org=nep_gallery(NLEVP_NEP,"gun");
     nep1=nlevp_make_native(nep_org);
@@ -31,13 +18,13 @@ guntest=@testset "GUN (NLEVP interface)" begin
     @testset "Running alg" begin
         λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tol=tol,maxit=500);
 
-        v1=v1/norm(v1);
+        v1=v1/opnorm(v1);
 
         @test norm(compute_Mlincomb(nep1,λ1,v1))<tol*100
-        @test norm(compute_Mder(nep1,λ1)*v1)<tol*100
+        @test opnorm(compute_Mder(nep1,λ1)*v1)<tol*100
 
         @test norm(compute_Mlincomb(nep_org,λ1,v1))<tol*100
-        @test norm(compute_Mder(nep_org,λ1)*v1)<tol*100
+        @test opnorm(compute_Mder(nep_org,λ1)*v1)<tol*100
 
     end
     @testset "Compute derivatives" begin
@@ -84,6 +71,3 @@ guntest=@testset "GUN (NLEVP interface)" begin
     end
 
 end
-Base.Test.print_test_results(guntest)
-
-1;

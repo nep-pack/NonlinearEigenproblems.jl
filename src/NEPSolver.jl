@@ -2,6 +2,9 @@ module NEPSolver
     using ..NEPCore
     using ..NEPTypes
     using ..LinSolvers
+    using LinearAlgebra
+    using SparseArrays
+    using Random
 
     export compute_eigvec_from_eigval_lu
     export compute_eigvec_from_eigval_lopcg
@@ -14,6 +17,16 @@ Executes z if displaylevel>0.
 """
     macro ifd(z)
         return esc(:( if (displaylevel > 0); $z; end ))
+    end
+
+    export @ifdd
+
+    """
+    @ifd(z)
+Executes z if displaylevel>1.
+"""
+    macro ifdd(z)
+        return esc(:( if (displaylevel > 1); $z; end ))
     end
 
     ## NEP-Methods
@@ -59,15 +72,16 @@ Executes z if displaylevel>0.
         local M0inv::LinSolver = linsolvercreator(nep,λ);
         n=size(nep,1);
 
-        if (isa(M0inv,DefaultLinSolver))
-            F=M0inv.Afact
+        if isa(M0inv,DefaultLinSolver)
+            F = M0inv.Afact
         else
-            F=lufact(compute_Mder(nep,λ)); # This requires matrix access
+            F = lu(compute_Mder(nep,λ)) # This requires matrix access
         end
-        x=[-F[:U][1:end-1,1:end-1]\F[:U][1:end-1,end]; 1]
+        x = [-F.U[1:end-1,1:end-1] \ F.U[1:end-1,end]; 1]
 
         if issparse(nep)
-            Q=zeros(Int64,n);   Q[F[:q]]=1:n;
+            Q = zeros(Int64, n)
+            Q[F.q] = 1:n
             return x[Q]
         else
             return x
@@ -104,15 +118,21 @@ Executes z if displaylevel>0.
         A=v->compute_Mlincomb(nept,complex(conj(λ)),compute_Mlincomb(nep,complex(λ),complex(v)))
 
         # initialization
-        x/=norm(x); v=A(x); ρ=x⋅v; q=zeros(Complex128,size(nep,1));
-        k=1; err=1; tol=1e-12
+        normalize!(x); v=A(x); ρ=x⋅v; q=zeros(ComplexF64,size(nep,1));
+        k=1; err=one(real(eltype(x))); tol=1e-12
         while (k<maxit)&&(err>tol)
-          g=v-ρ*x;
-          aa=[x -g q]'*[v -A(g) A(q)]; aa=(aa+aa')/2;
-          mm=[x -g q]'*[x -g q]; mm=(mm+mm')/2;
-          D,V=eig(aa,mm); ii=indmin(abs.(D));
+          g = v-ρ*x;
+          xgq = [x -g q]
+          aa = xgq' * [v -A(g) A(q)];
+          aa = (aa+aa')/2;
+          mm = xgq' * xgq;
+          mm = (mm+mm')/2; # ensure exact symmetry (it's should be symmetric already, but there may be roundoff errors)
+
+          D,V = eigen(aa,mm);
+          absD=abs.(D);
+          ii=argmin([isnan(x) ? Inf : x for x in absD]);
           ρ=D[ii]; δ=V[:,ii]; q=[-g q]*δ[2:end];
-          x=δ[1]*x+q; x/=norm(x); v=A(x); k+=1
+          x=δ[1]*x+q; normalize!(x); v=A(x); k+=1
           err=errmeasure(λ,x)
         end
         return x
@@ -122,10 +142,9 @@ Executes z if displaylevel>0.
         σ = closest_to(λ_vec::Array{T,1},  λ::T) where {T<:Number}
 
     Finds the value `σ` in the vector `λ_vec` that is closes to the value `λ`.
-
     """
-    function closest_to(λ_vec::Array{T,1},  λ::T) where {T<:Number}
-        idx = indmin(abs.(λ_vec - λ))
+    function closest_to(λ_vec::Array{T,1}, λ::T) where {T<:Number}
+        idx = argmin(abs.(λ_vec .- λ))
         return λ_vec[idx]
     end
 

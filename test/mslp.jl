@@ -1,50 +1,36 @@
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
+using SparseArrays
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using LinSolvers
-    using IterativeSolvers
-    using Base.Test
-    using LinearMaps
-    using NEPTypes
-    using Gallery
-    using NEPSolver
-    using NEPCore
-end
-
-
-A=sprandn(100,100,0.1);
-B=sprandn(100,100,0.1);
-
-target=0;
-nev=3;
-nep=nep_gallery("dep0");
 @testset "MSLP" begin
+    A=sprandn(100,100,0.1);
+    B=sprandn(100,100,0.1);
+
+    target=0;
+    nev=3;
+    nep=nep_gallery("beam",5);
+
     # Full matrix test
     λ1,v1=mslp(nep)
     @test norm(compute_Mlincomb(nep,λ1,v1))<1e-10
 
     Av=[sparse(nep.A[1]),sparse(nep.A[2])];
-    nep.A=Av;
+    nep2 = DEP(nep.n, Av, nep.tauv)
     # Sparse matrix test
-    λ2,v2=mslp(nep)
-    @test norm(compute_Mlincomb(nep,λ2,v2))<1e-10
+    λ2,v2 = mslp(nep2)
+    @test norm(compute_Mlincomb(nep2,λ2,v2)) < 1e-10
 
     @test λ1≈λ2 # They should be exactly the same
 
-
     println("mslp noconv + double")
-    @testset  "mslp + double" begin 
-        nep=nep_gallery("dep_double");
-        @test_throws NoConvergenceException mslp(nep,λ=9im,maxit=10)
-        λ,v=mslp(nep,λ=9im,maxit=100)
-        @test norm(compute_Mlincomb(nep,λ,v))<eps()*100
-
+    @testset  "mslp + double" begin
+        nep3 = nep_gallery("dep_double");
+        @test_throws NoConvergenceException mslp(nep3, λ=9im, maxit=10)
+        λ,v = mslp(nep3, λ=9im, maxit=100)
+        @test norm(compute_Mlincomb(nep3, λ, v)) < eps()*100
     end
-    
-    
 end

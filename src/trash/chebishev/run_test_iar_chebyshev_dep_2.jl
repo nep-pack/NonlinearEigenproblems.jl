@@ -1,8 +1,10 @@
-workspace()
 push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 
 using PyPlot
 using PyCall
+
+using LinearAlgebra
+using Random
 
 using NEPCore
 using NEPTypes
@@ -26,7 +28,7 @@ mm=80;  # number of iterations
 function myexpm(A::Array{T,2}) where {T<:Number}
     println("call expm with ",typeof(A),"\n");
 
-    A=Array{Complex128,2}(A);
+    A=Array{ComplexF64,2}(A);
     F=zeros(T,size(A,1),size(A,2))
     if (size(A)==(1,1))
         F[:]=exp(A[1,1]);
@@ -37,20 +39,20 @@ function myexpm(A::Array{T,2}) where {T<:Number}
         F=F+Bi/factorial(real(T(k)));
         Bi=Bi*A;
     end
-    #F=Array{Complex128,2}(F);
-    err=norm(expm(A)-F,1)/norm(F,1);
+    #F=Array{ComplexF64,2}(F);
+    err=opnorm(exp(A)-F,1)/opnorm(F,1);
     if(err>eps()*100)
-        println("Warning: error large:",err, " size:",size(A), " norm(A):",norm(A));
+        println("Warning: error large:",err, " size:",size(A), " opnorm(A):",opnorm(A));
 
     end
 
-#    F=expm(A);
+#    F=exp(A)
     return F
 end
 
 
 nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->myexpm(-λ)])
-#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+#nep=SPMF_NEP([eye(4), A0, A1],[λ->-λ^2,λ->eye(λ),λ->exp(-λ)])
 
 function compute_y0(x,y,nep,a,b)
    T=(n,x)->cos(n*acos(x));

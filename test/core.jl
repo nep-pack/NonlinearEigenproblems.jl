@@ -1,23 +1,11 @@
 # Tests for core functionality
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
-
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
 
 struct TestNEP <: NEP
-       dummy
+   dummy
 end
 
 @testset "Core" begin
@@ -47,23 +35,22 @@ z4=compute_Mlincomb(nep,λ,V[:,3],[T(1)], 2);
 my_test_NEP = TestNEP([1 2; 3 4])
 @test_throws ErrorException compute_Mder(my_test_NEP, 1+1im, 2)
 #@test_throws MethodError compute_Mlincomb(my_test_NEP , 1+1im, [1 2; 1 4])
-@test_throws ErrorException compute_MM(my_test_NEP,[1 2; 1 4],diagm([1,2]))
+@test_throws ErrorException compute_MM(my_test_NEP, [1 2; 1 4], diagm(0 => [1,2]))
 @test_throws ErrorException size(my_test_NEP,1)
 
 end
 
-
 @testset "Types (sumnep)" begin
-    A0=ones(3,3);
-    A1=eye(3,3);
-    nep1=DEP([A0,A1])
-    B0=flipdim(eye(3,3),1)
-    B1=3*eye(3,3)+ones(3,3);
-    nep2=PEP([B0,B1]);
-    λ=1+1im;
-    sumnep=SumNEP(nep1,nep2);
-    M=compute_Mder(sumnep,λ);
-    M1=compute_Mder(nep1,λ);
-    M2=compute_Mder(nep2,λ);
-    @test (M1+M2)≈M
+    A0 = ones(3, 3)
+    A1 = Matrix(1.0I, 3, 3)
+    nep1 = DEP([A0,A1])
+    B0 = reverse(Matrix(1.0I, 3, 3), dims = 1)
+    B1 = Matrix(3.0I, 3, 3) + ones(3,3)
+    nep2 = PEP([B0,B1])
+    λ = 1+1im
+    sumnep = SumNEP(nep1, nep2)
+    M = compute_Mder(sumnep, λ)
+    M1 = compute_Mder(nep1, λ)
+    M2 = compute_Mder(nep2, λ)
+    @test (M1+M2) ≈ M
 end

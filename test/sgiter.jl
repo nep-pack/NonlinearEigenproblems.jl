@@ -1,18 +1,9 @@
 # Run tests on block Newton
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using Base.Test
-end
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
 @testset "sgiter" begin
 

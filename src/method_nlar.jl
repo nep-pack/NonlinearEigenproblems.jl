@@ -1,13 +1,13 @@
+using IterativeSolvers
+using LinearAlgebra
+using Random
+
 export nlar
 export default_eigval_sorter
 export residual_eigval_sorter
 export threshold_eigval_sorter
-using IterativeSolvers
-"""
- The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
-"""
+
 ###############################################################################################################
- 
 # Default ritzvalue sorter:
 # First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
 # Then sort by distance from the shift and select the mm-th furthest value from the pole.
@@ -15,7 +15,10 @@ using IterativeSolvers
 ## D = already computed eigenvalues
 ## dd, vv eigenpairs of projected problem
 ## σ targets
-function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk) 
+"""
+ The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
+"""
+function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk)
     dd2=copy(dd);
 
     ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
@@ -60,9 +63,9 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Function
     for i=1:size(dd,1)
         eig_res[i] = errmeasure(dd[i],Vk*vv[:,i]);
     end
-    
+
     #Sort according to methods
-    ii = sortperm(eig_res.*abs.(dd2-σ));
+    ii = sortperm(eig_res .* abs.(dd2 .- σ))
 
     mm_min = min(mm,length(ii));
 
@@ -99,7 +102,7 @@ function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Functio
             eig_res[i] = temp_res;
         end
     end
-    
+
     #Sort according to methods
     ii = sortperm(eig_res.*abs.(dd2-σ));
 
@@ -111,7 +114,7 @@ function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,mm,R,Vk,errmeasure::Functio
     return nu,y;
 end
 
-nlar(nep::NEP;params...) = nlar(Complex128,nep::NEP;params...)
+nlar(nep::NEP;params...) = nlar(ComplexF64,nep::NEP;params...)
 function nlar(::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth} = ModifiedGramSchmidt,
@@ -133,7 +136,7 @@ function nlar(::Type{T},
         local σ::T = T(λ0); #Initial pole
 
         if (maxit > size(nep,1))
-            warn("Maximum iteration count maxit="*string(maxit)*" larger than problem size n="*string(size(nep,1))*". Reducing maxit.")
+            @warn "Maximum iteration count maxit=$maxit larger than problem size n=$(size(nep,1)). Reducing maxit."
             maxit = size(nep,1);
         end
 
@@ -223,11 +226,12 @@ function nlar(::Type{T},
                 # Orthogonalize the entire basis matrix
                 # together with Δv using QR-method.
                 # Slow but robust.
-                Q,_=qr(hcat(Vk,Δv),thin=true)
+                Q,_ = qr(hcat(Vk,Δv))
+                Q = Matrix(Q)
                 Vk=Q
                 V[:,1:k+1]=Q;
-                #println("Dist normalization:",norm(Vk'*Vk-eye(k+1)))
-                #println("Size:",size(Vk), " N: ",norm(Vk[:,k+1]), " d:",norm(Δv))
+                #println("Dist normalization:",opnorm(Vk'*Vk-I))
+                #println("Size:",size(Vk), " N: ",opnorm(Vk[:,k+1]), " d:",opnorm(Δv))
             else
                 h=zeros(T,k);
                 orthogonalize_and_normalize!(Vk,Δv,h,orthmethod);
@@ -239,8 +243,8 @@ function nlar(::Type{T},
 
             #Check orthogonalization
             if(k < 100)
-               println("CHECKING BASIS ORTHOGONALITY  ......     ",norm(Vk'*Vk-eye(Complex128,k+1)),"\n\n")
-               #println("CHECKING ORTHO  ......     ",norm(Δv)," ....",h," .... ",g,"\n")
+               println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))")
+               #println("CHECKING ORTHO  ......     ",opnorm(Δv)," ....",h," .... ",g)
             end
             k = k+1;
         end

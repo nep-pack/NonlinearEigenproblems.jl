@@ -1,25 +1,27 @@
 # Time-periodic delay-differential equations
 module GalleryPeriodicDDE
-    import Base.size;
-    using NEPCore
-    using Gallery
-    import NEPCore.compute_Mlincomb
-    import NEPCore.compute_Mder
-    import NEPCore.compute_MM
-    import Gallery.nep_gallery
+    using NonlinearEigenproblems.NEPCore
+    using NonlinearEigenproblems.Gallery
+    using SparseArrays
+    using Random
+
+    import Base.size
+    import NonlinearEigenproblems.NEPCore.compute_Mlincomb
+    import NonlinearEigenproblems.NEPCore.compute_Mder
+    import NonlinearEigenproblems.NEPCore.compute_MM
+    import NonlinearEigenproblems.Gallery.nep_gallery
 
     export PeriodicDDE_NEP
-    export nep_gallery;
+    export nep_gallery
 
-    
     """
-   type PeriodicDDE_NEP <: NEP
+   struct PeriodicDDE_NEP <: NEP
 
 This type represents NEP associated with the time-periodic delay-differential equation
 ```math
-\dot{x}(t)=A(t)x(t)+B(t)x(t-\tau)
+̇{x}(t)=A(t)x(t)+B(t)x(t-τ)
 ```
-where `A(t)` and `B(t)` are periodic functions with period `\tau`.
+where `A(t)` and `B(t)` are periodic functions with period `τ`.
 
 # Example
 ```julia-repl
@@ -30,7 +32,7 @@ julia> compute_Mlincomb(nep,λ,v)
  0.0+0.0im
 ```
 """
-    type PeriodicDDE_NEP <: NEP
+    struct PeriodicDDE_NEP <: NEP
         A::Function
         B::Function
         n::Integer
@@ -39,7 +41,7 @@ julia> compute_Mlincomb(nep,λ,v)
         function PeriodicDDE_NEP(A::Function,B::Function,tau::Number)
             n=size(A(0),1)
             return new(A,B,n,1000,tau);
-        end    
+        end
     end
 
 
@@ -79,19 +81,19 @@ julia> compute_Mlincomb(nep,λ,v)
         return y;
     end
 
-    # The implementations of compute_MM is a 
+    # The implementations of compute_MM is a
     # crude first-version, not optimized for efficiency nor accuracy.
     function compute_MM(nep::PeriodicDDE_NEP, S ,V)
         n=size(nep,1);
         # We are using (non-trivial) fact that
         # the MM satisfies an ODE (as well as the action)
-        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-Matrix(nep.tau*S))-Y*S)
         Y0=V;
         YY=ode_rk4(F, 0,nep.tau,nep.N,Y0);
         return YY-Y0
     end
 
-    # For compute_Mlincomb we use compute_Mlincomb_from_MM 
+    # For compute_Mlincomb we use compute_Mlincomb_from_MM
     compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,
                  V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
@@ -99,7 +101,7 @@ julia> compute_Mlincomb(nep,λ,v)
 
     function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
         if (der==0)
-            return compute_Mder_from_MM(nep,λ,der) 
+            return compute_Mder_from_MM(nep,λ,der)
         elseif (der==1)
             # Compute first derivative with finite difference. (Slow and inaccurate)
             ee=sqrt(eps())/10;
@@ -149,7 +151,7 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
             nep=PeriodicDDE_NEP(A,B,tau)
             return nep;
         elseif (name == "rand0")
-            # Some eigenvalues for n=200: 
+            # Some eigenvalues for n=200:
             #  4.63633+1.10239im
             # 4.63633-1.10239im
             # 5.58214+4.03225im
@@ -157,11 +159,11 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
             # 5.73989+0.732386im
             # 5.73989-0.732386im
 
-            srand(0);
+            Random.seed!(0);
             A0=sprandn(n,n,0.3)-speye(n,n)
             A1=sprandn(n,n,0.3)-speye(n,n)
             B0=sprandn(n,n,0.3)-speye(n,n);
-            B1=sprandn(n,n,0.3)-speye(n,n);            
+            B1=sprandn(n,n,0.3)-speye(n,n);
             tau=2;
             A=t-> A0+cos(pi*t)*A1;
             B=t-> B0+exp(0.01*sin(pi*t))*B1;
@@ -175,5 +177,3 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
         end
     end
 end
-
-

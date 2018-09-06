@@ -2,6 +2,7 @@
 # Submits test coverage for relevant code to Coveralls and Codecov
 ################################################################################
 
+using Printf
 using Coverage
 
 # Add folders and jl files below if you want to exclude them from the test
@@ -15,7 +16,6 @@ excluded_folders_and_files = map(f -> uppercase("src/" * f), [
     "gallery_extra/waveguide/waveguide_debug.jl",   # Some code to make larger verifications agains MATLAB (development phase)
     ])
 
-cd(Pkg.dir("NonlinearEigenproblems"))
 coverage = process_folder()
 unfiltered_count = length(coverage)
 

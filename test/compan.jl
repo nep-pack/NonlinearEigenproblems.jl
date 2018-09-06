@@ -1,20 +1,13 @@
 # Test of companion linearization
 
-if !isdefined(:global_modules_loaded)
-    workspace()
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using Base.Test
-end
-
-
-comaniontest = @testset "Companion Linearization" begin
+@testset "Companion Linearization" begin
 
 #####################
 # Dense matrix test #
@@ -87,9 +80,8 @@ while abs(d) > tolerance
 end
 
 println("Solving same problem with resinv")
-λ,v=resinv(BigFloat, pep, λ = (BigFloat(evp)+0.1), v = z[1:size(pep,1)], displaylevel=0, tol = tolerance)
+λ,v = resinv(BigFloat, pep, λ = (BigFloat(evp)+0.1), v = z[1:size(pep,1)], displaylevel=0, tol = tolerance)
 
 @test (abs(λ-evp)/abs(λ) < tolerance*10)
-
 
 end

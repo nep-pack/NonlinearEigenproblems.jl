@@ -1,23 +1,16 @@
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems.Gallery
+using Test
 
 # explicit import needed for overloading functions from packages
-import NEPCore.compute_Mlincomb
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 
 nep_test_problems=["pep0_sparse_003","dep0","pep0"]
 
-eigeinvector_extraction_small=@testset "Eigenvector extraction (small scale)" begin
+@testset "Eigenvector extraction (small scale)" begin
     @testset "Test problem: $nep_test_problem" for nep_test_problem in nep_test_problems
     nep=nep_gallery(nep_test_problem)
     compute_Mlincomb(nep::DEP,λ::Number,V,a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
@@ -41,7 +34,7 @@ eigeinvector_extraction_small=@testset "Eigenvector extraction (small scale)" be
 end
 
 
-eigeinvector_extraction_large=@testset "Eigenvector extraction (medium/large scale)" begin
+@testset "Eigenvector extraction (medium/large scale)" begin
     @testset "Test problem: $nep_test_problem" for nep_test_problem in nep_test_problems
     nep=nep_gallery(nep_test_problem,500)
     compute_Mlincomb(nep::DEP,λ::Number,V,a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)

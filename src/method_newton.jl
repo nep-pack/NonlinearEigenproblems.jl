@@ -1,5 +1,8 @@
-
 # Newton-like methods for NEPs
+
+using LinearAlgebra
+using Printf
+using Random
 
     export newton
     export resinv
@@ -41,7 +44,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 * A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 
 """
-    newton(nep::NEP;params...)=newton(Complex128,nep;params...)
+    newton(nep::NEP;params...)=newton(ComplexF64,nep;params...)
     function newton(::Type{T},
                     nep::NEP;
                     errmeasure::Function =
@@ -101,7 +104,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                 λ = λ+Δλ
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -149,20 +152,20 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 *  A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923
 
 """
-    resinv(nep::NEP;params...)=resinv(Complex128,nep;params...)
-    function resinv{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
-                       default_errmeasure(nep::NEP),
-                       tol::Real=eps(real(T))*100,
-                       maxit::Int=100,
-                       λ::Number=zero(T),
-                       v::Vector=randn(real(T),size(nep,1)),
-                       c::Vector=v,
-                       displaylevel::Int=0,
-                       linsolvercreator::Function=default_linsolvercreator,
-                       armijo_factor::Real=1,
-                       armijo_max::Int=5)
+    resinv(nep::NEP;params...)=resinv(ComplexF64,nep;params...)
+    function resinv(::Type{T},
+                    nep::NEP;
+                    errmeasure::Function =
+                    default_errmeasure(nep::NEP),
+                    tol::Real=eps(real(T))*100,
+                    maxit::Int=100,
+                    λ::Number=zero(T),
+                    v::Vector=randn(real(T),size(nep,1)),
+                    c::Vector=v,
+                    displaylevel::Int=0,
+                    linsolvercreator::Function=default_linsolvercreator,
+                    armijo_factor::Real=1,
+                    armijo_max::Int=5) where T
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
@@ -189,7 +192,6 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 v = v/norm(v);
 
                 err=errmeasure(λ,v)
-
 
                 if (use_v_as_rf_vector)
                     c=v;
@@ -228,11 +230,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
         catch e
 
-            if (!isa(e,Base.LinAlg.SingularException) && !isa(e,Base.LinAlg.LAPACKException))
+            if (!isa(e, SingularException) && !isa(e, LAPACKException))
                 rethrow(e);
             end
 
-            #isa(e, Base.LinAlg.SingularException) || ) || rethrow(e)
+            #isa(e, SingularException) || ) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
 
@@ -274,7 +276,7 @@ julia> λ1-λ2
 * Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.
 * A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689
 """
-    augnewton(nep::NEP;kwargs...)=augnewton(Complex128,nep::NEP;kwargs...)
+    augnewton(nep::NEP;kwargs...)=augnewton(ComplexF64,nep::NEP;kwargs...)
     function augnewton(::Type{T},
                        nep::NEP;
                        errmeasure::Function = default_errmeasure(nep::NEP),
@@ -295,13 +297,13 @@ julia> λ1-λ2
         err=Inf;
         # If c is zero vector we take eigvec approx as normalization vector
         use_v_as_normalization_vector=false;
-        if (norm(c)==0)
+        if norm(c) == 0
             use_v_as_normalization_vector=true;
-            c = v /norm(v)^2
+            c = v / norm(v)^2
         end
         v=v/dot(c,v);
-        local linsolver::LinSolver;
-        local tempvec=Array{T,1}(size(nep,1));
+        local linsolver::LinSolver
+        local tempvec = Array{T,1}(undef, size(nep,1))
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -320,7 +322,7 @@ julia> λ1-λ2
                 tempvec[:] = Array{T,1}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
-                    c = v /norm(v)^2
+                    c = v /opnorm(v)^2
                 end
                 α = T(1)/ dot(c,tempvec);
 
@@ -342,7 +344,7 @@ julia> λ1-λ2
             end
 
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -360,7 +362,7 @@ julia> λ1-λ2
 
 
 """
-    quasinewton([T=Complex128],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
+    quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
 
 An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference.
 The method involves one linear system solve per iteration corresponding with the
@@ -379,19 +381,19 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 # References
 * Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492
 """
-    quasinewton(nep::NEP;params...)=quasinewton(Complex128,nep;params...)
-    function quasinewton{T}(::Type{T},
-                           nep::NEP;
-                           errmeasure::Function = default_errmeasure(nep::NEP),
-                           tol::Real=eps(real(T))*100,
-                           maxit::Int=100,
-                           λ::Number=zero(T),
-                           v::Vector=randn(real(T),size(nep,1)),
-                           ws::Vector=v,
-                           displaylevel::Int=0,
-                           linsolvercreator::Function=default_linsolvercreator,
-                           armijo_factor::Real=1,
-                           armijo_max::Int=5)
+    quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
+    function quasinewton(::Type{T},
+                         nep::NEP;
+                         errmeasure::Function = default_errmeasure(nep::NEP),
+                         tol::Real=eps(real(T))*100,
+                         maxit::Int=100,
+                         λ::Number=zero(T),
+                         v::Vector=randn(real(T),size(nep,1)),
+                         ws::Vector=v,
+                         displaylevel::Int=0,
+                         linsolvercreator::Function=default_linsolvercreator,
+                         armijo_factor::Real=1,
+                         armijo_max::Int=5) where T
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
@@ -420,12 +422,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 # Compute u=M(λ)v and w=M'(λ)v
                 u::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],0);
                 w::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],1);
+                @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
 
                 # Intermediate quantities
                 Δλ=-dot(ws,u)/dot(ws,w);
                 z=Δλ*w+u;
                 Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
 
+                @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
@@ -443,7 +447,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             end
 
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -464,18 +468,18 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 """
     Newton-QR method.
 """
-    newtonqr(nep::NEP;params...)=newtonqr(Complex128,nep;params...)
-    function newtonqr{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
+    newtonqr(nep::NEP;params...)=newtonqr(ComplexF64,nep;params...)
+    function newtonqr(::Type{T},
+                      nep::NEP;
+                      errmeasure::Function =
                           default_errmeasure(nep::NEP),
-                       tol::Real=eps(real(T))*100,
-                       maxit::Int=100,
-                       λ::Number=zero(T),
-                       v::Vector=randn(real(T),size(nep,1)),
-                       c::Vector=v,
-                       displaylevel::Int=0,
-                       linsolvercreator::Function=default_linsolvercreator)
+                      tol::Real=eps(real(T))*100,
+                      maxit::Int=100,
+                      λ::Number=zero(T),
+                      v::Vector=randn(real(T),size(nep,1)),
+                      c::Vector=v,
+                      displaylevel::Int=0,
+                      linsolvercreator::Function=default_linsolvercreator) where T
 
 
         # Ensure types λ and v are of type T
@@ -492,15 +496,16 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             for k=1:maxit
 
                 A = compute_Mder(nep,λ);
-                Q,R,PI = qr(A,Val{true});#QR factorization with pivoting.
+                Q,R,PI = qr(A, Val(true)) #QR factorization with pivoting.
+                Q = Matrix(Q)
 
-                P = eye(T,n)[:,PI];#The permutation matrix corresponding to the pivoted QR.
+                P = Matrix{T}(I, n, n)[:,PI] #The permutation matrix corresponding to the pivoted QR.
 
                 p = R[1:n-1,1:n-1]\R[1:n-1,n];
                 v = P*[-p;T(1)];#Right eigenvector
                 w = Q*en;#Left eigenvector
 
-                #err = abs(R[n,n])/vecnorm(compute_Mder(nep,λ),2);
+                #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
                 err=errmeasure(λ,v);
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
@@ -513,7 +518,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 λ = λ - R[n,n]/d;
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
@@ -533,18 +538,18 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 """
     Implicit determinant method
 """
-    implicitdet(nep::NEP;params...)=implicitdet(Complex128,nep;params...)
-    function implicitdet{T}(::Type{T},
-                       nep::NEP;
-                       errmeasure::Function =
-                       default_errmeasure(nep::NEP),
-                       tol=eps(real(T))*100,
-                       maxit=100,
-                       λ=zero(T),
-                       v=randn(real(T),size(nep,1)),
-                       c=v,
-                       displaylevel=0,
-                       linsolvercreator::Function=default_linsolvercreator)
+    implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
+    function implicitdet(::Type{T},
+                         nep::NEP;
+                         errmeasure::Function =
+                         default_errmeasure(nep::NEP),
+                         tol=eps(real(T))*100,
+                         maxit=100,
+                         λ=zero(T),
+                         v=randn(real(T),size(nep,1)),
+                         c=v,
+                         displaylevel=0,
+                         linsolvercreator::Function=default_linsolvercreator) where T
 
 
         n = size(nep,1);
@@ -560,13 +565,13 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 L,U,PI = lu(AA);
 
 
-                P = eye(T,n+1)[PI,:];
+                P = Matrix{T}(I, n+1, n+1)[PI,:];
 
                 v = U\(L\(P*[zeros(T,n);T(1)]));
                 #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
                 vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
-                err = abs(v[n+1])/vecnorm(compute_Mder(nep,λ),2);
+                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
                     @ifd(println(λ))
@@ -576,7 +581,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 λ = λ - v[n+1]/vp[n+1];
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))

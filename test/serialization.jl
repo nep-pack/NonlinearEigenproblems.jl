@@ -1,11 +1,6 @@
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src/utils"))
-
-    using Base.Test
-    using Serialization
-end
+using NonlinearEigenproblems.Serialization
+using Test
+using SparseArrays
 
 @testset "Serialization" begin
     file = "sparse_matrix.txt"

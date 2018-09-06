@@ -1,3 +1,5 @@
+using SparseArrays
+
 export NleigsNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
@@ -26,10 +28,10 @@ struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
 end
 
 NleigsNEP(::Type{T}, nep::NEP) where T<:Number =
-    NleigsNEP(nep, false, 0, 0, Matrix{T}(0, 0), false, 0, Vector{Int}(0), Vector{Int}(0), Vector{Matrix{T}}(0), Vector{SparseVector{T,Int}}(0), Matrix{T}(0, 0))
+    NleigsNEP(nep, false, 0, 0, Matrix{T}(undef, 0, 0), false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
 NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
-    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(0), Vector{Int}(0), Vector{Matrix{T}}(0), Vector{SparseVector{T,Int}}(0), Matrix{T}(0, 0))
+    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
 NleigsNEP(nep::NEP, p, q, BBCC, r, iL, iLr, L, LL, UU) =
     NleigsNEP(nep, true, p, q, BBCC, true, r, iL, iLr, L, LL, UU)
@@ -49,21 +51,21 @@ end
 
 function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
     n = size(A, 1)
-    r, c = findn(A)
-    r = extrema(r)
-    c = extrema(c)
+    idx = findall(!iszero, A)
+    r = extrema(getindex.(idx, 1))
+    c = extrema(getindex.(idx, 2))
     B = A[r[1]:r[2], c[1]:c[2]]
-    L, U = lu(full(B))
+    L, U = lu(Matrix(B); check = false)
     Lc, Uc = compactlu(sparse(L), sparse(U))
     Lca = spzeros(n, size(Lc, 2))
     Lca[r[1]:r[2], :] = Lc
     Uca = spzeros(size(Uc, 1), n)
     Uca[:, c[1]:c[2]] = Uc
-    return Lca, Uca'
+    return Lca, sparse(Uca')
 
     # TODO use this; however we then need to support permutation and scaling
-    #F = lufact(B)
-    #Lcf,Ucf = compactlu(sparse(F[:L]),sparse(F[:U]))
+    #F = lu(B)
+    #Lcf,Ucf = compactlu(sparse(F.L),sparse(F.U))
     #Lcaf = spzeros(n, size(Lcf, 2))
     #Lcaf[r[1]:r[2], :] = Lcf
     #Ucaf = spzeros(size(Ucf, 1), n)
@@ -88,10 +90,10 @@ end
 function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
     q = length(Amf)
     r = 0
-    f = Vector{Function}(q)
-    A = Vector{S}(q)
-    L = Vector{S}(q)
-    U = Vector{S}(q)
+    f = Vector{Function}(undef, q)
+    A = Vector{S}(undef, q)
+    L = Vector{S}(undef, q)
+    U = Vector{S}(undef, q)
 
     for k = 1:q
         f[k] = Amf[k].f
@@ -107,7 +109,7 @@ end
 
 "Create an empty LowRankFactorizedNEP."
 LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
-    LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(0), Vector{Matrix{T}}(0))
+    LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(), Vector{Matrix{T}}())
 
 # forward function calls to SPMF
 compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
@@ -148,7 +150,7 @@ struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
 end
 
 NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
-    Matrix{CT}(0,0), Matrix{T}(0, 0), Vector{CT}(0),
-    Vector{T}(0), Vector{T}(0), Vector{T}(0), 0)
+    Matrix{CT}(undef, 0, 0), Matrix{T}(undef, 0, 0), Vector{CT}(),
+    Vector{T}(), Vector{T}(), Vector{T}(), 0)
 
 include("method_nleigs.jl")

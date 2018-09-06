@@ -1,5 +1,8 @@
 export tiar
+
 using IterativeSolvers
+using LinearAlgebra
+using Random
 
 """
     tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -30,7 +33,7 @@ julia> λ  % Same eigenvalues are computed
 * Algorithm 2 in Jarlebring, Mele, Runborg, The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method, SIAM J. Scient. computing, 39 (3), A1062-A1088, 2017
 
 """
-tiar(nep::NEP;params...)=tiar(Complex128,nep;params...)
+tiar(nep::NEP;params...)=tiar(ComplexF64,nep;params...)
 function tiar(
     ::Type{T},
     nep::NEP;
@@ -91,7 +94,7 @@ function tiar(
         end
 
         # computation of y[:,2], ..., y[:,k+1]
-        y[:,2:k+1]=Z[:,1:k]*(a[1:k,k,1:k].');
+        y[:,2:k+1]=Z[:,1:k]*transpose(a[1:k,k,1:k])
         broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
 
         # computation of y[:,1]
@@ -111,7 +114,7 @@ function tiar(
         end
 
         # compute h (orthogonalization with tensors factorization)
-        h=zeros(h);
+        h = zero(h)
         for l=1:k
             h[1:k]=h[1:k]+a[1:k,1:k,l]'*g[1:k,l];
         end
@@ -127,7 +130,7 @@ function tiar(
 
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
-        hh=zeros(hh);
+        hh = zero(hh)
         for l=1:k
             hh[1:k]=hh[1:k]+a[1:k,1:k,l]'*f[1:k,l];
         end
@@ -144,7 +147,7 @@ function tiar(
         # update the orthogonalization coefficients
         h=h+hh; f=ff;
 
-        β=vecnorm(view(f,1:k+1,1:k+1)); # equivalent to Frobenius norm
+        β=norm(view(f,1:k+1,1:k+1)); # equivalent to Frobenius norm
 
         # extend the matrix H
         H[1:k,k]=h[1:k]; H[k+1,k]=β;
@@ -158,9 +161,10 @@ function tiar(
 
         # compute Ritz pairs (every p iterations)
         if (rem(k,check_error_every)==0)||(k==m)
-            D,W=eig(H[1:k,1:k]);
-            VV=Z[:,1:k]*(a[1,1:k,1:k].');	# extract proper subarray
-            Q=VV*W; λ=σ+γ./D;
+            D,W = eigen(H[1:k,1:k])
+            VV=Z[:,1:k]*transpose(a[1,1:k,1:k])	# extract proper subarray
+            Q = VV*W
+            λ = σ .+ γ ./ D
 
             if (proj_solve)  # Projected solve to extract eigenvalues (otw hessenberg matrix)
                 set_projectmatrices!(pnep,Z[:,1:k],Z[:,1:k]);

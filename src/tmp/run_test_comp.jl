@@ -1,12 +1,12 @@
 # Test of companion linearization
 
-workspace()
 push!(LOAD_PATH, pwd()) # looks for modules in the current directory
 using NEPSolver
 using NEPCore
 using LinSolvers
 using NEPTypes
 using Gallery
+using LinearAlgebra
 
 pep = nep_gallery("pep0");
 d = size(pep.A,1)-1;
@@ -17,8 +17,8 @@ xa=NaN;
 try
     λa,xa =newton(pep,maxit=30,displaylevel=1);
 catch e
-    # Only catch NoConvergence 
-    isa(e, NoConvergenceException) || rethrow(e)  
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
     println("No convergence because:"*e.msg)
     # still access the approximations
     λa=e.λ
@@ -32,7 +32,7 @@ Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
 for i=1:d*n
-    if(norm(λa-Dc[i]) < 1e-12)
+    if(opnorm(λa-Dc[i]) < 1e-12)
         ind = i
         break
     end
@@ -53,8 +53,8 @@ xa=NaN;
 try
     λa,xa =newton(pep,maxit=30,λ=-0.75,v=ones(size(pep,1)),displaylevel=1);
 catch e
-    # Only catch NoConvergence 
-    isa(e, NoConvergenceException) || rethrow(e)  
+    # Only catch NoConvergence
+    isa(e, NoConvergenceException) || rethrow(e)
     println("No convergence because:"*e.msg)
     # still access the approximations
     λa=e.λ
@@ -68,7 +68,7 @@ Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
 for i=1:d*n
-    if(norm(λa-Dc[i]) < 1e-12)
+    if(opnorm(λa-Dc[i]) < 1e-12)
         ind = i
         break
     end
@@ -82,7 +82,7 @@ println("Testing companion linearization with BigFloat");
 A0=(Array{BigFloat,2}([1 2; 3 4]));
 A1=(Array{BigFloat,2}([1 44; 3 4]));
 A2=(Array{BigFloat,2}([1 44; -3 100]));
-    
+
 pep3=PEP([A0,A1,A2])
 E,A = companion(pep3);
 # Power method for testing (since eig does not work for BigFloats)
@@ -96,7 +96,7 @@ d=Inf; evp=Inf
 k=0;
 while abs(d)>TOL
     k=k+1
-    z=z/norm(z);
+    z=z/opnorm(z);
     z2=E\A*z
     evp_old=evp
     evp=dot(z,z2)

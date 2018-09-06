@@ -1,3 +1,8 @@
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Random
+using LinearAlgebra
+
 function gun_init()
     nep = gun_nep()
 
@@ -9,18 +14,18 @@ function gun_init()
 
     # define target set Σ
     npts = 1000
-    halfcircle = xmin + (xmax-xmin) * (cis.(linspace(0, pi, round(pi/2*npts) + 2)) / 2 + .5)
+    halfcircle = xmin .+ (xmax-xmin) * (cis.(range(0, stop = pi, length = round(Int, pi/2*npts) + 2)) / 2 .+ .5)
     Σ = [halfcircle; xmin]
 
     # sequence of interpolation nodes
     Z = [2/3, (1+im)/3, 0, (-1+im)/3, -2/3]
-    nodes = gam*Z + mu
+    nodes = gam*Z .+ mu
 
     # define the set of pole candidates
-    Ξ = -logspace(-8, 8, 10000) + sigma2^2
+    Ξ = -10 .^ range(-8, stop = 8, length = 10000) .+ sigma2^2
 
     # options
-    srand(1)
+    Random.seed!(1)
     v = randn(size(nep, 1)) .+ 0im
 
     funres = (λ, v) -> gun_residual(λ, v, nep.nep1.A..., nep.nep2.spmf.A...)
@@ -42,10 +47,10 @@ function gun_residual(λ, v, K, M, W1, W2)
     sigma1 = 0
     sigma2 = 108.8774
 
-    nK = 1.474544889815002e+05   # norm(K, 1)
-    nM = 2.726114618171165e-02   # norm(M, 1)
-    nW1 = 2.328612251920476e+00  # norm(W1, 1)
-    nW2 = 3.793375498194695e+00  # norm(W2, 1)
+    nK = 1.474544889815002e+05   # opnorm(K, 1)
+    nM = 2.726114618171165e-02   # opnorm(M, 1)
+    nW1 = 2.328612251920476e+00  # opnorm(W1, 1)
+    nW2 = 3.793375498194695e+00  # opnorm(W2, 1)
 
     # Denominator
     den = nK + abs(λ) * nM + sqrt(abs(λ-sigma1^2)) * nW1 + sqrt(abs(λ-sigma2^2)) * nW2

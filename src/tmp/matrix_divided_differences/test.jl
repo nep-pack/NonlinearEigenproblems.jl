@@ -1,4 +1,5 @@
-workspace()
+using LinearAlgebra
+using Random
 
 function DD0_mat_fun(T,f,S)
 	# evaluete the divided differences matrix function
@@ -10,9 +11,9 @@ function DD0_mat_fun(T,f,S)
 	# Notice that f[S,0] is defined also for S singular.
 	# If S is not singular it holds f[S,0]=S^(-1)-(f(S)-f(0))
 	# Example:
-	# n=10; S=rand(n,n); T=Complex128; f=x->expm(x)+x^2
+	# n=10; S=rand(n,n); T=ComplexF64; f=x->exp(x)+x^2
 	# Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
-	# norm(Y1-Y2)
+	# opnorm(Y1-Y2)
 
 	n=size(S,1);
 	A=zeros(T,2*n,2*n);
@@ -21,6 +22,6 @@ function DD0_mat_fun(T,f,S)
 	return f(A)[1:n,n+1:end];
 end
 
-n=10; S=rand(n,n); T=Complex128; f=x->expm(x)+x^2
+n=10; S=rand(n,n); T=ComplexF64; f=x->exp(x)+x^2
 Y1=DD0_mat_fun(T,f,S); Y2=inv(S)*(f(S)-f(zeros(S)));
-norm(Y1-Y2)
+opnorm(Y1-Y2)

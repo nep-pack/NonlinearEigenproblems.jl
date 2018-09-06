@@ -8,6 +8,8 @@ push!(LOAD_PATH, string(@__DIR__,"/../../"))	# looks for modules in the current 
 
 using MATLAB
 
+using Statistics
+using Random
 using NEPCore
 using NEPTypes
 using LinSolvers
@@ -52,14 +54,14 @@ import GalleryWaveguide.construct_WEP_schur_complement
 function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     R, Rinv = generate_R_matvecs(nz::Integer)
-    const p = (nz-1)/2;
+    p = (nz-1)/2;
 
     # Constants from the problem
-    const d0 = -3/(2*hx);
-    const a = ones(Complex128,nz);
-    const b = 4*pi*1im * (-p:p);
-    const cM = Km^2 - 4*pi^2 * ((-p:p).^2);
-    const cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
+    d0 = -3/(2*hx);
+    a = ones(ComplexF64,nz);
+    b = 4*pi*1im * (-p:p);
+    cM = Km^2 - 4*pi^2 * ((-p:p).^2);
+    cP = Kp^2 - 4*pi^2 * ((-p:p).^2);
 
 
     function betaM(γ)
@@ -69,8 +71,8 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
         return a*γ^2 + b*γ + cP
     end
 
-    const signM = 1im*sign.(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
-    const signP = 1im*sign.(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
+    signM = 1im*sign.(imag(betaM(-1-1im))); # OBS! LEFT HALF-PLANE!
+    signP = 1im*sign.(imag(betaP(-1-1im))); # OBS! LEFT HALF-PLANE!
 
     function sM(γ::Number)
         return signM.*sqrt.(betaM(γ))+d0;
@@ -87,13 +89,13 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
     end
 
     # BUILD THE FOURTH BLOCK P
-    function P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
+    function P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
         return vec( [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
                      R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ])
     end
 
     # BUILD THE DERIVATIVE OF P
-    function p_P(γ,x::Union{Array{Complex128,1}, Array{Float64,1}})
+    function p_P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
         return vec( [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
                      R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ])
     end
@@ -108,13 +110,13 @@ end
 function sqrtm_schur(A::AbstractMatrix)
     n = size(A,1);
     (T, Q) = schur(complex(A))
-    U = zeros(Complex128,n,n);
+    U = zeros(ComplexF64,n,n);
     for i = 1:n
         U[i,i] = sqrt(T[i,i])
     end
     for j = 2:n
         for i = (j-1):-1:1
-            temp = zero(Complex128)
+            temp = zero(ComplexF64)
             for k = (i+1):(j-1)
                 temp += U[i,k]*U[k,j]
             end
@@ -132,7 +134,7 @@ end
 function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Matrices FD against MATLAB ---\n")
     if(nx > 200 || nz > 200)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
     #The error observed likely comes from difference in linspace-implementation.
@@ -151,7 +153,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         C1, C2T = generate_fd_boundary_mat( nx, nz, hx, hz)
         P, p_P = generate_P_matrix(nz, hx, Km, Kp)
         Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
-        P_j = zeros(Complex128, 2*nz,2*nz)
+        P_j = zeros(ComplexF64, 2*nz,2*nz)
         Iz = eye(2*nz, 2*nz)
         for i = 1:2*nz
             P_j[:,i] = P(γ, Iz[:,i])
@@ -159,9 +161,9 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
         R, Rinv = generate_R_matvecs(nz)
         S = generate_S_function(nz, hx, Km, Kp)
-        P_j2 = zeros(Complex128, 2*nz,2*nz)
-        D1 = zeros(Complex128, nz,nz)
-        D2 = zeros(Complex128, nz,nz)
+        P_j2 = zeros(ComplexF64, 2*nz,2*nz)
+        D1 = zeros(ComplexF64, nz,nz)
+        D2 = zeros(ComplexF64, nz,nz)
         for j = 1:nz
             D1[j,j] = S(reshape([γ],1,1),j)[1]
         end
@@ -209,17 +211,17 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Difference hx_m - hx = ", abs(hx_m-hx))
         println("Relative difference (hx_m - hx)/hx = ", abs(hx_m-hx)/abs(hx))
         println("Difference hz_m - hz = ", abs(hz_m-hz))
-        println("Difference K_m  -K = ", norm(K_m-K))
-        println("Difference C1_m - C1 = ", norm(full(C1_m-C1)))
-        println("Relative difference norm(C1_m - C1)/norm(C1) = ", norm(full(C1_m-C1))/norm(full(C1)))
-        println("Difference C2T_m - C2T = ", norm(full(C2T_m-C2T)))
-        println("Relative difference norm(C2T-m - C2T)/norm(C2T) = ", norm(full(C2T_m-C2T))/norm(full(C2T)))
-        println("Difference P_m(γ) - P(γ) = ", norm(P_m-P_j))
-        println("Relative difference norm(P_m(γ) - P(γ))/norm(P(γ)) = ", norm(P_m-P_j)/norm(P_j))
-        println("Difference P_m(γ) - P_2(γ) = ", norm(P_m-P_j2))
-        println("Relative difference norm(P_m(γ) - P_2(γ))/norm(P_2(γ)) = ", norm(P_m-P_j2)/norm(full(P_j2)))
-        v = rand(Complex128,2*nz)
-        println("Relative difference norm(v - Pinv_j((γ))*P_j(γ)*v)/norm(v) = ", norm(v - Pinv(γ,P(γ,v)) )/norm(v))
+        println("Difference K_m  -K = ", opnorm(K_m-K))
+        println("Difference C1_m - C1 = ", opnorm(full(C1_m-C1)))
+        println("Relative difference opnorm(C1_m - C1)/opnorm(C1) = ", opnorm(full(C1_m-C1))/opnorm(full(C1)))
+        println("Difference C2T_m - C2T = ", opnorm(full(C2T_m-C2T)))
+        println("Relative difference opnorm(C2T-m - C2T)/opnorm(C2T) = ", opnorm(full(C2T_m-C2T))/opnorm(full(C2T)))
+        println("Difference P_m(γ) - P(γ) = ", opnorm(P_m-P_j))
+        println("Relative difference opnorm(P_m(γ) - P(γ))/opnorm(P(γ)) = ", opnorm(P_m-P_j)/opnorm(P_j))
+        println("Difference P_m(γ) - P_2(γ) = ", opnorm(P_m-P_j2))
+        println("Relative difference opnorm(P_m(γ) - P_2(γ))/opnorm(P_2(γ)) = ", opnorm(P_m-P_j2)/opnorm(full(P_j2)))
+        v = rand(ComplexF64,2*nz)
+        println("Relative difference opnorm(v - Pinv_j((γ))*P_j(γ)*v)/opnorm(v) = ", opnorm(v - Pinv(γ,P(γ,v)) )/opnorm(v))
     end
     println("\n--- End Matrices FD against MATLAB ---\n")
 end
@@ -230,7 +232,7 @@ end
 function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Full Matrix FD SPMF against MATLAB ---\n")
     if(nx > 40 || nz > 40)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
 
@@ -269,8 +271,8 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         """
         println("  -- Matlab printouts end --")
 
-        println("Difference M_m(γ) - M(γ) = ", norm(full(M_m-M_j)))
-        println("Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_m-M_j))/norm(full(M_j)))
+        println("Difference M_m(γ) - M(γ) = ", opnorm(full(M_m-M_j)))
+        println("Relative difference opnorm(M_m(γ) - M(γ))/opnorm(M(γ)) = ", opnorm(full(M_m-M_j))/opnorm(full(M_j)))
     end
     println("\n--- End Full Matrix FD SPMF against MATLAB ---\n")
 end
@@ -281,15 +283,15 @@ end
 function debug_sqrtm_schur(n::Integer)
     println("\n\n--- Debugging square root implementations ---\n")
     A = rand(n,n) + 0.1im*rand(n,n);
-    sqrtA = sqrtm(A);
+    sqrtA = sqrt(A);
     sqrtA2 = sqrtm_schur(A);
 
-    println("Relative error between sqrtm and Schur-fact: ", norm(sqrtA-sqrtA2)/norm(sqrtA))
-    println("Relative error between Schur-fact² and A: ", norm(A - sqrtA2^2)/norm(A))
+    println("Relative error between sqrtm and Schur-fact: ", opnorm(sqrtA-sqrtA2)/opnorm(sqrtA))
+    println("Relative error between Schur-fact² and A: ", opnorm(A - sqrtA2^2)/opnorm(A))
 
     sqrtA3 = sqrtm_schur_pos_imag(A);
-    println("Relative error between Schur-fact-pos-imag² and A: ", norm(A - sqrtA3^2)/norm(A))
-    (v,) = eig(sqrtA3)
+    println("Relative error between Schur-fact-pos-imag² and A: ", opnorm(A - sqrtA3^2)/opnorm(A))
+    v,_ = eigen(sqrtA3)
     test_var = zeros(n)
     TOL = 1e-15;
     for i = 1:n
@@ -314,7 +316,7 @@ end
 function debug_sqrt_derivative()
     println("\n\n--- Debugging derivatives of square root of polynomials against MATLAB symbolic ---\n")
     a = 2*rand()
-    b = 2*pi*rand(Complex128)
+    b = 2*pi*rand(ComplexF64)
     c = 1.67*rand()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
@@ -346,14 +348,14 @@ end
 function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Mlincomb (Full Matrix FD WEP-native-format against SPMF) ---\n")
     if(nx > 40 || nz > 40)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
 
     γ = -rand() - 1im*rand()
     gamma = γ
     n = nx*nz+2*nz
-    V = rand(Complex128, n, 4)
+    V = rand(ComplexF64, n, 4)
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
@@ -363,26 +365,26 @@ function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
         nep_SPMF = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
 
         for d = [0 1 2 5]
-            M_j = zeros(Complex128, n, n)
+            M_j = zeros(ComplexF64, n, n)
             for i = 1:n
-                V = zeros(Complex128, n)
+                V = zeros(ComplexF64, n)
                 V[i] = 1
                 M_j[:,i] += compute_Mlincomb(nep_j, γ, V, [1], d)
             end
 
-            M_SPMF = zeros(Complex128, n, n)
+            M_SPMF = zeros(ComplexF64, n, n)
             for i = 1:n
-                V = zeros(Complex128, n)
+                V = zeros(ComplexF64, n)
                 V[i] = 1
                 M_SPMF[:,i] += compute_Mlincomb(nep_SPMF, γ, V, [1], d)
             end
             println("Derivative d = ", d)
-            println("    Difference M_SPMF(γ) - M(γ) = ", norm(full(M_SPMF-M_j)))
-            println("    Relative difference norm(M_m(γ) - M(γ))/norm(M(γ)) = ", norm(full(M_SPMF-M_j))/norm(full(M_j)))
+            println("    Difference M_SPMF(γ) - M(γ) = ", opnorm(full(M_SPMF-M_j)))
+            println("    Relative difference opnorm(M_m(γ) - M(γ))/opnorm(M(γ)) = ", opnorm(full(M_SPMF-M_j))/opnorm(full(M_j)))
 
             v_j = compute_Mlincomb(nep_j, γ, V)
             v_SPMF = compute_Mlincomb(nep_SPMF, γ, V)
-            println("    Relative difference on random set of 4 vectors = ", norm(v_j - v_SPMF)/norm(v_j))
+            println("    Relative difference on random set of 4 vectors = ", opnorm(v_j - v_SPMF)/opnorm(v_j))
         end
 
 
@@ -396,7 +398,7 @@ end
 function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging Schur-complement of native-WEP against MATLAB ---\n")
     if(nx > 50 || nz > 50)
-        warn("This debug is 'naive' and might be slow for the discretization used.")
+        @warn "This debug is 'naive' and might be slow for the discretization used."
     end
 
 
@@ -410,9 +412,9 @@ function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
 
         nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WEp", delta = delta)
         Schur_fun = SchurMatVec(nep_j, γ)
-        Schur_j = zeros(Complex128, n, n)
+        Schur_j = zeros(ComplexF64, n, n)
         for i = 1:n
-            V = zeros(Complex128, n)
+            V = zeros(ComplexF64, n)
             V[i] = 1
             Schur_j[:,i] += Schur_fun* V
         end
@@ -444,12 +446,12 @@ function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
          """
         println("  -- Matlab printouts end --")
 
-        norm_diff = norm(Schur_m-Schur_j)
+        norm_diff = opnorm(Schur_m-Schur_j)
         println("Difference Schur_m(γ) - Schur_j(γ) = ", norm_diff)
-        println("Relative difference norm(Schur_m(γ) - Schur_j(γ))/norm(Schur_j(γ)) = ", norm_diff/norm(Schur_j))
-        norm_diff = norm(Schur_m-Schur_jj)
+        println("Relative difference opnorm(Schur_m(γ) - Schur_j(γ))/opnorm(Schur_j(γ)) = ", norm_diff/opnorm(Schur_j))
+        norm_diff = opnorm(Schur_m-Schur_jj)
         println("Difference Schur_m(γ) - Schur_jj(γ) = ", norm_diff)
-        println("Relative difference norm(Schur_m(γ) - Schur_jj(γ))/norm(Schur_jj(γ)) = ", norm_diff/norm(Schur_jj))
+        println("Relative difference opnorm(Schur_m(γ) - Schur_jj(γ))/opnorm(Schur_jj(γ)) = ", norm_diff/opnorm(Schur_jj))
     end
     println("\n--- End Schur-complement of native-WEP against MATLAB ---\n")
 end
@@ -458,9 +460,9 @@ end
 # Test the FFT-based Sylvester solver against naive solver
 function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("\n\n--- Debugging FFT-Sylvester ---\n")
-    γ = -rand(Complex128)
+    γ = -rand(ComplexF64)
     gamma = γ
-    C = rand(Complex128, nz, nx);
+    C = rand(ComplexF64, nz, nx);
     waveguide = "JARLEBRING"
 
 
@@ -496,24 +498,24 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
 
     k_bar = mean(K)
 
-    A = full(Dzz + 2*γ*Dz + (γ^2+k_bar)*speye(Complex128, nz,nz))
+    A = full(Dzz + 2*γ*Dz + (γ^2+k_bar)*speye(ComplexF64, nz,nz))
     B = complex(full(Dxx))
 
     println("\nBuilt-in Sylvester solver (X_jj)")
     X_jj = @time sylvester(A,B,-C)
-    println("Relative residual norm = ", norm(A*X_jj+X_jj*B-C)/norm(C))
+    println("Relative residual norm = ", opnorm(A*X_jj+X_jj*B-C)/opnorm(C))
 
     println("FFT-based Sylvester solver for WG (X_j)")
-    X_j::Array{Complex128,2} = copy(C)
+    X_j::Array{ComplexF64,2} = copy(C)
     @time solve_wg_sylvester_fft!( X_j, γ, k_bar, hx, hz )
-    println("Relative residual norm = ", norm(A*X_j+X_j*B-C)/norm(C))
+    println("Relative residual norm = ", opnorm(A*X_j+X_j*B-C)/opnorm(C))
 
     println("MATLAB implemented FFT-based Sylvester solver for WG")
-    println("Relative residual norm = ", norm(A*X_m+X_m*B-C)/norm(C))
+    println("Relative residual norm = ", opnorm(A*X_m+X_m*B-C)/opnorm(C))
 
-    println("\nRelative difference norm(X_m - X_j)/norm(X_j) = ", norm(X_m - X_j)/norm(X_j))
-    println("Relative difference norm(X_m - X_jj)/norm(X_jj) = ", norm(X_m - X_jj)/norm(X_jj))
-    println("Relative difference norm(X_j - X_jj)/norm(X_j) = ", norm(X_j - X_jj)/norm(X_j))
+    println("\nRelative difference opnorm(X_m - X_j)/opnorm(X_j) = ", opnorm(X_m - X_j)/opnorm(X_j))
+    println("Relative difference opnorm(X_m - X_jj)/opnorm(X_jj) = ", opnorm(X_m - X_jj)/opnorm(X_jj))
+    println("Relative difference opnorm(X_j - X_jj)/opnorm(X_j) = ", opnorm(X_j - X_jj)/opnorm(X_j))
 
     println("\n--- End FFT-Sylvester ---\n")
 end
@@ -583,11 +585,11 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
         """
         println("  -- Matlab printouts end --")
 
-        println("    Difference SMW_matrix_m - SMW_matrix_j = ", norm(M_m - M_jj))
-        println("    Relative difference norm(SMW_matrix_m - SMW_matrix_j)/norm(SMW_matrix_j) = ", norm(M_m - M_jj)/norm(M_jj))
+        println("    Difference SMW_matrix_m - SMW_matrix_j = ", opnorm(M_m - M_jj))
+        println("    Relative difference opnorm(SMW_matrix_m - SMW_matrix_j)/opnorm(SMW_matrix_j) = ", opnorm(M_m - M_jj)/opnorm(M_jj))
         println("\n    X is the solution to a Sylvester-SMW system")
-        println("    Difference X_m - X_j = ", norm(X_m - X_j))
-        println("    Relative difference norm(X_m - X_j)/norm(X_j) = ", norm(X_m - X_j)/norm(X_j))
+        println("    Difference X_m - X_j = ", opnorm(X_m - X_j))
+        println("    Relative difference opnorm(X_m - X_j)/opnorm(X_j) = ", opnorm(X_m - X_j)/opnorm(X_j))
 
 
 
@@ -605,7 +607,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
     nz = 3*3*5
     nx = nz + 4
 
-    γ = -rand(Complex128)
+    γ = -rand(ComplexF64)
     gamma = γ
 
 
@@ -616,18 +618,18 @@ function debug_WEP_FD_preconditioner(delta::Number)
         nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
 
 
-        bb = rand(Complex128, nx*nz)
+        bb = rand(ComplexF64, nx*nz)
         precond = wep_generate_preconditioner(nep, 45, γ)
         Schur_fun = SchurMatVec(nep, γ)
         bbb = A_ldiv_B!(precond, (Schur_fun*bb))
-        println("    Preconditioner * (Schur complement * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
-        bb = rand(Complex128, nx*nz)
+        println("    Preconditioner * (Schur complement * b): Relative residual norm = ", opnorm(bbb - bb)/opnorm(bb))
+        bb = rand(ComplexF64, nx*nz)
         bbb = A_ldiv_B!(precond, bb)
         bbb = Schur_fun * bbb
-        println("    Schur complement * (Preconditioner * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
+        println("    Schur complement * (Preconditioner * b): Relative residual norm = ", opnorm(bbb - bb)/opnorm(bb))
 
 
-        b = rand(Complex128, nx*nz+2*nz)
+        b = rand(ComplexF64, nx*nz+2*nz)
         for N = [1, 3, 9, 15, 45]
             println("    Testing for n = ", nz, " and N = ", N)
             precond = @time wep_generate_preconditioner(nep, N, γ)
@@ -684,7 +686,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_WEPFD = NaN
         eigvec_j_WEPFD = NaN
         try
-            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0, linsolvercreator=my_wep_gmres_linsolvercreator)
+            eigval_j_WEPFD, eigvec_j_WEPFD = resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=my_wep_gmres_linsolvercreator)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -699,7 +701,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF = NaN
         eigvec_j_SPMF = NaN
         try
-            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -713,7 +715,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF_pre = NaN
         eigvec_j_SPMF_pre = NaN
         try
-            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(Complex128,nx*nz+2*nz), c=0)
+            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=0)
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -740,23 +742,23 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
         println("    Difference between WEP_FD and SPMF computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_j_SPMF))
         println("    Relative difference between WEP_FD and SPMF computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_j_SPMF)/abs(eigval_j_WEPFD))
-        println("    Difference between WEP_FD and SPMF computed eigenvectors = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
-        println("    Relative difference between WEP_FD and SPMF computed eigenvalue = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1]))
+        println("    Difference between WEP_FD and SPMF computed eigenvectors = ", opnorm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Relative difference between WEP_FD and SPMF computed eigenvalue = ", opnorm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/opnorm(eigvec_j_WEPFD/eigvec_j_WEPFD[1]))
         println("")
         println("    Difference between WEP_FD and MATLAB computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_m))
         println("    Relative difference between WEP_FD and MATLAB computed eigenvalue = ", abs(eigval_j_WEPFD - eigval_m)/abs(eigval_m))
-        println("    Difference between WEP_FD and MATLAB computed eigenvectors = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_m/eigvec_m[1]))
-        println("    Relative difference between WEP_FD and MATLAB computed eigenvalue = ", norm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_m/eigvec_m[1])/norm(eigvec_m/eigvec_m[1]))
+        println("    Difference between WEP_FD and MATLAB computed eigenvectors = ", opnorm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_m/eigvec_m[1]))
+        println("    Relative difference between WEP_FD and MATLAB computed eigenvalue = ", opnorm(eigvec_j_WEPFD/eigvec_j_WEPFD[1] - eigvec_m/eigvec_m[1])/opnorm(eigvec_m/eigvec_m[1]))
         println("")
         println("    Difference between MATLAB and SPMF computed eigenvalue = ", abs(eigval_m - eigval_j_SPMF))
         println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", abs(eigval_m - eigval_j_SPMF)/abs(eigval_m))
-        println("    Difference between MATLAB and SPMF computed eigenvectors = ", norm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
-        println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", norm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_m/eigvec_m[1]))
+        println("    Difference between MATLAB and SPMF computed eigenvectors = ", opnorm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Relative difference between MATLAB and SPMF computed eigenvalue = ", opnorm(eigvec_m/eigvec_m[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/opnorm(eigvec_m/eigvec_m[1]))
         println("")
         println("    Difference between SPMF and SPMF-pre computed eigenvalue = ", abs(eigval_j_SPMF_pre - eigval_j_SPMF))
         println("    Relative difference between SPMF and SPMF-pre computed eigenvalue = ", abs(eigval_j_SPMF_pre - eigval_j_SPMF)/abs(eigval_j_SPMF))
-        println("    Difference between SPMF and SPMF-pre computed eigenvectors = ", norm(eigvec_j_SPMF_pre/eigvec_j_SPMF_pre[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
-        println("    Relative difference between SPMF and SPMF-pre computed eigenvalue = ", norm(eigvec_j_SPMF_pre/eigvec_j_SPMF_pre[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/norm(eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Difference between SPMF and SPMF-pre computed eigenvectors = ", opnorm(eigvec_j_SPMF_pre/eigvec_j_SPMF_pre[1] - eigvec_j_SPMF/eigvec_j_SPMF[1]))
+        println("    Relative difference between SPMF and SPMF-pre computed eigenvalue = ", opnorm(eigvec_j_SPMF_pre/eigvec_j_SPMF_pre[1] - eigvec_j_SPMF/eigvec_j_SPMF[1])/opnorm(eigvec_j_SPMF/eigvec_j_SPMF[1]))
         println("")
         println("    WEP_FD converged to the eigenvalue = ", eigval_j_WEPFD)
 
@@ -792,8 +794,8 @@ function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
         #     return wep_linsolvercreator(nep, λ, gmres_kwargs)
         # end
         #
-        # srand(10524089)
-        # eigval, eigvec = @time resinv(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        # Random.seed!(10524089)
+        # eigval, eigvec = @time resinv(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         #
         # println("Computed eigenvalue = ", eigval)
         #
@@ -811,8 +813,8 @@ function debug_eigval_comp_WEP_FD(nz::Integer, N::Integer, delta::Number)
         #     return wep_linsolvercreator(nep, λ, gmres_kwargs)
         # end
         #
-        # srand(10524089)
-        # eigval, eigvec = @time augnewton(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(Complex128,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
+        # Random.seed!(10524089)
+        # eigval, eigvec = @time augnewton(nep, displaylevel=1, λ=γ, maxit = 30, tol = 2e-9, v=rand(ComplexF64,nx*nz+2*nz), c=0, linsolvercreator=wep_gmres_linsolvercreator)
         #
         # println("Computed eigenvalue = ", eigval)
         #

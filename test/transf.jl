@@ -1,18 +1,10 @@
 # Run tests for the NEP transformations
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using Base.Test
-end
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
 @testset "transformations" begin
 
@@ -29,16 +21,11 @@ end
         @test abs(λ1+σ-orgλ)<eps()*100 # check that we get the same eigvals
 
 
-
-
         # Test shift and scaling
         σ=-0.4+0.01im; α=0.5
         nep2=shift_and_scale(orgnep,shift=σ,scale=α);
         λ2,v2=quasinewton(nep2)
         @test abs((α*λ2+σ)-orgλ)<eps()*100
-
-
-
 
 
         # Check that PEP transformations correctly transform coefficients
@@ -47,9 +34,9 @@ end
         α=3;
         pep1=shift_and_scale(pep0,shift=σ,scale=α)
         λ,v= quasinewton(pep0,λ=1+1im);
-        norm(compute_Mlincomb(pep0, λ,v))
+        norm(compute_Mlincomb(pep0, λ, v))
         λv,V=polyeig(pep1);
-        @test minimum(abs.(λv-(λ-σ)/α))<eps()*100
+        @test minimum(abs.(λv .- (λ-σ)/α)) < eps()*100
 
         # Check that real PEP with real transformation is still real
         σ=3;
@@ -104,10 +91,10 @@ end
         n=size(nep4,1);
         V=randn(n,5);
         S=randn(5,5);
-        s=eye(1,1)*3
-        W1=compute_MM(nep4,(c*S+d*eye(S))\(a*S+b*eye(S)),V);
+        s = Matrix(3.0*I, 1, 1)
+        W1 = compute_MM(nep4, (c*S + d*I) \ (a*S + b*I), V)
         W2=compute_MM(nep4_transf,S,V);
-        @test norm(W1-W2)<sqrt(eps())
+        @test opnorm(W1-W2)<sqrt(eps())
 
         # Check that mobius_transformation becomes shift_and_scale
         c=0; d=1;

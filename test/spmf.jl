@@ -1,38 +1,28 @@
-
 # Tests for SPMF-code
 
-
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-
-    using Base.Test
-end
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using Test
+using LinearAlgebra
+using Random
+using SparseArrays
 
 @testset "SPMF" begin
     # Create an SPMF
     n=5;
-    srand(1)
+    Random.seed!(1)
     A0=sparse(randn(n,n));
     A1=sparse(randn(n,n));
     t=3.0
 
-    minusop= S-> -S
-    oneop= S -> eye(S)
-    expmop= S -> expm(full(-t*S))
+    minusop = S -> -S
+    oneop = S -> Matrix{eltype(S)}(I, size(S))
+    expmop = S -> exp(Matrix(-t*S))
     fi=[minusop, oneop, expmop];
 
-    nep1=SPMF_NEP([speye(n),A0,A1],fi)
-    nep2=SPMF_NEP([speye(n),A0,A1],fi, true)
-
+    J = SparseMatrixCSC(1.0I, n, n)
+    nep1 = SPMF_NEP([J, A0, A1], fi)
+    nep2 = SPMF_NEP([J, A0, A1], fi, true)
 
     @testset "compute_MM" begin
 
@@ -40,9 +30,9 @@ end
         V=randn(n,3);
 
         # Check if prefactorize with Schur gives the same result
-        @test norm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
+        @test opnorm(compute_MM(nep1,S,V)-compute_MM(nep2,S,V))<sqrt(eps())
         # Check compute_MM
-        @test norm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*expm(-t*S)))<sqrt(eps())
+        @test opnorm(compute_MM(nep1,S,V)-(-V*S+A0*V+A1*V*exp(-t*S)))<sqrt(eps())
 
 
         # Check if compute_MM is correct (by comparing against diagonalization of S).
@@ -51,14 +41,14 @@ end
 
         N1=compute_MM(nep1,S,V);
         # Diagonalize S
-        (d,W)=eig(S);
-        D=diagm(d);
-        V1=V*W;
+        d,W = eigen(S)
+        D = diagm(0 => d)
+        V1 = V*W
         #
         N2=hcat(compute_Mlincomb(nep1,d[1],V1[:,1]),
                 compute_Mlincomb(nep1,d[2],V1[:,2]),
                 compute_Mlincomb(nep1,d[3],V1[:,3]))*inv(W)
-        @test norm(N1-N2)<sqrt(eps())
+        @test opnorm(N1-N2)<sqrt(eps())
 
     end
     @testset "compute_Mder_from_MM" begin
@@ -69,22 +59,22 @@ end
         # Check compute_Mder_from_MM()
         λ=2
         T1=compute_Mder_from_MM(nep1,λ,1)
-        T2=-1*speye(n)-t*A1*expm(-t*λ)
-        @test norm(T1-T2)<sqrt(eps())
+        T2 = -I - t*A1*exp(-t*λ)
+        @test opnorm(T1-T2)<sqrt(eps())
 
         λ=2
         T3=compute_Mder_from_MM(nep1,λ,2)
-        T4=t^2*A1*expm(-t*λ)
-        @test norm(T3-T4)<sqrt(eps())
+        T4=t^2*A1*exp(-t*λ)
+        @test opnorm(T3-T4)<sqrt(eps())
 
 
 
         # Check consistency of MM and Mder
 
         # Exact Mlincomb:
-        Zexact=(-λ*speye(n)+A0+A1*exp(-t*λ))*V[:,1]+
-        (-speye(n)-t*A1*exp(-t*λ))*V[:,2]+
-        (t^2*A1*exp(-t*λ))*V[:,3];
+        Zexact = (-λ*I + A0 + A1*exp(-t*λ)) * V[:,1] +
+            (-I - t*A1*exp(-t*λ)) * V[:,2] +
+            (t^2*A1*exp(-t*λ)) * V[:,3]
 
         Z1=compute_Mlincomb_from_MM(nep1,λ,V,[1.0,1.0,1.0])
         @test norm(Z1-Zexact)<sqrt(eps())
@@ -96,14 +86,15 @@ end
 
     @testset "Compute_Mlincomb" begin
 
-        S=randn(3,3);
+        Random.seed!(10)
+        S=randn(3,3)+120^2*I;
         V=randn(n,3);
 
         # Same nonlinearities as the GUN NLEVP problem
         minusop= S-> -S
-        oneop= S -> eye(size(S,1),size(S,2))
-        sqrt1op= S -> 1im*sqrtm(full(S))
-        sqrt2op= S -> 1im*sqrtm(full(S)-108.8774^2*eye(S))
+        oneop = S -> Matrix(1.0I, size(S))
+        sqrt1op = S -> 1im * sqrt(Matrix(S))
+        sqrt2op = S -> 1im * sqrt(Matrix(S) - 108.8774^2*I)
 
         A0=sparse(randn(n,n))+1im*sparse(randn(n,n));
         A1=sparse(randn(n,n))+1im*sparse(randn(n,n));
@@ -113,9 +104,9 @@ end
 
         N1=compute_MM(nep2,S,V);
         # Diagonalize S
-        (d,W)=eig(S);
-        D=diagm(d);
-        V1=V*W;
+        d,W = eigen(S)
+        D = diagm(0 => d)
+        V1 = V*W
         #
         N2=hcat(compute_Mlincomb(nep2,d[1],V1[:,1]),
                 compute_Mlincomb(nep2,d[2],V1[:,2]),
@@ -125,7 +116,7 @@ end
     end
 
     @testset "REP" begin
-        srand(10)
+        Random.seed!(10)
         A0=randn(5,5);
         A1=randn(5,5);
         A2=randn(5,5);

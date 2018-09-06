@@ -3,6 +3,8 @@ export jd_betcke
 export jd_effenberger
 
 using IterativeSolvers
+using LinearAlgebra
+using Random
 using ..NEPTypes.DeflatedNEP
 
 import ..NEPTypes.set_projectmatrices!
@@ -18,6 +20,7 @@ import ..NEPCore.compute_Mlincomb
 function jd()
     error("The function `jd` is not implemented. See `jd_betcke` or jd_effenberger`.")
 end
+
 
    """
     function jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v0 = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
@@ -46,7 +49,7 @@ julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 See also
 * C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
 """
-jd_betcke(nep::NEP;kwargs...) = jd_betcke(Complex128,nep;kwargs...)
+jd_betcke(nep::NEP;kwargs...) = jd_betcke(ComplexF64,nep;kwargs...)
 function jd_betcke(::Type{T},
                    nep::ProjectableNEP;
                    maxit::Int = 100,
@@ -159,7 +162,7 @@ function jd_betcke(::Type{T},
     end #End main loop
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
-    throw(NoConvergenceException(cat(1,λ_vec[1:conveig],λ),cat(2,u_vec[:,1:conveig],u),err,msg))
+    throw(NoConvergenceException(cat(λ_vec[1:conveig], λ, dims = 1), cat(u_vec[:,1:conveig], u, dims = 2), err, msg))
 end
 
 

@@ -1,11 +1,14 @@
+using LinearAlgebra
+using Random
+
     export iar_old
-    #Infinite Arnoldi for a given number of max iters (No error measure yet) 
+    #Infinite Arnoldi for a given number of max iters (No error measure yet)
 """
-    The Infinite Arnoldi method 
+    The Infinite Arnoldi method
 """
     function iar_old(
-     nep::NEP;maxit=30,	           
-     linsolvertype::DataType=DefaultLinSolver,tol=1e-12,Neig=maxit,                                  
+     nep::NEP;maxit=30,
+     linsolvertype::DataType=DefaultLinSolver,tol=1e-12,Neig=maxit,
      errmeasure::Function = default_errmeasure(nep::NEP),
      σ=0.0,γ=1)
 
@@ -20,17 +23,17 @@
      err = zeros(m,m); # error history
      λ=complex(zeros(m+1)); Q=complex(zeros(n,m+1));
 
-     V[1:n,1]=rand(n,1)/norm(randn(n,1));
+     V[1:n,1]=rand(n,1)/opnorm(randn(n,1));
 
      k=1; conv_eig=0;
      while (k <= m)&(conv_eig<=Neig)
 
       #y[:,2:k+1] = reshape(V[1:n*k,k],n,k);
-  
+
       y[:,2:k+1] = reshape(view(V,1:1:n*k,k),n,k);
-      # no improvement, just sperimenting. 
-      for j=1:k	
-       y[:,j+1]=y[:,j+1]/j;  
+      # no improvement, just sperimenting.
+      for j=1:k
+       y[:,j+1]=y[:,j+1]/j;
       end
 
       y[:,1] = compute_Mlincomb(nep,σ,y[:,1:k+1],a=α[1:k+1]);
@@ -40,13 +43,13 @@
       # orthogonalization
       h,vv = doubleGS(V,vv,k,n);
       H[1:k,k]=h;
-      beta=norm(vv);
+      beta=opnorm(vv);
 
       H[k+1,k]=beta;
       V[1:(k+1)*n,k+1]=vv/beta;
 
       # compute error history
-      D,Z=eig(H[1:k,1:k]); D=σ+γ./D;
+      D,Z = eigen(H[1:k,1:k]); D=σ+γ./D;
 
       conv_eig=0;
       for s=1:k
@@ -74,7 +77,7 @@
             h=V[1:(k+1)*n,1:k]'*vv;
 
             vv=vv-V[1:(k+1)*n,1:k]*h;
- 
+
             g=V[1:(k+1)*n,1:k]'*vv;
             vv=vv-V[1:(k+1)*n,1:k]*g;
 

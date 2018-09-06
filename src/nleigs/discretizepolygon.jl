@@ -27,9 +27,9 @@ function discretizepolygon(
     end
 
     if length(z) == 1 # return disk centered at z
-        zz = z[1] + cis.(2 * pi * (1:npts)/npts)
+        zz = z[1] .+ cis.(2 * pi * (1:npts)/npts)
     elseif length(z) == 2 # return Chebyshev points
-        zz = (z[2]-z[1])/2 * (cos.(pi*(npts-1:-1:0)/(npts-1))+1) + z[1]
+        zz = (z[2]-z[1])/2 * (cos.(pi*(npts-1:-1:0)/(npts-1)).+1) .+ z[1]
     else
         z = [z[:]; z[1]] # close polygon
         L = sum(abs.(diff(z))) # length of polygon
@@ -55,12 +55,12 @@ function discretizepolygon(
 
     append!(zz, z)
 
-    Z = Vector{CT}(0)
+    Z = Vector{CT}()
     if include_interior_points
         if length(z) == 2 # interval case
             xnr = 2*nptsint
             if (xnr&1) == 0 xnr += 1 end
-            xpts = linspace(z[1], z[2], xnr)
+            xpts = range(z[1], stop = z[2], length = xnr)
             Z = collect(xpts[2:2:end])
             return zz, Z
         end
@@ -86,10 +86,10 @@ function discretizepolygon(
                 continue
             end
 
-            xpts = linspace(real_min, real_max, xnr)
+            xpts = range(real_min, stop = real_max, length = xnr)
             xpts = xpts[2:2:end]
 
-            ypts = linspace(imag_min-eps(), imag_max+eps(), ynr)
+            ypts = range(imag_min-eps(), stop = imag_max+eps(), length = ynr)
             ypts = ypts[2:2:end]
 
             Z = [x + y*im for x in xpts for y in ypts]::Vector{CT}

@@ -1,9 +1,10 @@
 # Illustrating scaling difficulties with compute_Mlincomb_from_MM
-workspace();
 push!(LOAD_PATH, pwd())
 push!(LOAD_PATH, ".." )
 using NEPCore
 using NEPTypes
+using LinearAlgebra
+using Random
 
 # manually clc
 for jj=1:20
@@ -24,7 +25,7 @@ function DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
     return xx
 end
 
-srand(0);
+Random.seed!(0);
 # Setup the problem
 n=100
 A=randn(n,n)
@@ -41,6 +42,7 @@ m=5;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -50,9 +52,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 # Setup a the coeff vector
@@ -60,6 +62,7 @@ m=10;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -69,9 +72,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -82,6 +85,7 @@ m=20;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -91,9 +95,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -103,6 +107,7 @@ m=50;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -112,9 +117,9 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))
 
 
 
@@ -127,6 +132,7 @@ m=100;
 alphav=(0.6).^(1:m)
 X=randn(n,m)
 V,R=qr(X)
+V = Matrix(V)
 
 # Compute with default method
 xx=DEP_Mlincomb_high_precision(A,B,tau,V,alphav)
@@ -136,6 +142,6 @@ x1=compute_Mlincomb_from_MM!(dep,0,V,alphav+betav);
 x2=compute_Mlincomb_from_MM!(dep,0,V,betav);
 x=x1-x2;
 
-norm(x-xx)/norm(xx)
+opnorm(x-xx)/opnorm(xx)
 println("m=",m)
-println("Error:",Float64(norm(x-xx)/norm(xx)))
+println("Error:",Float64(opnorm(x-xx)/opnorm(xx)))

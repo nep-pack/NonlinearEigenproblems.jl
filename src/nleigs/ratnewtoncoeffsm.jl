@@ -10,16 +10,16 @@ function ratnewtoncoeffsm(fm, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
     β = β[:]
 
     # build Hessenberg matrices
-    K = Bidiagonal(ones(m+1), β[2:m+1]./ξ[1:m], 'L')
-    H = Bidiagonal(σ[1:m+1], β[2:m+1], 'L')
+    K = Bidiagonal(ones(m+1), β[2:m+1]./ξ[1:m], :L)
+    H = Bidiagonal(σ[1:m+1], CT.(β[2:m+1]), :L)
 
     # column balancing
-    P = Diagonal(1./maximum(abs.(K), 1)[:])
+    P = Diagonal(1 ./ maximum(abs.(K), dims = 1)[:])
     K *= P
     H *= P
 
-    D = fm(H/K) * eye(m+1, 1) * β[1]
-    D = D.'
+    D = fm(H/CT.(K)) * Matrix(1.0I, m+1, 1) * β[1] # TODO: just extract first column of fm(..) instead of Matrix(..)?
+    D = copy(transpose(D))
 
     return D
 end

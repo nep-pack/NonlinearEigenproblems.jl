@@ -1,13 +1,14 @@
-
 #  A Polynomial eigenvalue problem
-workspace()
 push!(LOAD_PATH, pwd())	# look for modules in the current directory
 using NEPSolver
 using NEPCore
 using NEPTypes
 using Gallery
+using LinearAlgebra
+using Random
+
 n=5;
-srand(0) # reset the random seed
+Random.seed!(0) # reset the random seed
 A0=randn(n,n);
 A1=randn(n,n);
 A2=randn(n,n);
@@ -22,4 +23,3 @@ z=compute_Mlincomb(nep,λ,v);
 println("Running augnewton")
 λ,x =augnewton(nep,displaylevel=1);
 println("Computed solution to resnorm:",norm(compute_Mlincomb(nep,λ,x)))
-

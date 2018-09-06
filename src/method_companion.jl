@@ -1,4 +1,6 @@
-#Methods to transform a PEP to a companion linearized form and solve the corresponding linearized pencil 
+#Methods to transform a PEP to a companion linearized form and solve the corresponding linearized pencil
+using SparseArrays
+
 export companion
 export polyeig #Wrapper around the solver for a linearized PEP pencil
 
@@ -7,39 +9,35 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
 """
     function companion(pep::PEP)
 
-        n = size(pep,1);#Size of monomial coefficient matrices
-
-        d = size(pep.A,1)-1;#Degree of pep
-
-        T = eltype(pep.A[1]);#Deduce the type of elements in the PEP matrices
-        
-        
+        n = size(pep,1) #Size of monomial coefficient matrices
+        d = size(pep.A,1)-1 #Degree of pep
+        T = eltype(pep.A[1]) #Deduce the type of elements in the PEP matrices
 
         ##### Check sparsity of the problem and allocate memory accordingly #####
-        if (issparse(pep))
-            E = spzeros(T,d*n,d*n);
-            A = spzeros(T,n*d,n*d);
-            
+        if issparse(pep)
+            E = spzeros(T, d*n, d*n)
+            A = spzeros(T, n*d, n*d)
+
             #(d-1)n-by-(d-1)n matrix (Used to construct both E and A)
-            Iblock = sparse(kron(eye(T,d-1),eye(T,n)));
+            Iblock = sparse(kron(Matrix{T}(I, d-1, d-1), Matrix{T}(I, n, n)))
         else
-            E = zeros(T,d*n,d*n);
-            A = zeros(T,n*d,n*d);
-            
-            Iblock = kron(eye(T,d-1),eye(T,n));
+            E = zeros(T, d*n, d*n)
+            A = zeros(T, n*d, n*d)
+
+            Iblock = kron(Matrix{T}(I, d-1, d-1), Matrix{T}(I, n, n))
         end
-        
+
         E[1:n,1:n] = pep.A[d+1];#Fill block (1,1)
         E[n+1:d*n,n+1:d*n] = Iblock;#Fill all blocks on the diagonal with eye(n)
 
         #####Construct A #####
-        
+
         #First row block of A
         for i=1:d
            A[1:n,(i-1)*n+1:i*n] = pep.A[d-i+1];
         end
         #Lower part of A
-        A[n+1:d*n,1:(d-1)*n] = T(-1.0)*Iblock 
+        A[n+1:d*n,1:(d-1)*n] = T(-1.0)*Iblock
 
         return E,-A
 
@@ -49,9 +47,9 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
     #############################################################################
     #Solve the linearized companion of a PEP
 
-    polyeig(pep::PEP,vargs...)=polyeig(Complex128,pep,vargs...)
+    polyeig(pep::PEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
 
-    function polyeig{T}(::Type{T},pep::PEP,eigsolvertype::DataType=DefaultEigSolver)
+    function polyeig(::Type{T},pep::PEP,eigsolvertype::DataType=DefaultEigSolver) where T
 
         #Linearize to Ax = λEx
         E,A = companion(pep);

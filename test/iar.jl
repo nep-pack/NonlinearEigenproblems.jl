@@ -1,26 +1,13 @@
-#Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
-
-#import NEPSolver.iar;
-#include("../src/method_iar.jl");
-
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
+using Test
+using IterativeSolvers
+using LinearAlgebra
 
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
     h[:]=VV'*vv; vv[:]=vv-VV*h; g=VV'*vv; vv[:]=vv-VV*g;
-    h[] = h[]+g[]; β=norm(vv); vv[:]=vv/β; return β
+    h[:] = h[:]+g[:]; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
 abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
@@ -30,11 +17,10 @@ import IterativeSolvers.orthogonalize_and_normalize!
 function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     doubleGS_function!(V, v, h) end
 
+@testset "IAR" begin
+    dep=nep_gallery("dep0");
+    n=size(dep,1);
 
-dep=nep_gallery("dep0");
-n=size(dep,1);
-
-IAR=@testset "IAR" begin
     @testset "accuracy eigenpairs" begin
         (λ,Q)=iar(dep,σ=3,Neig=5,v=ones(n),
                   displaylevel=0,maxit=100,tol=eps()*100);
@@ -48,22 +34,22 @@ IAR=@testset "IAR" begin
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @testset "DGKS" begin
         (λ,Q,err,V)=iar(dep,orthmethod=DGKS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-        @test norm(V'*V-eye(size(V,2)))<1e-6
+        @test opnorm(V'*V - I) < 1e-6
      end
 
      @testset "User provided doubleGS" begin
          (λ,Q,err,V)=iar(dep,orthmethod=DoubleGS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-         @test norm(V'*V-eye(size(V,2)))<1e-6
+         @test opnorm(V'*V - I) < 1e-6
       end
 
       @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-          @test norm(V'*V-eye(size(V,2)))<1e-6
+          @test opnorm(V'*V - I) < 1e-6
       end
 
        @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
-           @test norm(V'*V-eye(size(V,2)))<1e-6
+           @test opnorm(V'*V - I) < 1e-6
        end
     end
 

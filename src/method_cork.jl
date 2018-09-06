@@ -1,21 +1,23 @@
 """
-    Module with an implementation of CORK (CORK version 0.2) 
+    Module with an implementation of CORK (CORK version 0.2)
      http://twr.cs.kuleuven.be/research/software/nleps/cork.php
 """
 module NEPSolver_CORK # Will change later
 
+    using LinearAlgebra
+
     export cork
     export TargetType
     export CORKInputType
-    
+
     type TargetType
         Sigma::Complex64
         shift::Complex64
     end
 
     type CORKInputType
-        A # Length d array with n x n matrices 
-        B # Length d array with n x n matrices 
+        A # Length d array with n x n matrices
+        B # Length d array with n x n matrices
         M # (d-1) x d matrix
         N # (d-1) x d matrix
 
@@ -26,20 +28,20 @@ module NEPSolver_CORK # Will change later
 #    function cork(L)
 #
 #    end
-#    
+#
 #    function cork(L,k::Integer)
 #
 #    end
-#    
+#
 #    function cork(L,k::Integer,sigma::AbstractFloat)
 #
 #    end
 
     function cork(L::CORKInputType,k::Integer,target::TargetType)
 
-        # 
+        #
         n=size(L.A[1],1)
-        
+
 
 
         ##  Check inputs
@@ -47,22 +49,23 @@ module NEPSolver_CORK # Will change later
 
         nb=10; # hard coded
         shifts=repmat([target.shift],nb)
-        
+
         ## Initialize
-        
+
         # Default values:
-        
+
         m = max(3k,20);
         maxrest = 50;
         p = max(2k,10);
 
         d=size(L.A,1)
-        
+
         ## Initialization
         v0=ones(n)
-        
+
         # Compute the Q-matrix
-        Q,U0 = qr(reshape(v0/norm(v0),n,1));
+        Q,U0 = qr(reshape(v0/opnorm(v0),n,1));
+        Q = Matrix(Q)
         r = size(Q,2);
 
         # Init tensor U
@@ -93,13 +96,13 @@ module NEPSolver_CORK # Will change later
         SHIFTS = [];
 
         # Don't know how to do cellfun in julia
-        
+
         # Which matrices in L.A and L.B have non-zero elements
         NNZ_A=zeros(Bool,d)
         NNZ_B=zeros(Bool,d)
         for i=1:d
             NNZ_A[i]=countnz(L.A[i])>0
-            NNZ_B[i]=countnz(L.B[i])>0            
+            NNZ_B[i]=countnz(L.B[i])>0
         end
 
         i=1
@@ -111,7 +114,7 @@ module NEPSolver_CORK # Will change later
         println("shifts:",shifts)
         while i <= m + maxrest*(m-p)
 
-            
+
             println("size(Q):",size(Q))
             println("r:",r," i=",i," j=",j, " Q=",Q)
             println("U=",U)
@@ -147,7 +150,7 @@ module NEPSolver_CORK # Will change later
         # Next vector
         v=Q[:,1:r]*reshape(U[1:r,j,1:d],r,d);
 
-        
+
         (v1,MsN1inv0,MsN1invN)=backslash(shift,v,L,NNZ_A,NNZ_B)
         # Not yet implemented
 
@@ -155,8 +158,8 @@ module NEPSolver_CORK # Will change later
         q = copy(v1);
         delta = Inf; nborth = 0;
         maxreorth=2
-        while (norm(q) < eta*delta) && (nborth <= maxreorth)
-            delta = norm(q);
+        while (opnorm(q) < eta*delta) && (nborth <= maxreorth)
+            delta = opnorm(q);
             if nborth == 0
                 u1 = Q[:,1:r]'*v1;
                 q = q - Q[:,1:r]*u1;
@@ -167,7 +170,7 @@ module NEPSolver_CORK # Will change later
             println("Reorth Q ",nborth)
 
         end
-        delta = norm(q)+eps();
+        delta = opnorm(q)+eps();
         #println("XXXXXXXXXXX")
 
         println("delta=",delta)
@@ -197,15 +200,15 @@ module NEPSolver_CORK # Will change later
         println(" u2 =",u2)
         ##
         u = [u1;reshape(u2,size(u2,1)*size(u2,2),1)];
-        println(" norm(u) =",norm(u))
-        while (norm(u) < eta*delta) && (nborth <= maxreorth)
-            delta = norm(u);
+        println(" opnorm(u) =",opnorm(u))
+        while (opnorm(u) < eta*delta) && (nborth <= maxreorth)
+            delta = opnorm(u);
             h = reshape(conj(permute(U(1:rnew,1:j,1:d),[2,1,3])),[],d*rnew)*u;
 
         end
         rnew=1
         return rnew,Q
-        
+
     end
     function backslash(shift,y,L,NNZ_A,NNZ_B)
 
@@ -233,13 +236,13 @@ module NEPSolver_CORK # Will change later
             println("MsN1inv0[ii-1]=",MsN1inv0[ii-1])
         end
 
-        println("norm(At)=",norm(At))
+        println("opnorm(At)=",opnorm(At))
 
         println(d)
 
         ## intermediate x used in yt
         x = y*MsN1invN.';
-        
+
         ## build yt
         yt = L.B[1]*y[:,1];
         for ii = 2:d
@@ -253,7 +256,7 @@ module NEPSolver_CORK # Will change later
         end
 
         ## build x1
-        println("At",size(At))                        
+        println("At",size(At))
         x1 = At\yt;
 
 

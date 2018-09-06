@@ -7,24 +7,25 @@ forceInf is a positive integer, the first forceInf poles in b will be infinity.
 """
 function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVector{CT}, m::Int, keepA::Bool=false, forceInf::Int=0) where {T<:Real, CT<:Complex{T}}
     if minimum(abs.(B)) < 1e-9
-        warn("There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability.")
+        @warn "There is at least one pole candidate in B being nearby zero. Consider shifting your problem for stability."
     end
 
     a = [A[1]]
     b = [forceInf > 0 ? T(Inf) : B[1]]
     β = [T(1.)]
 
-    sA = ones(A)
-    sB = ones(eltype(A), size(B))
-    sC = ones(eltype(A), size(C))
+    o = one(eltype(A))
+    sA = fill(o, size(A))
+    sB = fill(o, size(B))
+    sC = fill(o, size(C))
 
     for j = 1:m-1
-        sA .*= ((A-a[j]) ./ (1 - A/b[j]));
-        sB .*= ((B-a[j]) ./ (1 - B/b[j]));
-        sC .*= ((C-a[j]) ./ (1 - C/b[j]));
+        sA .*= ((A .- a[j]) ./ (1 .- A/b[j]));
+        sB .*= ((B .- a[j]) ./ (1 .- B/b[j]));
+        sC .*= ((C .- a[j]) ./ (1 .- C/b[j]));
 
-        push!(a, A[keepA ? j+1 : indmax(abs.(sA))])
-        push!(b, forceInf > j ? Inf : B[indmin(abs.(sB))])
+        push!(a, A[keepA ? j+1 : argmax([isnan(x) ? -Inf : abs.(x) for x in sA])])
+        push!(b, forceInf > j ? Inf : B[argmin([isnan(x) ? Inf : abs.(x) for x in sB])])
         push!(β, maximum(abs.(sC)))
 
         # treat single point case

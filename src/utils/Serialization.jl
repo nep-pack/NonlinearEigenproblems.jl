@@ -1,4 +1,6 @@
 module Serialization
+    using SparseArrays
+
     export write_sparse_matrix
     export read_sparse_matrix
 

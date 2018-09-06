@@ -1,12 +1,15 @@
 module GalleryWaveguide
 
-using NEPCore
-using NEPTypes
-using LinSolvers
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems.Gallery
+using SparseArrays
+using LinearAlgebra
+using Statistics
+using FFTW
 using IterativeSolvers
 using LinearMaps
-using Gallery
-
 
 export wep_generate_preconditioner
 export wep_gmres_linsolvercreator
@@ -18,28 +21,28 @@ export WEP
 export WEP_FD
 
 # We overload these
-import Gallery.nep_gallery
+import NonlinearEigenproblems.Gallery.nep_gallery
 export nep_gallery
-import NEPCore.compute_Mlincomb
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 export compute_Mlincomb
-import LinSolvers.lin_solve
+import NonlinearEigenproblems.LinSolvers.lin_solve
 export lin_solve
-import LinSolvers.default_linsolvercreator
+import NonlinearEigenproblems.LinSolvers.default_linsolvercreator
 export default_linsolvercreator
-import LinSolvers.DefaultLinSolver
+import NonlinearEigenproblems.LinSolvers.DefaultLinSolver
 export DefaultLinSolver
-import LinSolvers.BackslashLinSolver
+import NonlinearEigenproblems.LinSolvers.BackslashLinSolver
 export BackslashLinSolver
 
 import Base.size
 export size
-import Base.issparse
+import SparseArrays.issparse
 export issparse
 import Base.*
 export *
 import Base.eltype
 export eltype
-import Base.A_ldiv_B!
+import LinearAlgebra.A_ldiv_B!
 export A_ldiv_B!
 
 
@@ -74,9 +77,7 @@ include("waveguide/waveguide_preconditioner.jl")
     # neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
     # delta = 0.1,                     Slack from the absorbing boundary conditions
 """
-
-
-function nep_gallery{T<:WEP}(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1)
+function nep_gallery(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1) where T<:WEP
 
     waveguide = uppercase(benchmark_problem)
     neptype = uppercase(neptype)

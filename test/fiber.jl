@@ -1,34 +1,20 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-    push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-    using GalleryNLEVP
-end
-
-# Always run this, since it's not loaded by load_modules_for_tests.jl
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+using GalleryNLEVP
 using LinSolversMATLAB
 
+@testset "NLEVP fiber" begin
+    nep_org=nep_gallery(NLEVP_NEP,"fiber");
+    n=size(nep_org,1);
 
-nep_org=nep_gallery(NLEVP_NEP,"fiber");
-n=size(nep_org,1);
-
-# An exact eigenvalue according (reported in NLEVP collection)
-sol_val= 7.139494306065948e-07;
-
-
-fibertest=@testset "NLEVP fiber" begin
+    # An exact eigenvalue according (reported in NLEVP collection)
+    sol_val= 7.139494306065948e-07;
 
     @testset "basics" begin
         # Checking Mder
@@ -38,7 +24,7 @@ fibertest=@testset "NLEVP fiber" begin
         Am=compute_Mder(nep_org,λ-δ)
         Mp_approx=(Ap-Am)/(2δ);
         Mp=compute_Mder(nep_org,λ,1)
-        @test norm(Mp-Mp_approx,1)<δ^2*100
+        @test opnorm(Mp-Mp_approx,1)<δ^2*100
 
 
         # Checking Mlincomb
@@ -48,7 +34,7 @@ fibertest=@testset "NLEVP fiber" begin
         z_minus=compute_Mlincomb(nep_org,λ-δ,x)
         zp=compute_Mlincomb(nep_org,λ,x,[1],1)
         zp-(z_plus-z_minus)/(2δ)
-        @test norm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
+        @test opnorm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
 
 
         println("Running Newton");
@@ -56,9 +42,8 @@ fibertest=@testset "NLEVP fiber" begin
                          tol=1e-14)
 
         @test abs(sol_val-λstar)/abs(λ) < 1e-10
-        if (imag(λstar) != 0)
-            warn("Newton switches to complex although it should be real"*
-                 string(λstar))
+        if imag(λstar) != 0
+            @warn "Newton switches to complex although it should be real: $λstar"
         end
 
         println("Running quasi-newton w armijo (with eigval error as termination)");
@@ -72,9 +57,8 @@ fibertest=@testset "NLEVP fiber" begin
                           tol=tol,armijo_factor=0.5,armijo_max=10)
 
         @test abs(sol_val-λ)/abs(λ) < tol
-        if (imag(λ) != 0)
-            warn("Quasinewton switches to complex although it should be real"*
-                 string(λ))
+        if imag(λ) != 0
+            @warn "Quasinewton switches to complex although it should be real: $λ"
         end
 
         println("Running resinv");
@@ -83,9 +67,8 @@ fibertest=@testset "NLEVP fiber" begin
                      displaylevel=1,errmeasure=myerrmeasure,
                      tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
-        if (imag(λ) != 0)
-            warn("resinv switches to complex although it should be real"*
-                 string(λ))
+        if imag(λ) != 0
+            @warn "resinv switches to complex although it should be real: $λ"
         end
 
         println("Running MSLP");
@@ -94,9 +77,8 @@ fibertest=@testset "NLEVP fiber" begin
                    displaylevel=1,errmeasure=myerrmeasure,
                    tol=tol, eigsolvertype=MatlabEigSSolver)
         @test abs(sol_val-λ)/abs(λ) < tol
-        if (imag(λ) != 0)
-            warn("mslp switches to complex although it should be real:"*
-                 string(λ))
+        if imag(λ) != 0
+            @warn "mslp switches to complex although it should be real: $λ"
         end
     end
 

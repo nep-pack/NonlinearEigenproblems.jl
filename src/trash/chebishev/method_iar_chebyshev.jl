@@ -1,6 +1,6 @@
 export iar_chebyshev
 using IterativeSolvers
-
+using LinearAlgebra
 
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -8,7 +8,7 @@ using IterativeSolvers
 Infinite Arnoldi method, as described in Algorithm 2 in  "A linear eigenvalue algorithm for the nonlinear eigenvalue problem",
 by Jarlebring, Elias and Michiels, Wim and Meerbergen, Karl.
 """
-iar_chebyshev(nep::NEP;params...)=iar_chebyshev(Complex128,nep;params...)
+iar_chebyshev(nep::NEP;params...)=iar_chebyshev(ComplexF64,nep;params...)
 function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     ::Type{T},
     nep::NEP;
@@ -42,11 +42,11 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     v=ones(n,1);  # debug
-    vv[:]=v; vv[:]=vv[:]/norm(vv);
+    vv[:]=v; vv[:]=vv[:]/opnorm(vv);
     k=1; conv_eig=0;
 
     # hardcoded matrix L
-    L=diagm(vcat(2, 1./(2:m)),0)+diagm(-vcat(1./(1:(m-2))),-2);
+    L=diagm(0 => vcat(2, 1./(2:m))) + diagm(-2 => -vcat(1./(1:(m-2))))
     L=L*(b-a)/4;
     setprecision(BigFloat, 100);
 
@@ -93,15 +93,16 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
                 # Compute the S-matrix
                 TT=BigFloat;
-                D=diagm(zeros(TT,k))
+                D=diagm(0 => zeros(TT,k))
                 for jj=1:k
                     D[jj,jj]=BigFloat(1/jj);
                 end
-                #D=diagm(1./(1:k))
+                #D=diagm(0 => 1./(1:k))
                 PP=P[1:k,1:k]'*D;
-                SS=diagm(σ*ones(TT,kk))+diagm((a[2:kk]./a[1:kk-1]).*(1:kk-1),1); SS=SS.';
+                SS=diagm(0 => σ*ones(TT,kk)) + diagm(1 => (a[2:kk]./a[1:kk-1]).*(1:kk-1))
+                SS=SS.'
                 QQ=zeros(kk,kk); QQ[1,1]=1; QQ[2:end,2:end]=PP;
-                S2=Array{Complex128,2}(QQ*SS/QQ);
+                S2=Array{ComplexF64,2}(QQ*SS/QQ);
 
                 ## Compute the y0
                 #println("eltype(VZ)=",eltype(VZ)," eltype(S2)=",eltype(S2));
@@ -129,7 +130,7 @@ function iar_chebyshev{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
 
         # compute Ritz pairs (every check_error_every iterations)
         if (rem(k,check_error_every)==0)||(k==m)
-            D,Z=eig(H[1:k,1:k]);
+            D,Z = eigen(H[1:k,1:k])
             VV=view(V,1:1:n,1:k);
             Q=VV*Z; λ=1./D;
             conv_eig=0;

@@ -1,25 +1,16 @@
 # Test for infinite Bi-Lanczos
 
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
-
-
-nep=nep_gallery("qdep0");
-nept=SPMF_NEP([nep.A[1]',nep.A[2]',nep.A[3]'],nep.fi)
-n=size(nep,1);
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
 @testset "Infbilanczos σ=0" begin
+    nep=nep_gallery("qdep0");
+    nept=SPMF_NEP([copy(nep.A[1]'), copy(nep.A[2]'), copy(nep.A[3]')], nep.fi)
+    n=size(nep,1);
+
     m=40;
     λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=1,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
@@ -31,13 +22,13 @@ n=size(nep,1);
              0  18.839546184493734 -15.213756300995186   9.788512505128466
              0                   0   9.788512505128464  -0.120825360586847                                ]
     n0=min(size(Tstar,1),size(λ,1));
-    @test norm(Tstar[1:n0,1:n0]-T[1:n0,1:n0])<1e-10
+    @test opnorm(Tstar[1:n0,1:n0]-T[1:n0,1:n0])<1e-10
 
     thiserr=ones(m)*NaN
     for i=1:length(λ)
         thiserr[i]=norm(compute_Mlincomb(nep,λ[i],V[:,i]));
     end
-    @test length(find(thiserr .< 1e-7)) == 3
+    @test length(findall(thiserr .< 1e-7)) == 3
 end
 
 # Disabled to improve unit test performance
@@ -51,13 +42,7 @@ end
 #    end
 #    @test length(find(thiserr .< 1e-7)) >= 2
 #end
-#
 
-
-
-
-
-#
 ##for i=1:m
 ## semilogy(1:m, err[1:m,i], color="red", linewidth=2.0, linestyle="--")
 ##end

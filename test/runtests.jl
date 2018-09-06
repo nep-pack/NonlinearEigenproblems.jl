@@ -2,28 +2,29 @@
 # Runs all .jl files in the directory of this script containing a @test or
 # @testset macro, except those specified to be excluded
 ################################################################################
-using Base.Test
+using Test
 using TimerOutputs
+using Printf
 
 # Add tests below if you wish that they are not run together with all tests
 tests_not_to_run = Set{String}(map(uppercase, [
     "runtests.jl", # this file
-    "Beyn_parallel.jl", # currently disabled
+    "beyn_parallel.jl", # currently disabled
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "matlablinsolvers.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
     "nleigs_test_utils.jl", # utilities used by other tests
-    ]))
-
-include("load_modules_for_tests.jl")
+    "compan.jl", "sgiter.jl" # due to PolynomialZeros problems #63
+]))
 
 function is_test_script(file::AbstractString)
-    if ismatch(r"(?i)\.jl$", file)
-        src = open(readstring, file)
+    if occursin(r"(?i)\.jl$", file)
+        src = read(file, String)
+
         pos = 1
-        while !done(src, pos)
-            expr, pos = parse(src, pos)
+        while pos <= length(src)
+            expr, pos = Meta.parse(src, pos)
             if contains_test_macro(expr)
                 return true
             end
@@ -48,8 +49,14 @@ end
 
     for i = 1:length(tests_to_run)
         file = tests_to_run[i]
-        test_name = replace(file, Regex("$root/?(.+).jl\$", "i"), s"\1")
+        test_name = replace(file, Regex("$root/?(.+).jl\$", "i") => s"\1")
+
         @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
+
+        # first run to force JIT compilation
+        include(file)
+
+        # second run to time the test
         @timeit to test_name include(file)
     end
 

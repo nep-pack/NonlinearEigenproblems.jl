@@ -1,24 +1,11 @@
 # Run tests for the dep_distributed example
 
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
-
-
-dep=nep_gallery("dep_distributed");
-n=size(dep,1);
-exact_eigvals=[
+dep_distributed_exact_eigvals = [
    -0.400236388049641 + 0.970633098237807im
    -0.400236388049641 - 0.970633098237807im
    2.726146249832675 + 0.000000000000000im
@@ -31,9 +18,11 @@ exact_eigvals=[
    -1.677320660400946 - 7.496870451838560im]
 
 @testset "gallery(dep_distributed" begin
-    M1=compute_Mder(dep,exact_eigvals[1]);
-    @test minimum(svdvals(M1))<eps()*100;
+    dep=nep_gallery("dep_distributed");
+    n=size(dep,1);
 
+    M1=compute_Mder(dep, dep_distributed_exact_eigvals[1]);
+    @test minimum(svdvals(M1))<eps()*100;
 
 
     x=Array{Float64,1}(1:n)
@@ -49,8 +38,7 @@ exact_eigvals=[
 
 
     myerrmeasure=(λ,v) -> begin
-        global exact_eigvals,dep;
-        return minimum(abs.(λ-exact_eigvals)./abs(λ))
+        return minimum(abs.(λ .- dep_distributed_exact_eigvals) ./ abs(λ))
         #return norm(compute_Mlincomb(dep,λ,v))/norm(compute_Mder(dep,λ))
     end
 
@@ -62,19 +50,13 @@ exact_eigvals=[
         @test myerrmeasure(λ[i],V[:,i])<1e-10
     end
 
-
-
-    @testset "Quasinewton eigval[$i]" for i in 1:length(exact_eigvals[1:3])
-        λ0=round(exact_eigvals[i]*10)/10
-        λ,v=quasinewton(Complex128,dep,v=ones(n),λ=λ0,
+    @testset "Quasinewton eigval[$i]" for i in 1:length(dep_distributed_exact_eigvals[1:3])
+        λ0=round(dep_distributed_exact_eigvals[i]*10)/10
+        λ,v=quasinewton(ComplexF64,dep,v=ones(n),λ=λ0,
                         #displaylevel=1,
                         armijo_factor=0.5,maxit=200,
                         errmeasure=myerrmeasure,
                         tol=eps()*100)
-        @test abs((exact_eigvals[i]-λ)/λ)<eps()*100
+        @test abs((dep_distributed_exact_eigvals[i]-λ)/λ)<eps()*100
     end
-
-
-
-
 end

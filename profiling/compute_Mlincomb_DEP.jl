@@ -1,6 +1,18 @@
 #Intended to be run from nep-pack/ directory or nep-pack/profiling directory
 
-workspace(); push!(LOAD_PATH, string(@__DIR__, "/../src"));push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra")); push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide")); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver; using Gallery; using IterativeSolvers; using Base.Test
+push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide"))
+
+using NEPCore
+using NEPTypes
+using LinSolvers
+using NEPSolver
+using Gallery
+using IterativeSolvers
+using LinearAlgebra
+using Random
+using Test
 
 nep=nep_gallery("dep0_tridiag",10000)
 
@@ -19,4 +31,4 @@ import NEPCore.compute_Mlincomb_from_MM
 z2=compute_Mlincomb_from_MM(nep,λ,V,a)
 @time z2=compute_Mlincomb_from_MM(nep,λ,V,a)
 
-println("Error=",norm(z1-z2))
+println("Error=",opnorm(z1-z2))

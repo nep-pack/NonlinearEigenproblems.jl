@@ -1,17 +1,10 @@
-if !isdefined(:global_modules_loaded)
-    workspace()
-
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
-
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
-
+using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems.LinSolvers
+using Test
+using LinearAlgebra
 
 @testset "Jacobi–Davidson" begin
 
@@ -56,7 +49,7 @@ println(" Smallest eigevalue found: \n λ: ",λ)
 println("\nTesting IAR as projected solver")
 nep = nep_gallery("dep0_sparse",40)
 TOL = 1e-10;
-λ,u = jd_betcke(Complex128, nep, tol=TOL, maxit=30, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver, v0=ones(size(nep,1)))
+λ,u = jd_betcke(ComplexF64, nep, tol=TOL, maxit=30, displaylevel = 1, inner_solver_method = NEPSolver.IARInnerSolver, v0=ones(size(nep,1)))
 λ = λ[1]
 u = vec(u)
 println(" Resnorm of computed solution: ",compute_resnorm(nep,λ,u))
@@ -67,7 +60,7 @@ println(" Smallest eigevalue found: \n λ: ",λ)
 
 
 println("\nTesting convergence before starting")
-λ,u=jd_betcke(nep, tol=TOL, maxit=25, Neig=1, displaylevel=1, v0=ones(size(nep,1)), λ=λ, v0=u)
+λ,u=jd_betcke(nep, tol=TOL, maxit=25, Neig=1, displaylevel=1, λ=λ, v0=u)
 λ = λ[1]
 u = vec(u)
 @test norm(compute_Mlincomb(nep,λ,u)) < TOL
@@ -123,7 +116,6 @@ nep = nep_gallery("pep0",50)
 @test_throws ErrorException λ, u = jd_effenberger(nep, tol=TOL, maxit=40, inner_solver_method = NEPSolver.SGIterInnerSolver, v0=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
 @test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, Neig=1000, tol=TOL, maxit=20, v0=ones(size(nep,1)))
-
 
 end
 

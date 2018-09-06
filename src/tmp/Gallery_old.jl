@@ -1,6 +1,9 @@
 module Gallery_old
   using NEPCore
   using PolynomialRoots
+  using SparseArrays
+  using Random
+  
   export nep_gallery
   """
   Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. name decides which NEP. \\
@@ -12,12 +15,12 @@ module Gallery_old
   function nep_gallery(name,params...)
       if (name == "pep0")
           # A polynomial eigenvalue problem
-          
+
           n=200; # mat size
           p=3; # Poly degree
 
           A=Array{Float64}(n,n,p)
-          srand(0)
+          Random.seed!(0)
           for i=1:p
               A[:,:,i]=randn(n,n);
           end
@@ -40,7 +43,7 @@ module Gallery_old
               else
                   error("PEP higher derivatives not yet implemented")
               end
-              
+
           end
 
           nep=NEP(n,PEP_Md);
@@ -60,13 +63,13 @@ module Gallery_old
       elseif (name == "dep0")
           # A delay eigenvalue problem
           n=5;
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);
           I=eye(n,n);
           tau=1;
 
-          # Derivative function for DEPs 
+          # Derivative function for DEPs
           DEP_Md=function DEP_Md(λ,i=0)
               if (i==0)
                   return -λ*I+A0+A1*exp(-tau*λ)
@@ -78,11 +81,11 @@ module Gallery_old
           end
           nep=NEP(n,DEP_Md);
 
-          return nep          
+          return nep
       elseif (name == "dep0_sparse")
           # A delay eigenvalue problem with sparse matrices
           n=5;
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
           A0=sparse(randn(n,n));
           A1=sparse(randn(n,n));
           I=sparse(eye(n,n));
@@ -100,9 +103,9 @@ module Gallery_old
           end
           nep=NEP(n,DEP_Md_sparse);
 
-          return nep          
+          return nep
       else
           error("NEP with name '"*name*"' not found in gallery.")
-      end    
+      end
   end
-end 
+end

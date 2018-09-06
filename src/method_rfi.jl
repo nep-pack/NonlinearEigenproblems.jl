@@ -1,5 +1,9 @@
+using LinearAlgebra
+using Random
+
 export rfi
 export rfi_b
+
 """
     rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 
@@ -9,9 +13,9 @@ This is an implementation of the two-sided Rayleigh functional Iteration. This m
 julia> nep=nep_gallery("dep0");
 julia> nept=DEP([nep.A[1]',nep.A[2]'])
 julia> λ,v,u=rfi(nep,nept,v=ones(size(nep,1)))
-julia> norm(compute_Mder(nep,λ)*v) % v is a right eigenvector
+julia> opnorm(compute_Mder(nep,λ)*v) % v is a right eigenvector
 5.4672143489065705e-16
-julia> norm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
+julia> opnorm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
 4.1447913221215544e-16
 
 # Reference
@@ -67,7 +71,7 @@ function rfi(nep::NEP,
                 λ = closest_to(λ_vec,  λ)
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             if (displaylevel>0)
@@ -142,7 +146,7 @@ function rfi_b(nep::NEP,
                 λ = closest_to(λ_vec,  λ)
             end
         catch e
-            isa(e, Base.LinAlg.SingularException) || rethrow(e)
+            isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             if (displaylevel>0)

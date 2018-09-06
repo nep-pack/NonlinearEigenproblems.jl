@@ -3,16 +3,17 @@
   Look at the function 'nep_gallery()' for further instructions.
   """
 module Gallery
+    using NonlinearEigenproblems.Serialization
     using ..NEPCore
     using ..NEPTypes
+    using Random
+    using LinearAlgebra
+    using SparseArrays
     using PolynomialRoots
 
     export nep_gallery
 
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra")) # Add the search-path to the extra galleries
-
-    push!(LOAD_PATH, string(@__DIR__, "/utils"))
-    using Serialization
 
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/periodic_dde.jl")
@@ -96,6 +97,13 @@ module Gallery
      Create a quadratic eigenvalue problem with chosen eigenvalues
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\
+
+     'beam'\\
+     The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
+     * one optional parameter which is the size of the matrix       \\
+
+     'sine' The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.
+
 \\
 
    **See also the following galleries:**\\
@@ -103,7 +111,7 @@ module Gallery
       * GalleryWaveguide\\
   """
   nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
-  function nep_gallery{T<:NEP}(::Type{T},name::String,params...;kwargs...)
+  function nep_gallery(::Type{T},name::String,params...;kwargs...) where T<:NEP
       local n
       if (name == "dep0")
           # A delay eigenvalue problem
@@ -113,10 +121,10 @@ module Gallery
               n=5; # Default size
           end
 
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
           A0=randn(n,n);
           A1=randn(n,n);
-          tau=1;
+          tau=1.0;
           nep=DEP([A0,A1],[0,tau])
           return nep
 
@@ -132,7 +140,7 @@ module Gallery
               n=100;       # Default size
               p=0.25;      # Default fill density
           end
-          srand(0) # reset the random seed
+          Random.seed!(0) # reset the random seed
 
           A0=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
           A1=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
@@ -148,10 +156,10 @@ module Gallery
          else
             n=100; # Default size
          end
-         srand(0) # reset the random seed
-         I=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
-         A0=sparse(I, J, rand(3*n-2))
-         A1=sparse(I, J, rand(3*n-2))
+         Random.seed!(1) # reset the random seed
+         K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
+         A0=sparse(K, J, rand(3*n-2))
+         A1=sparse(K, J, rand(3*n-2))
 
          tau=1;
          nep=DEP([A0,A1],[0,tau])
@@ -167,14 +175,14 @@ module Gallery
           end
 
           L=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
-          x = linspace(0,pi,n)
+          x = range(0, stop = pi, length = n)
           h=x[2]-x[1];
           h=pi
           L=L/(h^2)
           L=kron(L,L)
 
-          b=broadcast((x,y)->100*abs(sin(x+y)),x,x.')
-          a=broadcast((x,y)->-8*sin(x)*sin(y),x,x.')
+          b=broadcast((x,y)->100*abs(sin(x+y)),x,transpose(x))
+          a=broadcast((x,y)->-8*sin(x)*sin(y),x,transpose(x))
           B=sparse(1:n^2,1:n^2,b[:])
           A=L+sparse(1:n^2,1:n^2,a[:])
 
@@ -208,7 +216,7 @@ module Gallery
               n=200; # Default size
           end
 
-          srand(0)
+          Random.seed!(0)
           A0=randn(n,n)
           A1=randn(n,n)
           A2=randn(n,n)
@@ -224,7 +232,7 @@ module Gallery
               n = 200; # Default size
           end
 
-          srand(0)
+          Random.seed!(0)
           A0 = Symmetric(randn(n,n))
           A1 = Symmetric(randn(n,n))
           A2 = Symmetric(randn(n,n))
@@ -240,7 +248,7 @@ module Gallery
               n=200; # Default size
           end
 
-          srand(0)
+          Random.seed!(0)
           A0=sprandn(n,n,0.03)
           A1=sprandn(n,n,0.03)
           A2=sprandn(n,n, 0.03)
@@ -297,15 +305,14 @@ module Gallery
                             "gallery_extra", "qdep_infbilanczos_")
           A0=read_sparse_matrix(qdepbase * "A0.txt")
           A1=read_sparse_matrix(qdepbase * "A1.txt")
-          tau=1;
-          quadfun= S -> S^2;
-          constfun= S -> eye(S);
-          expfun= S -> expm(-tau*Matrix(S));
+          tau = 1
+          quadfun = S -> S^2
+          constfun = S -> Matrix{eltype(S)}(I, size(S))
+          expfun = S -> exp(-tau * Matrix(S))
 
-          AA=[-speye(A0),A0,A1]
-          fi=[quadfun,constfun,expfun]
-          return SPMF_NEP(AA,fi)
-
+          AA = [SparseMatrixCSC{eltype(A0)}(-I, size(A0)), A0, A1]
+          fi = [quadfun, constfun, expfun]
+          return SPMF_NEP(AA, fi)
       elseif (name=="qdep1")
           n=4
           A0=[0.3000   -0.6000         0    0.4000
@@ -316,7 +323,7 @@ module Gallery
              -1.1000    0.9000    1.2000    0.5000
               0.5000    0.2000   -1.6000   -1.3000
               0.7000    0.4000   -0.4000         0];
-          return SPMF_NEP([eye(n), A0, A1],[λ->-λ^2,λ->eye(λ),λ->expm(-λ)])
+          return SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ^2, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem
@@ -333,12 +340,12 @@ module Gallery
           end
 
 
-          srand(0) # reset the random seed
-          I=eye(n);
-          A1=diagm(E[1:n]);
-          A2=diagm(E[n+1:2*n]);
+          Random.seed!(0) # reset the random seed
+          K = Matrix(1.0I, n, n)
+          A1 = diagm(0 => E[1:n])
+          A2 = diagm(0 => E[n+1:2*n])
 
-          nep=PEP([A1*A2,-A1-A2,I])
+          nep=PEP([A1*A2,-A1-A2,K])
           return nep
       elseif (name == "periodicdde")
           return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
@@ -349,26 +356,24 @@ module Gallery
           # It is also a benchmark example in DDE-BIFTOOL
 
 
-          pars= [1/2; -1; 1; 2.34; 0.2; 0.2 ; 1.5]+0im;
-          kappa= pars[1];
-          beta=pars[2];
-          A=[0 pars[3]; pars[4] 0];
+          pars = [1/2; -1; 1; 2.34; 0.2; 0.2 ; 1.5] .+ 0im
+          kappa = pars[1]
+          beta = pars[2]
+          A = [0 pars[3]; pars[4] 0]
 
-          x=[0;0];  # The zero (trivial) stationary solution
+          x = [0; 0]  # The zero (trivial) stationary solution
 
           # A non-trivial stationary solution
           #x=[3.201081590416643561697725111745656884148241428177442574927999582405266342752249e-01
           #   5.096324796647208606096018689631125587762848405395086474417800152349531876959548e-01]
 
+          tauv = [0;0.2;0.2;1.5]
 
-          tauv=[0;0.2;0.2;1.5];
-
-          A0=-kappa*eye(2);
-          A1=A[2,1]*[0 0; (1-tanh(x[2])^2) 0];
-          A2=A[1,2]*[0 (1-tanh(x[1])^2); 0 0];
-          A3=beta*diagm([(1-tanh(x[1])^2), (1-tanh(x[2])^2)]);
-          dep=DEP([A0, A1,   A2, A3],tauv);
-
+          A0 = -kappa * Matrix(1.0I, 2, 2)
+          A1 = A[2,1] * [0 0; (1-tanh(x[2])^2) 0]
+          A2 = A[1,2] * [0 (1-tanh(x[1])^2); 0 0]
+          A3 = beta * diagm(0 => [(1-tanh(x[1])^2), (1-tanh(x[2])^2)])
+          return DEP([A0, A1, A2, A3], tauv)
        elseif (name == "nlevp_native_gun")
           gunbase=joinpath(dirname(@__FILE__()), "gallery_extra",
             "converted_nlevp", "gun_")
@@ -378,12 +383,46 @@ module Gallery
           W2=read_sparse_matrix(gunbase * "W2.txt")
           # The gun problem is a sum of a PEP and a problem containing square roots.
           pep=PEP([K,-M]);
-          sqrt1op= S -> 1im*sqrtm(Matrix(S))
-          sqrt2op= S -> 1im*sqrtm(Matrix(S)-108.8774^2*eye(S))
+          sqrt1op= S -> 1im*sqrt(Matrix(S))
+          sqrt2op= S -> 1im*sqrt(Matrix(S)-108.8774^2*I)
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;
+      elseif (name == "beam")
+          n::Int=100
+          if (length(params)>0)
+             n=params[1]
+          end
+
+          h=1/n;
+          ee = ones(n);
+          A0 = spdiagm(-1 => ee[1:n-1], 0 => -2*ee, 1 => ee[1:n-1]);
+          A0[end,end]=1/h;
+          A0[end,end-1]=-1/h;
+          A1=sparse([n],[n],[1.0]); # A1=en*en'
+          tau=1.0;
+          return DEP([A0,A1],[0,tau]);
+
+       elseif (name == "sine")
+          data_dir=joinpath(dirname(@__FILE__()), "gallery_extra",   "converted_sine")
+
+
+          A0=read_sparse_matrix(joinpath(data_dir,"sine_A0.txt"));
+          A1=read_sparse_matrix(joinpath(data_dir,"sine_A1.txt"));
+          A2=read_sparse_matrix(joinpath(data_dir,"sine_A2.txt"));
+          V=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_V.txt")));
+          Q=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_Q.txt")));
+
+          n=size(A0,1);
+          Z=spzeros(n,n);
+          pep=PEP([A0,A1,Z,Z,A2]);
+          # Matrix  sine function. Note that the Term is rank two which is not exploited here
+          sin_nep=SPMF_NEP([V*Q'], [S-> sin(Matrix(S))]);
+
+          nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
+          return nep;
       else
+
           error("The name $name is not supported in NEP-Gallery.")
       end
 

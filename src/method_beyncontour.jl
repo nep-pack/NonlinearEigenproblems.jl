@@ -1,6 +1,9 @@
 # Beyn contour integral approach
 
 #using QuadGK # Disabled to lessen requirements
+using Distributed
+using LinearAlgebra
+using Random
 
 export contour_beyn
 
@@ -23,9 +26,7 @@ julia> minimum(svdvals(compute_Mder(nep,λv[1])))
 # References
 * Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
 """
-
-
-contour_beyn(nep::NEP;params...)=contour_beyn(Complex128,nep;params...)
+contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
 function contour_beyn(::Type{T},
                          nep::NEP;
                          errmeasure::Function =
@@ -45,7 +46,7 @@ function contour_beyn(::Type{T},
     gp=t -> 1im*radius*exp(1im*t)
 
     n=size(nep,1);
-    srand(10); # Reproducability
+    Random.seed!(10); # Reproducability
     Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
 
     if (k>n)
@@ -100,21 +101,21 @@ function contour_beyn(::Type{T},
     A1=A1/(2im*pi);
 
     @ifd(println("Computing SVD prepare for eigenvalue extraction "))
-    V,S,W = svd(A0);
-    V0=V[:,1:k];
-    W0=W[:,1:k];
-    B=(V0'*A1*W0)/diagm(S[1:k]);
+    V,S,W = svd(A0)
+    V0 = V[:,1:k]
+    W0 = W[:,1:k]
+    B = (copy(V0')*A1*W0) / diagm(0 => S[1:k])
     if ((maximum(S)/minimum(S))>1/sqrt(eps()))
-        warn("Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver")
+        @warn "Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver"
         println(S)
     end
 
 
     @ifd(println("Computing eigenvalues "))
-    λ,v=eig(B);  # Eigenvector extraction not implemented yet
+    λ,v=eigen(B)    # Eigenvector extraction not implemented yet
     # TODO:Implement eigenvector extraction
     warn("Eigenvector extraction not implemented.")
-    return (λ+σ,NaN*v)
+    return (λ.+σ, NaN*v)
 
 end
 
@@ -126,7 +127,7 @@ function quadg_parallel(f,a,b,N)
     w=w*(b-a)/2;
     t=a+((x+1)/2)*(b-a);
     # Sum it all together f(t[1])*w[1]+f(t[2])*w[2]...
-    S=@parallel (+) for i = 1:N
+    S=@distributed (+) for i = 1:N
         f(t[i])*w[i]
     end
     return S;
@@ -149,9 +150,9 @@ end
 
 # Trapezoidal rule for a periodic function f
 function ptrapz(f,a,b,N)
-    h=(b-a)/N
-    t=linspace(a,b-h,N);
-    S=zeros(f(t[1]))
+    h = (b-a)/N
+    t = range(a, stop = b-h, length = N)
+    S = zero(f(t[1]))
     for i=1:N
         S+=f(t[i])
     end

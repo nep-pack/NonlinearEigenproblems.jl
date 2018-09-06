@@ -1,12 +1,10 @@
-workspace()
-#push!(LOAD_PATH, pwd())	# looks for modules in the current directory
 #using Gallery
 #using GalleryWaveguide
 
 #OBS: Only needed to run the debug
 push!(LOAD_PATH, string(@__DIR__, "/../gallery_extra/waveguide")) # looks for modules in the correct directory
 using waveguide_debug
-using Base.Test
+using Test
 
 
 @testset "WEP_large" begin

@@ -4,25 +4,14 @@ dist: trusty
 os:
   - linux
 julia:
-  - 0.6
+  - 0.7
+  - 1.0
 notifications:
   email: false
-cache:
-  directories:
-  # cache all packages
-  - $HOME/.julia
 script:
-  # remove cache of our own package
-  - rm -rf $HOME/.julia/v0.6/NonlinearEigenproblems
+  - export JL_PKG=NonlinearEigenproblems
   - git fetch --unshallow
-  - julia --color=yes -e 'Pkg.clone(pwd())'
-  - julia --color=yes -e 'Pkg.build("NonlinearEigenproblems")'
-  # delete old test coverage results
-  - find $HOME/.julia -name '*.jl.*cov' -delete
-  # filter out "method definition overwritten" warnings
-  - julia --check-bounds=yes --color=yes -e 'Pkg.test("NonlinearEigenproblems", coverage=true)'
-before_cache:
-  # add Coverage package to cache, so that we don't have to install it on each run
-  - julia -e 'Pkg.add("Coverage");'
+  - julia --color=yes -e "if VERSION < v\"0.7.0-DEV.5183\"; Pkg.clone(pwd()); Pkg.build(\"${JL_PKG}\"); else using Pkg; Pkg.build(); end"
+  - julia --check-bounds=yes --inline=no --color=yes -e "if VERSION < v\"0.7.0-DEV.5183\"; Pkg.test(\"${JL_PKG}\", coverage=true); else using Pkg; Pkg.test(coverage=true); end"
 after_success:
-  - julia -e 'include("test/submit_test_coverage.jl")'
+  - julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'

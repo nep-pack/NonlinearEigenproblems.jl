@@ -88,6 +88,3 @@ function c=mon2cheb(rho,gamma,a)
     end
     c=b(1:n+1);
 end
-
-
-

@@ -1,24 +1,16 @@
 # Run tests for the deflation
-# Intended to be run from nep-pack/ directory or nep-pack/test directory
-if !isdefined(:global_modules_loaded)
-    workspace()
 
-    push!(LOAD_PATH, string(@__DIR__, "/../src"))
+using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems.Gallery
+using Test
+using LinearAlgebra
 
-    using NEPCore
-    using NEPTypes
-    using LinSolvers
-    using NEPSolver
-    using Gallery
-    using IterativeSolvers
-    using Base.Test
-end
+@testset "Deflation (combined with MSLP)" begin
 
 nep=nep_gallery("dep0");
-nep.tauv=[0,0.8];
-
+nep = DEP(nep.n, nep.A, [0, 0.8])
 #nep=shift_and_scale(nep;shift=0,scale=2);
-@testset "Deflation (combined with MSLP)" begin
 
 n=size(nep,1);
 
@@ -46,7 +38,7 @@ for k=1:6
 end
 
 # Transform partial Schur factorization to eigenpairs
-(λv,VS)=eig(S0)
+λv,VS=eigen(S0)
 V=V0*VS;
 
 # Test that λv and V are now eigpairs

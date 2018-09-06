@@ -1,5 +1,7 @@
 module NEPCore_old
 
+using LinearAlgebra
+
 export NEP
 export size
 export NoConvergenceException
@@ -13,11 +15,8 @@ export compute_MM
 # NEP-functions
 export compute_resnorm
 
-
 # Helper functions
 export compute_Mlincomb_from_MM
-
-
 
 ### Old stuff
 
@@ -35,20 +34,20 @@ type NEP
     # Linear combination of derivatives
     # compute a[1]*M^{(0)}(s)V[:,1]+...+a[p]*M^{(p-1)}(s)V[:,p]
     Mlincomb::Function
-    
+
     function NEP(n,Md)
         this=new()
         this.n=n
         this.Md=Md
 
         this.resnorm=function (λ,v)
-            return norm(this.Md(λ,0)*v)
+            return opnorm(this.Md(λ,0)*v)
         end
 
         this.relresnorm=function (λ,v)
-             # Giampaolo: I changed to 1-norm in order to expand 
+             # Giampaolo: I changed to 1-norm in order to expand
              # to sparse matrices
-            return this.resnorm(λ,v)/norm(Md(λ,0),1);
+            return this.resnorm(λ,v)/opnorm(Md(λ,0),1);
         end
 
         this.rf=function(x; y=x, target=0, λ0=target)
@@ -69,7 +68,7 @@ type NEP
             return z
         end
         return this
-            
+
     end
 end
 
@@ -94,12 +93,12 @@ type LinSolver
             return this.Afact\x
         end
         return this;
-    end   
+    end
 end
 
 
     function jordan_matrix(n::Integer,λ::Number)
-        Z=λ*eye(n)+diagm(ones(n-1),1);
+        Z = λ*eye(n) + diagm(1 => ones(n-1))
     end
-    
+
 end  # End Module

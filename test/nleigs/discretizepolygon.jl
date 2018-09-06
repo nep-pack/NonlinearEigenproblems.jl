@@ -1,11 +1,10 @@
-if !isdefined(:global_modules_loaded)
-    using Base.Test
-end
+using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
-@testset "discretizepolygon: concave polygon" begin
+@testset "discretizepolygon" begin
+@testset "concave polygon" begin
     poly = [0.0; 0+10im; 5+5im; 10+10im; 10+0im]
 
     expected_boundary_points = [
@@ -28,7 +27,7 @@ include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
     @test boundary[nr_boundary+length(poly)+1] == poly[1]
 
     # points on polygon's boundary should count as inside; expand polygon a tiny bit to counteract rounding errors
-    t = eps()*5;
+    t = eps()*5
     expanded_poly = poly + [-t-t*im, -t+t*im, 0+t*im, t+t*im, t-t*im]
     @test all(p -> inpolygon(real(p), imag(p), real.(expanded_poly), imag.(expanded_poly)), boundary)
 
@@ -36,18 +35,18 @@ include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
     @test all(p -> inpolygon(real(p), imag(p), real.(poly), imag.(poly)), interior)
 end
 
-@testset "discretizepolygon: narrow Σ" begin
+@testset "narrow Σ" begin
     boundary, interior = discretizepolygon([-10.0-2im, 10-2im, 10+2im, -10+2im], true, 100, 5)
     @test length(boundary) == 100 + 5
     @test length(interior) >= 5
 end
 
-@testset "discretizepolygon: too narrow Σ" begin
+@testset "too narrow Σ" begin
     @test_throws ErrorException discretizepolygon([-10.0-0.2im, 10-0.2im, 10+0.2im, -10+0.2im], true, 100, 5)
 end
 
-@testset "discretizepolygon: unit disk" begin
-    boundary, interior = discretizepolygon(Vector{Complex128}(0), true, 100, 100)
+@testset "unit disk" begin
+    boundary, interior = discretizepolygon(Vector{ComplexF64}(), true, 100, 100)
 
     @test length(boundary) == 101
     @test all(isapprox.(abs.(boundary[1:100]), 1.0, rtol = 100*eps()))
@@ -56,22 +55,21 @@ end
     @test all(abs.(interior) .< 1)
 end
 
-@testset "discretizepolygon: Chebyshev points" begin
+@testset "Chebyshev points" begin
     p1 = -2.0 - 1im
     p2 = 2.0 + 1im
     boundary, interior = discretizepolygon([p1, p2], true, 100, 100)
 
     @test length(boundary) == 102
-    @test all(imag((boundary-p1) / (p2-p1)) .== 0)
+    @test all(imag((boundary .- p1) / (p2-p1)) .== 0)
 
     @test length(interior) >= 100
-    @test all(imag((interior-p1) / (p2-p1)) .== 0)
+    @test all(imag((interior .- p1) / (p2-p1)) .== 0)
+end
 end
 
-# To visualize:
-if false
-    using Plots
-    import GR
-    scatter(real(zz), imag(zz))
-    scatter(real(Z), imag(Z))
-end
+# To visualize, use something like this:
+#using Plots
+#import GR
+#scatter(real(zz), imag(zz))
+#scatter(real(Z), imag(Z))

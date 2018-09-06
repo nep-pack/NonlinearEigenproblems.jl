@@ -1,5 +1,7 @@
 export ilan
+
 using IterativeSolvers
+using Random
 
 """
     ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -21,8 +23,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
-ilan(nep::NEP;params...)=ilan(Complex128,nep;params...)
-function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
+ilan(nep::NEP;params...)=ilan(ComplexF64,nep;params...)
+function ilan(
     ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
@@ -37,7 +39,7 @@ function ilan{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}(
     displaylevel=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver)
+    inner_solver_method=DefaultInnerSolver) where {T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
 
     n = size(nep,1);

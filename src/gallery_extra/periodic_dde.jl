@@ -1,9 +1,14 @@
+using SparseArrays
+using Random
+
 import Base.size;
 
     import ..NEPCore.compute_Mder
     import ..NEPCore.compute_Mlincomb
     import ..NEPCore.compute_Mlincomb!
     import ..NEPCore.compute_MM
+    import ..NEPCore.compute_Mlincomb_from_MM
+    import ..NEPCore.compute_Mlincomb_from_Mder
 
 
     export compute_Mder
@@ -18,9 +23,9 @@ import Base.size;
 
 This type represents NEP associated with the time-periodic delay-differential equation
 ```math
-\dot{x}(t)=A(t)x(t)+B(t)x(t-\tau)
+̇{x}(t)=A(t)x(t)+B(t)x(t-τ)
 ```
-where `A(t)` and `B(t)` are periodic functions with period `\tau`.
+where `A(t)` and `B(t)` are periodic functions with period `τ`.
 
 # Example
 ```julia-repl
@@ -31,8 +36,8 @@ julia> compute_Mlincomb(nep,λ,v)
  0.0+0.0im
 ```
 """
-abstract type PeriodicDDE_NEP <: NEP; end; 
-type PeriodicDDE_NEP_DAE <: PeriodicDDE_NEP
+abstract type PeriodicDDE_NEP <: NEP; end;
+struct PeriodicDDE_NEP_DAE <: PeriodicDDE_NEP
     A::Function
     B::Function
     n::Integer
@@ -45,11 +50,11 @@ type PeriodicDDE_NEP_DAE <: PeriodicDDE_NEP
         n=size(A(0),1)
         nep=new(A,B,n,1000,tau,[],E,false);;
         return nep;
-    end        
+    end
 end
 
-    
-type PeriodicDDE_NEP_ODE <: PeriodicDDE_NEP
+
+struct PeriodicDDE_NEP_ODE <: PeriodicDDE_NEP
     A::Function
     B::Function
     n::Integer
@@ -63,12 +68,12 @@ type PeriodicDDE_NEP_ODE <: PeriodicDDE_NEP
         nep=new(A,B,n,1000,tau,[]);;
         #nep.disconts=detect_disconts(nep);
         return nep;
-    end    
+    end
 end
 
 
 
-type NEP_Mder <: NEP
+struct NEP_Mder <: NEP
     Mder::Function
     n::Number
 end
@@ -165,10 +170,10 @@ end
 #        t=t+h;
 #    end
 #    return y;
-#    
+#
 #end
 #
-    
+
 
 #function compute_Mlincomb(nep::PeriodicDDE_NEP, λ::Number, v::Any)
 #    n=size(nep,1);
@@ -177,7 +182,7 @@ end
 #    F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-(nep.tau*λ))-Y*λ)
 #    Y0=v;
 #    YY=ode_rk4(F, 0,nep.tau, nep.N, Y0);
-#    #YY=myode(F, 0,nep.tau, nep.N, Y0);    
+#    #YY=myode(F, 0,nep.tau, nep.N, Y0);
 #    return YY-Y0
 #end
 #
@@ -196,11 +201,11 @@ function compute_MM(nep::PeriodicDDE_NEP_DAE, S ,V)
         YY=ode_be_dae_const(Af,nep.E, 0,nep.tau, nep.N, Y0);
         return YY-Y0;
     end
-    
+
 end
 
 
-### The implementations of compute_MM is a 
+### The implementations of compute_MM is a
 ### crude first-version, not optimized for efficiency nor accuracy.
 function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
     n=size(nep,1);
@@ -210,19 +215,18 @@ function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
     if size(S,1)==1
         F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-nep.tau*S[1,1])-Y*S[1,1])
     else
-        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+        F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-Matrix(nep.tau*S))-Y*S)
     end
 
-    
+
     Y0=V; # Use RK4 for ODE's
     YY=ode_rk4(F, 0,nep.tau, nep.N, Y0);
-    #YY=myode(F, 0,nep.tau, nep.N, Y0);    
+    #YY=myode(F, 0,nep.tau, nep.N, Y0);
     return YY-Y0
 end
 
-function compute_Mlincomb(nep::PeriodicDDE_NEP,λ,v)
-
-    return compute_MM(nep,[λ],v);
+function compute_Mlincomb(nep::PeriodicDDE_NEP,λ::Number,V::Union{AbstractVector,AbstractMatrix})
+    return compute_Mlincomb_from_MM(nep,λ,V,ones(eltype(V),size(V,2)))
 end
 
 
@@ -231,7 +235,7 @@ end
 #    n=size(nep,1);
 #    # We are using (non-trivial) fact that
 #    # the MM satisfies an ODE (as well as the action)
-#    F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*expm(-full(nep.tau*S))-Y*S)
+#    F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-full(nep.tau*S))-Y*S)
 #    Y0=V;
 #    t0=0;
 #    disconts_and_tau=[nep.disconts;nep.tau];
@@ -241,12 +245,12 @@ end
 #        Y0=YY;
 #        t0=disconts_and_tau[k];
 #    end
-#    #YY=myode(F, 0,nep.tau, nep.N, Y0);    
+#    #YY=myode(F, 0,nep.tau, nep.N, Y0);
 #    return YY-V
 #end
 
 
-# For compute_Mlincomb we (implicitly) use compute_Mlincomb_from_MM 
+# For compute_Mlincomb we (implicitly) use compute_Mlincomb_from_MM
 
 function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
     if (der==0)
@@ -256,7 +260,7 @@ function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
             Z[:,k]=compute_Mlincomb(nep,λ,ek);
         end
         return Z;
-        #return compute_Mder_from_MM(nep,λ,der) 
+        #return compute_Mder_from_MM(nep,λ,der)
     elseif (der==1)
         # Compute first derivative with finite difference. (Slow and inaccurate)
         ee=sqrt(eps())/10;
@@ -299,7 +303,7 @@ julia> exp(nep.tau*λ)  # Reported in Figure 2 with multipliers in reference
 * E. Bueler, Error Bounds for Approximate Eigenvalues of Periodic-Coefficient Linear Delay Differential Equations, SIAM J. Numer. Anal., 45(6), 2510–2536
 
 """
-function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=200,TT=Complex128)
+function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=200,TT=ComplexF64)
     if (name == "mathieu")
         δ=1; b=1/2; a=0.1; tau=2;
         A=t-> [0 1; -( δ+ a*cos(pi*t) ) -1];
@@ -307,7 +311,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         nep=PeriodicDDE_NEP_ODE(A,B,tau)
         return nep;
     elseif (name == "rand0")
-        # Some eigenvalues for n=200: 
+        # Some eigenvalues for n=200:
         #  4.63633+1.10239im
         # 4.63633-1.10239im
         # 5.58214+4.03225im
@@ -315,11 +319,11 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         # 5.73989+0.732386im
         # 5.73989-0.732386im
 
-        srand(0);
+        Random.seed!(0);
         A0=sprandn(n,n,0.3)-speye(n,n)
         A1=sprandn(n,n,0.3)-speye(n,n)
         B0=sprandn(n,n,0.3)-speye(n,n);
-        B1=sprandn(n,n,0.3)-speye(n,n);            
+        B1=sprandn(n,n,0.3)-speye(n,n);
         tau=2;
         A=t-> A0+cos(pi*t)*A1;
         B=t-> B0+exp(0.01*sin(pi*t))*B1;
@@ -335,23 +339,23 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         A0=t-> [0 1; -( δ+ a*cos(pi*t) ) -1]+eye(2)*((t-0.3)^2)*(t>0.3);
         B0=t-> [0 0; b 0];
         e=ones(n-1);
-        DD=spdiagm((e,-2*e,e),(-1,0,1));
+        DD=spdiagm(-1 => e, 0 => -2*e, 1 => e)
         DD[1,1]=-1;
         h=1/n;
         DD=DD
         a=1;
         A=t-> [sparse(A0(t)) a*speye(2,n); a*speye(n,2) DD];
-        B=t-> [sparse(B0(t)) spzeros(2,n); spzeros(n,2) -0*speye(n)];        
-        #DD=full(spdiagm((e,-2*e,e),(-1,0,1)));
+        B=t-> [sparse(B0(t)) spzeros(2,n); spzeros(n,2) -0*speye(n)];
+        #DD=full(spdiagm(-1 => e, 0 => -2*e, 1 => e))
         #A=t-> [(A0(t)) eye(2,n); eye(n,2) DD];
-        #B=t-> [(B0(t)) zeros(2,n); zeros(n,2) eye(n)];        
+        #B=t-> [(B0(t)) zeros(2,n); zeros(n,2) eye(n)];
 
         nep=PeriodicDDE_NEP(A,B,1)
     elseif (name == "milling1_be")
         # The milling model in analyzed by Insperger, Orosz, Bueler, etc (with unit constants)
         omega0=TT(1);
         zeta0=TT(1);  # Zeta (damping)
-        m  =TT(1);      # Mass 
+        m  =TT(1);      # Mass
         ap =TT(1)
         KR =TT(1)
         KT =TT(1);
@@ -360,7 +364,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         A0=[TT(0) TT(1); -omega0^2 -2*zeta0*omega0];
 
         phi=t -> 2*pi*t/tau;
-        
+
         h=t -> (t<real(tau)/2).*(sin(phi(t)).^2*KR+KT*cos(phi(t)).*sin(phi(t)));
         E21=zeros(TT,2,2); E21[2,1]=1;
 
@@ -374,7 +378,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         # The milling model in analyzed by Insperger, Orosz, Bueler, etc (with unit constants)
         omega0=TT(1);
         zeta0=TT(1);  # Zeta (damping)
-        m  =TT(1);      # Mass 
+        m  =TT(1);      # Mass
         ap =TT(1)
         KR =TT(1)
         KT =TT(1);
@@ -383,7 +387,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         A0=[TT(0) TT(1); -omega0^2 -2*zeta0*omega0];
 
         phi=t -> 2*pi*t/tau;
-        
+
         h=t -> (t<tau/2).*(sin(phi(t)).^2*KR+KT*cos(phi(t)).*sin(phi(t)));
         E21=zeros(TT,2,2); E21[2,1]=1;
 
@@ -392,10 +396,10 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
                                 t->+E21*h(t)*ap/m,1)
         nep.N=50;
         return nep;
-        
-        
-        
-    elseif (name == "milling")            
+
+
+
+    elseif (name == "milling")
         # The problem by Rott and Hömberg (and Jarlebring)
         #error("Problem in http://dx.doi.org/10.3182/20100607-3-CZ-4010.00023 not yet implemented")
         m=setDefaultParameters(n); m=computeMatricesScaled(m);
@@ -403,7 +407,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
 
         #x=1e-2;d=[ones(m.disc_n0+1);x*ones(m.disc_n0+1)];
         #D=eye(2*m.disc_n0+2);
-        
+
 
         A=t-> -AScaled(t,nn/60,ap,m)/100;
         B=t-> -BScaled(t,nn/60,ap,m)/100;
@@ -415,7 +419,3 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         error("Unknown PeriodicDDE_NEP type:",name);
     end
 end
-
-
-
-

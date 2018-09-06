@@ -1,5 +1,10 @@
-
 module NEPTypes
+    using ..NEPCore
+    using SparseArrays
+    using LinearAlgebra
+    #using PolynomialZeros
+    using Polynomials
+
     # Specializalized NEPs
     export ProjectableNEP
     export DEP
@@ -18,10 +23,6 @@ module NEPTypes
 
     export set_projectmatrices!;
 
-    using ..NEPCore
-    using PolynomialZeros
-    using Polynomials
-
     # We overload these
     import ..NEPCore.compute_Mder
     import ..NEPCore.compute_Mlincomb
@@ -31,7 +32,7 @@ module NEPTypes
     import ..NEPCore.compute_rf
 
     import Base.size
-    import Base.issparse
+    import SparseArrays.issparse
 
 
     export compute_Mder
@@ -141,7 +142,7 @@ efficient to set this flag to false.
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
 julia> id_op=S -> eye(S)
-julia> exp_op=S -> expm(S)
+julia> exp_op=S -> exp(S)
 julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
 julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 2×2 Array{Float64,2}:
@@ -182,9 +183,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if use_sparsity_pattern && issparse(AA[1])
              # Merge the sparsity pattern of all matrices without dropping any zeros
-             Zero = spones(AA[1])           # Julia 0.7+: Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
+             Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
              for i = 2:size(AA,1)
-                 Zero += spones(AA[i])      # Julia 0.7+: Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
+                 Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
              end
              Zero = T.(Zero)
              Zero.nzval[:] .= T(0)
@@ -234,16 +235,15 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             ## Compute Fi=f_i(S) in an optimized way
             if (isdiag(S)) # optimize if S is diagonal
                 Sd=diag(S);
-                if (norm(Sd-Sd[1])==0) # Optimize further if S is a
-                                       # multiple of identity
+                if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
                     Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
                 else  # Diagonal but not constant
-                    Fid=zeros(Complex128,size(S,1))
+                    Fid=zeros(ComplexF64,size(S,1))
                     for j=1:size(S,1)
                         Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
                     end
                 end
-                Fi=spdiagm(Fid);
+                Fi=sparse(Diagonal(Fid))
             else  # Otherwise just compute the matrix function operation
                 if(nep.Schur_factorize_before)
                     Fi= Q*nep.fi[i](T)*Q'
@@ -257,29 +257,36 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
-    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer=0)
-        if i == 0
-            x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
 
-            if isempty(nep.As)
-                Z = copy(nep.Zero)
-                for i=1:size(nep.A,1)
-                    Z += nep.A[i] * x[i]
-                end
-                return Z
-            else
-                # figure out the return type, as the greatest type of all input
-                Tx = mapreduce(eltype, promote_type, x)
-                TA = mapreduce(eltype, promote_type, nep.As)
-                T = promote_type(Tx, TA)
+    function compute_Mder(nep::SPMF_NEP,λ::Number)
 
-                Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n, nep.As[1].colptr, nep.As[1].rowval, convert.(T, nep.As[1].nzval .* x[1]))
-                for i = 2:length(nep.As)
-                    Z.nzval .+= nep.As[i].nzval .* x[i]
-                end
-
-                return Z
+        # figure out the return type, as the greatest type of all input
+        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+        Tx = mapreduce(eltype, promote_type, x)
+        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+        TZ=promote_type(TA,Tx)  # output type
+        if isempty(nep.As)
+            # Full matrices
+            Z = zeros(TZ,size(nep,1),size(nep,1));
+            for k=1:size(nep.A,1)
+                Z += nep.A[k] * x[k]
             end
+            return Z
+        else
+            Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
+                                nep.As[1].colptr, nep.As[1].rowval,
+                                convert.(TZ, nep.As[1].nzval .* x[1]))
+            for k = 2:length(nep.As)
+                Z.nzval .+= nep.As[k].nzval .* x[k]
+            end
+
+            return Z
+        end
+    end
+
+    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
+        if (i==0)
+            return compute_Mder(nep,λ);
         else
             # This is typically slow for i>1 (can be optimized by
             # treating the SPMF-terms individually)
@@ -306,39 +313,52 @@ Constructor: DEP(AA,tauv) where AA is an array of the
 \\frac{n!}{k!(n - k)!} = \\binom{n}{k}
 ```
 matrices A_i, and tauv is a vector of the values tau_i
+
+# Example:
+julia> A0=randn(3,3); A1=randn(3,3);
+julia> tauv=[0,0.2] # Vector with delays
+julia> dep=DEP([A0,A1],tauv)
+julia> λ=3.0;
+julia> M1=compute_Mder(dep,λ)
+julia> M2=-λ*I+A0+A1*exp(-tauv[2]*λ)
+julia> norm(M1-M2)
+0.0
 """
-    type DEP{T<:AbstractMatrix} <: AbstractSPMF
+    struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF
         n::Int
         A::Array{T,1}     # An array of matrices (full or sparse matrices)
-        tauv::Array{Float64,1} # the delays
+        tauv::Vector{Z}   # the delays (which are always real)
     end
-    function DEP(AA::Array{T,1},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
+    function DEP(AA::Vector{T},tauv::Vector=[0,1.0]) where {T<:AbstractMatrix}
         n=size(AA[1],1)
-        tauvconv=Vector{Float64}(tauv);
-        if (real(eltype(AA[1])) != Float64)
-            warning("The delay in a DEP has hardcoded type Float64");
+        if (!isreal(tauv))
+            error("Incorrect construction of DEP. The delays need to be real.")
         end
 
-        this=DEP{T}(n,AA,tauvconv);
+        # Note: this enforces that eltype(tauv)=real(eltype(A[1]))
+        tauvconv::Vector{real(eltype(AA[1]))}=Vector{real(eltype(AA[1]))}(tauv);
+
+        this=DEP{eltype(tauvconv),T}(n,AA,tauvconv);
         return this;
     end
 
 # Compute the ith derivative of a DEP
     function compute_Mder(nep::DEP,λ::Number,i::Integer=0)
-        local M,I;
+        local M, J
         # T is eltype(nep.A[1]) unless λ complex, then T is complex(eltype(nep.A[1]))
         # T can be determined compile time, since DEP parametric type
-        T=isa(λ,Complex)?complex(eltype(nep.A[1])) : eltype(nep.A[1]);
+        T=isa(λ,Complex) ? complex(eltype(nep.A[1])) : eltype(nep.A[1]);
 
+        TM=promote_type(eltype(λ),T); # output type
         if (issparse(nep.A[1])) # Can be determined compiled time since DEP parametric type
-            M=spzeros(T,nep.n,nep.n)
-            I=speye(T,nep.n,nep.n)
+            M=spzeros(TM,nep.n,nep.n)
+            J=sparse(TM(1)I, nep.n, nep.n)
         else
-            M=zeros(T,nep.n,nep.n)
-            I=eye(T,nep.n,nep.n)
+            M=zeros(TM,nep.n,nep.n)
+            J=Matrix{TM}(I, nep.n, nep.n)
         end
-        if i==0; M=-λ*I;  end
-        if i==1; M=-I; end
+        if i==0; M=-λ*J;  end
+        if i==1; M=-one(TM)*J; end
         for j=1:size(nep.A,1)
             a=exp(-nep.tauv[j]*λ)*(-nep.tauv[j])^i;
             M += nep.A[j]*a
@@ -351,40 +371,43 @@ matrices A_i, and tauv is a vector of the values tau_i
 
 #  Computes the sum ``Σ_i M_i V f_i(S)`` for a DEP
     function compute_MM(nep::DEP,S,V)
-        Z=-V*S;
+
+        T1=promote_type(promote_type(eltype(S),eltype(V)),eltype(nep.A[1]));
+        T=promote_type(T1,eltype(nep.tauv));
+
+        Z::Matrix{T}=-V*S;
         for j=1:size(nep.A,1)
-            Z+=nep.A[j]*V*expm(Matrix(-nep.tauv[j]*S))
+            Z+=nep.A[j]*V*exp(Matrix(-nep.tauv[j]*S))
         end
         return Z
     end
 
     #  Fetch the Av's, since they are not explicitly stored in DEPs
     function get_Av(nep::DEP)
-        local I;
-        if (issparse(nep))
-            I=speye(eltype(nep.A[1]),nep.n)
+        local J
+        if issparse(nep)
+            J = sparse(eltype(nep.A[1])(1)I, nep.n, nep.n)
         else
-            I=eye(eltype(nep.A[1]),nep.n)
+            J = Matrix{eltype(nep.A[1])}(I, nep.n, nep.n)
         end
-        return [I,nep.A...];
+        return [J, nep.A...]
     end
     #  Fetch the Fv's, since they are not explicitly stored in DEPs
     function get_fv(nep::DEP)
-        fv=Array{Function,1}(size(nep.A,1)+1);
+        fv = Array{Function,1}(undef, size(nep.A,1)+1)
         # First function is -λ
-        fv[1] =  S-> -S
+        fv[1] = S -> -S
 
-        # The other functions are expm(-tauv[j]*S)
+        # The other functions are exp(-tauv[j]*S)
         for i=1:size(nep.A,1)
-            if (nep.tauv[i]==0) # Zero delay means constant term
-                fv[i+1]=  (S-> eye(size(S,1)))
+            if nep.tauv[i] == 0 # Zero delay means constant term
+                fv[i+1] = S -> Matrix(1.0I, size(S,1), size(S,1))
             else
-                fv[i+1]=  (S-> expm(-Matrix(nep.tauv[i]*S)))
+                fv[i+1] = S -> exp(-Matrix(nep.tauv[i] * S))
             end
-
         end
 
-        return fv;
+        return fv
     end
 
     ###########################################################
@@ -396,11 +419,11 @@ matrices A_i, and tauv is a vector of the values tau_i
 
 A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
 """
-
     struct PEP <: AbstractSPMF
         n::Int
         A::Array   # Monomial coefficients of PEP
     end
+
 """
     PEP(AA::Array)
 
@@ -424,12 +447,14 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 
 # Computes the sum ``Σ_i M_i V f_i(S)`` for a PEP
     function compute_MM(nep::PEP,S,V)
+        T=promote_type(promote_type(eltype(nep.A[1]),eltype(S)),eltype(V))
+        local Z
         if (issparse(nep))
-            Z=spzeros(size(V,1),size(V,2))
-            Si=speye(size(S,1))
+            Z=spzeros(T,size(V,1),size(V,2))
+            Si=sparse(one(T)*I, size(S,1), size(S,1))
         else
-            Z=zeros(size(V))
-            Si=eye(size(S,1))
+            Z=zeros(T,size(V,1),size(V,2))
+            Si=Matrix(one(T)*I, size(S,1), size(S,1))
         end
         for i=1:size(nep.A,1)
             Z+=nep.A[i]*V*Si;
@@ -439,12 +464,12 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     # Use MM to compute Mlincomb for PEPs
     compute_Mlincomb(nep::PEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
-    compute_rf(nep::PEP,x;params...) = compute_rf(Complex128,nep,x;params...)
-    function compute_rf{T<:Real}(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
-                           TOL=eps(real(T))*1e3,max_iter=10)
+    compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
+    function compute_rf(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3,max_iter=10) where T<:Real
 
         a=zeros(T,size(nep.A,1))
         for i=1:size(nep.A,1)
@@ -476,11 +501,11 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     #  Fetch the Fv's, since they are not explicitly stored in PEPs
     function get_fv(nep::PEP)
-        fv=Array{Function,1}(size(nep.A,1));
+        fv=Vector{Function}(undef, size(nep.A,1))
         # Construct monomial functions
         for i=1:size(nep.A,1)
             if (i==1); # optimization for constant and linear term
-                fv[1]=(S->eye(size(S,1)));
+                fv[1] = S -> Matrix(1.0I, size(S, 1), size(S, 1))
             elseif (i==2);
                 fv[2]=(S->S);
             else
@@ -558,7 +583,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
 
 
-    interpolate(nep::NEP, intpoints::Array) = interpolate(Complex128, nep, intpoints)
+    interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
 
 
     """
@@ -614,12 +639,12 @@ julia> compute_Mder(nep,3)
         n=size(AA[1],1)
         AA=reshape(AA,length(AA)) # allow for 1xn matrices
         # numerators
-        si=Array{Array{Number,1},1}(length(poles))
+        si = Vector{Vector{Number}}(undef, length(poles))
         for i =1:size(poles,1)
             si[i]=[1];
         end
         # denominators
-        qi=Array{Array{Number,1}}(length(poles))
+        qi = Vector{Vector{Number}}(undef, length(poles))
         for i =1:size(poles,1)
             if poles[i]!=0
                 qi[i]=[1,-1/poles[i]];
@@ -635,10 +660,10 @@ julia> compute_Mder(nep,3)
         local Z0;
         if (issparse(nep))
             Z=spzeros(size(V,1),size(V,2))
-            Si=speye(S)
+            Si = SparseMatrixCSC{eltype(S)}(I, size(S))
         else
-            Z=zeros(V)
-            Si=eye(S)
+            Z = zero(V)
+            Si = Matrix{eltype(S)}(I, size(S))
         end
         # Sum all the elements
         for i=1:size(nep.A,1)
@@ -667,8 +692,8 @@ julia> compute_Mder(nep,3)
         if (i!=0) # Todo
             error("Higher order derivatives of REP's not implemented")
         end
-        S=speye(rep.n)*λ
-        V=speye(rep.n);
+        S = SparseMatrixCSC(λ*I, rep.n, rep.n)
+        V = SparseMatrixCSC(1.0I, rep.n, rep.n)
         return compute_MM(rep,S,V)  # This call can be slow
     end
 
@@ -679,7 +704,7 @@ julia> compute_Mder(nep,3)
     end
     #  Fetch the Fv's, since they are not explicitly stored in REPs
     function get_fv(nep::REP)
-        fv=Array{Function,1}(size(nep.qi,1))
+        fv = Vector{Function}(undef, size(nep.qi, 1))
         for i=1:size(fv,1)
             fv[i]=S -> (lpolyvalm(nep.qi[i],S)\lpolyvalm(nep.si[i],S))
         end
@@ -688,8 +713,8 @@ julia> compute_Mder(nep,3)
 
     # Evaluation of matrix polynomial with coefficient a
     function lpolyvalm(a::Array{<:Number,1},S::Array{<:Number,2})
-        Sp=eye(S);
-        Ssum=zeros(S);
+        Sp = Matrix{eltype(S)}(I, size(S))
+        Ssum = zero(S)
         for j=1:size(a,1)
             Ssum+= a[j]*Sp;
             Sp=Sp*S;
@@ -719,18 +744,18 @@ where ``M(λ)`` is represented by `orgnep`. Use
 `set_projectionmatrices!()` to specify projection matrices
 ``V`` and ``W``.
 """
-#    function create_proj_NEP(orgnep::ProjectableNEP)
-#        if (isa(orgnep,PEP))
-#            return Proj_PEP(orgnep);
-#        elseif (isa(orgnep,SPMF_NEP))
-#            return Proj_SPMF_NEP(orgnep);
-#        else
-#            error("Projection of this NEP is not available");
-#        end
-#    end
     function create_proj_NEP(orgnep::ProjectableNEP)
          error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
     end
+    #    function create_proj_NEP(orgnep::ProjectableNEP)
+    #        if (isa(orgnep,PEP))
+    #            return Proj_PEP(orgnep);
+    #        elseif (isa(orgnep,SPMF_NEP))
+    #            return Proj_SPMF_NEP(orgnep);
+    #        else
+    #            error("Projection of this NEP is not available");
+    #        end
+    #    end
     function create_proj_NEP(orgnep::AbstractSPMF)
          return Proj_SPMF_NEP(orgnep);
     end
@@ -808,9 +833,9 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        B = Array{Array{eltype(W),2}}(m);
+        B = Array{Array{eltype(W),2}}(undef, m);
         for i=1:m
-            B[i]=W'*nep.orgnep_Av[i]*V;
+            B[i]=copy(W')*nep.orgnep_Av[i]*V;
         end
         nep.W=W;
         nep.V=V;
@@ -906,7 +931,7 @@ julia> M1+M2  # Same as M
     compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
     compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
-        (compute_MM(nep.nep1,S,V)+compute_M(nep.nep2,S,V))
+        (compute_MM(nep.nep1,S,V)+compute_MM(nep.nep2,S,V))
 
     # For SPMFSumNEP, also delegate the get_Av() and get_fv()
     get_Av(nep::SPMFSumNEP) = [get_Av(nep.nep1); get_Av(nep.nep2)]
@@ -950,27 +975,31 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::T,V::Matrix{T},
-                              a::Vector{T}=ones(T,size(V,2))) where {T<:Number}
-        n=size(V,1); k=1
-        try k=size(V,2) end
+    function compute_Mlincomb(nep::DEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+                              a::Vector=ones(eltype(V),size(V,2)))
+        n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
-        broadcast!(*,V,V,a.')
+        # determine type froom greates type of (eltype probtype and λ)
+        T=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]))
+        if (k>1)
+            broadcast!(*,V,V,transpose(a))
+        else
+            V=V*a[1];
+        end
+
+
         z=zeros(T,n)
         for j=1:length(nep.tauv)
-            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]).^(0:k-1))
-            z[:]+=Av[j+1]*(V*w);
+            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
+            if k>1
+                z[:]+=Av[j+1]*(V*w);
+            else
+                z[:]+=Av[j+1]*(V*w[1]);
+            end
         end
         if k>1 z[:]-=view(V,:,2:2) end
         z[:]-=λ*view(V,:,1:1);
         return z
     end
-    # Automatically promote to complex if λ is real
-    function compute_Mlincomb(nep::DEP,λ::T,V::Array{Complex{T},2},a::Vector{Complex{T}}=ones(Complex{T},size(V,2))) where T<:Real
-        return compute_Mlincomb(nep,complex(λ),V,a)
-    end
-    # Allow vector-valued V
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Vector{T},a::Vector{T}=ones(T,1)) where T<:Number
-        return compute_Mlincomb(nep,λ,reshape(V,size(V,1),1),a)
-    end
+
 end
