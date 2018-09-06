@@ -50,7 +50,13 @@ end
     for i = 1:length(tests_to_run)
         file = tests_to_run[i]
         test_name = replace(file, Regex("$root/?(.+).jl\$", "i") => s"\1")
+
         @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
+
+        # first run to force JIT compilation
+        include(file)
+
+        # second run to time the test
         @timeit to test_name include(file)
     end
 
