@@ -5,7 +5,6 @@ export jd_effenberger
 using IterativeSolvers
 using ..NEPTypes.DeflatedNEP
 
-import ..NEPTypes.create_proj_NEP
 import ..NEPTypes.set_projectmatrices!
 import Base.size
 import ..NEPCore.compute_Mder
@@ -28,6 +27,7 @@ For numerical stability the basis is kept orthogonal, and the method for orthogo
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v0` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvlues are computed.
+`errmeasure` is a function handle which can be used to specify how the error is measured.
 By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence W^H T(λ) V is the projection considered. By specifying  `projtype` to be `:Galerkin` then W=V.
 
 
@@ -173,8 +173,18 @@ function jd_eig_sorter(λv::Vector{T}, V, N, target::T) where T <: Number
 end
 
 
+
    """
-function jd_effenberger()
+function jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=NEPSolver.DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v0 = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
+The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
+Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
+The projected problems are solved using a solver spcified through the type `inner_solver_method`.
+For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
+The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
+The value `λ` and the vector `v0` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
+The `target` is the center around which eiganvlues are computed.
+
+
 # References
 * C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
 See also
@@ -319,7 +329,7 @@ function jd_effenberger_inner!(::Type{T},
     newton_step::Vector{T} = Vector{T}(rand(n+m))
     pk::Vector{T} = zeros(T,n+m)
     s_memory::Vector{T} = zeros(T,maxit+1-nrof_its)
-    proj_nep = create_proj_NEP(target_nep)
+    proj_nep = jd_create_proj_NEP(target_nep)
     dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
 
     V_memory[:,1] = u
@@ -337,15 +347,15 @@ function jd_effenberger_inner!(::Type{T},
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             tol = tol/10,
-                            λv = λ .* ones(T,3),
+                            λv = λ .* ones(T,2),
                             σ = target,
-                            Neig = 3)
+                            Neig = 2)
         λ_temp,s = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         normalize!(s)
 
         # If inner solver converged to a solution to the projected problem use that.
         # Otherwise take the "newton step". Not implemented exactly as in Effenbergerm but similar
-        if !isnan(λ_temp) && !any(isnan.(s[1:k])) && (norm(compute_Mlincomb(proj_nep, λ_temp, s[1:k])) < tol*10) # Has converged to an eigenvalue of the projected problem
+        if !isnan(λ_temp) && !any(isnan.(s[1:k])) && (norm(compute_Mlincomb(proj_nep, λ_temp, s[1:k])) < tol*50) # Has converged to an eigenvalue of the projected problem
             u[:] = V*s # The approximate eigenvector
             λ = λ_temp
         else
@@ -512,8 +522,8 @@ mutable struct JD_Inner_Effenberger_Projected_NEP <: Proj_NEP
         return this
     end
 end
-create_proj_NEP(deflated_nep::DeflatedNEP) = JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
-
+jd_create_proj_NEP(deflated_nep::DeflatedNEP) = JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
+jd_create_proj_NEP(nep::ProjectableNEP) = create_proj_NEP(nep)
 
 function set_projectmatrices!(nep::JD_Inner_Effenberger_Projected_NEP, W, V)
     n = size(nep.X,1)
