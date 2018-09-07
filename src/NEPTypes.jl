@@ -999,7 +999,12 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return z
     end
 
+    # Use MM to compute Mlincomb for SPMFs
+    compute_Mlincomb(nep::SPMF_NEP,λ::Number,
+                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+             compute_Mlincomb_from_MM(nep,λ,V,a)
 
+    #=
     function compute_Mlincomb!(
                         nep::SPMF_NEP,
                         λ::Number,
@@ -1020,5 +1025,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     	return a[1]*Z
     end
     compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
+    =#
 
 end
