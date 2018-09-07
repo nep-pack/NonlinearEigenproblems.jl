@@ -253,16 +253,12 @@ function compute_MM(nep::DeflatedNEP,S,V)
     n0=size(orgnep,1);
     S0=nep.S0; V0=nep.V0
     p0=size(S0,1); p=size(S,1);
-    if p0 == 0 # Corner case if the deflation is only a chimera
-        return compute_MM(orgnep, S, V);
-    else
-        V1=view(V,1:n0,            1:size(V,2))
-        V2=view(V,(n0+1):size(V,1),1:size(V,2))
-        Stilde=hcat(vcat(S0,zeros(p,p0)),vcat(V2,S))
-        Vtilde=hcat(V0,V1);
-        R=compute_MM(orgnep, Stilde,Vtilde);
-        return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
-    end
+    V1=view(V,1:n0,            1:size(V,2))
+    V2=view(V,(n0+1):size(V,1),1:size(V,2))
+    Stilde=hcat(vcat(S0,zeros(p,p0)),vcat(V2,S))
+    Vtilde=hcat(V0,V1);
+    R=compute_MM(orgnep, Stilde,Vtilde);
+    return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
 end
 # Use the MM to compute Mlincomb for DeflatedNEP
 compute_Mlincomb(nep::DeflatedNEP,λ::Number,
