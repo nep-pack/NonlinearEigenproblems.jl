@@ -1,5 +1,4 @@
 #Intended to be run from nep-pack/ directory or nep-pack/profiling directory
-
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using NonlinearEigenproblems.NEPCore
@@ -26,20 +25,13 @@ fi = [f1,f2,f3,f4]
 nep=SPMF_NEP(AA, fi)
 
 n=size(nep,1);	k=50;
-V=rand(n,k);	λ=rand()*im+rand();	#TODO: if λ complex doesn't work. WHY?
+V=rand(n,k);	λ=rand()*im+rand();
 a=rand(k)
 
-
-
-
-
 z1=compute_Mlincomb(nep,λ,copy(V),a)
-compute_Mlincomb(nep,λ,V,a)
 @time z1=compute_Mlincomb(nep,λ,V,a)
-
 # old way of compute_Mlincomb used for DEP
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb_from_MM
 z2=compute_Mlincomb_from_MM(nep,λ,V,a)
 @time z2=compute_Mlincomb_from_MM(nep,λ,V,a)
-
 println("Error=",norm(z1-z2))
