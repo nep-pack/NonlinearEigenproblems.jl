@@ -3,9 +3,17 @@ sudo: required
 dist: trusty
 os:
   - linux
-julia:
-  - 0.7
-  - 1.0
+matrix:
+  include:
+  - name: "Julia 0.7 Unit Tests"
+    julia: 0.7
+    env: TEST_SUITE=unit
+  - name: "Julia 1.0 Unit Tests"
+    julia: 1.0
+    env: TEST_SUITE=unit
+  - name: "Julia 1.0 Benchmarks"
+    julia: 1.0
+    env: TEST_SUITE=benchmark
 notifications:
   email: false
 script:
