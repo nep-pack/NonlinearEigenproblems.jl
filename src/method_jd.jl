@@ -5,7 +5,7 @@ export jd_effenberger
 using IterativeSolvers
 using LinearAlgebra
 using Random
-using ..NEPTypes.DeflatedNEP
+using ..NEPTypes:DeflatedNEP
 
 import ..NEPTypes.set_projectmatrices!
 import Base.size
@@ -257,7 +257,9 @@ function jd_effenberger(::Type{T},
     while true # Can only escape the loop on convergence (return) or too many iterations (error)
         # Check for fulfillment. If so, compute the eigenpairs and return
         if (conveig == Neig)
-            λ_vec,uv = eig(Λ)
+            F = eigen(Λ)
+            λ_vec = F.values
+            uv = F.vectors
             u_vec = X * uv
             return λ_vec, u_vec
         end
@@ -406,7 +408,9 @@ function jd_effenberger_inner!(::Type{T},
 
     msg="Number of iterations exceeded. maxit=$(maxit) and only $(conveig) eigenvalues converged out of $(Neig)."
     # Compute the eigenvalues we have and throw these.
-    λ_vec,uv = eig(Λ)
+    F = eigen(Λ)
+    λ_vec = F.values
+    uv = F.vectors
     u_vec = X * uv
     throw(NoConvergenceException([λ_vec; λ], [u_vec u[1:n]], err, msg))
 
