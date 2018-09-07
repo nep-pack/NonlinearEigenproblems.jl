@@ -2,7 +2,7 @@ module NEPTypes
     using ..NEPCore
     using SparseArrays
     using LinearAlgebra
-    #using PolynomialZeros
+    using PolynomialZeros
     using Polynomials
 
     # Specializalized NEPs
