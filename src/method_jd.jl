@@ -80,7 +80,7 @@ function jd_betcke(::Type{T},
     λ::T = T(λ)
     target::T = T(target)
     tol::real(T) = real(T)(tol)
-    λ_vec::Vector{T} = Vector{T}(Neig)
+    λ_vec::Vector{T} = Vector{T}(undef,Neig)
     u_vec::Matrix{T} = zeros(T,n,Neig)
     u::Vector{T} = Vector{T}(v0)
     normalize!(u)
@@ -169,7 +169,7 @@ end
 
 function jd_eig_sorter(λv::Vector{T}, V, N, target::T) where T <: Number
     NN = min(N, length(λv))
-    c = sortperm(abs.(λv-target))
+    c = sortperm(abs.(λv.-target))
     λ::T = λv[c[NN]]
     s::Vector{T} = V[:,c[NN]]
     return λ, s
@@ -194,7 +194,7 @@ See also
 * T. Betcke and H. Voss, A Jacobi-Davidson-type projection method for nonlinear eigenvalue problems. Future Gener. Comput. Syst. 20, 3 (2004), pp. 363-372.
 * H. Voss, A Jacobi–Davidson method for nonlinear eigenproblems. In: International Conference on Computational Science. Springer, Berlin, Heidelberg, 2004. pp. 34-41.
 """
-jd_effenberger(nep::NEP;kwargs...) = jd_effenberger(Complex128,nep;kwargs...)
+jd_effenberger(nep::NEP;kwargs...) = jd_effenberger(ComplexF64,nep;kwargs...)
 function jd_effenberger(::Type{T},
                         nep::ProjectableNEP;
                         maxit::Int = 100,
@@ -422,18 +422,18 @@ function compute_U(orgnep::NEP, μ, X, Λ, i=0)
     Uiμ = zeros(T_arit,n,m)
     fact = one(T_arit)
     the_inv = one(Λ)
-    LUmat = lufact(Λ-μ*I)
+    LUmat = lu(Λ-μ*I)
     for k = i:-1:1
         fact *= k
         the_inv[:,:] = LUmat\the_inv
         for kk = 1:m
-            Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], k) * the_inv[kk,:].'
+            Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], k) * transpose(the_inv[kk,:])
         end
     end
     #Case k=0
     the_inv[:,:] = LUmat\the_inv
     for kk = 1:m
-        Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], 0) * the_inv[kk,:].'
+        Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], 0) * transpose(the_inv[kk,:])
     end
     Uiμ[:,:] = Uiμ[:,:] + fact * compute_TXΛ(orgnep, Λ, X) * the_inv
     return Uiμ
@@ -447,7 +447,7 @@ function compute_Uv(orgnep::NEP, μ, X, Λ, v, i=0)
     v_out = zeros(T_arit,n)
     fact = one(T_arit)
     the_inv = copy(v)
-    LUmat = lufact(Λ-μ*I)
+    LUmat = lu(Λ-μ*I)
     for k = i:-1:1
         fact *= k
         the_inv[:] = LUmat\the_inv

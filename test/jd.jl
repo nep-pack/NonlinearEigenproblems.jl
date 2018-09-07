@@ -87,7 +87,7 @@ println("\n\nTest: Effenberger")
 
 TOL = 1e-10
 nep = nep_gallery("pep0",60)
-λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=55, λ=0.82+0.9im, v0=ones(Complex128,size(nep,1)))
+λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=55, λ=0.82+0.9im, v0=ones(ComplexF64,size(nep,1)))
 println(" Eigevalues found: \n λ: ",λ)
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL
@@ -95,7 +95,7 @@ println(" Eigevalues found: \n λ: ",λ)
 
 TOL = 1e-10
 nep = nep_gallery("dep0",60)
-λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=55, λ=0.6+0im, v0=ones(Complex128,size(nep,1)))#, inner_solver_method = NEPSolver.IARChebInnerSolver)
+λ, u = @time jd_effenberger(nep, Neig=3, displaylevel=1, tol=TOL, maxit=55, λ=0.6+0im, v0=ones(ComplexF64,size(nep,1)))#, inner_solver_method = NEPSolver.IARChebInnerSolver)
 println(" Eigevalues found: \n λ: ",λ)
 @test norm(compute_Mlincomb(nep,λ[1],u[:,1])) < TOL
 @test norm(compute_Mlincomb(nep,λ[2],u[:,2])) < TOL

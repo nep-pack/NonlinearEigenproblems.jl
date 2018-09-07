@@ -51,9 +51,9 @@ end
 
 
 function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;
-                     V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
                      λv=zeros(T_arit,1),
-                     tol=sqrt(eps()),
+                     V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
+                     tol=sqrt(eps(real(T_arit))),
                      kwargs...)
     for k=1:size(λv,1)
         try
