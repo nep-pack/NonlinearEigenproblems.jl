@@ -11,7 +11,7 @@ using IterativeSolvers
 f1 = S -> -S;
 f2 = S -> Matrix{eltype(S)}(I, size(S));
 f3 = S -> exp(-Matrix(S));
-f4 = S -> sqrt(10*S+100);
+f4 = S -> sqrt(10*S.+100);
 
 n=100000;
 Random.seed!(1) # reset the random seed
@@ -25,32 +25,17 @@ AA = [A1,A2,A3,A4]
 fi = [f1,f2,f3,f4]
 nep=SPMF_NEP(AA, fi)
 
-n=size(nep,1);	k=10;
+n=size(nep,1);	k=50;
 V=rand(n,k);	λ=rand()*im+rand();	#TODO: if λ complex doesn't work. WHY?
 a=rand(k)
 
 
-function compute_Mlincomb2(nep::SPMF_NEP, λ, V, a)
-
-	n,k=size(V);
-	# we need to assume that the elements of a are different than zero.
-	V[:,findall(x->x==0,a)] .= 0
-	a[findall(x->x==0,a)] .= 1
-	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(1 => (a[2:k]./a[1:k-1]).*(1:k-1))
-	S=copy(transpose(S))
-
-	Z=zeros(eltype(V),n)
-	for i=1:size(nep.A,1)
-		Fi=nep.fi[i](S)[:,1]
-		Z=Z .+ nep.A[i]*(V*Fi);
-	end
-	return a[1]*Z
-end
 
 
-z1=compute_Mlincomb2(nep,λ,copy(V),a)
-compute_Mlincomb2(nep,λ,V,a)
-@time z1=compute_Mlincomb2(nep,λ,V,a)
+
+z1=compute_Mlincomb(nep,λ,copy(V),a)
+compute_Mlincomb(nep,λ,V,a)
+@time z1=compute_Mlincomb(nep,λ,V,a)
 
 # old way of compute_Mlincomb used for DEP
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb_from_MM

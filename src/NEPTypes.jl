@@ -293,10 +293,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             return compute_Mder_from_MM(nep,λ,i)
         end
     end
-    # Use MM to compute Mlincomb for SPMFs
-    compute_Mlincomb(nep::SPMF_NEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
-             compute_Mlincomb_from_MM(nep,λ,V,a)
+
 
     ###########################################################
     # Delay eigenvalue problems - DEP
@@ -1000,6 +997,27 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         if k>1 z[:]-=view(V,:,2:2) end
         z[:]-=λ*view(V,:,1:1);
         return z
+    end
+
+
+    function compute_Mlincomb(
+                        nep::SPMF_NEP,
+                        λ::Number,
+                        V::Union{AbstractMatrix,AbstractVector},
+                        a::Vector)
+    	n,k=size(V);
+    	# we need to assume that the elements of a are different than zero.
+    	V[:,findall(x->x==0,a)] .= 0
+    	a[findall(x->x==0,a)] .= 1
+    	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(1 => (a[2:k]./a[1:k-1]).*(1:k-1))
+    	S=copy(transpose(S))
+
+    	Z=zeros(eltype(V),n)
+    	for i=1:size(nep.A,1)
+    		Fi=nep.fi[i](S)[:,1]
+    		Z=Z .+ nep.A[i]*(V*Fi);
+    	end
+    	return a[1]*Z
     end
 
 end
