@@ -6,6 +6,9 @@ os:
 julia:
   - 0.7
   - 1.0
+env:
+  - TEST_SUITE=units
+  - TEST_SUITE=benchmark
 notifications:
   email: false
 script:
