@@ -50,12 +50,11 @@ function inner_solve(TT::Type{DefaultInnerSolver},T_arit::DataType,nep::NEPTypes
 end
 
 
-function inner_solve(TT::Type{NewtonInnerSolver}, T_arit::DataType, nep::NEPTypes.Proj_NEP;
-                     λv = zeros(T_arit, 1),
-                     V = Matrix{T_arit}(1.0I, size(nep,1), size(λv,1)),
-                     tol = sqrt(eps()),
+function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;
+                     λv=zeros(T_arit,1),
+                     V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
+                     tol=sqrt(eps(real(T_arit))),
                      kwargs...)
-
     for k=1:size(λv,1)
         try
             v0=V[:,k]; # Starting vector for projected problem

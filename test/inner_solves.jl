@@ -18,7 +18,7 @@ using LinearAlgebra
     Q = Matrix(Q)
     set_projectmatrices!(pnep,Q,Q)
 
-    λv,V = inner_solve(NEPSolver.DefaultInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, Neig=3)
+    λv,V = inner_solve(NEPSolver.DefaultInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, Neig=3, V=Matrix(1.0I, 5, 2), tol=eps()*100)
     @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
 
     λv,V = inner_solve(NEPSolver.NewtonInnerSolver, ComplexF64,pnep; λv=[0.0,1.0] .+ 0im, V=Matrix(1.0I, 5, 2), tol=eps()*100)

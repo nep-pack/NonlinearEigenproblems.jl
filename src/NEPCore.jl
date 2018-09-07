@@ -299,7 +299,10 @@ Overloads the size functions for NEP.\\
 Size returns the size of the matrix defining the NEP.
 Note: All NEPs must implement this function.
 """
-    function size(nep::NEP,dim=-1)
+    function size(nep::NEP,dim)
+        error("You need to provide an implementation of size for this NEP.")
+    end
+    function size(nep::NEP)
         error("You need to provide an implementation of size for this NEP.")
     end
 
