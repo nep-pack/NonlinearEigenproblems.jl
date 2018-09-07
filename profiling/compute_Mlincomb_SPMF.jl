@@ -11,7 +11,7 @@ using IterativeSolvers
 f1 = S -> -S;
 f2 = S -> Matrix{eltype(S)}(I, size(S));
 f3 = S -> exp(-Matrix(S));
-f4 = S -> sqrt(10*S.+100);
+f4 = S -> sqrt(10*S.+100*I);
 
 n=100000;
 Random.seed!(1) # reset the random seed
