@@ -15,7 +15,6 @@ tests_not_to_run = Set{String}(map(uppercase, [
     "matlablinsolvers.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
     "nleigs_test_utils.jl", # utilities used by other tests
-    "compan.jl", "sgiter.jl" # due to PolynomialZeros problems #63
 ]))
 
 function is_test_script(file::AbstractString)
@@ -41,6 +40,9 @@ function contains_test_macro(expr::Expr)
 end
 
 @testset "All tests" begin
+    # the TEST_SUITE environment variable can be set by the CI tool
+    run_benchmark = get(ENV, "TEST_SUITE", "") == "benchmark"
+
     root = string(@__DIR__)
     tests_to_run = [joinpath(dir, file) for (dir, _, files) in walkdir(root) for file in files
         if is_test_script(joinpath(dir, file)) && !in(uppercase(file), tests_not_to_run)]
@@ -53,10 +55,11 @@ end
 
         @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
 
-        # first run to force JIT compilation
-        include(file)
+        if run_benchmark
+            # run test without timing it, to force JIT compilation
+            include(file)
+        end
 
-        # second run to time the test
         @timeit to test_name include(file)
     end
 

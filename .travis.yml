@@ -4,14 +4,19 @@ dist: trusty
 os:
   - linux
 julia:
-  - 0.7
   - 1.0
+matrix:
+  include:
+  - name: "Unit Tests"
+    env: TEST_SUITE=unit
+  - name: "Benchmarks"
+    env: TEST_SUITE=benchmark
 notifications:
   email: false
 script:
   - export JL_PKG=NonlinearEigenproblems
   - git fetch --unshallow
-  - julia --color=yes -e "if VERSION < v\"0.7.0-DEV.5183\"; Pkg.clone(pwd()); Pkg.build(\"${JL_PKG}\"); else using Pkg; Pkg.build(); end"
-  - julia --check-bounds=yes --inline=no --color=yes -e "if VERSION < v\"0.7.0-DEV.5183\"; Pkg.test(\"${JL_PKG}\", coverage=true); else using Pkg; Pkg.test(coverage=true); end"
+  - julia --color=yes -e "using Pkg; Pkg.build()"
+  - julia --check-bounds=yes --inline=no --color=yes -e "using Pkg; Pkg.test(coverage=true)"
 after_success:
-  - julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'
+  - if [ $TEST_SUITE = 'unit' ]; then julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi
