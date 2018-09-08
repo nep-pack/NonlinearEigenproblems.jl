@@ -1,9 +1,10 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
 
-@testset "broyden" begin
+@bench @testset "broyden" begin
     dep=nep_gallery("dep1");
     S,V=broyden(dep)
     # Broyden returns a Schur factorization so check with MM

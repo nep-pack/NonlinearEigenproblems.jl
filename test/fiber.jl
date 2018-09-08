@@ -1,5 +1,6 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -16,7 +17,7 @@ using LinSolversMATLAB
     # An exact eigenvalue according (reported in NLEVP collection)
     sol_val= 7.139494306065948e-07;
 
-    @testset "basics" begin
+    @bench @testset "basics" begin
         # Checking Mder
         λ=3;
         δ=0.0001;
@@ -84,7 +85,7 @@ using LinSolversMATLAB
 
 
 
-    fibertest_int=@testset "PEP interpolation" begin
+    @bench @testset "PEP interpolation" begin
         # Create a PEP Which interpolates in a couple of points
 
         intpoints=[1e-8,1e-7,7e-7,9e-7]

@@ -1,12 +1,13 @@
 # Particle: variant S
 
+push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using Test
 
 include("nleigs_test_utils.jl")
 include("particle_test_utils.jl")
 
-@testset "NLEIGS: Particle variant S" begin
+@bench @testset "NLEIGS: Particle variant S" begin
     verbose = 1
 
     nep, Σ, Ξ, v, nodes, xmin, xmax = particle_init(2)

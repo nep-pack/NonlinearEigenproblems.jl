@@ -1,12 +1,13 @@
 # Test for infinite Bi-Lanczos
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
 
-@testset "Infbilanczos σ=0" begin
+@bench @testset "Infbilanczos σ=0" begin
     nep=nep_gallery("qdep0");
     nept=SPMF_NEP([copy(nep.A[1]'), copy(nep.A[2]'), copy(nep.A[3]')], nep.fi)
     n=size(nep,1);

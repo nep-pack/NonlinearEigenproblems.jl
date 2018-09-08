@@ -1,5 +1,6 @@
 # Run tests on Newton methods & rfi methods
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
@@ -9,7 +10,7 @@ using LinearAlgebra
 @testset "Newton iterations" begin
     nep=nep_gallery("dep0")
 
-    @testset "Newton and AugNewton" begin
+    @bench @testset "Newton and AugNewton" begin
         # newton and augnewton are equivalent, therefore I expect them
         # to generate identical results
         λ1,x1 =newton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tol=eps()*10);
@@ -24,7 +25,7 @@ using LinearAlgebra
         @test r2 < eps()*100
     end
 
-    @testset "Newton QR" begin
+    @bench @testset "Newton QR" begin
 
         println("Newton QR test")
         #Run derivative test for left and right eigenvectors returned by newtonqr
@@ -49,7 +50,7 @@ using LinearAlgebra
         @test abs(λp-λp_approx)< (δ*10)
     end
 
-    @testset "Resinv" begin
+    @bench @testset "Resinv" begin
         println("resinv + periodicdde")
         nep1=nep_gallery("periodicdde","rand0")
         # basic functionality of resinv. Start close to solution to speed up unit test
@@ -61,7 +62,7 @@ using LinearAlgebra
     end
 
 
-    @testset "Rayleigh Function Iteration" begin
+    @bench @testset "Rayleigh Function Iteration" begin
         println("Running two-sided RFI on random dep")
         nepd=nep_gallery("dep0")
         nept=DEP([copy(nepd.A[1]'), copy(nepd.A[2]')],copy(nepd.tauv))
@@ -128,7 +129,7 @@ using LinearAlgebra
     end
 
 
-    @testset "implicitdet" begin
+    @bench @testset "implicitdet" begin
         nepd=nep_gallery("periodicdde","mathieu")
         λ,v=implicitdet(nepd, v=ones(size(nepd,1)))
         @test norm(compute_Mder(nepd,λ)*v) < eps()*100

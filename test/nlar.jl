@@ -1,6 +1,7 @@
 # Unit test for the Nonlinear Arnoldi method (in src/method_nlar.jl)
 # The "Gun" problem form gun_native.jl
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.LinSolvers
@@ -9,7 +10,7 @@ using Test
 using LinearAlgebra
 using Random
 
-@testset "Nonlinear Arnoldi" begin
+@bench @testset "Nonlinear Arnoldi" begin
 	TOL = 1e-10;
 
     println("\nTesting gun problem")

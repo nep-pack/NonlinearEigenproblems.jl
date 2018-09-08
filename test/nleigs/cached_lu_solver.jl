@@ -1,10 +1,11 @@
+push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using Random
 using SparseArrays
 using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "lusolver.jl"))
 
-@testset "cached_lu_solver" begin
+@bench @testset "cached_lu_solver" begin
     new_cache() = LUCache(Float64, false)
 
     cache = new_cache()

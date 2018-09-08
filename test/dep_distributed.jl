@@ -1,5 +1,6 @@
 # Run tests for the dep_distributed example
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -50,7 +51,7 @@ dep_distributed_exact_eigvals = [
         @test myerrmeasure(λ[i],V[:,i])<1e-10
     end
 
-    @testset "Quasinewton eigval[$i]" for i in 1:length(dep_distributed_exact_eigvals[1:3])
+    @bench @testset "Quasinewton eigval[$i]" for i in 1:length(dep_distributed_exact_eigvals[1:3])
         λ0=round(dep_distributed_exact_eigvals[i]*10)/10
         λ,v=quasinewton(ComplexF64,dep,v=ones(n),λ=λ0,
                         #displaylevel=1,

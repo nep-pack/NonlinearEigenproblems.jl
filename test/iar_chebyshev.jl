@@ -1,3 +1,4 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
@@ -77,7 +78,7 @@ end
 
 @testset "IAR Chebyshev version" begin
     dep=nep_gallery("neuron0"); n=size(dep,1);
-    @testset "Scale Cheb's to different interval w DEP" begin
+    @bench @testset "Scale Cheb's to different interval w DEP" begin
         a=-maximum(dep.tauv)
         b=0;
         (λ,Q)=iar_chebyshev(dep,a=a,b=b,Neig=10,maxit=100)
@@ -88,7 +89,7 @@ end
 
 
     dep=nep_gallery("dep0"); n=size(dep,1);
-    @testset "accuracy eigenpairs" begin
+    @bench @testset "accuracy eigenpairs" begin
         (λ,Q)=iar_chebyshev(dep,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100);
         @testset "IAR eigval[$i]" for i in 1:length(λ)
             @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<eps()*100;
@@ -98,22 +99,22 @@ end
     @testset "orthogonalization" begin
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
-    @testset "DGKS" begin
+    @bench @testset "DGKS" begin
         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
         @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
      end
 
-     @testset "User provided doubleGS" begin
+     @bench @testset "User provided doubleGS" begin
          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
          @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
       end
 
-      @testset "ModifiedGramSchmidt" begin
+      @bench @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
           @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
       end
 
-       @testset "ClassicalGramSchmidt" begin
+       @bench @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
            @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < 1e-6
        end
@@ -121,7 +122,7 @@ end
 
     # Other types
     @testset "compute_y0_method for different types" begin
-        @testset "PEP" begin
+        @bench @testset "PEP" begin
             Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(undef, d+1)
             for j=0:d
@@ -133,7 +134,7 @@ end
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "DEP WITH GENERIC Y0" begin
+        @bench @testset "DEP WITH GENERIC Y0" begin
 
             n=1000; K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(K, J, rand(3*n-2)); A1=sparse(K, J, rand(3*n-2))
@@ -145,7 +146,7 @@ end
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "DEP WITH DELAYS>1" begin
+        @bench @testset "DEP WITH DELAYS>1" begin
             Random.seed!(1)
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
             tau1=0; tau2=2.3; tau3=.1;
@@ -155,14 +156,14 @@ end
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "DEP SHIFTED AND SCALED" begin
+        @bench @testset "DEP SHIFTED AND SCALED" begin
             nep=nep_gallery("dep0_tridiag",1000)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "PEP SHIFTED AND SCALED" begin
+        @bench @testset "PEP SHIFTED AND SCALED" begin
             Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(undef, d+1)
             for j=0:d
@@ -173,7 +174,7 @@ end
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
+        @bench @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
             Random.seed!(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep = SPMF_NEP([A0, A1, A2], [λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> λ, λ -> λ^2])
 
@@ -181,7 +182,7 @@ end
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
         end
 
-        @testset "QDEP IN SPMF format" begin
+        @bench @testset "QDEP IN SPMF format" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=8,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
@@ -191,7 +192,7 @@ end
 
         end
 
-        @testset "PEP in SPMF format" begin
+        @bench @testset "PEP in SPMF format" begin
             Random.seed!(0);   A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep = SPMF_NEP([A0, A1, A2], [λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> λ, λ -> λ^2])
 
@@ -204,14 +205,14 @@ end
 
         end
 
-        @testset "DEP format with ComputeY0ChebSPMF_NEP" begin
+        @bench @testset "DEP format with ComputeY0ChebSPMF_NEP" begin
             nep=nep_gallery("dep0_tridiag",1000)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
 
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
         end
 
-        @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
+        @bench @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
             Random.seed!(0); n=100; d=3;
             A = Array{Array{Float64}}(undef, d+1)
             for j=0:d
@@ -223,7 +224,7 @@ end
             @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
         end
 
-        @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
+        @bench @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
@@ -237,7 +238,7 @@ end
 
         end
 
-        @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
+        @bench @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));

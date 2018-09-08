@@ -1,3 +1,4 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -9,7 +10,7 @@ using LinearAlgebra
     tol = 1e-11
     ref_eigenvalue = 22345.116783765 + 0.644998598im # from NLEIGS
 
-    @testset "Running algorithm" begin
+    @bench @testset "Running algorithm" begin
         λ1,v1 = quasinewton(nep, λ = 150^2+1im, v = ones(n), displaylevel = 1, tol = tol, maxit = 500)
 
         v1 = v1 / norm(v1)
@@ -20,7 +21,7 @@ using LinearAlgebra
         @test norm(λ1 - ref_eigenvalue) < tol*100
     end
 
-    @testset "Compute derivatives" begin
+    @bench @testset "Compute derivatives" begin
         λ = 150^2+2im
         v = randn(n)
         z1 = compute_Mlincomb(nep, λ, v, [1.0], 1)

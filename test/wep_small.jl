@@ -1,5 +1,6 @@
 # Run tests for the waveguide eigenvalue problem
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using NonlinearEigenproblems.LinSolvers
@@ -11,7 +12,7 @@ using GalleryWaveguide
 
 import GalleryWaveguide.SchurMatVec
 
-@testset "WEP" begin
+@bench @testset "WEP" begin
 
 nx = 11
 nz = 7

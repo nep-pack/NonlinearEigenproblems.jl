@@ -1,3 +1,4 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
@@ -16,16 +17,16 @@ nep_test_problems=["pep0_sparse_003","dep0","pep0"]
     compute_Mlincomb(nep::DEP,λ::Number,V,a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
     errormeasure=default_errmeasure(nep);
     λ,Q,err = iar(nep,maxit=50,Neig=5,σ=2.0,γ=3);
-        @testset "default_linsolvercreator" begin
+        @bench @testset "default_linsolvercreator" begin
             v=compute_eigvec_from_eigval_lu(nep,λ[1],default_linsolvercreator);
             @test errormeasure(λ[1],v)<eps()*10000;
         end
-        @testset "backslash_linsolvercreator" begin
+        @bench @testset "backslash_linsolvercreator" begin
             M0inv = backslash_linsolvercreator(nep,λ[1])
             v=compute_eigvec_from_eigval_lu(nep,λ[1],default_linsolvercreator);
             @test errormeasure(λ[1],v)<eps()*10000;
         end
-        @testset "Passing a linsolvercreator as argument" begin
+        @bench @testset "Passing a linsolvercreator as argument" begin
             M0inv = default_linsolvercreator(nep,λ[1])
             v=compute_eigvec_from_eigval_lu(nep,λ[1],(nep, σ) -> M0inv);
             @test errormeasure(λ[1],v)<eps()*10000;
@@ -40,16 +41,16 @@ end
     compute_Mlincomb(nep::DEP,λ::Number,V,a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
     errormeasure=default_errmeasure(nep);
     λ,Q,err = iar(nep,maxit=100,Neig=5);
-        @testset "default_linsolvercreator" begin
+        @bench @testset "default_linsolvercreator" begin
             v=compute_eigvec_from_eigval_lu(nep,λ[1],default_linsolvercreator);
             @test errormeasure(λ[1],v)<eps()*10000;
         end
-        @testset "backslash_linsolvercreator" begin
+        @bench @testset "backslash_linsolvercreator" begin
             M0inv = backslash_linsolvercreator(nep,λ[1])
             v=compute_eigvec_from_eigval_lu(nep,λ[1],default_linsolvercreator);
             @test errormeasure(λ[1],v)<eps()*10000;
         end
-        @testset "Passing a linsolvercreator as argument" begin
+        @bench @testset "Passing a linsolvercreator as argument" begin
             M0inv = default_linsolvercreator(nep,λ[1])
             v=compute_eigvec_from_eigval_lu(nep,λ[1],(nep, σ) -> M0inv);
             @test errormeasure(λ[1],v)<eps()*10000;

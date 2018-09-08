@@ -1,6 +1,8 @@
 # Run tests for the compute type tests
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
 using Test
@@ -28,11 +30,12 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
 
 
 
-    nep=metadata.nep; stype="$(typeof(nep))"
-    @testset "Testing compute nep: $stype" begin
+    nep=metadata.nep;
+    stype="$(typeof(nep))"
+    eltype_nep=metadata.nep_numbertype;
+    @bench @testset "$stype ($eltype_nep)" begin
         nepreal=metadata.nep_real;
         n=size(nep,1);
-        eltype_nep=metadata.nep_numbertype;
         skip_types_Mder=metadata.skip_types_Mder;
         skip_types_Mlincomb=metadata.skip_types_Mlincomb;
         skip_types_MM=metadata.skip_types_MM;
@@ -41,7 +44,7 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
         check_type_stability=metadata.check_type_stability;
 
 
-        println("Testing compute functions for NEP:$(stype)");
+        println("Testing compute functions for NEP:$stype ($eltype_nep)");
         displaylevel=0
 
         ## Test compute_Mder

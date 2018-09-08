@@ -1,12 +1,13 @@
 # Run tests for the deflation
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
 
-@testset "Deflation (combined with MSLP)" begin
+@bench @testset "Deflation (combined with MSLP)" begin
 
 nep=nep_gallery("dep0");
 nep = DEP(nep.n, nep.A, [0, 0.8])
