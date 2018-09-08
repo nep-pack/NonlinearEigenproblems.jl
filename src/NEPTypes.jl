@@ -850,13 +850,13 @@ julia> compute_Mder(nep,λ)[1:2,1:2]
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
-    function size(nep::Proj_NEP,dim=-1)
-        n=size(nep.W,2);
-        if (dim==-1)
-            return (n,n)
-        else
-            return n
-        end
+    function size(nep::Proj_NEP,dim)
+        n = size(nep.W,2);
+        return n
+    end
+    function size(nep::Proj_NEP)
+        n = size(nep.W,2);
+        return (n,n)
     end
 
     function get_Av(nep::Proj_SPMF_NEP)

@@ -113,7 +113,8 @@ function contour_beyn(::Type{T},
 
     @ifd(println("Computing eigenvalues "))
     λ,v=eigen(B)    # Eigenvector extraction not implemented yet
-
+    # TODO:Implement eigenvector extraction
+    @warn("Eigenvector extraction not implemented.")
     return (λ.+σ, NaN*v)
 
 end
