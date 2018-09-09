@@ -33,7 +33,7 @@ function nleigs_nep_types()
 
     # define and solve the same problem in many different ways
     problems = [
-        ("SPMF_NEP", SPMF_NEP([B; C], [λ -> 1; λ -> λ; λ -> λ^2])),
+        ("SPMF_NEP", SPMF_NEP([B; C], [λ -> λ^0; λ -> λ; λ -> λ^2])),
         ("PEP", PEP([B; C])),
         ("PEP + SPMF", SumNEP(PEP(B), SPMF_NEP(C, f))),
         ("PEP + LowRankFactorizedNEP", SumNEP(PEP(B), LowRankFactorizedNEP([LowRankMatrixAndFunction(sparse(C[1]), f[1])]))),

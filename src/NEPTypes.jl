@@ -1000,31 +1000,46 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
 
     # Use MM to compute Mlincomb for SPMFs
-    compute_Mlincomb(nep::SPMF_NEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
-             compute_Mlincomb_from_MM(nep,λ,V,a)
+    #compute_Mlincomb(nep::SPMF_NEP,λ::Number,
+    #                 V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+    #         compute_Mlincomb_from_MM(nep,λ,V,a)
 
-    #=
-    function compute_Mlincomb!(
+
+    function compute_Mlincomb(
                         nep::SPMF_NEP,
                         λ::Number,
                         V::Union{AbstractMatrix,AbstractVector},
-                        a::Vector)
-    	n,k=size(V);
+                        a::Vector=ones(size(V,2)))
+
+
+        if ndims(V)==2
+            n,k=size(V);
+        else
+            n=size(V,1); k=1;
+        end
+
     	# we need to assume that the elements of a are different than zero.
     	V[:,findall(x->x==0,a)] .= 0
     	a[findall(x->x==0,a)] .= 1
     	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(1 => (a[2:k]./a[1:k-1]).*(1:k-1))
     	S=copy(transpose(S))
 
-    	Z=zeros(eltype(V),n)
-    	for i=1:size(nep.A,1)
-    		Fi=nep.fi[i](S)[:,1]
-    		Z=Z .+ nep.A[i]*(V*Fi);
+        z=zeros(eltype(V),n)
+        if ndims(V)==1
+            for i=1:size(nep.A,1)
+                Fi=nep.fi[i](S);
+                z=z .+ nep.A[i]*(V*Fi);
+            end
+        else
+            for i=1:size(nep.A,1)
+                Fi=nep.fi[i](S)[:,1];
+                z=z .+ nep.A[i]*(V*Fi);
+            end
     	end
-    	return a[1]*Z
+
+    	return a[1]*reshape(z,size(z,1))
     end
-    compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
-    =#
+
+
 
 end

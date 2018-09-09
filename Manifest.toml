@@ -184,9 +184,9 @@ version = "0.2.0"
 
 [[Revise]]
 deps = ["Distributed", "FileWatching", "InteractiveUtils", "LibGit2", "OrderedCollections", "Pkg", "REPL", "Random", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "52b8c33ecd5b333fe54962519a18fc824c604e8c"
+git-tree-sha1 = "1e47863baff3de14d4c045382ef0416ddb45c768"
 uuid = "295af30f-e4ad-537b-8983-00126c2a3abe"
-version = "0.7.8"
+version = "0.7.9"
 
 [[Roots]]
 deps = ["Compat", "Printf"]
