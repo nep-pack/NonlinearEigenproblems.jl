@@ -7,7 +7,6 @@ using LinearAlgebra
 
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 using GalleryNLEVP
-using LinSolversMATLAB
 
 @testset "GUN (NLEVP interface)" begin
 
@@ -17,14 +16,15 @@ using LinSolversMATLAB
     tol=1e-11;
     @testset "Running alg" begin
         λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tol=tol,maxit=500);
-
-        v1=v1/opnorm(v1);
+        λ1 = λ1[1]
+        v1 = vec(v1)
+        normalize!(v1)
 
         @test norm(compute_Mlincomb(nep1,λ1,v1))<tol*100
-        @test opnorm(compute_Mder(nep1,λ1)*v1)<tol*100
+        @test norm(compute_Mder(nep1,λ1)*v1)<tol*100
 
         @test norm(compute_Mlincomb(nep_org,λ1,v1))<tol*100
-        @test opnorm(compute_Mder(nep_org,λ1)*v1)<tol*100
+        @test norm(compute_Mder(nep_org,λ1)*v1)<tol*100
 
     end
     @testset "Compute derivatives" begin
@@ -67,7 +67,7 @@ using LinSolversMATLAB
     @testset "Compare MATLAB loaded vs MAT-loaded" begin
         nep2=nep_gallery("nlevp_native_gun");
         z=ones(n); λ=150^2;
-        @test norm(compute_Mlincomb(nep2,λ,z)-compute_Mlincomb(nep1,λ,z))
+        @test (norm(compute_Mlincomb(nep2,λ,z)-compute_Mlincomb(nep1,λ,z))/norm(compute_Mlincomb(nep1,λ,z)) < 1e-14)
     end
 
 end
