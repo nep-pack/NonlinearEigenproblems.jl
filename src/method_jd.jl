@@ -125,8 +125,8 @@ function jd_betcke(::Type{T},
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             j = conveig+1, # For SG-iter
-                            λv = λ*ones(T,conveig+1),
-                            σ = target,
+                            λv = (λ+eps(real(T))) .* ones(T,conveig+1),
+                            σ = target+eps(real(T)),
                             Neig=conveig+1)
         λ,s = jd_eig_sorter(λv, sv, conveig+1, target)
         normalize!(s)
@@ -352,8 +352,8 @@ function jd_effenberger_inner!(::Type{T},
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             tol = tol/10,
-                            λv = λ .* ones(T,2),
-                            σ = target,
+                            λv = (λ+eps(real(T))) .* ones(T,2),
+                            σ = target+eps(real(T)),
                             Neig = 2)
         λ_temp,s = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         normalize!(s)
