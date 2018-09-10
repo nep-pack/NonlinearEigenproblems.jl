@@ -7,7 +7,6 @@ using LinearAlgebra
 
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 using GalleryNLEVP
-using LinSolversMATLAB
 
 @testset "NLEVP fiber" begin
     nep_org=nep_gallery(NLEVP_NEP,"fiber");
@@ -34,7 +33,7 @@ using LinSolversMATLAB
         z_minus=compute_Mlincomb(nep_org,λ-δ,x)
         zp=compute_Mlincomb(nep_org,λ,x,[1],1)
         zp-(z_plus-z_minus)/(2δ)
-        @test opnorm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
+        @test norm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
 
 
         println("Running Newton");
@@ -52,7 +51,7 @@ using LinSolversMATLAB
         end
 
         tol=1e-11
-        (λ,v)=quasinewton(Float64,nep_org,λ=7.1e-7,v=ones(n),
+        (λ,v)=quasinewton(nep_org,λ=7.1e-7,v=ones(n),
                           displaylevel=1,errmeasure=myerrmeasure,
                           tol=tol,armijo_factor=0.5,armijo_max=10)
 
@@ -75,7 +74,7 @@ using LinSolversMATLAB
 
         (λ,v)=mslp(Float64,nep_org,λ=7e-7,
                    displaylevel=1,errmeasure=myerrmeasure,
-                   tol=tol, eigsolvertype=MatlabEigSSolver)
+                   tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if imag(λ) != 0
             @warn "mslp switches to complex although it should be real: $λ"
@@ -92,7 +91,7 @@ using LinSolversMATLAB
         pep=interpolate(nep_org,intpoints);
         println("Running IAR")
         λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
-        minerr1=minimum(abs.(sol_val-λ))/abs(sol_val)
+        minerr1=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
         println("Error:",minerr1)
         @test minerr1<1e-4
 
@@ -104,7 +103,7 @@ using LinSolversMATLAB
         pep=interpolate(nep_org,intpoints);
         println("Running IAR")
         λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
-        minerr2=minimum(abs.(sol_val-λ))/abs(sol_val)
+        minerr2=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
         println("Error:",minerr2)
         @test minerr2<minerr1
     end
