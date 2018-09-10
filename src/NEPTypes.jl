@@ -514,16 +514,17 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 
 
 """
-    interpolate([T::DataType=Complex64,] nep::NEP, intpoints::Array)
- Interpolates a NEP in the points intpoints and returns a PEP.\\
- `T` is the DataType in which the PEP should be defined.
+    interpolate([T=ComplexF64,] nep::NEP, intpoints::Array)
+ Interpolates a NEP in the points `intpoints` and returns a `PEP`.\\
+ `T` is the DataType in which the matrices of the PEP should be defined.
 """
-    function interpolate(T::DataType, nep::NEP, intpoints::Array)
+    interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
+    function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}
 
         n = size(nep, 1)
         d = length(intpoints)
 
-        V = Array{T}(d,d) #Vandermonde matrix
+        V = zeros(T,d,d) #Vandermonde matrix
         pwr = ones(d,1)
         for i = 1:d
             V[:,i] = pwr
@@ -531,18 +532,18 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         end
 
         if (issparse(nep)) #If Sparse, do elementwise interpolation
-            b = Array{SparseMatrixCSC{T},1}(d)
-            AA = Array{SparseMatrixCSC{T},1}(d)
+            b = Vector{SparseMatrixCSC{T}}(undef, d)
+            AA = Vector{SparseMatrixCSC{T}}(undef, d)
             V = factorize(V) # Will be used multiple times, factorize
 
             for i=1:d
                 b[i] = compute_Mder(nep, intpoints[i])
             end
 
-            # OBS: The following lines and hence the  following method assumes that Sparsity-structure is the same!
+            # OBS: The following lines and hence the following method assumes that Sparsity-structure is the same!
             nnz_AA = nnz(b[1])
             for i=1:d
-                AA[i] = spones(b[1])
+                AA[i] = copy(b[1])
             end
 
             f = zeros(d,1)
@@ -557,43 +558,27 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             end
 
         else # If dense, use Vandermonde
-            b = Array{T}(n*d,n)
-            AA = Array{Array{T,2}}(d)
+            b = zeros(T,n*d,n)
+            AA = Vector{Matrix{T}}(undef,d)
             (L, U, p) = lu(V)
 
-            I = speye(n,n)
-            LL = kron(L,I)
-            UU = kron(U,I)
+            LL = kron(L, SparseMatrixCSC(I,(n,n)))
+            UU = kron(U, SparseMatrixCSC(I,(n,n)))
 
             for i = 1:d
-                b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[p[i]])
+                b[(1:n).+(i-1)*n,:] =  compute_Mder(nep,intpoints[p[i]])
             end
 
             A = \(UU, \(LL,b))
 
             for i = 1:d
-                AA[i] = A[(1:n)+(i-1)*n,:]
+                AA[i] = A[(1:n).+(i-1)*n,:]
             end
         end
 
         return PEP(AA)
     end
-
-
-    interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
-
-
-    """
-     interpolate_cheb(nep::NEP,a::Real,b::Real)
-  Interpolation in an interval using Chebyshev distribution. Returns a PEP.
-  Following Effenberger, Cedric, and Daniel Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
-"""
-    function interpolate_cheb(nep::NEP,a::Real,b::Real)
-        # Not yet implemented
-        # Note: PEP should probably be separated into Mono_PEP and
-        # Cheb_PEP depending which inherit from PEP.
-        error("Not implemented")
-    end
+  # TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
 
 
 
