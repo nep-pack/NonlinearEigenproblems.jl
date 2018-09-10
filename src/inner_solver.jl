@@ -102,13 +102,13 @@ function inner_solve(TT::Type{IARInnerSolver},T_arit::DataType,nep::NEPTypes.Pro
 end
 
 function inner_solve(TT::Type{IARChebInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
-    if (typeof(nep.orgnep)==NEPTypes.DEP)
-        AA=get_Av(nep);
-        BB=Array{eltype(AA),1}(size(AA,1)-1);
-        for i=1:(size(AA,1)-1)
-            BB[i]=AA[1]\AA[1+i];
+    if (typeof(nep.orgnep) <: NEPTypes.DEP)
+        AA = get_Av(nep)
+        BB = Vector{eltype(AA)}(undef, size(AA,1)-1)
+        for i = 1:(size(AA,1)-1)
+            BB[i] = AA[1]\AA[1+i]
         end
-        nep=DEP(BB,nep.orgnep.tauv)
+        nep = DEP(BB,nep.orgnep.tauv)
     end
 
     try
