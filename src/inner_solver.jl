@@ -102,7 +102,7 @@ function inner_solve(TT::Type{IARInnerSolver},T_arit::DataType,nep::NEPTypes.Pro
 end
 
 function inner_solve(TT::Type{IARChebInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
-    if (typeof(nep.orgnep) <: NEPTypes.DEP)
+    if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
         BB = Vector{eltype(AA)}(undef, size(AA,1)-1)
         for i = 1:(size(AA,1)-1)
