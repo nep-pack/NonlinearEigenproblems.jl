@@ -185,13 +185,12 @@ end
         d0::Float64
         d1::Float64
         d2::Float64
-        b
-        cMP # cM followed by cP in a vector (length = 2*nz)
+        b::Vector{ComplexF64}
+        cM::Vector{ComplexF64}
+        cP::Vector{ComplexF64}
         R::Function
         Rinv::Function
         Pinv::Function
-        generate_Pm_and_Pp_inverses::Function
-
 
         function WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
@@ -207,15 +206,14 @@ end
             b = 4*pi*1im * (-p:p)
             cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
             cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
-            cMP = vcat(cM, cP)
 
             R, Rinv = generate_R_matvecs(nz)
             Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
-            generate_Pm_and_Pp_inverses(σ) =  helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
 
             Iz = sparse(ComplexF64(1)I, nz, nz)
 
-            this = new(nx, nz, hx, hz, Dxx, Dzz, Dz, Iz, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cMP, R, Rinv, Pinv, generate_Pm_and_Pp_inverses)
+            this = new(nx, nz, hx, hz, Dxx, Dzz, Dz, Iz, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cM, cP, R, Rinv, Pinv)
+
 
         end
     end
@@ -241,6 +239,32 @@ end
         end
     end
 
+    #Inverses of the boundary operators, Ringh - (2.8)
+    #To be used in the Schur-complement- and SMW-context.
+    function P_inv_m(nep::WEP_FD, σ, v)
+        nz = nep.nz
+        coeffs = zeros(ComplexF64, nz)
+            aa = 1.0
+        for j = 1:nz
+            bb = nep.b[j]
+            cc = nep.cM[j]
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+        end
+        return nep.R(nep.Rinv(v) ./ coeffs)
+    end
+    function P_inv_p(nep::WEP_FD, σ, v)
+        nz = nep.nz
+        coeffs = zeros(ComplexF64, nz)
+            aa = 1.0
+        for j = 1:nz
+            bb = nep.b[j]
+            cc = nep.cP[j]
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+        end
+        return nep.R(nep.Rinv(v) ./ coeffs)
+    end
+
+
     function size(nep::WEP_FD)
         n = nep.nx*nep.nz + 2*nep.nz
         return (n,n)
@@ -256,28 +280,7 @@ end
     end
 
 
-    #Helper function: Generates function to compute iverse of the boundary operators, Ringh - (2.8)
-    #To be used in the Schur-complement- and SMW-context.
-    function helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
-        # S_k(σ) + d_0, as in Ringh - (2.3a)
-        coeffs = zeros(ComplexF64, 2*nz)
-            aa = 1.0
-        for j = 1:2*nz
-            bb = b[rem(j-1,nz)+1]
-            cc = cMP[j]
-            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + d0
-        end
 
-        # P_inv_m and P_inv_p, the boundary operators
-        P_inv_m = function(v)
-            return R(Rinv(v) ./ coeffs[1:nz])
-        end
-        P_inv_p = function(v)
-            return R(Rinv(v) ./ coeffs[(nz+1):(2*nz)])
-        end
-
-        return P_inv_m, P_inv_p
-    end
 
 
     """
@@ -316,10 +319,11 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
         # Compute the bottom part (2*nz)
         D::Matrix{ComplexF64} = zeros(ComplexF64, 2*nz, na)
+        cMP = vcat(nep.cM, nep.cP)
         for j = 1:2*nz
             aa = 1
             bb = nep.b[rem(j-1,nz)+1]
-            cc = nep.cMP[j]
+            cc = cMP[j]
             der_coeff = 1im*sqrt_derivative(aa, bb, cc, max_d, λ)
             for jj = 1:na
                 D[j, jj] = der_coeff[jj]
@@ -463,15 +467,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         Inz = sparse(ComplexF64(1)I, nz, nz)
         Inx = sparse(ComplexF64(1)I, nx, nx)
 
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
         Pinv_minus = Matrix{ComplexF64}(undef, nz, nz)
         Pinv_plus = Matrix{ComplexF64}(undef, nz, nz)
         e = zeros(ComplexF64,nz)
         for i = 1:nz
             e[:] .= 0
             e[i] = 1
-            Pinv_minus[:,i] = P_inv_m(e)
-            Pinv_plus[:,i] = P_inv_p(e)
+            Pinv_minus[:,i] = P_inv_m(nep, λ, e)
+            Pinv_plus[:,i] = P_inv_p(nep, λ, e)
         end
 
         E = spzeros(nx,nx)

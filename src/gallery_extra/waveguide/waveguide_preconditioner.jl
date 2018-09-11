@@ -72,10 +72,9 @@
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
 
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
         # OBS: MINUS sign as in Ringh - (4.10)
-        Pm(v) = -P_inv_m(v)
-        Pp(v) = -P_inv_p(v)
+        Pm(v) = -P_inv_m(nep, σ, v)
+        Pp(v) = -P_inv_p(nep, σ, v)
 
         return generate_smw_matrix(nz, N, Linv!, dd1, dd2, Pm, Pp, nep.K )
     end
@@ -103,10 +102,9 @@
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
 
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
         # OBS: MINUS sign as in Ringh - (4.10)
-        Pm(v) = -P_inv_m(v)
-        Pp(v) = -P_inv_p(v)
+        Pm(v) = -P_inv_m(nep, σ, v)
+        Pp(v) = -P_inv_p(nep, σ, v)
 
         return solve_smw(M, C_copy, Linv!, dd1, dd2, Pm, Pp, nep.K)
     end
