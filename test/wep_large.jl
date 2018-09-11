@@ -2,6 +2,8 @@
 #using GalleryWaveguide
 
 #OBS: Only needed to run the debug
+push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
+using GalleryWaveguide
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide")) # looks for modules in the correct directory
 using waveguide_debug
 using Test

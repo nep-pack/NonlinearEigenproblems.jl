@@ -91,13 +91,13 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
     end
 
     # BUILD THE FOURTH BLOCK P
-    function P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
+    function P(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
         return vec( [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
                      R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ])
     end
 
     # BUILD THE DERIVATIVE OF P
-    function p_P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
+    function p_P(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
         return vec( [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
                      R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ])
     end
@@ -508,7 +508,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
     println("Relative residual norm = ", opnorm(A*X_jj+X_jj*B-C)/opnorm(C))
 
     println("FFT-based Sylvester solver for WG (X_j)")
-    X_j::Array{ComplexF64,2} = copy(C)
+    X_j::Matrix{ComplexF64} = copy(C)
     @time solve_wg_sylvester_fft!( X_j, γ, k_bar, hx, hz )
     println("Relative residual norm = ", opnorm(A*X_j+X_j*B-C)/opnorm(C))
 
