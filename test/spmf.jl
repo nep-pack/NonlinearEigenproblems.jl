@@ -115,19 +115,61 @@ using SparseArrays
 
     end
 
+    @testset "PEP" begin
+        Random.seed!(99)
+        A0=randn(5,5)
+        A1=randn(5,5)
+        A2=randn(5,5)
+        A3=randn(5,5)
+        # Check that PEP generates the
+        # same values as an SPMF generated from the PEP
+        nep0=PEP([A0,A1,A2, A3])
+        nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
+        for  λ in [3,10,-3,-100]
+            M0=compute_Mder(nep0,λ)
+            M1=compute_Mder(nep1,λ)
+            @test M0 ≈ M1
+
+            M0=compute_Mder(nep0,λ,2)
+            M1 = 2 .* A2 + (λ*6) .* A3
+            @test M0 ≈ M1
+        end
+
+    end
+
     @testset "REP" begin
         Random.seed!(10)
-        A0=randn(5,5);
-        A1=randn(5,5);
-        A2=randn(5,5);
+        A0=randn(5,5)
+        A1=randn(5,5)
+        A2=randn(5,5)
         # Check that REP generates the
         # same values as an SPMF generated from the REP
         nep0=REP([A0,A1,A2],[1,2,3.3])
         nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
-        for  λ in [3,10,-3,-100];
+        for  λ in [3,10,-3,-100]
             M0=compute_Mder(nep0,λ)
             M1=compute_Mder(nep1,λ)
             @test M0 ≈ M1
+        end
+
+    end
+
+    @testset "DEP" begin
+        Random.seed!(88)
+        A1=randn(5,5)
+        A2=randn(5,5)
+        τ1 = 1.5
+        τ2 = 3.75
+        # Check that DEP generates the
+        # same values as an SPMF generated from the DEP
+        nep0=DEP([A1,A2],[τ1, τ2])
+        nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
+        for  λ in [3,10,-3,-100]
+            M0=compute_Mder(nep0,λ)
+            M1=compute_Mder(nep1,λ)
+            @test M0 ≈ M1
+            M2 = -λ*I + A1 .* exp(-τ1*λ) + A2 .* exp(-τ2*λ)
+            @test M0 ≈ M2
         end
 
     end
