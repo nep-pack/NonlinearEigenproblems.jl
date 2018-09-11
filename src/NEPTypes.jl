@@ -60,14 +60,17 @@ A ProjectableNEP is a NEP which can be projected, i.e., one can construct the pr
 # Example:
 julia> nep=nep_gallery("dep0");
 julia> typeof(nep)
-NEPTypes.DEP
+DEP{Float64,Array{Float64,2}}
 julia> isa(nep,ProjectableNEP)
 true
-julia> projnep=create_proj_NEP(nep)
-NEPTypes.Proj_SPMF_NEP(NEPTypes.DEP(5, Array{Float64,2}[[0.679107 0.297336 … -0.187573 -0.117138; 0.828413 0.0649475 … -1.60726 -0.601254; … ; -0.134854 -0.51421 … 2.27623 -0.0886163; 0.586617 1.57433 … 0.219693 0.279466], [0.111422 1.42305 … 0.481556 -0.185424; -0.357884 0.408387 … -0.321943 1.26972; … ; 0.300234 -0.296278 … -0.178789 -0.0671867; -0.762677 0.691111 … -1.47788 0.577282]], [0.0, 1.0]), #undef, #undef, #undef, Array{Float64,2}[[1.0 0.0 … 0.0 0.0; 0.0 1.0 … 0.0 0.0; … ; 0.0 0.0 … 1.0 0.0; 0.0 0.0 … 0.0 1.0], [0.679107 0.297336 … -0.187573 -0.117138; 0.828413 0.0649475 … -1.60726 -0.601254; … ; -0.134854 -0.51421 … 2.27623 -0.0886163; 0.586617 1.57433 … 0.219693 0.279466], [0.111422 1.42305 … 0.481556 -0.185424; -0.357884 0.408387 … -0.321943 1.26972; … ; 0.300234 -0.296278 … -0.178789 -0.0671867; -0.762677 0.691111 … -1.47788 0.577282]], Function[NEPTypes.#1, NEPTypes.#2, NEPTypes.#3])
-julia> set_projectmatrices!(projnep,eye(5,1),eye(5,1))
-NEPTypes.SPMF_NEP(1, Array{Float64,2}[[1.0], [0.679107], [0.111422]], Function[NEPTypes.#1, NEPTypes.#2, NEPTypes.#3], false, 1×1 SparseMatrixCSC{Float64,Int64} with 0 stored entries)
-
+julia> projnep=create_proj_NEP(nep);
+julia> e1 = Matrix(1.0*I,size(nep,1),1);
+julia> set_projectmatrices!(projnep,e1,e1);
+julia> compute_Mder(nep,3.0)[1,1]
+-2.315345215259418
+julia> compute_Mder(projnep,3.0)
+1×1 Array{Float64,2}:
+ -2.315345215259418
 """
     abstract type ProjectableNEP <: NEP end
 
@@ -141,7 +144,7 @@ efficient to set this flag to false.
 
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
-julia> id_op=S -> eye(S)
+julia> id_op=S -> one(S)
 julia> exp_op=S -> exp(S)
 julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
 julia> compute_Mder(nep,1)-(A0+A1*exp(1))
@@ -428,7 +431,7 @@ Creates a polynomial eigenvalue problem with monomial matrices specified in
 AA, which is an array of matrices.
 
 ```julia-repl
-julia> A0=[1 3; 4 5]; A1=A0+eye(2); A2=ones(2,2);
+julia> A0=[1 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
 julia> pep=PEP([A0,A1,A2])
 julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 2×2 Array{Float64,2}:
@@ -797,15 +800,15 @@ of a `NEP` is also a `NEP` and we can for instance
 call `compute_Mder`on it:
 ```julia-repl
 julia> nep=nep_gallery("pep0")
-julia> V=eye(size(nep,1),2);
-julia> W=eye(size(nep,1),2);
+julia> V=Matrix(1.0*I,size(nep,1),2);
+julia> W=Matrix(1.0*I,size(nep,1),2);
 julia> pnep=create_proj_NEP(nep);
 julia> set_projectmatrices!(pnep,W,V);
-julia> compute_Mder(pnep,λ)
+julia> compute_Mder(pnep,3.0)
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
-julia> compute_Mder(nep,λ)[1:2,1:2]
+julia> compute_Mder(nep,3.0)[1:2,1:2]
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
