@@ -25,7 +25,7 @@ v2 = compute_Mlincomb(nep     , γ, ones(size(nep     ,1)))
 precond = wep_generate_preconditioner(nep, nz, γ)
 b1 = rand(ComplexF64, nx*nz)
 Schur_fun = SchurMatVec(nep, γ)
-b2 = A_ldiv_B!(precond, (Schur_fun*b1))
+b2 = ldiv!(precond, (Schur_fun*b1))
 @test norm(b1-b2)/norm(b1) < 1e-14
 
 

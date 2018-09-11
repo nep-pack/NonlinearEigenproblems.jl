@@ -42,8 +42,8 @@ import Base.*
 export *
 import Base.eltype
 export eltype
-import LinearAlgebra.A_ldiv_B!
-export A_ldiv_B!
+import LinearAlgebra.ldiv!
+export ldiv!
 
 
 

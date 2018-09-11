@@ -25,7 +25,7 @@
     end
 
 
-    function A_ldiv_B!(A::WEP_preconditioner, B)
+    function ldiv!(A::WEP_preconditioner, B)
         C = reshape(B, A.nep.nz, A.nep.nx)
         B[:] = vec( solve_smw( A.nep, A.M, C, A.σ, A.scratch_pad_for_FFT, A.scratch_pad_for_transpose, A.scratch_pad_for_Z) )
     end
