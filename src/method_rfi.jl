@@ -54,9 +54,7 @@ function rfi(::Type{T},
                     return λ,u,v
                 end
 
-                if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e \n",k, err)
-                end
+                @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
 
                 local linsolver::LinSolver = linsolvercreator(nep,λ)
                 local linsolver_t::LinSolver = linsolvercreator(nept,λ)
@@ -76,15 +74,14 @@ function rfi(::Type{T},
             isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-            if (displaylevel>0)
-                println("We have an exact eigenvalue.")
-            end
+            @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,u)>tol)
-                # We need to compute an eigvec somehow
-                u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u # Requires matrix access
+                u[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
                 normalize!(u)
+                v[:] = compute_eigvec_from_eigval_lu(nept, λ, default_linsolvercreator)
+                normalize!(v)
             end
-            return (λ,u)
+            return (λ,u,v)
         end
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,u,err,msg))
@@ -94,7 +91,7 @@ end
 Two-sided Rayleigh functional Iteration(Bordered version), as given as Algorithm 5 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and
 Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 """
-rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
+rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi_b(ComplexF64,nep, nept,;kwargs...)
 function rfi_b(::Type{T},
             nep::NEP,
             nept::NEP;
@@ -125,9 +122,7 @@ function rfi_b(::Type{T},
                     return λ,u,v
                 end
 
-                if (displaylevel>0)
-                    @printf("Iteration: %2d errmeasure:%.18e \n",k, err)
-                end
+                @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
 
                 #Construct C_k
                 C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[T(1)],1);v'*compute_Mder(nep,λ,1) T(0.0)]
@@ -152,15 +147,14 @@ function rfi_b(::Type{T},
             isa(e, SingularException) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-            if (displaylevel>0)
-                println("We have an exact eigenvalue.")
-            end
+            @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,u)>tol)
-                # We need to compute an eigvec somehow
-                u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u # Requires matrix access
+                u[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
                 normalize!(u)
+                v[:] = compute_eigvec_from_eigval_lu(nept, λ, default_linsolvercreator)
+                normalize!(v)
             end
-            return (λ,u)
+            return (λ,u,v)
         end
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,u,err,msg))
