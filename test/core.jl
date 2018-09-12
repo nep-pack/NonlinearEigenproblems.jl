@@ -1,5 +1,6 @@
 # Tests for core functionality
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
 using Test
@@ -8,7 +9,7 @@ struct TestNEP <: NEP
    dummy
 end
 
-@testset "Core" begin
+@bench @testset "Core" begin
 
 nep=nep_gallery("dep0");
 n=size(nep,1);
@@ -40,7 +41,7 @@ my_test_NEP = TestNEP([1 2; 3 4])
 
 end
 
-@testset "Types (sumnep)" begin
+@bench @testset "Types (sumnep)" begin
     A0 = ones(3, 3)
     A1 = Matrix(1.0I, 3, 3)
     nep1 = DEP([A0,A1])

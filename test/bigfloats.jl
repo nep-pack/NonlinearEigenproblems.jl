@@ -1,5 +1,6 @@
 # Unit  tests for bigfloats. Type stability of methods.
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using Test
@@ -33,7 +34,7 @@ function bigfloats()
     println("Bigfloat precomputation")
     λstar,vstar = augnewton(T, nep; v=v0, λ=λ0, tol=eps(T)*100, errmeasure=myerrmeasure)
 
-    @testset "BigFloat comparison w $T" for T in (Float16, ComplexF16, ComplexF64)
+    @bench @testset "BigFloat comparison w $T" for T in (Float16, ComplexF16, ComplexF64)
         nep1 = PEP(Array{Array{T,2},1}(nep.A))
         global itercount = 0
         global λiterates = zeros(T, 100)

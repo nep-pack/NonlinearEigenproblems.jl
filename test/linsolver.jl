@@ -1,12 +1,13 @@
 # Unit test for the lin-solve mehtods (in src/LinSolver.jl)
 # The "Gun" problem form gun_native.jl
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.Gallery
 using NonlinearEigenproblems.LinSolvers
 using Test
 using LinearAlgebra
 
-@testset "linsolvers" begin
+@bench @testset "linsolvers" begin
     TOL = 1e-10;
     nep = nep_gallery("nlevp_native_gun")
 

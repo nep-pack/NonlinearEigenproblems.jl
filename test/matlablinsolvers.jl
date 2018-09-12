@@ -1,11 +1,12 @@
 #  Tests for the Linear solvers
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using Test
 using LinearAlgebra
 
 using LinSolversMATLAB
 
-@testset "LinSolvers" begin
+@bench @testset "LinSolvers" begin
     A=sparse(randn(5,5));
 
     ## Eigs solvers (native and MATLAB)

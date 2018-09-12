@@ -1,12 +1,13 @@
 # Run tests on nep_gallery (not tested elsewhere)
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using LinearAlgebra
 using SparseArrays
 using Test
 
-@testset "Gallery" begin
+@bench @testset "Gallery" begin
     println("Testing sine");
     nep=nep_gallery("sine")
     tol=1e-10;

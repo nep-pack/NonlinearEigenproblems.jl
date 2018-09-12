@@ -1,11 +1,12 @@
 # Run tests on block Newton
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
 
-@testset "sgiter" begin
+@bench @testset "sgiter" begin
 
     nep = nep_gallery("real_quadratic")
 #    nep = nep_gallery("dep_distributed")

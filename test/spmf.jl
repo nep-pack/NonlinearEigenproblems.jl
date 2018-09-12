@@ -1,5 +1,6 @@
 # Tests for SPMF-code
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPTypes
 using Test
@@ -24,7 +25,7 @@ using SparseArrays
     nep1 = SPMF_NEP([J, A0, A1], fi)
     nep2 = SPMF_NEP([J, A0, A1], fi, true)
 
-    @testset "compute_MM" begin
+    @bench @testset "compute_MM" begin
 
         S=randn(3,3);
         V=randn(n,3);
@@ -51,7 +52,7 @@ using SparseArrays
         @test opnorm(N1-N2)<sqrt(eps())
 
     end
-    @testset "compute_Mder_from_MM" begin
+    @bench @testset "compute_Mder_from_MM" begin
 
         S=randn(3,3);
         V=randn(n,3);
@@ -84,7 +85,7 @@ using SparseArrays
 
     end
 
-    @testset "Compute_Mlincomb" begin
+    @bench @testset "Compute_Mlincomb" begin
 
         Random.seed!(10)
         S=randn(3,3)+120^2*I;
@@ -115,7 +116,7 @@ using SparseArrays
 
     end
 
-    @testset "PEP" begin
+    @bench @testset "PEP" begin
         Random.seed!(99)
         A0=randn(5,5)
         A1=randn(5,5)
@@ -137,7 +138,7 @@ using SparseArrays
 
     end
 
-    @testset "REP" begin
+    @bench @testset "REP" begin
         Random.seed!(10)
         A0=randn(5,5)
         A1=randn(5,5)
@@ -154,7 +155,7 @@ using SparseArrays
 
     end
 
-    @testset "DEP" begin
+    @bench @testset "DEP" begin
         Random.seed!(88)
         A1=randn(5,5)
         A2=randn(5,5)

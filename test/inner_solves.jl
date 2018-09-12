@@ -1,12 +1,13 @@
 # Run tests for the inner solves
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
 
-@testset "Inner Solves" begin
+@bench @testset "Inner Solves" begin
     dep=nep_gallery("dep0",200);
     n=size(dep,1);
 

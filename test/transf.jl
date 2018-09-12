@@ -1,5 +1,6 @@
 # Run tests for the NEP transformations
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
@@ -8,7 +9,7 @@ using LinearAlgebra
 
 @testset "transformations" begin
 
-    @testset "Shift and scale" begin
+    @bench @testset "Shift and scale" begin
         orgnep=nep_gallery("dep0");
 
         # Test the shift by solving the orgnep and
@@ -62,7 +63,7 @@ using LinearAlgebra
         #
 
     end
-    @testset "Möbius transformation" begin
+    @bench @testset "Möbius transformation" begin
         # Checks mobius_transformation
 
         pep0=nep_gallery("pep0")

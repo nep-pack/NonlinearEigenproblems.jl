@@ -1,5 +1,6 @@
 # Run tests for the dep_distributed example
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -23,7 +24,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     n=100;
     dep=nep_gallery("dep0",n);
 
-    @testset "accuracy eigenpairs" begin
+    @bench @testset "accuracy eigenpairs" begin
         (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
         @testset "TIAR eigval[$i]" for i in 1:length(λ)
             @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<eps()*100;
@@ -33,22 +34,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     @testset "orthogonalization" begin
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
-    @testset "DGKS" begin
+    @bench @testset "DGKS" begin
         (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
         @test opnorm(Z'*Z - I) < 1e-6
      end
 
-     @testset "User provided doubleGS" begin
+     @bench @testset "User provided doubleGS" begin
          (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
          @test opnorm(Z'*Z - I) < 1e-6
       end
 
-      @testset "ModifiedGramSchmidt" begin
+      @bench @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
           @test opnorm(Z'*Z - I) < 1e-6
       end
 
-       @testset "ClassicalGramSchmidt" begin
+       @bench @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
            @test opnorm(Z'*Z - I) < 1e-6
        end
@@ -56,13 +57,13 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # iar and tiar ara mathematically equivalent it maxit<<nep
     # verify the equivalence numerically
-    @testset "equivalance with IAR" begin
+    @bench @testset "equivalance with IAR" begin
         (λ_tiar,Q_tiar)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
         (λ_iar,Q_iar)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
         @test norm(λ_tiar-λ_iar)<1e-6
         @test norm(Q_tiar-Q_iar)<1e-6
     end
-    @testset "Solve by projection" begin
+    @bench @testset "Solve by projection" begin
         np=1000;
 
         depp=nep_gallery("dep0",np);

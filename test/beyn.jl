@@ -1,5 +1,6 @@
 # Run tests on Beyns contour integral method
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -7,7 +8,7 @@ using LinearAlgebra
 
 @testset "Beyn contour" begin
     nep=nep_gallery("dep0")
-    @testset "disk at origin" begin
+    @bench @testset "disk at origin" begin
 
         λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:ptrapz,compute_eigenvectors=true)
 
@@ -27,7 +28,7 @@ using LinearAlgebra
         @test all(isnan.(v))
 
     end
-    @testset "shifted disk" begin
+    @bench @testset "shifted disk" begin
 
         λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:ptrapz,compute_eigenvectors=true)
 

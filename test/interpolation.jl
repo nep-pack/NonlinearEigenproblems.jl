@@ -11,7 +11,7 @@ using LinearAlgebra
 
 
 #########################################################################################
-@testset "Random dep" begin
+@bench @testset "Random dep" begin
 nep = nep_gallery("dep0")
 λ1,x1 = newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 println("")
@@ -35,7 +35,7 @@ println("")
 end
 
 #########################################################################################
-@testset "Random sparse dep" begin
+@bench @testset "Random sparse dep" begin
 nep = nep_gallery("dep0_sparse", 30)
 
 λ1,x1 = newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
@@ -53,7 +53,7 @@ println("")
 end
 
 #########################################################################################
-@testset "Random pep (original pep of degree 2)" begin
+@bench @testset "Random pep (original pep of degree 2)" begin
 nep = nep_gallery("pep0")
 λ1,x1 = newton(nep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
 println("")
@@ -96,7 +96,7 @@ end
 end
 
 #########################################################################################
-@testset "Random sparse pep (original pep of degree 2)" begin
+@bench @testset "Random sparse pep (original pep of degree 2)" begin
 nep=nep_gallery("pep0_sparse_003")
 λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 println("")

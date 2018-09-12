@@ -1,5 +1,6 @@
 # Run tests on Beyns contour integral method
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -14,7 +15,7 @@ using GalleryNLEVP
     nep1=nlevp_make_native(nep_org);
     n=size(nep1,1);
     tol=1e-11;
-    @testset "Running alg" begin
+    @bench @testset "Running alg" begin
         λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=1,tol=tol,maxit=500);
         λ1 = λ1[1]
         v1 = vec(v1)
@@ -27,7 +28,7 @@ using GalleryNLEVP
         @test norm(compute_Mder(nep_org,λ1)*v1)<tol*100
 
     end
-    @testset "Compute derivatives" begin
+    @bench @testset "Compute derivatives" begin
         # Test compute_Mlincomb:
         λ=150^2+2im;
         V=randn(n,2);    v=V[:,1];
@@ -43,7 +44,7 @@ using GalleryNLEVP
     end
 
 
-    @testset "Compare SPMF and Native in alg" begin
+    @bench @testset "Compare SPMF and Native in alg" begin
         # Check that two steps of quasinewton always gives the same result
         λ_org=0
         try
@@ -64,7 +65,7 @@ using GalleryNLEVP
 
     end
 
-    @testset "Compare MATLAB loaded vs MAT-loaded" begin
+    @bench @testset "Compare MATLAB loaded vs MAT-loaded" begin
         nep2=nep_gallery("nlevp_native_gun");
         z=ones(n); λ=150^2;
         @test (norm(compute_Mlincomb(nep2,λ,z)-compute_Mlincomb(nep1,λ,z))/norm(compute_Mlincomb(nep1,λ,z)) < 1e-14)

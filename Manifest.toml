@@ -19,6 +19,12 @@ version = "0.2.3"
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
+[[BenchmarkTools]]
+deps = ["JSON", "Pkg", "Printf", "Statistics", "Test"]
+git-tree-sha1 = "e686f1754227e4748259f400839b83a1e8773e02"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "0.4.1"
+
 [[BinDeps]]
 deps = ["Compat", "Libdl", "SHA", "URIParser"]
 git-tree-sha1 = "12093ca6cdd0ee547c39b1870e0c9c3f154d9ca9"
@@ -48,12 +54,6 @@ deps = ["Compat", "JSON", "VersionParsing"]
 git-tree-sha1 = "a47f9a2c7b80095e6a935536795635522fe27f5d"
 uuid = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 version = "1.0.1"
-
-[[Crayons]]
-deps = ["Pkg", "Test"]
-git-tree-sha1 = "3017c662a988bcb8a3f43306a793617c6524d476"
-uuid = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
-version = "1.0.0"
 
 [[Dates]]
 deps = ["Printf"]
@@ -228,12 +228,6 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[TimerOutputs]]
-deps = ["Crayons", "Printf", "Test", "Unicode"]
-git-tree-sha1 = "89a9bd610d6bfd62a7c2b85112762b99b979fe5f"
-uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
-version = "0.4.0"
 
 [[URIParser]]
 deps = ["Test", "Unicode"]

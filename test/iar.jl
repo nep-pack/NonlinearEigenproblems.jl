@@ -1,3 +1,4 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
@@ -21,7 +22,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     dep=nep_gallery("dep0");
     n=size(dep,1);
 
-    @testset "accuracy eigenpairs" begin
+    @bench @testset "accuracy eigenpairs" begin
         (λ,Q)=iar(dep,σ=3,Neig=5,v=ones(n),
                   displaylevel=0,maxit=100,tol=eps()*100);
         @testset "IAR eigval[$i]" for i in 1:length(λ)
@@ -32,22 +33,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     @testset "orthogonalization" begin
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
-    @testset "DGKS" begin
+    @bench @testset "DGKS" begin
         (λ,Q,err,V)=iar(dep,orthmethod=DGKS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
         @test opnorm(V'*V - I) < 1e-6
      end
 
-     @testset "User provided doubleGS" begin
+     @bench @testset "User provided doubleGS" begin
          (λ,Q,err,V)=iar(dep,orthmethod=DoubleGS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
          @test opnorm(V'*V - I) < 1e-6
       end
 
-      @testset "ModifiedGramSchmidt" begin
+      @bench @testset "ModifiedGramSchmidt" begin
           (λ,Q,err,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
           @test opnorm(V'*V - I) < 1e-6
       end
 
-       @testset "ClassicalGramSchmidt" begin
+       @bench @testset "ClassicalGramSchmidt" begin
            (λ,Q,err,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
            @test opnorm(V'*V - I) < 1e-6
        end
