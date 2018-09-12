@@ -22,9 +22,9 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
     @inbounds for j = 1:m-1
         binv = 1 / b[j]
         βinv = 1 / β[j]
-        for k = 1:length(A); sA[k] *= (A[k] - a[j]) / (1 - A[k] * binv) * βinv; end
-        for k = 1:length(B); sB[k] *= (B[k] - a[j]) / (1 - B[k] * binv) * βinv; end
-        for k = 1:length(C); sC[k] *= (C[k] - a[j]) / (1 - C[k] * binv) * βinv; end
+        for k = 1:length(A); sA[k] = sA[k] * βinv * (A[k] - a[j]) / (1 - A[k] * binv); end
+        for k = 1:length(B); sB[k] = sB[k] * βinv * (B[k] - a[j]) / (1 - B[k] * binv); end
+        for k = 1:length(C); sC[k] = sC[k] * βinv * (C[k] - a[j]) / (1 - C[k] * binv); end
 
         push!(a, A[keepA ? j+1 : argmax([isnan(x) ? -Inf : abs.(x) for x in sA])])
         push!(b, forceInf > j ? Inf : B[argmin([isnan(x) ? Inf : abs.(x) for x in sB])])
