@@ -1,3 +1,4 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
@@ -11,7 +12,7 @@ using LinearAlgebra
 @test_throws ErrorException jd()
 
 
-@testset "Betcke-Voss" begin
+@bench @testset "Betcke-Voss" begin
 println("\n\nTest: Betcke-Voss")
 
 
@@ -82,7 +83,7 @@ end
 
 
 
-@testset "Effenberger" begin
+@bench @testset "Effenberger" begin
 println("\n\nTest: Effenberger")
 
 TOL = 1e-10

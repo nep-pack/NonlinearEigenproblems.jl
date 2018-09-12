@@ -1,3 +1,4 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPTypes
@@ -27,7 +28,7 @@ using SparseArrays
     @test λ1≈λ2 # They should be exactly the same
 
     println("mslp noconv + double")
-    @testset  "mslp + double" begin
+    @bench @testset  "mslp + double" begin
         nep3 = nep_gallery("dep_double");
         @test_throws NoConvergenceException mslp(nep3, λ=9im, maxit=10)
         λ,v = mslp(nep3, λ=9im, maxit=100)

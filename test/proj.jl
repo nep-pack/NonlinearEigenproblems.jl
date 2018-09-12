@@ -1,5 +1,6 @@
 #  Tests for the projected NEPs
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPTypes
@@ -12,7 +13,7 @@ using Random
 
 @testset "Projected problems" begin
 
-    @testset "Problem $nepstr" for nepstr in ("pep", "dep", "sqrtm")
+    @bench @testset "Problem $nepstr" for nepstr in ("pep", "dep", "sqrtm")
 
         local nep::NEP
         if (nepstr == "pep")

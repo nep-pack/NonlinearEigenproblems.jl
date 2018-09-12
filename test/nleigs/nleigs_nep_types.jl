@@ -1,5 +1,6 @@
 # Solves a basic eigenvalue problem defined through different NEP types through NLEIGS
 
+push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using Test
@@ -40,7 +41,7 @@ function nleigs_nep_types()
         ("Custom NEP type", CustomNLEIGSNEP(n))]
 
     for problem in problems
-        @testset "$(problem[1])" begin
+        @bench @testset "$(problem[1])" begin
             @time lambda, X = nleigs(problem[2], Σ, maxit=10, v=ones(n).+0im, blksize=5)
             nleigs_verify_lambdas(4, problem[2], X, lambda)
         end

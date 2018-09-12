@@ -1,11 +1,12 @@
 # Run tests on block Newton
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test
 using LinearAlgebra
 
-@testset "blocknewton" begin
+@bench @testset "blocknewton" begin
     nep=nep_gallery("dep0",4);
     V = Matrix(1.0I, size(nep,1), 3)
     S0=zeros(3,3);

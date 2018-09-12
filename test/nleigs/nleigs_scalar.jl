@@ -2,6 +2,7 @@
 # A(λ) = 0.2*sqrt(λ) - 0.6*sin(2*λ) with both a polynomial
 # and fully rational approach
 
+push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using Test
@@ -17,14 +18,14 @@ function nleigs_scalar()
 
     Σ = complex([0.01, 4])
 
-    @testset "Polynomial" begin
+    @bench @testset "Polynomial" begin
         @time lambda, X = nleigs(nep, Σ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # single eigenvalue converges
         nleigs_verify_lambdas(1, nep, X, lambda)
     end
 
-    @testset "Fully rational" begin
+    @bench @testset "Fully rational" begin
         # set of poles candidates
         Ξ = -10 .^ range(-6, stop = 5, length = 10000)
 

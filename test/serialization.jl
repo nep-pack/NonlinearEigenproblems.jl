@@ -1,8 +1,9 @@
+push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems.Serialization
 using Test
 using SparseArrays
 
-@testset "Serialization" begin
+@bench @testset "Serialization" begin
     file = "sparse_matrix.txt"
 
     A = sprand(40, 20, 0.05)

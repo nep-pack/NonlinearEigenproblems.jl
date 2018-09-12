@@ -1,12 +1,13 @@
 # Gun: variant P (polynomial case; only repeated nodes)
 
+push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using Test
 
 include("nleigs_test_utils.jl")
 include("gun_test_utils.jl")
 
-@testset "NLEIGS: Gun variant P" begin
+@bench @testset "NLEIGS: Gun variant P" begin
     verbose = 1
 
     nep, Σ, _, v, nodes, funres = gun_init()

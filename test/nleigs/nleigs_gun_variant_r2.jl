@@ -1,12 +1,13 @@
 # Gun: variant R2 (fully rational case; leja + repeated nodes + freeze)
 
+push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems.NEPSolver
 using Test
 
 include("nleigs_test_utils.jl")
 include("gun_test_utils.jl")
 
-@testset "NLEIGS: Gun variant R2" begin
+@bench @testset "NLEIGS: Gun variant R2" begin
     verbose = 1
 
     nep, Σ, Ξ, v, nodes, funres = gun_init()

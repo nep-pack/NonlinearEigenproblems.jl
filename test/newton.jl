@@ -27,7 +27,7 @@ using LinearAlgebra
         return err
     end
 
-    @testset "Newton and AugNewton" begin
+    @bench @testset "Newton and AugNewton" begin
         println("Newton and AugNewton test")
 
         # newton and augnewton are equivalent, therefore I expect them
@@ -46,7 +46,7 @@ using LinearAlgebra
         @test compute_resnorm(nep,λ2,x2) < 1e-8*100
     end
 
-    @testset "QuasiNewton" begin
+    @bench @testset "QuasiNewton" begin
     println("QuasiNewton  test")
 
         λ,x = quasinewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=1e-11)
@@ -58,7 +58,7 @@ using LinearAlgebra
 
     end
 
-    @testset "Newton QR" begin
+    @bench @testset "Newton QR" begin
 
         println("Newton QR test")
         #Run derivative test for left and right eigenvectors returned by newtonqr
@@ -85,7 +85,7 @@ using LinearAlgebra
         @test abs(λp-λp_approx)< (δ*10)
     end
 
-    @testset "Resinv" begin
+    @bench @testset "Resinv" begin
         println("resinv + periodicdde")
         nep1=nep_gallery("periodicdde","rand0")
         # basic functionality of resinv. Start close to solution to speed up unit test
@@ -97,7 +97,7 @@ using LinearAlgebra
     end
 
 
-    @testset "Rayleigh Function Iteration" begin
+    @bench @testset "Rayleigh Function Iteration" begin
         println("rfi")
         nept = DEP([copy(nep.A[1]'), copy(nep.A[2]')],copy(nep.tauv))
 
@@ -150,7 +150,7 @@ using LinearAlgebra
     end
 
 
-    @testset "implicitdet" begin
+    @bench @testset "implicitdet" begin
         println("Implicitdet test")
         nepd=nep_gallery("periodicdde","mathieu")
         λ,v=implicitdet(nepd, v=ones(size(nepd,1)), displaylevel=1)
