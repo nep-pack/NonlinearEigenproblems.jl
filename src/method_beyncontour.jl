@@ -29,8 +29,7 @@ julia> minimum(svdvals(compute_Mder(nep,λv[1])))
 contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
 function contour_beyn(::Type{T},
                          nep::NEP;
-                         errmeasure::Function =
-                         default_errmeasure(nep::NEP),
+                         errmeasure::Function = default_errmeasure(nep::NEP),
                          tol::Real=eps(real(T))*100,
                          maxit::Integer=10,
                          σ::Number=zero(complex(T)),
@@ -39,7 +38,8 @@ function contour_beyn(::Type{T},
                          k::Integer=3, # Number of eigenvals to compute
                          radius::Real=1, # integration radius
                          quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
-                         N::Integer=1000  # Nof quadrature nodes
+                         N::Integer=1000,  # Nof quadrature nodes
+                         compute_eigenvectors::Bool = false # If we should compute eigenvectors or not
                          )where{T<:Number}
 
     g=t -> radius*exp(1im*t)
@@ -55,7 +55,7 @@ function contour_beyn(::Type{T},
 
     end
 
-    function local_linsolve(λ::TT,V::Array{TT,2}) where {TT<:Number}
+    function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
         @ifd(print("."))
         local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
         # This requires that lin_solve can handle rectangular
@@ -97,8 +97,8 @@ function contour_beyn(::Type{T},
     end
     @ifd(println("."));
     # Don't forget scaling
-    A0=A0/(2im*pi);
-    A1=A1/(2im*pi);
+    A0[:,:] = A0 ./(2im*pi);
+    A1[:,:] = A1 ./(2im*pi);
 
     @ifd(println("Computing SVD prepare for eigenvalue extraction "))
     V,S,W = svd(A0)
@@ -110,13 +110,22 @@ function contour_beyn(::Type{T},
         println(S)
     end
 
-
     @ifd(println("Computing eigenvalues "))
-    λ,v=eigen(B)    # Eigenvector extraction not implemented yet
-    # TODO:Implement eigenvector extraction
-    @warn("Eigenvector extraction not implemented.")
-    return (λ.+σ, NaN*v)
+    λ,v_temp=eigen(B)
+    λ[:] = λ .+ σ
 
+    v = zeros(T,size(nep,1),k)
+    if (compute_eigenvectors)
+        @ifd(println("Computing eigenvectors "))
+        for i = 1:k
+            v[:,i] = compute_eigvec_from_eigval_lu(nep, λ[i], default_linsolvercreator)
+        end
+    else
+        @ifd(println("Obs: Not computing eigenvectors "))
+        v[:,:] = NaN*v
+    end
+
+    return (λ,v)
 end
 
 #  Carries out Gauss quadrature (with N) discretization points
