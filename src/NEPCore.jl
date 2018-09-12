@@ -315,7 +315,7 @@ Default behaviour: Check sparsity of `compute_Mder(nep,0)`
 
 """
     function issparse(nep::NEP)
-        issparse(compute_Mder(nep,0))
+        issparse(compute_Mder(nep,0.0)) # TODO: This might require a redesign when/if NEPs are parametric. Type of 0.0?
     end
 
 
