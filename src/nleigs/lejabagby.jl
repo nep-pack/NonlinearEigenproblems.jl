@@ -19,10 +19,12 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
     sB = fill(o, size(B))
     sC = fill(o, size(C))
 
-    for j = 1:m-1
-        sA .*= ((A .- a[j]) ./ (1 .- A/b[j]));
-        sB .*= ((B .- a[j]) ./ (1 .- B/b[j]));
-        sC .*= ((C .- a[j]) ./ (1 .- C/b[j]));
+    @inbounds for j = 1:m-1
+        binv = 1 / b[j]
+        βinv = 1 / β[j]
+        for k = 1:length(A); sA[k] *= (A[k] - a[j]) / (1 - A[k] * binv) * βinv; end
+        for k = 1:length(B); sB[k] *= (B[k] - a[j]) / (1 - B[k] * binv) * βinv; end
+        for k = 1:length(C); sC[k] *= (C[k] - a[j]) / (1 - C[k] * binv) * βinv; end
 
         push!(a, A[keepA ? j+1 : argmax([isnan(x) ? -Inf : abs.(x) for x in sA])])
         push!(b, forceInf > j ? Inf : B[argmin([isnan(x) ? Inf : abs.(x) for x in sB])])
@@ -32,10 +34,6 @@ function lejabagby(A::AbstractVector{CT}, B::AbstractVector{T}, C::AbstractVecto
         if β[j+1] < eps()
             β[j+1] = 1
         end
-
-        sA /= β[j+1]
-        sB /= β[j+1]
-        sC /= β[j+1]
     end
 
     return a, b, β
