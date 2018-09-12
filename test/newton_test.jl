@@ -9,40 +9,75 @@ using LinearAlgebra
 @testset "Newton iterations" begin
     nep=nep_gallery("dep0")
 
+# Construction to test the eigenvector extraction in the methods
+    global has_thrown_singexcep = false
+    singexcep_errmeasure = function(λ,v)
+        err = compute_resnorm(nep,λ,v)/norm(v)
+println("    ", err, "   ", has_thrown_singexcep)
+        if (err < 1e-8) && !has_thrown_singexcep
+            global has_thrown_singexcep = true
+            throw(SingularException(-1))
+        else
+            global has_thrown_singexcep = false
+        end
+        return err
+    end
+
     @testset "Newton and AugNewton" begin
+        println("Newton and AugNewton test")
+
         # newton and augnewton are equivalent, therefore I expect them
         # to generate identical results
-        λ1,x1 =newton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tol=eps()*10);
-        λ2,x2 =augnewton(nep,displaylevel=0,v=ones(size(nep,1)),λ=0,tol=eps()*10);
-
+        λ1,x1 = newton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=eps()*10);
+        λ2,x2 = augnewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=eps()*10);
         @test λ1 ≈ λ2
         @test x1 ≈ x2
-        r1=compute_resnorm(nep,λ1,x1)
-        r2=compute_resnorm(nep,λ2,x2)
+        @test compute_resnorm(nep,λ1,x1) < eps()*100
+        @test compute_resnorm(nep,λ2,x2) < eps()*100
 
-        @test r1 < eps()*100
-        @test r2 < eps()*100
+        println("   eigenvector extraction")
+        λ1,x1 = newton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure);
+        λ2,x2 = augnewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure);
+        @test compute_resnorm(nep,λ1,x1) < 1e-8*100
+        @test compute_resnorm(nep,λ2,x2) < 1e-8*100
+    end
+
+    @testset "QuasiNewton" begin
+    println("QuasiNewton  test")
+
+        λ,x = quasinewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=1e-11);
+        @test compute_resnorm(nep,λ,x) < 1e-11*100
+
+        println("   eigenvector extraction")
+        λ,x = quasinewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,errmeasure=singexcep_errmeasure);
+        @test compute_resnorm(nep,λ,x) < 1e-8*100
+
     end
 
     @testset "Newton QR" begin
 
         println("Newton QR test")
         #Run derivative test for left and right eigenvectors returned by newtonqr
-        λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=0,tol=eps()*10);
+        λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=1,tol=eps()*10);
+        @test compute_resnorm(nep,λ3,x3) < eps()*100
 
-        #println("\nTesting formula for derivative (with left and right eigvecs)\n")
+        println("   eigenvector extraction")
+        λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=1,tol=eps()*10, errmeasure=singexcep_errmeasure);
+        @test compute_resnorm(nep,λ3,x3) < 1e-8*100
+
+        # Formula for derivative
+        println("  Testing formula for derivative")
         tau=1;
         Mλ = -I - tau * nep.A[2] * exp(-tau*λ3)
         Mtau= -λ3*nep.A[2]*exp(-tau*λ3);
 
-        # Formula for derivative
         λp=-(y3'*(Mtau)*x3) / (y3'* Mλ*x3)
 
         δ=0.0001;
 
         nep.tauv[2]=nep.tauv[2]+δ
 
-        λ3δ,x3,y3 =newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=0,tol=eps()*10);
+        λ3δ,x3,y3 =newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=1,tol=eps()*10);
 
         λp_approx=(λ3δ-λ3)/δ;
 
@@ -70,28 +105,15 @@ using LinearAlgebra
         u0=ones(n);
         v0=ones(n);
 
-        λ=NaN;
-        x=NaN
-        y=NaN;
-        try
-            λ,x,y =rfi(nepd,nept,displaylevel=1,
-                       v=ones(n), u=ones(n),
-                       tol=1e-15);
-        catch e
-            # Only catch NoConvergence
-            isa(e, NoConvergenceException) || rethrow(e)
-            println("No convergence because:"*e.msg)
-            # still access the approximations
-            λ=e.λ
-            x=e.v
-        end
-        println(λ)
+
+        λ,x,y =rfi(nepd,nept,displaylevel=1,
+                   v=ones(n), u=ones(n),
+                   tol=1e-15);
+
         r1=compute_resnorm(nepd,λ,x)
-        println("Resnorm M:",r1)
         @test r1 < eps()*100
 
         r2=compute_resnorm(nept,λ,y)
-        println("Resnorm M':",r2)
         @test r2 < eps()*100
 
         # Test RFIb
@@ -101,7 +123,7 @@ using LinearAlgebra
         @test λ ≈ λb
 
 
-        println("Testing formula for derivative (with left and right eigvecs")
+        println("  Testing formula for derivative (with left and right eigvecs)")
         tau=1;
         Mλ = -I - tau*nepd.A[2] * exp(-tau*λ)
         Mtau= -λ*nepd.A[2]*exp(-tau*λ);
@@ -111,16 +133,11 @@ using LinearAlgebra
         λp=-(y'*(Mtau)*x) / (y'* Mλ*x)
 
         δ=0.0001;
-
-
         nepd.tauv[2]=nepd.tauv[2]+δ
         nept.tauv[2]=nept.tauv[2]+δ
-
         λδ,x,y =rfi(nepd,nept,displaylevel=1,
                     v=ones(n), u=ones(n));
-
         λp_approx=(λδ-λ)/δ;
-
         @test abs(λp-λp_approx)< (δ*10)
 
 
@@ -129,8 +146,10 @@ using LinearAlgebra
 
 
     @testset "implicitdet" begin
+    println("Implicitdet test")
+
         nepd=nep_gallery("periodicdde","mathieu")
-        λ,v=implicitdet(nepd, v=ones(size(nepd,1)))
+        λ,v=implicitdet(nepd, v=ones(size(nepd,1)), displaylevel=1)
         @test norm(compute_Mder(nepd,λ)*v) < eps()*100
     end
 end

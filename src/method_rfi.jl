@@ -22,26 +22,28 @@ julia> opnorm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
 *  Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008
 
 """
-function rfi(nep::NEP,
+rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
+function rfi(::Type{T},
+            nep::NEP,
             nept::NEP;
             errmeasure::Function=default_errmeasure(nep::NEP),
-            tol = eps()*1000,
+            tol = eps(real(T))*1000,
             maxit=100,
-            λ = 0.0+0.0im,
-            v = randn(nep.n),
-            u = randn(nep.n),
+            λ = zero(T),
+            v = randn(size(nep,1)),
+            u = randn(size(nep,1)),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=0)
+            displaylevel=0) where {T <: Number}
 
         err = Inf
 
         #Ensure type coherence
-        T = typeof(λ)
-        v = Array{T,1}(v)
-        u = Array{T,1}(u)
+        λ = T(λ)
+        v = Vector{T}(v)
+        u = Vector{T}(u)
         #Normalize v and u
-        v = v/norm(v)
-        u = u/norm(u)
+        normalize!(v)
+        normalize!(u)
 
 
         try
@@ -61,11 +63,11 @@ function rfi(nep::NEP,
 
                 #S1: T(λ_k)x_(k+1) = T'(λ_k)u_(k)
                 x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[T(1)],1),tol = tol)
-                u = x/norm(x);
+                u[:] = normalize(x)
 
                 #S2: (T(λ_k)^H)y_(k+1) = (T'(λ_k)^H)v_(k)
                 y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
-                v = y/norm(y)
+                v[:] = normalize(y)
 
                 λ_vec = compute_rf(nep, u, y=v)
                 λ = closest_to(λ_vec,  λ)
@@ -80,7 +82,7 @@ function rfi(nep::NEP,
             if (errmeasure(λ,u)>tol)
                 # We need to compute an eigvec somehow
                 u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u # Requires matrix access
-                u=u/norm(u);
+                normalize!(u)
             end
             return (λ,u)
         end
@@ -92,27 +94,28 @@ end
 Two-sided Rayleigh functional Iteration(Bordered version), as given as Algorithm 5 in  "Nonlinear Eigenvalue Problems: Newton-type Methods and
 Nonlinear Rayleigh Functionals", by Kathrin Schreiber.
 """
-function rfi_b(nep::NEP,
+rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
+function rfi_b(::Type{T},
+            nep::NEP,
             nept::NEP;
             errmeasure::Function=default_errmeasure(nep::NEP),
-            tol = eps()*1000,
+            tol = eps(real(T))*1000,
             maxit=100,
-            λ = 0.0+0.0im,
-            v = randn(nep.n),
-            u = randn(nep.n),
+            λ = zero(T),
+            v = randn(size(nep,1)),
+            u = randn(size(nep,1)),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=1)
+            displaylevel=1) where {T <: Number}
 
         err = Inf
 
         #Ensure type coherence
-        T = typeof(λ)
-        v = Array{T,1}(v)
-        u = Array{T,1}(u)
+        λ = T(λ)
+        v = Vector{T}(v)
+        u = Vector{T}(u)
         #Normalize v and u
-        v = v/norm(v)
-        u = u/norm(u)
-
+        normalize!(v)
+        normalize!(u)
 
         try
             for k=1:maxit
@@ -134,13 +137,13 @@ function rfi_b(nep::NEP,
                 #l1 = lin_solve(linsolver,-[compute_Mlincomb(nep,λ,u,[1],0);0],tol = tol);
                 l1 = C\-[compute_Mlincomb(nep,λ,u,[T(1)],0);0]
                 s = l1[1:end-1]
-                u = (u+s)/norm(u+s)
+                u[:] = normalize(u+s)
 
                 #C[t;ν] = -[T(λ)'v;0]
                 #l2 = lin_solve(linsolver,-[compute_Mlincomb(nept,λ,v,[1],0);0],tol = tol);
                 l2 = C\-[compute_Mlincomb(nept,λ,v,[T(1)],0);0]
                 t = l2[1:end-1]
-                v = (v+t)/norm(v+t)
+                v[:] = normalize(v+t)
 
                 λ_vec = compute_rf(nep, u, y=v)
                 λ = closest_to(λ_vec,  λ)
@@ -155,7 +158,7 @@ function rfi_b(nep::NEP,
             if (errmeasure(λ,u)>tol)
                 # We need to compute an eigvec somehow
                 u=(nep.Md(λ,0)+eps(real(T))*speye(size(nep,1)))\u # Requires matrix access
-                u=u/norm(u)
+                normalize!(u)
             end
             return (λ,u)
         end
