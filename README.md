@@ -44,7 +44,7 @@ If you find this software useful please cite
 ```bibtex
 @Misc{,
   author = 	 {E. Jarlebring, G. Mele, E. Ringh, P. Upadhyaya},
-  title = 	 {NEP-PACK: A nonlinear eigenvalue problem in Julia},
+  title = 	 {{NEP-PACK}: A Julia package for nonlinear eigenvalue problems},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
 }
