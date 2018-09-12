@@ -8,13 +8,15 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype],nep;[errmeasure,][tol,][maxit,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N])
+    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,][compute_eigenvectors])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
 is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
 number of quadrature points.
+In a standard setting only the eigenvalues are computed. But by setting `compute_eigenvectors`
+to true eigenvectors are also computed. Note that this requires matrix access.
 
 # Example
 ```julia-repl
@@ -29,9 +31,7 @@ julia> minimum(svdvals(compute_Mder(nep,λv[1])))
 contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
 function contour_beyn(::Type{T},
                          nep::NEP;
-                         errmeasure::Function = default_errmeasure(nep::NEP),
                          tol::Real=eps(real(T))*100,
-                         maxit::Integer=10,
                          σ::Number=zero(complex(T)),
                          displaylevel::Integer=0,
                          linsolvercreator::Function=backslash_linsolvercreator,
