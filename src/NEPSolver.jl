@@ -72,7 +72,7 @@ Executes z if displaylevel>1.
         local M0inv::LinSolver = linsolvercreator(nep,λ);
         n=size(nep,1);
 
-        if isa(M0inv,DefaultLinSolver)
+        if isa(M0inv,DefaultLinSolver) && isa(M0inv.Afact, LU)
             F = M0inv.Afact
         else
             F = lu(compute_Mder(nep,λ)) # This requires matrix access
