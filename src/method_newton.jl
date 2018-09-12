@@ -195,7 +195,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 err=errmeasure(λ,v)
 
                 if (use_v_as_rf_vector)
-                    c=v;
+                    c[:]=v;
                 end
 
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
@@ -299,7 +299,7 @@ julia> λ1-λ2
         use_v_as_normalization_vector=false;
         if norm(c) == 0
             use_v_as_normalization_vector=true;
-            c = v / norm(v)^2
+            c[:] = v / norm(v)^2
         end
         v[:] = v/dot(c,v);
         local linsolver::LinSolver
@@ -322,7 +322,7 @@ julia> λ1-λ2
                 tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
-                    c = v /norm(v)^2
+                    c[:] = v /norm(v)^2
                 end
                 α = T(1)/ dot(c,tempvec);
 
