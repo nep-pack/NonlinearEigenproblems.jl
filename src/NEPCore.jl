@@ -203,8 +203,7 @@ Same as [`compute_Mlincomb`](@ref), but modifies V and a.
         # we need to assume that the elements of a are different than zero.
         V[:,findall(x->x==0,a)] .= 0
         a[findall(x->x==0,a)] .= 1
-        S=diagm(0 => λ*ones(eltype(V),k)) + diagm(1 => (a[2:k]./a[1:k-1]).*(1:k-1))
-        S=copy(transpose(S))
+        S=diagm(0 => λ*ones(eltype(V),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
         z=compute_MM(nep,S,V)[:,1];
         return a[1]*reshape(z,size(z,1))
     end
@@ -316,7 +315,7 @@ Default behaviour: Check sparsity of `compute_Mder(nep,0)`
 
 """
     function issparse(nep::NEP)
-        issparse(compute_Mder(nep,0))
+        issparse(compute_Mder(nep,0.0)) # TODO: This might require a redesign when/if NEPs are parametric. Type of 0.0?
     end
 
 

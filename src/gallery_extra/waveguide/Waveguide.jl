@@ -7,19 +7,19 @@
  Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
-function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Array{ComplexF64,2},Array{Float64,2}}, Km, Kp, pre_Schur_fact::Bool)
+function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Matrix{ComplexF64},Matrix{Float64}}, Km, Kp, pre_Schur_fact::Bool)
     Ix = sparse(ComplexF64(1)I, nx, nx)
     Iz = sparse(ComplexF64(1)I, nz, nz)
     Q0 = kron(Ix, Dzz) + kron(Dxx, Iz) + sparse(Diagonal(vec(K)))
     Q1 = kron(Ix, 2*Dz)
     Q2 = kron(Ix, Iz)
 
-    A = Array{SparseMatrixCSC}(undef, 3+2*nz)
+    A = Vector{SparseMatrixCSC}(undef, 3+2*nz)
     A[1] = hvcat((2,2), Q0, C1, C2T, spzeros(ComplexF64,2*nz, 2*nz) )
     A[2] = hvcat((2,2), Q1, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
     A[3] = hvcat((2,2), Q2, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
 
-    f = Array{Function}(undef, 3+2*nz)
+    f = Vector{Function}(undef, 3+2*nz)
     f[1] = λ -> Matrix{ComplexF64}(I, size(λ,1),size(λ,2))
     f[2] = λ -> λ
     f[3] = λ -> λ^2
@@ -116,7 +116,7 @@ end
 """
 function sqrtm_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
-    AA = Array{ComplexF64,2}(A);
+    AA = Matrix{ComplexF64}(A);
     (T, Q, ) = schur(AA)
     U = zeros(ComplexF64,n,n);
     for i = 1:n
@@ -173,8 +173,10 @@ end
         nz::Int64
         hx::Float64
         hz::Float64
-        A::Function
-        B::Function
+        Dxx
+        Dzz
+        Dz
+        Iz
         C1
         C2T
         k_bar
@@ -183,38 +185,17 @@ end
         d0::Float64
         d1::Float64
         d2::Float64
-        b
-        cMP # cM followed by cP in a vector (length = 2*nz)
+        b::Vector{ComplexF64}
+        cM::Vector{ComplexF64}
+        cP::Vector{ComplexF64}
         R::Function
         Rinv::Function
         Pinv::Function
-        generate_Pm_and_Pp_inverses::Function
 
         function WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
             k_bar = mean(K)
             K_scaled = K-k_bar*ones(ComplexF64,nz,nx)
-
-            eye_scratch_pad = sparse(ComplexF64(1)I, nz, nz)
-
-            A = function(λ, d=0)
-                if(d == 0)
-                    return Dzz + 2*λ*Dz + λ^2*eye_scratch_pad + k_bar*eye_scratch_pad
-                elseif(d == 1)
-                    return 2*Dz + 2*λ*eye_scratch_pad
-                elseif(d == 2)
-                    return 2*eye_scratch_pad
-                else
-                    return spzeros(ComplexF64, nz, nz)
-                end
-            end
-            B = function(λ, d=0)
-                if(d == 0)
-                    return Dxx
-                else
-                    return spzeros(ComplexF64, nx, nx)
-                end
-            end
 
             p = (nz-1)/2
 
@@ -225,24 +206,72 @@ end
             b = 4*pi*1im * (-p:p)
             cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
             cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
-            cMP = vcat(cM, cP)
 
             R, Rinv = generate_R_matvecs(nz)
             Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
-            generate_Pm_and_Pp_inverses(σ) =  helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
 
-            this = new(nx, nz, hx, hz, A, B, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cMP, R, Rinv, Pinv, generate_Pm_and_Pp_inverses)
+            Iz = sparse(ComplexF64(1)I, nz, nz)
+
+            this = new(nx, nz, hx, hz, Dxx, Dzz, Dz, Iz, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cM, cP, R, Rinv, Pinv)
+
+
         end
     end
 
-
-    function size(nep::WEP_FD, dim=-1)
-        n = nep.nx*nep.nz + 2*nep.nz
-        if (dim==-1)
-            return (n,n)
+    function A(nep::WEP_FD, λ, d=0)
+        nz = nep.nz
+        if(d == 0)
+            return nep.Dzz + 2*λ*nep.Dz + (λ^2 + nep.k_bar)*nep.Iz
+        elseif(d == 1)
+            return 2*nep.Dz + 2*λ*nep.Iz
+        elseif(d == 2)
+            return 2*nep.Iz
         else
-            return n
+            return spzeros(ComplexF64, nz, nz)
         end
+    end
+
+    function B(nep::WEP_FD, λ, d=0)
+        if(d == 0)
+            return nep.Dxx
+        else
+            return spzeros(ComplexF64, nx, nx)
+        end
+    end
+
+    #Inverses of the boundary operators, Ringh - (2.8)
+    #To be used in the Schur-complement- and SMW-context.
+    function P_inv_m(nep::WEP_FD, σ, v)
+        nz = nep.nz
+        coeffs = zeros(ComplexF64, nz)
+            aa = 1.0
+        for j = 1:nz
+            bb = nep.b[j]
+            cc = nep.cM[j]
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+        end
+        return nep.R(nep.Rinv(v) ./ coeffs)
+    end
+    function P_inv_p(nep::WEP_FD, σ, v)
+        nz = nep.nz
+        coeffs = zeros(ComplexF64, nz)
+            aa = 1.0
+        for j = 1:nz
+            bb = nep.b[j]
+            cc = nep.cP[j]
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+        end
+        return nep.R(nep.Rinv(v) ./ coeffs)
+    end
+
+
+    function size(nep::WEP_FD)
+        n = nep.nx*nep.nz + 2*nep.nz
+        return (n,n)
+    end
+    function size(nep::WEP_FD, dim)
+        n = nep.nx*nep.nz + 2*nep.nz
+        return n
     end
 
 
@@ -251,28 +280,7 @@ end
     end
 
 
-    #Helper function: Generates function to compute iverse of the boundary operators, Ringh - (2.8)
-    #To be used in the Schur-complement- and SMW-context.
-    function helper_generate_Pm_and_Pp_inverses(nz, b, cMP, d0, R, Rinv, σ)
-        # S_k(σ) + d_0, as in Ringh - (2.3a)
-        coeffs = zeros(ComplexF64, 2*nz)
-            aa = 1.0
-        for j = 1:2*nz
-            bb = b[rem(j-1,nz)+1]
-            cc = cMP[j]
-            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + d0
-        end
 
-        # P_inv_m and P_inv_p, the boundary operators
-        P_inv_m = function(v)
-            return R(Rinv(v) ./ coeffs[1:nz])
-        end
-        P_inv_p = function(v)
-            return R(Rinv(v) ./ coeffs[(nz+1):(2*nz)])
-        end
-
-        return P_inv_m, P_inv_p
-    end
 
 
     """
@@ -302,19 +310,20 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         V2 = view(V, nx*nz+1:n_nep, :)
 
         # Compute the top part (nx*nz)
-        y1_mat::Array{ComplexF64,2} = (nep.A(λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * nep.B(λ)  +  nep.K .* V1_mat[:,:,1])*a[1]
+        y1_mat::Matrix{ComplexF64} = (A(nep,λ) * V1_mat[:,:,1] + V1_mat[:,:,1] * B(nep,λ)  +  nep.K .* V1_mat[:,:,1])*a[1]
         for d = 1:min(max_d,3)
-            y1_mat += nep.A(λ,d) * V1_mat[:,:,d+1] * a[d+1];
+            y1_mat[:,:] += A(nep,λ,d) * V1_mat[:,:,d+1] * a[d+1];
         end
-        y1::Array{ComplexF64,1} = y1_mat[:]
-        y1 += nep.C1 * V2[:,1] * a[1]
+        y1::Vector{ComplexF64} = y1_mat[:]
+        y1[:] += nep.C1 * V2[:,1] * a[1]
 
         # Compute the bottom part (2*nz)
-        D::Array{ComplexF64,2} = zeros(ComplexF64, 2*nz, na)
+        D::Matrix{ComplexF64} = zeros(ComplexF64, 2*nz, na)
+        cMP = vcat(nep.cM, nep.cP)
         for j = 1:2*nz
             aa = 1
             bb = nep.b[rem(j-1,nz)+1]
-            cc = nep.cMP[j]
+            cc = cMP[j]
             der_coeff = 1im*sqrt_derivative(aa, bb, cc, max_d, λ)
             for jj = 1:na
                 D[j, jj] = der_coeff[jj]
@@ -322,17 +331,17 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         end
 
         #Multiplication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
-        y2_temp::Array{ComplexF64,1} =
+        y2_temp::Vector{ComplexF64} =
             (D[:,1] .+ nep.d0) .* [nep.Rinv(V2[1:nz,1]);
                                    nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
         for jj = 2:na
             #Multiplication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
-            y2_temp += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
+            y2_temp[:] += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
                                    nep.Rinv(V2[nz+1:2*nz,jj])] *a[jj]
         end
-        y2::Array{ComplexF64,1} = [nep.R(y2_temp[1:nz,1]);
+        y2::Vector{ComplexF64} = [nep.R(y2_temp[1:nz,1]);
                                    nep.R(y2_temp[nz+1:2*nz,1])]
-        y2 += nep.C2T * V1[:,1]*a[1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
+        y2[:] += nep.C2T * V1[:,1]*a[1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
         return vcat(y1, y2)
     end
@@ -354,7 +363,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         nep = M.nep
 
         X = reshape(v, nep.nz, nep.nx)
-        return vec(  vec( nep.A(λ)*X + X*nep.B(λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
+        return vec(  vec( A(nep,λ)*X + X*B(nep,λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
     end
 
     function (M::SchurMatVec)(v::AbstractVector) #Overload the ()-function so that a SchurMatVec struct can act and behave like a function
@@ -394,7 +403,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         end
     end
 
-    function WEP_inner_lin_solve(solver::WEPGMRESLinSolver, rhs::Array, tol)
+    function WEP_inner_lin_solve(solver::WEPGMRESLinSolver, rhs::Vector, tol)
         if( solver.gmres_log )
             q, convhist = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
         else
@@ -420,7 +429,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         end
     end
 
-    function WEP_inner_lin_solve(solver::WEPBackslashLinSolver, rhs::Array, tol)
+    function WEP_inner_lin_solve(solver::WEPBackslashLinSolver, rhs::Vector, tol)
         return solver.schur_comp \ rhs
     end
 
@@ -441,7 +450,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         end
     end
 
-    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Array, tol)
+    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Vector, tol)
         return solver.schur_comp_fact \ rhs
     end
 
@@ -458,15 +467,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         Inz = sparse(ComplexF64(1)I, nz, nz)
         Inx = sparse(ComplexF64(1)I, nx, nx)
 
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(λ)
-        Pinv_minus = Array{ComplexF64}(undef, nz, nz)
-        Pinv_plus = Array{ComplexF64}(undef, nz, nz)
+        Pinv_minus = Matrix{ComplexF64}(undef, nz, nz)
+        Pinv_plus = Matrix{ComplexF64}(undef, nz, nz)
         e = zeros(ComplexF64,nz)
         for i = 1:nz
             e[:] .= 0
             e[i] = 1
-            Pinv_minus[:,i] = P_inv_m(e)
-            Pinv_plus[:,i] = P_inv_p(e)
+            Pinv_minus[:,i] = P_inv_m(nep, λ, e)
+            Pinv_plus[:,i] = P_inv_p(nep, λ, e)
         end
 
         E = spzeros(nx,nx)
@@ -477,14 +485,14 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         EE[nx,nx-1] = nep.d2/(nep.hx^2)
 
         # Kronecker product form of Ringh - Proposition 3.1
-        return kron(copy(nep.B(λ)'), Inz) + kron(Inx, nep.A(λ)) + sparse(Diagonal(nep.K[:])) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
+        return kron(copy(B(nep,λ)'), Inz) + kron(Inx, A(nep,λ)) + sparse(Diagonal(nep.K[:])) - kron(E, Pinv_minus) - kron(EE, Pinv_plus)
     end
 
     # lin_solve function to wrapp all the WEP linear solvers.
     # Since Schur-complement transformations are the same.
     # Does transforming between that and the full system.
     # Ringh - Proposition 2.1, see also Algorithm 2, step 10-11.
-    function lin_solve(solver::Union{WEPBackslashLinSolver,WEPGMRESLinSolver,WEPFactorizedLinSolver}, x::Array; tol=eps(Float64))
+    function lin_solve(solver::Union{WEPBackslashLinSolver,WEPGMRESLinSolver,WEPFactorizedLinSolver}, x::Vector; tol=eps(Float64))
     # Ringh - Proposition 2.1
         λ = solver.λ
         nep = solver.nep
@@ -536,7 +544,7 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
     end
 
     # BUILD THE INVERSE OF THE FOURTH BLOCK P
-    function P(γ,x::Union{Array{ComplexF64,1}, Array{Float64,1}})
+    function P(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
         return vec(  [R(Rinv(x[1:Int64(end/2)]) ./ sM(γ));
                       R(Rinv(x[Int64(end/2)+1:end]) ./ sP(γ))  ]  )
     end

@@ -4,12 +4,14 @@ using LinearAlgebra
 using Printf
 using Random
 
-    export newton
-    export resinv
-    export augnewton
-    export quasinewton
-    export newtonqr
-    export implicitdet
+
+
+export newton
+export resinv
+export augnewton
+export quasinewton
+export newtonqr
+export implicitdet
 
 #############################################################################
 """
@@ -27,7 +29,7 @@ c^Hv-1=0
 The kwarg `errmeasure` is a function
 handle which can be used to specify how the error is measured to be used in
 termination (default is absolute residual norm). The iteration
-is continued until errmeausure is less than `tol`. `λ` and `v` are starting approximations. `c` is the
+is continued until `errmeasure` is less than `tol`. `λ` and `v` are starting approximations. `c` is the
 orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization.
 `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
 
@@ -60,17 +62,17 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
         # Ensure types λ and v are of type T
         λ=T(λ)
-        v=Array{T,1}(v)
-        c=Array{T,1}(c)
+        v=Vector{T}(v)
+        c=Vector{T}(c)
 
         err=Inf;
-        v=v/dot(c,v);
+        v[:] = v/dot(c,v);
 
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
 
-                @ifd(print("Iteration:",k," errmeasure:",err))
+                @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
                 if (err< tol)
                     @ifd(print("\n"));
                     return (λ,v)
@@ -87,7 +89,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                 # Compute update
                 delta=-J\F;  # Hardcoded backslash
 
-                Δv=Array{T,1}(delta[1:size(nep,1)]);
+                Δv=Vector{T}(delta[1:size(nep,1)]);
                 Δλ=T(delta[size(nep,1)+1]);
 
                 (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
@@ -108,12 +110,11 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            #if (errmeasure(λ,v)>tol) # Temporarily disabled for type stability
+            if (errmeasure(λ,v)>tol) # Temporarily disabled for type stability
             #    # We need to compute an eigvec somehow
-            #    v=compute_eigvec_from_eigval(nep,λ, default_linsolvercreator);
-            #    v=v/dot(c,v)
-            #end
-            v=Array{T,1}(v);
+            #    v[:] = compute_eigvec_from_eigval(nep,λ, default_linsolvercreator);
+            #    v[:] = v/dot(c,v)
+            end
             return (λ,v)
         end
         msg="Number of iterations exceeded. maxit=$(maxit)."
@@ -169,8 +170,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
-        v=Array{T,1}(v)
-        c=Array{T,1}(c)
+        v=Vector{T}(v)
+        c=Vector{T}(c)
         n=size(v,1);
 
         local linsolver::LinSolver=linsolvercreator(nep,λ)
@@ -189,12 +190,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         try
             for k=1:maxit
                 # Normalize
-                v = v/norm(v);
+                v[:] = v/norm(v);
 
                 err=errmeasure(λ,v)
 
                 if (use_v_as_rf_vector)
-                    c=v;
+                    c[:]=v;
                 end
 
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
@@ -237,12 +238,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             #isa(e, SingularException) || ) || rethrow(e)
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
-
             @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec somehow
-                v= compute_eigvec_from_eigval(nep,λ, (nep, σ) -> linsolver)
-                v=v/dot(c,v)
+                v[:] = compute_eigvec_from_eigval_lu(nep,λ, (nep, σ) -> linsolver)
+                v[:] = v/dot(c,v)
             end
             return (λ,v)
         end
@@ -291,19 +291,19 @@ julia> λ1-λ2
                        armijo_max::Int=5) where {T<:Number}
         # Ensure types λ and v are of type T
         λ=T(λ)
-        v=Array{T,1}(v)
-        c=Array{T,1}(c)
+        v=Vector{T}(v)
+        c=Vector{T}(c)
 
         err=Inf;
         # If c is zero vector we take eigvec approx as normalization vector
         use_v_as_normalization_vector=false;
         if norm(c) == 0
             use_v_as_normalization_vector=true;
-            c = v / norm(v)^2
+            c[:] = v / norm(v)^2
         end
-        v=v/dot(c,v);
+        v[:] = v/dot(c,v);
         local linsolver::LinSolver
-        local tempvec = Array{T,1}(undef, size(nep,1))
+        local tempvec = Vector{T}(undef, size(nep,1))
         try
             for k=1:maxit
                 err=errmeasure(λ,v)
@@ -319,10 +319,10 @@ julia> λ1-λ2
                 z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
                 linsolver = linsolvercreator(nep,λ)
-                tempvec[:] = Array{T,1}(lin_solve(linsolver, z, tol=tol));
+                tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
-                    c = v /opnorm(v)^2
+                    c[:] = v /norm(v)^2
                 end
                 α = T(1)/ dot(c,tempvec);
 
@@ -339,7 +339,7 @@ julia> λ1-λ2
                 end
 
                 λ+=Δλ
-                v+=Δv
+                v[:]+=Δv
 
             end
 
@@ -350,10 +350,10 @@ julia> λ1-λ2
             @ifd(println("We have an exact eigenvalue."))
             if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
-                #v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
-                #v=v/dot(c,v)
+                #v[:] = compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                #v[:] = v/dot(c,v)
             end
-            return (λ,v)::Tuple{T,Array{T,1}}
+            return (λ,v)
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
@@ -399,12 +399,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         v=Vector{T}(v)
         ws=Vector{T}(ws) # Left vector such that c'=w'M(λ0) where c normalization
 
+        n = size(nep,1)
+        u = zeros(T,n)
+        w = zeros(T,n)
+
         err=Inf;
 
         local linsolver::LinSolver;
-        @ifd(@printf("Precomputing linsolver (factorization)\n"))
-
-
+        @ifd(@printf("Precomputing linsolver\n"))
         linsolver = linsolvercreator(nep,λ)
 
         try
@@ -420,8 +422,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
                 # Compute u=M(λ)v and w=M'(λ)v
-                u::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],0);
-                w::Vector{T}=compute_Mlincomb(nep,λ,v,[T(1)],1);
+                u[:] = compute_Mlincomb(nep,λ,v,[T(1)],0);
+                w[:] = compute_Mlincomb(nep,λ,v,[T(1)],1);
                 @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
 
                 # Intermediate quantities
@@ -442,7 +444,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 # Update eigenpair
                 λ += Δλ
-                v += Δv; # eigvec update
+                v[:] += Δv; # eigvec update
 
             end
 
@@ -454,7 +456,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
             if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
-                v[:]= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
+                v[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator) #OBS: Use default to get a new factorization in the eigenvalue
                 normalize!(v)
             end
             return (λ,v)
@@ -478,23 +480,22 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                       λ::Number=zero(T),
                       v::Vector=randn(real(T),size(nep,1)),
                       c::Vector=v,
-                      displaylevel::Int=0,
-                      linsolvercreator::Function=default_linsolvercreator) where T
+                      displaylevel::Int=0) where T
 
 
         # Ensure types λ and v are of type T
         λ=T(λ)
-        v=Array{T,1}(v)
-        c=Array{T,1}(c)
+        v=Vector{T}(v)
+        c=Vector{T}(c)
 
         n = size(nep,1);
-        local err;
+        local err
+        local w
 
         en = zeros(n);
         en[n] = 1;
         try
             for k=1:maxit
-
                 A = compute_Mder(nep,λ);
                 Q,R,PI = qr(A, Val(true)) #QR factorization with pivoting.
                 Q = Matrix(Q)
@@ -523,10 +524,10 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
 
-            if (k == maxit)
+            if (errmeasure(λ,v)>tol)
                 # We need to compute an eigvec
-                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
-                v=v/dot(c,v)
+                v[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
+                v[:] = v/dot(c,v)
             end
             return (λ,v,w)
         end
@@ -541,21 +542,22 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
     function implicitdet(::Type{T},
                          nep::NEP;
-                         errmeasure::Function =
-                         default_errmeasure(nep::NEP),
                          tol=eps(real(T))*100,
                          maxit=100,
                          λ=zero(T),
                          v=randn(real(T),size(nep,1)),
                          c=v,
-                         displaylevel=0,
-                         linsolvercreator::Function=default_linsolvercreator) where T
+                         displaylevel=0) where T
 
 
         n = size(nep,1);
-        v = Array{T,1}(v);
-        c = Array{T,1}(c);
+        v = Vector{T}(vcat(v,one(T)))
+        vp = zeros(T,n+1)
+        c = Vector{T}(c);
         b = c;
+        P = Matrix{T}(I, n+1, n+1)
+
+        local err
 
         try
             for k=1:maxit
@@ -565,16 +567,15 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                 L,U,PI = lu(AA);
 
 
-                P = Matrix{T}(I, n+1, n+1)[PI,:];
+                P[:,:] = Matrix{T}(I, n+1, n+1)[PI,:];
 
-                v = U\(L\(P*[zeros(T,n);T(1)]));
+                v[:] = U\(L\(P*[zeros(T,n);T(1)]));
                 #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
-                vp = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
+                vp[:] = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
                 err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
-                    @ifd(println(λ))
                     return λ,v[1:n];
                 end
 
@@ -586,12 +587,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
 
-            if (k == maxit)
+            if (err > tol)
                 # We need to compute an eigvec
-                v= compute_eigvec_from_eigval(nep,λ, linsolvercreator)
-                v=v/dot(c,v)
+                v[1:n] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
+                v[1:n] = v[1:n]/dot(c,v[1:n])
             end
-            return (λ,v)
+            return (λ,v[1:n])
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."

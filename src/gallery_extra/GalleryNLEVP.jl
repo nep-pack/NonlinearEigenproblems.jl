@@ -3,19 +3,20 @@ module GalleryNLEVP
     # manchester NLEVP collection
 
     using MATLAB
-    using NEPCore
-    using NEPTypes
-    using Gallery
+    using NonlinearEigenproblems.NEPCore
+    using NonlinearEigenproblems.NEPTypes
+    using NonlinearEigenproblems.Gallery
 
     export nlevp_make_native
 
     # We have to explicitly specify functions that we want "overload"
-    import NEPCore.compute_Mder
-    import NEPCore.size
+    import .NEPCore.compute_Mder
+    import .NEPCore.size
+    import .NEPCore.compute_Mlincomb
 
     export NLEVP_NEP
 
-    import Gallery.nep_gallery
+    import .Gallery.nep_gallery
     export nep_gallery
 
 
@@ -40,7 +41,7 @@ module GalleryNLEVP
          NLEVP_NEP represents a NEP in the NLEVP-toolbox
     Example usage: nep=NLEVP_NEP("gun")
     """
-    type NLEVP_NEP <: NEP
+    struct NLEVP_NEP <: NEP
         n::Integer
         name::String
         Ai::Array
@@ -83,12 +84,15 @@ module GalleryNLEVP
         #    return f,fp
         D=call_current_fun(lambda,i)
         f=D[i+1,:]
-        M=zeros(nep.Ai[1]);
+        M=zero(nep.Ai[1]);
         for i=1:length(nep.Ai)
             M=M+nep.Ai[i]*f[i]
         end
         return M
     end
+
+    compute_Mlincomb(nep::NLEVP_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector) = compute_Mlincomb_from_Mder(nep,λ,V,a)
+    compute_Mlincomb(nep::NLEVP_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}) = compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))
 
     # Return function values and derivatives of the current matlab session "funs"
     # stemming from a previous call to [Ai,funs]=nlevp(nepname).
@@ -107,12 +111,11 @@ module GalleryNLEVP
 
 
     # size for NLEVP_NEPs
-    function size(nep::NLEVP_NEP,dim=-1)
-        if (dim==-1)
-            return (nep.n,nep.n)
-        else
-            return nep.n
-        end
+    function size(nep::NLEVP_NEP)
+        return (nep.n,nep.n)
+    end
+    function size(nep::NLEVP_NEP,dim)
+        return nep.n
     end
 
     """
@@ -121,8 +124,7 @@ module GalleryNLEVP
 Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems.
 """
-    nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String) = nep_gallery(T,name,joinpath(@__DIR__, "..","..","..","nlevp3"))
-    function nep_gallery{T<:NLEVP_NEP}(::Type{T},name::String)
+    function nep_gallery(::Type{T},name::String) where {T<:NLEVP_NEP}
         nep=NLEVP_NEP(name)
         return nep
     end
@@ -136,9 +138,9 @@ Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
     function nlevp_make_native(nep::NLEVP_NEP)
         if (nep.name == "gun")
             minusop= S-> -S
-            oneop= S -> eye(size(S,1),size(S,2))
-            sqrt1op= S -> 1im*sqrt(full(S))
-            sqrt2op= S -> 1im*sqrt(full(S)-108.8774^2*eye(S))
+            oneop= S -> one(S)
+            sqrt1op= S -> 1im*sqrt(Matrix(S))
+            sqrt2op= S -> 1im*sqrt(Matrix(S)-108.8774^2*one(S))
             # The nep.Ai object which comes from MATLAB
             # is Array{Any,2} (with one row). Reshape to correct type.
             AA=Array{AbstractMatrix,1}(vec(nep.Ai));

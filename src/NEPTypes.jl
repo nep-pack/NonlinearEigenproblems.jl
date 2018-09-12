@@ -60,14 +60,17 @@ A ProjectableNEP is a NEP which can be projected, i.e., one can construct the pr
 # Example:
 julia> nep=nep_gallery("dep0");
 julia> typeof(nep)
-NEPTypes.DEP
+DEP{Float64,Array{Float64,2}}
 julia> isa(nep,ProjectableNEP)
 true
-julia> projnep=create_proj_NEP(nep)
-NEPTypes.Proj_SPMF_NEP(NEPTypes.DEP(5, Array{Float64,2}[[0.679107 0.297336 … -0.187573 -0.117138; 0.828413 0.0649475 … -1.60726 -0.601254; … ; -0.134854 -0.51421 … 2.27623 -0.0886163; 0.586617 1.57433 … 0.219693 0.279466], [0.111422 1.42305 … 0.481556 -0.185424; -0.357884 0.408387 … -0.321943 1.26972; … ; 0.300234 -0.296278 … -0.178789 -0.0671867; -0.762677 0.691111 … -1.47788 0.577282]], [0.0, 1.0]), #undef, #undef, #undef, Array{Float64,2}[[1.0 0.0 … 0.0 0.0; 0.0 1.0 … 0.0 0.0; … ; 0.0 0.0 … 1.0 0.0; 0.0 0.0 … 0.0 1.0], [0.679107 0.297336 … -0.187573 -0.117138; 0.828413 0.0649475 … -1.60726 -0.601254; … ; -0.134854 -0.51421 … 2.27623 -0.0886163; 0.586617 1.57433 … 0.219693 0.279466], [0.111422 1.42305 … 0.481556 -0.185424; -0.357884 0.408387 … -0.321943 1.26972; … ; 0.300234 -0.296278 … -0.178789 -0.0671867; -0.762677 0.691111 … -1.47788 0.577282]], Function[NEPTypes.#1, NEPTypes.#2, NEPTypes.#3])
-julia> set_projectmatrices!(projnep,eye(5,1),eye(5,1))
-NEPTypes.SPMF_NEP(1, Array{Float64,2}[[1.0], [0.679107], [0.111422]], Function[NEPTypes.#1, NEPTypes.#2, NEPTypes.#3], false, 1×1 SparseMatrixCSC{Float64,Int64} with 0 stored entries)
-
+julia> projnep=create_proj_NEP(nep);
+julia> e1 = Matrix(1.0*I,size(nep,1),1);
+julia> set_projectmatrices!(projnep,e1,e1);
+julia> compute_Mder(nep,3.0)[1,1]
+-2.315345215259418
+julia> compute_Mder(projnep,3.0)
+1×1 Array{Float64,2}:
+ -2.315345215259418
 """
     abstract type ProjectableNEP <: NEP end
 
@@ -141,7 +144,7 @@ efficient to set this flag to false.
 
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
-julia> id_op=S -> eye(S)
+julia> id_op=S -> one(S)
 julia> exp_op=S -> exp(S)
 julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
 julia> compute_Mder(nep,1)-(A0+A1*exp(1))
@@ -428,7 +431,7 @@ Creates a polynomial eigenvalue problem with monomial matrices specified in
 AA, which is an array of matrices.
 
 ```julia-repl
-julia> A0=[1 3; 4 5]; A1=A0+eye(2); A2=ones(2,2);
+julia> A0=[1 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
 julia> pep=PEP([A0,A1,A2])
 julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 2×2 Array{Float64,2}:
@@ -514,16 +517,17 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 
 
 """
-    interpolate([T::DataType=Complex64,] nep::NEP, intpoints::Array)
- Interpolates a NEP in the points intpoints and returns a PEP.\\
- `T` is the DataType in which the PEP should be defined.
+    interpolate([T=ComplexF64,] nep::NEP, intpoints::Array)
+ Interpolates a NEP in the points `intpoints` and returns a `PEP`.\\
+ `T` is the DataType in which the matrices of the PEP should be defined.
 """
-    function interpolate(T::DataType, nep::NEP, intpoints::Array)
+    interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
+    function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}
 
         n = size(nep, 1)
         d = length(intpoints)
 
-        V = Array{T}(d,d) #Vandermonde matrix
+        V = zeros(T,d,d) #Vandermonde matrix
         pwr = ones(d,1)
         for i = 1:d
             V[:,i] = pwr
@@ -531,18 +535,18 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         end
 
         if (issparse(nep)) #If Sparse, do elementwise interpolation
-            b = Array{SparseMatrixCSC{T},1}(d)
-            AA = Array{SparseMatrixCSC{T},1}(d)
+            b = Vector{SparseMatrixCSC{T}}(undef, d)
+            AA = Vector{SparseMatrixCSC{T}}(undef, d)
             V = factorize(V) # Will be used multiple times, factorize
 
             for i=1:d
                 b[i] = compute_Mder(nep, intpoints[i])
             end
 
-            # OBS: The following lines and hence the  following method assumes that Sparsity-structure is the same!
+            # OBS: The following lines and hence the following method assumes that Sparsity-structure is the same!
             nnz_AA = nnz(b[1])
             for i=1:d
-                AA[i] = spones(b[1])
+                AA[i] = copy(b[1])
             end
 
             f = zeros(d,1)
@@ -557,43 +561,27 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             end
 
         else # If dense, use Vandermonde
-            b = Array{T}(n*d,n)
-            AA = Array{Array{T,2}}(d)
+            b = zeros(T,n*d,n)
+            AA = Vector{Matrix{T}}(undef,d)
             (L, U, p) = lu(V)
 
-            I = speye(n,n)
-            LL = kron(L,I)
-            UU = kron(U,I)
+            LL = kron(L, SparseMatrixCSC(I,(n,n)))
+            UU = kron(U, SparseMatrixCSC(I,(n,n)))
 
             for i = 1:d
-                b[(1:n)+(i-1)*n,:] =  compute_Mder(nep,intpoints[p[i]])
+                b[(1:n).+(i-1)*n,:] =  compute_Mder(nep,intpoints[p[i]])
             end
 
             A = \(UU, \(LL,b))
 
             for i = 1:d
-                AA[i] = A[(1:n)+(i-1)*n,:]
+                AA[i] = A[(1:n).+(i-1)*n,:]
             end
         end
 
         return PEP(AA)
     end
-
-
-    interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
-
-
-    """
-     interpolate_cheb(nep::NEP,a::Real,b::Real)
-  Interpolation in an interval using Chebyshev distribution. Returns a PEP.
-  Following Effenberger, Cedric, and Daniel Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
-"""
-    function interpolate_cheb(nep::NEP,a::Real,b::Real)
-        # Not yet implemented
-        # Note: PEP should probably be separated into Mono_PEP and
-        # Cheb_PEP depending which inherit from PEP.
-        error("Not implemented")
-    end
+  # TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
 
 
 
@@ -812,15 +800,15 @@ of a `NEP` is also a `NEP` and we can for instance
 call `compute_Mder`on it:
 ```julia-repl
 julia> nep=nep_gallery("pep0")
-julia> V=eye(size(nep,1),2);
-julia> W=eye(size(nep,1),2);
+julia> V=Matrix(1.0*I,size(nep,1),2);
+julia> W=Matrix(1.0*I,size(nep,1),2);
 julia> pnep=create_proj_NEP(nep);
 julia> set_projectmatrices!(pnep,W,V);
-julia> compute_Mder(pnep,λ)
+julia> compute_Mder(pnep,3.0)
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
-julia> compute_Mder(nep,λ)[1:2,1:2]
+julia> compute_Mder(nep,3.0)[1:2,1:2]
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
@@ -999,32 +987,40 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return z
     end
 
-    # Use MM to compute Mlincomb for SPMFs
-    compute_Mlincomb(nep::SPMF_NEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
-             compute_Mlincomb_from_MM(nep,λ,V,a)
-
-    #=
-    function compute_Mlincomb!(
+    function compute_Mlincomb(
                         nep::SPMF_NEP,
                         λ::Number,
                         V::Union{AbstractMatrix,AbstractVector},
-                        a::Vector)
-    	n,k=size(V);
+                        a::Vector=ones(size(V,2)))
+
+
+        if ndims(V)==2
+            n,k=size(V);
+        else
+            n=size(V,1); k=1;
+        end
+
     	# we need to assume that the elements of a are different than zero.
     	V[:,findall(x->x==0,a)] .= 0
     	a[findall(x->x==0,a)] .= 1
-    	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(1 => (a[2:k]./a[1:k-1]).*(1:k-1))
-    	S=copy(transpose(S))
+    	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
 
-    	Z=zeros(eltype(V),n)
-    	for i=1:size(nep.A,1)
-    		Fi=nep.fi[i](S)[:,1]
-    		Z=Z .+ nep.A[i]*(V*Fi);
+        z=zeros(eltype(V),n)
+        if ndims(V)==1
+            for i=1:size(nep.A,1)
+                Fi=nep.fi[i](S);
+                z=z .+ nep.A[i]*(V*Fi);
+            end
+        else
+            for i=1:size(nep.A,1)
+                Fi=nep.fi[i](S)[:,1];
+                z=z .+ nep.A[i]*(V*Fi);
+            end
     	end
-    	return a[1]*Z
+
+    	return a[1]*reshape(z,size(z,1))
     end
-    compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))
-    =#
+
+
 
 end

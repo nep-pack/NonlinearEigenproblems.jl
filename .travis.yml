@@ -17,6 +17,6 @@ script:
   - export JL_PKG=NonlinearEigenproblems
   - git fetch --unshallow
   - julia --color=yes -e "using Pkg; Pkg.build()"
-  - julia --check-bounds=yes --inline=no --color=yes -e "using Pkg; Pkg.test(coverage=true)"
+  - julia --check-bounds=yes --color=yes -e "using Pkg; Pkg.test(coverage=true)"
 after_success:
   - if [ $TEST_SUITE = 'unit' ]; then julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi

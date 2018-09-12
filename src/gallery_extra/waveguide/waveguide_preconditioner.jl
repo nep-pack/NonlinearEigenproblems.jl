@@ -8,9 +8,9 @@
  A wrapper struct to be able to use the preconditioner. Update in GMRES for Julia v0.6 remove possibility to use a function directly.
 """
     struct WEP_preconditioner
-        scratch_pad_for_FFT::Array{ComplexF64,2}
-        scratch_pad_for_transpose::Array{ComplexF64,2}
-        scratch_pad_for_Z::Array{ComplexF64,2}
+        scratch_pad_for_FFT::Matrix{ComplexF64}
+        scratch_pad_for_transpose::Matrix{ComplexF64}
+        scratch_pad_for_Z::Matrix{ComplexF64}
         nep::WEP_FD
         M
         σ
@@ -25,7 +25,7 @@
     end
 
 
-    function A_ldiv_B!(A::WEP_preconditioner, B)
+    function ldiv!(A::WEP_preconditioner, B)
         C = reshape(B, A.nep.nz, A.nep.nx)
         B[:] = vec( solve_smw( A.nep, A.M, C, A.σ, A.scratch_pad_for_FFT, A.scratch_pad_for_transpose, A.scratch_pad_for_Z) )
     end
@@ -65,17 +65,16 @@
         dd2 = nep.d2/nep.hx^2;
 
         # Sylvester solver
-        scratch_pad_for_FFT::Array{ComplexF64,2} = zeros(ComplexF64, 2*(nx+1), nz)
-        scratch_pad_for_transpose::Array{ComplexF64,2} = zeros(ComplexF64, nx, nz)
-        scratch_pad_for_Z::Array{ComplexF64,2} = zeros(ComplexF64, nz, nx)
+        scratch_pad_for_FFT::Matrix{ComplexF64} = zeros(ComplexF64, 2*(nx+1), nz)
+        scratch_pad_for_transpose::Matrix{ComplexF64} = zeros(ComplexF64, nx, nz)
+        scratch_pad_for_Z::Matrix{ComplexF64} = zeros(ComplexF64, nz, nx)
         Linv! = function(rhs)
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
 
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
         # OBS: MINUS sign as in Ringh - (4.10)
-        Pm(v) = -P_inv_m(v)
-        Pp(v) = -P_inv_p(v)
+        Pm(v) = -P_inv_m(nep, σ, v)
+        Pp(v) = -P_inv_p(nep, σ, v)
 
         return generate_smw_matrix(nz, N, Linv!, dd1, dd2, Pm, Pp, nep.K )
     end
@@ -90,7 +89,7 @@
 
     function solve_smw(nep::WEP_FD, M, C, σ, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
 
-        C_copy::Array{ComplexF64,2} = copy(C) #Make sure it is complex since that is how FFT works. Also take copy since WG_FFT solver works in place.
+        C_copy::Matrix{ComplexF64} = copy(C) #Make sure it is complex since that is how FFT works. Also take copy since WG_FFT solver works in place.
 
         nz::Integer = nep.nz
         nx::Integer = nep.nx
@@ -103,10 +102,9 @@
             return solve_wg_sylvester_fft!(rhs, σ, nep.k_bar, nep.hx, nep.hz, scratch_pad_for_FFT, scratch_pad_for_transpose, scratch_pad_for_Z)
         end
 
-        P_inv_m, P_inv_p = nep.generate_Pm_and_Pp_inverses(σ)
         # OBS: MINUS sign as in Ringh - (4.10)
-        Pm(v) = -P_inv_m(v)
-        Pp(v) = -P_inv_p(v)
+        Pm(v) = -P_inv_m(nep, σ, v)
+        Pp(v) = -P_inv_p(nep, σ, v)
 
         return solve_smw(M, C_copy, Linv!, dd1, dd2, Pm, Pp, nep.K)
     end
@@ -164,47 +162,47 @@ end
 # Start: Auxiliary computations of eigenvector actions using FFT
 #Connects to the solving of the Sylvester equation by FFT-diagonalization
 #Ringh - Section 5.3
-    function V!(X::Array{ComplexF64,2})
+    function V!(X::Matrix{ComplexF64})
     # Compute the action of the eigenvectors of A = Dzz + Dz + c*I
         nx::ComplexF64 = size(X,2)
         fft!(X,1)#/sqrt(nx)
         rmul!(X, (1+0.0im)/sqrt(nx))
     end
 
-    function Vh!(X::Array{ComplexF64,2})
+    function Vh!(X::Matrix{ComplexF64})
     # Compute the action of the transpose of the eigenvectors of A = Dzz + Dz + c*I
         nx::ComplexF64 = size(X,2)
         ifft!(X,1)#* sqrt(nx)
         rmul!(X, (1+0.0im)*sqrt(nx))
     end
 
-    function W(X::Array{ComplexF64,2}, scratch_pad::Array{ComplexF64,2})
+    function W(X::Matrix{ComplexF64}, scratch_pad::Matrix{ComplexF64})
     #W Compute the action of the matrix W
     #   W is the matrix of the eigenvectors of the second derivative Dxx
     #   W*X can be computed with FFTs
 
         nz::ComplexF64 = size(X,1)
-        WX::Array{ComplexF64,2} = F(X,scratch_pad)-Fh(X,scratch_pad)
+        WX::Matrix{ComplexF64} = F(X,scratch_pad)-Fh(X,scratch_pad)
 
         rmul!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
         return WX
 
     end
 
-    function Wh(X::Array{ComplexF64,2}, scratch_pad::Array{ComplexF64,2})
+    function Wh(X::Matrix{ComplexF64}, scratch_pad::Matrix{ComplexF64})
     #Wh Compute the action of the matrix Wh
     #   Wh is the transpose of the matrix of the eigenvectors of the second derivative Dxx
     #   Wh*X can be computed with FFTs
 
         nz::ComplexF64 = size(X,1)
-        WX::Array{ComplexF64,2} = F(X,scratch_pad)-Fh(X,scratch_pad)
+        WX::Matrix{ComplexF64} = F(X,scratch_pad)-Fh(X,scratch_pad)
 
         rmul!(WX, (1.0im/2.0) * 1/sqrt((nz+1)/2.0) )
         return WX
 
     end
 
-    function F(v::Array{ComplexF64,2}, scratch_pad::Array{ComplexF64,2})
+    function F(v::Matrix{ComplexF64}, scratch_pad::Matrix{ComplexF64})
     #F is an auxiliary function for W and Wh
 
         m=size(v,2)
@@ -216,7 +214,7 @@ end
         return scratch_pad[2:n,:]
     end
 
-    function Fh( v::Array{ComplexF64,2}, scratch_pad::Array{ComplexF64,2})
+    function Fh( v::Matrix{ComplexF64}, scratch_pad::Matrix{ComplexF64})
     #Fh is an auxiliary function for W and Wh
 
         m=size(v,2)
@@ -240,7 +238,7 @@ end
  N domains in z-direction, N+4 domains in x-direction, and fixed shift.\\
  Obs: Linv! works in place on the matrix rhs
 """
-function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K::Union{Array{ComplexF64,2}, Array{Float64,2}})
+function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K::Union{Matrix{ComplexF64}, Matrix{Float64}})
 
     # OBS: n = nz, and nz = nx + 4
     nz::Integer = n
@@ -271,10 +269,10 @@ function generate_smw_matrix(n::Integer, N::Integer, Linv!::Function, dd1, dd2, 
     end
 
     # compute matrix M
-    M::Array{ComplexF64,2} = zeros(ComplexF64, mm, mm)
+    M::Matrix{ComplexF64} = zeros(ComplexF64, mm, mm)
 
-    EEk::Array{ComplexF64,2} = zeros(ComplexF64, nz, nx)
-    ek::Array{ComplexF64,1} = zeros(ComplexF64, nz)
+    EEk::Matrix{ComplexF64} = zeros(ComplexF64, nz, nx)
+    ek::Vector{ComplexF64} = zeros(ComplexF64, nz)
 
     for k=1:mm
 
@@ -336,7 +334,7 @@ end
  With SMW-system matrix M, right hand side C, and matrix equation solver Linv! which was used to compute M.
  Obs: Linv! works in place on the matrix rhs
 """
-function solve_smw( M, C::Array{ComplexF64,2}, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K::Union{Array{ComplexF64,2}, Array{Float64,2}})
+function solve_smw( M, C::Matrix{ComplexF64}, Linv!::Function, dd1, dd2, Pm::Function, Pp::Function, K::Union{Matrix{ComplexF64}, Matrix{Float64}})
 
     mm::Integer = size(M,1)
     N::Integer = sqrt(mm+4)-2      #OBS: N^2 + 4N = length(M)
@@ -384,8 +382,8 @@ function solve_smw( M, C::Array{ComplexF64,2}, Linv!::Function, dd1, dd2, Pm::Fu
     alpha = M\b;
 
     # build the solution
-    Y::Array{ComplexF64,2} = zeros(ComplexF64, nz, nx);
-    ek::Array{ComplexF64,1} = zeros(ComplexF64, nz);
+    Y::Matrix{ComplexF64} = zeros(ComplexF64, nz, nx);
+    ek::Vector{Float64} = zeros(ComplexF64, nz);
     for k=1:mm
 
         i, j = k2ij(k)

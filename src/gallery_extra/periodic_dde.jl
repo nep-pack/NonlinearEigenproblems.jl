@@ -254,19 +254,23 @@ end
 
 function compute_Mder(nep::PeriodicDDE_NEP,λ::Number,der::Integer=0)
     if (der==0)
-        Z=zeros(typeof(λ),size(nep,1),size(nep,1));
-        for k=1:size(nep,1)
-            ek=copy(Z[:,k]); ek[k]=1;
-            Z[:,k]=compute_Mlincomb(nep,λ,ek);
+        n = size(nep,1)
+        ek = zeros(n); ek[1] = 1
+        z1 = compute_Mlincomb(nep,λ,ek)
+        Z = zeros(eltype(z1), n, n)
+        Z[:,1] = z1
+        for k=2:n
+            ek=copy(Z[:,k]); ek[k]=1
+            Z[:,k]=compute_Mlincomb(nep,λ,ek)
         end
-        return Z;
+        return Z
         #return compute_Mder_from_MM(nep,λ,der)
     elseif (der==1)
         # Compute first derivative with finite difference. (Slow and inaccurate)
-        ee=sqrt(eps())/10;
+        ee=sqrt(eps())/10
         Yp=compute_Mder(nep,λ+ee,0)
         Ym=compute_Mder(nep,λ-ee,0)
-        return (Yp-Ym)/(2ee);
+        return (Yp-Ym)/(2ee)
     else # This would be too slow.
         error("Higher derivatives not implemented");
     end
