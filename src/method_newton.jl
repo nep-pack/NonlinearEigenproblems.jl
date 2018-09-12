@@ -322,7 +322,7 @@ julia> λ1-λ2
                 tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
                 if (use_v_as_normalization_vector)
-                    c = v /opnorm(v)^2
+                    c = v /norm(v)^2
                 end
                 α = T(1)/ dot(c,tempvec);
 
