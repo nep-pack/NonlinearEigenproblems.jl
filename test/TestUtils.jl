@@ -1,6 +1,7 @@
 module TestUtils
 
 using BenchmarkTools
+using Statistics
 using Printf
 
 export @bench
@@ -32,57 +33,88 @@ function benchit(f)
     # Benchmark for a single sample/eval. This will end up running the code twice; once
     # for warmup / JIT compilation, and once for benchmarking.
     test = Vector(undef, 1)
-    benchmark_results[test[1]] = @benchmark $test[1] = $f() samples=1 evals=1
+    warmup(@benchmarkable $test[1] = $f())
+    benchmark_results[test[1]] = run((@benchmarkable $f()), seconds=1)
 end
 
-mutable struct AggregatedResult
+mutable struct AggregatedTrial
     name
-    time
-    memory
+    key
+    trial
 end
 
 "Print benchmark results collected by `@bench`"
 function report_benchmarks(test_results)
     run_benchmark || return
 
-    aggregated_results = Dict()
+    aggregated_trials = Dict()
 
-    # hierarchically aggregate benchmark results
-    function aggregate_results(test, chain)
+    # hierarchically aggregate benchmark trials
+    function aggregate_trials(test, chain)
         chain = [chain; test]
         if haskey(benchmark_results, test)
-            result = benchmark_results[test]
-            for i in eachindex(chain)
+            trial = minimum(benchmark_results[test])
+            for i in 1:length(chain)
                 t = chain[i]
-                aggr = get!(aggregated_results, t, AggregatedResult(" "^((i-1)*2) * t.description, 0.0, 0))
-                aggr.time += result.times[1]
-                aggr.memory += result.memory
+                name = " "^((i-1)*2) * t.description
+                key = i == 1 ? "" : join([x.description for x in chain[2:i]], " / ")
+                aggr = get!(aggregated_trials, t, AggregatedTrial(name, key, zero(trial)))
+                aggr.trial += trial
             end
         end
-        foreach(t -> aggregate_results(t, chain), test.results)
+        foreach(t -> aggregate_trials(t, chain), test.results)
     end
 
-    aggregate_results(test_results, [])
+    aggregate_trials(test_results, [])
 
-    column_width = maximum([length(test.name) for test in values(aggregated_results)])
+    new_benchmark = BenchmarkGroup()
+    foreach(t -> new_benchmark[t.key] = t.trial, values(aggregated_trials))
+    if true
+        BenchmarkTools.save("benchmark.json", new_benchmark)
+    else
+        old_benchmark = BenchmarkTools.load("benchmark.json")[1]
+        foreach(j -> println("$(j[1]): $(j[2])"), judge(new_benchmark, old_benchmark))
+        println("-------------")
+        for key in intersect(keys(old_benchmark), keys(new_benchmark))
+            j = judge(new_benchmark[key], old_benchmark[key])
+            if j.time != :invariant || j.memory != :invariant
+                println("$key -- $(prettytime(old_benchmark[key].time)) -> $(prettytime(new_benchmark[key].time)) -- $j")
+            end
+        end
+    end
+
+    column_width = maximum([length(test.name) for test in values(aggregated_trials)])
     column_title = "Test name"
     divider = "─"^(column_width + 23) * "\n"
     @printf("%s%s%s     Time       Memory\n%s", divider, column_title, " "^(column_width - length(column_title)), divider)
 
-    # hierarchically sort and print benchmark results
-    function print_results(test)
-        result = aggregated_results[test]
-        @printf("%s%s    %s    %s\n", result.name, " "^(column_width - length(result.name)), prettytime(result.time), prettymemory(result.memory))
+    # hierarchically sort and print benchmark trials
+    function print_trials(test)
+        trial = aggregated_trials[test]
+        @printf("%s%s    %s    %s\n", trial.name, " "^(column_width - length(trial.name)), prettytime(trial.trial.time), prettymemory(trial.trial.memory))
 
         sorted_children = sort(
-            [x for x in test.results if haskey(aggregated_results, x)];
-            lt = (a,b) -> isless(aggregated_results[b].time, aggregated_results[a].time))
-        foreach(print_results, sorted_children)
+            [x for x in test.results if haskey(aggregated_trials, x)];
+            lt = (a,b) -> isless(aggregated_trials[b].trial.time, aggregated_trials[a].trial.time))
+        foreach(print_trials, sorted_children)
     end
 
-    print_results(test_results)
+    print_trials(test_results)
     print(divider)
 end
+
+import Base.+
+import Base.zero
+
++(t1::BenchmarkTools.TrialEstimate, t2::BenchmarkTools.TrialEstimate) =
+    BenchmarkTools.TrialEstimate(
+        t1.params,
+        t1.time + t2.time,
+        t1.gctime + t2.gctime,
+        t1.memory + t2.memory,
+        t1.allocs + t2.allocs)
+
+zero(t::BenchmarkTools.TrialEstimate) = BenchmarkTools.TrialEstimate(t.params, 0, 0, 0, 0)
 
 # Copied from TimerOutputs.jl
 function prettytime(t)

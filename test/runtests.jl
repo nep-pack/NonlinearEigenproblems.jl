@@ -33,7 +33,7 @@ function runtests()
 end
 
 function is_test_script(file::AbstractString)
-    if occursin(r"(?i)\.jl$", file)
+    if occursin(r"(?i)\.jl$", file) && occursin("polygon", file)
         src = read(file, String)
 
         pos = 1
