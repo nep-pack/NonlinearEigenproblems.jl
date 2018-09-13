@@ -58,17 +58,14 @@ function nleigs_basic()
         @time lambda, X, res, details = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
         nleigs_verify_lambdas(4, pep, X, lambda)
 
-        info_λ = details.Lam[:,end]
-        local in_Σ = map(p -> inpolygon(real(p), imag(p), real(Σ), imag(Σ)), info_λ)
-        info_λ = info_λ[in_Σ]
+        lam = details.Lam[:,end]
+        res = details.Res[:,end]
+        conv = map(i -> res[i] < 1e-12 && inpolygon(real(lam[i]), imag(lam[i]), real(Σ), imag(Σ)), 1:size(lam, 1))
+        lamconv = lam[conv, end]
 
         # test that eigenvalues in the info are the same as those returned by nleigs
-        @test length(info_λ) == 4
-        @test length(union(lambda, info_λ)) == 4
-
-        # test that the residuals are near 0
-        info_res = details.Res[in_Σ,end]
-        @test all(r -> r < 1e-12, info_res)
+        @test length(lamconv) == 4
+        @test length(union(lambda, lamconv)) == 4
     end
 end
 
