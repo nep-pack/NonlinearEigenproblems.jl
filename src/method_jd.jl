@@ -23,12 +23,12 @@ end
 
 
    """
-    function jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v0 = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+    function jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
-The value `λ` and the vector `v0` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
+The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvlues are computed.
 `errmeasure` is a function handle which can be used to specify how the error is measured.
 By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence W^H T(λ) V is the projection considered. By specifying  `projtype` to be `:Galerkin` then W=V.
@@ -36,11 +36,10 @@ By default the method uses a Petrov-Galerkin framework, with a trial (left) and 
 
 # Example
 ```julia-repl
-julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
 julia> nep=nep_gallery("dep0",50);
 julia> λ,v=jd_betcke(nep,tol=1e-5,maxit=20);
 julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
-3.4016933647983415e-8
+1.2277391762692744e-8
 ```
 
 # References
@@ -61,7 +60,7 @@ function jd_betcke(::Type{T},
                    linsolvercreator::Function = default_linsolvercreator,
                    tol::Number = eps(real(T))*100,
                    λ::Number = zero(T),
-                   v0::Vector = randn(size(nep,1)),
+                   v::Vector = randn(size(nep,1)),
                    target::Number = zero(T),
                    displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
     # Initial logical checks
@@ -82,7 +81,7 @@ function jd_betcke(::Type{T},
     tol::real(T) = real(T)(tol)
     λ_vec::Vector{T} = Vector{T}(undef,Neig)
     u_vec::Matrix{T} = zeros(T,n,Neig)
-    u::Vector{T} = Vector{T}(v0)
+    u::Vector{T} = Vector{T}(v)
     normalize!(u)
     conveig = 0
 
@@ -125,8 +124,8 @@ function jd_betcke(::Type{T},
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             j = conveig+1, # For SG-iter
-                            λv = (λ+eps(real(T))) .* ones(T,conveig+1),
-                            σ = target+eps(real(T)),
+                            λv = λ .* ones(T,conveig+1),
+                            σ = target,
                             Neig=conveig+1)
         λ,s = jd_eig_sorter(λv, sv, conveig+1, target)
         normalize!(s)
@@ -178,15 +177,22 @@ end
 
 
    """
-function jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=NEPSolver.DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v0 = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
+function jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=NEPSolver.DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
-The value `λ` and the vector `v0` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
+The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvlues are computed.
 
+# Example
+```julia-repl
+julia> nep=nep_gallery("dep0",100);
+julia> λ,v=jd_effenberger(nep,maxit=30,v=ones(size(nep,1)),λ=0);
+julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
+1.902783771915309e-14
+```
 
 # References
 * C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
@@ -204,7 +210,7 @@ function jd_effenberger(::Type{T},
                         linsolvercreator::Function = default_linsolvercreator,
                         tol::Number = eps(real(T))*100,
                         λ::Number = rand(T),
-                        v0::Vector = rand(T,size(nep,1)),
+                        v::Vector = rand(T,size(nep,1)),
                         target::Number = zero(T),
                         displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
     # Initial logical checks
@@ -218,7 +224,7 @@ function jd_effenberger(::Type{T},
 
     # Allocations and preparations
     λ::T = T(λ)
-    u::Vector{T} = Vector{T}(v0)
+    u::Vector{T} = Vector{T}(v)
     normalize!(u)
     λ_init::T = λ
     u_init::Vector{T} = u
@@ -352,8 +358,8 @@ function jd_effenberger_inner!(::Type{T},
         set_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             tol = tol/10,
-                            λv = (λ+eps(real(T))) .* ones(T,2),
-                            σ = target+eps(real(T)),
+                            λv = λ .* ones(T,2),
+                            σ = target,
                             Neig = 2)
         λ_temp,s = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         normalize!(s)
@@ -515,7 +521,7 @@ end
 
 
 mutable struct JD_Inner_Effenberger_Projected_NEP <: Proj_NEP
-    orgnep
+    orgnep #This is the deflated nep. Called "orgnep" for inheritance purpouses
     org_proj_nep
     X
     Λ

@@ -1,5 +1,7 @@
 # Run tests on Newton methods & rfi methods
 
+push!(LOAD_PATH, @__DIR__); using TestUtils
+
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
@@ -87,7 +89,7 @@ using LinearAlgebra
 
     @bench @testset "Resinv" begin
         println("resinv + periodicdde")
-        nep1=nep_gallery("periodicdde","rand0")
+        nep1=nep_gallery("periodicdde", name="mathieu")
         # basic functionality of resinv. Start close to solution to speed up unit test
         λ4,x4 =  resinv(nep1, λ=-0.2447, v=[0.970208+0.0im, -0.242272+0.0im],
                         displaylevel=1,tol=eps()*10)
@@ -152,7 +154,7 @@ using LinearAlgebra
 
     @bench @testset "implicitdet" begin
         println("Implicitdet test")
-        nepd=nep_gallery("periodicdde","mathieu")
+        nepd=nep_gallery("periodicdde", name="mathieu")
         λ,v=implicitdet(nepd, v=ones(size(nepd,1)), displaylevel=1)
         @test norm(compute_Mder(nepd,λ)*v) < eps()*100
     end

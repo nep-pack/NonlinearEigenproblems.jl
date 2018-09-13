@@ -238,14 +238,5 @@ end
 
         end
 
-        @bench @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
-            nep=nep_gallery("qdep1")
-            λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
-                                        check_error_every=1,v=ones(size(nep,1)));
-            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
-
-
-        end
-
     end
 end

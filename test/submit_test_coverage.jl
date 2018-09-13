@@ -9,10 +9,6 @@ using Coverage
 # coverage reports. Folders are excluded recursively. All names are case
 # insensitive, and relative to the src/ folder.
 excluded_folders_and_files = map(f -> uppercase("src/" * f), [
-    "bugs/",
-    "extra_tests/",
-    "tmp/",
-    "trash/",
     "gallery_extra/waveguide/waveguide_debug.jl",   # Some code to make larger verifications agains MATLAB (development phase)
     ])
 
