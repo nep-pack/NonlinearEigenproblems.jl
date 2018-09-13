@@ -17,11 +17,13 @@ script:
   - julia --color=yes -e "using Pkg; Pkg.build()"
   - julia --check-bounds=yes --color=yes -e "using Pkg; Pkg.test(coverage=true)"
 after_success:
-  - #git clone --depth=10 --branch=master https://github.com/maxbennedich/julia-ci.git julia-ci-benchmark
-  - #mv test/benchmark.json julia-ci-benchmark
-  - #cd julia-ci-benchmark
-  - #git config user.email benchmark
-  - #git config user.name benchmark
-  - #git add benchmark.json
-  - #git commit -m "benchmark $TRAVIS_COMMIT"
-  - #git push "https://$GIT_TOKEN@github.com/maxbennedich/julia-ci.git" master > /dev/null 2>&1
+  - FILES="benchmark.md benchmark.json run_context.txt"
+  - git clone --depth=10 --branch=master https://github.com/maxbennedich/julia-ci.git julia-ci-benchmark
+  - cd test
+  - mv $FILES ../julia-ci-benchmark
+  - cd ../julia-ci-benchmark
+  - git config user.email benchmark
+  - git config user.name benchmark
+  - git add $FILES
+  - git commit -m "benchmark $TRAVIS_COMMIT"
+  - git push "https://$GIT_TOKEN@github.com/maxbennedich/julia-ci.git" master > /dev/null 2>&1
