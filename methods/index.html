@@ -161,7 +161,7 @@ $$</p>
 <p>$$
 c^Hv-1=0
 $$</p>
-<p>The kwarg <code>errmeasure</code> is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). The iteration is continued until errmeausure is less than <code>tol</code>. <code>λ</code> and <code>v</code> are starting approximations. <code>c</code> is the orthogonalization vector.  If <code>c=0</code> the current approximation will be used for the orthogonalization. <code>armijo_factor</code> specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable <code>armijo_max</code> specifies the maximum number of step length reductions.</p>
+<p>The kwarg <code>errmeasure</code> is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). The iteration is continued until <code>errmeasure</code> is less than <code>tol</code>. <code>λ</code> and <code>v</code> are starting approximations. <code>c</code> is the orthogonalization vector.  If <code>c=0</code> the current approximation will be used for the orthogonalization. <code>armijo_factor</code> specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable <code>armijo_max</code> specifies the maximum number of step length reductions.</p>
 <p><strong>Example</strong></p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
 julia&gt; λ,v=newton(nep);
@@ -373,7 +373,8 @@ julia&gt; λ  % Same eigenvalues are computed
 <p><strong>Example:</strong></p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
 julia&gt; A=get_Av(nep); fv=get_fv(nep);
-julia&gt; nept=SPMF_NEP([A[1]',A[2]',A[3]'],fv); # Create the transposed NEP
+julia&gt; At=[copy(A[1]'),copy(A[2]'),copy(A[3]')]
+julia&gt; nept=SPMF_NEP(At,fv); # Create the transposed NEP
 julia&gt; λv,V=infbilanczos(nep,nept,Neig=3)
 julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 </code></pre>

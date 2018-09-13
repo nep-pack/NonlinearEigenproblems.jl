@@ -170,15 +170,15 @@ $$</p>
 <p><strong>Example:</strong></p>
 <p>The following example illustrates that a projection of a <code>NEP</code> is also a <code>NEP</code> and we can for instance call <code>compute_Mder</code>on it:</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
-julia&gt; V=eye(size(nep,1),2);
-julia&gt; W=eye(size(nep,1),2);
+julia&gt; V=Matrix(1.0*I,size(nep,1),2);
+julia&gt; W=Matrix(1.0*I,size(nep,1),2);
 julia&gt; pnep=create_proj_NEP(nep);
 julia&gt; set_projectmatrices!(pnep,W,V);
-julia&gt; compute_Mder(pnep,λ)
+julia&gt; compute_Mder(pnep,3.0)
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
-julia&gt; compute_Mder(nep,λ)[1:2,1:2]
+julia&gt; compute_Mder(nep,3.0)[1:2,1:2]
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
