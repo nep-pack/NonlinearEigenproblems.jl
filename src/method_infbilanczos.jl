@@ -15,7 +15,8 @@ and `nept::NEP`. `nep:NEP` is the original nonlinear eigenvalue problem and
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> A=get_Av(nep); fv=get_fv(nep);
-julia> nept=SPMF_NEP([A[1]',A[2]',A[3]'],fv); # Create the transposed NEP
+julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')]
+julia> nept=SPMF_NEP(At,fv); # Create the transposed NEP
 julia> λv,V=infbilanczos(nep,nept,Neig=3)
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 ```
