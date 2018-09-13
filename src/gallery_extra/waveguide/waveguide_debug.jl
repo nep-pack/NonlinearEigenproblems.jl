@@ -140,8 +140,6 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
     end
 
     #The error observed likely comes from difference in linspace-implementation.
-    #include("../bugs/test_linspace.jl")
-
     γ = -rand() - 1im*rand()
     gamma = γ
 
