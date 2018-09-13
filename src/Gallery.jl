@@ -434,8 +434,8 @@ module Gallery
           s3_new= λ -> f_new_c64(sqrt(λ)*L); # This is the new function. Works for matrices and functions
           n=2400;
 
-          A1=Matrix(1.0I,n,n)
-          A2=zeros(n,n); A2[end,end]=1; # This is a rank-one matrix!
+          A1=sparse(1.0I,n,n)
+          A2=sparse([n],[n],[1.0])  # This is a rank-one matrix!
 
           # Create the A0-matrix takes a bit more work
           eta_cl = 1.4969;  # "physical params"
@@ -465,11 +465,14 @@ module Gallery
           println(size(y))
           z = (i.+0.5) ./ sqrt.( i.*(i.+1) );
 
-          A0=diagm(0  => y[1:n], 1=> z[1:n-1], -1 => z[1:n-1])
+          A0=spdiagm(0  => y[1:n], 1=> z[1:n-1], -1 => z[1:n-1])
 
+          # The functions
           f1=S-> one(S);
           f2=S-> -S;
-          f3=s3_new;
+          f3=s3_new; # Interpolated function
+          # f3=s3 # Use this if you want the exact formula
+
           nep=SPMF_NEP([A0,A1,A2],[f1,f2,f3])
 
           return nep;
