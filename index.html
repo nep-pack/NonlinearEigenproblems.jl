@@ -65,6 +65,9 @@
     <li class="toctree-l2"><a href="#a-model-of-a-neuron">A model of a neuron</a></li>
     
 
+    <li class="toctree-l2"><a href="#the-gun-benchmark-problem">The "gun" benchmark problem</a></li>
+    
+
     <li class="toctree-l2"><a href="#what-now">What now?</a></li>
     
 
@@ -225,6 +228,22 @@ julia&gt; plot(real(λ),imag(λ),&quot;*&quot;)
 </code></pre>
 
 <p>This problem is also available in the <code>Gallery</code> by calling <code>dep=nep_gallery("neuron0")</code>.</p>
+<p><a id='The-"gun"-benchmark-problem-1'></a></p>
+<h1 id="the-gun-benchmark-problem">The "gun" benchmark problem</h1>
+<p>One of the most common benchmark problems for NEPs is the so-called "gun"-problem. It models an electromagnetic cavity, and it is directly available in the <code>Gallery</code>. (See <code>?nep_gallery</code> for references.) This is how you can solve it with the block Newton method:</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;nlevp_native_gun&quot;);
+julia&gt; S=150^2*[1.0 0; 0 1]; V=[[1 0; 0 1]; zeros(n-2,2)];
+julia&gt; (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
+Iteration 1: Error: 6.081316e+03
+Iteration 2: Error: 1.701970e-02 Armijo scaling=0.031250
+Iteration 3: Error: 1.814887e-02 Armijo scaling=0.250000
+...
+Iteration 13: Error: 6.257442e-09
+Iteration 14: Error: 2.525942e-15
+</code></pre>
+
+<p>The solutions are eigenvalues of <code>Z</code>.</p>
+<p>julia&gt;</p>
 <p><a id='What-now?-1'></a></p>
 <h1 id="what-now">What now?</h1>
 <p>Now you are ready to have a look at the examples in <a href="./methods/">NEP methods</a> and  <a href="./gallery/">NEP Gallery</a>.</p>
@@ -278,5 +297,5 @@ julia&gt; plot(real(λ),imag(λ),&quot;*&quot;)
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-09-05 18:23:05
+Build Date UTC : 2018-09-13 06:56:44
 -->
