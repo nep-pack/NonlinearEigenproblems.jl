@@ -18,7 +18,11 @@ struct compute_types_metadata
     skip_types_Mlincomb::Vector{DataType}
     skip_types_MM::Vector{DataType}
     check_type_stability::Bool
+    name::AbstractString
 end
+
+compute_types_metadata(nep, nep_numbertype, nep_real, skip_types_Mder, skip_types_Mlincomb, skip_types_MM, check_type_stability) =
+    compute_types_metadata(nep, nep_numbertype, nep_real, skip_types_Mder, skip_types_Mlincomb, skip_types_MM, check_type_stability, "")
 
 exp(A::Matrix{Float16})=Matrix{Float16}(exp(Matrix{Float32}(A))) # Hack which makes exp(::Matrix{Float16}) available
 exp(A::Matrix{ComplexF16})=Matrix{ComplexF16}(exp(Matrix{ComplexF32}(A))) # Hack which makes exp(::Matrix{Float32}) available
@@ -31,9 +35,9 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
 
 
     nep=metadata.nep;
-    stype="$(typeof(nep))"
     eltype_nep=metadata.nep_numbertype;
-    @bench @testset "$stype ($eltype_nep)" begin
+    name = string(typeof(nep).name) * (isempty(metadata.name) ? "" : " " * metadata.name)
+    @bench @testset "$name ($eltype_nep)" begin
         nepreal=metadata.nep_real;
         n=size(nep,1);
         skip_types_Mder=metadata.skip_types_Mder;
@@ -44,7 +48,7 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
         check_type_stability=metadata.check_type_stability;
 
 
-        println("Testing compute functions for NEP:$stype ($eltype_nep)");
+        println("Testing compute functions for NEP:$name ($eltype_nep)");
         displaylevel=0
 
         ## Test compute_Mder
@@ -266,11 +270,8 @@ end
         A0_sparse=Matrix(I*one(Float64),3,3)*3
         A1_sparse=ones(Float64,3,3);
         dep0_sparse=DEP([A0_sparse,A1_sparse])
-        push!(testlist,compute_types_metadata(dep0_sparse,Float64,true,[],[],bigfloat_types,true));
+        push!(testlist,compute_types_metadata(dep0_sparse,Float64,true,[],[],bigfloat_types,true, "sparse"));
 
-
-        bigfloat_types=Vector{DataType}([BigFloat,Complex{BigFloat}])
-        push!(testlist,compute_types_metadata(dep0,Float64,true,[],[],bigfloat_types,true));
 
         # A bigfloat DEP
         dep_bigfloat=DEP([A0,A1]);
@@ -290,14 +291,14 @@ end
         oneop= S-> S;
         sqrop= S-> Matrix(S)^2;
         spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop])
-        push!(testlist,compute_types_metadata(spmf_nep,Float64,true,[],[],[],false));
+        push!(testlist,compute_types_metadata(spmf_nep,Float64,true,[],[],[],false, "#1"));
 
         # SPMF 2
         B0=randn(3,3); B1=randn(3,3);
         oneop= S-> 1im*S;
         sqrop= S-> Matrix(S)^2;
         spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop])
-        push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false));
+        push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false, "#2"));
 
         # SPMF 3
         expmop= S -> exp(Matrix(S))
@@ -311,19 +312,19 @@ end
 
         push!(testlist,compute_types_metadata(spmf_nep3,BigFloat,true,
                                               bigfloats_and_float16,bigfloats_and_float16,
-                                              bigfloats_and_float16,false));
+                                              bigfloats_and_float16,false, "#3"));
 
         # SPMF nep 4
         oneop= S-> 1im*S;
         sqrop= S-> Matrix(S)^2;
         spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop])
 
-        push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false));
+        push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false, "#4"));
 
 
         # A complex sumnep
         sumnep=SumNEP(pep_complex,spmf_nep2);
-        push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,
+        push!(testlist,compute_types_metadata(sumnep,ComplexF64,false,
                                               [],[],[],false));
 
     end
