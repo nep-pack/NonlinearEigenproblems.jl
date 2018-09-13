@@ -3,6 +3,7 @@ module TestUtils
 using BenchmarkTools
 using Statistics
 using Printf
+using HTTP
 
 export @bench
 export report_benchmarks
@@ -69,17 +70,18 @@ function report_benchmarks(test_results)
 
     new_benchmark = BenchmarkGroup()
     foreach(t -> new_benchmark[t.key] = t.trial, values(aggregated_trials))
-    if true
-        BenchmarkTools.save("benchmark.json", new_benchmark)
-    else
-        old_benchmark = BenchmarkTools.load("benchmark.json")[1]
-        foreach(j -> println("$(j[1]): $(j[2])"), judge(new_benchmark, old_benchmark))
-        println("-------------")
-        for key in intersect(keys(old_benchmark), keys(new_benchmark))
-            j = judge(new_benchmark[key], old_benchmark[key])
-            if j.time != :invariant || j.memory != :invariant
-                println("$key -- $(prettytime(old_benchmark[key].time)) -> $(prettytime(new_benchmark[key].time)) -- $j")
-            end
+    BenchmarkTools.save("benchmark.json", new_benchmark)
+
+    json_request = HTTP.request("GET", "https://raw.githubusercontent.com/maxbennedich/julia-ci/master/benchmark.json")
+    json = String(json_request.body)
+    old_benchmark = BenchmarkTools.load(IOBuffer(json))[1]
+
+    foreach(j -> println("$(j[1]): $(j[2])"), judge(new_benchmark, old_benchmark))
+    println("-------------")
+    for key in intersect(keys(old_benchmark), keys(new_benchmark))
+        j = judge(new_benchmark[key], old_benchmark[key]; time_tolerance = 0.1, memory_tolerance = 0.05)
+        if j.time != :invariant || j.memory != :invariant
+            println("$key -- $(prettytime(old_benchmark[key].time)) -> $(prettytime(new_benchmark[key].time)) -- $j")
         end
     end
 
