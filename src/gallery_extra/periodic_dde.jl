@@ -2,19 +2,13 @@ using SparseArrays
 using Random
 
 import Base.size;
+import ..NEPCore.compute_Mder
+import ..NEPCore.compute_Mlincomb
+import ..NEPCore.compute_Mlincomb!
+import ..NEPCore.compute_MM
+import ..NEPCore.compute_Mlincomb_from_MM
+import ..NEPCore.compute_Mlincomb_from_Mder
 
-    import ..NEPCore.compute_Mder
-    import ..NEPCore.compute_Mlincomb
-    import ..NEPCore.compute_Mlincomb!
-    import ..NEPCore.compute_MM
-    import ..NEPCore.compute_Mlincomb_from_MM
-    import ..NEPCore.compute_Mlincomb_from_Mder
-
-
-    export compute_Mder
-    export compute_Mlincomb
-    export compute_Mlincomb!
-    export compute_MM
 
 
 
@@ -84,23 +78,22 @@ function compute_Mder(nep::NEP_Mder,λ::Number,der::Integer=0)
     return MM
 end
 
-function size(nep::NEP_Mder,dim=-1)
-    n=nep.n;
-    if (dim==-1)
-        return (n,n)
-    else
-        return n
-    end
+function size(nep::NEP_Mder)
+    n = nep.n
+    return (n,n)
+end
+function size(nep::NEP_Mder,dim)
+    n = nep.n
+    return n
 end
 
-
-function size(nep::PeriodicDDE_NEP,dim=-1)
-    n=nep.n;
-    if (dim==-1)
-        return (n,n)
-    else
-        return n
-    end
+function size(nep::PeriodicDDE_NEP)
+    n = nep.n
+    return (n,n)
+end
+function size(nep::PeriodicDDE_NEP,dim)
+    n = nep.n
+    return n
 end
 
 
@@ -218,7 +211,6 @@ function compute_MM(nep::PeriodicDDE_NEP_ODE, S ,V)
         F=(t,Y) -> (nep.A(t)*Y+nep.B(t)*Y*exp(-Matrix(nep.tau*S))-Y*S)
     end
 
-
     Y0=V; # Use RK4 for ODE's
     YY=ode_rk4(F, 0,nep.tau, nep.N, Y0);
     #YY=myode(F, 0,nep.tau, nep.N, Y0);
@@ -324,23 +316,23 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         # 5.73989-0.732386im
 
         Random.seed!(0);
-        A0=sprandn(n,n,0.3)-speye(n,n)
-        A1=sprandn(n,n,0.3)-speye(n,n)
-        B0=sprandn(n,n,0.3)-speye(n,n);
-        B1=sprandn(n,n,0.3)-speye(n,n);
+        A0=sprandn(n,n,0.3)-one(TT)*I
+        A1=sprandn(n,n,0.3)-one(TT)*I
+        B0=sprandn(n,n,0.3)-one(TT)*I
+        B1=sprandn(n,n,0.3)-one(TT)*I
         tau=2;
         A=t-> A0+cos(pi*t)*A1;
         B=t-> B0+exp(0.01*sin(pi*t))*B1;
-        nep=PeriodicDDE_NEP(A,B,tau)
+        nep=PeriodicDDE_NEP_ODE(A,B,tau)
         return nep;
     elseif (name == "discont")
         δ=1; b=1/2; a=0.1; tau=2;
-        A=t-> [0 1; -( δ+ a*cos(pi*t) ) -1]+eye(2)*((t-0.3)^2)*(t>0.3);
+        A=t-> [0 1; -( δ+ a*cos(pi*t) ) -1]+Matrix(1.0*I,2,2)*((t-0.3)^2)*(t>0.3);
         B=t-> [0 0; b 0];
-        nep=PeriodicDDE_NEP(A,B,tau)
+        nep=PeriodicDDE_NEP_ODE(A,B,tau)
     elseif (name == "milling0")
         δ=1; b=1/2; a=0.1; tau=2;
-        A0=t-> [0 1; -( δ+ a*cos(pi*t) ) -1]+eye(2)*((t-0.3)^2)*(t>0.3);
+        A0=t-> [0 1; -( δ+ a*cos(pi*t) ) -1]+Matrix(1.0*I,2,2)*((t-0.3)^2)*(t>0.3);
         B0=t-> [0 0; b 0];
         e=ones(n-1);
         DD=spdiagm(-1 => e, 0 => -2*e, 1 => e)
@@ -374,7 +366,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
 
         # We need to use implicit method (default for DAEs).
         nep=PeriodicDDE_NEP_DAE(t-> A0-E21*h(t)*ap/m,
-                                t->+E21*h(t)*ap/m,eye(TT,2),1)
+                                t->+E21*h(t)*ap/m,Matrix(one(TT)*I,2,2),1)
 
         nep.N=50;
         return nep;
@@ -415,7 +407,7 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
 
         A=t-> -AScaled(t,nn/60,ap,m)/100;
         B=t-> -BScaled(t,nn/60,ap,m)/100;
-        nep=PeriodicDDE_NEP(A,B,1)
+        nep=PeriodicDDE_NEP_ODE(A,B,1)
         return nep;
     elseif (name == "newmilling")
         error("Not yet implemented");

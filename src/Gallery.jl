@@ -348,7 +348,7 @@ module Gallery
           nep=PEP([A1*A2,-A1-A2,K])
           return nep
       elseif (name == "periodicdde")
-          return periodic_dde_gallery(PeriodicDDE_NEP;kwargs...);
+          return periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...);
       elseif (name == "neuron0")
           # This problem stems from
           # L. P. Shayer and S. A. Campbell.  Stability, bifurcation and multistability in a system of two coupled neurons with multiple time delays. SIAM J. Applied Mathematics , 61(2):673–700, 2000
