@@ -10,6 +10,7 @@ module Gallery
     using LinearAlgebra
     using SparseArrays
     using PolynomialRoots
+    using SpecialFunctions
 
     export nep_gallery
 
@@ -26,53 +27,53 @@ module Gallery
 \\
 
 \\
-  **Supported 'name' and 'params':**\\
-     'dep0'\\
-      Create a random delay eiganvalue problem with one delay tau = 1\\
+  **Supported "name" and 'params':**\\
+\\
+     `dep0`\\
+Create a random delay eiganvalue problem with one delay tau = 1\\
       * one optional parameter determining the size (default = 5)\\
 \\
-     'dep0_sparse'\\
-      Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1\\
+     `dep0_sparse`\\
+Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1\\
       * two optional parameter determining the size (default = 5) and the fill (default = 0.25)\\
 \\
-      'dep0_tridiag'\\
-      Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1\\
+      `dep0_tridiag`\\
+Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1\\
        * one optional parameter determining the size (default = 100)\\
 \\
-      'dep_symm_double'\\
-      Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1\\
+      `dep_symm_double`\\
+Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1\\
        * one optional parameter determining the size (default = 100)\\
        Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017\\
 \\
-     'dep_double'\\
-      Create problem with a double non-semisimple eigenvalue in λ=3πi\\
+     `dep_double`\\
+Create problem with a double non-semisimple eigenvalue in λ=3πi\\
       Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012\\
      'dep1'\\
       A delay eigenvalue problem with one eigenvalue equal to one.\\
 \\
-     'pep0'\\
-     Create a random polynomial eigenvalue problem\\
+     `pep0`\\
+Create a random polynomial eigenvalue problem\\
      * one optional parameter determining the size (default = 200)\\
  \\
-      'pep0_sym'\\
-      Create a random symmetric polynomial eigenvalue problem\\
+      `pep0_sym`\\
+Create a random symmetric polynomial eigenvalue problem\\
       * one optional parameter determining the size (default = 200)\\
 \\
-     'pep0_sparse_003'\\
-     Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
+     `pep0_sparse_003`\\
+Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
      * one optional parameter determining the size (default = 200)\\
 \\
-     'real_quadratic'\\
-     Create a quadratic problem with real eigenvalues\\
+     `real_quadratic`\\
+Create a quadratic problem with real eigenvalues\\
           Four smallest eigenvalues of the problem:\\
           -2051.741417993845\\
           -182.101627437811\\
           -39.344930222838\\
           -4.039879577113\\
 \\
-     'dep_distributed'\\
-     Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,\\
-     The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays,\\
+     `dep_distributed`\\
+Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,  The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays,\\
      Delay Systems - Methods, Applications and New Trends, 2012\\
          Some correct eigenvalues:\\
          -0.400236388049641 + 0.970633098237807i\\
@@ -86,26 +87,31 @@ module Gallery
          -1.677320660400946 + 7.496870451838560i\\
          -1.677320660400946 - 7.496870451838560i\\
 \\
-     'qdep0' \\
-     Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
+     `qdep0` \\
+Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
 \\
 
-     'qdep1' \\
-      Quadratic delay eigenvalue problem in "A linear eigenvalue algorithm for the  nonlinear eigenvalue problem",      Elias Jarlebring, Wim Michiels, Karl Meerbergen \\
+     `qdep1` \\
+Quadratic delay eigenvalue problem in "A linear eigenvalue algorithm for the  nonlinear eigenvalue problem",      Elias Jarlebring, Wim Michiels, Karl Meerbergen \\
 \\
-     'qep_fixed_eig'\\
-     Create a quadratic eigenvalue problem with chosen eigenvalues
+     `qep_fixed_eig`\\
+Create a quadratic eigenvalue problem with chosen eigenvalues \\
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\
-
-     'beam'\\
-     The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
-     * one optional parameter which is the size of the matrix       \\
-
-     'sine' The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.
-
 \\
-
+     `beam`\\
+The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
+     * one optional parameter which is the size of the matrix       \\
+\\
+     `sine` \\
+The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.\\
+\\
+     `nlevp_native_gun` \\
+The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format. B.-S. Liao, Z. Bai, L.-Q. Lee, and K. Ko. Nonlinear Rayleigh-Ritz iterative method for solving large scale nonlinear eigenvalue pro blems.  Taiwan. Journal of Mathematics, 14(3):869–883, 2010\\
+\\
+     `nlevp_native_fiber` \\
+The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format. One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark. Kaufman, L. 2006. Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117.  and Huang, X., Bai, Z., and Su, Y. 2010. Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234.\\
+\\
    **See also the following galleries:**\\
       * GalleryNLEVP\\
       * GalleryWaveguide\\
@@ -388,6 +394,90 @@ module Gallery
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;
+      elseif (name == "nlevp_native_fiber")
+          # Since the bessel functions are not available as matrix functions
+          # we rely on interpolation (of "denominator" and "numerator" separately)
+
+          # Construct the complicated third function
+          L=2400;
+          besselkp= (m,z)->  - besselk(m-1,z) - m*besselk(m,z)/z;  # Derivative
+          numer= x-> ((L+0.5)/L^2)*x/(besselk(1,ComplexF64(x))^2)
+          denom= x-> 1/(besselkp(1,ComplexF64(x))*besselk(1,ComplexF64(x)));
+          f_sqrt= x ->  numer(x)/denom(x)
+          s3=λ -> f_sqrt(sqrt(λ)*L)  # This is the complicated function in "fiber"
+
+          m=10;
+          TT=Complex{BigFloat}; # Do interpolation very accurately
+          ### Different interpolation approaches ####
+          ## Disc
+          #phi=2im*pi*range(0.0;length=m+1,stop=1);
+          #interp_points=0.1*exp.(phi[1:end-1]); #
+          ## Uniform on an interval
+          interp_points=0.01.+range(0;length=m,stop=3);; # This choice is done with eigenvalue information in mind (x approx 2.027892679678583)
+          interp_points=Vector{TT}(interp_points) # High precision
+
+          # Do the interpolation on numerator and denominator
+          (Newton_Matrix,fnum)=construct_newton_matrix(TT,numer,interp_points)
+          (Newton_Matrix,fdenom)=construct_newton_matrix(TT,denom,interp_points)
+          num_coeffs=Newton_Matrix\fnum;
+          denom_coeffs=Newton_Matrix\fdenom;
+
+          # Now go back to ComplexF64
+          interp_points_c64=Vector{ComplexF64}(interp_points);
+          num_coeffs_c64=Vector{ComplexF64}(num_coeffs);
+          denom_coeffs_c64=Vector{ComplexF64}(denom_coeffs);
+
+          # Interpolated numerator and denominators
+          numer_new_c64=x->newton_eval(num_coeffs_c64,x,interp_points_c64)
+          denom_new_c64=x->newton_eval(denom_coeffs_c64,x,interp_points_c64)
+
+          f_new_c64=x->  numer_new_c64(x)/denom_new_c64(x)
+          s3_new= λ -> f_new_c64(sqrt(λ)*L); # This is the new function. Works for matrices and functions
+          n=2400;
+
+          A1=sparse(1.0I,n,n)
+          A2=sparse([n],[n],[1.0])  # This is a rank-one matrix!
+
+          # Create the A0-matrix takes a bit more work
+          eta_cl = 1.4969;  # "physical params"
+          alpha=25; ell=1.1;
+          gam=0.003; delta=0.01;
+
+          k_cl = 2*pi*eta_cl/ell;
+          n_c = 400; n = 6*n_c;
+          r = (1:n+1)*delta;
+          mm = 1;
+
+          inc = (1:n_c);
+          i_n = (n_c+1:n-1);
+          e = ones(n_c);
+
+          # Helper functions. Note C(r) is r-independent, according to NLEVP.
+          C = sqrt.( (1 .- 2*gam*(inc/n_c).^alpha) / (1 - 2*gam) ) .- 1;
+          eta0 = r-> (eta_cl .+ 1.4201*C)
+          k = r -> 2*pi*eta0(r)/ell;
+
+          # setup the vectors in the diagonal
+          y1 = -2*e - mm^2*(e ./ inc.^2) + delta^2*(k(r[1:n_c]).^2 .- k_cl^2);
+          e = ones(size(i_n));
+          y2 = -2*e - mm^2*(e ./ i_n.^2);
+          y = [y1; y2; -1 + 1/(2*n) - mm^2/n^2];
+          i = 1:n-1;
+          println(size(y))
+          z = (i.+0.5) ./ sqrt.( i.*(i.+1) );
+
+          A0=spdiagm(0  => y[1:n], 1=> z[1:n-1], -1 => z[1:n-1])
+
+          # The functions
+          f1=S-> one(S);
+          f2=S-> -S;
+          f3=s3_new; # Interpolated function
+          # f3=s3 # Use this if you want the exact formula
+
+          nep=SPMF_NEP([A0,A1,A2],[f1,f2,f3])
+
+          return nep;
+
       elseif (name == "beam")
           n::Int=100
           if (length(params)>0)
@@ -427,5 +517,31 @@ module Gallery
       end
 
   end
+
+   # Helper functions for Newton interpolation (mainly for nlevp_native_fiber)
+   function construct_newton_matrix(T,ff,interp_points)
+       m=size(interp_points,1);
+       Newton_Matrix=zeros(T,m,m);
+       Newton_Matrix[:,1] .= 1
+       for col=2:m
+           for row=col:m
+               Newton_Matrix[row,col]=Newton_Matrix[row,col-1]*(interp_points[row]-interp_points[col-1])
+           end
+       end
+       f=zeros(T,m);
+       for k=1:m
+           f[k]=ff(interp_points[k]);
+       end
+       return Newton_Matrix,f
+   end
+   function newton_eval(coeffs,S,interp_points)  # This works for λ::Number and λ::Matrix
+       F=coeffs[1]*one(S);
+       prod=one(S);
+       for k=2:size(coeffs,1)
+           prod = prod*(S-interp_points[k-1]*one(S))
+           F += prod*coeffs[k];
+       end
+       return F
+   end
 
 end
