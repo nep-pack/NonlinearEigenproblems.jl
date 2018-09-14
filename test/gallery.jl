@@ -8,6 +8,12 @@ using LinearAlgebra
 using SparseArrays
 using Test
 
+@testset "Gallery extra loading" begin
+    # Test if it is possible to load some extra gallery
+    @test (using GalleryWaveguide) == nothing
+end
+
+
 @bench @testset "Gallery" begin
     println("Testing sine");
     nep=nep_gallery("sine")
