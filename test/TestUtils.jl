@@ -122,8 +122,10 @@ function report_benchmarks(test_results)
         end
 
         diff_prefix =
-            time_diff >=  time_tolerance_percent || memory_diff >=  memory_tolerance_percent ? '-' :
-            time_diff <= -time_tolerance_percent || memory_diff <= -memory_tolerance_percent ? '+' : ' ';
+            time_diff >=  time_tolerance_percent ? '-' :
+            time_diff <= -time_tolerance_percent ? '+' :
+            memory_diff >=  memory_tolerance_percent ? '-' :
+            memory_diff <= -memory_tolerance_percent ? '+' : ' ';
 
         @printf(io, "%c%s%s    %s (%s)    %s (%s)\n",
             diff_prefix,
@@ -156,7 +158,7 @@ function report_benchmarks(test_results)
 
     report = String(io.data)
 
-    # If run on Travis, store files on disk, which the CI will upload to Github.
+    # If run on Travis, store files on disk, which Travis will then upload to Github.
     # If not on Travis (for instance testing locally), print report to stdout.
     if travis
         write_file("run_context.txt", new_run_context)
