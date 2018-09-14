@@ -727,7 +727,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
     #            error("Projection of this NEP is not available");
     #        end
     #    end
-    function create_proj_NEP(orgnep::AbstractSPMF)
+    function create_proj_NEP(orgnep::AbstractSPMF,sz::Int)
          return Proj_SPMF_NEP(orgnep);
     end
 
