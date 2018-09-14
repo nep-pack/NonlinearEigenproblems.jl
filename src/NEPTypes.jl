@@ -241,7 +241,18 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 end
             end
             ## Sum it up
-            Z=Z+nep.A[i]*(V*Fi);
+
+
+            VFi=V*Fi;
+            if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi)))
+                # SubArray x Matrix of different types do not work?
+                # https://discourse.julialang.org/t/subarray-x-matrix-multipliciation-of-different-eltype-fails/14950
+                # Workaround by making a matrix copy
+                Z=Z+copy(nep.A[i])*VFi;
+            else
+                Z=Z+nep.A[i]*VFi;
+            end
+
         end
         return Z
     end
@@ -754,6 +765,7 @@ where ``M(λ)`` is represented by `orgnep`. Use
         nep_proj::SPMF_NEP; # An instance of the projected NEP
         orgnep_Av::Vector
         orgnep_fv::Vector
+        projnep_B_mem::Vector # A vector of matrices
         function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
             this = new(nep)
 
@@ -778,6 +790,12 @@ where ``M(λ)`` is represented by `orgnep`. Use
 
             this.V=zeros(T,size(this.orgnep,1),maxsize)
             this.W=zeros(T,size(this.orgnep,1),maxsize)
+            this.projnep_B_mem=Vector{Matrix{T}}(undef,size(this.orgnep_fv,1));
+            for k=1:size(this.orgnep_fv,1)
+                this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
+            end
+
+
 
             return this
         end
@@ -812,9 +830,19 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        B = Array{Array{eltype(W),2}}(undef, m);
+        T=eltype(nep.V);
+
+        T_sub = SubArray{T,2,Array{T,2},Tuple{UnitRange{Int64},UnitRange{Int64}},false}
+        #T_sub = SubArray{T,2}
+        B = Vector{T_sub}(undef,m);
+        k=size(V,2);
+        println("typeof=",typeof(B))
         for i=1:m
-            B[i]=copy(W')*nep.orgnep_Av[i]*V;
+            #println("i=",i, " k=",k," sz=", size(copy(W')*nep.orgnep_Av[i]*V));
+            nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
+            Btmp=view(nep.projnep_B_mem[i],1:k,1:k);
+            B[i]=Btmp
+
         end
         println("eltype(W):",eltype(W));
         println("eltype(nep.W):",eltype(nep.W));
