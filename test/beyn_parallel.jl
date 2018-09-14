@@ -4,6 +4,7 @@
 # on your computer. On eight.math.kth.se you typically want to do
 # julia -p 20
 
+using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using Test

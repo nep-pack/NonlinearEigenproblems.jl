@@ -22,28 +22,17 @@ export WEP_FD
 
 # We overload these
 import NonlinearEigenproblems.Gallery.nep_gallery
-export nep_gallery
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb
-export compute_Mlincomb
 import NonlinearEigenproblems.LinSolvers.lin_solve
-export lin_solve
 import NonlinearEigenproblems.LinSolvers.default_linsolvercreator
-export default_linsolvercreator
 import NonlinearEigenproblems.LinSolvers.DefaultLinSolver
-export DefaultLinSolver
 import NonlinearEigenproblems.LinSolvers.BackslashLinSolver
-export BackslashLinSolver
 
 import Base.size
-export size
 import SparseArrays.issparse
-export issparse
 import Base.*
-export *
 import Base.eltype
-export eltype
 import LinearAlgebra.ldiv!
-export ldiv!
 
 
 
@@ -63,7 +52,8 @@ include("waveguide/waveguide_preconditioner.jl")
   **Create the NEP associated with the Waveguide Eigenvalue Problem (WEP)**
   found in both\\
   E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,\\
-  ''Sylvester-based preconditioning for the waveguide eigenvalue problem'', LAA\\
+  ''Sylvester-based preconditioning for the waveguide eigenvalue problem'',
+  Linear Algebra Appl., 2018\\
   and\\
   E. Jarlebring, and G. Mele, and O. Runborg\\
   ''The waveguide eigenvalue problem and the tensor infinite Arnoldi method''\\

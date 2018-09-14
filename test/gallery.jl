@@ -1,6 +1,7 @@
 # Run tests on nep_gallery (not tested elsewhere)
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using LinearAlgebra

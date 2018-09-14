@@ -1,6 +1,7 @@
 # Run tests for the waveguide eigenvalue problem
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.Gallery
 using NonlinearEigenproblems.LinSolvers

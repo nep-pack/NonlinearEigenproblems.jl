@@ -13,15 +13,17 @@ module NEPTypes
     export SPMF_NEP
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
-
     export Proj_NEP;
     export Proj_SPMF_NEP;
+
     export create_proj_NEP;
+    export get_Av
+    export get_fv
 
     export interpolate
-    export interpolate_cheb
+    export set_projectmatrices!
 
-    export set_projectmatrices!;
+
 
     # We overload these
     import ..NEPCore.compute_Mder
@@ -30,24 +32,8 @@ module NEPTypes
     import ..NEPCore.compute_MM
     import ..NEPCore.compute_resnorm
     import ..NEPCore.compute_rf
-
     import Base.size
     import SparseArrays.issparse
-
-
-    export compute_Mder
-    export compute_Mlincomb
-    export compute_Mlincomb!
-    export compute_MM
-    export compute_resnorm
-    export compute_rf
-    export size
-    export companion
-    export issparse
-
-    export get_Av
-    export get_fv
-
 
 
 
