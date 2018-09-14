@@ -727,8 +727,11 @@ where ``M(λ)`` is represented by `orgnep`. Use
     #            error("Projection of this NEP is not available");
     #        end
     #    end
-    function create_proj_NEP(orgnep::AbstractSPMF,sz::Int)
-         return Proj_SPMF_NEP(orgnep);
+    function create_proj_NEP(orgnep::AbstractSPMF,
+                             maxsize::Int=min(size(orgnep,1),
+                                              max(round(Int,size(orgnep,1)/10),10)),
+                             T::Type{<:Number}=ComplexF64)
+        return Proj_SPMF_NEP(orgnep,maxsize,T);
     end
 
 
@@ -746,13 +749,14 @@ where ``M(λ)`` is represented by `orgnep`. Use
 
     mutable struct Proj_SPMF_NEP <: Proj_NEP
         orgnep::AbstractSPMF
-        V
-        W
+        V::Matrix
+        W::Matrix
         nep_proj::SPMF_NEP; # An instance of the projected NEP
-        orgnep_Av::Array
-        orgnep_fv::Array
-        function Proj_SPMF_NEP(nep::AbstractSPMF)
+        orgnep_Av::Vector
+        orgnep_fv::Vector
+        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
             this = new(nep)
+
 
             this.orgnep_Av = get_Av(nep)
             if     (size(this.orgnep_Av,1) != 1) && (size(this.orgnep_Av,2) == 1) # Stored as column vector - do nothing
@@ -771,6 +775,10 @@ where ``M(λ)`` is represented by `orgnep`. Use
             else
                 error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
             end
+
+            this.V=zeros(T,size(this.orgnep,1),maxsize)
+            this.W=zeros(T,size(this.orgnep,1),maxsize)
+
             return this
         end
     end
@@ -808,8 +816,11 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         for i=1:m
             B[i]=copy(W')*nep.orgnep_Av[i]*V;
         end
-        nep.W=W;
-        nep.V=V;
+        println("eltype(W):",eltype(W));
+        println("eltype(nep.W):",eltype(nep.W));
+
+        nep.W[:,1:size(W,2)]=W;
+        nep.V[:,1:size(V,2)]=V;
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
@@ -825,11 +836,11 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
     function size(nep::Proj_NEP,dim)
-        n = size(nep.W,2);
+        n = size(nep.nep_proj,2);
         return n
     end
     function size(nep::Proj_NEP)
-        n = size(nep.W,2);
+        n = size(nep.nep_proj,2);
         return (n,n)
     end
 
