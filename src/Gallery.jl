@@ -27,53 +27,53 @@ module Gallery
 \\
 
 \\
-  **Supported 'name' and 'params':**\\
-     'dep0'\\
-      Create a random delay eiganvalue problem with one delay tau = 1\\
+  **Supported "name" and 'params':**\\
+\\
+     `dep0`\\
+Create a random delay eiganvalue problem with one delay tau = 1\\
       * one optional parameter determining the size (default = 5)\\
 \\
-     'dep0_sparse'\\
-      Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1\\
+     `dep0_sparse`\\
+Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1\\
       * two optional parameter determining the size (default = 5) and the fill (default = 0.25)\\
 \\
-      'dep0_tridiag'\\
-      Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1\\
+      `dep0_tridiag`\\
+Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1\\
        * one optional parameter determining the size (default = 100)\\
 \\
-      'dep_symm_double'\\
-      Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1\\
+      `dep_symm_double`\\
+Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1\\
        * one optional parameter determining the size (default = 100)\\
        Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017\\
 \\
-     'dep_double'\\
-      Create problem with a double non-semisimple eigenvalue in λ=3πi\\
+     `dep_double`\\
+Create problem with a double non-semisimple eigenvalue in λ=3πi\\
       Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012\\
      'dep1'\\
       A delay eigenvalue problem with one eigenvalue equal to one.\\
 \\
-     'pep0'\\
-     Create a random polynomial eigenvalue problem\\
+     `pep0`\\
+Create a random polynomial eigenvalue problem\\
      * one optional parameter determining the size (default = 200)\\
  \\
-      'pep0_sym'\\
-      Create a random symmetric polynomial eigenvalue problem\\
+      `pep0_sym`\\
+Create a random symmetric polynomial eigenvalue problem\\
       * one optional parameter determining the size (default = 200)\\
 \\
-     'pep0_sparse_003'\\
-     Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
+     `pep0_sparse_003`\\
+Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
      * one optional parameter determining the size (default = 200)\\
 \\
-     'real_quadratic'\\
-     Create a quadratic problem with real eigenvalues\\
+     `real_quadratic`\\
+Create a quadratic problem with real eigenvalues\\
           Four smallest eigenvalues of the problem:\\
           -2051.741417993845\\
           -182.101627437811\\
           -39.344930222838\\
           -4.039879577113\\
 \\
-     'dep_distributed'\\
-     Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,\\
-     The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays,\\
+     `dep_distributed`\\
+Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,  The infinite  {Arnoldi} method and an application to time-delay systems with distributed delays,\\
      Delay Systems - Methods, Applications and New Trends, 2012\\
          Some correct eigenvalues:\\
          -0.400236388049641 + 0.970633098237807i\\
@@ -87,30 +87,31 @@ module Gallery
          -1.677320660400946 + 7.496870451838560i\\
          -1.677320660400946 - 7.496870451838560i\\
 \\
-     'qdep0' \\
-     Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
+     `qdep0` \\
+Quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring \\
 \\
 
-     'qdep1' \\
-      Quadratic delay eigenvalue problem in "A linear eigenvalue algorithm for the  nonlinear eigenvalue problem",      Elias Jarlebring, Wim Michiels, Karl Meerbergen \\
+     `qdep1` \\
+Quadratic delay eigenvalue problem in "A linear eigenvalue algorithm for the  nonlinear eigenvalue problem",      Elias Jarlebring, Wim Michiels, Karl Meerbergen \\
 \\
-     'qep_fixed_eig'\\
-     Create a quadratic eigenvalue problem with chosen eigenvalues
+     `qep_fixed_eig`\\
+Create a quadratic eigenvalue problem with chosen eigenvalues \\
      * two optional parameters determining the size (default = 5)
        and a vector containing the eigenvalues (default = randn)       \\
-
-     'beam'\\
-     The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
-     * one optional parameter which is the size of the matrix       \\
-
-     'sine' The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.
-
-     'nlevp_native_gun' The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format
-
-     'nlevp_native_fiber' The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format. One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark.
-
 \\
-
+     `beam`\\
+The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.
+     * one optional parameter which is the size of the matrix       \\
+\\
+     `sine` \\
+The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.\\
+\\
+     `nlevp_native_gun` \\
+The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format. B.-S. Liao, Z. Bai, L.-Q. Lee, and K. Ko. Nonlinear Rayleigh-Ritz iterative method for solving large scale nonlinear eigenvalue pro blems.  Taiwan. Journal of Mathematics, 14(3):869–883, 2010\\
+\\
+     `nlevp_native_fiber` \\
+The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format. One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark. Kaufman, L. 2006. Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117.  and Huang, X., Bai, Z., and Su, Y. 2010. Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234.\\
+\\
    **See also the following galleries:**\\
       * GalleryNLEVP\\
       * GalleryWaveguide\\
