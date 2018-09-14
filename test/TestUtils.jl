@@ -8,15 +8,20 @@ using HTTP
 using Dates
 
 export @bench
+export @onlybench
 export report_benchmarks
 
-const time_tolerance_percent = 10
+const benchmark_duration_seconds = 1
+const time_tolerance_percent = 20
 const memory_tolerance_percent = 1
 const ci_github_repo = "maxbennedich/julia-ci"
 const source_github_repo = "nep-pack/NonlinearEigenproblems.jl"
 
 # the TEST_SUITE environment variable can be set by the CI tool
-run_benchmark = get(ENV, "TEST_SUITE", "") == "benchmark"
+const run_benchmark = get(ENV, "TEST_SUITE", "") == "benchmark"
+
+# true if we're running on Travis
+const travis = get(ENV, "TRAVIS", "") == "true"
 
 benchmark_results = Dict()
 
@@ -37,12 +42,20 @@ macro bench(ex)
     end
 end
 
+"""
+Like the `@bench` macro, but if the `TEST_SUITE` environment variable is not set to
+`benchmark`, the `@testset` won't be executed at all.
+"""
+macro onlybench(ex)
+    if run_benchmark
+        :(@bench($(esc(ex))))
+    end
+end
+
 function benchit(f)
-    # Benchmark for a single sample/eval. This will end up running the code twice; once
-    # for warmup / JIT compilation, and once for benchmarking.
     test = Vector(undef, 1)
     warmup(@benchmarkable $test[1] = $f())
-    benchmark_results[test[1]] = run((@benchmarkable $f()), seconds=1)
+    benchmark_results[test[1]] = run((@benchmarkable $f()), seconds = benchmark_duration_seconds)
 end
 
 mutable struct AggregatedTrial
@@ -51,7 +64,7 @@ mutable struct AggregatedTrial
     trial
 end
 
-"Print benchmark results collected by `@bench`"
+"Report collected benchmark results"
 function report_benchmarks(test_results)
     run_benchmark || return
 
@@ -79,70 +92,78 @@ function report_benchmarks(test_results)
     new_benchmark = BenchmarkGroup()
     foreach(t -> new_benchmark[t.key] = t.trial, values(aggregated_trials))
 
-    write_file("run_context.txt", new_run_context)
-    BenchmarkTools.save("benchmark.json", new_benchmark)
-
     old_run_context = read_github_file("run_context.txt")
     json = read_github_file("benchmark.json")
     old_benchmark = BenchmarkTools.load(IOBuffer(json))[1]
 
-    open("benchmark.md", "w") do io
-        commit_msg = get(ENV, "TRAVIS_COMMIT_MESSAGE", "Unknown commit")
-        commit_id = get(ENV, "TRAVIS_COMMIT", "")
-        print(io, "### $commit_msg\n")
-        isempty(commit_id) || print(io, "commit [$commit_id](https://github.com/$source_github_repo/commit/$commit_id)\n")
+    io = IOBuffer()
+    commit_msg = get(ENV, "TRAVIS_COMMIT_MESSAGE", "Unknown commit")
+    commit_id = get(ENV, "TRAVIS_COMMIT", "")
+    print(io, "### $commit_msg\n")
+    isempty(commit_id) || print(io, "commit [$commit_id](https://github.com/$source_github_repo/commit/$commit_id)\n")
 
-        print(io, "```diff\n")
-        column_width = maximum([length(test.name) for test in values(aggregated_trials)])
-        column_title = "Test name"
-        divider = " " * "─"^(column_width + 39) * "\n"
-        @printf(io, "%s %s%s         Time               Memory\n%s", divider, column_title, " "^(column_width - length(column_title)), divider)
+    print(io, "```diff\n")
+    column_width = maximum([length(test.name) for test in values(aggregated_trials)])
+    column_title = "Test name"
+    divider = " " * "─"^(column_width + 39) * "\n"
+    @printf(io, "%s %s%s         Time               Memory\n%s", divider, column_title, " "^(column_width - length(column_title)), divider)
 
-        # hierarchically sort and print benchmark trials
-        function print_trials(test)
-            trial = aggregated_trials[test]
+    # hierarchically sort and print benchmark trials
+    function print_trials(test)
+        trial = aggregated_trials[test]
 
-            if haskey(old_benchmark, trial.key) && haskey(new_benchmark, trial.key)
-                j = judge(new_benchmark[trial.key], old_benchmark[trial.key])
-                time_diff = 100 * (j.ratio.time - 1)
-                memory_diff = 100 * (j.ratio.memory - 1)
-            else
-                time_diff = NaN
-                memory_diff = NaN
-            end
-
-            diff_prefix =
-                time_diff >=  time_tolerance_percent || memory_diff >=  memory_tolerance_percent ? '-' :
-                time_diff <= -time_tolerance_percent || memory_diff <= -memory_tolerance_percent ? '+' : ' ';
-
-            @printf(io, "%c%s%s    %s (%s)    %s (%s)\n",
-                diff_prefix,
-                trial.name,
-                " "^(column_width - length(trial.name)),
-                prettytime(trial.trial.time),
-                prettypercent(time_diff),
-                prettymemory(trial.trial.memory),
-                prettypercent(memory_diff))
-
-            sorted_children = sort(
-                [x for x in test.results if haskey(aggregated_trials, x)];
-                lt = (a,b) -> isless(aggregated_trials[b].trial.time, aggregated_trials[a].trial.time))
-            foreach(print_trials, sorted_children)
+        if haskey(old_benchmark, trial.key) && haskey(new_benchmark, trial.key)
+            j = judge(new_benchmark[trial.key], old_benchmark[trial.key])
+            time_diff = 100 * (j.ratio.time - 1)
+            memory_diff = 100 * (j.ratio.memory - 1)
+        else
+            time_diff = NaN
+            memory_diff = NaN
         end
 
-        print_trials(test_results)
-        print(io, divider)
-        print(io, "```\n")
+        diff_prefix =
+            time_diff >=  time_tolerance_percent || memory_diff >=  memory_tolerance_percent ? '-' :
+            time_diff <= -time_tolerance_percent || memory_diff <= -memory_tolerance_percent ? '+' : ' ';
 
-        print(io, "Previous context:\n")
-        print(io, "```\n")
-        print(io, old_run_context)
-        print(io, "```\n")
+        @printf(io, "%c%s%s    %s (%s)    %s (%s)\n",
+            diff_prefix,
+            trial.name,
+            " "^(column_width - length(trial.name)),
+            prettytime(trial.trial.time),
+            prettypercent(time_diff),
+            prettymemory(trial.trial.memory),
+            prettypercent(memory_diff))
 
-        print(io, "Current context:\n")
-        print(io, "```\n")
-        print(io, new_run_context)
-        print(io, "```\n")
+        sorted_children = sort(
+            [x for x in test.results if haskey(aggregated_trials, x)];
+            lt = (a,b) -> isless(aggregated_trials[b].trial.time, aggregated_trials[a].trial.time))
+        foreach(print_trials, sorted_children)
+    end
+
+    print_trials(test_results)
+    print(io, divider)
+    print(io, "```\n")
+
+    print(io, "Previous context:\n")
+    print(io, "```\n")
+    print(io, old_run_context)
+    print(io, "```\n")
+
+    print(io, "Current context:\n")
+    print(io, "```\n")
+    print(io, new_run_context)
+    print(io, "```\n")
+
+    report = String(io.data)
+
+    # If run on Travis, store files on disk, which the CI will upload to Github.
+    # If not on Travis (for instance testing locally), print report to stdout.
+    if travis
+        write_file("run_context.txt", new_run_context)
+        BenchmarkTools.save("benchmark.json", new_benchmark)
+        write_file("benchmark.md", report)
+    else
+        print(report)
     end
 end
 
@@ -177,8 +198,24 @@ function get_run_context()
     write(io, "Message: $(get(ENV, "TRAVIS_COMMIT_MESSAGE", "N/A"))\n")
     write(io, "Travis build: $(get(ENV, "TRAVIS_BUILD_NUMBER", "N/A"))\n")
     write(io, "\n")
-    versioninfo(io, verbose = true)
+    write_versioninfo(io)
     return String(io.data)
+end
+
+function versioninfo_string(verbose)
+    io = IOBuffer()
+    versioninfo(io, verbose=verbose)
+    String(io.data)
+end
+
+function write_versioninfo(io)
+    # concatenate verbose system info with non-verbose environment variables
+    v1 = versioninfo_string(true)
+    v2 = versioninfo_string(false)
+    i1 = findfirst("Environment:", v1)
+    i2 = findfirst("Environment:", v2)
+    write(io, v1[1:(i1 == nothing ? end : i1.start-1)])
+    write(io, v2[(i2 == nothing ? end+1 : i2.start):end])
 end
 
 function prettypercent(p)
