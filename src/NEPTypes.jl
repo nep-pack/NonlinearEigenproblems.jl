@@ -245,9 +245,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
             VFi=V*Fi;
             if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi)))
-                # SubArray x Matrix of different types do not work?
+                # 2018-09-14: SubArray x Matrix of different types do not work? Check in new version of Julia/base at later point (TODO)
                 # https://discourse.julialang.org/t/subarray-x-matrix-multipliciation-of-different-eltype-fails/14950
-                # Workaround by making a matrix copy
+                # Workaround by making a matrix copy.
                 Z=Z+copy(nep.A[i])*VFi;
             else
                 Z=Z+nep.A[i]*VFi;
@@ -725,7 +725,7 @@ as the problem ``N(λ)=W^HM(λ)V`` where ``M(λ)`` is represented by `orgnep`.
 The optional parameter `maxsize` determines how large the projected
 problem can be and `T` determines which Number type to use (default `ComplexF64`).
 These are needed for memory allocation reasons.
-Use `set_projectionmatrices!()` to specify projection matrices
+Use `set_projectmatrices!()` to specify projection matrices
 ``V`` and ``W``.
 """
     function create_proj_NEP(orgnep::ProjectableNEP)
@@ -829,15 +829,17 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
         T=eltype(eltype(nep.projnep_B_mem));
-
-        T_sub = SubArray{T,2,Array{T,2},Tuple{UnitRange{Int64},UnitRange{Int64}},false}
-        B = Vector{T_sub}(undef,m); # The coeff matrices for the SPMF_NEP created in the end
         k=size(V,2);
-        for i=1:m
+        # Compute first matrix beforhand to determine type
+        B1=view(Matrix{T}(copy(W')*nep.orgnep_Av[1]*V),1:k,1:k);
+        T_sub = typeof(B1)
+        # The coeff matrices for the SPMF_NEP created in the end
+        B = Vector{T_sub}(undef,m);
+        B[1]=B1;
+        for i=2:m # From 2 since we already computed the first above
             nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
             B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
         end
-
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
