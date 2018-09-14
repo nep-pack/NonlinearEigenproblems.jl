@@ -762,8 +762,6 @@ Use `set_projectionmatrices!()` to specify projection matrices
 
     mutable struct Proj_SPMF_NEP <: Proj_NEP
         orgnep::AbstractSPMF
-        V::Matrix
-        W::Matrix
         nep_proj::SPMF_NEP; # An instance of the projected NEP
         orgnep_Av::Vector
         orgnep_fv::Vector
@@ -790,8 +788,6 @@ Use `set_projectionmatrices!()` to specify projection matrices
                 error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
             end
 
-            this.V=zeros(T,size(this.orgnep,1),maxsize)
-            this.W=zeros(T,size(this.orgnep,1),maxsize)
             this.projnep_B_mem=Vector{Matrix{T}}(undef,size(this.orgnep_fv,1));
             for k=1:size(this.orgnep_fv,1)
                 this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
@@ -832,19 +828,16 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        T=eltype(nep.V);
+        T=eltype(eltype(nep.projnep_B_mem));
 
         T_sub = SubArray{T,2,Array{T,2},Tuple{UnitRange{Int64},UnitRange{Int64}},false}
-        B = Vector{T_sub}(undef,m);
+        B = Vector{T_sub}(undef,m); # The coeff matrices for the SPMF_NEP created in the end
         k=size(V,2);
         for i=1:m
             nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
             B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
         end
 
-        # Save it. Is it really necessary to store?
-        nep.W[:,1:size(W,2)]=W;
-        nep.V[:,1:size(V,2)]=V;
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
