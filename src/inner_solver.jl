@@ -104,7 +104,11 @@ end
 function inner_solve(TT::Type{IARChebInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
     if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
-        BB = Vector{eltype(AA)}(undef, size(AA,1)-1)
+        TT = eltype(AA);
+        if (TT  <: SubArray) # If it's better to transform to store in Matrix instead
+            TT=Matrix{eltype(AA[1])};
+        end
+        BB = Vector{TT}(undef, size(AA,1)-1)
         for i = 1:(size(AA,1)-1)
             BB[i] = AA[1]\AA[1+i]
         end
