@@ -2,9 +2,7 @@
 # The "Gun" problem form gun_native.jl
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.Gallery
-using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 

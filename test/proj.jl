@@ -1,10 +1,7 @@
 #  Tests for the projected NEPs
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.NEPTypes
-using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 using Random
