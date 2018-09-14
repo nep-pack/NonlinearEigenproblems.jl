@@ -100,7 +100,7 @@ function jd_betcke(::Type{T},
     # More allocations and preparations
     pk::Vector{T} = zeros(T,n)
     s_memory::Vector{T} = zeros(T,n)
-    proj_nep = create_proj_NEP(nep)
+    proj_nep = create_proj_NEP(nep,maxit,T)
     dummy_vector::Vector{T} = zeros(T,maxit+1)
 
     V_memory::Matrix{T} = zeros(T, size(nep,1), maxit+1)
