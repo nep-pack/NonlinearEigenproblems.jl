@@ -833,20 +833,14 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         T=eltype(nep.V);
 
         T_sub = SubArray{T,2,Array{T,2},Tuple{UnitRange{Int64},UnitRange{Int64}},false}
-        #T_sub = SubArray{T,2}
         B = Vector{T_sub}(undef,m);
         k=size(V,2);
-        println("typeof=",typeof(B))
         for i=1:m
-            #println("i=",i, " k=",k," sz=", size(copy(W')*nep.orgnep_Av[i]*V));
             nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
-            Btmp=view(nep.projnep_B_mem[i],1:k,1:k);
-            B[i]=Btmp
-
+            B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
         end
-        println("eltype(W):",eltype(W));
-        println("eltype(nep.W):",eltype(nep.W));
 
+        # Save it. Is it really necessary to store?
         nep.W[:,1:size(W,2)]=W;
         nep.V[:,1:size(V,2)]=V;
         # Keep the sequence of functions for SPMFs
