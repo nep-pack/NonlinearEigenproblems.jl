@@ -718,12 +718,14 @@ Proj_NEP represents a projected NEP
     abstract type Proj_NEP <: NEP end
 
 """
-    pnep=create_proj_NEP(orgnep::ProjectableNEP)
+    pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 
 Create a NEP representing a projected problem. The projection is defined
-as the problem ``N(λ)=W^HM(λ)V``
-where ``M(λ)`` is represented by `orgnep`. Use
-`set_projectionmatrices!()` to specify projection matrices
+as the problem ``N(λ)=W^HM(λ)V`` where ``M(λ)`` is represented by `orgnep`.
+The optional parameter `maxsize` determines how large the projected
+problem can be and `T` determines which Number type to use (default `ComplexF64`).
+These are needed for memory allocation reasons.
+Use `set_projectionmatrices!()` to specify projection matrices
 ``V`` and ``W``.
 """
     function create_proj_NEP(orgnep::ProjectableNEP)
