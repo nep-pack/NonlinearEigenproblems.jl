@@ -4,6 +4,7 @@ using BenchmarkTools
 using Printf
 
 export @bench
+export @onlybench
 export report_benchmarks
 
 # the TEST_SUITE environment variable can be set by the CI tool
@@ -25,6 +26,16 @@ macro bench(ex)
         :(benchit(() -> $(esc(ex))))
     else
         :($(esc(ex)))
+    end
+end
+
+"""
+Like the `@bench` macro, but if the `TEST_SUITE` environment variable is not set to
+`benchmark`, the `@testset` won't be executed at all.
+"""
+macro onlybench(ex)
+    if run_benchmark
+        :(@bench($(esc(ex))))
     end
 end
 
