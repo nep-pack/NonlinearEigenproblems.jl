@@ -41,8 +41,8 @@ module LinSolvers
     """
         The linear solver associated with julia factorize()
     """
-    struct DefaultLinSolver <: LinSolver
-        Afact
+    struct DefaultLinSolver{T} <: LinSolver
+        Afact::T
         umfpack_refinements::Int
     end
 
