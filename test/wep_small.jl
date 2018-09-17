@@ -1,14 +1,10 @@
 # Run tests for the waveguide eigenvalue problem
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.Gallery
-using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 
-push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 using GalleryWaveguide
 
 import GalleryWaveguide.SchurMatVec

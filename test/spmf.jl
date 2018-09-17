@@ -1,8 +1,7 @@
 # Tests for SPMF-code
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 using Random

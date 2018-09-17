@@ -1,12 +1,16 @@
 # Run tests on nep_gallery (not tested elsewhere)
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems
 using LinearAlgebra
 using SparseArrays
 using Test
+
+@testset "Gallery extra loading" begin
+    # Test if it is possible to load some extra gallery
+    @test (using GalleryWaveguide) == nothing
+end
+
 
 @bench @testset "Gallery" begin
     println("Testing sine");
