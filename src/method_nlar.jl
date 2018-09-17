@@ -154,7 +154,7 @@ function nlar(::Type{T},
         m = 0; #Number of converged eigenvalues
         k = 1;
 
-        proj_nep = create_proj_NEP(nep);
+        proj_nep = create_proj_NEP(nep,maxit,T);
 
         local linsolver::LinSolver = linsolvercreator(nep,σ);
 

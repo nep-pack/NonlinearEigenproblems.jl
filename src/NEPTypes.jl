@@ -241,7 +241,18 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 end
             end
             ## Sum it up
-            Z=Z+nep.A[i]*(V*Fi);
+
+
+            VFi=V*Fi;
+            if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi)))
+                # 2018-09-14: SubArray x Matrix of different types do not work? Check in new version of Julia/base at later point (TODO)
+                # https://discourse.julialang.org/t/subarray-x-matrix-multipliciation-of-different-eltype-fails/14950
+                # Workaround by making a matrix copy.
+                Z=Z+copy(nep.A[i])*VFi;
+            else
+                Z=Z+nep.A[i]*VFi;
+            end
+
         end
         return Z
     end
@@ -707,12 +718,14 @@ Proj_NEP represents a projected NEP
     abstract type Proj_NEP <: NEP end
 
 """
-    pnep=create_proj_NEP(orgnep::ProjectableNEP)
+    pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 
 Create a NEP representing a projected problem. The projection is defined
-as the problem ``N(λ)=W^HM(λ)V``
-where ``M(λ)`` is represented by `orgnep`. Use
-`set_projectionmatrices!()` to specify projection matrices
+as the problem ``N(λ)=W^HM(λ)V`` where ``M(λ)`` is represented by `orgnep`.
+The optional parameter `maxsize` determines how large the projected
+problem can be and `T` determines which Number type to use (default `ComplexF64`).
+These are needed for memory allocation reasons.
+Use `set_projectmatrices!()` to specify projection matrices
 ``V`` and ``W``.
 """
     function create_proj_NEP(orgnep::ProjectableNEP)
@@ -727,8 +740,11 @@ where ``M(λ)`` is represented by `orgnep`. Use
     #            error("Projection of this NEP is not available");
     #        end
     #    end
-    function create_proj_NEP(orgnep::AbstractSPMF)
-         return Proj_SPMF_NEP(orgnep);
+    function create_proj_NEP(orgnep::AbstractSPMF,
+                             maxsize::Int=min(size(orgnep,1),
+                                              max(round(Int,size(orgnep,1)/10),10)),
+                             T::Type{<:Number}=ComplexF64)
+        return Proj_SPMF_NEP(orgnep,maxsize,T);
     end
 
 
@@ -746,13 +762,13 @@ where ``M(λ)`` is represented by `orgnep`. Use
 
     mutable struct Proj_SPMF_NEP <: Proj_NEP
         orgnep::AbstractSPMF
-        V
-        W
         nep_proj::SPMF_NEP; # An instance of the projected NEP
-        orgnep_Av::Array
-        orgnep_fv::Array
-        function Proj_SPMF_NEP(nep::AbstractSPMF)
+        orgnep_Av::Vector
+        orgnep_fv::Vector
+        projnep_B_mem::Vector # A vector of matrices
+        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
             this = new(nep)
+
 
             this.orgnep_Av = get_Av(nep)
             if     (size(this.orgnep_Av,1) != 1) && (size(this.orgnep_Av,2) == 1) # Stored as column vector - do nothing
@@ -771,6 +787,14 @@ where ``M(λ)`` is represented by `orgnep`. Use
             else
                 error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
             end
+
+            this.projnep_B_mem=Vector{Matrix{T}}(undef,size(this.orgnep_fv,1));
+            for k=1:size(this.orgnep_fv,1)
+                this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
+            end
+
+
+
             return this
         end
     end
@@ -804,12 +828,18 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        B = Array{Array{eltype(W),2}}(undef, m);
-        for i=1:m
-            B[i]=copy(W')*nep.orgnep_Av[i]*V;
+        T=eltype(eltype(nep.projnep_B_mem));
+        k=size(V,2);
+        # Compute first matrix beforhand to determine type
+        B1=view(Matrix{T}(copy(W')*nep.orgnep_Av[1]*V),1:k,1:k);
+        T_sub = typeof(B1)
+        # The coeff matrices for the SPMF_NEP created in the end
+        B = Vector{T_sub}(undef,m);
+        B[1]=B1;
+        for i=2:m # From 2 since we already computed the first above
+            nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
+            B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
         end
-        nep.W=W;
-        nep.V=V;
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
@@ -825,11 +855,11 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
     function size(nep::Proj_NEP,dim)
-        n = size(nep.W,2);
+        n = size(nep.nep_proj,2);
         return n
     end
     function size(nep::Proj_NEP)
-        n = size(nep.W,2);
+        n = size(nep.nep_proj,2);
         return (n,n)
     end
 
