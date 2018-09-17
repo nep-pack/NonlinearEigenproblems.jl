@@ -508,7 +508,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
     # Overloads Defalut and Backslash LinSolvers
-    DefaultLinSolver(nep::WEP_FD, λ)   = WEPFactorizedLinSolver(nep, λ)
+    DefaultLinSolver(nep::WEP_FD, λ, umfpack_refinements) = WEPFactorizedLinSolver(nep, λ)
     BackslashLinSolver(nep::WEP_FD, λ) = WEPBackslashLinSolver(nep, λ)
 
 

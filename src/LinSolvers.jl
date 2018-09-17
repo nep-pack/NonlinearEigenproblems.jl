@@ -2,6 +2,7 @@ module LinSolvers
     using ..NEPCore
     using LinearAlgebra
     using SparseArrays
+    using SuiteSparse
     using IterativeSolvers
     using LinearMaps
     using Arpack
@@ -40,29 +41,42 @@ module LinSolvers
     """
         The linear solver associated with julia factorize()
     """
-    struct DefaultLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
-        A::T_mat
-        Afact
-
+    struct DefaultLinSolver{T} <: LinSolver
+        Afact::T
+        umfpack_refinements::Int
     end
-    DefaultLinSolver(A::AbstractMatrix,Afact) = new(A, Afact)
 
-    function DefaultLinSolver(nep::NEP,λ)
+    function DefaultLinSolver(nep::NEP, λ, umfpack_refinements)
         A=compute_Mder(nep,λ)
         Afact=factorize(A)
-        return DefaultLinSolver{eltype(A),typeof(A)}(A, Afact)
+        return DefaultLinSolver(Afact, umfpack_refinements)
     end
 
-    function lin_solve(solver::DefaultLinSolver{T_num}, x::Array; tol=eps(real(T_num))) where T_num
-        return solver.Afact\x
+    function lin_solve(solver::DefaultLinSolver, x::Array; tol = 0)
+        with_umfpack_refinements(solver.umfpack_refinements) do
+            solver.Afact \ x
+        end
+    end
+
+    function with_umfpack_refinements(f::Function, refinements)
+        current_refinements = SuiteSparse.UMFPACK.umf_ctrl[8]
+        try
+            SuiteSparse.UMFPACK.umf_ctrl[8] = refinements
+            f()
+        finally
+            SuiteSparse.UMFPACK.umf_ctrl[8] = current_refinements
+        end
     end
 
 """
-   default_linsolvercreator(nep::NEP, λ)\n
-      Creates a linear solver of type 'DefaultLinSolver'.
+   default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
+
+Creates a linear solver of type `DefaultLinSolver`. For sparse matrices, when the underlying
+solver is UMFPACK, the maximum number of iterative refinements can be changed to trade
+accuracy for performance. UMFPACK defaults to a maximum of 2 iterative refinements.
 """
-    function default_linsolvercreator(nep::NEP, λ)
-        return DefaultLinSolver(nep, λ)
+    function default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
+        return DefaultLinSolver(nep, λ, umfpack_refinements)
     end
 
 
