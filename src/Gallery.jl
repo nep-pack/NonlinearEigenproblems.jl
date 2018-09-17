@@ -266,10 +266,10 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           # Create a quadratic problem with real eigenvalues
           n=4; # mat size
 
-	  A0 = [4     0     1     1;
-    		0     2     1     1;
-            1     1     6    -2;
-    		1     1    -2     3];
+	  A0 = [ 4     0     1     1;
+    		    0     2     1     1;
+              1     1     6    -2;
+    		    1     1    -2     3];
 
 
 	A1 = [167  -140    95  -131;
@@ -347,9 +347,9 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
 
 
           Random.seed!(0) # reset the random seed
-          K = Matrix(1.0I, n, n)
           A1 = diagm(0 => E[1:n])
           A2 = diagm(0 => E[n+1:2*n])
+          K = one(A1)
 
           nep=PEP([A1*A2,-A1-A2,K])
           return nep
@@ -389,8 +389,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           W2=read_sparse_matrix(gunbase * "W2.txt")
           # The gun problem is a sum of a PEP and a problem containing square roots.
           pep=PEP([K,-M]);
-          sqrt1op= S -> 1im*sqrt(Matrix(S))
-          sqrt2op= S -> 1im*sqrt(Matrix(S)-108.8774^2*I)
+          sqrt1op= S -> 1im*sqrt(S)
+          sqrt2op= S -> 1im*sqrt(S-108.8774^2*one(S))
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;
@@ -435,8 +435,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           s3_new= λ -> f_new_c64(sqrt(λ)*L); # This is the new function. Works for matrices and functions
           n=2400;
 
-          A1=sparse(1.0I,n,n)
           A2=sparse([n],[n],[1.0])  # This is a rank-one matrix!
+          A1=one(A2)
 
           # Create the A0-matrix takes a bit more work
           eta_cl = 1.4969;  # "physical params"
