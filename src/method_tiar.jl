@@ -84,7 +84,7 @@ function tiar(
 
     local pnep::NEP;
     if (proj_solve)
-        pnep=create_proj_NEP(nep);
+        pnep=create_proj_NEP(nep,maxit,T);
     end
 
     k=1; conv_eig=0;
