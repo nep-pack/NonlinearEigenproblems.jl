@@ -313,10 +313,10 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           A1=read_sparse_matrix(qdepbase * "A1.txt")
           tau = 1
           quadfun = S -> S^2
-          constfun = S -> Matrix{eltype(S)}(I, size(S))
-          expfun = S -> exp(-tau * Matrix(S))
+          constfun = S -> one(S)
+          expfun = S -> exp(-tau*S)
 
-          AA = [SparseMatrixCSC{eltype(A0)}(-I, size(A0)), A0, A1]
+          AA = [-one(A0), A0, A1]
           fi = [quadfun, constfun, expfun]
           return SPMF_NEP(AA, fi)
       elseif (name=="qdep1")
@@ -329,7 +329,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
              -1.1000    0.9000    1.2000    0.5000
               0.5000    0.2000   -1.6000   -1.3000
               0.7000    0.4000   -0.4000         0];
-          return SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ^2, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
+          return SPMF_NEP([one(A0), A0, A1], [λ -> -λ^2, λ -> one(λ), λ -> exp(-λ)])
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem
@@ -507,7 +507,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           Z=spzeros(n,n);
           pep=PEP([A0,A1,Z,Z,A2]);
           # Matrix  sine function. Note that the Term is rank two which is not exploited here
-          sin_nep=SPMF_NEP([V*Q'], [S-> sin(Matrix(S))]);
+          sin_nep=SPMF_NEP([V*Q'], [S-> sin(S)]);
 
           nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
           return nep;
