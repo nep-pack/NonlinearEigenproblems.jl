@@ -10,8 +10,8 @@ function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
     D = Vector{Matrix{CT}}(undef, m)
 
     # compute divided differences D0,D1,...,Dm
-    as_matrix(x::Number) = (M = Matrix{eltype(x)}(undef,1,1); M[1] = x; M)
-    D[1] = fun(as_matrix(σ[1])) * β[1]
+    #as_matrix(x::Number) = (M = Matrix{eltype(x)}(undef,1,1); M[1] = x; M)
+    D[1] = fun(σ[1]) * β[1]
     for j = 2:m
         # evaluate current linearizaion at σ[j]
         Qj = zeros(T, size(D[1]))
@@ -20,7 +20,7 @@ function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
         end
 
         # get divided difference from recursion (could be done via Horner)
-        D[j] = (fun(as_matrix(σ[j])) .- Qj) / evalrat(σ[1:j-1], ξ[1:j-1], β[1:j], [σ[j]])[1]
+        D[j] = (fun(σ[j]) .- Qj) / evalrat(σ[1:j-1], ξ[1:j-1], β[1:j], σ[j])[1]
     end
 
     return D

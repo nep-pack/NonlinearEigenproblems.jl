@@ -17,8 +17,8 @@ function ratnewtoncoeffsm(fm, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
     P = Diagonal(1 ./ maximum(abs.(K), dims = 1)[:])
     K *= P
     H *= P
-
-    D = fm(H/CT.(K)) * Matrix(1.0I, m+1, 1) * β[1] # TODO: just extract first column of fm(..) instead of Matrix(..)?
+    H=Matrix(H) # this matrix is sparse, it is needed to convert before matrix-fun evaluation
+    D = fm(H/CT.(K))[:,1] * β[1] 
     D = copy(transpose(D))
 
     return D
