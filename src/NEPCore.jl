@@ -6,8 +6,6 @@ module NEPCore
     # Fundamental nonlinear eigenvalue problems
     export NEP
     #
-    export size
-    export issparse
     export NoConvergenceException
     export LostOrthogonalityException
     export interpolate
