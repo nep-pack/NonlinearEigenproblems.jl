@@ -101,7 +101,7 @@ function compute_MM(nep::ShiftScaledNEP,S,V)
 end
 
 
-function compute_Mlincomb(nep::ShiftScaledNEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+function compute_Mlincomb(nep::ShiftScaledNEP,λ::Number,V::AbstractVecOrMat,
                           a::Vector=ones(size(V,2)))
     # Multiply the coefficient matrix V with a diagonal matrix
     # corresponding to the chain rule
@@ -180,7 +180,7 @@ function compute_MM(nep::MobiusTransformedNEP,S,V)
     return compute_MM(nep.orgnep, (nep.a*S + nep.b*I) / (nep.c*S + nep.d*I), V)
 end
 
-function compute_Mlincomb(nep::MobiusTransformedNEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}
+function compute_Mlincomb(nep::MobiusTransformedNEP,λ::Number,V::AbstractVecOrMat
                           ,a::Vector=ones(size(V,2)))
     # I did not found a better way
     return compute_Mlincomb_from_MM(nep,λ,V,a)
@@ -262,7 +262,7 @@ function compute_MM(nep::DeflatedNEP,S,V)
 end
 # Use the MM to compute Mlincomb for DeflatedNEP
 compute_Mlincomb(nep::DeflatedNEP,λ::Number,
-                 V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
+                 V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
 function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)

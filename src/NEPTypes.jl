@@ -479,7 +479,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     # Use MM to compute Mlincomb for PEPs
     compute_Mlincomb(nep::PEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
+                     V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
@@ -867,7 +867,7 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
     # Use MM to compute Mlincomb for SPMFs
     compute_Mlincomb(nep::Proj_SPMF_NEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+                     V::AbstractVecOrMat,a::Vector=ones(size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
@@ -945,7 +945,7 @@ julia> M1+M2  # Same as M
     # Delegate all interface functions
     size(snep::AnySumNEP)=size(snep.nep1)
     size(snep::AnySumNEP,d)=size(snep.nep1,d)
-    compute_Mlincomb(nep::AnySumNEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}) =
+    compute_Mlincomb(nep::AnySumNEP, λ::Number, V::AbstractVecOrMat) =
         (compute_Mlincomb(nep.nep1, λ, V)+compute_Mlincomb(nep.nep2,λ,V))
     compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
@@ -994,7 +994,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+    function compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
@@ -1024,7 +1024,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     function compute_Mlincomb(
                         nep::SPMF_NEP,
                         λ::Number,
-                        V::Union{AbstractMatrix,AbstractVector},
+                        V::AbstractVecOrMat,
                         a::Vector=ones(size(V,2)))
 
 
