@@ -133,8 +133,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
-            Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
+            Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
 
             T=Float64;
             if (check_consistency)
@@ -150,6 +150,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     ci=@code_typed(fii[t](S))
                     if !(ci[end] <: Matrix)
                         @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                        #error("The given function does not return a scalar if evaluated in a scalar")
                     end
                 end
             end

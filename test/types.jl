@@ -13,6 +13,6 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4]);
 
 
 f1 = S -> 1
-@test_warn r"(.*)" nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4]) 
+@test_warn r"(.*)" nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4], check_consistency=true) 
 
 end
