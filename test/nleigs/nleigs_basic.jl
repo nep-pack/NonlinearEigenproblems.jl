@@ -1,8 +1,7 @@
 # Solves a few basic eigenvalue problems to test various aspects of NLEIGS
 
 push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 
