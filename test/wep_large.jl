@@ -12,9 +12,7 @@ using Test
 @testset "WEP_large" begin
 
 
-println("===========================")
-println("||   This is WEP-test    ||")
-println("===========================")
+@info "This is WEP-test"
 
 delta = 0.1
 

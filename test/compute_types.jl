@@ -45,7 +45,7 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
         check_type_stability=metadata.check_type_stability;
 
 
-        println("Testing compute functions for NEP:$name ($eltype_nep)");
+        @info "Testing compute functions for NEP:$name ($eltype_nep)"
         displaylevel=0
 
         ## Test compute_Mder
@@ -63,8 +63,8 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
                     # predicted type: greatest of typeof(λ) and eltype_nep
                     predict_type=promote_type(typeof(λ),eltype_nep)
 
-                    @ifd(println("typeof(λ)=",typeof(λ)))
-                    @ifd(println(predict_type, " =? ",eltype(M)))
+                    @debug "typeof(λ) = $(typeof(λ))"
+                    @debug "$predict_type =? $(eltype(M))"
 
                     if (nepreal)
                         @test(predict_type==eltype(M));
@@ -89,14 +89,15 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
                     !in(TV,skip_types_Mlincomb))
                     local V::Matrix{TV}=ones(TV,n,3);
                     local λ::Tλ=one(Tλ);
-                    @ifd(println("typeof(λ)=",typeof(λ), " eltype(V)=",eltype(V)))
-                    @ifd(println(predict_type, " =? ",eltype(y)))
+
                     # the predicted type is the "greatest" of
                     # NEP type, typeof(λ) and eltype(V)
                     predict_type=promote_type(promote_type(typeof(λ),eltype(V)),eltype_nep)
-
-
                     y=compute_Mlincomb(nep,λ,V)
+
+                    @debug "typeof(λ) = $(typeof(λ)), eltype(V) = $(eltype(V))"
+                    @debug "$predict_type =? $(eltype(y))"
+
                     if (nepreal)
                         @test(predict_type==eltype(y))
                     else

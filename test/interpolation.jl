@@ -10,14 +10,12 @@ using LinearAlgebra
 @bench @testset "Random dep" begin
 nep = nep_gallery("dep0")
 λ1,x1 = newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 
 # Newton on interpolated dep (interpolating pep of degree 2)
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
 λ2,x2 = newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*1000
 
@@ -25,7 +23,6 @@ println("")
 intpoints = [λ1-5, λ1-1, λ1, λ1+5, λ1+1, λ1+5im, λ1+1im, λ1-5im, λ1-1im]
 pep = interpolate(nep, intpoints)
 λ2,x2 = newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*1000
 end
@@ -35,14 +32,12 @@ end
 nep = nep_gallery("dep0_sparse", 30)
 
 λ1,x1 = newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 
 # Newton on interpolated sparse dep
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
 λ2,x2 = newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*1000
 
@@ -52,7 +47,6 @@ end
 @bench @testset "Random pep (original pep of degree 2)" begin
 nep = nep_gallery("pep0")
 λ1,x1 = newton(nep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 
 
@@ -60,7 +54,6 @@ println("")
 intpoints = [λ1-1, λ1, λ1+1]
 pep = interpolate(nep, intpoints)
 λ2,x2 = newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*100
 
@@ -76,7 +69,6 @@ intpoints = [λ1-3, λ1-1, λ1, λ1+1, λ1+3]
 
 pep = interpolate(Float64, nep, intpoints)
 λ2,x2 = newton(pep,displaylevel=1,maxit=40, λ=1, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*100
 
@@ -95,7 +87,6 @@ end
 @bench @testset "Random sparse pep (original pep of degree 2)" begin
 nep=nep_gallery("pep0_sparse_003")
 λ1,x1 =newton(nep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 
 
@@ -103,7 +94,6 @@ println("")
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
 λ2,x2 =newton(pep,displaylevel=1,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-println("")
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*100
 
