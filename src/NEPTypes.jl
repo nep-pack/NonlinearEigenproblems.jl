@@ -121,15 +121,7 @@ for matrices in the standard matrix function sense.
 """
      SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
 
-Creates a SPMF_NEP consisting of matrices `AA` and functions `fii`. `fii` must
-be an array of functions defined for matrices and numbers. `AA` is an array of
-matrices. `Schur_fact` specifies if the computation of `compute_MM` should be
-done by first pre-computing a Schur-factorization (which can be faster).
-If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each
-matrix will be stored with a sparsity pattern matching the union of all `AA`
-matrices. This leads to more efficient calculation of `compute_Mder`. If
-the sparsity patterns are completely or mostly distinct, it may be more
-efficient to set this flag to false. If check_consistency is true the input
+Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices. This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If check_consistency is true the input
 checking will be performed.
 
 ```julia-repl
@@ -144,11 +136,10 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
-            Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
+            Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
 
             T=Float64;
             if (check_consistency)
-                println("I am here \n \n ")
                 for t=1:length(fii)
                     # Scalar leads to scalars:
                     s=one(T);
@@ -156,6 +147,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     if (ci[end] <: Number)
                         # nothing
                     else
+                        @warn "It seems you have provided valid matrix-functions for
+                        defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
                         error("The given function does not return a scalar if evaluated in a scalar")
                     end
                     S=ones(T,2,2);
@@ -163,6 +156,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     if (ci[end] <: Matrix)
                         # nothing
                     else
+                        @warn "It seems you have provided valid matrix-functions for
+                        defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
                         error("The given function does not return a matrix if evaluated in a matrix")
                     end
                 end
