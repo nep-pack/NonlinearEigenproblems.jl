@@ -22,9 +22,8 @@ after_success:
   - commit=`git rev-parse --short HEAD`
   - benchmark_file_name=benchmark-$branch-$TRAVIS_BUILD_NUMBER-$commit.json
   - git clone --depth=10 --branch=master https://github.com/maxbennedich/julia-ci.git julia-ci-benchmark
-  - cd test
-  - mv benchmark.json ../julia-ci-benchmark/$benchmark_file_name
-  - cd ../julia-ci-benchmark
+  - mv benchmark.json julia-ci-benchmark/$benchmark_file_name
+  - cd julia-ci-benchmark
   - git config user.email benchmark
   - git config user.name benchmark
   - git add $benchmark_file_name
