@@ -67,6 +67,12 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 deps = ["LinearAlgebra", "Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
+[[EzXML]]
+deps = ["BinaryProvider", "Libdl", "Pkg", "Printf", "Test"]
+git-tree-sha1 = "5623d1486bfaadd815f5c4ca501adda02b5337f1"
+uuid = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+version = "0.9.0"
+
 [[FFTW]]
 deps = ["AbstractFFTs", "BinaryProvider", "Compat", "Conda", "Libdl", "LinearAlgebra", "Pkg", "Reexport", "Test"]
 git-tree-sha1 = "29cda58afbf62f35b1a094882ad6c745a47b2eaa"
@@ -136,11 +142,23 @@ version = "0.6.0"
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[Mocking]]
+deps = ["Compat", "Dates", "Pkg"]
+git-tree-sha1 = "4bf69aaf823b119b034e091e16b18311aa191663"
+uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
+version = "0.5.7"
+
+[[Nullables]]
+deps = ["Compat", "Pkg"]
+git-tree-sha1 = "ae1a63457e14554df2159b0b028f48536125092d"
+uuid = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
+version = "0.0.8"
+
 [[OrderedCollections]]
-deps = ["Random", "Serialization", "Test"]
-git-tree-sha1 = "cc23c786049328c93138da14e7020a464d707a23"
+deps = ["InteractiveUtils", "Pkg", "Random", "Serialization", "Test"]
+git-tree-sha1 = "27af6dc22697bf20ace8e3a45f404a34eaf0b819"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "0.1.0"
+version = "1.0.0"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
@@ -166,9 +184,9 @@ version = "0.2.0"
 
 [[Polynomials]]
 deps = ["LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "af883752c4935425a3ab30031a2069254c451b8b"
+git-tree-sha1 = "1a1eae52956658a6acae6fa1b6d6c3d488192895"
 uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
-version = "0.5.0"
+version = "0.5.1"
 
 [[Primes]]
 deps = ["Test"]
@@ -246,6 +264,12 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[TimeZones]]
+deps = ["Compat", "EzXML", "Mocking", "Nullables", "Pkg"]
+git-tree-sha1 = "aa592cc6012a3452ae74a83e5cf95a04b5b032c2"
+uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
+version = "0.8.0"
 
 [[URIParser]]
 deps = ["Test", "Unicode"]
