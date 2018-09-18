@@ -111,12 +111,10 @@ for matrices in the standard matrix function sense.
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
          As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
-
-         check_consistency::Bool # input checking
     end
 
-    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero,set_check_consistency) =
-        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}(),check_consistency)
+    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
+        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
 
 """
      SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
@@ -144,17 +142,13 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     # Scalar leads to scalars:
                     s=one(T);
                     ci=@code_typed(fii[t](s)) # ci[end] gives the return type
-                    if (ci[end] <: Number)
-                        # nothing
-                    else
+                    if !(ci[end] <: Number)
                         @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
                         #error("The given function does not return a scalar if evaluated in a scalar")
                     end
                     S=ones(T,2,2);
                     ci=@code_typed(fii[t](S))
-                    if (ci[end] <: Matrix)
-                        # nothing
-                    else
+                    if !(ci[end] <: Matrix)
                         @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
                     end
                 end
@@ -214,7 +208,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
-         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero,As,true);
+         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero,As);
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
