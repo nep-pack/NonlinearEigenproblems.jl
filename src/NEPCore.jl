@@ -226,9 +226,9 @@ Computes the Mder function from MM using the fact that MM of
 a jordan block becomes derivatives
 """
     function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
-        J=sparse(transpose(jordan_matrix(typeof(λ),i+1,λ)))
+        J=transpose(jordan_matrix(typeof(λ),i+1,λ))
         n=size(nep,1);
-        S=kron(J, sparse(1.0I, n, n))
+        S=kron(J, Matrix(1.0I, n, n))
         V=factorial(i) * kron(sparse(1.0I, 1, i+1)[:,end:-1:1], sparse(1.0I, n, n))
         W=compute_MM(nep,S,V)
         return W[1:n,1:n]

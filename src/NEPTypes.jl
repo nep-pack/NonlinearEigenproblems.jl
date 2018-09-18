@@ -4,6 +4,7 @@ module NEPTypes
     using LinearAlgebra
     using PolynomialZeros
     using Polynomials
+    using InteractiveUtils
 
     # Specializalized NEPs
     export ProjectableNEP
@@ -110,23 +111,26 @@ for matrices in the standard matrix function sense.
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
          As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
+
+         check_consistency::Bool # input checking
     end
 
-    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
-        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
+    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero,set_check_consistency) =
+        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}(),check_consistency)
 
 """
-     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true)
+     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
 
 Creates a SPMF_NEP consisting of matrices `AA` and functions `fii`. `fii` must
-be an array of functions defined for matrices. `AA` is an array of
+be an array of functions defined for matrices and numbers. `AA` is an array of
 matrices. `Schur_fact` specifies if the computation of `compute_MM` should be
 done by first pre-computing a Schur-factorization (which can be faster).
 If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each
 matrix will be stored with a sparsity pattern matching the union of all `AA`
 matrices. This leads to more efficient calculation of `compute_Mder`. If
 the sparsity patterns are completely or mostly distinct, it may be more
-efficient to set this flag to false.
+efficient to set this flag to false. If check_consistency is true the input
+checking will be performed.
 
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
@@ -140,25 +144,29 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
-            Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
+            Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
 
-
-     # if (check_consistency)
-     #     for t=1:length(fii)
-     #         s=NaN
-     #         if (size(fii[t](s))==size(s))
-     #             # nothing
-     #         else
-     #             error("The given function does not return a scalar if evaluated in a scalar")
-     #         end
-     #         S=NaN*one(rand(2,2));
-     #         if (size(fii[t].(S))==size(S))
-     #             # nothing
-     #         else
-     #             error("The given function does not return a matrix if evaluated in a matrix")
-     #         end
-     #     end
-     # end
+            T=Float64;
+            if (check_consistency)
+                println("I am here \n \n ")
+                for t=1:length(fii)
+                    # Scalar leads to scalars:
+                    s=one(T);
+                    ci=@code_typed(fii[t](s)) # ci[end] gives the return type
+                    if (ci[end] <: Number)
+                        # nothing
+                    else
+                        error("The given function does not return a scalar if evaluated in a scalar")
+                    end
+                    S=ones(T,2,2);
+                    ci=@code_typed(fii[t](S))
+                    if (ci[end] <: Matrix)
+                        # nothing
+                    else
+                        error("The given function does not return a matrix if evaluated in a matrix")
+                    end
+                end
+            end
 
          if (size(AA,1)==0)
              return SPMF_NEP(0); # Create empty SPMF_NEP.
@@ -214,12 +222,12 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
-         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero,As);
+         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero,As,true);
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
          Z=zeros(n,n)
-         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z);
+         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z,false);
     end
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
