@@ -76,7 +76,7 @@ function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
         fv[i] = S -> orgfv[i](scale*S + shift*I)
     end
     # create a new SPMF with transformed functions
-    return SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
+    return SPMF_NEP(get_Av(orgnep),fv;Schur_fact=orgnep.Schur_factorize_before);
 end
 
 
@@ -143,7 +143,7 @@ function mobius_transform(orgnep::SPMF_NEP;a=1,b=0,c=0,d=1)
         fv[i] = S -> orgfv[i]((a*S + b*I) / (c*S + d*I))
     end
     # create a new SPMF with transformed functions
-    return SPMF_NEP(get_Av(orgnep),fv,orgnep.Schur_factorize_before);
+    return SPMF_NEP(get_Av(orgnep),fv;Schur_fact=orgnep.Schur_factorize_before);
 end
 
 
