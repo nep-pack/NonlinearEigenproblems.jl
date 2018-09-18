@@ -1,7 +1,7 @@
 # Gun: variant R2 (fully rational case; leja + repeated nodes + freeze)
 
 push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
-using NonlinearEigenproblems.NEPSolver
+using NonlinearEigenproblems
 using Test
 
 include("nleigs_test_utils.jl")
