@@ -133,7 +133,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
             Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
 
             T=Float64;
@@ -214,7 +214,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
          Z=zeros(n,n)
-         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z,false);
+         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z);
     end
     function compute_MM(nep::SPMF_NEP,S,V)
         if (issparse(V))
