@@ -133,7 +133,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
             Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
 
             T=Float64;

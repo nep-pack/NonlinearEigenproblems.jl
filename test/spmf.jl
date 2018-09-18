@@ -22,7 +22,7 @@ using SparseArrays
 
     J = SparseMatrixCSC(1.0I, n, n)
     nep1 = SPMF_NEP([J, A0, A1], fi)
-    nep2 = SPMF_NEP([J, A0, A1], fi, true)
+    nep2 = SPMF_NEP([J, A0, A1], fi; Schur_fact=true)
 
     @bench @testset "compute_MM" begin
 
