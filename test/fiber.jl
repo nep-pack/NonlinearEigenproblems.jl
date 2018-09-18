@@ -36,7 +36,7 @@ using GalleryNLEVP
         @test norm(zp-(z_plus-z_minus)/(2δ))<(δ^2*100)
 
 
-        println("Running Newton");
+        @info "Running Newton"
         (λstar,v)=newton(Float64,nep_org,λ=7e-7,v=ones(n),displaylevel=1,
                          tol=1e-14)
 
@@ -45,7 +45,7 @@ using GalleryNLEVP
             @warn "Newton switches to complex although it should be real: $λstar"
         end
 
-        println("Running quasi-newton w armijo (with eigval error as termination)");
+        @info "Running quasi-newton w armijo (with eigval error as termination)"
         function myerrmeasure(λt,v)
             return abs((λt-λstar)/λstar)
         end
@@ -60,7 +60,7 @@ using GalleryNLEVP
             @warn "Quasinewton switches to complex although it should be real: $λ"
         end
 
-        println("Running resinv");
+        @info "Running resinv"
         tol=1e-8
         (λ,v)=resinv(nep_org,λ=7e-7,v=ones(n),
                      displaylevel=1,errmeasure=myerrmeasure,
@@ -70,7 +70,7 @@ using GalleryNLEVP
             @warn "resinv switches to complex although it should be real: $λ"
         end
 
-        println("Running MSLP");
+        @info "Running MSLP"
 
         (λ,v)=mslp(Float64,nep_org,λ=7e-7,
                    displaylevel=1,errmeasure=myerrmeasure,
@@ -87,24 +87,24 @@ using GalleryNLEVP
         # Create a PEP Which interpolates in a couple of points
 
         intpoints=[1e-8,1e-7,7e-7,9e-7]
-        println("Interpolating:"*string(intpoints));
+        @info "Interpolating: $intpoints"
         pep=interpolate(nep_org,intpoints);
-        println("Running IAR")
+        @info "Running IAR"
         λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
         minerr1=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
-        println("Error:",minerr1)
+        @info "Error: $minerr1"
         @test minerr1<1e-4
 
 
         # Create a new PEP which interpolates in the solution computed
         # in the previous iteration
         intpoints=vcat(intpoints,real(λ[1]))
-        println("Interpolating:"*string(intpoints));
+        @info "Interpolating: $intpoints"
         pep=interpolate(nep_org,intpoints);
-        println("Running IAR")
+        @info "Running IAR"
         λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
         minerr2=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
-        println("Error:",minerr2)
+        @info "Error: $minerr2"
         @test minerr2<minerr1
     end
 

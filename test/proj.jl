@@ -50,7 +50,7 @@ using Random
         #
 
         n=size(nep,1);
-        println("Running Newton Raphson")
+        @info "Running Newton Raphson"
         tol=1e-12
         λ,x =newton(nep,maxit=30,λ=1+1im,tol=tol,
                     v=ones(n));
@@ -65,7 +65,7 @@ using Random
         Q,R=qr(hcat(V,x)) # Make the eigenspace a part of the projection subspace
         Q = Matrix(Q)
         set_projectmatrices!(pnep,Q,Q);
-        println("Running Newton on projected problem with very good start value")
+        @info "Running Newton on projected problem with very good start value"
         λ1,z1=newton(pnep,λ=(λ_exact+0.00001),displaylevel=0,v=ones(size(pnep,1)))
 
         x1=Q*z1; x1=x1/x1[1];
@@ -73,12 +73,12 @@ using Random
         # should be small since the eigenvector is in the subspace
         @test norm(x/x[1]-x1)<1e-8
 
-        println("Running IAR for projected problem (no special starting vector)");
+        @info "Running IAR for projected problem (no special starting vector)"
         λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=1,
                  Neig=3,maxit=100, v=ones(size(pnep,1)))
 
         diff = minimum(abs.(λv .- λ_exact))
-        println("Difference of solution from projected problem:", diff)
+        @info "Difference of solution from projected problem: $diff"
         @test diff < sqrt(eps())
     end
 end

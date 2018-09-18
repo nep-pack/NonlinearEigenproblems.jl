@@ -12,7 +12,7 @@ using LinearAlgebra
         λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:ptrapz,compute_eigenvectors=true)
 
         for i = 1:2
-            println(i, ":  ", λ[i])
+            @info "$i: $(λ[i])"
             M=compute_Mder(nep,λ[i])
             minimum(svdvals(M))
             @test minimum(svdvals(M)) < eps()*1000
@@ -32,7 +32,7 @@ using LinearAlgebra
         λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:ptrapz,compute_eigenvectors=true)
 
         for i = 1:4
-            println(i, ":  ", λ[i])
+            @info "$i: $(λ[i])"
             M=compute_Mder(nep,λ[i])
             minimum(svdvals(M))
             @test minimum(svdvals(M)) < eps()*1000

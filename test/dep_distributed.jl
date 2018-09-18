@@ -44,7 +44,7 @@ dep_distributed_exact_eigvals = [
 
     (λ,V)=iar(dep,σ=3,Neig=5,errmeasure=myerrmeasure, v=ones(n),
               displaylevel=1,maxit=100,tol=eps()*100)
-    println(λ)
+    @info λ
 
     @testset "IAR eigval[$i]" for i in 1:length(λ)
         @test myerrmeasure(λ[i],V[:,i])<1e-10

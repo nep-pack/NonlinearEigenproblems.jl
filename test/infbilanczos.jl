@@ -48,6 +48,6 @@ end
 ##
 #errormeasure=default_errmeasure(nep);
 #for i=1:length(λ)
-# println("Eigenvalue=",λ[i]," residual = ",errormeasure(λ[i],Q[:,i]))
+# @info "Eigenvalue = $(λ[i]), residual = $(errormeasure(λ[i],Q[:,i]))"
 #end
 #

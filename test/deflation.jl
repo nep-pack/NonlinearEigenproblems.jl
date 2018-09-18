@@ -27,7 +27,7 @@ for k=1:6
                         λ=λ0,
                         displaylevel=0
                         );
-    println("Computing eigenvalue k=",k);
+    @info "Computing eigenvalue k=$k"
     v2=v2/norm(v2);
     # Expand the partial Schur factorization with the computed solution
     S0=hcat(S0,v2[(n+1):end]);
