@@ -147,9 +147,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     if (ci[end] <: Number)
                         # nothing
                     else
-                        @warn "It seems you have provided valid matrix-functions for
-                        defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                        error("The given function does not return a scalar if evaluated in a scalar")
+                        @warn "It seems you have provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                        #error("The given function does not return a scalar if evaluated in a scalar")
                     end
                     S=ones(T,2,2);
                     ci=@code_typed(fii[t](S))
@@ -158,7 +157,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     else
                         @warn "It seems you have provided valid matrix-functions for
                         defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                        error("The given function does not return a matrix if evaluated in a matrix")
+                        #error("The given function does not return a matrix if evaluated in a matrix")
                     end
                 end
             end
