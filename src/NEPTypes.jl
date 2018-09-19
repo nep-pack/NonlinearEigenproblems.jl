@@ -122,7 +122,7 @@ for matrices in the standard matrix function sense.
          Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
          # Sparse zero matrix to be used for sparse matrix creation
-         Zero::SparseMatrixCSC
+         Zero::T
          As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
     end
     SPMF_NEP{T,Ftype} = Union{SPMF_NEP_dense{T,Ftype},SPMF_NEP_sparse{T,Ftype}}
@@ -1034,13 +1034,14 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
 
     function compute_Mlincomb!(
-                        nep::SPMF_NEP,
+                        nep::SPMF_NEP{T,Ftype},
                         λ::Number,
                         V::AbstractVecOrMat,
-                        a::Vector=ones(size(V,2)))
+                        a::Vector=ones(size(V,2))) where {T,Ftype}
 
 
-        if ndims(V)==2
+        local n,k;
+        if (V isa AbstractMatrix)
             n,k=size(V);
         else
             n=size(V,1); k=1;
@@ -1049,18 +1050,22 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     	# we need to assume that the elements of a are different than zero.
     	V[:,findall(x->x==0,a)] .= 0
     	a[findall(x->x==0,a)] .= 1
-    	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
+    	S=diagm(0 => λ*ones(eltype(λ),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
 
-        z=zeros(eltype(V),n)
-        if ndims(V)==1
+        # Type logic
+        Fλtype=promote_type(eltype(λ),Ftype);
+        TT=promote_type(Fλtype,eltype(V));
+
+        z=zeros(TT,n)
+        if (V isa AbstractVector)
             for i=1:size(nep.A,1)
-                Fi=nep.fi[i](S);
-                z=z .+ nep.A[i]*(V*Fi);
+                Fi1=nep.fi[i](S); # Get the function value
+                z[:] += nep.A[i]*(V*Fi1);
             end
         else
             for i=1:size(nep.A,1)
-                Fi=nep.fi[i](S)[:,1];
-                z=z .+ nep.A[i]*(V*Fi);
+                Fi1=nep.fi[i](S)[:,1]; # Get all the scaled derivatives as well
+                z[:] += nep.A[i]*(V*Fi1);
             end
     	end
 
