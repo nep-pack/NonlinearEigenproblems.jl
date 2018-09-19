@@ -183,6 +183,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          T = eltype(AA[1])
          As = Vector{SparseMatrixCSC{T,Int}}()
 
+
          if use_sparsity_pattern && issparse(AA[1])
              # Merge the sparsity pattern of all matrices without dropping any zeros
              Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
