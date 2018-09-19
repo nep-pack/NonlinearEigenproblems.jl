@@ -227,56 +227,59 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         Z=zeros(n,n)
         return SPMF_NEP_dense{AbstractMatrix}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
-    function compute_MM(nep::SPMF_NEP,S::AbstractMatrix,V::AbstractVector)
-        if (issparse(V))
-            if (size(V)==size(nep))
-                # Initialize with zero sparse matrix which
-                # has sparsity pattern already consistent
-                # with sparsity pattern of M() for optimization
-                Z=copy(nep.Zero)
-            else
-                Z=spzeros(eltype(V),size(V,1),size(V,2))
-            end
-        else
-            Z=zeros(eltype(V),size(V))
-        end
-        # Sum together all the terms in the SPMF:
-        if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
-            (T, Q, ) = schur(S)
-        end
-        for i=1:size(nep.A,1)
-            ## Compute Fi=f_i(S) in an optimized way
+    function compute_MM(nep::SPMF_NEP,S::AbstractMatrix,V::AbstractMatrix)
+
+        AA=get_Av(nep);
+        ff=get_fv(nep);
+        m=size(ff,1); n=size(nep,1); p=size(S,1);
+        # Precompute all the fi(S) so we can determine the output type
+        FF=Vector{AbstractMatrix}(undef,m); # Contains all the fi(S)
+        T0=eltype(V);
+        for i=1:m
+            local Fi::AbstractMatrix
             if (isdiag(S)) # optimize if S is diagonal
                 Sd=diag(S);
+                local Fid
                 if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
-                    Fid=nep.fi[i](reshape([Sd[1]],1,1))[1]*ones(size(Sd,1))
+                    Fid=nep.fi[i](Sd[1])*ones(p)
                 else  # Diagonal but not constant
-                    Fid=zeros(ComplexF64,size(S,1))
-                    for j=1:size(S,1)
-                        Fid[j]=nep.fi[i](reshape([Sd[j]],1,1))[1]
+                    Fid0=Vector{Number}(undef,p)
+                    for j=1:p
+                        Fid0[j]=nep.fi[i](Sd[j])
                     end
+                    # Find the common type of all the computed values
+                    Tz=mapreduce(typeof,promote_type,Fid0)
+                    Fid=Vector{Tz}(Fid0);
                 end
-                Fi=sparse(Diagonal(Fid))
-            else  # Otherwise just compute the matrix function operation
-                if(nep.Schur_factorize_before)
-                    Fi= Q*nep.fi[i](T)*Q'
-                else
-                    Fi=nep.fi[i](S)
-                end
+                Fi=Diagonal(Fid)
+            else
+                Fi=ff[i](S);
             end
-            ## Sum it up
+            FF[i]=Fi;
+            T0=promote_type(eltype(Fi),T0);
+        end
+        T0=promote_type(T0,eltype(AA[1]))
+        # Always return a dense matrix
+        Z=zeros(T0,n,p);
 
+        # Sum together all the terms in the SPMF:
+        if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
+            (T, Q, ) = schur(S)  # Currently not used
+        end
 
+        ## Sum them up
+        for i=1:m
+            ## Compute Fi=f_i(S) in an optimized way
+            Fi=FF[i]
             VFi=V*Fi;
             if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi)))
-                # 2018-09-14: SubArray x Matrix of different types do not work? Check in new version of Julia/base at later point (TODO)
-                # https://discourse.julialang.org/t/subarray-x-matrix-multipliciation-of-different-eltype-fails/14950
+                # 2018-09-14: SubArray x Matrix of different types do not work on julia 1.0.0
+                # https://github.com/JuliaLang/julia/issues/29224#issuecomment-422071426
                 # Workaround by making a matrix copy.
                 Z=Z+copy(nep.A[i])*VFi;
             else
                 Z=Z+nep.A[i]*VFi;
             end
-
         end
         return Z
     end
@@ -296,12 +299,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
      end
 
      function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
-
-        # figure out the return type, as the greatest type of all input
-        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
-        Tx = mapreduce(eltype, promote_type, x)
-        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
-        TZ=promote_type(TA,Tx)  # output type
+         # figure out the return type, as the greatest type of all input
+         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+         Tx = mapreduce(eltype, promote_type, x)
+         TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+         TZ=promote_type(TA,Tx)  # output type
          Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
                              nep.As[1].colptr, nep.As[1].rowval,
                              convert.(TZ, nep.As[1].nzval .* x[1]))
