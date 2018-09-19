@@ -187,18 +187,18 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           else
              n=100; # Default size
           end
+          LL=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
 
-          L=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
           x = range(0, stop = pi, length = n)
           h=x[2]-x[1];
           h=pi
-          L=L/(h^2)
-          L=kron(L,L)
+          LL=LL/(h^2)
+          LL=kron(LL,LL)
 
           b=broadcast((x,y)->100*abs(sin(x+y)),x,transpose(x))
           a=broadcast((x,y)->-8*sin(x)*sin(y),x,transpose(x))
           B=sparse(1:n^2,1:n^2,b[:])
-          A=L+sparse(1:n^2,1:n^2,a[:])
+          A=LL+sparse(1:n^2,1:n^2,a[:])
 
           nep=DEP([A,B],[0,2])
           return nep
