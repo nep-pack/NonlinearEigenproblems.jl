@@ -125,8 +125,8 @@ for matrices in the standard matrix function sense.
     end
     SPMF_NEP{T} = Union{SPMF_NEP_dense{T},SPMF_NEP_sparse{T}}
 
-    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
-        SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
+    #SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
+    #    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
 
 """
      SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
@@ -168,7 +168,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
          if (size(AA,1)==0)
-             return SPMF_NEP{typeof(I)}(0); # Create empty SPMF_NEP.
+             return SPMF_NEP(0); # Create empty SPMF_NEP.
          end
          n=size(AA[1],1);
 
@@ -184,42 +184,48 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
-         T = eltype(AA[1])
-         As = Vector{SparseMatrixCSC{T,Int}}()
 
-
-         if use_sparsity_pattern && issparse(AA[1])
-             # Merge the sparsity pattern of all matrices without dropping any zeros
-             Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
-             for i = 2:size(AA,1)
-                 Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
-             end
-             Zero = T.(Zero)
-             Zero.nzval[:] .= T(0)
-
-             # Create a copy of each matrix with the sparsity pattern of all matrices combined
-             @inbounds for A in AA
-                 S = copy(Zero)
-
-                 for col = 1:size(A, 2)
-                    for j in nzrange(A, col)
-                        S[A.rowval[j], col] = A.nzval[j]
-                    end
-                 end
-
-                 push!(As, S)
-             end
+         if !(eltype(AA) <: SparseMatrixCSC)
+             # Dense
+             this=SPMF_NEP_dense{typeof(AA[1])}(n,AA,fii,Schur_fact);
          else
-             Zero=zeros(n,n)
+             # Sparse: Potentially do the joint sparsity pattern trick.
+             T = eltype(AA[1])
+             As = Vector{SparseMatrixCSC{T,Int}}()
+
+             if use_sparsity_pattern && issparse(AA[1])
+                 # Merge the sparsity pattern of all matrices without dropping any zeros
+                 Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
+                 for i = 2:size(AA,1)
+                     Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
+                 end
+                 Zero = T.(Zero)
+                 Zero.nzval[:] .= T(0)
+
+                 # Create a copy of each matrix with the sparsity pattern of all matrices combined
+                 @inbounds for A in AA
+                     S = copy(Zero)
+
+                     for col = 1:size(A, 2)
+                         for j in nzrange(A, col)
+                             S[A.rowval[j], col] = A.nzval[j]
+                         end
+                     end
+
+                     push!(As, S)
+                 end
+             else
+                 Zero=zeros(n,n)
+             end
+
+             this=SPMF_NEP_sparse{typeof(AA[1])}(n,AA,fii,Schur_fact,Zero,As);
          end
 
-
-         this=SPMF_NEP_sparse{typeof(AA[1])}(n,AA,fii,Schur_fact,Zero,As);
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
-         Z=zeros(n,n)
-         return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z);
+        Z=zeros(n,n)
+        return SPMF_NEP_dense{AbstractMatrix}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
     function compute_MM(nep::SPMF_NEP,S::AbstractMatrix,V::AbstractVector)
         if (issparse(V))
@@ -276,30 +282,34 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
 
 
-    function compute_Mder(nep::SPMF_NEP,λ::Number)
+     function compute_Mder(nep::SPMF_NEP_dense,λ::Number)
+         # figure out the return type, as the greatest type of all input
+         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+         Tx = mapreduce(eltype, promote_type, x)
+         TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+         TZ=promote_type(TA,Tx)  # output type
+         Z = zeros(TZ,size(nep,1),size(nep,1));
+         for k=1:size(nep.A,1)
+             Z += nep.A[k] * x[k]
+         end
+         return Z
+     end
+
+     function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
 
         # figure out the return type, as the greatest type of all input
         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
         Tx = mapreduce(eltype, promote_type, x)
         TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
         TZ=promote_type(TA,Tx)  # output type
-        if isempty(nep.As)
-            # Full matrices
-            Z = zeros(TZ,size(nep,1),size(nep,1));
-            for k=1:size(nep.A,1)
-                Z += nep.A[k] * x[k]
-            end
-            return Z
-        else
-            Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
-                                nep.As[1].colptr, nep.As[1].rowval,
-                                convert.(TZ, nep.As[1].nzval .* x[1]))
-            for k = 2:length(nep.As)
-                Z.nzval .+= nep.As[k].nzval .* x[k]
-            end
+         Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
+                             nep.As[1].colptr, nep.As[1].rowval,
+                             convert.(TZ, nep.As[1].nzval .* x[1]))
+         for k = 2:length(nep.As)
+             Z.nzval .+= nep.As[k].nzval .* x[k]
+         end
+         return Z
 
-            return Z
-        end
     end
 
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
