@@ -73,7 +73,7 @@ function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
     # create anonymous functions corresponding to the
     # shift and scaled problem
     for i=1:m
-        fv[i] = S -> orgfv[i](scale*S + shift*I)
+        fv[i] = S -> orgfv[i](scale*S + shift*one(S))
     end
     # create a new SPMF with transformed functions
     return SPMF_NEP(get_Av(orgnep),fv;Schur_fact=orgnep.Schur_factorize_before);
