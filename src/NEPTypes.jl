@@ -878,9 +878,8 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     # Use delagation to the nep_proj
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
     # Use MM to compute Mlincomb for SPMFs
-    compute_Mlincomb(nep::Proj_SPMF_NEP,λ::Number,
-                     V::AbstractVecOrMat,a::Vector=ones(size(V,2)))=
-             compute_Mlincomb_from_MM(nep,λ,V,a)
+    compute_Mlincomb(nep::Proj_SPMF_NEP,par...)=
+             compute_Mlincomb(nep.nep_proj,par...)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
 
@@ -1060,12 +1059,23 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         if (V isa AbstractVector)
             for i=1:size(nep.A,1)
                 Fi1=nep.fi[i](S); # Get the function value
-                z[:] += nep.A[i]*(V*Fi1);
+                VFi1=V*Fi1
+                if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi1)))
+                    # https://github.com/JuliaLang/julia/issues/29224
+                    z[:] += copy(nep.A[i])*VFi1
+                else
+                    z[:] += nep.A[i]*VFi1
+                end
             end
         else
             for i=1:size(nep.A,1)
                 Fi1=nep.fi[i](S)[:,1]; # Get all the scaled derivatives as well
-                z[:] += nep.A[i]*(V*Fi1);
+                if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi1)))
+                    # https://github.com/JuliaLang/julia/issues/29224
+                    z[:] += copy(nep.A[i])*VFi1
+                else
+                    z[:] += nep.A[i]*VFi1
+                end
             end
     	end
 
