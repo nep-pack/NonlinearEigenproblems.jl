@@ -319,7 +319,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
                             "gallery_extra", "qdep_infbilanczos_")
           A0=read_sparse_matrix(qdepbase * "A0.txt")
           A1=read_sparse_matrix(qdepbase * "A1.txt")
-          tau = 1
+          local tau::Float64 = 1
           quadfun = S -> S^2
           constfun = S -> one(S)
           expfun = S -> exp(-tau*S)
