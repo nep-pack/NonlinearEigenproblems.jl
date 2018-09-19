@@ -218,7 +218,8 @@ function save_benchmark(test_results, file_name)
         Sys.total_memory() / (1024.0 * 1024 * 1024))
 
     git_commit = safe_read_command(`git log -1 --format="%h"`)
-    git_branch = safe_read_command(`git symbolic-ref --short HEAD`)
+    git_branch = safe_read_command(`git rev-parse --abbrev-ref HEAD`)
+    git_branch == "HEAD" && (git_branch = safe_read_command(pipeline(pipeline(`git describe --all --exact-match`, stderr=devnull), `sed 's=.*/=='`)))
     git_details = safe_read_command(`git log -1 --format="%ai, %s"`)
     dict["git"] = @sprintf("%s (%s), %s", git_commit, git_branch, git_details)
 
