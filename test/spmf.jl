@@ -24,6 +24,16 @@ using SparseArrays
     nep1 = SPMF_NEP([J, A0, A1], fi)
     nep2 = SPMF_NEP([J, A0, A1], fi; Schur_fact=true)
 
+    @bench @testset "compute_Mlincomb" begin
+        # test that the function compute_Mlincomb does not overwrite the input
+        λ =randn(); V=randn(n,3); W=copy(V); a=[1; 0; 2];
+        z=compute_Mlincomb(nep1,λ,V,a);
+        @test norm(V-W)<sqrt(eps())*100
+        # test that the function compute_Mlincomb! overwrites the input        
+        z=compute_Mlincomb!(nep1,λ,V,a);
+        @test norm(V-W)>sqrt(eps())*100
+    end
+
     @bench @testset "compute_MM" begin
 
         S=randn(3,3);
