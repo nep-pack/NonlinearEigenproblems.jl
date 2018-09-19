@@ -1016,7 +1016,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return z
     end
 
-    function compute_Mlincomb(
+    function compute_Mlincomb!(
                         nep::SPMF_NEP,
                         λ::Number,
                         V::AbstractVecOrMat,
@@ -1050,6 +1050,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     	return a[1]*reshape(z,size(z,1))
     end
 
-
+    compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::AbstractVecOrMat, a::Vector)=
+           compute_Mlincomb!(nep,λ,copy(V), copy(a))
 
 end
