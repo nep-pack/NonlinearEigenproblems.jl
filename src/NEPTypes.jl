@@ -105,15 +105,17 @@ and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
 """
 
+# Logic behind Ftype:
+#  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
 
-    struct SPMF_NEP_dense{T}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
+    struct SPMF_NEP_dense{T,Ftype}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization
     end
 
-    struct SPMF_NEP_sparse{T}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
+    struct SPMF_NEP_sparse{T,Ftype}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
          n::Int
          A::Vector{T}   # Array of Array of matrices
          fi::Vector{Function}  # Array of functions
@@ -123,7 +125,7 @@ for matrices in the standard matrix function sense.
          Zero::SparseMatrixCSC
          As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
     end
-    SPMF_NEP{T} = Union{SPMF_NEP_dense{T},SPMF_NEP_sparse{T}}
+    SPMF_NEP{T,Ftype} = Union{SPMF_NEP_dense{T,Ftype},SPMF_NEP_sparse{T,Ftype}}
 
     #SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
     #    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
@@ -146,7 +148,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
-                       Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
+                       Schur_fact = false, use_sparsity_pattern = true,
+                       check_consistency=false, Ftype=ComplexF64)
 
          T=Float64;
          if (check_consistency)
@@ -183,11 +186,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
              end
          end
 
-
-
          if !(eltype(AA) <: SparseMatrixCSC)
              # Dense
-             this=SPMF_NEP_dense{typeof(AA[1])}(n,AA,fii,Schur_fact);
+             this=SPMF_NEP_dense{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact);
          else
              # Sparse: Potentially do the joint sparsity pattern trick.
              T = eltype(AA[1])
@@ -218,7 +219,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                  Zero=zeros(n,n)
              end
 
-             this=SPMF_NEP_sparse{typeof(AA[1])}(n,AA,fii,Schur_fact,Zero,As);
+             this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,Zero,As);
          end
 
          return this
@@ -227,27 +228,28 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         Z=zeros(n,n)
         return SPMF_NEP_dense{AbstractMatrix}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
-    function compute_MM(nep::SPMF_NEP,S::AbstractMatrix,V::AbstractMatrix)
+    function compute_MM(nep::SPMF_NEP{T,Ftype},S::AbstractMatrix,V::AbstractMatrix) where {T,Ftype}
 
         AA=get_Av(nep);
         ff=get_fv(nep);
         m=size(ff,1); n=size(nep,1); p=size(S,1);
         # Precompute all the fi(S) so we can determine the output type
-        FF=Vector{AbstractMatrix}(undef,m); # Contains all the fi(S)
-        T0=eltype(V);
+        FF=Vector{AbstractMatrix}(undef,m); # Will contain all the fi(S)
+        FStype=promote_type(eltype(S),Ftype)
+        T0=promote_type(eltype(V),eltype(AA[1]),FStype)
         for i=1:m
             local Fi::AbstractMatrix
             if (isdiag(S)) # optimize if S is diagonal
                 Sd=diag(S);
                 local Fid
                 if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
-                    Fid=nep.fi[i](Sd[1])*ones(p)
+                    Fid=nep.fi[i](Sd[1])*ones(T0,p)
                 else  # Diagonal but not constant
                     Fid0=Vector{Number}(undef,p)
                     for j=1:p
                         Fid0[j]=nep.fi[i](Sd[j])
                     end
-                    # Find the common type of all the computed values
+                    # Find the common type of all the computed values in the vector
                     Tz=mapreduce(typeof,promote_type,Fid0)
                     Fid=Vector{Tz}(Fid0);
                 end
@@ -256,29 +258,27 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 Fi=ff[i](S);
             end
             FF[i]=Fi;
-            T0=promote_type(eltype(Fi),T0);
+            #T0=promote_type(eltype(Fi),T0); # The common type of the matrix function
         end
-        T0=promote_type(T0,eltype(AA[1]))
         # Always return a dense matrix
         Z=zeros(T0,n,p);
 
         # Sum together all the terms in the SPMF:
-        if(nep.Schur_factorize_before) #Optimize if allowed to factorize before
-            (T, Q, ) = schur(S)  # Currently not used
+        if (nep.Schur_factorize_before) #Optimize if allowed to factorize before
+            (TT, Q, ) = schur(S)  # Currently not used
         end
 
-        ## Sum them up
         for i=1:m
             ## Compute Fi=f_i(S) in an optimized way
             Fi=FF[i]
-            VFi=V*Fi;
+            VFi::Matrix{promote_type(FStype,eltype(V))}=V*Fi;
             if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi)))
                 # 2018-09-14: SubArray x Matrix of different types do not work on julia 1.0.0
-                # https://github.com/JuliaLang/julia/issues/29224#issuecomment-422071426
+                # https://github.com/JuliaLang/julia/issues/29224
                 # Workaround by making a matrix copy.
-                Z=Z+copy(nep.A[i])*VFi;
+                Z[:,:] += copy(nep.A[i])*VFi;
             else
-                Z=Z+nep.A[i]*VFi;
+                Z[:,:] += nep.A[i]*VFi;
             end
         end
         return Z
