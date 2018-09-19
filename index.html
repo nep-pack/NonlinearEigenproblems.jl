@@ -144,14 +144,13 @@ $$</p>
 <p><a id='Getting-started-1'></a></p>
 <h1 id="getting-started">Getting started</h1>
 <p>Install it as an unregistered package in julia's REPL package mode by writing <code>] add git:/..</code>:</p>
-<pre><code>(v1.0) pkg&gt; add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
+<pre><code>julia&gt; ]
+(v1.0) pkg&gt; add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 
 </code></pre>
 
-<p>Then we can start to load some NEP-PACK packages</p>
-<pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems.NEPSolver
-julia&gt; using NonlinearEigenproblems.NEPTypes
-julia&gt; using LinearAlgebra
+<p>Then we can start to load the NEP-PACK package</p>
+<pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems
 </code></pre>
 
 <p>We are now ready to create and solve a nonlinear eigenvalue problem, in this illustrative example we set</p>
@@ -171,15 +170,15 @@ julia&gt; λ,v=polyeig(nep)
 <p>You have now solved your first nonlinear eigenvalue problem with NEPPACK.</p>
 <p>In order to verify that we have a solution, we can check that  $M(λ)$ is singular, with a singular vector $v$ such that $M(λ)v=0$:</p>
 <pre><code class="julia-repl">julia&gt; λ1=λ[1]; v1=v[:,1];
+julia&gt; using LinearAlgebra # the norm-function is in this julia package
 julia&gt; norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 1.1502634749464687e-14
 </code></pre>
 
 <p><a id='Accessing-more-complicated-applications-1'></a></p>
 <h1 id="accessing-more-complicated-applications">Accessing more complicated applications</h1>
-<p>We have made benchmark examples available in the module <code>Gallery</code>. Use it by loading the module and calling the function <code>nep_gallery</code>:</p>
-<pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems.Gallery
-julia&gt; nep=nep_gallery(&quot;dep0&quot;,100);
+<p>We have made benchmark examples available in through the function <code>nep_gallery</code>:</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;,100);
 julia&gt; size(nep)
 (100, 100)
 julia&gt; λ,v=mslp(nep,tol=1e-10);
@@ -297,5 +296,5 @@ Iteration 14: Error: 2.525942e-15
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-09-13 07:19:53
+Build Date UTC : 2018-09-19 11:10:53
 -->

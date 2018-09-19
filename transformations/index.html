@@ -157,10 +157,10 @@ $$</p>
 <p>You can create a projected NEP with <code>create_proj_NEP</code>:</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.create_proj_NEP' href='#NonlinearEigenproblems.NEPTypes.create_proj_NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.create_proj_NEP</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>pnep=create_proj_NEP(orgnep::ProjectableNEP)
+<pre><code>pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 </code></pre>
 
-<p>Create a NEP representing a projected problem. The projection is defined as the problem $N(λ)=W^HM(λ)V$ where $M(λ)$ is represented by <code>orgnep</code>. Use <code>set_projectionmatrices!()</code> to specify projection matrices $V$ and $W$.</p>
+<p>Create a NEP representing a projected problem. The projection is defined as the problem $N(λ)=W^HM(λ)V$ where $M(λ)$ is represented by <code>orgnep</code>. The optional parameter <code>maxsize</code> determines how large the projected problem can be and <code>T</code> determines which Number type to use (default <code>ComplexF64</code>). These are needed for memory allocation reasons. Use <code>set_projectmatrices!()</code> to specify projection matrices $V$ and $W$.</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}' href='#NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Method</em>.</p>
 <pre><code>set_projectmatrices!(pnep::Proj_NEP,W,V)
