@@ -1,6 +1,7 @@
 # Test for infinite Bi-Lanczos
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblems.NEPCore
 using NonlinearEigenproblems.NEPSolver
 using NonlinearEigenproblems.NEPTypes
 using NonlinearEigenproblems.Gallery
