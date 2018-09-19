@@ -407,7 +407,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           # we rely on interpolation (of "denominator" and "numerator" separately)
 
           # Construct the complicated third function
-          L=2400;
+          L::Float64=2400;
           besselkp= (m,z)->  - besselk(m-1,z) - m*besselk(m,z)/z;  # Derivative
           numer= x-> ((L+0.5)/L^2)*x/(besselk(1,ComplexF64(x))^2)
           denom= x-> 1/(besselkp(1,ComplexF64(x))*besselk(1,ComplexF64(x)));
