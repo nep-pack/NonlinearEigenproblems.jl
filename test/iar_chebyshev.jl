@@ -146,7 +146,7 @@ end
 
         @bench @testset "DEP WITH DELAYS>1" begin
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
-            tau1=0; tau2=2.3; tau3=.1;
+            tau1=0; tau2=1.3; tau3=.1;
             nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
             (λ,Q)=iar_chebyshev(nep,σ=0,Neig=3,displaylevel=0,maxit=90,tol=eps()*100)
 
