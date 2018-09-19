@@ -12,6 +12,8 @@ module NEPTypes
     export PEP
     export REP
     export SPMF_NEP
+    export SPMF_NEP_dense
+    export SPMF_NEP_sparse
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
     export Proj_NEP;
@@ -64,7 +66,7 @@ julia> compute_Mder(projnep,3.0)
     #######################################################
     ### Sum of products matrices and functions
 
-    """
+"""
     abstract  AbstractSPMF <: ProjectableNEP
 
 An AbstractSPMF is an abstract class representing NEPs which can be represented
@@ -73,16 +75,16 @@ where i = 0,1,2,..., all of the matrices are of size n times n and f_i are funct
 Any AbstractSPMF has to have implementations of get_Av() and get_fv() which return the
 functions and matrices.
 """
-    abstract  type AbstractSPMF <: ProjectableNEP end # See issue #17
+    abstract  type AbstractSPMF{T} <: ProjectableNEP end # See issue #17
 
-    """
+"""
     get_Av(nep::AbstractSPMF)
 Returns an array of matrices A_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
     function get_Av(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_Av for all AbstractSPMFs")
     end
-    """
+"""
     get_Av(nep::AbstractSPMF)
 Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
@@ -90,8 +92,8 @@ Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ
         error("You need to implement get_fv for all AbstractSPMFs")
     end
 
-    """
-    struct SPMF_NEP <: AbstractSPMF
+"""
+    SPMF_NEP
 
 An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions,
 i.e.,
@@ -102,16 +104,26 @@ All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
 """
-    struct SPMF_NEP <: AbstractSPMF
+
+
+    struct SPMF_NEP_dense{T}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
+        n::Int
+        A::Vector{T}   # Array of Array of matrices
+        fi::Vector{Function}  # Array of functions
+        Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization
+    end
+
+    struct SPMF_NEP_sparse{T}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
          n::Int
-         A::Array   # Array of Array of matrices
-         fi::Array  # Array of functions
+         A::Vector{T}   # Array of Array of matrices
+         fi::Vector{Function}  # Array of functions
          Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::SparseMatrixCSC
          As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
     end
+    SPMF_NEP{T} = Union{SPMF_NEP_dense{T},SPMF_NEP_sparse{T}}
 
     SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
         SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
@@ -134,39 +146,31 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
-            Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
+                       Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
 
-            T=Float64;
-            if (check_consistency)
-                for t=1:length(fii)
-                    # Scalar leads to scalars:
-                    s=one(T);
-                    ci=@code_typed(fii[t](s)) # ci[end] gives the return type
-                    if !(ci[end] <: Number)
-                        @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                        #error("The given function does not return a scalar if evaluated in a scalar")
-                    end
-                    S=ones(T,2,2);
-                    ci=@code_typed(fii[t](S))
-                    if !(ci[end] <: Matrix)
-                        @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                        #error("The given function does not return a scalar if evaluated in a scalar")
-                    end
-                end
-            end
+         T=Float64;
+         if (check_consistency)
+             for t=1:length(fii)
+                 # Scalar leads to scalars:
+                 s=one(T);
+                 ci=@code_typed(fii[t](s)) # ci[end] gives the return type
+                 if !(ci[end] <: Number)
+                     @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                     #error("The given function does not return a scalar if evaluated in a scalar")
+                 end
+                 S=ones(T,2,2);
+                 ci=@code_typed(fii[t](S))
+                 if !(ci[end] <: Matrix)
+                     @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                     #error("The given function does not return a scalar if evaluated in a scalar")
+                 end
+             end
+         end
 
          if (size(AA,1)==0)
-             return SPMF_NEP(0); # Create empty SPMF_NEP.
+             return SPMF_NEP{typeof(I)}(0); # Create empty SPMF_NEP.
          end
          n=size(AA[1],1);
-
-         if     (size(AA,1) != 1) && (size(AA,2) == 1) # Stored as column vector - do nothing
-         elseif (size(AA,1) == 1) && (size(AA,2) == 1) # It is a single entry - do nothing
-         elseif (size(AA,1) == 1) && (size(AA,2) != 1) # Stored as a row-vector
-             AA = vec(AA)
-         else
-             error("The given array should be a vector but is of size ", size(AA), ".")
-         end
 
 
          if(size(AA,1) != size(fii,1))
@@ -210,14 +214,14 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
 
 
-         this=SPMF_NEP(n,AA,fii,Schur_fact,Zero,As);
+         this=SPMF_NEP_sparse{typeof(AA[1])}(n,AA,fii,Schur_fact,Zero,As);
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
          Z=zeros(n,n)
          return SPMF_NEP(n,Vector{Matrix}(),Vector{Function}(),false,Z);
     end
-    function compute_MM(nep::SPMF_NEP,S,V)
+    function compute_MM(nep::SPMF_NEP,S::AbstractMatrix,V::AbstractVector)
         if (issparse(V))
             if (size(V)==size(nep))
                 # Initialize with zero sparse matrix which
@@ -335,7 +339,7 @@ julia> M2=-λ*I+A0+A1*exp(-tauv[2]*λ)
 julia> norm(M1-M2)
 0.0
 """
-    struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF
+    struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF{T}
         n::Int
         A::Array{T,1}     # An array of matrices (full or sparse matrices)
         tauv::Vector{Z}   # the delays (which are always real)
@@ -430,7 +434,7 @@ julia> norm(M1-M2)
 
 A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
 """
-    struct PEP <: AbstractSPMF
+    struct PEP <: AbstractSPMF{AbstractMatrix}
         n::Int
         A::Array   # Monomial coefficients of PEP
     end
@@ -606,7 +610,7 @@ A REP represents a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
 matrices are of size n times n and s_i and q_i are polynomials.
 """
-    struct REP <: AbstractSPMF
+    struct REP <: AbstractSPMF{AbstractMatrix}
         n::Int
         A::Array   # Monomial coefficients of REP
         si::Array  # numerator polynomials
@@ -924,7 +928,7 @@ julia> M1+M2  # Same as M
         nep2::NEP2
     end
 
-    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
         nep1::NEP1
         nep2::NEP2
     end
