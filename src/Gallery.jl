@@ -439,7 +439,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           numer_new_c64=x->newton_eval(num_coeffs_c64,x,interp_points_c64)
           denom_new_c64=x->newton_eval(denom_coeffs_c64,x,interp_points_c64)
 
-          f_new_c64=x->  numer_new_c64(x)/denom_new_c64(x)
+          f_new_c64=x->  denom_new_c64(x)\numer_new_c64(x)
           s3_new= λ -> f_new_c64(sqrt(λ)*L); # This is the new function. Works for matrices and functions
           n=2400;
 

@@ -6,8 +6,6 @@ module NEPCore
     # Fundamental nonlinear eigenvalue problems
     export NEP
     #
-    export size
-    export issparse
     export NoConvergenceException
     export LostOrthogonalityException
     export interpolate
@@ -99,7 +97,7 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
 ```
 """
-    function compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector)
+    function compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)
         # This will manually scale the columns in V by the vector a.
         if (ones(eltype(a),size(a,1))==a) # No scaling necessary
             return compute_Mlincomb!(nep,λ,V);
@@ -114,24 +112,24 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
     end
 
     # Recommend to make a copy of V and call compute_Mlincomb! if function not available
-    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})
-        @warn "It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::$(typeof(nep)),λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb!(nep,λ,copy(V))"
+    function compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat)
+        @warn "It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::$(typeof(nep)),λ::Number,V::AbstractVecOrMat)=compute_Mlincomb!(nep,λ,copy(V))"
         error("No compute_Mlincomb(nep,λ,V) implemented")
     end
-    compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=
+    compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector)=
            compute_Mlincomb!(nep,λ,copy(V), a)
 
     # Note: The following function is commented out since default behaviour is
     # by to manually create a bigger a-vector (and call without startder) see below
-    #compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
+    #compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector, startder::Integer)=compute_Mlincomb!(nep,λ,copy(V), a, startder)
 
 
     # Default behavior of the compute_Mlincomb! is to just call compute_Mlincomb
-    compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
+    compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector, startder::Integer)=compute_Mlincomb(nep,λ,V, a, startder)
     # Note: The following function is commented out since, default behaviour is
     # by manual scaling of columns (see above), not calling compute_Mlincomb()
-    # compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by
-    compute_Mlincomb!(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector})=compute_Mlincomb(nep,λ,V)
+    # compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector)=compute_Mlincomb(nep,λ,V, a) # This is instead achieved by
+    compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat)=compute_Mlincomb(nep,λ,V)
 
 """
     compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
@@ -142,7 +140,7 @@ Computes linear combination starting with derivative startder, i.e.,
 The default implementation of this can be slow. Overload for specific NEP
 if you want efficiency (for aug_newton, IAR, ..).
 """
-    function compute_Mlincomb(nep::NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},a::Vector,startder::Integer)
+    function compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector,startder::Integer)
         aa=[zeros(eltype(a), startder);a];
         VV=[zeros(eltype(V), size(nep,1),startder) V]; # This is typically slow since copy is needed
         return compute_Mlincomb(nep,λ,VV,aa)
@@ -228,9 +226,9 @@ Computes the Mder function from MM using the fact that MM of
 a jordan block becomes derivatives
 """
     function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
-        J=sparse(transpose(jordan_matrix(typeof(λ),i+1,λ)))
+        J=transpose(jordan_matrix(typeof(λ),i+1,λ))
         n=size(nep,1);
-        S=kron(J, sparse(1.0I, n, n))
+        S=kron(J, Matrix(1.0I, n, n))
         V=factorial(i) * kron(sparse(1.0I, 1, i+1)[:,end:-1:1], sparse(1.0I, n, n))
         W=compute_MM(nep,S,V)
         return W[1:n,1:n]

@@ -12,6 +12,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 On Julia 1.0.0 and Julia 0.7, install it as an unregistered package by writing `] add ...` at the REPL-prompt: 
 ```
+julia> ]
 (v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 ```
 
@@ -38,7 +39,7 @@ If you find this software useful please cite
 ```bibtex
 @Misc{,
   author = 	 {E. Jarlebring, G. Mele, E. Ringh, P. Upadhyaya},
-  title = 	 {{NEP-PACK}: A Julia package for nonlinear eigenvalue problems},
+  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenvalue problems},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
 }

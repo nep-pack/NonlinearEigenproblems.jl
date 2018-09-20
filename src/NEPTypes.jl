@@ -4,6 +4,7 @@ module NEPTypes
     using LinearAlgebra
     using PolynomialZeros
     using Polynomials
+    using InteractiveUtils
 
     # Specializalized NEPs
     export ProjectableNEP
@@ -116,17 +117,10 @@ for matrices in the standard matrix function sense.
         SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
 
 """
-     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true)
+     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
 
-Creates a SPMF_NEP consisting of matrices `AA` and functions `fii`. `fii` must
-be an array of functions defined for matrices. `AA` is an array of
-matrices. `Schur_fact` specifies if the computation of `compute_MM` should be
-done by first pre-computing a Schur-factorization (which can be faster).
-If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each
-matrix will be stored with a sparsity pattern matching the union of all `AA`
-matrices. This leads to more efficient calculation of `compute_Mder`. If
-the sparsity patterns are completely or mostly distinct, it may be more
-efficient to set this flag to false.
+Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices. This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If check_consistency is true the input
+checking will be performed.
 
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
@@ -139,26 +133,27 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 ```
 """
-     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
-            Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
+     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
+            Schur_fact = false, use_sparsity_pattern = true, check_consistency=false)
 
-
-     # if (check_consistency)
-     #     for t=1:length(fii)
-     #         s=NaN
-     #         if (size(fii[t](s))==size(s))
-     #             # nothing
-     #         else
-     #             error("The given function does not return a scalar if evaluated in a scalar")
-     #         end
-     #         S=NaN*one(rand(2,2));
-     #         if (size(fii[t].(S))==size(S))
-     #             # nothing
-     #         else
-     #             error("The given function does not return a matrix if evaluated in a matrix")
-     #         end
-     #     end
-     # end
+            T=Float64;
+            if (check_consistency)
+                for t=1:length(fii)
+                    # Scalar leads to scalars:
+                    s=one(T);
+                    ci=@code_typed(fii[t](s)) # ci[end] gives the return type
+                    if !(ci[end] <: Number)
+                        @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                        #error("The given function does not return a scalar if evaluated in a scalar")
+                    end
+                    S=ones(T,2,2);
+                    ci=@code_typed(fii[t](S))
+                    if !(ci[end] <: Matrix)
+                        @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                        #error("The given function does not return a scalar if evaluated in a scalar")
+                    end
+                end
+            end
 
          if (size(AA,1)==0)
              return SPMF_NEP(0); # Create empty SPMF_NEP.
@@ -479,7 +474,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
     end
     # Use MM to compute Mlincomb for PEPs
     compute_Mlincomb(nep::PEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(eltype(V),size(V,2)))=
+                     V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
@@ -867,7 +862,7 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
     # Use MM to compute Mlincomb for SPMFs
     compute_Mlincomb(nep::Proj_SPMF_NEP,λ::Number,
-                     V::Union{AbstractMatrix,AbstractVector},a::Vector=ones(size(V,2)))=
+                     V::AbstractVecOrMat,a::Vector=ones(size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number)=compute_Mder(nep.nep_proj,λ,0)
     compute_Mder(nep::Union{Proj_SPMF_NEP},λ::Number,i::Integer)=compute_Mder(nep.nep_proj,λ,i)
@@ -945,7 +940,7 @@ julia> M1+M2  # Same as M
     # Delegate all interface functions
     size(snep::AnySumNEP)=size(snep.nep1)
     size(snep::AnySumNEP,d)=size(snep.nep1,d)
-    compute_Mlincomb(nep::AnySumNEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}) =
+    compute_Mlincomb(nep::AnySumNEP, λ::Number, V::AbstractVecOrMat) =
         (compute_Mlincomb(nep.nep1, λ, V)+compute_Mlincomb(nep.nep2,λ,V))
     compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
@@ -994,7 +989,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::Number,V::Union{AbstractMatrix,AbstractVector},
+    function compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
@@ -1024,7 +1019,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     function compute_Mlincomb(
                         nep::SPMF_NEP,
                         λ::Number,
-                        V::Union{AbstractMatrix,AbstractVector},
+                        V::AbstractVecOrMat,
                         a::Vector=ones(size(V,2)))
 
 

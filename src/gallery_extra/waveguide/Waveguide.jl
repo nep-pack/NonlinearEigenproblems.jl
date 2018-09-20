@@ -43,7 +43,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
         E_j = E_j * (E_j/nz)'
         A[j+nz+3] =  hvcat((2,2), spzeros(ComplexF64,nx*nz,nx*nz), spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), E_j)
     end
-    return SPMF_NEP(A,f,pre_Schur_fact)
+    return SPMF_NEP(A,f;Schur_fact=pre_Schur_fact)
 end
 
 

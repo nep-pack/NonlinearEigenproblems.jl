@@ -570,8 +570,8 @@ function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Inte
     return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
 end
 
-compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}) = compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
-function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::Union{AbstractMatrix,AbstractVector}, a::Vector)
+compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::AbstractVecOrMat) = compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
+function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::AbstractVecOrMat, a::Vector)
     t = compute_Mlincomb(nep.org_proj_nep, λ, V, a)
     t[:] = t + a[1] * (nep.W2' * (nep.X' * (nep.V1 * V[:,1])))
     for i = 1:size(V,2)

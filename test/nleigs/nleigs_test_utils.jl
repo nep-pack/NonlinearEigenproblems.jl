@@ -1,4 +1,4 @@
-using NonlinearEigenproblems.NEPCore
+using NonlinearEigenproblems
 using Printf
 
 function nleigs_verify_lambdas(nrlambda, nep::NEP, X, lambda, tol = 1e-5)

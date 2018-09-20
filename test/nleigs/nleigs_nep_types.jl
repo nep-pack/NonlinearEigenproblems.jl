@@ -1,8 +1,7 @@
 # Solves a basic eigenvalue problem defined through different NEP types through NLEIGS
 
 push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.NEPTypes
+using NonlinearEigenproblems
 using Test
 using SparseArrays
 
