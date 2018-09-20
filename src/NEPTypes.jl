@@ -1059,32 +1059,20 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                         V::AbstractVecOrMat,
                         a::Vector=ones(size(V,2)))
 
+                        # TODO: special case if λ=0
 
-        if ndims(V)==2
-            n,k=size(V);
-        else
-            n=size(V,1); k=1;
+        n=size(nep,1)
+        z=zeros(typeof(λ),n)
+        k=size(V,2)
+        d=length(nep.A)-1
+        for j=0:k-1
+            for i=j:d
+                z[:]+=a[j+1]*λ^(i-j)*(factorial(i)/factorial(i-j))*(nep.A[i+1]*V[:,j+1])
+            end
         end
 
-    	# we need to assume that the elements of a are different than zero.
-    	V[:,findall(x->x==0,a)] .= zero(eltype(V))
-    	a[findall(x->x==0,a)] .= one(eltype(a))
-    	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
 
-        z=zeros(eltype(V),n)
-        if ndims(V)==1
-            for i=1:size(nep.A,1)
-                Si=S^(i-1);
-                z=z .+ nep.A[i]*(V*Si);
-            end
-        else
-            for i=1:size(nep.A,1)
-                Si=(S^(i-1))[:,1];
-                z=z .+ nep.A[i]*(V*Si);
-            end
-    	end
-
-    	return a[1]*reshape(z,size(z,1))
+    	return reshape(z,size(z,1))
     end
 
     compute_Mlincomb(nep::PEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
