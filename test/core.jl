@@ -2,6 +2,7 @@
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems
+using LinearAlgebra
 using Test
 
 struct TestNEP <: NEP
@@ -57,6 +58,8 @@ end
 
 # compute_Mlincomb for PEPs
 @bench @testset "compute_Mlincomb PEP" begin
+    nep=nep_gallery("pep0");
+    n=size(nep,1);
     # test that the function compute_Mlincomb does not overwrite the input
     λ =randn(); V=randn(n,3); W=copy(V); a=[1; 0; 2];
     z=compute_Mlincomb(nep,λ,V,a);

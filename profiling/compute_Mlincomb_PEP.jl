@@ -8,7 +8,7 @@ using SparseArrays
 import Base.exp
 
 
-n=1000000;
+n=10000;
 Random.seed!(1) # reset the random seed
 K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
 A1=sparse(K, J, rand(3*n-2))
