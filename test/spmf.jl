@@ -147,7 +147,7 @@ using SparseArrays
 
     end
 
-    @testset "SPMF benchmark" begin
+    @onlybench @testset "SPMF benchmark" begin
         # To check performance of SPMF-compute_MM function
         large_benchmark = false
         if large_benchmark
