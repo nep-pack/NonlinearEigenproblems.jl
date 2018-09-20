@@ -1062,8 +1062,8 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                         # TODO: special case if λ=0
 
 
-       # Type logic
-       TT=promote_type(typeof(λ),eltype(V),eltype(a),eltype(nep.A[1]));
+        # Type logic
+        TT=promote_type(typeof(λ),eltype(V),eltype(a),eltype(nep.A[1]));
 
         n=size(nep,1)
         z=zeros(TT,n)
@@ -1071,12 +1071,13 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         d=length(nep.A)-1
         for j=0:k-1
             for i=j:d
-                z[:]+=a[j+1]*λ^(i-j)*(factorial(i)/factorial(i-j))*(nep.A[i+1]*V[:,j+1])
+                temp=convert(TT,factorial(i)/factorial(i-j));
+                temp2=convert(TT,λ^(i-j));
+                z[:]+=a[j+1]*temp2*(temp)*(nep.A[i+1]*V[:,j+1])
             end
         end
-
-
-    	return reshape(z,size(z,1))
+        println("Check the type in the function: ",eltype(z)==TT,"\n")
+    	return z[:]
     end
 
     compute_Mlincomb(nep::PEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
