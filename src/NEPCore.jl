@@ -10,7 +10,6 @@ module NEPCore
     export issparse
     export NoConvergenceException
     export LostOrthogonalityException
-    export LinEigSolver
     export interpolate
 
     # Core interfaces

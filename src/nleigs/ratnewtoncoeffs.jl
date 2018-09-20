@@ -12,6 +12,7 @@ function ratnewtoncoeffs(fun, σ::AbstractVector{CT}, ξ::AbstractVector{T}, β:
     # compute divided differences D0,D1,...,Dm
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(undef,1,1); M[1] = x; M)
     D[1] = fun(as_matrix(σ[1])) * β[1]
+
     for j = 2:m
         # evaluate current linearizaion at σ[j]
         Qj = zeros(T, size(D[1]))

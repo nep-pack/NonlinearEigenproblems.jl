@@ -3,7 +3,7 @@ clear all
 clc
 %% DEFINE THE PROBLEM
 n=5;                % problems size (wanted n-1 scaled-derivative)
-alpha=ones(1,n);    % rescaling factors
+alpha=rand(1,n);    % rescaling factors
 mu=rand;            % the derivatives are evaluated in mu
 
 %% COMPUTE THE SCALED DERIVATIVES WITH A MATRIX FUNCTION EVALUATION
@@ -16,7 +16,7 @@ FF=alpha(1)*funm(JJ,@myfun)*e1;
 %% COMPUTE THE SCALED-DERIVATIVES IN THE STANDARD WAY
 F=zeros(n,1);
 for k=1:n
-    F(k,1)=myfun(mu,k-1)*alpha(k);
+    F(k)=myfun(mu,k-1)*alpha(k);
 end
 
 

@@ -140,7 +140,25 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function},
-            Schur_fact = false, use_sparsity_pattern = true)
+            Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
+
+
+     # if (check_consistency)
+     #     for t=1:length(fii)
+     #         s=NaN
+     #         if (size(fii[t](s))==size(s))
+     #             # nothing
+     #         else
+     #             error("The given function does not return a scalar if evaluated in a scalar")
+     #         end
+     #         S=NaN*one(rand(2,2));
+     #         if (size(fii[t].(S))==size(S))
+     #             # nothing
+     #         else
+     #             error("The given function does not return a matrix if evaluated in a matrix")
+     #         end
+     #     end
+     # end
 
          if (size(AA,1)==0)
              return SPMF_NEP(0); # Create empty SPMF_NEP.

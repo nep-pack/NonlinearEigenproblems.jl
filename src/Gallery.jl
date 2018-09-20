@@ -274,10 +274,10 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           # Create a quadratic problem with real eigenvalues
           n=4; # mat size
 
-	  A0 = [4     0     1     1;
-    		0     2     1     1;
-            1     1     6    -2;
-    		1     1    -2     3];
+	  A0 = [ 4     0     1     1;
+    		    0     2     1     1;
+              1     1     6    -2;
+    		    1     1    -2     3];
 
 
 	A1 = [167  -140    95  -131;
@@ -321,10 +321,10 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           A1=read_sparse_matrix(qdepbase * "A1.txt")
           tau = 1
           quadfun = S -> S^2
-          constfun = S -> Matrix{eltype(S)}(I, size(S))
-          expfun = S -> exp(-tau * Matrix(S))
+          constfun = S -> one(S)
+          expfun = S -> exp(-tau*S)
 
-          AA = [SparseMatrixCSC{eltype(A0)}(-I, size(A0)), A0, A1]
+          AA = [-one(A0), A0, A1]
           fi = [quadfun, constfun, expfun]
           return SPMF_NEP(AA, fi)
       elseif (name=="qdep1")
@@ -337,7 +337,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
              -1.1000    0.9000    1.2000    0.5000
               0.5000    0.2000   -1.6000   -1.3000
               0.7000    0.4000   -0.4000         0];
-          return SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ^2, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
+          return SPMF_NEP([one(A0), A0, A1], [λ -> -λ^2, λ -> one(λ), λ -> exp(-λ)])
 
       elseif (name == "qep_fixed_eig")
           # A delay eigenvalue problem
@@ -355,9 +355,9 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
 
 
           Random.seed!(0) # reset the random seed
-          K = Matrix(1.0I, n, n)
           A1 = diagm(0 => E[1:n])
           A2 = diagm(0 => E[n+1:2*n])
+          K = one(A1)
 
           nep=PEP([A1*A2,-A1-A2,K])
           return nep
@@ -397,8 +397,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           W2=read_sparse_matrix(gunbase * "W2.txt")
           # The gun problem is a sum of a PEP and a problem containing square roots.
           pep=PEP([K,-M]);
-          sqrt1op= S -> 1im*sqrt(Matrix(S))
-          sqrt2op= S -> 1im*sqrt(Matrix(S)-108.8774^2*I)
+          sqrt1op= S -> 1im*sqrt(S)
+          sqrt2op= S -> 1im*sqrt(S-108.8774^2*one(S))
           sqrtnep=SPMF_NEP([W1,W2],[sqrt1op,sqrt2op]);
           nep=SumNEP(pep,sqrtnep);
           return nep;
@@ -443,8 +443,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           s3_new= λ -> f_new_c64(sqrt(λ)*L); # This is the new function. Works for matrices and functions
           n=2400;
 
-          A1=sparse(1.0I,n,n)
           A2=sparse([n],[n],[1.0])  # This is a rank-one matrix!
+          A1=one(A2)
 
           # Create the A0-matrix takes a bit more work
           eta_cl = 1.4969;  # "physical params"
@@ -515,7 +515,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           Z=spzeros(n,n);
           pep=PEP([A0,A1,Z,Z,A2]);
           # Matrix  sine function. Note that the Term is rank two which is not exploited here
-          sin_nep=SPMF_NEP([V*Q'], [S-> sin(Matrix(S))]);
+          sin_nep=SPMF_NEP([V*Q'], [S-> sin(S)]);
 
           nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
           return nep;

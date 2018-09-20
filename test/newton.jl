@@ -143,16 +143,18 @@ using LinearAlgebra
         λδ,x,y = rfi(nepp,neptp,displaylevel=1, v=ones(n), u=ones(n))
         λp_approx=(λδ-λ)/δ
         @test abs(λp-λp_approx)< (δ*10)
-
-
-
     end
-
 
     @bench @testset "implicitdet" begin
         println("Implicitdet test")
         nepd=nep_gallery("periodicdde", name="mathieu")
         λ,v=implicitdet(nepd, v=ones(size(nepd,1)), displaylevel=1)
         @test norm(compute_Mder(nepd,λ)*v) < eps()*100
+    end
+
+    @bench @testset "type stability" begin
+        dep = nep_gallery("dep0")
+        @inferred augnewton(Float64, dep, v = ones(size(dep,1)))
+        @inferred augnewton(ComplexF64, dep, v = ones(size(dep,1)))
     end
 end
