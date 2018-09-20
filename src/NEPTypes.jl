@@ -1057,7 +1057,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                         nep::PEP,
                         λ::Number,
                         V::AbstractVecOrMat,
-                        a::Vector=ones(size(V,2)))
+                        a::Vector=ones(eltype(V),size(V,2)))
 
                         # TODO: special case if λ=0
 
@@ -1076,11 +1076,10 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                 z[:]+=a[j+1]*temp2*(temp)*(nep.A[i+1]*V[:,j+1])
             end
         end
-        println("Check the type in the function: ",eltype(z)==TT,"\n")
-    	return z[:]
+        return z[:]
     end
 
-    compute_Mlincomb(nep::PEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
+    compute_Mlincomb(nep::PEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(eltype(V),size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
 
 
 
