@@ -22,8 +22,7 @@ A3=sparse(K, J, rand(3*n-2))
 A4=sparse(K, J, rand(3*n-2))
 
 AA = [A1,A2,A3,A4]
-fi = [f1,f2,f3,f4]
-nep=SPMF_NEP(AA, fi)
+nep=PEP(AA)
 
 n=size(nep,1);	k=20;
 V=rand(n,k);	λ=rand()*im+rand();
