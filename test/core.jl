@@ -60,14 +60,14 @@ end
 @bench @testset "compute_Mlincomb PEP" begin
     nep=nep_gallery("pep0");
     n=size(nep,1);
-    # test that the function compute_Mlincomb does not overwrite the input
-    λ =randn(); V=randn(n,3); W=copy(V); a=[1; 0; 2];
-    z=compute_Mlincomb(nep,λ,V,a);
-    @test norm(V-W)<sqrt(eps())*100
+    λ = rand()+rand()*im; V=randn(n,3); W=copy(V); a=rand(3);
     # test against another way to compute Mlincomb
     z2=compute_Mlincomb_from_MM(nep,λ,V,a)
     @test norm(z-z2)<sqrt(eps())*100
-    # test that the function compute_Mlincomb! overwrites the input
-    z=compute_Mlincomb!(nep,λ,V,a);
-    @test norm(V-W)>sqrt(eps())*100
+    # test that the function compute_Mlincomb does not overwrite the input
+    λ = 0; V=randn(n,3); W=copy(V); a=rand(3);
+    z=compute_Mlincomb(nep,λ,V,a);
+    # test against another way to compute Mlincomb
+    z2=compute_Mlincomb_from_MM(nep,λ,V,a)
+    @test norm(z-z2)<sqrt(eps())*100
 end

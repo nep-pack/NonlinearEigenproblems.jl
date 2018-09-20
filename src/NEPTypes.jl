@@ -1059,9 +1059,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                         V::AbstractVecOrMat,
                         a::Vector=ones(eltype(V),size(V,2)))
 
-                        # TODO: special case if λ=0
-
-
         # Type logic
         TT=promote_type(typeof(λ),eltype(V),eltype(a),eltype(nep.A[1]));
 
