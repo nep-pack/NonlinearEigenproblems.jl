@@ -31,8 +31,9 @@ function runtests()
     end)
 end
 
-function is_test_script(dir::::AbstractString, file::AbstractString)
-    if occursin(r"(?i)\.jl$", file)
+function is_test_script(dir::AbstractString, file::AbstractString)
+    # match files ending in ".jl" and not containing # or ~ (emacs temp files)
+    if occursin(r"(?i)^[^#~]+\.jl$", file)
         src = read(joinpath(dir, file), String)
 
         pos = 1
