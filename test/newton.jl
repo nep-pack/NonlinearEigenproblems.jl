@@ -27,7 +27,7 @@ using LinearAlgebra
     end
 
     @bench @testset "Newton and AugNewton" begin
-        println("Newton and AugNewton test")
+        @info "Newton and AugNewton test"
 
         # newton and augnewton are equivalent, therefore I expect them
         # to generate identical results
@@ -38,7 +38,7 @@ using LinearAlgebra
         @test compute_resnorm(nep,λ1,x1) < eps()*100
         @test compute_resnorm(nep,λ2,x2) < eps()*100
 
-        println("   eigenvector extraction")
+        @info "   eigenvector extraction"
         λ1,x1 = newton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure)
         λ2,x2 = augnewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure)
         @test compute_resnorm(nep,λ1,x1) < 1e-8*100
@@ -46,12 +46,12 @@ using LinearAlgebra
     end
 
     @bench @testset "QuasiNewton" begin
-    println("QuasiNewton  test")
+    @info "QuasiNewton  test"
 
         λ,x = quasinewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,tol=1e-11)
         @test compute_resnorm(nep,λ,x) < 1e-11*100
 
-        println("   eigenvector extraction")
+        @info "   eigenvector extraction"
         λ,x = quasinewton(nep,displaylevel=1,v=ones(size(nep,1)),λ=0,errmeasure=singexcep_errmeasure)
         @test compute_resnorm(nep,λ,x) < 1e-8*100
 
@@ -59,16 +59,16 @@ using LinearAlgebra
 
     @bench @testset "Newton QR" begin
 
-        println("Newton QR test")
+        @info "Newton QR test"
         #Run derivative test for left and right eigenvectors returned by newtonqr
         λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=1,tol=eps()*10)
         @test compute_resnorm(nep,λ3,x3) < eps()*100
 
-        println("   eigenvector extraction")
+        @info "   eigenvector extraction"
         λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=1,tol=eps()*10, errmeasure=singexcep_errmeasure)
         @test compute_resnorm(nep,λ3,x3) < 1e-8*100
 
-        println("  Testing formula for derivative")
+        @info "  Testing formula for derivative"
         tau = 1
         Mλ = -I - tau * nep.A[2] * exp(-tau*λ3)
         Mtau = -λ3*nep.A[2]*exp(-tau*λ3)
@@ -85,7 +85,7 @@ using LinearAlgebra
     end
 
     @bench @testset "Resinv" begin
-        println("resinv + periodicdde")
+        @info "resinv + periodicdde"
         nep1=nep_gallery("periodicdde", name="mathieu")
         # basic functionality of resinv. Start close to solution to speed up unit test
         λ4,x4 =  resinv(nep1, λ=-0.2447, v=[0.970208+0.0im, -0.242272+0.0im],
@@ -97,7 +97,7 @@ using LinearAlgebra
 
 
     @bench @testset "Rayleigh Function Iteration" begin
-        println("rfi")
+        @info "rfi"
         nept = DEP([copy(nep.A[1]'), copy(nep.A[2]')],copy(nep.tauv))
 
         n=size(nep,1)
@@ -109,7 +109,7 @@ using LinearAlgebra
         @test compute_resnorm(nep,λ,x) < eps()*100
         @test compute_resnorm(nept,λ,y) < eps()*100
 
-        println("   eigenvector extraction")
+        @info "   eigenvector extraction"
         λ,x,y =rfi(nep, nept, displaylevel=1, v=ones(n), u=ones(n), tol=1e-15, errmeasure=singexcep_errmeasure)
         @test compute_resnorm(nep,λ,x) < 1e-8*100
         @test compute_resnorm(nept,λ,y) < 1e-8*100
@@ -117,17 +117,17 @@ using LinearAlgebra
 
         # Test RFIb
 
-        println("rfi_b")
+        @info "rfi_b"
         λb,xb,yb =rfi_b(nep, nept, displaylevel=1, v=v0, u=u0, λ=λ+0.01, tol=1e-15)
         @test λ ≈ λb
 
-        println("   eigenvector extraction")
+        @info "   eigenvector extraction"
         λb,xb,yb =rfi_b(nep, nept,displaylevel=1, v=v0, u=u0, λ=λ+0.01, tol=1e-15, errmeasure=singexcep_errmeasure)
         @test compute_resnorm(nep,λb,xb) < 1e-8*100
         @test compute_resnorm(nept,λb,yb) < 1e-8*100
 
 
-        println("  Testing formula for derivative (with left and right eigvecs)")
+        @info "  Testing formula for derivative (with left and right eigvecs)"
         tau = 1
         Mλ = -I - tau*nep.A[2] * exp(-tau*λ)
         Mtau = -λ*nep.A[2]*exp(-tau*λ)
@@ -146,7 +146,7 @@ using LinearAlgebra
     end
 
     @bench @testset "implicitdet" begin
-        println("Implicitdet test")
+        @info "Implicitdet test"
         nepd=nep_gallery("periodicdde", name="mathieu")
         λ,v=implicitdet(nepd, v=ones(size(nepd,1)), displaylevel=1)
         @test norm(compute_Mder(nepd,λ)*v) < eps()*100

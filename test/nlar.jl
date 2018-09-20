@@ -10,7 +10,7 @@ using Random
 @bench @testset "Nonlinear Arnoldi" begin
 	TOL = 1e-10;
 
-    println("\nTesting gun problem")
+    @info "Testing gun problem"
     Random.seed!(0)
 
     nep = nep_gallery("nlevp_native_gun")
@@ -22,7 +22,7 @@ using Random
 
     #Run Quasi-Newton for initial guess obtained from the knowledge of the eigenvalue distribution
     λ_ref,v_ref = quasinewton(nep, λ = shift+scale*(-0.131403+0.00759532im), v = ones(n), displaylevel = 2, tol = TOL/50, maxit = 500)
-    println("Eigenvalue computed by quasi newton: ",λ_ref)
+    @info "Eigenvalue computed by quasi newton: $λ_ref"
 
     #Shift and scale the NEP(mainly to avoid round-off errors because of the large entries in the coefficient matrices)
     nep1_spmf = SPMF_NEP(get_Av(nep),get_fv(nep))
@@ -42,14 +42,14 @@ using Random
     ###########################################################################################################3
 
     #Testing PEP
-    println("\nTesting a PEP")
+    @info "Testing a PEP"
     pepnep = nep_gallery("pep0",60)
     Dc,Vc = polyeig(pepnep,DefaultEigSolver)
     c = sortperm(abs.(Dc))
-    println(" 6 smallest eigenvalues found by polyeig() according to the absolute values: \n ", Dc[c[1:6]])
+    @info " 6 smallest eigenvalues found by polyeig() according to the absolute values: $(Dc[c[1:6]])"
 
     λ,u = nlar(pepnep, tol=TOL, maxit=60, nev = 3, R=0.001,mm=1,displaylevel=1, λ0=Dc[4]+1e-2,v0=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false);
-    println(" Smallest eigevalues found: \n λ: ",λ)
+    @info " Smallest eigenvalues found: $λ"
 
     # Test residuals
     @test norm(compute_Mlincomb(pepnep,λ[1],u[:,1])) < TOL

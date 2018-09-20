@@ -6,7 +6,7 @@ using Test
 using LinearAlgebra
 
 function bigfloats()
-    println("Test NEP-test with BigFloat")
+    @info "Test NEP-test with BigFloat"
 
     # Create a bigfloat NEP
     T = BigFloat
@@ -30,7 +30,7 @@ function bigfloats()
         λiterates_star[itercount_star] = λ
         return norm(compute_Mlincomb(nep, λ, v))
     end
-    println("Bigfloat precomputation")
+    @info "Bigfloat precomputation"
     λstar,vstar = augnewton(T, nep; v=v0, λ=λ0, tol=eps(T)*100, errmeasure=myerrmeasure)
 
     @bench @testset "BigFloat comparison w $T" for T in (Float16, ComplexF16, ComplexF64)

@@ -73,11 +73,11 @@ while abs(d) > tolerance
     evp_old=evp
     evp=dot(z,z2)
     d=evp-evp_old
-    # println("Iteration ",k,", λ=",Float64(evp), " Δ = ",Float64(d))
+    @debug "Iteration $k, λ=$(Float64(evp)), Δ = $(Float64(d))"
     z=z2
 end
 
-println("Solving same problem with resinv")
+@info "Solving same problem with resinv"
 λ,v = resinv(BigFloat, pep, λ = (BigFloat(evp)+0.1), v = z[1:size(pep,1)], displaylevel=0, tol = tolerance)
 
 @test (abs(λ-evp)/abs(λ) < tolerance*10)
