@@ -1,8 +1,4 @@
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.NEPTypes
-using NonlinearEigenproblems.Gallery
-using NonlinearEigenproblems.LinSolvers
+using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 

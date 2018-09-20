@@ -1,9 +1,7 @@
 # Run tests on Periodic DDE
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
-using NonlinearEigenproblems.NEPCore
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.Gallery
+using NonlinearEigenproblems
 using Test
 
 push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
