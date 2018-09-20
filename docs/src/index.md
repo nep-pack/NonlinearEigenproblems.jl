@@ -14,14 +14,13 @@ and ``v\neq 0``.
 Install it as an unregistered package in julia's REPL package mode by
 writing `] add git:/..`:
 ```
+julia> ]
 (v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 
 ```
-Then we can start to load some NEP-PACK packages
+Then we can start to load the NEP-PACK package
 ```julia-repl
-julia> using NonlinearEigenproblems.NEPSolver
-julia> using NonlinearEigenproblems.NEPTypes
-julia> using LinearAlgebra
+julia> using NonlinearEigenproblems
 ```
 We are now ready to create and solve a nonlinear eigenvalue problem, in this
 illustrative example we set
@@ -46,6 +45,7 @@ In order to verify that we have a solution, we can check that  ``M(λ)`` is sing
 with a singular vector ``v`` such that ``M(λ)v=0``:
 ```julia-repl
 julia> λ1=λ[1]; v1=v[:,1];
+julia> using LinearAlgebra # the norm-function is in this julia package
 julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 1.1502634749464687e-14
 ```
@@ -53,11 +53,9 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 
 # Accessing more complicated applications
 
-We have made benchmark examples available in the module `Gallery`. Use it
-by loading the module and calling the function `nep_gallery`:
+We have made benchmark examples available in through the function `nep_gallery`:
 
 ```julia-repl
-julia> using NonlinearEigenproblems.Gallery
 julia> nep=nep_gallery("dep0",100);
 julia> size(nep)
 (100, 100)

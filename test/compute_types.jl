@@ -4,6 +4,8 @@ push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
+using SpecialFunctions
+using SparseArrays
 
 import Base.exp
 
@@ -221,7 +223,7 @@ end
 
 
             oneop= S-> S;
-            sqrop= S-> Matrix(S)^2;
+            sqrop= S-> S^2;
             spmf_nep=SPMF_NEP([A0,A2],[oneop,sqrop])
             # Disable test of compute_MM + compute_Mlincomb:  since they currently fails.
             #
@@ -287,19 +289,19 @@ end
         # SPMF 1
         B0=randn(3,3); B1=randn(3,3);
         oneop= S-> S;
-        sqrop= S-> Matrix(S)^2;
+        sqrop= S-> S^2;
         spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop])
         push!(testlist,compute_types_metadata(spmf_nep,Float64,true,[],[],[],false, "#1"));
 
         # SPMF 2
         B0=randn(3,3); B1=randn(3,3);
         oneop= S-> 1im*S;
-        sqrop= S-> Matrix(S)^2;
+        sqrop= S-> S^2;
         spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop])
         push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false, "#2"));
 
         # SPMF 3
-        expmop= S -> exp(Matrix(S))
+        expmop= S -> exp(S)
         B0b=Matrix{BigFloat}(B0);
         B1b=Matrix{BigFloat}(B1);
         spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop])
@@ -314,7 +316,7 @@ end
 
         # SPMF nep 4
         oneop= S-> 1im*S;
-        sqrop= S-> Matrix(S)^2;
+        sqrop= S-> S^2;
         spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop])
 
         push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false, "#4"));

@@ -39,8 +39,8 @@ function gallery_dep_distributed()
         1.4    0.7    1.0
         0.6    1.6    1.7];
     idop= S -> S
-    oneop = S -> Matrix(1.0I, size(S,1), size(S,2))
-    f1 = S -> exp(-Matrix(S))
+    oneop = S -> one(S)
+    f1 = S -> exp(-S)
     N = 10
     f2 = S -> distributed_kernel_gauss_legendre(Matrix(S), N)
     #N = 1000
