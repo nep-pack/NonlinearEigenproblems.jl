@@ -1053,7 +1053,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
 
 
-    function compute_Mlincomb!(
+    function compute_Mlincomb(
                         nep::PEP,
                         λ::Number,
                         V::AbstractVecOrMat,
@@ -1071,15 +1071,12 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         d=length(nep.A)-1
         for j=0:k-1
             for i=j:d
-                temp=convert(TT,factorial(i)/factorial(i-j));
-                temp2=convert(TT,λ^(i-j));
-                z[:]+=a[j+1]*temp2*(temp)*(nep.A[i+1]*V[:,j+1])
+                z[:]+=a[j+1]*λ^(i-j)*(factorial(i)/factorial(i-j))*(nep.A[i+1]*V[:,j+1])
             end
         end
         return z[:]
     end
 
-    compute_Mlincomb(nep::PEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(eltype(V),size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
 
 
 

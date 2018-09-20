@@ -48,7 +48,7 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
 
 
         @info "Testing compute functions for NEP:$name ($eltype_nep)"
-        displaylevel=1
+        displaylevel=0
 
         ## Test compute_Mder
         @testset "compute_Mder. NEP:$eltype_nep, typeof(λ)" begin
@@ -96,14 +96,6 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
                     # NEP type, typeof(λ) and eltype(V)
                     predict_type=promote_type(promote_type(typeof(λ),eltype(V)),eltype_nep)
                     y=compute_Mlincomb(nep,λ,V)
-                    if isa(nep,PEP)
-                        println("--------")
-                        println("Typeof nep ",eltype(nep.A[1]))
-                        println("Typeof V ",eltype(V))
-                        println("Typeof λ ",eltype(λ))
-                        println("Predicted type ",predict_type)
-                        println("Got type ",eltype(y))
-                    end
 
                     @debug "typeof(λ) = $(typeof(λ)), eltype(V) = $(eltype(V))"
                     @debug "$predict_type =? $(eltype(y))"
