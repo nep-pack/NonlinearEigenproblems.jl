@@ -106,7 +106,7 @@ function test_one_nep(metadata::compute_types_metadata,typelist::Vector{DataType
                         @test(complex(predict_type)==eltype(y))
                     end
 
-                    y=compute_Mlincomb!(nep,λ,V)
+                    y=compute_Mlincomb(nep,λ,V)
                     if (nepreal)
                         @test(predict_type==eltype(y))
                     else

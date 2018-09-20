@@ -8,26 +8,22 @@ using SparseArrays
 import Base.exp
 
 
-f1 = S -> -S;
-f2 = S -> one(S);
-f3 = S -> exp(-S);
-f4 = S -> sqrt(10*S+100*one(S));
-
-n=1000;
+n=100;
 Random.seed!(1) # reset the random seed
 K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
-A1=sparse(K, J, rand(3*n-2))
-A2=sparse(K, J, rand(3*n-2))
-A3=sparse(K, J, rand(3*n-2))
-A4=sparse(K, J, rand(3*n-2))
+A1=sparse(K, J, rand(Float32,3*n-2))
+A2=sparse(K, J, rand(Float32,3*n-2))
+A3=sparse(K, J, rand(Float32,3*n-2))
+A4=sparse(K, J, rand(Float32,3*n-2))
 
 AA = [A1,A2,A3,A4]
-fi = [f1,f2,f3,f4]
-nep=SPMF_NEP(AA, fi)
+nep=PEP(AA)
 
-n=size(nep,1);	k=20;
-V=rand(n,k);	λ=rand()*im+rand();
-a=rand(k)
+n=size(nep,1);	k=5;
+V=rand(n,k);	λ=rand()*im+rand(); a=rand(k)
+λ=0;
+
+
 
 z1=compute_Mlincomb(nep,λ,copy(V),a)
 @time z1=compute_Mlincomb(nep,λ,V,a)
