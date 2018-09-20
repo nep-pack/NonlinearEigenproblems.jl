@@ -100,7 +100,7 @@ function jd_betcke(::Type{T},
     # More allocations and preparations
     pk::Vector{T} = zeros(T,n)
     s_memory::Vector{T} = zeros(T,n)
-    proj_nep = create_proj_NEP(nep)
+    proj_nep = create_proj_NEP(nep,maxit,T)
     dummy_vector::Vector{T} = zeros(T,maxit+1)
 
     V_memory::Matrix{T} = zeros(T, size(nep,1), maxit+1)
@@ -340,7 +340,7 @@ function jd_effenberger_inner!(::Type{T},
     newton_step::Vector{T} = Vector{T}(rand(n+m))
     pk::Vector{T} = zeros(T,n+m)
     s_memory::Vector{T} = zeros(T,maxit+1-nrof_its)
-    proj_nep = jd_create_proj_NEP(target_nep)
+    proj_nep = jd_create_proj_NEP(target_nep,maxit+1-nrof_its,T)
     dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
 
     V_memory[:,1] = u
@@ -529,14 +529,14 @@ mutable struct JD_Inner_Effenberger_Projected_NEP <: Proj_NEP
     V2
     W1
     W2
-    function JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
-        org_proj_nep = create_proj_NEP(deflated_nep.orgnep)
+    function JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP,maxsize,T)
+        org_proj_nep = create_proj_NEP(deflated_nep.orgnep,maxsize,T)
         this = new(deflated_nep, org_proj_nep, deflated_nep.V0, deflated_nep.S0)
         return this
     end
 end
-jd_create_proj_NEP(deflated_nep::DeflatedNEP) = JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP)
-jd_create_proj_NEP(nep::ProjectableNEP) = create_proj_NEP(nep)
+jd_create_proj_NEP(deflated_nep::DeflatedNEP,maxsize,T) = JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP,maxsize,T)
+jd_create_proj_NEP(nep::ProjectableNEP,maxsize,T) = create_proj_NEP(nep,maxsize,T)
 
 function set_projectmatrices!(nep::JD_Inner_Effenberger_Projected_NEP, W, V)
     n = size(nep.X,1)
