@@ -19,7 +19,7 @@ A4=sparse(K, J, rand(Float32,3*n-2))
 AA = [A1,A2,A3,A4]
 nep=PEP(AA)
 
-n=size(nep,1);	k=20;
+n=size(nep,1);	k=1;
 V=rand(n,k);	λ=rand()*im+rand(); a=rand(k)
 
 

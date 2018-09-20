@@ -1061,8 +1061,12 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
                         # TODO: special case if λ=0
 
+
+       # Type logic
+       TT=promote_type(typeof(λ),eltype(V),eltype(a),eltype(nep.A[1]));
+
         n=size(nep,1)
-        z=zeros(typeof(λ),n)
+        z=zeros(TT,n)
         k=size(V,2)
         d=length(nep.A)-1
         for j=0:k-1
