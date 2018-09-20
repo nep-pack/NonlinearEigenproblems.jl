@@ -38,9 +38,11 @@ function is_test_script(file::AbstractString)
         pos = 1
         while pos <= length(src)
             expr, pos = Meta.parse(src, pos)
-            if contains_test_macro(expr)
-                return true
+            if expr.head == :incomplete
+                msg = join(map(string, expr.args), "; ")
+                throw(Meta.ParseError("While parsing file $file got invalid expression: $msg"))
             end
+            contains_test_macro(expr) && return true
         end
     end
     return false
