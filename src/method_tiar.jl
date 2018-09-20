@@ -11,22 +11,19 @@ Runs the tensor infinite Arnoldi method which tries to find eigenvalues close to
 
 # Example
 
+# Example
 ```julia-repl
-julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
+julia> using NonlinearEigenproblems, LinearAlgebra
 julia> nep=nep_gallery("dep0",100);
 julia> v0=ones(size(nep,1));
-julia> λ,v=iar(nep,v=v0,tol=1e-5,Neig=3);
-julia> λ
+julia> λ,v=tiar(nep;v=v0,tol=1e-5,Neig=3);
+julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
+julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
- -0.156062-0.122734im
- -0.156062+0.122734im
-  0.231692+4.82981e-17im
-julia> λ,v=iar(nep,v=v0,tol=1e-5,Neig=3);
-julia> λ  % Same eigenvalues are computed
-3-element Array{Complex{Float64},1}:
- -0.156062-0.122734im
- -0.156062+0.122734im
-  0.231692+4.82981e-17im
+ -0.1560621147566685 + 0.12273439802763504im
+ -0.1560621147566693 - 0.1227343980276357im
+ 0.23169243065648332 - 4.699260229885766e-17im
+
 ```
 
 # References
