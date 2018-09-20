@@ -149,27 +149,40 @@ using SparseArrays
 
     @onlybench @testset "SPMF benchmark" begin
         # To check performance of SPMF-compute_MM function
+        large_benchmark = false
+        if large_benchmark
+            n_values = (5, 10, 300)
+            p_mm_values = (5, 10, 15, 100, 1000)
+            p_mder_values = (1, 3, 10, 20)
+            m_terms = 100
+        else
+            n_values = (5, 10)
+            p_mm_values = (5, 10, 15, 100)
+            p_mder_values = (1, 3, 10)
+            m_terms = 20
+        end
+
         for Schur_fact in (true, false)
-            for n in (5,10,300)
+            for n in n_values
                 # small number of terms.
                 fv=[S->S, S->cos(S)]
                 A0=randn(n,n);
                 A1=randn(n,n);
                 spmf1=SPMF_NEP([A0,A1],fv,Schur_fact = Schur_fact);
-                @testset "two-term SPMF (n=$n,schur=$Schur_fact): MM S-matrix p x p: p=$p" for p in (5, 10, 15, 100, 1000)
+                @testset "two-term SPMF (n=$n,schur=$Schur_fact): MM S-matrix p x p: p=$p" for p in p_mm_values
                     V=randn(size(spmf1,1),p);
                     S=randn(p,p);
                     Z=compute_MM(spmf1,S,V);
                     @test eltype(Z) == promote_type(eltype(S),eltype(V),eltype(A0))
                 end
-                @testset "two-term SPMF (n=$n,schur=$Schur_fact): Mder($p)" for p in (1, 3, 10, 20)
+                @testset "two-term SPMF (n=$n,schur=$Schur_fact): Mder($p)" for p in p_mder_values
                     λ=3.0+1im;
                     MM=compute_Mder(spmf1,λ,p);
                     @test eltype(MM) == promote_type(typeof(λ),eltype(A0))
                 end
 
                 # large number of terms
-                m=100;
+                m=m_terms;
                 fv=Vector{Function}(undef,m);
                 Av=Vector{Matrix{Float64}}(undef,m);
                 for k=1:m
@@ -178,14 +191,14 @@ using SparseArrays
                 end
 
                 spmf2=SPMF_NEP(Av,fv,Schur_fact = Schur_fact);
-                @testset "$m-term SPMF (n=$n,schur=$Schur_fact): MM S-matrix p x p: p=$p" for p in (5, 10, 15, 100, 1000)
+                @testset "$m-term SPMF (n=$n,schur=$Schur_fact): MM S-matrix p x p: p=$p" for p in p_mm_values
                     p=5;
                     V=randn(size(spmf2,1),p);
                     S=randn(p,p);
                     Z=compute_MM(spmf2,S,V);
                     @test eltype(Z) == promote_type(eltype(S),eltype(V),eltype(A0))
                 end
-                @testset "$m-term SPMF (n=$n,schur=$Schur_fact): Mder($p)" for p in (1, 3, 10, 20)
+                @testset "$m-term SPMF (n=$n,schur=$Schur_fact): Mder($p)" for p in p_mder_values
                     λ=3.0+1im;
                     MM=compute_Mder(spmf2,λ,p);
                     @test eltype(MM) == promote_type(typeof(λ),eltype(A0))
