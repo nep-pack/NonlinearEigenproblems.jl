@@ -21,7 +21,7 @@ nep=PEP(AA)
 
 n=size(nep,1);	k=5;
 V=rand(n,k);	λ=rand()*im+rand(); a=rand(k)
-
+λ=0;
 
 
 
