@@ -1067,8 +1067,8 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         end
 
     	# we need to assume that the elements of a are different than zero.
-    	V[:,findall(x->x==0,a)] .= 0
-    	a[findall(x->x==0,a)] .= 1
+    	V[:,findall(x->x==0,a)] .= zero(eltype(V))
+    	a[findall(x->x==0,a)] .= one(eltype(a))
     	S=diagm(0 => λ*ones(eltype(V),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
 
         z=zeros(eltype(V),n)
