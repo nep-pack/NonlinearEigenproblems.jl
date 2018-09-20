@@ -3,7 +3,7 @@ using Random
 
 export nleigs
 
-include("lusolver.jl")
+include("linsolvercache.jl")
 include("discretizepolygon.jl")
 include("lejabagby.jl")
 include("ratnewtoncoeffs.jl")
@@ -32,7 +32,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `static`: Whether to use static version of NLEIGS.
 - `leja`: Use of Leja-Bagby points (0 = no, 1 = only in expansion phase, 2 = always).
 - `nodes`: Prefixed interpolation nodes (only when leja is 0 or 1).
-- `reuselu`: Reuse of LU-factorizations (0 = no, 1 = only after converged linearization, 2 = always).
+- `reusefact`: Reuse of matrix factorizations (0 = no, 1 = only after converged linearization, 2 = always).
 - `blksize`: Block size for pre-allocation.
 - `return_details`: Whether to return solution details (see NleigsSolutionDetails).
 - `check_error_every`: Check for convergence / termination every this number of iterations.
@@ -59,6 +59,7 @@ function nleigs(
         maxdgr::Int = 100,
         minit::Int = 20,
         maxit::Int = 200,
+        linsolvercreator::Function = default_linsolvercreator,
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
         v::Vector{CT} = CT.(randn(T, size(nep, 1))),
@@ -67,7 +68,7 @@ function nleigs(
         static::Bool = false,
         leja::Int = 1,
         nodes::Vector{CT} = Vector{CT}(),
-        reuselu::Int = 1,
+        reusefact::Int = 1,
         blksize::Int = 20,
         return_details::Bool = false,
         check_error_every::Int = 5) where {T<:Real, CT<:Complex{T}}
@@ -85,7 +86,7 @@ function nleigs(
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
     b = blksize
 
-    lu_cache = LUCache(CT, displaylevel > 1)
+    lin_solver_cache = LinSolverCache(CT, nep, linsolvercreator)
 
     # Initialization
     if static
@@ -154,11 +155,7 @@ function nleigs(
     end
 
     # Rational Krylov
-    if reuselu == 2
-        v = lusolve(lu_cache, λ -> compute_Mder(nep, λ), σ[1], v/norm(v))
-    else
-        v = compute_Mder(nep, σ[1]) \ (v/norm(v))
-    end
+    v = solve(lin_solver_cache, σ[1], v/norm(v), reusefact == 2)
     V[1:n,1] .= v ./ norm(v)
     expand = true
     kconv = trunc(Int, typemax(Int)/2)
@@ -281,7 +278,7 @@ function nleigs(
             # shift-and-invert
             t = [zeros(l-1); 1]    # continuation combination
             wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
+            w = backslash(wc, P, lin_solver_cache, reusefact, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
 
             # orthogonalization
             Vview = view(V, 1:kn, 1:l)
@@ -465,7 +462,7 @@ function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
 end
 
 "Backslash or left matrix divide for continuation vector `wc`."
-function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
+function backslash(wc, P, lin_solver_cache, reusefact, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
     n = size(P.nep, 1)::Int
     shift = σ[k+1]
 
@@ -556,11 +553,8 @@ function backslash(wc, P, lu_cache, reuselu, computeD, σ, k, D, β, N, ξ, expa
 
     # solving Alam x0 = z0
     w = zeros(eltype(wc), size(wc))
-    if ((!expand || k > kconv) && reuselu == 1) || reuselu == 2
-        w[1:n] = lusolve(lu_cache, λ -> compute_Mder(P.nep, λ), shift, z[1:n]/β[1])
-    else
-        w[1:n] = compute_Mder(P.nep, shift) \ (z[1:n]/β[1])
-    end
+    add_to_cache = ((!expand || k > kconv) && reusefact == 1) || reusefact == 2
+    w[1:n] = solve(lin_solver_cache, shift, z[1:n]/β[1], add_to_cache)
 
     # substitutions x[i+1] = mu/nu*x[i] + 1/nu*Bw[i+1]
     i0b = 1
