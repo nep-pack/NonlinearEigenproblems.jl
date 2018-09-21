@@ -115,7 +115,7 @@ for matrices in the standard matrix function sense.
 # Logic behind Ftype:
 #  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
 
-    struct SPMF_NEP_dense{T,Ftype}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
+    struct SPMF_NEP_dense{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
@@ -233,7 +233,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
         Z=zeros(n,n)
-        return SPMF_NEP_dense{AbstractMatrix}(n,Vector{Matrix}(),Vector{Function}(),false);
+        return SPMF_NEP_dense{AbstractMatrix,Complex}}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
     function compute_MM(nep::SPMF_NEP{T,Ftype},S::AbstractMatrix,V::AbstractMatrix) where {T,Ftype}
 
