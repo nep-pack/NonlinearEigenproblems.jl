@@ -472,10 +472,6 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         end
         return Z
     end
-    # Use MM to compute Mlincomb for PEPs
-    compute_Mlincomb(nep::PEP,λ::Number,
-                     V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))=
-             compute_Mlincomb_from_MM(nep,λ,V,a)
 
     compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
     function compute_rf(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
