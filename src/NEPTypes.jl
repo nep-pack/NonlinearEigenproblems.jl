@@ -115,14 +115,14 @@ for matrices in the standard matrix function sense.
 # Logic behind Ftype:
 #  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
 
-    struct SPMF_NEP_dense{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
+    struct SPMF_NEP_dense{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization
     end
 
-    struct SPMF_NEP_sparse{T,Ftype}  <: AbstractSPMF{T}  # T should be a AbstractMatrix
+    struct SPMF_NEP_sparse{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
          n::Int
          A::Vector{T}   # Array of Array of matrices
          fi::Vector{Function}  # Array of functions
