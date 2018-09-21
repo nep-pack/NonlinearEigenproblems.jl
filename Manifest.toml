@@ -119,10 +119,10 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OrderedCollections]]
-deps = ["InteractiveUtils", "Pkg", "Random", "Serialization", "Test"]
-git-tree-sha1 = "27af6dc22697bf20ace8e3a45f404a34eaf0b819"
+deps = ["Pkg", "Random", "Serialization", "Test"]
+git-tree-sha1 = "41da1edba028376b58520ca01d9a41e29f855d55"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.0.0"
+version = "1.0.1"
 
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
@@ -184,9 +184,9 @@ version = "0.2.0"
 
 [[Revise]]
 deps = ["Distributed", "FileWatching", "InteractiveUtils", "LibGit2", "OrderedCollections", "Pkg", "REPL", "Random", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "48ad8dcdacf24185eb1bc4253a17dc39e1485079"
+git-tree-sha1 = "e45f79d83a61ee6fc229b22df6836d18b6dcb89e"
 uuid = "295af30f-e4ad-537b-8983-00126c2a3abe"
-version = "0.7.10"
+version = "0.7.11"
 
 [[Roots]]
 deps = ["Compat", "Printf"]
