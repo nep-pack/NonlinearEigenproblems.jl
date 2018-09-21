@@ -130,7 +130,7 @@ for matrices in the standard matrix function sense.
 
          # Sparse zero matrix to be used for sparse matrix creation
          Zero::T
-         As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
+         As::Vector{SparseMatrixCSC{<:Number, Int}}  # 'A' matrices with sparsity pattern of all matrices combined
     end
     SPMF_NEP{T,Ftype} = Union{SPMF_NEP_dense{T,Ftype},SPMF_NEP_sparse{T,Ftype}}
 
