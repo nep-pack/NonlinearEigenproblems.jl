@@ -2,6 +2,10 @@
 # Runs the test suite in benchmark mode and saves the results to a JSON file
 ################################################################################
 push!(LOAD_PATH, @__DIR__); using TestUtils
+using Logging
+
+# turn off logging of @info statements
+Base.CoreLogging.disable_logging(Logging.Info)
 
 include("run_all_tests.jl")
 
