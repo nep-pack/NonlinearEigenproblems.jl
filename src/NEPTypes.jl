@@ -39,6 +39,13 @@ module NEPTypes
     import SparseArrays.issparse
 
 
+    # This is workaround for Julia bug https://github.com/JuliaLang/julia/issues/29224
+    # This can be removed if the fix is backported in julia 1.0.1
+    import Base.*
+    function (*)(A::SubArray{<:Complex},B::Matrix{<:Real})
+        return copy(A)*B;
+    end
+
 
     #
     """
@@ -268,14 +275,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 Fi[:,:]=ff[i](S);
             end
             mul!(VFi,V,Fi);
-            if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi)))
-                # 2018-09-14: SubArray x Matrix of different types do not work on julia 1.0.0
-                # https://github.com/JuliaLang/julia/issues/29224
-                # Workaround by making a matrix copy.
-                Z[:,:] += copy(AA[i])*VFi;
-            else
-                Z[:,:] .+= AA[i]*VFi;
-            end
+            Z[:,:] .+= AA[i]*VFi;
         end
         return Z
     end
@@ -1058,23 +1058,13 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             for i=1:size(nep.A,1)
                 Fi1=nep.fi[i](S); # Get the function value
                 VFi1=V*Fi1
-                if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi1)))
-                    # https://github.com/JuliaLang/julia/issues/29224
-                    z[:] += copy(nep.A[i])*VFi1
-                else
-                    z[:] += nep.A[i]*VFi1
-                end
+                z[:] += nep.A[i]*VFi1
             end
         else
             for i=1:size(nep.A,1)
                 Fi1=nep.fi[i](S)[:,1]; # Get all the scaled derivatives as well
                 VFi1=V*Fi1
-                if (isa(nep.A[i],SubArray) && (eltype(nep.A[i]) != eltype(VFi1)))
-                    # https://github.com/JuliaLang/julia/issues/29224
-                    z[:] += copy(nep.A[i])*VFi1
-                else
-                    z[:] += nep.A[i]*VFi1
-                end
+                z[:] += nep.A[i]*VFi1
             end
     	end
 
