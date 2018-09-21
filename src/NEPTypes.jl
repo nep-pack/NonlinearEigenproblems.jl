@@ -262,7 +262,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 Sd=diag(S);
                 local Fid::Vector{FStype}
                 if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
-                    Fid=nep.fi[i](Sd[1])*ones(T0,p)
+                    Fid=fill(nep.fi[i](Sd[1]),p)
                 else  # Diagonal but not constant
                     Fid0=Vector{Number}(undef,p)
                     for j=1:p
@@ -1044,19 +1044,21 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     	# we need to assume that the elements of a are different than zero.
     	V[:,findall(x->x==0,a)] .= 0
     	a[findall(x->x==0,a)] .= 1
-        local S;
+        local S,TS;
         if (V isa AbstractVector)
             #Vector means just compute matrix vector
             #S=λ # We should use this once #71 is complete
             S=reshape([λ],1,1)
+            TS = eltype(λ)
         else
             # V matrix means compute linear combination of derivatives. Use
             # scaling trick
-       	    S=diagm(0 => λ*ones(eltype(λ),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
+            TS= promote_type(typeof(λ),eltype(a));
+       	    S=diagm(0 => fill(λ,k), -1 => (a[2:k]./a[1:k-1]).*(1:k-1))
         end
 
         # Type logic
-        Fλtype=promote_type(eltype(λ),Ftype);
+        Fλtype=promote_type(TS,Ftype);
         TT=promote_type(Fλtype,eltype(V)); # Return type
 
         z=zeros(TT,n)
