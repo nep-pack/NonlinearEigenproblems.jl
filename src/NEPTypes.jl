@@ -1030,45 +1030,41 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return z
     end
 
-    function compute_Mlincomb!(
-                        nep::SPMF_NEP{T,Ftype},
-                        λ::Number,
-                        V::AbstractVecOrMat,
-                        a::Vector=ones(size(V,2))) where {T,Ftype}
-
+    function compute_Mlincomb!(nep::SPMF_NEP{T,Ftype},
+                               λ::Number,
+                               V::AbstractVecOrMat,
+                               a::Vector=ones(size(V,2))) where {T,Ftype}
 
         local n,k;
-        if (V isa AbstractMatrix)
-            n,k=size(V);
-        else
-            n=size(V,1); k=1;
-        end
+        n=size(V,1);
+        k=size(V,2);
 
     	# we need to assume that the elements of a are different than zero.
     	V[:,findall(x->x==0,a)] .= 0
     	a[findall(x->x==0,a)] .= 1
-    	S=diagm(0 => λ*ones(eltype(λ),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
+        local S;
+        if (V isa AbstractVector)
+            S=λ # Vector means just compute matrix vector
+        else
+            # V matrix means compute linear combination of derivatives. Use
+            # scaling trick
+       	    S=diagm(0 => λ*ones(eltype(λ),k)) + diagm(-1 => (a[2:k]./a[1:k-1]).*(1:k-1))
+        end
 
         # Type logic
         Fλtype=promote_type(eltype(λ),Ftype);
-        TT=promote_type(Fλtype,eltype(V));
+        TT=promote_type(Fλtype,eltype(V)); # Return type
 
         z=zeros(TT,n)
-        if (V isa AbstractVector)
-            for i=1:size(nep.A,1)
-                Fi1=nep.fi[i](S); # Get the function value
-                VFi1=V*Fi1
-                z[:] += nep.A[i]*VFi1
-            end
-        else
-            for i=1:size(nep.A,1)
-                Fi1=nep.fi[i](S)[:,1]; # Get all the scaled derivatives as well
-                VFi1=V*Fi1
-                z[:] += nep.A[i]*VFi1
-            end
-    	end
+        for i=1:size(nep.A,1)
+            # Get the function value if V is a vector,
+            # otherwise get a vector of scaled derivatives
+            Fi1=(V isa AbstractVector) ? nep.fi[i](S) : nep.fi[i](S)[:,1]
+            VFi1=V*Fi1
+            z[:] += nep.A[i]*VFi1
+        end
 
-    	return a[1]*reshape(z,size(z,1))
+    	return a[1]*z;
     end
 
     compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
