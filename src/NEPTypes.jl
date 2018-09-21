@@ -129,8 +129,9 @@ for matrices in the standard matrix function sense.
          Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
          # Sparse zero matrix to be used for sparse matrix creation
-         Zero::T
-         As::Vector{SparseMatrixCSC{<:Number, Int}}  # 'A' matrices with sparsity pattern of all matrices combined
+         #Zero::T
+        #As::Vector{SparseMatrixCSC{<:Number, Int}}  # 'A' matrices with sparsity pattern of all matrices combined
+        sparsity_patterns_aligned::Bool
     end
     SPMF_NEP{T,Ftype} = Union{SPMF_NEP_dense{T,Ftype},SPMF_NEP_sparse{T,Ftype}}
 
@@ -155,8 +156,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
-                       Schur_fact = false, use_sparsity_pattern = true,
-                       check_consistency=false, Ftype=ComplexF64)
+                       Schur_fact = false,
+                       check_consistency=false, Ftype=ComplexF64,
+                       align_sparsity_patterns=false)
 
          T=Float64;
          if (check_consistency)
@@ -199,20 +201,23 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          else
              # Sparse: Potentially do the joint sparsity pattern trick.
              T = eltype(AA[1])
-             As = Vector{SparseMatrixCSC{T,Int}}()
-
-             if use_sparsity_pattern && issparse(AA[1])
+             if (!align_sparsity_patterns)
+                 # No aligning, just create it
+                 this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
+             else
+                 # Align sparsity patterns in new vector of matrices As
+                 As = Vector{SparseMatrixCSC{T,Int}}()
                  # Merge the sparsity pattern of all matrices without dropping any zeros
                  Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
                  for i = 2:size(AA,1)
-                     Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
+                     Zero .+= LinearAlgebra.fillstored!(copy(AA[i]), 1)
                  end
                  Zero = T.(Zero)
                  Zero.nzval[:] .= T(0)
 
                  # Create a copy of each matrix with the sparsity pattern of all matrices combined
                  @inbounds for A in AA
-                     S = copy(Zero)
+                     S = deepcopy(Zero)
 
                      for col = 1:size(A, 2)
                          for j in nzrange(A, col)
@@ -222,13 +227,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
                      push!(As, S)
                  end
-             else
-                 Zero=zeros(n,n)
+                 this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,As,fii,Schur_fact,true);
              end
-
-             this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,Zero,As);
          end
-
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
@@ -305,12 +306,22 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
      function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
          TZ,x = compute_Mder_fi_and_output_type(nep,λ)
-         Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
-                             nep.As[1].colptr, nep.As[1].rowval,
-                             convert.(TZ, nep.As[1].nzval .* x[1]))
-         for k = 2:length(nep.As)
-             Z.nzval .+= nep.As[k].nzval .* x[k]
+         if (nep.sparsity_patterns_aligned)
+             # Sparsity patterns are aligned, so just change
+             # the value entires in the sparse matrix object
+             Z = SparseMatrixCSC(nep.A[1].m, nep.A[1].n,
+                                 copy(nep.A[1].colptr), copy(nep.A[1].rowval),
+                                 copy(convert.(TZ, nep.A[1].nzval .* x[1])))
+             for k = 2:length(nep.A)
+                 Z.nzval .+= nep.A[k].nzval .* x[k]
+             end
+         else
+             Z::SparseMatrixCSC{TZ,Int} = copy(nep.A[1])*x[1]
+             for k = 2:length(nep.A)
+                 Z .+= nep.A[k] * x[k];
+             end
          end
+
          return Z
 
     end
