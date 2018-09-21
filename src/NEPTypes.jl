@@ -270,9 +270,9 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                     end
                     Fid=Vector{FStype}(Fid0);
                 end
-                Fi[:,:]=Diagonal(Fid)
+                Fi .= Diagonal(Fid)
             else
-                Fi[:,:]=ff[i](S);
+                Fi .= ff[i](S);
             end
             mul!(VFi,V,Fi);
             Z[:,:] .+= AA[i]*VFi;
@@ -1061,7 +1061,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             # otherwise get a vector of scaled derivatives
             Fi1=(V isa AbstractVector) ? nep.fi[i](S) : nep.fi[i](S)[:,1]
             VFi1=V*Fi1
-            z[:] += nep.A[i]*VFi1
+            z .+= nep.A[i]*VFi1
         end
 
     	return a[1]*z;
