@@ -151,10 +151,10 @@ using SparseArrays
         # To check performance of SPMF-compute_MM function
         large_benchmark = false
         if large_benchmark
-            n_values = (5, 10, 300)
-            p_mm_values = (5, 10, 15, 100, 1000)
+            n_values = (5, 10, 50)
+            p_mm_values = (5, 50)
             p_mder_values = (1, 3, 10, 20)
-            m_terms = 100
+            m_terms = 500
         else
             n_values = (5, 10)
             p_mm_values = (5, 10, 15, 100)
@@ -186,7 +186,7 @@ using SparseArrays
                 fv=Vector{Function}(undef,m);
                 Av=Vector{Matrix{Float64}}(undef,m);
                 for k=1:m
-                    fv[k] = S-> sin(log(sqrt(k+1))*S);
+                    fv[k] = S-> inv(sqrt(k)*I-S); # 1/(I√k-S)
                     Av[k] = randn(n,n)
                 end
 
@@ -198,11 +198,12 @@ using SparseArrays
                     Z=compute_MM(spmf2,S,V);
                     @test eltype(Z) == promote_type(eltype(S),eltype(V),eltype(A0))
                 end
-                @testset "$m-term SPMF (n=$n,schur=$Schur_fact): Mder($p)" for p in p_mder_values
-                    λ=3.0+1im;
-                    MM=compute_Mder(spmf2,λ,p);
-                    @test eltype(MM) == promote_type(typeof(λ),eltype(A0))
-                end
+                # Disabled until it is optimized.
+                #@testset "$m-term SPMF (n=$n,schur=$Schur_fact): Mder($p)" for p in p_mder_values
+                #    λ=3.0+1im;
+                #    MM=compute_Mder(spmf2,λ,p);
+                #    @test eltype(MM) == promote_type(typeof(λ),eltype(A0))
+                #end
             end
         end
     end

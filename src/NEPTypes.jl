@@ -1066,23 +1066,21 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         z=zeros(TT,n)
         d=length(nep.A)-1
         k=min(size(V,2),d+1)
+        tmp = Vector{TT}(undef, n)
 
         if iszero(λ)
             for j=0:k-1
-                z[:]+=a[j+1]*factorial(j)*(nep.A[j+1]*V[:,j+1])
+                mul!(tmp, nep.A[j+1], view(V,:,j+1))
+                z .+= a[j+1] .* factorial(j) .* tmp
             end
         else
             for j=0:k-1
                 for i=j:d
-                    z[:]+=a[j+1]*λ^(i-j)*(factorial(i)/factorial(i-j))*(nep.A[i+1]*V[:,j+1])
+                    mul!(tmp, nep.A[i+1], view(V,:,j+1))
+                    z .+= a[j+1] .* λ^(i-j) .* (factorial(i)/factorial(i-j)) .* tmp
                 end
             end
         end
-        return z[:]
+        return z
     end
-
-
-
-
-
 end
