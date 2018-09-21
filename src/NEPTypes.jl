@@ -233,7 +233,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
         Z=zeros(n,n)
-        return SPMF_NEP_dense{AbstractMatrix,Complex}}(n,Vector{Matrix}(),Vector{Function}(),false);
+        return SPMF_NEP_dense{AbstractMatrix,Complex}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
     function compute_MM(nep::SPMF_NEP{T,Ftype},S::AbstractMatrix,V::AbstractMatrix) where {T,Ftype}
 
@@ -280,9 +280,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
-    function compute_Mder_output_type(nep::SPMF_NEP,λ::Number)
+    function compute_Mder_output_type(nep::SPMF_NEP,λ::Number,x)
         # figure out the return type, as the greatest type of all input
-        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
         Tx = mapreduce(eltype, promote_type, x)
         TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
         TZ=promote_type(TA,Tx)  # output type
@@ -291,7 +290,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
 
     function compute_Mder(nep::SPMF_NEP_dense,λ::Number)
-         TZ = compute_Mder_output_type(nep,λ)
+         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+         TZ = compute_Mder_output_type(nep,λ,x)
          Z = zeros(TZ,size(nep,1),size(nep,1));
          for k=1:size(nep.A,1)
              Z += nep.A[k] * x[k]
@@ -300,7 +300,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
      end
 
      function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
-         TZ = compute_Mder_output_type(nep,λ)
+         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+         TZ = compute_Mder_output_type(nep,λ,x)
          Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
                              nep.As[1].colptr, nep.As[1].rowval,
                              convert.(TZ, nep.As[1].nzval .* x[1]))
@@ -1045,7 +1046,9 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     	a[findall(x->x==0,a)] .= 1
         local S;
         if (V isa AbstractVector)
-            S=λ # Vector means just compute matrix vector
+            #Vector means just compute matrix vector
+            #S=λ # We should use this once #71 is complete
+            S=reshape([λ],1,1)
         else
             # V matrix means compute linear combination of derivatives. Use
             # scaling trick
@@ -1060,12 +1063,12 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         for i=1:size(nep.A,1)
             # Get the function value if V is a vector,
             # otherwise get a vector of scaled derivatives
-            Fi1=(V isa AbstractVector) ? nep.fi[i](S) : nep.fi[i](S)[:,1]
+            Fi1=(V isa AbstractVector) ? nep.fi[i](S)[1] : nep.fi[i](S)[:,1]
             VFi1=V*Fi1
             z .+= nep.A[i]*VFi1
         end
 
-    	return a[1]*z;
+    	return a[1]*reshape(z,n);
     end
 
     compute_Mlincomb(nep::SPMF_NEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
