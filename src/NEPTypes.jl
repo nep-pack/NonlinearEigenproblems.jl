@@ -280,13 +280,18 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
+    function compute_Mder_output_type(nep::SPMF_NEP,λ::Number)
+        # figure out the return type, as the greatest type of all input
+        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+        Tx = mapreduce(eltype, promote_type, x)
+        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+        TZ=promote_type(TA,Tx)  # output type
+        return TZ;
+    end
 
-     function compute_Mder(nep::SPMF_NEP_dense,λ::Number)
-         # figure out the return type, as the greatest type of all input
-         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
-         Tx = mapreduce(eltype, promote_type, x)
-         TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
-         TZ=promote_type(TA,Tx)  # output type
+
+    function compute_Mder(nep::SPMF_NEP_dense,λ::Number)
+         TZ = compute_Mder_output_type(nep,λ)
          Z = zeros(TZ,size(nep,1),size(nep,1));
          for k=1:size(nep.A,1)
              Z += nep.A[k] * x[k]
@@ -295,11 +300,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
      end
 
      function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
-         # figure out the return type, as the greatest type of all input
-         x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
-         Tx = mapreduce(eltype, promote_type, x)
-         TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
-         TZ=promote_type(TA,Tx)  # output type
+         TZ = compute_Mder_output_type(nep,λ)
          Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
                              nep.As[1].colptr, nep.As[1].rowval,
                              convert.(TZ, nep.As[1].nzval .* x[1]))
