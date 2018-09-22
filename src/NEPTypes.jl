@@ -115,28 +115,19 @@ for matrices in the standard matrix function sense.
 # Logic behind Ftype:
 #  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
 
-    struct SPMF_NEP_dense{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
+    struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization
+        sparsity_patterns_aligned:: Bool
     end
 
-    struct SPMF_NEP_sparse{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
-         n::Int
-         A::Vector{T}   # Array of Array of matrices
-         fi::Vector{Function}  # Array of functions
-         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
-         # Sparse zero matrix to be used for sparse matrix creation
-         #Zero::T
-        #As::Vector{SparseMatrixCSC{<:Number, Int}}  # 'A' matrices with sparsity pattern of all matrices combined
-        sparsity_patterns_aligned::Bool
-    end
-    SPMF_NEP{T,Ftype} = Union{SPMF_NEP_dense{T,Ftype},SPMF_NEP_sparse{T,Ftype}}
 
-    #SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
-    #    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
+    # Alias for SPMFs which contain sparse matrices
+    SPMF_NEP_sparse{T<:AbstractSparseMatrix,Ftype}=SPMF_NEP{T,Ftype}
+
 
 """
      SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
@@ -197,23 +188,23 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if !(eltype(AA) <: SparseMatrixCSC)
              # Dense
-             this=SPMF_NEP_dense{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact);
+             this=SPMF_NEP{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
          else
              # Sparse: Potentially do the joint sparsity pattern trick.
-             T = eltype(AA[1])
              if (!align_sparsity_patterns)
                  # No aligning, just create it
-                 this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
+                 this=SPMF_NEP{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
              else
-                 As=align_sparsity_patterns(AA,T)
-                 this=SPMF_NEP_sparse{typeof(As[1]),Ftype}(n,As,fii,Schur_fact,true);
+                 TT = eltype(AA[1])
+                 As=align_sparsity_patterns(AA,TT)
+                 this=SPMF_NEP{typeof(As[1]),Ftype}(n,As,fii,Schur_fact,true);
              end
          end
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
         Z=zeros(n,n)
-        return SPMF_NEP_dense{AbstractMatrix,Complex}(n,Vector{Matrix}(),Vector{Function}(),false);
+        return SPMF_NEP{AbstractMatrix,Complex}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
 
 """ Return a vector of sparse matrices which are the same as AA but also have the same sparsity pattern. """
@@ -307,7 +298,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
 
 
-    function compute_Mder(nep::SPMF_NEP_dense,λ::Number)
+    # For general matrices
+    function compute_Mder(nep::SPMF_NEP,λ::Number)
          TZ,x = compute_Mder_fi_and_output_type(nep,λ)
          Z = zeros(TZ,size(nep,1),size(nep,1));
          for k=1:size(nep.A,1)
@@ -315,7 +307,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
          return Z
      end
-
+     # Specialize for sparse matrices
      function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
          TZ,x = compute_Mder_fi_and_output_type(nep,λ)
          if (nep.sparsity_patterns_aligned)
