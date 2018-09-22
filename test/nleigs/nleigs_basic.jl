@@ -16,27 +16,27 @@ function nleigs_basic()
     Σ = [-10.0-2im, 10-2im, 10+2im, -10+2im]
 
     @bench @testset "Polynomial only" begin
-        @time lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5)
+        lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5)
         nleigs_verify_lambdas(4, pep, X, lambda)
     end
 
     @bench @testset "Non-convergent linearization" begin
         @test_logs (:warn, r".*Linearization not converged.*") match_mode = :any begin
-            @time lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5)
+            lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5)
             nleigs_verify_lambdas(4, pep, X, lambda)
         end
     end
 
     @bench @testset "Non-convergent linearization (static)" begin
         @test_logs (:warn, r".*Linearization not converged.*") match_mode = :any begin
-            @time lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5, static=true)
+            lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5, static=true)
             nleigs_verify_lambdas(4, pep, X, lambda)
         end
     end
 
     @bench @testset "Non-convergent linearization (return_details)" begin
         @test_logs (:warn, r".*Linearization not converged.*") match_mode = :any begin
-            @time lambda, X, _ = nleigs(pep, Σ, maxit=5, v=ones(n).+0im, blksize=5, return_details=true)
+            lambda, X, _ = nleigs(pep, Σ, maxit=5, v=ones(n).+0im, blksize=5, return_details=true)
             nleigs_verify_lambdas(0, pep, X, lambda)
         end
     end
@@ -44,17 +44,17 @@ function nleigs_basic()
     @bench @testset "Complex-valued matrices" begin
         complex_B = map(X -> X + im*I, B)
         complex_pep = PEP(complex_B)
-        @time lambda, X, _ = nleigs(complex_pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
+        lambda, X, _ = nleigs(complex_pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
         nleigs_verify_lambdas(3, complex_pep, X, lambda)
     end
 
     @bench @testset "Complex-valued start vector" begin
-        @time lambda, X, _ = nleigs(pep, Σ, maxit=10, v=ones(n) * (1+0.1im), blksize=5, return_details=true)
+        lambda, X, _ = nleigs(pep, Σ, maxit=10, v=ones(n) * (1+0.1im), blksize=5, return_details=true)
         nleigs_verify_lambdas(4, pep, X, lambda)
     end
 
     @bench @testset "return_details" begin
-        @time lambda, X, res, details = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
+        lambda, X, res, details = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
         nleigs_verify_lambdas(4, pep, X, lambda)
 
         lam = details.Lam[:,end]

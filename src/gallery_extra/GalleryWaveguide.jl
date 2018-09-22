@@ -99,7 +99,6 @@ function nep_gallery(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchm
         error("The NEP-type '", neptype, "' is not supported for the discretization '", discretization, "'.")
     end
 
-    println("Waveguide generated")
     return nep
 end
 

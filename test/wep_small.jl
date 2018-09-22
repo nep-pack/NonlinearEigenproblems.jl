@@ -37,29 +37,29 @@ n=size(nep,1);
 
     myerrmeasure=(λ,v) -> abs(λ-λstar) # Use eigenvalue error as errmeasure
 
-   λ,v=@time resinv(ComplexF64,nep,displaylevel=1,λ=λ0,v=v0,
+   λ,v = resinv(ComplexF64,nep,displaylevel=displaylevel,λ=λ0,v=v0,
               errmeasure=myerrmeasure,tol=1e-12)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
-    λ,v=@time resinv(ComplexF64,nep,displaylevel=1,λ=λ0,v=v0,
+    λ,v = resinv(ComplexF64,nep,displaylevel=displaylevel,λ=λ0,v=v0,
                errmeasure=myerrmeasure,tol=1e-12,linsolvercreator=backslash_linsolvercreator)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
-    λ,v=@time quasinewton(ComplexF64,nep,displaylevel=1,λ=λ0,v=v0,
+    λ,v = quasinewton(ComplexF64,nep,displaylevel=displaylevel,λ=λ0,v=v0,
                     errmeasure=myerrmeasure,tol=1e-12)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
 
     nev=3
-    λ,v=@time iar(ComplexF64,nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
+    λ,v = iar(ComplexF64,nep,σ=λ0, displaylevel=displaylevel,Neig=nev,maxit=100,v=v0,
                   tol=1e-8);
 
     @test minimum(abs.(λstar .- λ)) < 1e-10
 
-    #λ,v=@time tiar(nep,σ=λ0, displaylevel=1,Neig=nev,maxit=100,v=v0,
+    #λ,v = tiar(nep,σ=λ0, displaylevel=displaylevel,Neig=nev,maxit=100,v=v0,
     #               tol=1e-8);
 
 end

@@ -6,6 +6,11 @@ using Printf
 export @bench
 export @onlybench
 export report_benchmarks
+export displaylevel
+export set_displaylevel
+
+displaylevel = 1
+set_displaylevel(level) = global displaylevel = level
 
 # the TEST_SUITE environment variable can be set by the CI tool
 run_benchmark = get(ENV, "TEST_SUITE", "") == "benchmark"

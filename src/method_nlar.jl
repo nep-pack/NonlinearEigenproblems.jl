@@ -162,9 +162,7 @@ function nlar(::Type{T},
         nu = λ0;
         u = v0;
 
-        if(displaylevel == 1)
-            println("##### Using inner solver:",inner_solver_method," #####");
-        end
+        @ifd(println("##### Using inner solver:",inner_solver_method," #####"))
 
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
@@ -194,12 +192,10 @@ function nlar(::Type{T},
 
             #Check for convergence of one of the eigenvalues
             err = errmeasure(nu,u);
-            println(k," Error:",err," Eigval :",nu)
+            @ifd(println(k," Error:",err," Eigval :",nu))
             err_hyst[k,m+1]=err;    # Giampaolo's edit
             if(err < tol)
-                if(displaylevel == 1)
-                    println("\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n")
-                end
+                @ifd(println("\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n"))
 
                 #Add to the set of converged eigenvalues and eigenvectors
                 D[m+1] = nu;
@@ -243,7 +239,7 @@ function nlar(::Type{T},
 
             #Check orthogonalization
             if(k < 100)
-               println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))")
+               @ifd(println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))"))
                #println("CHECKING ORTHO  ......     ",opnorm(Δv)," ....",h," .... ",g)
             end
             k = k+1;

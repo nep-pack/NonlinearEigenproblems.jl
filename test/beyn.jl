@@ -9,7 +9,7 @@ using LinearAlgebra
     nep=nep_gallery("dep0")
     @bench @testset "disk at origin" begin
 
-        λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:ptrapz,compute_eigenvectors=true)
+        λ,v=contour_beyn(nep,displaylevel=displaylevel,radius=1,k=2,quad_method=:ptrapz,compute_eigenvectors=true)
 
         for i = 1:2
             @info "$i: $(λ[i])"
@@ -20,7 +20,7 @@ using LinearAlgebra
         end
 
 
-        λ,v=contour_beyn(nep,displaylevel=1,radius=1,k=2,quad_method=:ptrapz,N=100)
+        λ,v=contour_beyn(nep,displaylevel=displaylevel,radius=1,k=2,quad_method=:ptrapz,N=100)
         M=compute_Mder(nep,λ[1])
         minimum(svdvals(M))
         @test minimum(svdvals(M))<eps()*1000
@@ -29,7 +29,7 @@ using LinearAlgebra
     end
     @bench @testset "shifted disk" begin
 
-        λ,v=contour_beyn(nep,displaylevel=1,σ=-0.2,radius=1.5,k=4,quad_method=:ptrapz,compute_eigenvectors=true)
+        λ,v=contour_beyn(nep,displaylevel=displaylevel,σ=-0.2,radius=1.5,k=4,quad_method=:ptrapz,compute_eigenvectors=true)
 
         for i = 1:4
             @info "$i: $(λ[i])"

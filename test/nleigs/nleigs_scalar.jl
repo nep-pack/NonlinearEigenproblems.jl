@@ -18,7 +18,7 @@ function nleigs_scalar()
     Σ = complex([0.01, 4])
 
     @bench @testset "Polynomial" begin
-        @time lambda, X = nleigs(nep, Σ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
+        lambda, X = nleigs(nep, Σ, displaylevel=displaylevel, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # single eigenvalue converges
         nleigs_verify_lambdas(1, nep, X, lambda)
@@ -28,7 +28,7 @@ function nleigs_scalar()
         # set of poles candidates
         Ξ = -10 .^ range(-6, stop = 5, length = 10000)
 
-        @time lambda, X = nleigs(nep, Σ, Ξ=Ξ, displaylevel=1, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
+        lambda, X = nleigs(nep, Σ, Ξ=Ξ, displaylevel=displaylevel, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # three eigenvalues converge
         nleigs_verify_lambdas(3, nep, X, lambda)

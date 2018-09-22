@@ -43,7 +43,7 @@ dep_distributed_exact_eigvals = [
     end
 
     (λ,V)=iar(dep,σ=3,Neig=5,errmeasure=myerrmeasure, v=ones(n),
-              displaylevel=1,maxit=100,tol=eps()*100)
+              displaylevel=displaylevel,maxit=100,tol=eps()*100)
     @info λ
 
     @testset "IAR eigval[$i]" for i in 1:length(λ)
@@ -53,7 +53,7 @@ dep_distributed_exact_eigvals = [
     @bench @testset "Quasinewton eigval[$i]" for i in 1:length(dep_distributed_exact_eigvals[1:3])
         λ0=round(dep_distributed_exact_eigvals[i]*10)/10
         λ,v=quasinewton(ComplexF64,dep,v=ones(n),λ=λ0,
-                        #displaylevel=1,
+                        #displaylevel=displaylevel,
                         armijo_factor=0.5,maxit=200,
                         errmeasure=myerrmeasure,
                         tol=eps()*100)
