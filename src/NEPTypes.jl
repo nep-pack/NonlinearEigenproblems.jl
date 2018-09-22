@@ -196,7 +196,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                  this=SPMF_NEP{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
              else
                  TT = eltype(AA[1])
-                 As=align_sparsity_patterns(AA,TT)
+                 As=form_aligned_sparsity_patterns(AA,TT)
                  this=SPMF_NEP{typeof(As[1]),Ftype}(n,As,fii,Schur_fact,true);
              end
          end
@@ -208,7 +208,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     end
 
 """ Return a vector of sparse matrices which are the same as AA but also have the same sparsity pattern. """
-    function align_sparsity_patterns(AA::Vector{SparseMatrixCSC},T)
+    function form_aligned_sparsity_patterns(AA::Vector{<:SparseMatrixCSC},T)
 
         # Create a Zero matrix with the correct sparsity pattern.
         Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
@@ -300,8 +300,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
     # For general matrices
     function compute_Mder(nep::SPMF_NEP,λ::Number)
-         TZ,x = compute_Mder_fi_and_output_type(nep,λ)
-         Z = zeros(TZ,size(nep,1),size(nep,1));
+        TZ,x = compute_Mder_fi_and_output_type(nep,λ)
+        Z = zeros(TZ,size(nep,1),size(nep,1));
          for k=1:size(nep.A,1)
              Z += nep.A[k] * x[k]
          end
@@ -320,14 +320,13 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                  Z.nzval .+= nep.A[k].nzval .* x[k]
              end
          else
-             Z::SparseMatrixCSC{TZ,Int} = copy(nep.A[1])*x[1]
+             # No alignment of sparsity pattern. Naive summing.
+             Z::SparseMatrixCSC{TZ,Int} = nep.A[1]*x[1]
              for k = 2:length(nep.A)
                  Z .+= nep.A[k] * x[k];
              end
          end
-
          return Z
-
     end
 
     function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
