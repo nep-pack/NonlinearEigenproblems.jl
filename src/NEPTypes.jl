@@ -310,6 +310,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
      # Specialize for sparse matrices
      function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
          TZ,x = compute_Mder_fi_and_output_type(nep,λ)
+         return smart_SPMF_sparse_sum(nep,TZ,x)
+    end
+
+""" Sum the A-matrices in nep by multiplication with x-values. Result will be type TZ """
+    function smart_SPMF_sparse_sum(nep::SPMF_NEP_sparse,TZ,x)
          if (nep.sparsity_patterns_aligned)
              # Sparsity patterns are aligned, so just change
              # the value entries in the sparse matrix object
@@ -328,31 +333,37 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          end
          return Z
     end
-
     # For higher derivatives
     function compute_Mder(nep::SPMF_NEP{T,Ftype},λ::Number,i::Integer) where {T,Ftype}
         if (i==0)
             return compute_Mder(nep,λ);
         else
-
-            local n,k;
             n=size(nep,1);
-            k=i+1;
 
-       	    S=diagm(0 => fill(λ,k), -1 => (1:k-1)) # Jordan matrix trick
+            # Jordan matrix trick
+            k=i+1;
+       	    S=diagm(0 => fill(λ,k), -1 => (1:k-1))
             TS=eltype(S);
 
             # Type logic
             Fλtype=promote_type(TS,Ftype);
             TT=promote_type(Fλtype,eltype(nep.A[1])); # Return type
 
-            z=zeros(TT,n)
-            # No alignment of sparsity pattern exploitation implemented. Naive summing.
-            Z::SparseMatrixCSC{TT,Int} = nep.A[1]*nep.fi[1](S)[end,1];
-            for j = 2:length(nep.A)
-                Z .+= nep.A[j] * nep.fi[j](S)[end,1];;
+
+            # Compute the derivatives with the jordan matrix trick
+            fk=Vector{TT}(undef,size(nep.A,1))
+            for j=1:size(nep.A,1)
+                fk[j] = nep.fi[j](S)[end,1]; # Contains the derivative
             end
-    	    return Z
+
+            # Sum it up
+            if (nep isa SPMF_NEP_sparse)
+                # sparse: Maybe exploit sparsity patterns
+                return smart_SPMF_sparse_sum(nep,TT,fk);
+            else
+                # Dense matrix: Just sum it up
+                return mapreduce(j-> nep.A[j]*fk[j], +, 1:length(nep.A))
+            end
 
         end
     end
