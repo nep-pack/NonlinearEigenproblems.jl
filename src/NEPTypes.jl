@@ -13,7 +13,7 @@ module NEPTypes
     export REP
     export SPMF_NEP
     export SPMF_NEP_dense
-    export SPMF_NEP_sparse
+
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
     export Proj_NEP;
@@ -312,7 +312,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          TZ,x = compute_Mder_fi_and_output_type(nep,λ)
          if (nep.sparsity_patterns_aligned)
              # Sparsity patterns are aligned, so just change
-             # the value entires in the sparse matrix object
+             # the value entries in the sparse matrix object
              Z = SparseMatrixCSC(nep.A[1].m, nep.A[1].n,
                                  copy(nep.A[1].colptr), copy(nep.A[1].rowval),
                                  copy(convert.(TZ, nep.A[1].nzval .* x[1])))
@@ -329,13 +329,31 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
          return Z
     end
 
-    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
+    # For higher derivatives
+    function compute_Mder(nep::SPMF_NEP{T,Ftype},λ::Number,i::Integer) where {T,Ftype}
         if (i==0)
             return compute_Mder(nep,λ);
         else
-            # This is typically slow for i>1 (can be optimized by
-            # treating the SPMF-terms individually)
-            return compute_Mder_from_MM(nep,λ,i)
+
+            local n,k;
+            n=size(nep,1);
+            k=i+1;
+
+       	    S=diagm(0 => fill(λ,k), -1 => (1:k-1)) # Jordan matrix trick
+            TS=eltype(S);
+
+            # Type logic
+            Fλtype=promote_type(TS,Ftype);
+            TT=promote_type(Fλtype,eltype(nep.A[1])); # Return type
+
+            z=zeros(TT,n)
+            # No alignment of sparsity pattern exploitation implemented. Naive summing.
+            Z::SparseMatrixCSC{TT,Int} = nep.A[1]*nep.fi[1](S)[end,1];
+            for j = 2:length(nep.A)
+                Z .+= nep.A[j] * nep.fi[j](S)[end,1];;
+            end
+    	    return Z
+
         end
     end
 
