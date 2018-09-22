@@ -253,7 +253,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         # Always return a dense matrix
         Z=zeros(T0,n,p);
 
-        # (temporarily disabled)
+        # Precompute schur factorization (temporarily disabled)
         #if (nep.Schur_factorize_before) #Optimize if allowed to factorize before
         #    (TT, Q, ) = schur(S)  # Currently not used
         #end
@@ -284,55 +284,56 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
-    function compute_Mder_fi_and_output_type(nep::SPMF_NEP,λ::Number)
-
-        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+""" Internal helper function: returns (TZ,x) where x is a vector of function evaluation of nep.fi[i](λ). TZ is greatest of the types in vector x."""
+    function compute_Mder_fi_and_output_type(nep::AbstractSPMF,λ::Number)
+        ff=get_fv(nep);
+        AA=get_Av(nep)
+        x = map(i -> ff[i](reshape([λ],1,1))[1], 1:length(ff))
         # The above line should be replace by below once we handled #71
-        #x = map(i -> nep.fi[i](λ), 1:length(nep.fi))
+        #x = map(i -> ff(λ), 1:length(ff))
 
         # figure out the return type, as the greatest type of all input
         Tx = mapreduce(eltype, promote_type, x)
-        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+        TA=mapreduce(eltype, promote_type, AA); # Greatest type of all A-matrices
         TZ=promote_type(TA,Tx)  # output type
         return (TZ,x);
     end
 
-
-    # For general matrices
-    function compute_Mder(nep::SPMF_NEP,λ::Number)
-        TZ,x = compute_Mder_fi_and_output_type(nep,λ)
-        Z = zeros(TZ,size(nep,1),size(nep,1));
-         for k=1:size(nep.A,1)
-             Z += nep.A[k] * x[k]
-         end
-         return Z
-     end
-     # Specialize for sparse matrices
-     function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
-         TZ,x = compute_Mder_fi_and_output_type(nep,λ)
-         return smart_SPMF_sparse_sum(nep,TZ,x)
+""" Internal helper function: Computes a linear combination with coeffs x of the A-matrices in an
+SPMF. The result will be stored in an  AbstractMatrix with eltype T.  """
+    function compute_linear_combination_SPMF(nep::AbstractSPMF,::Type{T},x::Vector) where {T<:Number}
+        AA=get_Av(nep);
+        # Fall back version just sum it up, e.g., for dense matrices
+        Z=mapreduce(i->AA[i]*x[i],+,1:length(AA))
+        #@assert eltype(Z) <: T
     end
-
-""" Sum the A-matrices in nep by multiplication with x-values. Result will be type TZ """
-    function smart_SPMF_sparse_sum(nep::SPMF_NEP_sparse,TZ,x)
-         if (nep.sparsity_patterns_aligned)
+    # Specialized function sparse matrices, where we can exploit sparsity
+    function compute_linear_combination_SPMF(nep::SPMF_NEP_sparse,::Type{T},x::Vector) where {T<:Number}
+        local Z::SparseMatrixCSC{T,Int}
+        if (nep.sparsity_patterns_aligned)
              # Sparsity patterns are aligned, so just change
              # the value entries in the sparse matrix object
              Z = SparseMatrixCSC(nep.A[1].m, nep.A[1].n,
                                  copy(nep.A[1].colptr), copy(nep.A[1].rowval),
-                                 copy(convert.(TZ, nep.A[1].nzval .* x[1])))
+                                 copy(convert.(T, nep.A[1].nzval .* x[1])))
              for k = 2:length(nep.A)
                  Z.nzval .+= nep.A[k].nzval .* x[k]
              end
          else
+             AA=nep.A;
              # No alignment of sparsity pattern. Naive summing.
-             Z::SparseMatrixCSC{TZ,Int} = nep.A[1]*x[1]
-             for k = 2:length(nep.A)
-                 Z .+= nep.A[k] * x[k];
-             end
+             Z=mapreduce(i->AA[i]*x[i],+,1:length(AA))
          end
          return Z
     end
+
+    function compute_Mder(nep::AbstractSPMF,λ::Number)
+        TZ,x = compute_Mder_fi_and_output_type(nep,λ)
+        # Try to do "smart" summing
+        Z = compute_linear_combination_SPMF(nep,TZ,x);
+        return Z
+     end
+
     # For higher derivatives
     function compute_Mder(nep::SPMF_NEP{T,Ftype},λ::Number,i::Integer) where {T,Ftype}
         if (i==0)
@@ -349,22 +350,14 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
             Fλtype=promote_type(TS,Ftype);
             TT=promote_type(Fλtype,eltype(nep.A[1])); # Return type
 
-
-            # Compute the derivatives with the jordan matrix trick
+            # Compute the derivatives of the individual functions with the jordan matrix trick
             fk=Vector{TT}(undef,size(nep.A,1))
             for j=1:size(nep.A,1)
                 fk[j] = nep.fi[j](S)[end,1]; # Contains the derivative
             end
 
-            # Sum it up
-            if (nep isa SPMF_NEP_sparse)
-                # sparse: Maybe exploit sparsity patterns
-                return smart_SPMF_sparse_sum(nep,TT,fk);
-            else
-                # Dense matrix: Just sum it up
-                return mapreduce(j-> nep.A[j]*fk[j], +, 1:length(nep.A))
-            end
-
+            # Try to do "smart" summing
+            return compute_linear_combination_SPMF(nep,TT,fk);
         end
     end
 
