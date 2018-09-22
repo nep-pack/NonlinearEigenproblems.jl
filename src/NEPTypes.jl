@@ -205,29 +205,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                  # No aligning, just create it
                  this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
              else
-                 # Align sparsity patterns in new vector of matrices As
-                 As = Vector{SparseMatrixCSC{T,Int}}()
-                 # Merge the sparsity pattern of all matrices without dropping any zeros
-                 Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
-                 for i = 2:size(AA,1)
-                     Zero .+= LinearAlgebra.fillstored!(copy(AA[i]), 1)
-                 end
-                 Zero = T.(Zero)
-                 Zero.nzval[:] .= T(0)
-
-                 # Create a copy of each matrix with the sparsity pattern of all matrices combined
-                 @inbounds for A in AA
-                     S = deepcopy(Zero)
-
-                     for col = 1:size(A, 2)
-                         for j in nzrange(A, col)
-                             S[A.rowval[j], col] = A.nzval[j]
-                         end
-                     end
-
-                     push!(As, S)
-                 end
-                 this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,As,fii,Schur_fact,true);
+                 As=align_sparsity_patterns(AA,T)
+                 this=SPMF_NEP_sparse{typeof(As[1]),Ftype}(n,As,fii,Schur_fact,true);
              end
          end
          return this
@@ -236,6 +215,39 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         Z=zeros(n,n)
         return SPMF_NEP_dense{AbstractMatrix,Complex}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
+
+""" Return a vector of sparse matrices which are the same as AA but also have the same sparsity pattern. """
+    function align_sparsity_patterns(AA::Vector{SparseMatrixCSC},T)
+
+        # Create a Zero matrix with the correct sparsity pattern.
+        Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
+        for i = 2:size(AA,1)
+            Zero .+= LinearAlgebra.fillstored!(copy(AA[i]), 1)
+        end
+        Zero = T.(Zero)
+        Zero.nzval[:] .= T(0) # Set the nonzero elements to zero (keep pattern)
+
+
+        # Create an vector of sparse matrices. Set the elements corresponding to
+        # AA[i] in each of them, such that As[i]=AA[i] but with different sparsity patterns.
+        As = Vector{SparseMatrixCSC{T,Int}}()
+        @inbounds for A in AA
+            # Create a new zero matrix. Note all S-matrices have the same colptr, so
+            # modification of As[i] will change all. Not advisable.
+            S = SparseMatrixCSC(Zero.m, Zero.n,
+                                Zero.colptr, Zero.rowval,
+                                fill(zero(T),size(Zero.nzval,1)))
+            # Set the nonzero elements of A in S
+            for col = 1:size(A, 2)
+                for j in nzrange(A, col)
+                    S[A.rowval[j], col] = A.nzval[j]
+                end
+            end
+            push!(As, S)
+        end
+        return As;
+    end
+
     function compute_MM(nep::SPMF_NEP{T,Ftype},S::AbstractMatrix,V::AbstractMatrix) where {T,Ftype}
 
         AA=get_Av(nep);
@@ -250,7 +262,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         # Always return a dense matrix
         Z=zeros(T0,n,p);
 
-        # Sum together all the terms in the SPMF: (temporarily disabled)
+        # (temporarily disabled)
         #if (nep.Schur_factorize_before) #Optimize if allowed to factorize before
         #    (TT, Q, ) = schur(S)  # Currently not used
         #end
@@ -263,11 +275,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 Sd=diag(S);
                 local Fid::Vector{FStype}
                 if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
-                    Fid=fill(nep.fi[i](Sd[1]),p)
+                    Fid=fill(ff[i](Sd[1]),p)
                 else  # Diagonal but not constant
                     Fid0=Vector{Number}(undef,p)
                     for j=1:p
-                        Fid0[j]=nep.fi[i](Sd[j])
+                        Fid0[j]=ff[i](Sd[j])
                     end
                     Fid=Vector{FStype}(Fid0);
                 end
