@@ -63,7 +63,7 @@ function write_report(io, files, sort_benchmarks_by_date)
     println(io, "<th class=\"test-name\">Test</th>")
 
     println(io, "<th></th>")
-    println(io, "<th colspan=\"2\">Reference</th>")
+    println(io, "<th colspan=\"2\">Baseline</th>")
 
     runs = map(f -> load_benchmark_from_string(get_benchmark_json(f)), files)
     sort_benchmarks_by_date && sort!(runs, by = r -> r["time"])
