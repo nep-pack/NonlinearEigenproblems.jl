@@ -124,61 +124,15 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
       * GalleryNLEVP\\
       * GalleryWaveguide\\
   """
-  nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
-  function nep_gallery(::Type{T},name::String,params...;kwargs...) where T<:NEP
-      local n
-      if (name == "dep0")
-          # A delay eigenvalue problem
-          if (length(params)>0)
-              n=params[1]
-          else
-              n=5; # Default size
-          end
-
-          Random.seed!(0) # reset the random seed
-          A0=randn(n,n);
-          A1=randn(n,n);
-          tau=1.0;
-          nep=DEP([A0,A1],[0,tau])
-          return nep
-
-      elseif (name == "dep0_sparse")
-          # A delay eigenvalue problem with sparse matrices
-          if (length(params)>1)
-              n=params[1]
-              p=params[2]
-          elseif (length(params)>0)
-              n=params[1];
-              p=0.25;      # Default fill density
-          else
-              n=100;       # Default size
-              p=0.25;      # Default fill density
-          end
-          Random.seed!(0) # reset the random seed
-
-          A0=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
-          A1=sparse(1:n,1:n,rand(n))+sprand(n,n,p);
-
-          tau=1;
-          nep=DEP([A0,A1],[0,tau])
-          return nep
-
-    elseif (name == "dep0_tridiag")
-         # A delay eigenvalue problem with sparse tridiagonal matrices
-         if (length(params)>0)
-            n=params[1]
-         else
-            n=100; # Default size
-         end
-         Random.seed!(1) # reset the random seed
-         K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
-         A0=sparse(K, J, rand(3*n-2))
-         A1=sparse(K, J, rand(3*n-2))
-
-         tau=1;
-         nep=DEP([A0,A1],[0,tau])
-         return nep
-
+    nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
+    function nep_gallery(::Type{T},name::String,params...;kwargs...) where T<:NEP
+        local n
+        if (name == "dep0")
+            return dep0(params...; kwargs...)
+        elseif (name == "dep0_sparse")
+            return dep0_sparse(params...; kwargs...)
+        elseif (name == "dep0_tridiag")
+            return dep0_tridiag(params...; kwargs...)
      elseif (name == "dep_symm_double")
           # A symmetric delay eigenvalue problem with double eigenvalues
           # Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017
@@ -552,4 +506,34 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
        return F
    end
 
+
+   function dep0(n::Int = 5)
+       # A delay eigenvalue problem
+       Random.seed!(0) # reset the random seed
+       A0 = randn(n,n)
+       A1 = randn(n,n)
+       tau = 1.0
+       nep = DEP([A0,A1],[0,tau])
+       return nep
+   end
+
+   function dep0_sparse(n::Int=100, p::Real=0.25)
+       # A delay eigenvalue problem with sparse matrices
+       Random.seed!(0) # reset the random seed
+       A0 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
+       A1 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
+       tau = 1.0
+       nep = DEP([A0,A1],[0,tau])
+       return nep
+   end
+
+   function dep0_tridiag(n::Int = 100)
+       # A delay eigenvalue problem with sparse tridiagonal matrices
+       Random.seed!(1) # reset the random seed
+       K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n] # sparsity pattern of tridiag matrix
+       A0 = sparse(K, J, rand(3*n-2))
+       A1 = sparse(K, J, rand(3*n-2))
+       tau = 1.0
+       nep = DEP([A0,A1],[0,tau])
+       return nep
 end
