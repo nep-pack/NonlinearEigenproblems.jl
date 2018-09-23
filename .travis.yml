@@ -16,7 +16,7 @@ script:
   - git fetch --unshallow
   - julia --color=yes -e "using Pkg; Pkg.build()"
   - if [ $TEST_SUITE = 'unit' ]; then julia --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test(coverage=true)'; fi
-  - if [ $TEST_SUITE = 'benchmark' ]; then julia -O3 --color=yes test/run_benchmark.jl benchmark.json 1.0; fi
+  - if [ $TEST_SUITE = 'benchmark' ]; then julia -O3 --color=yes test/benchmark/run_benchmark.jl benchmark.json 1.0; fi
 after_success:
   - branch=`git rev-parse --abbrev-ref HEAD`; if [ $branch = 'HEAD' ]; then branch=`git describe --all --exact-match 2>/dev/null | sed 's=.*/=='`; fi
   - commit=`git rev-parse --short HEAD`
