@@ -10,8 +10,6 @@ using Random
 Runs the tensor infinite Arnoldi method which tries to find eigenvalues close to the shift σ.
 
 # Example
-
-# Example
 ```julia-repl
 julia> using NonlinearEigenproblems, LinearAlgebra
 julia> nep=nep_gallery("dep0",100);
@@ -61,6 +59,7 @@ function tiar(
         throw(LostOrthogonalityException(msg))
     end
 
+    # initialize variables
     a  = zeros(T,m+1,m+1,m+1);
     Z  = zeros(T,n,m+1);
     t  = zeros(T,m+1);
@@ -112,38 +111,39 @@ function tiar(
 
         # compute h (orthogonalization with tensors factorization)
         h = zero(h)
+        Ag = zero(h[1:k])
         for l=1:k
-            h[1:k]=h[1:k]+a[1:k,1:k,l]'*g[1:k,l];
+            mul!(Ag,a[1:k,1:k,l]',g[1:k,l])
+            h[1:k] .+= Ag;
         end
 
         # compute the matrix F
+        f=g;
+        Ah = zero(f[1:k+1,1])
         for l=1:k
-            f[1:k+1,l]=g[1:k+1,l]-a[1:k+1,1:k,l]*h[1:k];
-        end
-
-        for i=1:k+1
-            f[i,k+1]=g[i,k+1];
+            mul!(Ah,a[1:k+1,1:k,l],h[1:k])
+            f[1:k+1,l] .-= Ah;
         end
 
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
         hh = zero(hh)
+        Af = zero(hh[1:k])
         for l=1:k
-            hh[1:k]=hh[1:k]+a[1:k,1:k,l]'*f[1:k,l];
+            mul!(Af,a[1:k,1:k,l]',f[1:k,l])
+            hh[1:k] .+= Af;
         end
 
         # compute the matrix FF
+        ff=f;
+        Ah=zero(ff[1:k+1,1])
         for l=1:k
-            ff[1:k+1,l]=f[1:k+1,l]-a[1:k+1,1:k,l]*hh[1:k];
-        end
-
-        for i=1:k+1
-            ff[i,k+1]=f[i,k+1];
+            mul!(Ah,a[1:k+1,1:k,l],hh[1:k])
+            ff[1:k+1,l] .-= Ah;
         end
 
         # update the orthogonalization coefficients
         h=h+hh; f=ff;
-
         β=norm(view(f,1:k+1,1:k+1)); # equivalent to Frobenius norm
 
         # extend the matrix H
@@ -177,8 +177,6 @@ function tiar(
                 λproj=λproj[II]; Qproj=Qproj[:,II];
                 Q=Z[:,1:k]*Qproj;
                 λ=λproj;
-                #println("size(Q)=",size(Q));
-                #println("size(λ)=",size(λ));
              end
 
 

@@ -39,11 +39,16 @@ Runs the infinite Arnoldi method (Chebyshev version) which tries to find eigenva
 
 # Example
 ```julia-repl
-julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
-julia> nep=nep_gallery("dep0");
-julia> λ,v=iar_chebyshev(nep);
-julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
-
+julia> using NonlinearEigenproblems, LinearAlgebra
+julia> nep=nep_gallery("dep0",100);
+julia> v0=ones(size(nep,1));
+julia> λ,v=iar_chebyshev(nep;v=v0,tol=1e-5,Neig=3);
+julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
+julia> λ    # print the computed eigenvalues
+3-element Array{Complex{Float64},1}:
+  -0.1560621117389876 - 0.12273439561483537im
+ -0.15606211173898707 + 0.12273439561483517im
+  0.23169252042880578 - 7.86196165647416e-17im
 ```
 
 # References

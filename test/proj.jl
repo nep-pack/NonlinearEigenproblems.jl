@@ -74,7 +74,7 @@ using Random
         @test norm(x/x[1]-x1)<1e-8
 
         @info "Running IAR for projected problem (no special starting vector)"
-        λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=1,
+        λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=displaylevel,
                  Neig=3,maxit=100, v=ones(size(pnep,1)))
 
         diff = minimum(abs.(λv .- λ_exact))

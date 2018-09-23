@@ -168,7 +168,7 @@ using SparseArrays
                 fv=[S->S, S->cos(S)]
                 A0=randn(n,n);
                 A1=randn(n,n);
-                spmf1=SPMF_NEP([A0,A1],fv,Schur_fact = Schur_fact);
+                spmf1=SPMF_NEP([A0,A1],fv,Schur_fact = Schur_fact,Ftype=Float64);
                 @testset "two-term SPMF (n=$n,schur=$Schur_fact): MM S-matrix p x p: p=$p" for p in p_mm_values
                     V=randn(size(spmf1,1),p);
                     S=randn(p,p);
@@ -190,7 +190,7 @@ using SparseArrays
                     Av[k] = randn(n,n)
                 end
 
-                spmf2=SPMF_NEP(Av,fv,Schur_fact = Schur_fact);
+                spmf2=SPMF_NEP(Av,fv,Schur_fact = Schur_fact, Ftype=Float64);
                 @testset "$m-term SPMF (n=$n,schur=$Schur_fact): MM S-matrix p x p: p=$p" for p in p_mm_values
                     p=5;
                     V=randn(size(spmf2,1),p);

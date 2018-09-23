@@ -379,7 +379,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 ```
 
 # References
-* Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492
+* Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, Numer. Algorithms, 79:311-335, 2018. [preprint](https://arxiv.org/abs/1702.08492)
 """
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},

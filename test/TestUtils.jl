@@ -10,6 +10,11 @@ export @onlybench
 export is_test_script
 export set_benchmark_duration_seconds
 export enable_benchmark
+export displaylevel
+export set_displaylevel
+
+displaylevel = 1
+set_displaylevel(level) = global displaylevel = level
 
 benchmark_duration_seconds = 1.0
 set_benchmark_duration_seconds(duration) = global benchmark_duration_seconds = duration

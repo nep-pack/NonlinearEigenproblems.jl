@@ -18,12 +18,12 @@ pages:
   - Introduction: index.md
   - NEP Methods: methods.md
   - NEP Types: types.md
+  - LinSolver: linsolvers.md
   - NEP transformations: transformations.md
   - NEP Gallery: gallery.md
-  - Developer info: development.md  
-  
+  - Developer info: development.md
+
 markdown_extensions:
   - extra
   - tables
   - fenced_code
-

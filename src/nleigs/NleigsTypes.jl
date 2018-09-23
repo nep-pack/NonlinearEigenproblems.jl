@@ -80,7 +80,7 @@ function compactlu(L, U)
 end
 
 "SPMF with low rank LU factors for each matrix."
-struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Number}} <: AbstractSPMF
+struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Number}} <: AbstractSPMF{AbstractMatrix}
     spmf::SPMF_NEP
     r::Int          # Sum of ranks of matrices
     L::Vector{S}    # Low rank L factors of matrices

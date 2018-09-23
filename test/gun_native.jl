@@ -10,7 +10,7 @@ using LinearAlgebra
     ref_eigenvalue = 22345.116783765 + 0.644998598im # from NLEIGS
 
     @bench @testset "Running algorithm" begin
-        λ1,v1 = quasinewton(nep, λ = 150^2+1im, v = ones(n), displaylevel = 1, tol = tol, maxit = 500)
+        λ1,v1 = quasinewton(nep, λ = 150^2+1im, v = ones(n), displaylevel = displaylevel, tol = tol, maxit = 500)
 
         v1 = v1 / norm(v1)
 

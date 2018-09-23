@@ -290,21 +290,21 @@ end
         B0=randn(3,3); B1=randn(3,3);
         oneop= S-> S;
         sqrop= S-> S^2;
-        spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop])
+        spmf_nep=SPMF_NEP([B0,B1],[oneop,sqrop],Ftype=Float64)
         push!(testlist,compute_types_metadata(spmf_nep,Float64,true,[],[],[],false, "#1"));
 
         # SPMF 2
         B0=randn(3,3); B1=randn(3,3);
         oneop= S-> 1im*S;
         sqrop= S-> S^2;
-        spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop])
+        spmf_nep2=SPMF_NEP([B0,B1],[oneop,sqrop],Ftype=ComplexF64)
         push!(testlist,compute_types_metadata(spmf_nep2,ComplexF64,false,[],[],[],false, "#2"));
 
         # SPMF 3
         expmop= S -> exp(S)
         B0b=Matrix{BigFloat}(B0);
         B1b=Matrix{BigFloat}(B1);
-        spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop])
+        spmf_nep3=SPMF_NEP([B0b,B1b],[oneop,expmop],Ftype=Float64)
 
 
         # Skip these since expm not supported
@@ -317,7 +317,7 @@ end
         # SPMF nep 4
         oneop= S-> 1im*S;
         sqrop= S-> S^2;
-        spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop])
+        spmf_nep4=SPMF_NEP([A0_sparse,A1_sparse],[oneop,sqrop],Ftype=ComplexF64)
 
         push!(testlist,compute_types_metadata(spmf_nep4,ComplexF64,false,[],[],[],false, "#4"));
 
