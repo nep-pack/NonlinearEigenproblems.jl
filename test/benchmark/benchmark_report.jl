@@ -18,7 +18,6 @@ struct GitHubBenchmarkFile <: BenchmarkFile
 end
 
 struct LocalBenchmarkFile <: BenchmarkFile
-    build_nr
     path
 end
 
@@ -26,9 +25,6 @@ build_nr(file_name) = parse(Int, split(file_name, "-")[end-1])
 
 GitHubBenchmarkFile(entry) =
     GitHubBenchmarkFile(build_nr(entry["name"]), entry["download_url"])
-
-LocalBenchmarkFile(file_name) =
-    LocalBenchmarkFile(build_nr(file_name), file_name)
 
 get_benchmark_json(file::GitHubBenchmarkFile) = (println("Loading $file"); String(HTTP.request("GET", file.url).body))
 get_benchmark_json(file::LocalBenchmarkFile) = read(file.path, String)
@@ -38,26 +34,30 @@ import Base.show
 show(io::IO, f::GitHubBenchmarkFile) = print(io, f.url)
 show(io::IO, f::LocalBenchmarkFile) = print(io, f.path)
 
-function get_github_files(branch)
+function get_github_files(branch, count)
     req = HTTP.request("GET", "https://api.github.com/repos/$CI_GITHUB_REPO/contents", [("User-Agent", "julia-ci")])
     json = JSON.parse(String(req.body))
-    return [GitHubBenchmarkFile(f) for f in json if f["type"] == "file" && startswith(f["name"], "benchmark-$branch-")]
+    files = [GitHubBenchmarkFile(f) for f in json if f["type"] == "file" && startswith(f["name"], "benchmark-$branch-")]
+    sort!(files, by = x -> x.build_nr)
+    return files[max(1, end-count+1):end]
 end
 
-function get_local_files(branch)
-    return [LocalBenchmarkFile(f) for f in readdir() if !isdir(f) && startswith(f, "benchmark-$branch-")]
+function create_report(report_file, branch, files)
+    file_name = coalesce(report_file, tempname() * ".html")
+    files = ismissing(branch) ? LocalBenchmarkFile.(files) : get_github_files(branch, NR_COMMITS_TO_SHOW)
+
+    open(file_name, "w") do io
+        write_report(io, files, ismissing(branch))
+    end
+
+    # if no report name was specified, open report in browser
+    ismissing(report_file) && open_file(file_name)
 end
 
-function print_report(io, branch)
+function write_report(io, files, sort_benchmarks_by_date)
     print_report_header(io)
 
-#    files = get_github_files(branch)
-    files = get_local_files(branch)
-    sort!(files, by = x -> x.build_nr)
-    files = files[max(1, end-NR_COMMITS_TO_SHOW+1):end]
-    println("Loaded $(length(files)) files")
-
-    # table header
+    # write table header
     println(io, "<table>")
     println(io, "<tr>")
     println(io, "<th class=\"test-name\">Test</th>")
@@ -65,7 +65,8 @@ function print_report(io, branch)
     println(io, "<th></th>")
     println(io, "<th colspan=\"2\">Reference</th>")
 
-    runs = map(f -> load_benchmark_string(get_benchmark_json(f)), files)
+    runs = map(f -> load_benchmark_from_string(get_benchmark_json(f)), files)
+    sort_benchmarks_by_date && sort!(runs, by = r -> r["time"])
     bruns = map(r -> r["benchmark"][1], runs)
     println("Loaded $(length(runs)) runs")
 
@@ -85,6 +86,7 @@ function print_report(io, branch)
 
     root = get_testset_hierarchy(bruns[end])
 
+    # write table itself
     iterate_hierarchy(root) do test
         println(io, "<tr>")
         spaces = findfirst(!isequal(' '), test.indented_name)
@@ -130,6 +132,18 @@ function print_report(io, branch)
     println(io, "</table>")
 
     print_report_footer(io)
+end
+
+function open_file(filename)
+    if Sys.isapple()
+        run(`open $filename`)
+    elseif Sys.islinux() || Sys.isbsd()
+        run(`xdg-open $filename`)
+    elseif Sys.iswindows()
+        run(`$(ENV["COMSPEC"]) /c start $filename`)
+    else
+        @warn "Can not open $filename on OS $(Sys.KERNEL) ($(Sys.MACHINE))"
+    end
 end
 
 function print_report_header(io)
@@ -201,6 +215,8 @@ th, td {
   text-align: left;
 
   visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s;
   top: 100%;
   right: 0%;
   background-color: rgba(0,0,0,0.75);
@@ -213,6 +229,7 @@ th, td {
 }
 .tooltip:hover .tooltiptext {
   visibility: visible;
+  opacity: 1;
 }
 </style>
 </head>
@@ -226,6 +243,22 @@ function print_report_footer(io)
 </html>""")
 end
 
-open("test/benchmark_report.html", "w") do io
-    print_report(io, "benchmarks")
+function parse_args(args)
+    report_file = branch = missing
+    while !isempty(args)
+        if args[1] == "-o"
+            report_file = args[2]
+            args = args[3:end]
+        elseif args[1] == "-b"
+            branch = args[2]
+            args = args[3:end]
+        else break end
+    end
+    return (report_file, branch, args)
+end
+
+if length(ARGS) < 1
+    println("Arguments required:\n\n$(basename(@__FILE__)) [-o html_output] [-b branch] [json_file ...]")
+else
+    create_report(parse_args(ARGS)...)
 end

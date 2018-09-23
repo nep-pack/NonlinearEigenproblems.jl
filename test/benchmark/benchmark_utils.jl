@@ -86,10 +86,10 @@ function save_benchmark(test_results, file_name)
 end
 
 "Load benchmark results from a JSON file on disk"
-load_benchmark_file(file_name) = load_benchmark(JSON.parsefile(file_name))
+load_benchmark_from_file(file_name) = load_benchmark(JSON.parsefile(file_name))
 
 "Load benchmark results from a JSON string"
-load_benchmark_string(str) = load_benchmark(JSON.parse(str))
+load_benchmark_from_string(str) = load_benchmark(JSON.parse(str))
 
 function load_benchmark(dict)
     # convert UTC time to formatted local time

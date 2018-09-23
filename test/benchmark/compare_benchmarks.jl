@@ -29,10 +29,10 @@ memory_color(diff) =
 
 "Compare two JSON file benchmarks, and print the results to stdout"
 function compare_benchmarks(baseline_file, alternative_file)
-    base_dict = load_benchmark_file(baseline_file)
+    base_dict = load_benchmark_from_file(baseline_file)
     base = base_dict["benchmark"][1]
 
-    alt_dict = load_benchmark_file(alternative_file)
+    alt_dict = load_benchmark_from_file(alternative_file)
     alt = alt_dict["benchmark"][1]
 
     root = get_testset_hierarchy(alt)
