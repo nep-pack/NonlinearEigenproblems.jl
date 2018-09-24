@@ -831,6 +831,7 @@ Use `set_projectmatrices!()` to specify projection matrices
         orgnep_Av::Vector
         orgnep_fv::Vector
         projnep_B_mem::Vector # A vector of matrices
+        W,V:Matrix
         function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
             this = new(nep)
 
@@ -857,6 +858,8 @@ Use `set_projectmatrices!()` to specify projection matrices
             for k=1:size(this.orgnep_fv,1)
                 this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
             end
+
+            set_projectmatrices!(this,zeros(size(this.orgnep,1),0),zeros(size(this.orgnep,1),0))
 
 
 
@@ -912,6 +915,20 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
 
     function expand_projectmatrices!(nep::Proj_SPMF_NEP,w::Vector,v::Vector)
 
+         Av=get_Av(nep.orgnep)
+         k=size(nep.V,2);
+         m = size(nep.orgnep_Av,1);
+         for i=1:m
+             # Expand the B-matrices
+             nep.projnep_B_mem[i][1:k,k+1]=copy(nep.W')*Av[i]*v;
+             nep.projnep_B_mem[i][k+1,1:k]=w'*Av[i]*copy(nep.V);
+             nep.projnep_B_mem[i][k+1,k+1]=w'*Av[i]*v;
+             B[i]=view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
+         end
+         nep.W=[nep.W w]
+         nep.V=[nep.V v]
+         # Keep the sequence of functions for SPMFs
+         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
 
     # Use delagation to the nep_proj
