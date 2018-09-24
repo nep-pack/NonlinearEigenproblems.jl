@@ -38,6 +38,21 @@ end
     @test_throws MethodError nep_gallery("dep0", 15, 8)
     @test_throws ErrorException nep_gallery("dep0", 15, t=8)
 
+    @info "Testing dep_symm_double"
+    nep = nep_gallery("dep_symm_double");
+    nep = nep_gallery("dep_symm_double", 15);
+    A = compute_Mder(nep, 3.0);
+    @test isa(nep, DEP); # Not so sophisticated, but improves code coverage
+    @test_throws MethodError nep_gallery("dep_symm_double", 15, 8)
+    @test_throws ErrorException nep_gallery("dep_symm_double", 15, t=8)
+
+    @info "Testing dep_double"
+    nep = nep_gallery("dep_double");
+    A = compute_Mder(nep, 3.0);
+    @test isa(nep, DEP); # Not so sophisticated, but improves code coverage
+    @test_throws MethodError nep_gallery("dep_double", 15)
+    @test_throws ErrorException nep_gallery("dep_double", t=15)
+
 
     @info "Testing sine"
     nep=nep_gallery("sine")

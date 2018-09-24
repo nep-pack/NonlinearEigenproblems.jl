@@ -133,50 +133,11 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
             return dep0_sparse(params...; kwargs...)
         elseif (name == "dep0_tridiag")
             return dep0_tridiag(params...; kwargs...)
-     elseif (name == "dep_symm_double")
-          # A symmetric delay eigenvalue problem with double eigenvalues
-          # Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017
-          if (length(params)>0)
-             n=params[1]
-          else
-             n=100; # Default size
-          end
-          LL=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
-
-          x = range(0, stop = pi, length = n)
-          h=x[2]-x[1];
-          h=pi
-          LL=LL/(h^2)
-          LL=kron(LL,LL)
-
-          b=broadcast((x,y)->100*abs(sin(x+y)),x,transpose(x))
-          a=broadcast((x,y)->-8*sin(x)*sin(y),x,transpose(x))
-          B=sparse(1:n^2,1:n^2,b[:])
-          A=LL+sparse(1:n^2,1:n^2,a[:])
-
-          nep=DEP([A,B],[0,2])
-          return nep
-
-      elseif (name == "dep_double")
-          # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
-          # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
-          n=3;
-
-          denom = 8+5*pi;
-          a1 = 2/5 *(65*pi + 32)/(denom);
-          a2 = 9*pi^2*(13+5*pi)/(denom);
-          a3 = 324/5 *pi^2*(5*pi+4)/(denom);
-          b1 = (260*pi + 128 + 225*pi^2)/(10*denom);
-          b2 = 45*pi^2/denom;
-          b3 = 81*pi^2*(40*pi + 32 + 25*pi^2)/(10*denom);
-          A0 = [ 0    1    0;  0    0    1;  -a3  -a2  -a1];
-          A1 = [ 0    0    0;  0    0    0;  -b3  -b2  -b1];
-
-          tau=1;
-          nep=DEP([A0,A1],[0,tau])
-          return nep
-
-      elseif (name== "pep0")
+        elseif (name == "dep_symm_double")
+            return dep_symm_double(params...; kwargs...)
+        elseif (name == "dep_double")
+            return dep_double(params...; kwargs...)
+        elseif (name== "pep0")
           # A polynomial eigenvalue problem
           if (length(params)>0)
               n=params[1]
@@ -477,63 +438,102 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
 
           error("The name $name is not supported in NEP-Gallery.")
       end
+end
 
-  end
-
-   # Helper functions for Newton interpolation (mainly for nlevp_native_fiber)
-   function construct_newton_matrix(T,ff,interp_points)
-       m=size(interp_points,1);
-       Newton_Matrix=zeros(T,m,m);
-       Newton_Matrix[:,1] .= 1
-       for col=2:m
-           for row=col:m
-               Newton_Matrix[row,col]=Newton_Matrix[row,col-1]*(interp_points[row]-interp_points[col-1])
-           end
-       end
-       f=zeros(T,m);
-       for k=1:m
-           f[k]=ff(interp_points[k]);
-       end
-       return Newton_Matrix,f
-   end
-   function newton_eval(coeffs,S,interp_points)  # This works for λ::Number and λ::Matrix
-       F=coeffs[1]*one(S);
-       prod=one(S);
-       for k=2:size(coeffs,1)
-           prod = prod*(S-interp_points[k-1]*one(S))
-           F += prod*coeffs[k];
-       end
-       return F
-   end
+    # Helper functions for Newton interpolation (mainly for nlevp_native_fiber)
+    function construct_newton_matrix(T,ff,interp_points)
+        m=size(interp_points,1);
+        Newton_Matrix=zeros(T,m,m);
+        Newton_Matrix[:,1] .= 1
+        for col=2:m
+            for row=col:m
+                Newton_Matrix[row,col]=Newton_Matrix[row,col-1]*(interp_points[row]-interp_points[col-1])
+            end
+        end
+        f=zeros(T,m);
+        for k=1:m
+            f[k]=ff(interp_points[k]);
+        end
+        return Newton_Matrix,f
+    end
+    function newton_eval(coeffs,S,interp_points)  # This works for λ::Number and λ::Matrix
+        F=coeffs[1]*one(S);
+        prod=one(S);
+        for k=2:size(coeffs,1)
+            prod = prod*(S-interp_points[k-1]*one(S))
+            F += prod*coeffs[k];
+        end
+        return F
+    end
 
 
-   function dep0(n::Int = 5)
-       # A delay eigenvalue problem
-       Random.seed!(0) # reset the random seed
-       A0 = randn(n,n)
-       A1 = randn(n,n)
+    function dep0(n::Int=5)
+    # A delay eigenvalue problem
+        Random.seed!(0) # reset the random seed
+        A0 = randn(n,n)
+        A1 = randn(n,n)
        tau = 1.0
        nep = DEP([A0,A1],[0,tau])
        return nep
    end
 
-   function dep0_sparse(n::Int=100, p::Real=0.25)
-       # A delay eigenvalue problem with sparse matrices
-       Random.seed!(0) # reset the random seed
-       A0 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
-       A1 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
-       tau = 1.0
-       nep = DEP([A0,A1],[0,tau])
-       return nep
-   end
+    function dep0_sparse(n::Integer=100, p::Real=0.25)
+    # A delay eigenvalue problem with sparse matrices
+        Random.seed!(0) # reset the random seed
+        A0 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
+        A1 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
+        tau = 1.0
+        nep = DEP([A0,A1],[0,tau])
+        return nep
+    end
 
-   function dep0_tridiag(n::Int = 100)
-       # A delay eigenvalue problem with sparse tridiagonal matrices
-       Random.seed!(1) # reset the random seed
-       K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n] # sparsity pattern of tridiag matrix
-       A0 = sparse(K, J, rand(3*n-2))
-       A1 = sparse(K, J, rand(3*n-2))
-       tau = 1.0
-       nep = DEP([A0,A1],[0,tau])
-       return nep
+    function dep0_tridiag(n::Integer=100)
+    # A delay eigenvalue problem with sparse tridiagonal matrices
+        Random.seed!(1) # reset the random seed
+        K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n] # sparsity pattern of tridiag matrix
+        A0 = sparse(K, J, rand(3*n-2))
+        A1 = sparse(K, J, rand(3*n-2))
+        tau = 1.0
+        nep = DEP([A0,A1],[0,tau])
+        return nep
+    end
+
+    function dep_symm_double(n::Integer=100)
+    # A symmetric delay eigenvalue problem with double eigenvalues
+    # Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017
+        LL=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
+
+        x = range(0, stop = pi, length = n)
+        h=x[2]-x[1];
+        h=pi
+        LL=LL/(h^2)
+        LL=kron(LL,LL)
+
+        b=broadcast((x,y)->100*abs(sin(x+y)),x,transpose(x))
+        a=broadcast((x,y)->-8*sin(x)*sin(y),x,transpose(x))
+        B=sparse(1:n^2,1:n^2,b[:])
+        A=LL+sparse(1:n^2,1:n^2,a[:])
+
+        nep=DEP([A,B],[0,2.0])
+        return nep
+    end
+
+    function dep_double()
+    # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
+    # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
+        denom = 8+5*pi;
+        a1 = 2/5 *(65*pi + 32)/(denom);
+        a2 = 9*pi^2*(13+5*pi)/(denom);
+        a3 = 324/5 *pi^2*(5*pi+4)/(denom);
+        b1 = (260*pi + 128 + 225*pi^2)/(10*denom);
+        b2 = 45*pi^2/denom;
+        b3 = 81*pi^2*(40*pi + 32 + 25*pi^2)/(10*denom);
+        A0 = [ 0    1    0;  0    0    1;  -a3  -a2  -a1];
+        A1 = [ 0    0    0;  0    0    0;  -b3  -b2  -b1];
+
+        tau=1.0;
+        nep=DEP([A0,A1],[0,tau])
+        return nep
+    end
+
 end
