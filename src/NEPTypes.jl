@@ -1014,14 +1014,16 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         broadcast!(*,V,V,transpose(a))
 
         z=zeros(TT,n)
+        Vw = Vector{TT}(undef, n)
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
-            z[:]+=Av[j+1]*(V*w);
+            mul!(Vw, view(V,:,:), view(w,:))
+            z .+= Av[j+1]*Vw;
         end
         if !(V isa AbstractVector)
-            z[:]-=view(V,:,2:2)
+            z -= view(V,:,2:2)
         end
-        z[:]-=λ*view(V,:,1:1);
+        z .-= λ*view(V,:,1:1);
         return z
     end
 

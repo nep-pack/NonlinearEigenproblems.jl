@@ -75,7 +75,7 @@ end
 
 
 # compute_Mlincomb for DEPs
-@bench @testset "compute_Mlincomb PEP" begin
+@bench @testset "compute_Mlincomb DEP" begin
     n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
     tau1=0; tau2=1.3; tau3=.1;
     nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
