@@ -1012,7 +1012,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         TT=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]),eltype(nep.tauv),eltype(a))
 
         if (V isa AbstractVector)
-            V=a[1]*V;
+            rmul!(V,a[1])
         else
             broadcast!(*,V,V,transpose(a))
         end
@@ -1024,16 +1024,15 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             mul!(Vw, V, w)
             mul!(AVw, Av[j+1], Vw)
-            z .+= AVw;
+            z[:] .+= AVw;
         end
 
         if (V isa AbstractVector) || k == 1
-            z -= λ*V;
+            rmul!(z,λ)
         else
-            z -= view(V,:,2:2)
-            z .-= λ*view(V,:,1:1);
+            z .+= muladd(-λ,V[:,1],-V[:,2])
         end
-        return z[:]
+        return z
     end
 
     compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))

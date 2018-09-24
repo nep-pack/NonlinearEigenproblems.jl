@@ -7,10 +7,10 @@ using Test
 using LinearAlgebra
 using IterativeSolvers
 
-nep=nep_gallery("dep0_tridiag",500000)
+nep=nep_gallery("dep0_tridiag",5000000)
 
 
-n=size(nep,1);	k=50;
+n=size(nep,1);	k=1;
 V=rand(n,k);	λ=rand()*im+rand();
 a=rand(k)
 
