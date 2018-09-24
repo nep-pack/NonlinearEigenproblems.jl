@@ -54,6 +54,16 @@ function create_report(report_file, branch, files)
     ismissing(report_file) && open_file(file_name)
 end
 
+function get_tooltip(run)
+    ghz, arch, cpus, mem = match(r"([\d\.]+)GHz \(([^\)]+)\), (\d+) threads, (\d+) GB", run["cpu"]).captures
+    commit_id_and_branch, git_timestamp, commit_msg = split(run["git"], ", ", limit=3)
+    length(commit_msg) > 100 && (commit_msg = commit_msg[1:97] * "...")
+    return "<b>Run:</b> $(run["time"]); $(run["config"])<br/>" *
+        "<b>CPU:</b> $cpus × $(ghz)GHz ($arch), $mem GB memory<br/>" *
+        "<b>Git:</b> $commit_id_and_branch, $git_timestamp<br/>" *
+        "<i>$commit_msg</i>"
+end
+
 function write_report(io, files, sort_benchmarks_by_date)
     print_report_header(io)
 
@@ -73,13 +83,8 @@ function write_report(io, files, sort_benchmarks_by_date)
     for run in runs
         println(io, "<th></th>")
         commit_id = split(run["git"], " ")[1]
-        gitstr = run["git"]
-        length(gitstr) > 160 && (gitstr = gitstr[1:157] * "...")
-        tooltip = "<b>Run:</b> $(run["time"]); $(run["config"])<br/>" *
-            "<b>CPU:</b> $(run["cpu"])<br/>" *
-            "<b>Git:</b> $gitstr"
         id = "<a href=\"https://github.com/$SOURCE_GITHUB_REPO/commit/$commit_id\">$commit_id</a>";
-        println(io, "<th colspan=\"2\"><div class=\"tooltip\"><span class=\"tooltiptext\">$tooltip</span>$id</div></th>")
+        println(io, "<th colspan=\"2\"><div class=\"tooltip\"><span class=\"tooltiptext\">$(get_tooltip(run))</span>$id</div></th>")
     end
 
     println(io, "</tr>")
