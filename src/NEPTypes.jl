@@ -1063,7 +1063,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             mul!(Vw, V, w)
-            mul!(AVw, nep.Av[j+1], Vw)
+            mul!(AVw, nep.A[j+1], Vw)
             z[:] .+= AVw;
         end
 
