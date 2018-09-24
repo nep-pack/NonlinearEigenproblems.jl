@@ -7,7 +7,7 @@ using Test
 using LinearAlgebra
 using IterativeSolvers
 
-nep=nep_gallery("dep0_tridiag",10000)
+nep=nep_gallery("dep0_tridiag",100000)
 
 
 n=size(nep,1);	k=50;
