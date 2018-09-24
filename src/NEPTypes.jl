@@ -910,7 +910,7 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     end
 
 
-    function expand_projectmatrices!(nep::Proj_SPMF_NEP,w,v)
+    function expand_projectmatrices!(nep::Proj_SPMF_NEP,w::Vector,v::Vector)
 
     end
 
