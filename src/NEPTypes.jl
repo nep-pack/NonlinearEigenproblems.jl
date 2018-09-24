@@ -130,11 +130,12 @@ for matrices in the standard matrix function sense.
 
 
 """
-     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
+     SPMF_NEP(AA, fii, Schur_fact = false, join_sparsity_patterns = false, check_consistency=true)
 
-Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices. This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If check_consistency is true the input
+Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `join_sparsity_patterns` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices.  This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If `join_sparsity pattern=true` the `A`-matrices in the SPMF object should be viewed as read-only. If `check_consistency` is `true` input
 checking will be performed.
 
+# Example
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
 julia> id_op=S -> one(S)
@@ -224,7 +225,8 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         As = Vector{SparseMatrixCSC{T,Int}}()
         @inbounds for A in AA
             # Create a new zero matrix. Note all S-matrices have the same colptr, so
-            # modification of As[i] will change all. Not advisable.
+            # modification of As[i] will change all. The As[i] matrices should therefore
+            # be viewed as read-only objects.
             S = SparseMatrixCSC(Zero.m, Zero.n,
                                 Zero.colptr, Zero.rowval,
                                 fill(zero(T),size(Zero.nzval,1)))
