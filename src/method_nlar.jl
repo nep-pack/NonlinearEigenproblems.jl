@@ -10,14 +10,33 @@ export threshold_eigval_sorter
 
 
 """
- The Nonlinear Arnoldi method, as introduced in "An Arnoldi method for nonlinear eigenvalue problems" by H.Voss
+ function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[nev=10],[errmeasure=default_errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[displaylevel=0],[linsolvercreator=default_linsolvercreator],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=NEPSolver.DefaultInnerSolver])
+ 
+ The function implements the Nonlinear Arnoldi method, which finds 'nev' eigenpairs(or throws a 'NoConvergenceException') by projecting the problem to a subspace that is expanded in the course  of the algorithm. 
+ The basis is orthogonalized either by using the QR method if 'qrfact_orth' is 'true' or else by an orthogonalization method 'orthmethod'). 
+ This entails solving a smaller projected problem using a method specified by 'inner_solver_method'. 
+ ('λ0','v0') is the initial guess for the eigenpair. 'linsolvercreator' specifies how the linear system is created and solved. 
+ 'R' is a parameter used by the function specified by 'eigval_sorter' to reject those ritz values that are within a distance 'R' from any of the converged eigenvalues, so that repeated convergence to the same eigenpair can be avoided. 
+ 'max_subspace' is the maximum allowable size of the basis befor the algorithm restarts using a basis made of 'num_restart_ritz_vecs' ritz vectors and the eigenvectors that the algorithm has converged to.
+
+ #Example:
+ '''
+ julia-repl
+julia> nep=nep_gallery("dep0_tridiag");
+julia> λ,v=nlar(nep,tol=1e-5,nev=1,maxit=50);
+julia> norm(compute_Mlincomb(nep,λ[1],v))
+7.722757003764154e-7
+'''
+
+#References:
+* H. Voss, An Arnoldi method for nonlinear eigenvalue problems. BIT. Numer. Math. 44: 387-401, 2004.
+
 """
 nlar(nep::NEP;params...) = nlar(ComplexF64,nep::NEP;params...)
 function nlar(::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth} = ModifiedGramSchmidt,
             nev::Int=10,                                     #Number of eigenvalues required
-            submax_rest::Int=30,                             #Maximum dimension of subspace before restarting
             errmeasure::Function = default_errmeasure(nep),
             tol = eps(real(T))*100,
             maxit::Int = 100,
@@ -171,11 +190,6 @@ function nlar(::Type{T},
                     V[:,cbs] = Δv;
                 end
             end
-            #Check orthogonalization
-            #if(k < 100)
-            #   println("CHECKING BASIS ORTHOGONALITY  ......     $(opnorm(Vk'*Vk - I))")
-            #   #println("CHECKING ORTHO  ......     ",opnorm(Δv)," ....",h," .... ",g)
-            #end
             k = k+1;
         end
 
