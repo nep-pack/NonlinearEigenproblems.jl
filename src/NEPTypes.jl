@@ -1004,7 +1004,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP (TODO: document this)
-    function compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat,
+    function compute_Mlincomb!(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
@@ -1030,6 +1030,8 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         z[:]-=λ*view(V,:,1:1);
         return z
     end
+
+    compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
 
     function compute_Mlincomb!(nep::SPMF_NEP{T,Ftype},
                                λ::Number,
