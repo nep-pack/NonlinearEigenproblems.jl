@@ -1069,7 +1069,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         if (V isa AbstractVector)
             z[:] .-= rmul!(V,λ)
         elseif k==1
-            z[:] -= rmul!(V,λ)            
+            z[:] .-= rmul!(V[:],λ)            
         else
             z .+= muladd(-λ,V[:,1],-V[:,2])
         end
