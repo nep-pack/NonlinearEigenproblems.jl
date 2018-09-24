@@ -7,6 +7,8 @@ julia:
   - 1.0
 matrix:
   include:
+  - name: "Unit Tests"
+    env: TEST_SUITE=unit
   - name: "Benchmarks"
     env: TEST_SUITE=benchmark
 notifications:
@@ -18,14 +20,5 @@ script:
   - if [ $TEST_SUITE = 'unit' ]; then julia --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test(coverage=true)'; fi
   - if [ $TEST_SUITE = 'benchmark' ]; then julia -O3 --color=yes test/benchmark/run_benchmark.jl benchmark.json 1.0; fi
 after_success:
-  - branch=`git rev-parse --abbrev-ref HEAD`; if [ $branch = 'HEAD' ]; then branch=`git describe --all --exact-match 2>/dev/null | sed 's=.*/=='`; fi
-  - commit=`git rev-parse --short HEAD`
-  - benchmark_file_name=benchmark-$branch-$TRAVIS_BUILD_NUMBER-$commit.json
-  - git clone --depth=10 --branch=master https://github.com/maxbennedich/julia-ci.git julia-ci-benchmark
-  - mv benchmark.json julia-ci-benchmark/$benchmark_file_name
-  - cd julia-ci-benchmark
-  - git config user.email benchmark
-  - git config user.name benchmark
-  - git add $benchmark_file_name
-  - git commit -m "benchmark $commit"
-  - git push "https://$GIT_TOKEN@github.com/maxbennedich/julia-ci.git" master > /dev/null 2>&1
+  - if [ $TEST_SUITE = 'unit' ]; then julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi
+  - if [ $TEST_SUITE = 'benchmark' ]; then ./scripts/submit_benchmark.sh; fi
