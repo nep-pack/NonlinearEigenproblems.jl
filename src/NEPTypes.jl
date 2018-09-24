@@ -1047,7 +1047,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
         # determine type froom greates type of (eltype probtype and λ)
-        TT=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]),eltype(nep.tauv),eltype(a))
+        TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(nep.tauv),eltype(a))
 
         if (V isa AbstractVector)
             rmul!(V,a[1])
