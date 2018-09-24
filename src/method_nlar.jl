@@ -21,8 +21,8 @@ function nlar(::Type{T},
             errmeasure::Function = default_errmeasure(nep),
             tol = eps(real(T))*100,
             maxit::Int = 100,
-            λ0 = zero(T),
-            v0 = randn(T,size(nep,1)),
+            λ0::Number = zero(T),
+            v0::Vector = randn(T,size(nep,1)),
             displaylevel::Int = 0,
             linsolvercreator::Function = default_linsolvercreator,
             R = 0.01,
@@ -56,15 +56,15 @@ function nlar(::Type{T},
         n = size(nep,1);
 
         #Initialize the basis V_1
-        V = zeros(T,n,max_subspace);
-        X = zeros(T,n,nev);
+        V::Matrix{T}= zeros(T,n,max_subspace);
+        X::Matrix{T} = zeros(T,n,nev);
         V[:,1] = normalize(ones(T,n));
         cbs = 1;#Current basis size
 
-        D = zeros(T,nev);#To store the converged eigenvalues
+        D::Vector{T} = zeros(T,nev);#To store the converged eigenvalues
         err_hyst=eps()*ones(maxit,nev) ;# Giampaolo's edit
 
-        Z = zeros(T,n,nev+num_restart_ritz_vecs);#The matrix used for constructing the restarted basis
+        Z::Matrix{T} = zeros(T,n,nev+num_restart_ritz_vecs);#The matrix used for constructing the restarted basis
         m = 0; #Number of converged eigenvalues
         
         k = 1;
