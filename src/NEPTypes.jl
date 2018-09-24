@@ -1020,6 +1020,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             mul!(Vw, view(V,:,:), view(w,:))
             z .+= Av[j+1]*Vw;
         end
+        
         if !(V isa AbstractVector)
             z -= view(V,:,2:2)
         end
