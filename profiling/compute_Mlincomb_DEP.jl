@@ -14,8 +14,8 @@ n=size(nep,1);	k=50;
 V=rand(n,k);	λ=rand()*im+rand();
 a=rand(k)
 
-z1=compute_Mlincomb(nep,λ,copy(V),a)
+z1=compute_Mlincomb!(nep,λ,copy(V),a)
 
 compute_Mlincomb(nep,λ,V,a)
-@time z1=compute_Mlincomb(nep,λ,V,a)
+@time z1=compute_Mlincomb!(nep,λ,V,a)
 1
