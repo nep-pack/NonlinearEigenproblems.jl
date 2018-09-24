@@ -10,7 +10,7 @@ using IterativeSolvers
 nep=nep_gallery("dep0_tridiag",10000)
 
 
-n=size(nep,1);	k=1;
+n=size(nep,1);	k=50;
 V=rand(n,k);	λ=rand()*im+rand();	#TODO: if λ complex doesn't work. WHY?
 a=rand(k)
 
