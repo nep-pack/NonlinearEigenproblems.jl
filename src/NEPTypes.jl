@@ -130,9 +130,9 @@ for matrices in the standard matrix function sense.
 
 
 """
-     SPMF_NEP(AA, fii, Schur_fact = false, join_sparsity_patterns = false, check_consistency=true)
+     SPMF_NEP(AA, fii, Schur_fact = false, align_sparsity_patterns = false, check_consistency=true)
 
-Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `join_sparsity_patterns` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices.  This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If `join_sparsity pattern=true` the `A`-matrices in the SPMF object should be viewed as read-only. If `check_consistency` is `true` input
+Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `align_sparsity_patterns` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices.  This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If `align_sparsity pattern=true` the `A`-matrices in the SPMF object should be viewed as read-only. If `check_consistency` is `true` input
 checking will be performed.
 
 # Example
