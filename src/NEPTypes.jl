@@ -1009,14 +1009,13 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
         # determine type froom greates type of (eltype probtype and λ)
-        T=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]),eltype(nep.tauv))
+        TT=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]),eltype(nep.tauv),eltype(a))
 
         broadcast!(*,V,V,transpose(a))
 
-
-        z=zeros(T,n)
+        z=zeros(TT,n)
         for j=1:length(nep.tauv)
-            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
+            w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             z[:]+=Av[j+1]*(V*w);
         end
         if !(V isa AbstractVector)
