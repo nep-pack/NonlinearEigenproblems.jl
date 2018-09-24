@@ -10,8 +10,8 @@ using IterativeSolvers
 nep=nep_gallery("dep0_tridiag",10000)
 
 
-n=size(nep,1);	k=1;
-V=rand(n,k);	λ=rand()*im+rand();	#TODO: if λ complex doesn't work. WHY?
+n=size(nep,1);	k=50;
+V=rand(n,k);	λ=rand()*im+rand();
 a=rand(k)
 
 z1=compute_Mlincomb(nep,λ,copy(V),a)
