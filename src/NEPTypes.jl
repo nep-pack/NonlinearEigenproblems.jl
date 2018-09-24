@@ -1033,7 +1033,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             z -= view(V,:,2:2)
             z .-= λ*view(V,:,1:1);
         end
-        return z
+        return z[:]
     end
 
     compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
