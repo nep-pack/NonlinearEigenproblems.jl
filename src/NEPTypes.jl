@@ -1045,7 +1045,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     function compute_Mlincomb!(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
-        Av=get_Av(nep)
         # Type logic
         TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(nep.tauv),eltype(a))
 
@@ -1064,7 +1063,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             mul!(Vw, V, w)
-            mul!(AVw, Av[j+1], Vw)
+            mul!(AVw, nep.Av[j+1], Vw)
             z[:] .+= AVw;
         end
 
