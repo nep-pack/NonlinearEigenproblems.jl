@@ -1041,32 +1041,35 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
     include("nep_transformations.jl")
 
-    # structure exploitation for DEP (TODO: document this)
+    # structure exploitation for DEP
     function compute_Mlincomb!(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
         Av=get_Av(nep)
-        # determine type froom greates type of (eltype probtype and λ)
+        # Type logic
         TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(nep.tauv),eltype(a))
 
+        # scale the matrix/vector V with the coefficients a (so that we can assume a=ones(k))
         if (V isa AbstractVector)
             rmul!(V,a[1])
         else
             broadcast!(*,V,V,transpose(a))
         end
 
-        z=zeros(TT,n)
-        Vw = Vector{TT}(undef, n)
-        AVw = Vector{TT}(undef, n)
+        # initialize variables
+        z=zeros(TT,n); Vw = Vector{TT}(undef, n); AVw = Vector{TT}(undef, n)
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             mul!(Vw, V, w)
             mul!(AVw, Av[j+1], Vw)
             z[:] .+= AVw;
         end
+        # z=-λV[:,1]+sum exp(-nep.tauv[])
 
-        if (V isa AbstractVector) || k == 1
+        if (V isa AbstractVector)
             z[:] .-= rmul!(V,λ)
+        elseif k==1
+            z[:] -= rmul!(V,λ)            
         else
             z .+= muladd(-λ,V[:,1],-V[:,2])
         end
