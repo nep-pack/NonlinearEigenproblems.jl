@@ -1058,18 +1058,22 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
         # initialize variables
         z=zeros(TT,n); Vw = Vector{TT}(undef, n); AVw = Vector{TT}(undef, n)
+        # with a direct computation one can see that
+        # z=-λV[:,1]-V[:,2]+\sum_{j=1}^{length(nep.tauv)} nep.Av[j+1] (V w)
+        # where w is the vector with the scaled delays
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             mul!(Vw, V, w)
             mul!(AVw, Av[j+1], Vw)
             z[:] .+= AVw;
         end
-        # z=-λV[:,1]+sum exp(-nep.tauv[])
 
+        # distinguis the case V is a vector and V is a matrix
+        # fix with the proper derivative count
         if (V isa AbstractVector)
             z[:] .-= rmul!(V,λ)
         elseif k==1
-            z[:] .-= rmul!(V[:],λ)            
+            z[:] .-= rmul!(V[:],λ)
         else
             z .+= muladd(-λ,V[:,1],-V[:,2])
         end
