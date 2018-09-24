@@ -910,6 +910,10 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     end
 
 
+    function expand_projectmatrices!(nep::Proj_SPMF_NEP,w,v)
+
+    end
+
     # Use delagation to the nep_proj
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
     # Use MM to compute Mlincomb for SPMFs
