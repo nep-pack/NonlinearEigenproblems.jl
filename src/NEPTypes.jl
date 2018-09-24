@@ -1017,10 +1017,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         Vw = Vector{TT}(undef, n)
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
-            mul!(Vw, view(V,:,:), view(w,:))
-            z .+= Av[j+1]*Vw;
+            mul!(Vw, V, w)
+            mul!(Vw, Av[j+1], Vw)
+            z .+= Vw;
         end
-        
+
         if !(V isa AbstractVector)
             z -= view(V,:,2:2)
         end
