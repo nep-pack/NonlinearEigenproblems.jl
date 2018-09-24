@@ -1046,7 +1046,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
         # Type logic
-        TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(nep.tauv),eltype(a))
+        TT=promote_type(eltype(V),typeof(λ),eltype(nep.A[1]),eltype(nep.tauv),eltype(a))
 
         # scale the matrix/vector V with the coefficients a (so that we can assume a=ones(k))
         if (V isa AbstractVector)
@@ -1063,7 +1063,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
             mul!(Vw, V, w)
-            mul!(AVw, nep.A[j+1], Vw)
+            mul!(AVw, nep.A[j], Vw)
             z[:] .+= AVw;
         end
 
