@@ -179,7 +179,7 @@ julia&gt; minimum(svdvals(compute_Mder(nep,λ)))
 <li>Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.</li>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_newton.jl#L17-L48' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_newton.jl#L17-L48' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.augnewton' href='#NonlinearEigenproblems.NEPSolver.augnewton'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.augnewton</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][linsolvercreator,][armijo_factor,][armijo_max])
@@ -200,7 +200,7 @@ julia&gt; λ1-λ2
 <li>Nichtlineare Behandlung von Eigenwertaufgaben, Z. Angew. Math. Mech. 30 (1950) 281-282.</li>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_newton.jl#L258-L278' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_newton.jl#L258-L278' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.resinv' href='#NonlinearEigenproblems.NEPSolver.resinv'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.resinv</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
@@ -226,7 +226,7 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
 <ul>
 <li>A. Neumaier, Residual inverse iteration for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 22 (1985) 914-923</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_newton.jl#L125-L155' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_newton.jl#L125-L155' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.quasinewton' href='#NonlinearEigenproblems.NEPSolver.quasinewton'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.quasinewton</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
@@ -242,9 +242,9 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 <p><strong>References</strong></p>
 <ul>
-<li>Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, arxiv preprint: https://arxiv.org/abs/1702.08492</li>
+<li>Jarlebring, Koskela, Mele, Disguised and new Quasi-Newton methods for nonlinear eigenvalue problems, Numer. Algorithms, 79:311-335, 2018. <a href="https://arxiv.org/abs/1702.08492">preprint</a></li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_newton.jl#L364-L383' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_newton.jl#L364-L383' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.mslp' href='#NonlinearEigenproblems.NEPSolver.mslp'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.mslp</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code> mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::DataType][armijo_factor=1,][armijo_max])
@@ -268,32 +268,40 @@ julia&gt; compute_Mlincomb(nep,λ,v)
 <ul>
 <li>A. Ruhe, Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal. 10 (1973) 674-689</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_mslp.jl#L7-L33' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_mslp.jl#L7-L33' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.rfi' href='#NonlinearEigenproblems.NEPSolver.rfi'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.rfi</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 </code></pre>
 
-<p>This is an implementation of the two-sided Rayleigh functional Iteration. This method requires the transpose of the NEP, which needs to be provided in nept.</p>
-<p><strong>Example:</strong></p>
-<p>julia&gt; nep=nep<em>gallery("dep0"); julia&gt; nept=DEP([nep.A[1]',nep.A[2]']) julia&gt; λ,v,u=rfi(nep,nept,v=ones(size(nep,1))) julia&gt; opnorm(compute</em>Mder(nep,λ)<em>v) % v is a right eigenvector 5.4672143489065705e-16 julia&gt; opnorm(u'</em>compute_Mder(nep,λ)) % u is a left eigenvector 4.1447913221215544e-16</p>
+<p>This is an implementation of the two-sided Rayleigh functional Iteration(RFI) to compute an eigentriplet of the problem specified by <code>nep</code>. This method requires the transpose of the NEP, specified in <code>nept</code>.  <code>λ</code>, <code>u</code> and <code>v</code> are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively. A <code>NoConvergenceException</code> is thrown if an eigentriplet is not found in <code>maxit</code> iterations.</p>
+<p><strong>Example</strong></p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
+julia&gt; nept=DEP([nep.A[1]',nep.A[2]'])
+julia&gt; λ,v,u=rfi_b(nep,nept)
+julia&gt; compute_resnorm(nep,λ,v) % v is a right eigenvector
+4.347204570675246e-16
+julia&gt; compute_resnorm(nept,λ,u) % u is a left eigenvector
+7.173081573164097e-16
+</code></pre>
+
 <p><strong>Reference</strong></p>
 <ul>
-<li>Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008</li>
+<li>Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008.</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_rfi.jl#L7-L24' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_rfi.jl#L7-L29' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.newtonqr' href='#NonlinearEigenproblems.NEPSolver.newtonqr'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.newtonqr</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>Newton-QR method.
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_newton.jl#L470-L472' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_newton.jl#L470-L472' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.implicitdet' href='#NonlinearEigenproblems.NEPSolver.implicitdet'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.implicitdet</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>Implicit determinant method
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_newton.jl#L539-L541' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_newton.jl#L539-L541' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.broyden' href='#NonlinearEigenproblems.NEPSolver.broyden'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.broyden</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>S,V = broyden([eltype,]nep::NEP[,approxnep::NEP];kwargs)
@@ -323,7 +331,7 @@ julia&gt; broyden(nep,displaylevel=2,check_error_every=1);  % Prints out a lot m
 <ul>
 <li>Jarlebring, Broyden’s method for nonlinear eigenproblems, 2018, https://arxiv.org/pdf/1802.07322</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_broyden.jl#L520-L554' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_broyden.jl#L520-L554' class='documenter-source'>source</a><br></p>
 <p><a id='Projection-methods-1'></a></p>
 <h2 id="projection-methods">Projection methods</h2>
 <pre><code>nlar
@@ -348,14 +356,14 @@ julia&gt; λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
  -0.15606211475666945 - 0.12273439802763578im
  -0.15606211475666862 + 0.12273439802763489im
-  0.23169243065648365 - 9.464790582509696e-17im 
+  0.23169243065648365 - 9.464790582509696e-17im
 </code></pre>
 
 <p><strong>References</strong></p>
 <ul>
 <li>Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_iar.jl#L8-L32' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_iar.jl#L8-L32' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.tiar' href='#NonlinearEigenproblems.NEPSolver.tiar'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.tiar</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -380,7 +388,7 @@ julia&gt; λ    # print the computed eigenvalues
 <ul>
 <li>Algorithm 2 in Jarlebring, Mele, Runborg, The Waveguide Eigenvalue Problem and the Tensor Infinite Arnoldi Method, SIAM J. Scient. computing, 39 (3), A1062-A1088, 2017</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_tiar.jl#L7-L30' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_tiar.jl#L7-L30' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.infbilanczos' href='#NonlinearEigenproblems.NEPSolver.infbilanczos'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.infbilanczos</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
@@ -398,9 +406,9 @@ julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
 <p><strong>References:</strong></p>
 <ul>
-<li>The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, arxiv: 1607.03454, to appear in SIAM J. Scientific Computing</li>
+<li>The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, SIAM J. Sci. Comput. 39:S898-S919, 2017, <a href="https://arxiv.org/abs/1607.03454">preprint</a></li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/86230469ad57d91da5768c8111e3502f711ab4d1/src/method_infbilanczos.jl#L5-L27' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/method_infbilanczos.jl#L5-L26' class='documenter-source'>source</a><br></p>
 <p><a id='Class-specific-methods-1'></a></p>
 <h2 id="class-specific-methods">Class specific methods</h2>
 <p><a id='Companion-linearizations-1'></a></p>
