@@ -813,7 +813,8 @@ Use `set_projectmatrices!()` to specify projection matrices
         projnep_B_mem::Vector # A vector of matrices
         W::Matrix # Left subspace
         V::Matrix # right subspace
-        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
+        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,
+                               subspace_eltype=ComplexF64)
             this = new(nep)
 
 
@@ -835,9 +836,16 @@ Use `set_projectmatrices!()` to specify projection matrices
                 error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
             end
 
-            this.projnep_B_mem=Vector{Matrix{T}}(undef,size(this.orgnep_fv,1));
+
+            # compute greatest eltype of Av:
+            Av_eltype = mapreduce(eltype,promote_type,this.orgnep_Av);
+
+            Bmat_eltype=promote_type(subspace_eltype,Av_eltype)
+
+            # Construct memory for the projected problem matrices
+            this.projnep_B_mem=Vector{Matrix{Bmat_eltype}}(undef,size(this.orgnep_fv,1));
             for k=1:size(this.orgnep_fv,1)
-                this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
+                this.projnep_B_mem[k]=zeros(Bmat_eltype,maxsize,maxsize);
             end
 
             set_projectmatrices!(this,zeros(size(this.orgnep,1),0),zeros(size(this.orgnep,1),0))
@@ -877,15 +885,11 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        T=eltype(eltype(nep.projnep_B_mem));
+        #T=eltype(eltype(nep.projnep_B_mem));
         k=size(V,2);
-        # Compute first matrix beforhand to determine type
-        B1=view(Matrix{T}(copy(W')*nep.orgnep_Av[1]*V),1:k,1:k);
-        T_sub = typeof(B1)
-        # The coeff matrices for the SPMF_NEP created in the end
+        T_sub = typeof(view(nep.projnep_B_mem[1],1:1,1:1)) # Will normally be SubArray
         B = Vector{T_sub}(undef,m);
-        B[1]=B1;
-        for i=2:m # From 2 since we already computed the first above
+        for i=1:m # From 2 since we already computed the first above
             nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
             B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
         end
@@ -902,8 +906,9 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         Av=nep.orgnep_Av;
         k=size(nep.V, 2);
         m = size(nep.orgnep_Av,1);
-        B = Vector(undef,m);
-        @assert(size(nep.projnep_B_mem[1],1) <= k+1)
+        T_sub = typeof(view(nep.projnep_B_mem[1],1:1,1:1)) # Will normally be SubArray
+        B = Vector{T_sub}(undef,m);
+        @assert(k+1 <= size(nep.projnep_B_mem[1],1))
         for i=1:m
             # Expand the B-matrices
             nep.projnep_B_mem[i][1:k,k+1]=copy(nep.W')*Av[i]*v;
@@ -913,9 +918,8 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         end
         nep.W=[nep.W w]
         nep.V=[nep.V v]
-        B2=Vector{Matrix{ComplexF64}}(B);
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B2,nep.orgnep_fv)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
     end
 
     # Use delagation to the nep_proj
