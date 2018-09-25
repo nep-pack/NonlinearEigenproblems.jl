@@ -47,7 +47,10 @@ module NEPTypes
     end
 
     "Returns the greatest type of all array elements."
-    promote_eltype(A::AbstractArray) = isempty(A) ? eltype(A) : mapreduce(typeof, promote_type, A)
+    promote_typeof(A::AbstractArray) = isempty(A) ? eltype(A) : mapreduce(typeof, promote_type, A)
+
+    "Returns the greatest element type of all array elements."
+    promote_eltype(A::AbstractArray{<:AbstractArray}) = isempty(A) ? eltype(eltype(A)) : mapreduce(eltype, promote_type, A)
 
     #
     """
@@ -197,16 +200,16 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if !(eltype(AA) <: SparseMatrixCSC)
              # Dense
-             this=SPMF_NEP{promote_eltype(AA),Ftype}(n,AA,fii,Schur_fact,false);
+             this=SPMF_NEP{promote_typeof(AA),Ftype}(n,AA,fii,Schur_fact,false);
          else
              # Sparse: Potentially do the joint sparsity pattern trick.
              if (!align_sparsity_patterns)
                  # No aligning, just create it
-                 this=SPMF_NEP{promote_eltype(AA),Ftype}(n,AA,fii,Schur_fact,false);
+                 this=SPMF_NEP{promote_typeof(AA),Ftype}(n,AA,fii,Schur_fact,false);
              else
                  TT = eltype(AA[1])
                  As=form_aligned_sparsity_patterns(AA,TT)
-                 this=SPMF_NEP{promote_eltype(As),Ftype}(n,As,fii,Schur_fact,true);
+                 this=SPMF_NEP{promote_typeof(As),Ftype}(n,As,fii,Schur_fact,true);
              end
          end
          return this
@@ -303,7 +306,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         #x = [f(λ) for f in ff]
 
         # figure out the return type, as the greatest type of all input
-        Tx = promote_eltype(x)
+        Tx = promote_typeof(x)
         TA = promote_eltype(AA) # Greatest type of all A-matrices
         TZ=promote_type(TA,Tx)  # output type
         return (TZ,x);
