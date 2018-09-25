@@ -104,7 +104,7 @@ function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) 
         r += size(U[k], 2)
     end
 
-    return LowRankFactorizedNEP(SPMF_NEP(A, f), r, L, U)
+    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
 end
 
 "Create an empty LowRankFactorizedNEP."
