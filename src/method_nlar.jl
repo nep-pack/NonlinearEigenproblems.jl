@@ -39,8 +39,8 @@ function nlar(::Type{T},
             errmeasure::Function = default_errmeasure(nep),
             tol = eps(real(T))*100,
             maxit::Int = 100,
-            λ0::Number = zero(T),
-            v0::Vector = randn(T,size(nep,1)),
+            λ::Number = zero(T),
+            v::Vector = randn(T,size(nep,1)),
             displaylevel::Int = 0,
             linsolvercreator::Function = default_linsolvercreator,
             R = 0.01,
@@ -50,7 +50,7 @@ function nlar(::Type{T},
             num_restart_ritz_vecs::Int=8,
             inner_solver_method = NEPSolver.DefaultInnerSolver) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
-        local σ::T = T(λ0); #Initial pole
+        local σ::T = T(λ); #Initial pole
 
         #Check if maxit is larger than problem size
         if (maxit > size(nep,1))
@@ -70,13 +70,13 @@ function nlar(::Type{T},
             max_subspace = num_restart_ritz_vecs+20; #20 is hardcoded.
         end
 
-        λ0::T = T(λ0);
+        λ::T = T(λ);
         n = size(nep,1);
 
         #Initialize the basis V_1
         V::Matrix{T}= zeros(T,n,max_subspace);
         X::Matrix{T} = zeros(T,n,nev);
-        V[:,1] = normalize(ones(T,n));
+        V[:,1] = normalize(v);
         cbs = 1;#Current basis size
 
         D::Vector{T} = zeros(T,nev);#To store the converged eigenvalues
@@ -92,8 +92,6 @@ function nlar(::Type{T},
         local linsolver::LinSolver = linsolvercreator(nep,σ);
 
         err = Inf;
-        nu = λ0;
-        u = v0;
 
         if(displaylevel == 1)
             println("##### Using inner solver:",inner_solver_method," #####");
