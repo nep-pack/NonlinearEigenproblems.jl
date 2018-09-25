@@ -5,9 +5,11 @@ export rfi
 export rfi_b
 
 """
-    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 
-This is an implementation of the two-sided Rayleigh functional Iteration. This method requires the transpose of the NEP, which needs to be provided in nept.
+This is an implementation of the two-sided Rayleigh functional Iteration to compute an eigentriple (λ,v,u).
+This method requires the transposed problem in 'nept'.
+'λ', 'v' and 'u' are the initial guesses. 
 
 # Example:
 julia> nep=nep_gallery("dep0");
@@ -18,7 +20,7 @@ julia> opnorm(compute_Mder(nep,λ)*v) % v is a right eigenvector
 julia> opnorm(u'*compute_Mder(nep,λ)) % u is a left eigenvector
 4.1447913221215544e-16
 
-# Reference
+# References
 *  Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008
 
 """
