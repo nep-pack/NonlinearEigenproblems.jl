@@ -1042,18 +1042,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     include("nep_transformations.jl")
 
     # structure exploitation for DEP
-    function compute_Mlincomb!(nep::DEP,λ::Number,V::AbstractVecOrMat,
+    function compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
         # Type logic
         TT=promote_type(eltype(V),typeof(λ),eltype(nep.A[1]),eltype(nep.tauv),eltype(a))
-
-        # scale the matrix/vector V with the coefficients a (so that we can assume a=ones(k))
-        if (V isa AbstractVector)
-            rmul!(V,a[1])
-        else
-            broadcast!(*,V,V,transpose(a))
-        end
 
         # initialize variables
         z=zeros(TT,n); Vw = Vector{TT}(undef, n); AVw = Vector{TT}(undef, n)
@@ -1062,7 +1055,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         # where w is the vector with the scaled delays
         for j=1:length(nep.tauv)
             w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
-            mul!(Vw, V, w)
+            mul!(Vw, V, a.*w)
             mul!(AVw, nep.A[j], Vw)
             z[:] .+= AVw;
         end
@@ -1070,16 +1063,16 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         # distinguis the case V is a vector and V is a matrix
         # fix with the proper derivative count
         if (V isa AbstractVector)
-            z[:] .-= rmul!(V,λ)
+            z[:] .-= a[1]*rmul(V,λ)
         elseif k==1
-            z[:] .-= rmul!(V[:],λ)
+            z[:] .-= a[1]*rmul(V[:],λ)
         else
-            z .+= muladd(-λ,V[:,1],-V[:,2])
+            z .+= muladd(-λ,a[1]*V[:,1],-a[2]*V[:,2])
         end
         return z
     end
 
-    compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb!(nep,λ,copy(V), copy(a))
+    compute_Mlincomb!(nep::DEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb(nep,λ,V, a)
 
     function compute_Mlincomb!(nep::SPMF_NEP{T,Ftype},
                                λ::Number,
