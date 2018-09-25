@@ -152,6 +152,12 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                        check_consistency=false, Ftype=ComplexF64,
                        align_sparsity_patterns=false)
 
+         matrices_are_sparse = issparse.(AA)
+         if !(all(matrices_are_sparse) || all(.!matrices_are_sparse))
+             error("Mixing sparse and dense matrices is not allowed in SPMF_NEP. Either use a consistent " *
+                "format, or split your problem into a sparse and a dense part and use SumNEP.")
+         end
+
          T=Float64;
          if (check_consistency)
              for t=1:length(fii)
