@@ -195,7 +195,7 @@ function nlar(::Type{T},
             throw(NoConvergenceException(nu,u,err,msg))
         end
 
-        return D,X,err_hyst;
+        return D,X,err_hist;
     end
 
 
