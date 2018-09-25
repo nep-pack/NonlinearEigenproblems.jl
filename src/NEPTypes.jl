@@ -46,6 +46,8 @@ module NEPTypes
         return copy(A)*B;
     end
 
+    "Returns the greatest type of all array elements."
+    promote_eltype(A::AbstractArray) = isempty(A) ? eltype(A) : mapreduce(typeof, promote_type, A)
 
     #
     """
@@ -195,16 +197,16 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if !(eltype(AA) <: SparseMatrixCSC)
              # Dense
-             this=SPMF_NEP{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
+             this=SPMF_NEP{promote_eltype(AA),Ftype}(n,AA,fii,Schur_fact,false);
          else
              # Sparse: Potentially do the joint sparsity pattern trick.
              if (!align_sparsity_patterns)
                  # No aligning, just create it
-                 this=SPMF_NEP{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,false);
+                 this=SPMF_NEP{promote_eltype(AA),Ftype}(n,AA,fii,Schur_fact,false);
              else
                  TT = eltype(AA[1])
                  As=form_aligned_sparsity_patterns(AA,TT)
-                 this=SPMF_NEP{typeof(As[1]),Ftype}(n,As,fii,Schur_fact,true);
+                 this=SPMF_NEP{promote_eltype(As),Ftype}(n,As,fii,Schur_fact,true);
              end
          end
          return this
@@ -296,13 +298,13 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     function compute_Mder_fi_and_output_type(nep::AbstractSPMF,λ::Number)
         ff=get_fv(nep);
         AA=get_Av(nep)
-        x = map(i -> ff[i](reshape([λ],1,1))[1], 1:length(ff))
+        x = [f(reshape([λ],1,1))[1] for f in ff]
         # The above line should be replace by below once we handled #71
-        #x = map(i -> ff(λ), 1:length(ff))
+        #x = [f(λ) for f in ff]
 
         # figure out the return type, as the greatest type of all input
-        Tx = mapreduce(eltype, promote_type, x)
-        TA=mapreduce(eltype, promote_type, AA); # Greatest type of all A-matrices
+        Tx = promote_eltype(x)
+        TA = promote_eltype(AA) # Greatest type of all A-matrices
         TZ=promote_type(TA,Tx)  # output type
         return (TZ,x);
     end
