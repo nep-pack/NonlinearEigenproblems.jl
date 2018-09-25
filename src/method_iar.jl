@@ -15,11 +15,16 @@ Runs the infinite Arnoldi method which tries to find eigenvalues close to the sh
 
 # Example
 ```julia-repl
-julia> using NonlinearEigenproblems: NEPSolver, NEPCore, Gallery
-julia> nep=nep_gallery("dep0");
-julia> λ,v=iar(nep);
-julia> minimum(svdvals(compute_Mder(nep,λ[1]))) % Is it an eigenvalue?
-
+julia> using NonlinearEigenproblems, LinearAlgebra
+julia> nep=nep_gallery("dep0",100);
+julia> v0=ones(size(nep,1));
+julia> λ,v=iar(nep;v=v0,tol=1e-5,Neig=3);
+julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
+julia> λ    # print the computed eigenvalues
+3-element Array{Complex{Float64},1}:
+ -0.15606211475666945 - 0.12273439802763578im
+ -0.15606211475666862 + 0.12273439802763489im
+  0.23169243065648365 - 9.464790582509696e-17im
 ```
 
 # References

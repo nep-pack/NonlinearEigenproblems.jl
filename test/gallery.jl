@@ -17,7 +17,7 @@ end
     nep=nep_gallery("sine")
     tol=1e-10;
     λ,v=quasinewton(Float64,nep,λ=-4.2,v=ones(size(nep,1)),tol=tol,
-                    displaylevel=1,armijo_factor=0.5,armijo_max=20)
+                    displaylevel=displaylevel,armijo_factor=0.5,armijo_max=20)
     normalize!(v);
     @test norm(compute_Mlincomb(nep,λ,v))<tol*100
 

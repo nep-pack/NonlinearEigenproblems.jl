@@ -11,7 +11,7 @@ using LinearAlgebra
     n=size(nep,1);
 
     m=40;
-    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=1,
+    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=displaylevel,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
                          tol=1e-7);
 

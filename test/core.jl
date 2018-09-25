@@ -2,6 +2,7 @@
 
 push!(LOAD_PATH, @__DIR__); using TestUtils
 using NonlinearEigenproblems
+using LinearAlgebra
 using Test
 
 struct TestNEP <: NEP
@@ -53,4 +54,41 @@ end
     M1 = compute_Mder(nep1, λ)
     M2 = compute_Mder(nep2, λ)
     @test (M1+M2) ≈ M
+end
+
+# compute_Mlincomb for PEPs
+@bench @testset "compute_Mlincomb PEP" begin
+    nep=nep_gallery("pep0");
+    n=size(nep,1);
+    λ = rand()+rand()*im; V=randn(n,3); a=rand(3);
+    # test against another way to compute Mlincomb
+    z=compute_Mlincomb(nep,λ,V,a)
+    z2=compute_Mlincomb_from_MM(nep,λ,V,a)
+    @test norm(z-z2)<sqrt(eps())*100
+    # test that the function compute_Mlincomb does not overwrite the input
+    λ = 0; V=randn(n,3); W=copy(V); a=rand(3);
+    z=compute_Mlincomb(nep,λ,V,a);
+    # test against another way to compute Mlincomb
+    z2=compute_Mlincomb_from_MM(nep,λ,V,a)
+    @test norm(z-z2)<sqrt(eps())*100
+end
+
+
+# compute_Mlincomb for DEPs
+@bench @testset "compute_Mlincomb DEP" begin
+    n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
+    tau1=0; tau2=1.3; tau3=.1;
+    nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
+    n=size(nep,1);
+    λ = rand()+rand()*im; V=randn(n,3); a=rand(3);
+    # test against another way to compute Mlincomb
+    z=compute_Mlincomb(nep,λ,V,a)
+    z2=compute_Mlincomb_from_MM(nep,λ,V,a)
+    @test norm(z-z2)<sqrt(eps())*100
+    # test that the function compute_Mlincomb does not overwrite the input
+    λ = 0; V=randn(n,3); W=copy(V); a=rand(3);
+    z=compute_Mlincomb(nep,λ,V,a);
+    # test against another way to compute Mlincomb
+    z2=compute_Mlincomb_from_MM(nep,λ,V,a)
+    @test norm(z-z2)<sqrt(eps())*100
 end

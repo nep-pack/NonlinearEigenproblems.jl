@@ -14,7 +14,7 @@ using LinearAlgebra
                  λ_min = -10,
                  λ_max = 0,
                  λ = -10,
-                 displaylevel = 1,
+                 displaylevel = displaylevel,
                  maxit = 100)
    @test norm(compute_Mlincomb(nep,λ,v)) < eps(Float64)*100
 
@@ -22,7 +22,7 @@ using LinearAlgebra
    λ,v = sgiter(Float64,
                 nep,
                 2,
-                displaylevel = 1,
+                displaylevel = displaylevel,
                 tol = 1e-9,
                 maxit = 100)
   @test norm(compute_Mlincomb(nep,λ,v)) < 1e-9

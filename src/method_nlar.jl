@@ -79,6 +79,7 @@ function nlar(::Type{T},
         V[:,1] = normalize(v);
         cbs = 1;#Current basis size
 
+
         D::Vector{T} = zeros(T,nev);#To store the converged eigenvalues
         err_hist=eps()*ones(maxit,nev) ;#Error history
 
@@ -93,9 +94,7 @@ function nlar(::Type{T},
 
         err = Inf;
 
-        if(displaylevel == 1)
-            println("##### Using inner solver:",inner_solver_method," #####");
-        end
+        @ifd(println("##### Using inner solver:",inner_solver_method," #####"))
 
         while ((m < nev) && (k < maxit))
             Vk = view(V,:,1:cbs)
@@ -125,6 +124,7 @@ function nlar(::Type{T},
 
             #Check for convergence of one of the eigenvalues
             err = errmeasure(nu,u);
+
             if(displaylevel == 1)
                 println(k," Error:",err," Eigval :",nu)
             end

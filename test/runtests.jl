@@ -20,7 +20,7 @@ function runtests()
     report_benchmarks(@testset "All tests" begin
         root = string(@__DIR__)
         tests_to_run = [joinpath(dir, file) for (dir, _, files) in walkdir(root) for file in files
-            if is_test_script(joinpath(dir, file)) && !in(uppercase(file), tests_not_to_run)]
+            if is_test_script(dir, file) && !in(uppercase(file), tests_not_to_run)]
 
         for i = 1:length(tests_to_run)
             file = tests_to_run[i]
@@ -31,16 +31,19 @@ function runtests()
     end)
 end
 
-function is_test_script(file::AbstractString)
-    if occursin(r"(?i)\.jl$", file)
-        src = read(file, String)
+function is_test_script(dir::AbstractString, file::AbstractString)
+    # match files ending in ".jl" and not containing # or ~ (emacs temp files)
+    if occursin(r"(?i)^[^#~]+\.jl$", file)
+        src = read(joinpath(dir, file), String)
 
         pos = 1
         while pos <= length(src)
             expr, pos = Meta.parse(src, pos)
-            if contains_test_macro(expr)
-                return true
+            if expr.head == :incomplete
+                msg = join(map(string, expr.args), "; ")
+                throw(Meta.ParseError("While parsing file $file got invalid expression: $msg"))
             end
+            contains_test_macro(expr) && return true
         end
     end
     return false
