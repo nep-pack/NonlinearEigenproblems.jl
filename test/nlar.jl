@@ -29,7 +29,7 @@ using Random
     nep1 = shift_and_scale(nep1_spmf,shift=shift,scale=scale);
 
     #Run NLAR on the shifted and scaled NEP (nev set to 1 to save time. Method works for the case of finding multiple eigenvalues as well)
-    λ,u = nlar(nep1, tol=TOL, λ = 0,maxit=500, nev = 10, R=0.01,displaylevel=1,v=ones(n),eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false,num_restart_ritz_vecs=8,max_subspace=50);
+    λ,u = nlar(nep1, tol=TOL, λ = 0,maxit=100, nev = 2, R=0.01,displaylevel=1,v=ones(n),eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false,num_restart_ritz_vecs=8,max_subspace=150);
     λ_shifted = λ[1];v=u[:,1];
 
     #Rescale and shift back to the eigenvalue of the original problem
@@ -57,3 +57,4 @@ using Random
     @test norm(compute_Mlincomb(pepnep,λ[3],u[:,3])) < TOL
 
 end
+
