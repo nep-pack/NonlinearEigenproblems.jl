@@ -80,7 +80,7 @@ function nlar(::Type{T},
         cbs = 1;#Current basis size
 
         D::Vector{T} = zeros(T,nev);#To store the converged eigenvalues
-        err_hyst=eps()*ones(maxit,nev) ;# Giampaolo's edit
+        err_hist=eps()*ones(maxit,nev) ;#Error history
 
         Z::Matrix{T} = zeros(T,n,nev+num_restart_ritz_vecs);#The matrix used for constructing the restarted basis
         m = 0; #Number of converged eigenvalues
@@ -105,9 +105,7 @@ function nlar(::Type{T},
             #Use inner_solve() to solve the smaller projected problem
             dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
 
-            # Sort the eigenvalues of the projected problem by measuring the distance from the eigenvalues,
-            # in D and exclude all eigenvalues that lie within a unit disk of radius R from one of the
-            # eigenvalues in D.
+            # Sort the eigenvalues of the projected problem 
             nuv,yv = eigval_sorter(nep,dd,vv,σ,D,R,Vk);
             
             nu = nuv[1]; y=yv[:,1];
@@ -130,7 +128,7 @@ function nlar(::Type{T},
             if(displaylevel == 1)
                 println(k," Error:",err," Eigval :",nu)
             end
-            err_hyst[k,m+1]=err;    # Giampaolo's edit
+            err_hist[k,m+1]=err;
             if(err < tol)
                 if(displaylevel == 1)
                     println("****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******")
