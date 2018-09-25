@@ -149,7 +149,7 @@ function nlar(::Type{T},
         Vk[:,1] = V[:,1];
 
         D = zeros(T,nev);#To store the converged eigenvalues
-        err_hyst=eps()*ones(maxit,nev) # Giampaolo's edit
+        err_hist=eps()*ones(maxit,nev) # Giampaolo's edit
 
         m = 0; #Number of converged eigenvalues
         k = 1;
@@ -193,7 +193,7 @@ function nlar(::Type{T},
             #Check for convergence of one of the eigenvalues
             err = errmeasure(nu,u);
             @ifd(println(k," Error:",err," Eigval :",nu))
-            err_hyst[k,m+1]=err;    # Giampaolo's edit
+            err_hist[k,m+1]=err;
             if(err < tol)
                 @ifd(println("\n****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******\n"))
 
@@ -252,5 +252,5 @@ function nlar(::Type{T},
             throw(NoConvergenceException(nu,u,err,msg))
         end
 
-        return D,X,err_hyst;
+        return D,X,err_hist;
     end
