@@ -166,7 +166,7 @@ function nlar(::Type{T},
 
         while (m < nev) && (k < maxit)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
-            expand_projectmatrices!(proj_nep,Vk[:,end],Vk[:,end]);
+            expand_projectmatrices!(proj_nep,Vk,Vk);
 
 
             #Use inner_solve() to solve the smaller projected problem

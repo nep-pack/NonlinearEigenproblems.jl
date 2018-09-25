@@ -79,18 +79,20 @@ using Random
         λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=0,
                  Neig=3,maxit=100, v=ones(size(pnep,1)))
 
-        diff = minimum(abs.(λv .- λ_exact))
-        @info "Difference of solution from projected problem ($nepstr): $diff"
-        @test diff < sqrt(eps())
+        mydiff = minimum(abs.(λv .- λ_exact))
+        @info "Difference of solution from projected problem ($nepstr): $mydiff"
+        @test mydiff < sqrt(eps())
 
 
         @info "Testing to expand and running Newton ($nepstr)"
         n=size(nep,1);
-        expand_projectmatrices!(pnep,ones(n),ones(n));
+        Vnew=[Q ones(n)];
+        Wnew=[Q ones(n)];
+        expand_projectmatrices!(pnep,Wnew,Vnew);
         λ1,zz1=newton(pnep,λ=(λ_exact+0.00001),displaylevel=0,
                       v=ones(4),maxit=20)
 
-        xx1=pnep.V*zz1; xx1=xx1/xx1[1]
+        xx1=Vnew*zz1; xx1=xx1/xx1[1]
 
         # should be small since the eigenvector is in the subspace
         @test norm(x/x[1]-x1)<1e-8

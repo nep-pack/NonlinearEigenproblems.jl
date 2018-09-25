@@ -811,8 +811,6 @@ Use `set_projectmatrices!()` to specify projection matrices
         orgnep_Av::Vector
         orgnep_fv::Vector
         projnep_B_mem::Vector # A vector of matrices
-        W::SubSpaceMat # Left subspace
-        V::SubSpaceMat # right subspace
         function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,
                                subspace_eltype=ComplexF64)
             this = new{Matrix{subspace_eltype}}(nep)
@@ -894,31 +892,26 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
             nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
             B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
         end
-        # Save the V and W to allow expansion
-        nep.V=V;
-        nep.W=W;
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
 
-    function expand_projectmatrices!(nep::Proj_SPMF_NEP,w::Vector,v::Vector)
-
+    function expand_projectmatrices!(nep::Proj_SPMF_NEP,Wnew::AbstractMatrix,Vnew::AbstractMatrix)
+        w=Wnew[:,end];
+        v=Vnew[:,end];
         Av=nep.orgnep_Av;
-        k=size(nep.V, 2);
+        k=size(Vnew, 2)-1;
         m = size(nep.orgnep_Av,1);
         T_sub = typeof(view(nep.projnep_B_mem[1],1:1,1:1)) # Will normally be SubArray
         B = Vector{T_sub}(undef,m);
         @assert(k+1 <= size(nep.projnep_B_mem[1],1))
         for i=1:m
             # Expand the B-matrices
-            nep.projnep_B_mem[i][1:k,k+1]=copy(nep.W')*Av[i]*v;
-            nep.projnep_B_mem[i][k+1,1:k]=w'*Av[i]*copy(nep.V);
-            nep.projnep_B_mem[i][k+1,k+1]=w'*Av[i]*v;
+            nep.projnep_B_mem[i][1:k,k+1]=copy(Wnew[:,1:k]')*Av[i]*v;
+            nep.projnep_B_mem[i][k+1,1:(k+1)]=w'*Av[i]*Vnew[:,1:(k+1)];
             B[i]=view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
         end
-        nep.W=[nep.W w]
-        nep.V=[nep.V v]
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
