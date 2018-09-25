@@ -805,17 +805,17 @@ Use `set_projectmatrices!()` to specify projection matrices
 
 
 
-    mutable struct Proj_SPMF_NEP <: Proj_NEP
+    mutable struct Proj_SPMF_NEP{SubSpaceMat <: Matrix}  <: Proj_NEP
         orgnep::AbstractSPMF
         nep_proj::SPMF_NEP; # An instance of the projected NEP
         orgnep_Av::Vector
         orgnep_fv::Vector
         projnep_B_mem::Vector # A vector of matrices
-        W::Matrix # Left subspace
-        V::Matrix # right subspace
+        W::SubSpaceMat # Left subspace
+        V::SubSpaceMat # right subspace
         function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,
                                subspace_eltype=ComplexF64)
-            this = new(nep)
+            this = new{Matrix{subspace_eltype}}(nep)
 
 
             this.orgnep_Av = get_Av(nep)
@@ -887,6 +887,7 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         m = size(nep.orgnep_Av,1);
         #T=eltype(eltype(nep.projnep_B_mem));
         k=size(V,2);
+        @assert(k <= size(nep.projnep_B_mem[1],1))
         T_sub = typeof(view(nep.projnep_B_mem[1],1:1,1:1)) # Will normally be SubArray
         B = Vector{T_sub}(undef,m);
         for i=1:m # From 2 since we already computed the first above
@@ -897,7 +898,7 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         nep.V=V;
         nep.W=W;
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
 
@@ -919,7 +920,7 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         nep.W=[nep.W w]
         nep.V=[nep.V v]
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
     # Use delagation to the nep_proj
