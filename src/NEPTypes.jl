@@ -1063,11 +1063,11 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         # distinguis the case V is a vector and V is a matrix
         # fix with the proper derivative count
         if (V isa AbstractVector)
-            z[:] .-= a[1]*λ*V
+            z .-= a[1]*λ*V
         elseif k==1
-            z[:] .-= a[1]*λ*V[:]
+            z .-= a[1]*λ*V[:]
         else
-            z .+= muladd(-λ,a[1]*V[:,1],-a[2]*V[:,2])
+            z .+= muladd(-λ*a[1],V[:,1],-a[2]*V[:,2])
         end
         return z
     end
