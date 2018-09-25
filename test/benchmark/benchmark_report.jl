@@ -6,7 +6,7 @@ using JSON
 
 include("benchmark_utils.jl")
 
-const CI_GITHUB_REPO = "maxbennedich/julia-ci"
+const CI_GITHUB_REPO = "nep-pack/julia-ci"
 const SOURCE_GITHUB_REPO = "nep-pack/NonlinearEigenproblems.jl"
 const NR_COMMITS_TO_SHOW = 16
 
