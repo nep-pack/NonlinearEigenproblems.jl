@@ -5,7 +5,8 @@ export rfi
 export rfi_b
 
 """
-    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+
 
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI) to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`. 
@@ -22,10 +23,8 @@ julia> compute_resnorm(nep,λ,v) % v is a right eigenvector
 julia> compute_resnorm(nept,λ,u) % u is a left eigenvector
 7.173081573164097e-16
 ```
-
 # Reference
 *  Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008.
-
 """
 rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
 function rfi(::Type{T},
