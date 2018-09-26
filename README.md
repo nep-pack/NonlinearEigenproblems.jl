@@ -1,7 +1,6 @@
 # NEP-PACK
 
 [![Build Status](https://img.shields.io/travis/nep-pack/NonlinearEigenproblems.jl.svg)](https://travis-ci.org/nep-pack/NonlinearEigenproblems.jl)
-[![Coverage Status](https://img.shields.io/coveralls/github/nep-pack/NonlinearEigenproblems.jl.svg?label=coveralls)](https://coveralls.io/github/nep-pack/NonlinearEigenproblems.jl?branch=master)
 [![codecov](https://img.shields.io/codecov/c/github/nep-pack/NonlinearEigenproblems.jl.svg?label=codecov)](https://codecov.io/gh/nep-pack/NonlinearEigenproblems.jl)
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
@@ -10,7 +9,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 # How to use it?
 
-On Julia 1.0.0 and Julia 0.7, install it as an unregistered package by writing `] add ...` at the REPL-prompt: 
+On Julia 1.0.0 and Julia 0.7, install it as an unregistered package by writing `] add ...` at the REPL-prompt:
 ```
 julia> ]
 (v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
@@ -20,7 +19,7 @@ We don't support Julia 0.6, but it is possible to use it by running
 ```
 julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 ```
-and switch to the git-tag v0.1. 
+and switch to the git-tag v0.1.
 
 After that, check out "Getting started" in the user documentation
 https://nep-pack.github.io/NonlinearEigenproblems.jl
