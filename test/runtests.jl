@@ -4,5 +4,5 @@
 ################################################################################
 include("run_all_tests.jl")
 
-test_name_regex = length(ARGS) < 1 ? "" : ARGS[1]
+test_name_regex = "polygon" #length(ARGS) < 1 ? "" : ARGS[1]
 run_all_tests(test_name_regex)
