@@ -5,7 +5,7 @@
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
 *<p align="center">M(λ)v=0</p>*
-where *M* is an *nxn*-matrix depending on a parameter. This package aims to provide state-of-the-art algorithms to solve this problem, as well as a framework to formulate applications and easy access to benchmark problems. This currently includes (but are not restricted to) Newton-type methods, Subspace methods, Krylov methods, contour integral methods, block methods, companion. Problem transformation techniques such as scaling, shifting, deflating are also directly supported.  
+where *M* is an *nxn*-matrix depending on a parameter. This package aims to provide state-of-the-art algorithms to solve this problem, as well as a framework to formulate applications and easy access to benchmark problems. This currently includes (but are not restricted to) Newton-type methods, Subspace methods, Krylov methods, contour integral methods, block methods, companion matrix approaches. Problem transformation techniques such as scaling, shifting, deflating are also natively supported by the package.  
 
 # How to use it?
 
