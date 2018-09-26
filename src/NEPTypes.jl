@@ -885,14 +885,14 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
         k=size(V,2);
-        @assert(k <= size(nep.projnep_B_mem[1],1))
-        # Reliable way to determine SubArray-like type
-        T_sub = typeof(view(nep.projnep_B_mem[1],1:1,1:1))
-        B = Vector{T_sub}(undef,m);
-        for i=1:m # From 2 since we already computed the first above
-            nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
-            B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
-        end
+        @assert(k <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
+        # For over all i: Compute the expanded matrices
+        WT=copy(W')
+        B = map(i -> begin
+                # Compute the projecte matrix
+                nep.projnep_B_mem[i][1:k,1:k]=WT*nep.orgnep_Av[i]*V;
+                view(nep.projnep_B_mem[i],1:k,1:k);
+                end, 1:m)
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
@@ -910,16 +910,15 @@ to the basis.
         Av=nep.orgnep_Av;
         k=size(Vnew, 2)-1;
         m = size(nep.orgnep_Av,1);
-        # Reliable way to determine SubArray-like type
-        T_sub = typeof(view(nep.projnep_B_mem[1],1:1,1:1))
-        B = Vector{T_sub}(undef,m);
-        @assert(k+1 <= size(nep.projnep_B_mem[1],1))
-        for i=1:m
-            # Expand the B-matrices
-            nep.projnep_B_mem[i][1:k,k+1]=copy(Wnew[:,1:k]')*Av[i]*v;
-            nep.projnep_B_mem[i][k+1,1:(k+1)]=w'*Av[i]*Vnew[:,1:(k+1)];
-            B[i]=view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
-        end
+        @assert(k+1 <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
+        WnewT=copy(Wnew[:,1:k]');
+        # For over all i: Compute expanded part of matrices:
+        B = map(i -> begin
+                # Expand the B-matrices
+                nep.projnep_B_mem[i][1:k,k+1]=WnewT*Av[i]*v;
+                nep.projnep_B_mem[i][k+1,1:(k+1)]=w'*Av[i]*view(Vnew,:,1:(k+1));
+                view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
+                end, 1:m)
         # Keep the sequence of functions for SPMFs
         nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
