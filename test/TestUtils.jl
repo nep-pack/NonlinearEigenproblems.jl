@@ -35,7 +35,17 @@ Since all benchmark results are aggregated hierarchically, it is advised not to 
 """
 macro bench(ex)
     if run_benchmark
-        :(benchit(() -> $(esc(ex))))
+        test = ex.args[end]
+        if test.head == :for
+            # rewrite "@bench @testset for ... end" as "for ... @bench @testset begin ... end; end"
+            rewritten_expr =
+                Expr(test.head, test.args[1],
+                    Expr(:macrocall, Symbol("@bench"), LineNumberNode(0),
+                        Expr(ex.head, ex.args[1:end-1]..., test.args[2])))
+            return :($(esc(rewritten_expr)))
+        else
+            :(benchit(() -> $(esc(ex))))
+        end
     else
         :($(esc(ex)))
     end
