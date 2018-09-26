@@ -789,20 +789,66 @@ julia> compute_Mder(nep,3)
     #######################################################
     ### Represents a projected NEP
 """
-Proj_NEP represents a projected NEP
+    abstract type Proj_NEP <: NEP
+
+`Proj_NEP` represents a projected NEP. The projection is defined
+as the NEP
+```math
+N(λ)=W^HM(λ)V
+```
+where ``M(λ)`` is a base NEP and `W` and `V` rectangular matrices representing
+a basis of the projection spaces.
+Instances are created with `create_proj_NEP`. See [`create_proj_NEP`](@ref)
+for examples.
+
+Any `Proj_NEP` needs to implement two functions to manipulate the projection:
+
+* [`set_projectmatrices!`](@ref): Set matrices `W` and `V`
+* [`expand_projectmatrices!`](@ref): Effectively expand the matrices `W` and `V` with one column.
+
 """
     abstract type Proj_NEP <: NEP end
 
 """
     pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 
-Create a NEP representing a projected problem. The projection is defined
-as the problem ``N(λ)=W^HM(λ)V`` where ``M(λ)`` is represented by `orgnep`.
-The optional parameter `maxsize` determines how large the projected
+Create a NEP representing a projected problem ``N(λ)=W^HM(λ)V``,
+ where the  base NEP is represented by `orgnep`.
+The optional parameter `maxsize::Int` determines how large the projected
 problem can be and `T` is the Number type used for the projection matrices.
 These are needed for memory allocation reasons.
-Use `set_projectmatrices!()` to specify projection matrices
-``V`` and ``W``.
+Use [`set_projectmatrices!()`](@ref) and [`expand_projectmatrices!()`](@ref)
+ to specify projection matrices ``V`` and ``W``.
+
+# Example:
+The following example illustrates that a projection
+of a `NEP` is also a `NEP` and we can for instance
+call `compute_Mder` on it:
+```julia-repl
+julia> nep=nep_gallery("pep0")
+julia> V=Matrix(1.0*I,size(nep,1),2);
+julia> W=Matrix(1.0*I,size(nep,1),2);
+julia> pnep=create_proj_NEP(nep);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,3.0)
+2×2 Array{Complex{Float64},2}:
+ -2.03662+0.0im   13.9777+0.0im
+ -1.35069+0.0im  -13.0975+0.0im
+julia> W'*compute_Mder(nep,3.0)*V  # Gives the same result
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+```
+If you know that you will only use real projection matrices, you
+can specify this in at the creation:
+```julia-repl
+julia> pnep=create_proj_NEP(nep,2,Float64);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,3.0)
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+```
 """
     function create_proj_NEP(orgnep::ProjectableNEP)
          error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
@@ -869,27 +915,24 @@ Use `set_projectmatrices!()` to specify projection matrices
 """
     set_projectmatrices!(pnep::Proj_NEP,W,V)
 Set the projection matrices for the NEP to W and V, i.e.,
-corresponding the NEP: ``N(λ)=W^HM(λ)V``.
+corresponding the NEP: ``N(λ)=W^HM(λ)V``. See also [`create_proj_NEP`](@ref).
 
-# Example:
-The following example illustrates that a projection
-of a `NEP` is also a `NEP` and we can for instance
-call `compute_Mder`on it:
+# Example
+This illustrates if `W` and `V` are vectors of ones, the projected problem
+becomes the sum of the rows and columns of the original NEP.
 ```julia-repl
 julia> nep=nep_gallery("pep0")
-julia> V=Matrix(1.0*I,size(nep,1),2);
-julia> W=Matrix(1.0*I,size(nep,1),2);
 julia> pnep=create_proj_NEP(nep);
+julia> V=ones(200,1);  W=ones(200,1);
 julia> set_projectmatrices!(pnep,W,V);
-julia> compute_Mder(pnep,3.0)
-2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
-julia> compute_Mder(nep,3.0)[1:2,1:2]
-2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
+julia> compute_Mder(pnep,0)
+1×1 Array{Complex{Float64},2}:
+ 48.948104019482756 + 0.0im
+julia> sum(compute_Mder(nep,0),dims=[1,2])
+1×1 Array{Float64,2}:
+ 48.948104019482955
 ```
+
 """
     function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
@@ -912,7 +955,32 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
     expand_projectmatrices!(nep::Proj_SPMF_NEP, Wnew, Vnew)
 
 The projected NEP is updated by adding the last column of `Wnew` and `Vnew`
-to the basis.
+to the basis. Note that `Wnew` and `Vnew` contain also the "old" basis vectors.
+See also [`create_proj_NEP`](@ref)
+
+# Example:
+
+In the following example you see that the expanded projected problem
+has one row and column more, and the leading subblock is the same
+as the smaller projected NEP.
+```julia-repl
+julia> nep=nep_gallery("pep0"); n=size(nep,1);
+julia> V=Matrix(1.0*I,n,2); W=Matrix(1.0*I,n,2);
+julia> pnep=create_proj_NEP(nep);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,0)
+2×2 Array{Complex{Float64},2}:
+ 0.679107+0.0im   -0.50376+0.0im
+ 0.828413+0.0im  0.0646768+0.0im
+julia> Vnew=[V ones(n)]
+julia> Wnew=[W ones(n)]
+julia> expand_projectmatrices!(pnep,Wnew,Vnew);
+julia> compute_Mder(pnep,0)
+3×3 Array{Complex{Float64},2}:
+ 0.679107+0.0im   -0.50376+0.0im  -12.1418+0.0im
+ 0.828413+0.0im  0.0646768+0.0im   16.3126+0.0im
+ -17.1619+0.0im   -10.1628+0.0im   48.9481+0.0im
+```
 
 """
     function expand_projectmatrices!(nep::Proj_SPMF_NEP,Wnew::AbstractMatrix,Vnew::AbstractMatrix)
