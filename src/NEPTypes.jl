@@ -25,7 +25,7 @@ module NEPTypes
 
     export interpolate
     export set_projectmatrices!
-
+    export expand_projectmatrices!
 
 
     # We overload these
@@ -788,7 +788,7 @@ Proj_NEP represents a projected NEP
 Create a NEP representing a projected problem. The projection is defined
 as the problem ``N(λ)=W^HM(λ)V`` where ``M(λ)`` is represented by `orgnep`.
 The optional parameter `maxsize` determines how large the projected
-problem can be and `T` determines which Number type to use (default `ComplexF64`).
+problem can be and `T` is the Number type used for the projection matrices.
 These are needed for memory allocation reasons.
 Use `set_projectmatrices!()` to specify projection matrices
 ``V`` and ``W``.
@@ -796,15 +796,6 @@ Use `set_projectmatrices!()` to specify projection matrices
     function create_proj_NEP(orgnep::ProjectableNEP)
          error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
     end
-    #    function create_proj_NEP(orgnep::ProjectableNEP)
-    #        if (isa(orgnep,PEP))
-    #            return Proj_PEP(orgnep);
-    #        elseif (isa(orgnep,SPMF_NEP))
-    #            return Proj_SPMF_NEP(orgnep);
-    #        else
-    #            error("Projection of this NEP is not available");
-    #        end
-    #    end
     function create_proj_NEP(orgnep::AbstractSPMF,
                              maxsize::Int=min(size(orgnep,1),
                                               max(round(Int,size(orgnep,1)/10),10)),
@@ -813,25 +804,15 @@ Use `set_projectmatrices!()` to specify projection matrices
     end
 
 
-    # concrete types for projection of NEPs and PEPs
-#    struct Proj_PEP <: Proj_NEP
-#        orgnep::PEP
-#        V
-#        W
-#        nep_proj::PEP; # An instance of the projected NEP
-#        function Proj_PEP(nep::PEP)
-#            this=new(nep);
-#            return this
-#        end
-#    end
 
-    mutable struct Proj_SPMF_NEP <: Proj_NEP
+    mutable struct Proj_SPMF_NEP  <: Proj_NEP
         orgnep::AbstractSPMF
         nep_proj::SPMF_NEP; # An instance of the projected NEP
         orgnep_Av::Vector
         orgnep_fv::Vector
         projnep_B_mem::Vector # A vector of matrices
-        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
+        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,
+                               subspace_eltype=ComplexF64)
             this = new(nep)
 
 
@@ -853,10 +834,20 @@ Use `set_projectmatrices!()` to specify projection matrices
                 error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
             end
 
-            this.projnep_B_mem=Vector{Matrix{T}}(undef,size(this.orgnep_fv,1));
+
+            # compute greatest eltype of Av:
+            Av_eltype = mapreduce(eltype,promote_type,this.orgnep_Av);
+
+            Bmat_eltype=promote_type(subspace_eltype,Av_eltype)
+
+            # Construct memory for the projected problem matrices
+            this.projnep_B_mem=Vector{Matrix{Bmat_eltype}}(undef,size(this.orgnep_fv,1));
             for k=1:size(this.orgnep_fv,1)
-                this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
+                this.projnep_B_mem[k]=zeros(Bmat_eltype,maxsize,maxsize);
             end
+
+            # Reset the projectmatrices
+            set_projectmatrices!(this,zeros(size(this.orgnep,1),0),zeros(size(this.orgnep,1),0))
 
 
 
@@ -893,22 +884,44 @@ julia> compute_Mder(nep,3.0)[1:2,1:2]
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        T=eltype(eltype(nep.projnep_B_mem));
         k=size(V,2);
-        # Compute first matrix beforhand to determine type
-        B1=view(Matrix{T}(copy(W')*nep.orgnep_Av[1]*V),1:k,1:k);
-        T_sub = typeof(B1)
-        # The coeff matrices for the SPMF_NEP created in the end
-        B = Vector{T_sub}(undef,m);
-        B[1]=B1;
-        for i=2:m # From 2 since we already computed the first above
-            nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
-            B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
-        end
+        @assert(k <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
+        # For over all i: Compute the expanded matrices
+        WT=copy(W')
+        B = map(i -> begin
+                # Compute the projecte matrix
+                nep.projnep_B_mem[i][1:k,1:k]=WT*nep.orgnep_Av[i]*V;
+                view(nep.projnep_B_mem[i],1:k,1:k);
+                end, 1:m)
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
+"""
+    expand_projectmatrices!(nep::Proj_SPMF_NEP, Wnew, Vnew)
+
+The projected NEP is updated by adding the last column of `Wnew` and `Vnew`
+to the basis.
+
+"""
+    function expand_projectmatrices!(nep::Proj_SPMF_NEP,Wnew::AbstractMatrix,Vnew::AbstractMatrix)
+        w=Wnew[:,end];
+        v=Vnew[:,end];
+        Av=nep.orgnep_Av;
+        k=size(Vnew, 2)-1;
+        m = size(nep.orgnep_Av,1);
+        @assert(k+1 <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
+        WnewT=copy(Wnew[:,1:k]');
+        # For over all i: Compute expanded part of matrices:
+        B = map(i -> begin
+                # Expand the B-matrices
+                nep.projnep_B_mem[i][1:k,k+1]=WnewT*Av[i]*v;
+                nep.projnep_B_mem[i][k+1,1:(k+1)]=w'*Av[i]*view(Vnew,:,1:(k+1));
+                view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
+                end, 1:m)
+        # Keep the sequence of functions for SPMFs
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
+    end
 
     # Use delagation to the nep_proj
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)

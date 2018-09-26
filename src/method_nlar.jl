@@ -99,8 +99,8 @@ function nlar(::Type{T},
         while ((m < nev) && (k < maxit))
             Vk = view(V,:,1:cbs)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
-            set_projectmatrices!(proj_nep,Vk,Vk);
-            
+            expand_projectmatrices!(proj_nep,Vk,Vk);
+
             #Use inner_solve() to solve the smaller projected problem
             dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
 
