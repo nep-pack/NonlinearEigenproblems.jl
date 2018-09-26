@@ -21,5 +21,5 @@ covered_lines, total_lines = get_summary(coverage)
 @printf("%d / %d lines covered by tests (%.2f %%), in %d source files (%d files excluded)\n",
     covered_lines, total_lines, covered_lines * 100.0 / total_lines, length(coverage), unfiltered_count - length(coverage))
 
-Coveralls.submit(coverage)
+#Coveralls.submit(coverage)
 Codecov.submit(coverage)
