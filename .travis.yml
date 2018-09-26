@@ -13,8 +13,8 @@ matrix:
   include:
   - name: "Unit Tests"
     env: TEST_SUITE=unit
-#  - name: "Benchmarks"
-#    env: TEST_SUITE=benchmark
+  - name: "Benchmarks"
+    env: TEST_SUITE=benchmark
 notifications:
   email: false
 script:
@@ -24,6 +24,5 @@ script:
   - if [ $TEST_SUITE = 'unit' ]; then unbuffer julia --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test(coverage=true)'; fi
   - if [ $TEST_SUITE = 'benchmark' ]; then unbuffer julia -O3 --color=yes test/benchmark/run_benchmark.jl benchmark.json 1.0; fi
 after_success:
-  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
-#  - if [ $TEST_SUITE = 'unit' ]; then unbuffer julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi
-#  - if [ $TEST_SUITE = 'benchmark' ]; then unbuffer ./scripts/submit_benchmark.sh; fi
+  - if [ $TEST_SUITE = 'unit' ]; then unbuffer julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi
+  - if [ $TEST_SUITE = 'benchmark' ]; then unbuffer ./scripts/submit_benchmark.sh; fi
