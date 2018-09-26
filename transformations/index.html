@@ -147,7 +147,7 @@ julia&gt; opnorm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
 8.875435870738592e-12
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/nep_transformations.jl#L23-L39' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0de44a543361c6b34b0aa13dfc863fbd3695ee04/src/nep_transformations.jl#L23-L39' class='documenter-source'>source</a><br></p>
 <p>Similarly <code>mobius_transform()</code> is more general than <code>shift_and_scale</code> which transform the problem using a Möbius transformation. The function <code>taylor_exp</code> create new PEP by doing truncating a Taylor expansion.</p>
 <p><a id='Projection-1'></a></p>
 <h1 id="projection">Projection</h1>
@@ -155,43 +155,85 @@ julia&gt; opnorm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
 <p>$$
 N(λ)=W^HM(λ)V,
 $$</p>
-<p>where $V,W\in\mathbb{C}^{n\times p}$  and the corresponding projected problem</p>
+<p>where $V,W\in\mathbb{C}^{n\times p}$ and the corresponding projected problem</p>
 <p>$$
 N(λ)u=0.
 $$</p>
-<p>NEPs which for which this projection can be computed inherit from <code>ProjectableNEP</code>. The most important type is the <code>SPMF_NEP</code>. </p>
+<p>NEPs for which this projection can be computed inherit from <code>ProjectableNEP</code>. The result of the projection is represented in a <code>Proj_NEP</code>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.Proj_NEP' href='#NonlinearEigenproblems.NEPTypes.Proj_NEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.Proj_NEP</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>abstract type Proj_NEP &lt;: NEP
+</code></pre>
+
+<p><code>Proj_NEP</code> represents a projected NEP. The projection is defined as the NEP</p>
+<p>$$
+N(λ)=W^HM(λ)V
+$$</p>
+<p>where $M(λ)$ is a base NEP and <code>W</code> and <code>V</code> rectangular matrices representing a basis of the projection spaces. Instances are created with <code>create_proj_NEP</code>. See <a href="./#NonlinearEigenproblems.NEPTypes.create_proj_NEP"><code>create_proj_NEP</code></a> for examples.</p>
+<p>Any <code>Proj_NEP</code> needs to implement two functions to manipulate the projection:</p>
+<ul>
+<li><a href="./#NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}"><code>set_projectmatrices!</code></a>: Set matrices <code>W</code> and <code>V</code></li>
+<li><a href="../@ref"><code>expand_projectmatrices!</code></a>: Effectively expand the matrices <code>W</code> and <code>V</code> with one column.</li>
+</ul>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0de44a543361c6b34b0aa13dfc863fbd3695ee04/src/NEPTypes.jl#L791-L809' class='documenter-source'>source</a><br></p>
 <p>You can create a projected NEP with <code>create_proj_NEP</code>:</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.create_proj_NEP' href='#NonlinearEigenproblems.NEPTypes.create_proj_NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.create_proj_NEP</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 </code></pre>
 
-<p>Create a NEP representing a projected problem. The projection is defined as the problem $N(λ)=W^HM(λ)V$ where $M(λ)$ is represented by <code>orgnep</code>. The optional parameter <code>maxsize</code> determines how large the projected problem can be and <code>T</code> determines which Number type to use (default <code>ComplexF64</code>). These are needed for memory allocation reasons. Use <code>set_projectmatrices!()</code> to specify projection matrices $V$ and $W$.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/NEPTypes.jl#L785-L795' class='documenter-source'>source</a><br></p>
-<p><a id='NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}' href='#NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}'>#</a>
-<strong><code>NonlinearEigenproblems.NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Method</em>.</p>
-<pre><code>set_projectmatrices!(pnep::Proj_NEP,W,V)
-</code></pre>
-
-<p>Set the projection matrices for the NEP to W and V, i.e., corresponding the NEP: $N(λ)=W^HM(λ)V$.</p>
+<p>Create a NEP representing a projected problem $N(λ)=W^HM(λ)V$,  where the  base NEP is represented by <code>orgnep</code>. The optional parameter <code>maxsize::Int</code> determines how large the projected problem can be and <code>T</code> is the Number type used for the projection matrices (default <code>ComplexF64</code>). These are needed for memory preallocation reasons. Use <a href="./#NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}"><code>set_projectmatrices!()</code></a> and <a href="../@ref"><code>expand_projectmatrices!()</code></a>  to specify projection matrices $V$ and $W$.</p>
 <p><strong>Example:</strong></p>
-<p>The following example illustrates that a projection of a <code>NEP</code> is also a <code>NEP</code> and we can for instance call <code>compute_Mder</code>on it:</p>
+<p>The following example illustrates that a projection of a <code>NEP</code> is also a <code>NEP</code> and we can for instance call <code>compute_Mder</code> on it:</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
 julia&gt; V=Matrix(1.0*I,size(nep,1),2);
 julia&gt; W=Matrix(1.0*I,size(nep,1),2);
 julia&gt; pnep=create_proj_NEP(nep);
 julia&gt; set_projectmatrices!(pnep,W,V);
 julia&gt; compute_Mder(pnep,3.0)
-2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
-julia&gt; compute_Mder(nep,3.0)[1:2,1:2]
+2×2 Array{Complex{Float64},2}:
+ -2.03662+0.0im   13.9777+0.0im
+ -1.35069+0.0im  -13.0975+0.0im
+julia&gt; W'*compute_Mder(nep,3.0)*V  # Gives the same result
 2×2 Array{Float64,2}:
  -2.03662   13.9777
  -1.35069  -13.0975
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/NEPTypes.jl#L867-L891' class='documenter-source'>source</a><br></p>
+<p>If you know that you will only use real projection matrices, you can specify this in at the creation:</p>
+<pre><code class="julia-repl">julia&gt; pnep=create_proj_NEP(nep,2,Float64);
+julia&gt; set_projectmatrices!(pnep,W,V);
+julia&gt; compute_Mder(pnep,3.0)
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+</code></pre>
+
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0de44a543361c6b34b0aa13dfc863fbd3695ee04/src/NEPTypes.jl#L812-L853' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}' href='#NonlinearEigenproblems.NEPTypes.set_projectmatrices!-Tuple{Proj_SPMF_NEP,Any,Any}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>set_projectmatrices!(pnep::Proj_NEP,W,V)
+</code></pre>
+
+<p>Set the projection matrices for the NEP to W and V, i.e., corresponding the NEP: $N(λ)=W^HM(λ)V$. See also <a href="./#NonlinearEigenproblems.NEPTypes.create_proj_NEP"><code>create_proj_NEP</code></a>.</p>
+<p><strong>Example</strong></p>
+<p>This illustrates if <code>W</code> and <code>V</code> are vectors of ones, the projected problem becomes the sum of the rows and columns of the original NEP.</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;pep0&quot;)
+julia&gt; pnep=create_proj_NEP(nep);
+julia&gt; V=ones(200,1);  W=ones(200,1);
+julia&gt; set_projectmatrices!(pnep,W,V);
+julia&gt; compute_Mder(pnep,0)
+1×1 Array{Complex{Float64},2}:
+ 48.948104019482756 + 0.0im
+julia&gt; sum(compute_Mder(nep,0),dims=[1,2])
+1×1 Array{Float64,2}:
+ 48.948104019482955
+</code></pre>
+
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0de44a543361c6b34b0aa13dfc863fbd3695ee04/src/NEPTypes.jl#L922-L943' class='documenter-source'>source</a><br></p>
+<pre><code>expand_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
+</code></pre>
+
 <p><a id='Deflation-1'></a></p>
 <h1 id="deflation">Deflation</h1>
 <p>Due to structure of the representation of NEPs in NEP-PACK it is possible to do deflation, by transformation of the NEP-object. The deflation is based on theory provided in Effenbergers thesis and the main function consists of <code>effenberger_deflation</code>.</p>
@@ -217,7 +259,7 @@ julia&gt; minimum(svdvals(compute_Mder(nep,λ2)))
 <ul>
 <li>C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0bda040e70b53b0017b6e73620dca12cbc2160ff/src/nep_transformations.jl#L206-L230' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/0de44a543361c6b34b0aa13dfc863fbd3695ee04/src/nep_transformations.jl#L206-L230' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>
