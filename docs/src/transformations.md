@@ -20,16 +20,19 @@ a smaller NEP, which we will refer to as a projection:
 ```math
 N(λ)=W^HM(λ)V,
 ```
-where $V,W\in\mathbb{C}^{n\times p}$ 
+where $V,W\in\mathbb{C}^{n\times p}$
 and the corresponding projected problem
 ```math
 N(λ)u=0.
 ```
 
-NEPs which for which this projection can be computed
-inherit from `ProjectableNEP`. The most important
-type is the `SPMF_NEP`. 
+NEPs for which this projection can be computed
+inherit from `ProjectableNEP`. The result of the
+projection is represented in a `Proj_NEP`.
 
+```@docs
+Proj_NEP
+```
 You can create a projected NEP with `create_proj_NEP`:
 
 ```@docs
@@ -38,6 +41,10 @@ create_proj_NEP
 
 ```@docs
 set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
+```
+
+```@docs
+expand_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
 ```
 
 

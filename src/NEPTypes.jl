@@ -815,8 +815,9 @@ Any `Proj_NEP` needs to implement two functions to manipulate the projection:
 Create a NEP representing a projected problem ``N(λ)=W^HM(λ)V``,
  where the  base NEP is represented by `orgnep`.
 The optional parameter `maxsize::Int` determines how large the projected
-problem can be and `T` is the Number type used for the projection matrices.
-These are needed for memory allocation reasons.
+problem can be and `T` is the Number type used for the projection matrices
+(default `ComplexF64`).
+These are needed for memory preallocation reasons.
 Use [`set_projectmatrices!()`](@ref) and [`expand_projectmatrices!()`](@ref)
  to specify projection matrices ``V`` and ``W``.
 
@@ -862,6 +863,12 @@ julia> compute_Mder(pnep,3.0)
 
 
 
+"""
+    struct Proj_SPMF_NEP <: Proj_NEP
+
+This type represents the (generic) way to project NEPs which are
+`AbstractSPMF`. See examples in [`create_proj_SPMF`](@ref).
+"""
     mutable struct Proj_SPMF_NEP  <: Proj_NEP
         orgnep::AbstractSPMF
         nep_proj::SPMF_NEP; # An instance of the projected NEP
