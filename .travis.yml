@@ -5,6 +5,10 @@ os:
   - linux
 julia:
   - 1.0
+addons:
+  apt:
+    packages:
+      - expect-dev # for unbuffer
 matrix:
   include:
   - name: "Unit Tests"
@@ -15,8 +19,10 @@ notifications:
   email: false
 script:
   - export JL_PKG=NonlinearEigenproblems
-  - git fetch --unshallow
-  - julia --color=yes -e "using Pkg; Pkg.build()"
-  - julia --check-bounds=yes --color=yes -e "using Pkg; Pkg.test(coverage=true)"
+  - unbuffer git fetch --unshallow
+  - unbuffer julia --color=yes -e "using Pkg; Pkg.build()"
+  - if [ $TEST_SUITE = 'unit' ]; then unbuffer julia --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test(coverage=true)'; fi
+  - if [ $TEST_SUITE = 'benchmark' ]; then unbuffer julia -O3 --color=yes test/benchmark/run_benchmark.jl benchmark.json 1.0; fi
 after_success:
-  - if [ $TEST_SUITE = 'unit' ]; then julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi
+  - if [ $TEST_SUITE = 'unit' ]; then unbuffer julia -e 'using Pkg; Pkg.add("Coverage"); include("test/submit_test_coverage.jl")'; fi
+  - if [ $TEST_SUITE = 'benchmark' ]; then unbuffer ./scripts/submit_benchmark.sh; fi
