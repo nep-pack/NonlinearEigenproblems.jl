@@ -478,9 +478,9 @@ julia> norm(M1-M2)
         # The other functions are exp(-tauv[j]*S)
         for i=1:size(nep.A,1)
             if nep.tauv[i] == 0 # Zero delay means constant term
-                fv[i+1] = S -> Matrix(1.0I, size(S,1), size(S,1))
+                fv[i+1] = S -> one(S)
             else
-                fv[i+1] = S -> exp(-Matrix(nep.tauv[i] * S))
+                fv[i+1] = S -> exp(-nep.tauv[i] * S)
             end
         end
 
@@ -1188,9 +1188,9 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         local S,TS;
         if (V isa AbstractVector)
             #Vector means just compute matrix vector
-            S=reshape([λ],1,1)
+            #S=reshape([λ],1,1)
             # The above line should be replaced by below when all examples have handled #71
-            #S=λ
+            S=λ
             TS = eltype(λ)
         else
             # V matrix means compute linear combination of derivatives. Use
