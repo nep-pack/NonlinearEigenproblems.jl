@@ -4,7 +4,6 @@ module NEPTypes
     using LinearAlgebra
     using PolynomialZeros
     using Polynomials
-    using InteractiveUtils
 
     # Specializalized NEPs
     export ProjectableNEP
