@@ -133,9 +133,9 @@ using SparseArrays
 
         # Same nonlinearities as the GUN NLEVP problem
         minusop= S-> -S
-        oneop = S -> Matrix(1.0I, size(S))
-        sqrt1op = S -> 1im * sqrt(Matrix(S))
-        sqrt2op = S -> 1im * sqrt(Matrix(S) - 108.8774^2*I)
+        oneop = S -> one(S)
+        sqrt1op = S -> 1im * sqrt(S)
+        sqrt2op = S -> 1im * sqrt(S - 108.8774^2*one(S))
 
         A0=sparse(randn(n,n))+1im*sparse(randn(n,n));
         A1=sparse(randn(n,n))+1im*sparse(randn(n,n));

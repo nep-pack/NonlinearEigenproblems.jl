@@ -24,8 +24,8 @@ using Random
             t=3.0
 
             minusop= S-> -S
-            oneop= S -> Matrix{eltype(S)}(I, size(S))
-            expmop= S -> exp(Matrix(-t*S))
+            oneop= S -> one(S)
+            expmop= S -> exp(-t*S)
             fi=[minusop, oneop, expmop];
 
             nep = SPMF_NEP([Matrix(1.0I, n, n), A0, A1], fi)
