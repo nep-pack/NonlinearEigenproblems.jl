@@ -11,10 +11,6 @@ set_displaylevel(0)
 include("benchmark_utils.jl")
 include(normpath("..", "run_all_tests.jl"))
 
-println("------ARGS------")
-println(ARGS)
-println("----------------")
-
 if length(ARGS) < 1
     println("Benchmark JSON file name required:\n\n$(basename(@__FILE__)) benchmark_file [duration_seconds] [test_name_regex]")
 else

@@ -1,6 +1,5 @@
 module TestUtils
 
-using InteractiveUtils
 using BenchmarkTools
 using Statistics
 using Printf
