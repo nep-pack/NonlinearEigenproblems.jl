@@ -1,6 +1,6 @@
 # Gun: variant P (polynomial case; only repeated nodes)
 
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+push!(LOAD_PATH, normpath(@__DIR__, "..", "modules")); using TestUtils
 using NonlinearEigenproblems
 using Test
 

@@ -1,4 +1,4 @@
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+push!(LOAD_PATH, normpath(@__DIR__, "..", "modules")); using TestUtils
 using InteractiveUtils
 using BenchmarkTools
 using Statistics

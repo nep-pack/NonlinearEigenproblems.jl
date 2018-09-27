@@ -1,7 +1,7 @@
 ################################################################################
 # Runs the test suite in benchmark mode and saves the results to a JSON file
 ################################################################################
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+push!(LOAD_PATH, normpath(@__DIR__, "..", "modules")); using TestUtils
 using Logging
 
 # turn off logging of @info statements and test output
@@ -10,6 +10,10 @@ set_displaylevel(0)
 
 include("benchmark_utils.jl")
 include(normpath("..", "run_all_tests.jl"))
+
+println("------ARGS------")
+println(ARGS)
+println("----------------")
 
 if length(ARGS) < 1
     println("Benchmark JSON file name required:\n\n$(basename(@__FILE__)) benchmark_file [duration_seconds] [test_name_regex]")

@@ -1,6 +1,6 @@
 # Solves a basic eigenvalue problem defined through different NEP types through NLEIGS
 
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+push!(LOAD_PATH, normpath(@__DIR__, "..", "modules")); using TestUtils
 using NonlinearEigenproblems
 using Test
 using SparseArrays

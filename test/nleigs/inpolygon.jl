@@ -1,4 +1,4 @@
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+push!(LOAD_PATH, normpath(@__DIR__, "..", "modules")); using TestUtils
 using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
