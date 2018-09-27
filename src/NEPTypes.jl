@@ -1188,9 +1188,9 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         local S,TS;
         if (V isa AbstractVector)
             #Vector means just compute matrix vector
-            #S=reshape([λ],1,1)
+            S=reshape([λ],1,1)
             # The above line should be replaced by below when all examples have handled #71
-            S=λ
+            #S=λ
             TS = eltype(λ)
         else
             # V matrix means compute linear combination of derivatives. Use
