@@ -19,7 +19,6 @@ notifications:
   email: false
 script:
   - unbuffer git fetch --unshallow
-  - unbuffer julia --color=yes -e 'using Pkg; Pkg.activate("."); Pkg.build()'
   - unbuffer julia --color=yes -e 'using Pkg; Pkg.activate("test"); Pkg.build()'
   - if [ $TEST_SUITE = 'unit' ]; then unbuffer julia --color=yes --code-coverage --check-bounds=yes -e 'using Pkg; Pkg.activate("test"); include("test/runtests.jl")'; fi
   - if [ $TEST_SUITE = 'benchmark' ]; then unbuffer julia -O3 --color=yes -e 'using Pkg; Pkg.activate("test"); include("test/benchmark/run_benchmark.jl")' benchmark.json 1.0; fi

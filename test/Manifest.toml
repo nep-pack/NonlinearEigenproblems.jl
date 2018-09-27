@@ -146,7 +146,7 @@ uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
 version = "0.5.7"
 
 [[NonlinearEigenproblems]]
-deps = ["Arpack", "Distributed", "FFTW", "IterativeSolvers", "LinearAlgebra", "LinearMaps", "PolynomialRoots", "PolynomialZeros", "Polynomials", "Printf", "Random", "Reexport", "SparseArrays", "SpecialFunctions", "Statistics", "SuiteSparse"]
+deps = ["Arpack", "Distributed", "FFTW", "InteractiveUtils", "IterativeSolvers", "LinearAlgebra", "LinearMaps", "PolynomialRoots", "PolynomialZeros", "Polynomials", "Printf", "Random", "Reexport", "SparseArrays", "SpecialFunctions", "Statistics", "SuiteSparse"]
 path = ".."
 uuid = "67991c06-a66a-11e8-39d6-6f5c0e02ffbd"
 version = "0.1.0"
