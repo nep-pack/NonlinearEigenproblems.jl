@@ -15,9 +15,7 @@ include("ratnewtoncoeffsm.jl")
 Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 
 # Arguments
-- `nep`: An instance of a nonlinear eigenvalue problem. If the problem can be
-  expressed as a sum of constant matrices times scalar functions, use the PNEP
-  type for best performance.
+- `nep`: An instance of a nonlinear eigenvalue problem.
 - `Σ`: A vector containing the points of a polygonal target set in the complex plane.
 - `Ξ`: A vector containing a discretization of the singularity set.
 - `displaylevel`: Level of display (0, 1, 2).
