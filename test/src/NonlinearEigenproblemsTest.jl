@@ -1,4 +1,4 @@
-module TestUtils
+module NonlinearEigenproblemsTest
 
 using BenchmarkTools
 using Statistics

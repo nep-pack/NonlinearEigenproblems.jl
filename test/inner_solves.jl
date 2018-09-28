@@ -1,6 +1,6 @@
 # Run tests for the inner solves
 
-push!(LOAD_PATH, normpath(@__DIR__, "modules")); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

@@ -1,6 +1,6 @@
 # Run tests for the dep_distributed example
 
-push!(LOAD_PATH, normpath(@__DIR__, "modules")); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

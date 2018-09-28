@@ -1,4 +1,4 @@
-push!(LOAD_PATH, normpath(@__DIR__, "..", "modules")); using TestUtils
+using NonlinearEigenproblemsTest
 using BenchmarkTools
 using Statistics
 using Printf
