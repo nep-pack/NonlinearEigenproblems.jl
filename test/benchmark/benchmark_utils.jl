@@ -36,8 +36,8 @@ end
 "Hierarchically aggregate benchmark trials"
 function aggregate_trials(aggregated_trials, test, chain)
     chain = [chain; test]
-    if haskey(TestUtils.benchmark_results, test)
-        trial = minimum(TestUtils.benchmark_results[test])
+    if haskey(NonlinearEigenproblemsTest.benchmark_results, test)
+        trial = minimum(NonlinearEigenproblemsTest.benchmark_results[test])
         for i in 1:length(chain)
             t = chain[i]
             name = " "^((i-1)*2) * t.description
@@ -59,7 +59,7 @@ function save_benchmark(test_results, file_name)
     dict = Dict()
 
     dict["time"] = Dates.now(Dates.UTC)
-    dict["config"] = @sprintf("seconds=%.1f", TestUtils.benchmark_duration_seconds)
+    dict["config"] = @sprintf("seconds=%.1f", NonlinearEigenproblemsTest.benchmark_duration_seconds)
     dict["cpu"] = @sprintf("%s (%s), %d threads, %.0f GB memory",
         Sys.cpu_info()[1].model,
         Sys.CPU_NAME,
