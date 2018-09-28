@@ -1,2 +1,2 @@
 #!/bin/bash
-julia -O3 --color=yes -e 'using Pkg; Pkg.activate("test"); include("test/benchmark/run_benchmark.jl")' -- "$@"
+julia -O3 --project=test --color=yes test/benchmark/run_benchmark.jl -- "$@"
