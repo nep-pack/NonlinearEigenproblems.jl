@@ -10,9 +10,9 @@ export threshold_eigval_sorter
 
 
 """
-    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[nev=10],[errmeasure=default_errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[displaylevel=0],[linsolvercreator=default_linsolvercreator],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=NEPSolver.DefaultInnerSolver])
+    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure=default_errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[displaylevel=0],[linsolvercreator=default_linsolvercreator],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=NEPSolver.DefaultInnerSolver])
  
-The function implements the Nonlinear Arnoldi method, which finds `nev` eigenpairs(or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm. 
+The function implements the Nonlinear Arnoldi method, which finds `neigs` eigenpairs(or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm. 
 The basis is orthogonalized either by using the QR method if `qrfact_orth` is `true` or else by an orthogonalization method `orthmethod`). 
 This entails solving a smaller projected problem using a method specified by `inner_solver_method`. 
 (`λ0`,`v0`) is the initial guess for the eigenpair. `linsolvercreator` specifies how the linear system is created and solved. 
@@ -22,7 +22,7 @@ This entails solving a smaller projected problem using a method specified by `in
 # Example
 ```julia-repl
 julia> nep=nep_gallery("dep0_tridiag");
-julia> λ,v=nlar(nep,tol=1e-5,nev=1,maxit=50);
+julia> λ,v=nlar(nep,tol=1e-5,neigs=1,maxit=50);
 julia> norm(compute_Mlincomb(nep,λ[1],v))
 7.722757003764154e-7
 ```
@@ -35,7 +35,7 @@ nlar(nep::NEP;params...) = nlar(ComplexF64,nep::NEP;params...)
 function nlar(::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth} = ModifiedGramSchmidt,
-            nev::Int=10,                                     #Number of eigenvalues required
+            neigs::Int=10,                                     #Number of eigenvalues required
             errmeasure::Function = default_errmeasure(nep),
             tol = eps(real(T))*100,
             maxit::Int = 100,
@@ -58,10 +58,10 @@ function nlar(::Type{T},
             maxit = size(nep,1);
         end
 
-        #Check if number of ritz vectors for restating is greater than nev
-        if(num_restart_ritz_vecs > nev)
-            @warn "Nubmer of ritz vectors for restarting num_restart_ritz_vecs=$num_restart_ritz_vecs larger than nev=$nev. Reducing num_restart_ritz_vecs."
-            num_restart_ritz_vecs = nev;
+        #Check if number of ritz vectors for restating is greater than neigs
+        if(num_restart_ritz_vecs > neigs)
+            @warn "Nubmer of ritz vectors for restarting num_restart_ritz_vecs=$num_restart_ritz_vecs larger than neigs=$neigs. Reducing num_restart_ritz_vecs."
+            num_restart_ritz_vecs = neigs;
         end
 
         #Check if maximum allowable subspace size is lesser than num_restart_ritz_vecs
@@ -75,15 +75,15 @@ function nlar(::Type{T},
 
         #Initialize the basis V_1
         V::Matrix{T}= zeros(T,n,max_subspace);
-        X::Matrix{T} = zeros(T,n,nev);
+        X::Matrix{T} = zeros(T,n,neigs);
         V[:,1] = normalize(v);
         cbs = 1;#Current basis size
 
 
-        D::Vector{T} = zeros(T,nev);#To store the converged eigenvalues
-        err_hist=eps()*ones(maxit,nev) ;#Error history
+        D::Vector{T} = zeros(T,neigs);#To store the converged eigenvalues
+        err_hist=eps()*ones(maxit,neigs) ;#Error history
 
-        Z::Matrix{T} = zeros(T,n,nev+num_restart_ritz_vecs);#The matrix used for constructing the restarted basis
+        Z::Matrix{T} = zeros(T,n,neigs+num_restart_ritz_vecs);#The matrix used for constructing the restarted basis
         m = 0; #Number of converged eigenvalues
         
         k = 1;
@@ -96,13 +96,13 @@ function nlar(::Type{T},
 
         @ifd(println("##### Using inner solver:",inner_solver_method," #####"))
 
-        while ((m < nev) && (k < maxit))
+        while ((m < neigs) && (k < maxit))
             Vk = view(V,:,1:cbs)
             # Construct and solve the small projected PEP projected problem (V^H)T(λ)Vx = 0
             expand_projectmatrices!(proj_nep,Vk,Vk);
 
             #Use inner_solve() to solve the smaller projected problem
-            dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=nev,σ=σ);
+            dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=neigs,σ=σ);
 
             # Sort the eigenvalues of the projected problem 
             nuv,yv = eigval_sorter(nep,dd,vv,σ,D,R,Vk);
@@ -190,8 +190,8 @@ function nlar(::Type{T},
 
 
         #Throw no convergence exception if enough eigenvalues were not found.
-        if(k >= maxit && m < nev)
-            msg="Number of iterations exceeded. maxit=$(maxit) and only $(m) eigenvalues converged out of $(nev)."
+        if(k >= maxit && m < neigs)
+            msg="Number of iterations exceeded. maxit=$(maxit) and only $(m) eigenvalues converged out of $(neigs)."
             throw(NoConvergenceException(nu,u,err,msg))
         end
 
