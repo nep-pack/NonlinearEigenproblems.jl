@@ -158,13 +158,13 @@ $$</p>
 <pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems
 </code></pre>
 
-<p>We are now ready to create and solve a nonlinear eigenvalue problem, in this illustrative example we set</p>
+<p>As a first example we will solve the NEP associated with the matrix polynomial</p>
 <p>$$
 M(λ)=\begin{bmatrix}1&amp;3\newline5&amp;6\end{bmatrix}+
 λ\begin{bmatrix}3&amp;4\newline6&amp;6\end{bmatrix}+
 λ^2\begin{bmatrix}1&amp;0\newline0&amp;1\end{bmatrix}
 $$</p>
-<p>The following code creates this NEP (which is a so called polynomial eigenvalue problem) and solves it using the NEP solution method implemented in <code>polyeig()</code>:</p>
+<p>The following code creates this NEP, which is a so called <code>PEP</code> as an abbreviation for polynomial eigenvalue problem, and solves it using the NEP solution method implemented in <code>polyeig()</code>:</p>
 <pre><code class="julia-repl">julia&gt; A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia&gt; nep=PEP([A0,A1,A2])
 PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
@@ -195,7 +195,7 @@ julia&gt; resnorm=norm(compute_Mlincomb(nep,λ,v))
 3.124042808475689e-14
 </code></pre>
 
-<p>Information about the gallery can be found by typing <code>?nep_gallery</code>. The second arument in the call to <code>nep_gallery</code> is a problem parameter, in this case specifying that the  size of the problem should be <code>100</code>. The example solves the problem with the method MSLP. The parameter <code>tol</code> specifies the tolerance for iteration termination. Type <code>?mslp</code> for more information about this method.</p>
+<p>Information about the gallery can be found by typing <code>?nep_gallery</code>. The second arument in the call to <code>nep_gallery</code> is a problem parameter, in this case specifying that the  size of the problem should be <code>100</code>. The example solves the problem with the NEP-algorithm <a href="methods/#NonlinearEigenproblems.NEPSolver.mslp"><code>MSLP</code></a>. The parameter <code>tol</code> specifies the tolerance for iteration termination. Type <code>?mslp</code> for more information about this NEP-algorithm.</p>
 <p><a id='A-model-of-a-neuron-1'></a></p>
 <h1 id="a-model-of-a-neuron">A model of a neuron</h1>
 <p>The following (delay) differential equation models a neuron</p>
@@ -236,6 +236,7 @@ julia&gt; plot(real(λ),imag(λ),&quot;*&quot;)
 <h1 id="the-gun-benchmark-problem">The "gun" benchmark problem</h1>
 <p>One of the most common benchmark problems for NEPs is the so-called "gun"-problem. It models an electromagnetic cavity, and it is directly available in the <code>Gallery</code>. (See <code>?nep_gallery</code> for references.) This is how you can solve it with the block Newton method:</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;nlevp_native_gun&quot;);
+julia&gt; n=size(nep,1)
 julia&gt; S=150^2*[1.0 0; 0 1]; V=[[1 0; 0 1]; zeros(n-2,2)];
 julia&gt; (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
 Iteration 1: Error: 6.081316e+03
@@ -246,8 +247,16 @@ Iteration 13: Error: 6.257442e-09
 Iteration 14: Error: 2.525942e-15
 </code></pre>
 
-<p>The solutions are eigenvalues of <code>Z</code>.</p>
-<p>julia&gt;</p>
+<p>This algorithm returns a partial Schur factorization of the NEP, and therefore the eigenvalues of the small matrix <code>Z</code> are eigenvalues of the problem. An eigenpair of the NEP can be extracted by diagonalizing:</p>
+<pre><code class="julia-repl">julia&gt; using LinearAlgebra
+julia&gt; (Λ,P)=eigen(Z);
+julia&gt; VV=X*P;  # Construct the eigenvector matrix
+julia&gt; v=VV[:,1]; λ=Λ[1]
+61330.208714730004 + 63185.15983933589im
+julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
+1.8270553408452648e-16
+</code></pre>
+
 <p><a id='What-now?-1'></a></p>
 <h1 id="what-now">What now?</h1>
 <p>Now you are ready to have a look at the examples in <a href="./methods/">NEP methods</a> and  <a href="./gallery/">NEP Gallery</a>.</p>
@@ -301,5 +310,5 @@ Iteration 14: Error: 2.525942e-15
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-09-26 13:48:12
+Build Date UTC : 2018-09-28 09:25:58
 -->
