@@ -3,7 +3,7 @@
 # @testset macro, except those specified to be excluded in run_all_tests.jl
 ################################################################################
 
-# This section activates the test project. It's needed for "Pkg.test()" to work from the root project.
+# This section activates the test project. It's needed for "Pkg.test()" to work for the root project.
 push!(LOAD_PATH, "@stdlib") # needed for "using Pkg"
 using Pkg
 Pkg.activate(@__DIR__)
