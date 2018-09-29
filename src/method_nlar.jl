@@ -200,6 +200,22 @@ function nlar(::Type{T},
 
 
 ###############################################################################################################
+# Ritz value discarder:
+# This function is called as a first step by all the sorter functions to discard ritz values that lie within
+# a certain distance R of the converged eigenvalues.
+function discard_ritz_values!(dd,D,R)
+    for i=1:size(dd,1)
+        for j=1:size(D,1)
+            if (abs(dd[i]-D[j])<R)
+                dd[i]=Inf; #Discard all Ritz values within a particular radius R
+            end
+        end
+    end
+
+end
+
+
+
 # Default ritzvalue sorter:
 # First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
 # Then sort by distance from the shift and select the mm-th furthest value from the pole.
@@ -211,15 +227,8 @@ function nlar(::Type{T},
 function  default_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk)
     dd2=copy(dd);
 
-    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
-    ## from each eigenvalue that as already converged(i.e. in D)
-    for i=1:size(dd,1)
-        for j=1:size(D,1)
-            if (abs(dd2[i]-D[j])<R)
-                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
-            end
-        end
-    end
+    #Discard ritz values within a distance R of the converged eigenvalues
+    discard_ritz_values!(dd2,D,R)
 
     ii = sortperm(abs.(dd2-σ));
 
@@ -238,15 +247,8 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::Function=de
     eig_res = zeros(size(dd,1));
     dd2=copy(dd);
 
-    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
-    ## from each eigenvalue that as already converged(i.e. in D)
-    for i=1:size(dd,1)
-        for j=1:size(D,1)
-            if (abs(dd2[i]-D[j])<R)
-                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
-            end
-        end
-    end
+    #Discard ritz values within a distance R of the converged eigenvalues
+    discard_ritz_values!(dd2,D,R)
 
     #Compute residuals for each Ritz value
     for i=1:size(dd,1)
@@ -269,15 +271,8 @@ function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::Function=d
     eig_res = zeros(size(dd,1));
     dd2=copy(dd);
 
-    ## Check distance of each eigenvalue of the projected NEP(i.e. in dd)
-    ## from each eigenvalue that as already converged(i.e. in D)
-    for i=1:size(dd,1)
-        for j=1:size(D,1)
-            if (abs(dd2[i]-D[j])<R)
-                dd2[i]=Inf; #Discard all Ritz values within a particular radius R
-            end
-        end
-    end
+    #Discard ritz values within a distance R of the converged eigenvalues
+    discard_ritz_values!(dd2,D,R)
 
     #Compute residuals for each Ritz value
     temp_res = 0;
