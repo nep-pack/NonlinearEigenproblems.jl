@@ -473,7 +473,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 This function implements the Newton-QR method as formulated in the reference. The method ivolves the computation of a rank-revealing QR factorization
 of ``M(λ)``, with the idea that on convergence the the last diagonal element ``R[n,n]`` of the upper-triangular matrix ``R`` becomes zero as a result of ``M(λ)``
 becoming singular. Since the computation of a QR factorization is expensive, it is advisable to use this method for problems of small size or problems with
-a certain structure that makes the QR computation less expensive. See [newton](@ref) for description of the function arguements.
+a certain structure that makes the QR computation less expensive. See [`newton`](@ref) for description of the function arguements.
 
 # Example
 ```julia-repl
@@ -484,6 +484,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 ```
 
 # References
+* Kublanovskaya, V. N., (1970).  On an approach to the solution of the generalized latent value problem for λ-matrices, SIAM J. Numer. Anal. 7, 532–537
 * Güttel, S., & Tisseur, F. (2017). The nonlinear eigenvalue problem. Acta Numerica, 26, 1-94. doi:10.1017/S0962492917000034
 """
     newtonqr(nep::NEP;params...)=newtonqr(ComplexF64,nep;params...)
@@ -556,8 +557,10 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     λ,v = implicitdet([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel])
 
 This function implements the Implicit determinant method as formulated Algorithm 4.3 in the reference. The method applies Newton-Raphson to the equation
-``det(M(λ))/det(G(λ)) = 0``, where ``G(λ)`` is a saddle point matrix with ``M(λ)`` in the (1,1) block. The (2,1) and (1,2) blocks of ``G(λ)`` are set to
-``c^H`` and ``c`` respectively. Note that ``G(λ) `` can be non-singular even when ``M(λ) `` is singular. See reference for more information. See [newton](@ref) for description of the function arguements.
+``det(M(λ))/det(G(λ)) = 0``, where ``G(λ)`` is a saddle point matrix with ``M(λ)``
+in the (1,1) block. The (2,1) and (1,2) blocks of ``G(λ)`` are set to
+``c^H`` and ``c`` respectively. Note that ``G(λ) `` can be non-singular even when ``M(λ) ``
+is singular. See reference for more information. See [`newton`](@ref) for description of the function arguements.
 
 # Example
 ```julia-repl
@@ -568,6 +571,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 ```
 
 # References
+* Spence, A., & Poulton, C. (2005). Photonic band structure calculations using nonlinear eigenvalue techniques, J. Comput. Phys., 204 (2005), pp. 65–8
 * Güttel, S., & Tisseur, F. (2017). The nonlinear eigenvalue problem. Acta Numerica, 26, 1-94. doi:10.1017/S0962492917000034
 """
     implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
