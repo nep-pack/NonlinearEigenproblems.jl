@@ -35,6 +35,7 @@ function is_test_script(dir::AbstractString, file::AbstractString)
         pos = 1
         while pos <= length(src)
             expr, pos = Meta.parse(src, pos)
+            expr === nothing && continue
             if expr.head == :incomplete
                 msg = join(map(string, expr.args), "; ")
                 throw(Meta.ParseError("While parsing file $file got invalid expression: $msg"))
