@@ -1,33 +1,36 @@
 using NonlinearEigenproblems
 
-include("../../src/cork/method_cork.jl")
+include("../nleigs/gun_test_utils.jl")
+include("../../src/cork/linearize.jl")
 
-function cork_gun()
-    nep = nep_gallery("nlevp_native_gun")
-    K, M = get_Av(nep.nep1);
-    W1, W2 = get_Av(nep.nep2);
-    c1 = LowRankMatrixAndFunction(W1, get_fv(nep.nep2)[1])
-    c2 = LowRankMatrixAndFunction(W2, get_fv(nep.nep2)[2])
-    nep = SumNEP(PEP([K, M]), LowRankFactorizedNEP([c1, c2]))
+#function cork_gun()
+    nep, Σ, Ξ, _, nodes, funres = gun_init()
 
-    # Gun-specific setup
-    gam = 300^2 - 200^2
-    mu = 250^2
-    sigma2 = 108.8774
-    xmin = gam*(-1) + mu
-    xmax = gam*1 + mu
+    CL = linearize(Float64, nep, Σ, Ξ, 100, 1e-10)
 
-    # define target set Σ
-    npts = 1000
-    halfcircle = xmin .+ (xmax-xmin) * (cis.(range(0, stop = pi, length = round(Int, pi/2*npts) + 2)) / 2 .+ .5)
-    Σ = [halfcircle; xmin]
+    n = CL.n
+    d = CL.d
 
-    # define the set of pole candidates
-    Ξ = -10 .^ range(-8, stop = 8, length = 10000) .+ sigma2^2
+    A = CL.D
+    B = Vector{SparseMatrixCSC}(undef, d)
+    for i = 1:d
+        B[i] = spzeros(n, n)
+    end
+    CT = eltype(CL.σ)
+    M = [diagm(0 => CL.σ[1:d-1], 1 => CL.β[2:d-1]) [zeros(CT, d-2); CL.β[d]]]
+    N = [I + diagm(1 => CL.β[2:d-1]./CL.ξ[1:d-2]) [zeros(CT, d-2); CL.β[d]/CL.ξ[d-1]]]
 
-    L = linearize(Float64, nep, Σ, Ξ, 100, 1e-10)
+    L = Linearization(A, B, M, N)
 
-    println(L.d)
-end
+    Random.seed!(0)
+    v = randn(n) .+ im * randn(n) # TODO: use gun_init v?
 
-cork_gun()
+    @time lambda, X, res, flag, solution_info =
+        cork(Float64, nep, L, nodes[3], Σ, k=20, m=50, p=35, tolres=1e-10, shifts=nodes, v0=v, errmeasure=funres, displaylevel=1)
+
+    println("Found $(length(lambda)) lambdas:")
+    foreach(x -> println("  $x"), lambda)
+
+#end
+
+#cork_gun()

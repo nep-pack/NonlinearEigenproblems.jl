@@ -1,5 +1,11 @@
 using NonlinearEigenproblems
 
+include("../nleigs/discretizepolygon.jl")
+include("../nleigs/lejabagby.jl")
+include("../nleigs/ratnewtoncoeffs.jl")
+include("../nleigs/ratnewtoncoeffsm.jl")
+include("../nleigs/scgendivdiffs.jl")
+
 """
 Construct a pencil for the linearization of a nonlinear eigenvalue problem.
 
@@ -62,17 +68,5 @@ function linearize(
     end
 
     d = length(D) - 1
-    return Linearization(n, P.p, P.UU, d, σ[1:d+1], ξ[1:d+1], β[1:d+1], D, Dt)
-end
-
-struct Linearization
-    n::Int # Size of problem
-    p::Int # Order of polynomial part
-    U::AbstractMatrix # U factors of the low rank nonlinear part
-    d::Int # Degree of approximation
-    σ::Vector # Interpolation nodes
-    ξ::Vector # Poles
-    β::Vector # Scaling factors
-    D::Vector #{<:AbstractMatrix} # Full rank generalized divided differences
-    Dt::Vector # Low rank generalized divided differences
+    return ConvergedLinearization(n, P.p, P.UU, d, σ[1:d+1], ξ[1:d+1], β[1:d+1], D, Dt)
 end
