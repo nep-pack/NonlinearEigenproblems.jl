@@ -228,7 +228,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           return nep;
 
       elseif (name== "dep_distributed")
-          return gallery_dep_distributed();
+          return gallery_dep_distributed(params...; kwargs...);
 
       elseif (name=="qdep0")
           qdepbase=joinpath(dirname(@__FILE__()),
