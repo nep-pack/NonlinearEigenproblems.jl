@@ -19,7 +19,7 @@ function linearize(
         maxdgr::Int,
         tollin::T) where {T<:Real, CT<:Complex{T}}
 
-    P = get_nleigs_nep(T, nep)
+    P = get_rk_nep(T, nep)
 
     # Discretization of Σ --> Gamma & Leja-Bagby points
     gamma,_ = discretizepolygon(Σ)
