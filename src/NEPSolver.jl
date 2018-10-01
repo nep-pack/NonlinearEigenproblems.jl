@@ -47,7 +47,7 @@ Executes z if displaylevel>1.
     include("method_broyden.jl")
     include("method_ilan.jl")
     include("method_nleigs.jl")
-    include("cork/CorkTypes.jl")
+    include("method_cork.jl")
 
     include("inner_solver.jl");
 

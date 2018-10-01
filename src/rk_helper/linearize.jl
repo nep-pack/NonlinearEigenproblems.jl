@@ -1,5 +1,38 @@
 using NonlinearEigenproblems
-using NonlinearEigenproblems.RKHelper
+
+export ConvergedLinearization, Linearization,
+       linearize
+
+struct ConvergedLinearization
+    n::Int # Size of problem
+    p::Int # Order of polynomial part
+    U::AbstractMatrix # U factors of the low rank nonlinear part
+    d::Int # Degree of approximation
+    σ::Vector # Interpolation nodes
+    ξ::Vector # Poles
+    β::Vector # Scaling factors
+    D::Vector #{<:AbstractMatrix} # Full rank generalized divided differences
+    Dt::Vector # Low rank generalized divided differences
+end
+
+"""
+A:     cell array of n x n matrices of length d
+B:     cell array of n x n matrices of length d
+M:     (d-1) x d matrix
+N:     (d-1) x d matrix
+
+      [ A_0  A_1  ...  A_{d-1} ]         [ B_0  B_1  ...  B_{d-1} ]
+      [ ---------------------- ]         [ ---------------------- ]
+L  =  [                        ] - lam * [                        ]
+      [     kron(M,eye(n))     ]         [     kron(N,eye(n))     ]
+      [                        ]         [                        ]
+"""
+struct Linearization
+    A::Vector # vector of n x n matrices of length d
+    B::Vector # vector of n x n matrices of length d
+    M::AbstractMatrix # (d-1) x d matrix
+    N::AbstractMatrix # (d-1) x d matrix
+end
 
 """
 Construct a pencil for the linearization of a nonlinear eigenvalue problem.
