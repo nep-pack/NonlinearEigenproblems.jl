@@ -116,7 +116,7 @@ This problem stems from "Stability, bifurcation and multistability in a system o
 \\
      `beam`\\
 The DEP modelling a beam with delayed stabilizing feedback described in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The A1-term has rank one.\\
-     * one optional parameter which is the size of the matrix       \\
+     * one optional parameter which is the size of the matrix (defalut = 100)       \\
 \\
      `sine` \\
 The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.\\
@@ -133,7 +133,6 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
   """
     nep_gallery(name::String,params...;kwargs...)=nep_gallery(NEP,name,params...;kwargs...)
     function nep_gallery(::Type{T},name::String,params...;kwargs...) where T<:NEP
-        local n
         if (name == "dep0")
             return dep0(params...; kwargs...)
 
@@ -188,44 +187,19 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         elseif (name == "nlevp_native_fiber")
             return nlevp_native_fiber(params...; kwargs...)
 
-      elseif (name == "beam")
-          n::Int=100
-          if (length(params)>0)
-             n=params[1]
-          end
+        elseif (name == "beam")
+            return beam(params...; kwargs...)
 
-          h=1/n;
-          ee = ones(n);
-          A0 = spdiagm(-1 => ee[1:n-1], 0 => -2*ee, 1 => ee[1:n-1]);
-          A0[end,end]=1/h;
-          A0[end,end-1]=-1/h;
-          A1=sparse([n],[n],[1.0]); # A1=en*en'
-          tau=1.0;
-          return DEP([A0,A1],[0,tau]);
+        elseif (name == "sine")
+            return sine_nep(params...; kwargs...)
 
-       elseif (name == "sine")
-          data_dir=joinpath(dirname(@__FILE__()), "gallery_extra",   "converted_sine")
-
-
-          A0=read_sparse_matrix(joinpath(data_dir,"sine_A0.txt"));
-          A1=read_sparse_matrix(joinpath(data_dir,"sine_A1.txt"));
-          A2=read_sparse_matrix(joinpath(data_dir,"sine_A2.txt"));
-          V=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_V.txt")));
-          Q=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_Q.txt")));
-
-          n=size(A0,1);
-          Z=spzeros(n,n);
-          pep=PEP([A0,A1,Z,Z,A2]);
-          # Matrix  sine function. Note that the Term is rank two which is not exploited here
-          sin_nep=SPMF_NEP([V*Q'], [S-> sin(S)]);
-
-          nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
-          return nep;
-      else
-
+        else
           error("The name $name is not supported in NEP-Gallery.")
-      end
-    end
+        end
+    end # end of nep_gallery()
+
+
+### Helper functions below
 
 
     # A delay eigenvalue problem
@@ -417,6 +391,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         return nep
     end
 
+
     # This problem stems from
     # L. P. Shayer and S. A. Campbell.  Stability, bifurcation and multistability in a system of two coupled neurons with multiple time delays. SIAM J. Applied Mathematics , 61(2):673–700, 2000
     # It is also a benchmark example in DDE-BIFTOOL
@@ -437,6 +412,37 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         A2 = A[1,2] * [0 (1-tanh(x[1])^2); 0 0]
         A3 = beta * diagm(0 => [(1-tanh(x[1])^2), (1-tanh(x[2])^2)])
         return DEP([A0, A1, A2, A3], tauv)
+    end
+
+
+    # DEP modelling a beam
+    function beam(n::Integer=100)
+        h=1/n;
+        ee = ones(n);
+        A0 = spdiagm(-1 => ee[1:n-1], 0 => -2*ee, 1 => ee[1:n-1]);
+        A0[end,end]=1/h;
+        A0[end,end-1]=-1/h;
+        A1=sparse([n],[n],[1.0]); # A1=en*en'
+        tau=1.0;
+        return DEP([A0,A1],[0,tau]);
+    end
+
+
+    function sine_nep()
+        data_dir=joinpath(dirname(@__FILE__()), "gallery_extra",   "converted_sine")
+        A0=read_sparse_matrix(joinpath(data_dir,"sine_A0.txt"));
+        A1=read_sparse_matrix(joinpath(data_dir,"sine_A1.txt"));
+        A2=read_sparse_matrix(joinpath(data_dir,"sine_A2.txt"));
+        V=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_V.txt")));
+        Q=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_Q.txt")));
+
+        n=size(A0,1);
+        Z=spzeros(n,n);
+        pep=PEP([A0,A1,Z,Z,A2]);
+        # Matrix  sine function. Note that the Term is rank two which is not exploited here
+        sin_nep=SPMF_NEP([V*Q'], [S-> sin(S)]);
+        nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
+        return nep;
     end
 
 end

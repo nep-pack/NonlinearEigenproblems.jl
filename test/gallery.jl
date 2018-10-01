@@ -94,6 +94,9 @@ end
                     displaylevel=displaylevel,armijo_factor=0.5,armijo_max=20)
     normalize!(v)
     @test norm(compute_Mlincomb(nep,λ,v))<tol*100
+    @test isa(nep,SPMFSumNEP)
+    @test_throws MethodError nep_gallery("sine", 15)
+    @test_throws ErrorException nep_gallery("sine", t=15)
 
     @info "Testing dep_symm_double"
     nep=nep_gallery("dep_symm_double")
@@ -126,6 +129,13 @@ end
     A=compute_Mder(nep,3.0)
     @test_throws MethodError nep_gallery("neuron0", 8)
     @test_throws ErrorException nep_gallery("neuron0", t=8)
+
+    @info "Testing beam"
+    nep=nep_gallery("beam")
+    nep=nep_gallery("beam", 15)
+    A=compute_Mder(nep,3.0)
+    @test_throws MethodError nep_gallery("beam", 15, 8)
+    @test_throws ErrorException nep_gallery("beam", 15, t=8)
 
     @info "non-existing example"
     @test_throws ErrorException nep_gallery("non-existing example")
