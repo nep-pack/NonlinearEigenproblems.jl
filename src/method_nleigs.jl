@@ -2,7 +2,7 @@ using NonlinearEigenproblems.RKHelper
 using LinearAlgebra
 using Random
 
-export nleigs
+export nleigs, NleigsSolutionDetails
 
 """
     nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
@@ -73,7 +73,7 @@ function nleigs(
     X = Matrix{CT}(undef, 0, 0)
     res = Vector{T}()
 
-    P = get_nleigs_nep(T, nep)
+    P = get_rk_nep(T, nep)
     n = size(nep, 1)
     n == 1 && (maxdgr = maxit + 1)
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
@@ -519,3 +519,32 @@ function resize_matrix(A, rows, cols)
     resized[1:size(A, 1), 1:size(A, 2)] = A
     return resized
 end
+
+struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
+    "matrix of Ritz values in each iteration"
+    Lam::AbstractMatrix{CT}
+
+    "matrix of residuals in each iteraion"
+    Res::AbstractMatrix{T}
+
+    "vector of interpolation nodes"
+    σ::AbstractVector{CT}
+
+    "vector of poles"
+    ξ::AbstractVector{T}
+
+    "vector of scaling parameters"
+    β::AbstractVector{T}
+
+    "vector of norms of generalized divided differences (in function handle
+    case) or maximum of absolute values of scalar divided differences in
+    each iteration (in matrix function case)"
+    nrmD::AbstractVector{T}
+
+    "number of iterations until linearization converged"
+    kconv::Int
+end
+
+NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
+    Matrix{CT}(undef, 0, 0), Matrix{T}(undef, 0, 0), Vector{CT}(),
+    Vector{T}(), Vector{T}(), Vector{T}(), 0)

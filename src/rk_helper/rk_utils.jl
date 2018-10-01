@@ -2,6 +2,8 @@
 # Rational Krylov utility functions
 ####################################
 
+export lejabagby, scgendivdiffs, ratnewtoncoeffs, ratnewtoncoeffsm
+
 """
 Generate Leja-Bagby points (a,b) on (A,B), with scaling factors β such that
 the uniform norm on the control set C is 1. Greedy search for a minimum is
