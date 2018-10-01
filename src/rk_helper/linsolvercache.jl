@@ -2,6 +2,8 @@ using NonlinearEigenproblems
 using LinearAlgebra
 using SuiteSparse
 
+export LinSolverCache, solve
+
 struct LinSolverCache{T<:Number}
     solver::Dict{T,LinSolver}
     nep::NEP

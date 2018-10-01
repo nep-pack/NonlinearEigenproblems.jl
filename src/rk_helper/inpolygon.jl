@@ -1,3 +1,5 @@
+export inpolygon
+
 """
 Return whether the given point (px, py) is inside or on the edge of the
 polygon defined by vertices (polyx, polyy). Uses Hormann-Agathos
