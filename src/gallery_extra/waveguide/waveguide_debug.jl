@@ -22,7 +22,7 @@ using GalleryWaveguide
 
 export matlab_debug_WEP_FD
 export matlab_debug_full_matrix_WEP_FD_SPMF
-export debug_sqrtm_schur
+export debug_sqrt_schur
 export fft_debug_mateq
 export debug_sqrt_derivative
 export matlab_debug_Schur_WEP_FD
@@ -39,7 +39,7 @@ import GalleryWaveguide.generate_fd_boundary_mat
 import GalleryWaveguide.generate_R_matvecs
 import GalleryWaveguide.generate_Pinv_matrix
 import GalleryWaveguide.generate_S_function
-import GalleryWaveguide.sqrtm_schur_pos_imag
+import GalleryWaveguide.sqrt_schur_pos_imag
 import GalleryWaveguide.sqrt_derivative
 import GalleryWaveguide.SchurMatVec
 import GalleryWaveguide.solve_wg_sylvester_fft!
@@ -108,8 +108,8 @@ end
 
 ###########################################################
 # Compute the matrix square root
-# (only reference implementation, see sqrtm_schur_pos_imag)
-function sqrtm_schur(A::AbstractMatrix)
+# (only reference implementation, see sqrt_schur_pos_imag)
+function sqrt_schur(A::AbstractMatrix)
     n = size(A,1);
     (T, Q) = schur(complex(A))
     U = zeros(ComplexF64,n,n);
@@ -280,16 +280,16 @@ end
 
 ###########################################################
 # Test the square-root implementations. Both reference and negative-imaginary-part.
-function debug_sqrtm_schur(n::Integer)
+function debug_sqrt_schur(n::Integer)
     println("\n\n--- Debugging square root implementations ---\n")
     A = rand(n,n) + 0.1im*rand(n,n);
     sqrtA = sqrt(A);
-    sqrtA2 = sqrtm_schur(A);
+    sqrtA2 = sqrt_schur(A);
 
     println("Relative error between sqrtm and Schur-fact: ", opnorm(sqrtA-sqrtA2)/opnorm(sqrtA))
     println("Relative error between Schur-fact² and A: ", opnorm(A - sqrtA2^2)/opnorm(A))
 
-    sqrtA3 = sqrtm_schur_pos_imag(A);
+    sqrtA3 = sqrt_schur_pos_imag(A);
     println("Relative error between Schur-fact-pos-imag² and A: ", opnorm(A - sqrtA3^2)/opnorm(A))
     v,_ = eigen(sqrtA3)
     test_var = zeros(n)
@@ -621,10 +621,10 @@ function debug_WEP_FD_preconditioner(delta::Number)
         bb = rand(ComplexF64, nx*nz)
         precond = wep_generate_preconditioner(nep, 45, γ)
         Schur_fun = SchurMatVec(nep, γ)
-        bbb = ldiv!(precond, (Schur_fun*bb))
+        bbb = ldiv!(precond, copy(Schur_fun*bb))
         println("    Preconditioner * (Schur complement * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
         bb = rand(ComplexF64, nx*nz)
-        bbb = ldiv!(precond, bb)
+        bbb = ldiv!(precond, copy(bb))
         bbb = Schur_fun * bbb
         println("    Schur complement * (Preconditioner * b): Relative residual norm = ", norm(bbb - bb)/norm(bb))
 
