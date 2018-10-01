@@ -1,4 +1,4 @@
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Random
 using Test

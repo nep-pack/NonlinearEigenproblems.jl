@@ -1,7 +1,6 @@
-module TestUtils
+module NonlinearEigenproblemsTest
 
 using NonlinearEigenproblems
-using InteractiveUtils
 using BenchmarkTools
 using Statistics
 using Printf

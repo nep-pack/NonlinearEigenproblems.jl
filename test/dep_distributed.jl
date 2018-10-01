@@ -1,6 +1,6 @@
 # Run tests for the dep_distributed example
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -58,5 +58,10 @@ dep_distributed_exact_eigvals = [
                         errmeasure=myerrmeasure,
                         tol=eps()*100)
         @test abs((dep_distributed_exact_eigvals[i]-λ)/λ)<eps()*100
+    end
+
+    @testset "Errors thrown" begin
+        @test_throws MethodError nep_gallery("dep_distributed", 15)
+        @test_throws ErrorException nep_gallery("dep_distributed", t=15)
     end
 end

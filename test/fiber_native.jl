@@ -1,4 +1,4 @@
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -23,5 +23,10 @@ using LinearAlgebra
     @test abs(λ-sol_val)<1e-10;
 
     @test eltype(v)==Float64
+
+    @testset "Errors thrown" begin
+        @test_throws MethodError nep_gallery("nlevp_native_fiber", 15)
+        @test_throws ErrorException nep_gallery("nlevp_native_fiber", t=15)
+    end
 
 end

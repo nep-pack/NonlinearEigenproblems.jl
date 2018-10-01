@@ -1,6 +1,6 @@
 # Test of companion linearization
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -31,7 +31,7 @@ end
 ######################
 # Sparse matrix test #
 ######################
-pep = nep_gallery("pep0_sparse_003");
+pep = nep_gallery("pep0_sparse", 200, 0.03);
 deg = size(get_fv(pep),1) -1;
 n = size(pep,1);
 tolerance = 1e-14;
