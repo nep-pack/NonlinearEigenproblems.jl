@@ -2,11 +2,11 @@
 
 push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems
+using NonlinearEigenproblems.RKHelper
 using Test
 using LinearAlgebra
 
 include("nleigs_test_utils.jl")
-include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
 
 function nleigs_basic()
     n = 2

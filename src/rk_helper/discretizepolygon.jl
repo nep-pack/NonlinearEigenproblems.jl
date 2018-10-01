@@ -1,5 +1,3 @@
-include("inpolygon.jl")
-
 """
 Discretize the polygon given by the (complex) entries of Z.
 

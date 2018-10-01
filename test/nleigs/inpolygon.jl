@@ -1,7 +1,6 @@
 push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using Test
-
-include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
+using NonlinearEigenproblems.RKHelper
 
 @bench @testset "inpolygon" begin
     points = [x + y*im for x=-1:11 for y=-1:11]

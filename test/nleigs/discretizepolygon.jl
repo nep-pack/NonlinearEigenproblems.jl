@@ -1,8 +1,6 @@
 push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using Test
-
-include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
-include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "inpolygon.jl"))
+using NonlinearEigenproblems.RKHelper
 
 @testset "discretizepolygon" begin
 @bench @testset "concave polygon" begin
