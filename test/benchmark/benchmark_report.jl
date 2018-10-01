@@ -55,10 +55,17 @@ function create_report(report_file, branch, files)
 end
 
 function get_tooltip(run)
+    runstr = run["time"]
+    haskey(run, "runtime") && (runstr *= @sprintf("; runtime=%.0fs", run["runtime"]))
+    haskey(run, "config") && (runstr *= "; $(run["config"])")
+    haskey(run, "julia-version") && (runstr *= "; Julia $(run["julia-version"])")
+
     ghz, arch, cpus, mem = match(r"([\d\.]+)GHz \(([^\)]+)\), (\d+) threads, (\d+) GB", run["cpu"]).captures
+
     commit_id_and_branch, git_timestamp, commit_msg = split(run["git"], ", ", limit=3)
     length(commit_msg) > 100 && (commit_msg = commit_msg[1:97] * "...")
-    return "<b>Run:</b> $(run["time"]); $(run["config"])<br/>" *
+
+    return "<b>Run:</b> $runstr<br/>" *
         "<b>CPU:</b> $cpus × $(ghz)GHz ($arch), $mem GB memory<br/>" *
         "<b>Git:</b> $commit_id_and_branch, $git_timestamp<br/>" *
         "<i>$commit_msg</i>"
