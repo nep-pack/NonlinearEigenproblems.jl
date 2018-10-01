@@ -1,3 +1,4 @@
+using NonlinearEigenproblems
 using LinearAlgebra
 using SuiteSparse
 

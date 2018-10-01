@@ -1,14 +1,8 @@
+using NonlinearEigenproblems.RKHelper
 using LinearAlgebra
 using Random
 
 export nleigs
-
-include("linsolvercache.jl")
-include("discretizepolygon.jl")
-include("lejabagby.jl")
-include("ratnewtoncoeffs.jl")
-include("ratnewtoncoeffsm.jl")
-include("scgendivdiffs.jl")
 
 """
     nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})

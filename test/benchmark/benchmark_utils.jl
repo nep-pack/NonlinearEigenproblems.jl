@@ -52,7 +52,7 @@ function aggregate_trials(aggregated_trials, test, chain)
 end
 
 "Save collected benchmark results to a JSON file on disk"
-function save_benchmark(test_results, file_name)
+function save_benchmark(test_results, runtime_seconds, file_name)
     aggregated_trials = aggregate_trials(Dict(), test_results, [])
     benchmark = BenchmarkGroup()
     foreach(t -> benchmark[t.key] = t.trial, values(aggregated_trials))
@@ -60,7 +60,10 @@ function save_benchmark(test_results, file_name)
     dict = Dict()
 
     dict["time"] = Dates.now(Dates.UTC)
+    dict["runtime"] = runtime_seconds
     dict["config"] = @sprintf("seconds=%.1f", TestUtils.benchmark_duration_seconds)
+    dict["julia-version"] = string(VERSION)
+    dict["julia-commit"] = Base.GIT_VERSION_INFO.commit_short
     dict["cpu"] = @sprintf("%s (%s), %d threads, %.0f GB memory",
         Sys.cpu_info()[1].model,
         Sys.CPU_NAME,
@@ -177,12 +180,21 @@ function print_table_header(test_hierarchy, time_memory_width, time_padding, mem
     return column_width, divider
 end
 
-print_benchmark_details(title, d) =
+function print_benchmark_details(title, d)
+    runstr = d["time"]
+    haskey(d, "runtime") && (runstr *= @sprintf("; runtime=%.0fs", d["runtime"]))
+    haskey(d, "config") && (runstr *= "; $(d["config"])")
+    if haskey(d, "julia-version")
+        runstr *= "; Julia $(d["julia-version"])"
+        haskey(d, "julia-commit") && (runstr *= " ($(d["julia-commit"]))")
+    end
+
     println("\n",
         color(WHITE, title), "\n",
-        color(WHITE, "Run:"), " $(d["time"]); $(d["config"])\n",
+        color(WHITE, "Run:"), " $runstr\n",
         color(WHITE, "CPU:"), " $(d["cpu"])\n",
         color(WHITE, "Git:"), " $(d["git"])")
+end
 
 "Prints a single JSON file benchmark to stdout."
 function print_benchmark(baseline_file)

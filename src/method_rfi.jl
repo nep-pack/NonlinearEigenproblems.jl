@@ -5,11 +5,11 @@ export rfi
 export rfi_b
 
 """
-rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 
 
-This is an implementation of the two-sided Rayleigh functional Iteration(RFI) to compute an eigentriplet of the problem specified by `nep`.
-This method requires the transpose of the NEP, specified in `nept`. 
+This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
+This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
 A `NoConvergenceException` is thrown if an eigentriplet is not found in `maxit` iterations.
 
@@ -89,7 +89,7 @@ end
     rfi_b(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=1,][linsolvecreator=default_linsolvecreator,])
 
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
-This method requires the transpose of the NEP, specified in `nept`. 
+This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
 A `NoConvergenceException` is thrown if an eigentriplet is not found in `maxit` iterations.
 

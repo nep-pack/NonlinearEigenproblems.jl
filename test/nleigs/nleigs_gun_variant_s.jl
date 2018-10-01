@@ -4,8 +4,7 @@ push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems
 using Test
 
-include("nleigs_test_utils.jl")
-include("gun_test_utils.jl")
+include(joinpath("..", "rk_helper", "gun_test_utils.jl"))
 
 @bench @testset "NLEIGS: Gun variant S" begin
     verbose = displaylevel
@@ -15,7 +14,7 @@ include("gun_test_utils.jl")
     # solve nlep
     lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, minit=70, maxit=100, v=v, nodes=nodes, static=true, errmeasure=funres, return_details=verbose > 1)
 
-    nleigs_verify_lambdas(21, nep, X, lambda)
+    verify_lambdas(21, nep, X, lambda)
 
     if verbose > 1
         include("nleigs_residual_plot.jl")
