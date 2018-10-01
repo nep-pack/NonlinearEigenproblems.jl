@@ -4,7 +4,6 @@ push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
 using NonlinearEigenproblems
 using Test
 
-include("nleigs_test_utils.jl")
 include("particle_test_utils.jl")
 
 @bench @testset "NLEIGS: Particle variant S" begin
@@ -15,7 +14,7 @@ include("particle_test_utils.jl")
     # solve nlep
     lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, maxdgr=50, minit=120, maxit=200, v=v, nodes=nodes, static=true, return_details=verbose > 1)
 
-    nleigs_verify_lambdas(2, nep, X, lambda)
+    verify_lambdas(2, nep, X, lambda)
 
     if verbose > 1
         include("nleigs_residual_plot.jl")

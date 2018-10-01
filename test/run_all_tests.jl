@@ -9,7 +9,7 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
-    "nleigs_test_utils.jl", # utilities used by other tests
+    "TestUtils.jl", # utilities used by other tests
 ]))
 
 function run_all_tests(test_name_regex = "")
