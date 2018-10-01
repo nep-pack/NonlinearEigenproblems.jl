@@ -127,4 +127,7 @@ end
     @test_throws MethodError nep_gallery("neuron0", 8)
     @test_throws ErrorException nep_gallery("neuron0", t=8)
 
+    @info "non-existing example"
+    @test_throws ErrorException nep_gallery("non-existing example")
+
 end
