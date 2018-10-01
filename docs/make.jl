@@ -1,11 +1,6 @@
-#push!(LOAD_PATH, string(@__DIR__, "/../src"))
+push!(LOAD_PATH, string(@__DIR__, "/.."))
 using Documenter;
-using NonlinearEigenproblems.NEPSolver
-using NonlinearEigenproblems.NEPTypes
-using NonlinearEigenproblems.NEPCore
-#using NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver
-#importall  NonlinearEigenproblems: NEPCore, NEPTypes, NEPSolver
-#importall NonlinearEigenproblems
+using NonlinearEigenproblems
 
 makedocs(
     clean = true,
@@ -13,9 +8,8 @@ makedocs(
     pages = Any[
         "Home" => "index.md",
         "NEP Methods" => "methods.md",
+        "LinSolver" => "linsolvers.md",
         "NEP Transformations" => "transformations.md",
-        "NEP Gallery" => "gallery.md"                
+        "NEP Gallery" => "gallery.md"
     ]
 )
-
-

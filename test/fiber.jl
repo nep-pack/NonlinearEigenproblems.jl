@@ -37,7 +37,7 @@ using GalleryNLEVP
 
 
         @info "Running Newton"
-        (λstar,v)=newton(Float64,nep_org,λ=7e-7,v=ones(n),displaylevel=1,
+        (λstar,v)=newton(Float64,nep_org,λ=7e-7,v=ones(n),displaylevel=displaylevel,
                          tol=1e-14)
 
         @test abs(sol_val-λstar)/abs(λ) < 1e-10
@@ -52,7 +52,7 @@ using GalleryNLEVP
 
         tol=1e-11
         (λ,v)=quasinewton(nep_org,λ=7.1e-7,v=ones(n),
-                          displaylevel=1,errmeasure=myerrmeasure,
+                          displaylevel=displaylevel,errmeasure=myerrmeasure,
                           tol=tol,armijo_factor=0.5,armijo_max=10)
 
         @test abs(sol_val-λ)/abs(λ) < tol
@@ -63,7 +63,7 @@ using GalleryNLEVP
         @info "Running resinv"
         tol=1e-8
         (λ,v)=resinv(nep_org,λ=7e-7,v=ones(n),
-                     displaylevel=1,errmeasure=myerrmeasure,
+                     displaylevel=displaylevel,errmeasure=myerrmeasure,
                      tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if imag(λ) != 0
@@ -73,7 +73,7 @@ using GalleryNLEVP
         @info "Running MSLP"
 
         (λ,v)=mslp(Float64,nep_org,λ=7e-7,
-                   displaylevel=1,errmeasure=myerrmeasure,
+                   displaylevel=displaylevel,errmeasure=myerrmeasure,
                    tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if imag(λ) != 0
@@ -90,7 +90,7 @@ using GalleryNLEVP
         @info "Interpolating: $intpoints"
         pep=interpolate(nep_org,intpoints);
         @info "Running IAR"
-        λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
+        λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=displaylevel,Neig=2)
         minerr1=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
         @info "Error: $minerr1"
         @test minerr1<1e-4
@@ -102,7 +102,7 @@ using GalleryNLEVP
         @info "Interpolating: $intpoints"
         pep=interpolate(nep_org,intpoints);
         @info "Running IAR"
-        λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=1,Neig=2)
+        λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=displaylevel,Neig=2)
         minerr2=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
         @info "Error: $minerr2"
         @test minerr2<minerr1

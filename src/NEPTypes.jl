@@ -13,7 +13,7 @@ module NEPTypes
     export REP
     export SPMF_NEP
     export SPMF_NEP_dense
-    export SPMF_NEP_sparse
+
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
     export Proj_NEP;
@@ -25,7 +25,7 @@ module NEPTypes
 
     export interpolate
     export set_projectmatrices!
-
+    export expand_projectmatrices!
 
 
     # We overload these
@@ -46,6 +46,11 @@ module NEPTypes
         return copy(A)*B;
     end
 
+    "Returns the greatest type of all array elements."
+    promote_typeof(A::AbstractArray) = isempty(A) ? eltype(A) : mapreduce(typeof, promote_type, A)
+
+    "Returns the greatest element type of all array elements."
+    promote_eltype(A::AbstractArray{<:AbstractArray}) = isempty(A) ? eltype(eltype(A)) : mapreduce(eltype, promote_type, A)
 
     #
     """
@@ -115,34 +120,27 @@ for matrices in the standard matrix function sense.
 # Logic behind Ftype:
 #  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
 
-    struct SPMF_NEP_dense{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
+    struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization
+        sparsity_patterns_aligned:: Bool
     end
 
-    struct SPMF_NEP_sparse{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
-         n::Int
-         A::Vector{T}   # Array of Array of matrices
-         fi::Vector{Function}  # Array of functions
-         Schur_factorize_before::Bool # Tells if you want to do the Schur-factorization at the top-level of calls to compute_MM(...)
 
-         # Sparse zero matrix to be used for sparse matrix creation
-         Zero::T
-         As::Vector{SparseMatrixCSC{<:Number,Int}}  # 'A' matrices with sparsity pattern of all matrices combined
-    end
-    SPMF_NEP{T,Ftype} = Union{SPMF_NEP_dense{T,Ftype},SPMF_NEP_sparse{T,Ftype}}
 
-    #SPMF_NEP(n, A, fi, Schur_factorize_before, Zero) =
-    #    SPMF_NEP(n, A, fi, Schur_factorize_before, Zero, Vector{SparseMatrixCSC{Float64,Int}}())
+    # Alias for SPMFs which contain sparse matrices
+    SPMF_NEP_sparse{T<:AbstractSparseMatrix,Ftype}=SPMF_NEP{T,Ftype}
+
 
 """
-     SPMF_NEP(AA, fii, Schur_fact = false, use_sparsity_pattern = true, check_consistency=true)
+     SPMF_NEP(AA, fii, Schur_fact = false, align_sparsity_patterns = false, check_consistency=true)
 
-Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `use_sparsity_pattern` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices. This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If check_consistency is true the input
+Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. `fii` must be an array of functions defined for matrices and numbers. `AA` is an array of matrices. `Schur_fact` specifies if the computation of `compute_MM` should be done by first pre-computing a Schur-factorization (which can be faster). If `align_sparsity_patterns` is true, and the `AA` matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all `AA` matrices.  This leads to more efficient calculation of `compute_Mder`. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If `align_sparsity pattern=true` the `A`-matrices in the SPMF object should be viewed as read-only. If `check_consistency` is `true` input
 checking will be performed.
 
+# Example
 ```julia-repl
 julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
 julia> id_op=S -> one(S)
@@ -155,8 +153,15 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 ```
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
-                       Schur_fact = false, use_sparsity_pattern = true,
-                       check_consistency=false, Ftype=ComplexF64)
+                       Schur_fact = false,
+                       check_consistency=false, Ftype=ComplexF64,
+                       align_sparsity_patterns=false)
+
+         matrices_are_sparse = issparse.(AA)
+         if !(all(matrices_are_sparse) || all(.!matrices_are_sparse))
+             error("Mixing sparse and dense matrices is not allowed in SPMF_NEP. Either use a consistent " *
+                "format, or split your problem into a sparse and a dense part and use SumNEP.")
+         end
 
          T=Float64;
          if (check_consistency)
@@ -195,46 +200,58 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 
          if !(eltype(AA) <: SparseMatrixCSC)
              # Dense
-             this=SPMF_NEP_dense{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact);
+             this=SPMF_NEP{promote_typeof(AA),Ftype}(n,AA,fii,Schur_fact,false);
          else
              # Sparse: Potentially do the joint sparsity pattern trick.
-             T = eltype(AA[1])
-             As = Vector{SparseMatrixCSC{T,Int}}()
-
-             if use_sparsity_pattern && issparse(AA[1])
-                 # Merge the sparsity pattern of all matrices without dropping any zeros
-                 Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
-                 for i = 2:size(AA,1)
-                     Zero += LinearAlgebra.fillstored!(copy(AA[i]), 1)
-                 end
-                 Zero = T.(Zero)
-                 Zero.nzval[:] .= T(0)
-
-                 # Create a copy of each matrix with the sparsity pattern of all matrices combined
-                 @inbounds for A in AA
-                     S = copy(Zero)
-
-                     for col = 1:size(A, 2)
-                         for j in nzrange(A, col)
-                             S[A.rowval[j], col] = A.nzval[j]
-                         end
-                     end
-
-                     push!(As, S)
-                 end
+             if (!align_sparsity_patterns)
+                 # No aligning, just create it
+                 this=SPMF_NEP{promote_typeof(AA),Ftype}(n,AA,fii,Schur_fact,false);
              else
-                 Zero=zeros(n,n)
+                 TT = eltype(AA[1])
+                 As=form_aligned_sparsity_patterns(AA,TT)
+                 this=SPMF_NEP{promote_typeof(As),Ftype}(n,As,fii,Schur_fact,true);
              end
-
-             this=SPMF_NEP_sparse{typeof(AA[1]),Ftype}(n,AA,fii,Schur_fact,Zero,As);
          end
-
          return this
     end
     function SPMF_NEP(n) # Create an empty NEP of size n x n
         Z=zeros(n,n)
-        return SPMF_NEP_dense{AbstractMatrix,Complex}(n,Vector{Matrix}(),Vector{Function}(),false);
+        return SPMF_NEP{AbstractMatrix,Complex}(n,Vector{Matrix}(),Vector{Function}(),false);
     end
+
+""" Return a vector of sparse matrices which are the same as AA but also have the same sparsity pattern. """
+    function form_aligned_sparsity_patterns(AA::Vector{<:SparseMatrixCSC},T)
+
+        # Create a Zero matrix with the correct sparsity pattern.
+        Zero = LinearAlgebra.fillstored!(copy(AA[1]), 1)
+        for i = 2:size(AA,1)
+            Zero .+= LinearAlgebra.fillstored!(copy(AA[i]), 1)
+        end
+        Zero = T.(Zero)
+        Zero.nzval[:] .= T(0) # Set the nonzero elements to zero (keep pattern)
+
+
+        # Create an vector of sparse matrices. Set the elements corresponding to
+        # AA[i] in each of them, such that As[i]=AA[i] but with different sparsity patterns.
+        As = Vector{SparseMatrixCSC{T,Int}}()
+        @inbounds for A in AA
+            # Create a new zero matrix. Note all S-matrices have the same colptr, so
+            # modification of As[i] will change all. The As[i] matrices should therefore
+            # be viewed as read-only objects.
+            S = SparseMatrixCSC(Zero.m, Zero.n,
+                                Zero.colptr, Zero.rowval,
+                                fill(zero(T),size(Zero.nzval,1)))
+            # Set the nonzero elements of A in S
+            for col = 1:size(A, 2)
+                for j in nzrange(A, col)
+                    S[A.rowval[j], col] = A.nzval[j]
+                end
+            end
+            push!(As, S)
+        end
+        return As;
+    end
+
     function compute_MM(nep::SPMF_NEP{T,Ftype},S::AbstractMatrix,V::AbstractMatrix) where {T,Ftype}
 
         AA=get_Av(nep);
@@ -249,7 +266,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         # Always return a dense matrix
         Z=zeros(T0,n,p);
 
-        # Sum together all the terms in the SPMF: (temporarily disabled)
+        # Precompute schur factorization (temporarily disabled)
         #if (nep.Schur_factorize_before) #Optimize if allowed to factorize before
         #    (TT, Q, ) = schur(S)  # Currently not used
         #end
@@ -262,11 +279,11 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                 Sd=diag(S);
                 local Fid::Vector{FStype}
                 if (norm(Sd .- Sd[1])==0) # Optimize further if S is a multiple of identity
-                    Fid=fill(nep.fi[i](Sd[1]),p)
+                    Fid=fill(ff[i](Sd[1]),p)
                 else  # Diagonal but not constant
                     Fid0=Vector{Number}(undef,p)
                     for j=1:p
-                        Fid0[j]=nep.fi[i](Sd[j])
+                        Fid0[j]=ff[i](Sd[j])
                     end
                     Fid=Vector{FStype}(Fid0);
                 end
@@ -280,48 +297,80 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return Z
     end
 
-    function compute_Mder_fi_and_output_type(nep::SPMF_NEP,λ::Number)
-
-        x = map(i -> nep.fi[i](reshape([λ],1,1))[1], 1:length(nep.fi))
+""" Internal helper function: returns (TZ,x) where x is a vector of function evaluation of nep.fi[i](λ). TZ is greatest of the types in vector x."""
+    function compute_Mder_fi_and_output_type(nep::AbstractSPMF,λ::Number)
+        ff=get_fv(nep);
+        AA=get_Av(nep)
+        x = [f(reshape([λ],1,1))[1] for f in ff]
         # The above line should be replace by below once we handled #71
-        #x = map(i -> nep.fi[i](λ), 1:length(nep.fi))
+        #x = [f(λ) for f in ff]
 
         # figure out the return type, as the greatest type of all input
-        Tx = mapreduce(eltype, promote_type, x)
-        TA=mapreduce(eltype, promote_type, nep.A); # Greatest type of all A-matrices
+        Tx = promote_typeof(x)
+        TA = promote_eltype(AA) # Greatest type of all A-matrices
         TZ=promote_type(TA,Tx)  # output type
         return (TZ,x);
     end
 
-
-    function compute_Mder(nep::SPMF_NEP_dense,λ::Number)
-         TZ,x = compute_Mder_fi_and_output_type(nep,λ)
-         Z = zeros(TZ,size(nep,1),size(nep,1));
-         for k=1:size(nep.A,1)
-             Z += nep.A[k] * x[k]
+""" Internal helper function: Computes a linear combination with coeffs x of the A-matrices in an
+SPMF. The result will be stored in an  AbstractMatrix with eltype T.  """
+    function compute_linear_combination_SPMF(nep::AbstractSPMF,::Type{T},x::Vector) where {T<:Number}
+        AA=get_Av(nep);
+        # Fall back version just sum it up, e.g., for dense matrices
+        Z=mapreduce(i->AA[i]*x[i],+,1:length(AA))
+        #@assert eltype(Z) <: T
+    end
+    # Specialized function sparse matrices, where we can exploit sparsity
+    function compute_linear_combination_SPMF(nep::SPMF_NEP_sparse,::Type{T},x::Vector) where {T<:Number}
+        local Z::SparseMatrixCSC{T,Int}
+        if (nep.sparsity_patterns_aligned)
+             # Sparsity patterns are aligned, so just change
+             # the value entries in the sparse matrix object
+             Z = SparseMatrixCSC(nep.A[1].m, nep.A[1].n,
+                                 copy(nep.A[1].colptr), copy(nep.A[1].rowval),
+                                 copy(convert.(T, nep.A[1].nzval .* x[1])))
+             for k = 2:length(nep.A)
+                 Z.nzval .+= nep.A[k].nzval .* x[k]
+             end
+         else
+             AA=nep.A;
+             # No alignment of sparsity pattern. Naive summing.
+             Z=mapreduce(i->AA[i]*x[i],+,1:length(AA))
          end
          return Z
-     end
-
-     function compute_Mder(nep::SPMF_NEP_sparse,λ::Number)
-         TZ,x = compute_Mder_fi_and_output_type(nep,λ)
-         Z = SparseMatrixCSC(nep.As[1].m, nep.As[1].n,
-                             nep.As[1].colptr, nep.As[1].rowval,
-                             convert.(TZ, nep.As[1].nzval .* x[1]))
-         for k = 2:length(nep.As)
-             Z.nzval .+= nep.As[k].nzval .* x[k]
-         end
-         return Z
-
     end
 
-    function compute_Mder(nep::SPMF_NEP,λ::Number,i::Integer)
+    function compute_Mder(nep::AbstractSPMF,λ::Number)
+        TZ,x = compute_Mder_fi_and_output_type(nep,λ)
+        # Try to do "smart" summing
+        Z = compute_linear_combination_SPMF(nep,TZ,x);
+        return Z
+     end
+
+    # For higher derivatives
+    function compute_Mder(nep::SPMF_NEP{T,Ftype},λ::Number,i::Integer) where {T,Ftype}
         if (i==0)
             return compute_Mder(nep,λ);
         else
-            # This is typically slow for i>1 (can be optimized by
-            # treating the SPMF-terms individually)
-            return compute_Mder_from_MM(nep,λ,i)
+            n=size(nep,1);
+
+            # Jordan matrix trick
+            k=i+1;
+       	    S=diagm(0 => fill(λ,k), -1 => (1:k-1))
+            TS=eltype(S);
+
+            # Type logic
+            Fλtype=promote_type(TS,Ftype);
+            TT=promote_type(Fλtype,eltype(nep.A[1])); # Return type
+
+            # Compute the derivatives of the individual functions with the jordan matrix trick
+            fk=Vector{TT}(undef,size(nep.A,1))
+            for j=1:size(nep.A,1)
+                fk[j] = nep.fi[j](S)[end,1]; # Contains the derivative
+            end
+
+            # Try to do "smart" summing
+            return compute_linear_combination_SPMF(nep,TT,fk);
         end
     end
 
@@ -429,9 +478,9 @@ julia> norm(M1-M2)
         # The other functions are exp(-tauv[j]*S)
         for i=1:size(nep.A,1)
             if nep.tauv[i] == 0 # Zero delay means constant term
-                fv[i+1] = S -> Matrix(1.0I, size(S,1), size(S,1))
+                fv[i+1] = S -> one(S)
             else
-                fv[i+1] = S -> exp(-Matrix(nep.tauv[i] * S))
+                fv[i+1] = S -> exp(-nep.tauv[i] * S)
             end
         end
 
@@ -740,33 +789,71 @@ julia> compute_Mder(nep,3)
     #######################################################
     ### Represents a projected NEP
 """
-Proj_NEP represents a projected NEP
+    abstract type Proj_NEP <: NEP
+
+`Proj_NEP` represents a projected NEP. The projection is defined
+as the NEP
+```math
+N(λ)=W^HM(λ)V
+```
+where ``M(λ)`` is a base NEP and `W` and `V` rectangular matrices representing
+a basis of the projection spaces.
+Instances are created with `create_proj_NEP`. See [`create_proj_NEP`](@ref)
+for examples.
+
+Any `Proj_NEP` needs to implement two functions to manipulate the projection:
+
+* [`set_projectmatrices!`](@ref): Set matrices `W` and `V`
+* [`expand_projectmatrices!`](@ref): Effectively expand the matrices `W` and `V` with one column.
+
 """
     abstract type Proj_NEP <: NEP end
 
 """
     pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 
-Create a NEP representing a projected problem. The projection is defined
-as the problem ``N(λ)=W^HM(λ)V`` where ``M(λ)`` is represented by `orgnep`.
-The optional parameter `maxsize` determines how large the projected
-problem can be and `T` determines which Number type to use (default `ComplexF64`).
-These are needed for memory allocation reasons.
-Use `set_projectmatrices!()` to specify projection matrices
-``V`` and ``W``.
+Create a NEP representing a projected problem ``N(λ)=W^HM(λ)V``,
+ where the  base NEP is represented by `orgnep`.
+The optional parameter `maxsize::Int` determines how large the projected
+problem can be and `T` is the Number type used for the projection matrices
+(default `ComplexF64`).
+These are needed for memory preallocation reasons.
+Use [`set_projectmatrices!()`](@ref) and [`expand_projectmatrices!()`](@ref)
+ to specify projection matrices ``V`` and ``W``.
+
+# Example:
+The following example illustrates that a projection
+of a `NEP` is also a `NEP` and we can for instance
+call `compute_Mder` on it:
+```julia-repl
+julia> nep=nep_gallery("pep0")
+julia> V=Matrix(1.0*I,size(nep,1),2);
+julia> W=Matrix(1.0*I,size(nep,1),2);
+julia> pnep=create_proj_NEP(nep);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,3.0)
+2×2 Array{Complex{Float64},2}:
+ -2.03662+0.0im   13.9777+0.0im
+ -1.35069+0.0im  -13.0975+0.0im
+julia> W'*compute_Mder(nep,3.0)*V  # Gives the same result
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+```
+If you know that you will only use real projection matrices, you
+can specify this in at the creation:
+```julia-repl
+julia> pnep=create_proj_NEP(nep,2,Float64);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,3.0)
+2×2 Array{Float64,2}:
+ -2.03662   13.9777
+ -1.35069  -13.0975
+```
 """
     function create_proj_NEP(orgnep::ProjectableNEP)
          error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
     end
-    #    function create_proj_NEP(orgnep::ProjectableNEP)
-    #        if (isa(orgnep,PEP))
-    #            return Proj_PEP(orgnep);
-    #        elseif (isa(orgnep,SPMF_NEP))
-    #            return Proj_SPMF_NEP(orgnep);
-    #        else
-    #            error("Projection of this NEP is not available");
-    #        end
-    #    end
     function create_proj_NEP(orgnep::AbstractSPMF,
                              maxsize::Int=min(size(orgnep,1),
                                               max(round(Int,size(orgnep,1)/10),10)),
@@ -775,25 +862,21 @@ Use `set_projectmatrices!()` to specify projection matrices
     end
 
 
-    # concrete types for projection of NEPs and PEPs
-#    struct Proj_PEP <: Proj_NEP
-#        orgnep::PEP
-#        V
-#        W
-#        nep_proj::PEP; # An instance of the projected NEP
-#        function Proj_PEP(nep::PEP)
-#            this=new(nep);
-#            return this
-#        end
-#    end
 
-    mutable struct Proj_SPMF_NEP <: Proj_NEP
+"""
+    struct Proj_SPMF_NEP <: Proj_NEP
+
+This type represents the (generic) way to project NEPs which are
+`AbstractSPMF`. See examples in [`create_proj_SPMF`](@ref).
+"""
+    mutable struct Proj_SPMF_NEP  <: Proj_NEP
         orgnep::AbstractSPMF
         nep_proj::SPMF_NEP; # An instance of the projected NEP
         orgnep_Av::Vector
         orgnep_fv::Vector
         projnep_B_mem::Vector # A vector of matrices
-        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,T)
+        function Proj_SPMF_NEP(nep::AbstractSPMF,maxsize::Int,
+                               subspace_eltype=ComplexF64)
             this = new(nep)
 
 
@@ -815,10 +898,20 @@ Use `set_projectmatrices!()` to specify projection matrices
                 error("The given array should be a vector but is of size ", size(this.orgnep_fv), ".")
             end
 
-            this.projnep_B_mem=Vector{Matrix{T}}(undef,size(this.orgnep_fv,1));
+
+            # compute greatest eltype of Av:
+            Av_eltype = mapreduce(eltype,promote_type,this.orgnep_Av);
+
+            Bmat_eltype=promote_type(subspace_eltype,Av_eltype)
+
+            # Construct memory for the projected problem matrices
+            this.projnep_B_mem=Vector{Matrix{Bmat_eltype}}(undef,size(this.orgnep_fv,1));
             for k=1:size(this.orgnep_fv,1)
-                this.projnep_B_mem[k]=zeros(T,maxsize,maxsize);
+                this.projnep_B_mem[k]=zeros(Bmat_eltype,maxsize,maxsize);
             end
+
+            # Reset the projectmatrices
+            set_projectmatrices!(this,zeros(size(this.orgnep,1),0),zeros(size(this.orgnep,1),0))
 
 
 
@@ -829,48 +922,92 @@ Use `set_projectmatrices!()` to specify projection matrices
 """
     set_projectmatrices!(pnep::Proj_NEP,W,V)
 Set the projection matrices for the NEP to W and V, i.e.,
-corresponding the NEP: ``N(λ)=W^HM(λ)V``.
+corresponding the NEP: ``N(λ)=W^HM(λ)V``. See also [`create_proj_NEP`](@ref).
 
-# Example:
-The following example illustrates that a projection
-of a `NEP` is also a `NEP` and we can for instance
-call `compute_Mder`on it:
+# Example
+This illustrates if `W` and `V` are vectors of ones, the projected problem
+becomes the sum of the rows and columns of the original NEP.
 ```julia-repl
 julia> nep=nep_gallery("pep0")
-julia> V=Matrix(1.0*I,size(nep,1),2);
-julia> W=Matrix(1.0*I,size(nep,1),2);
 julia> pnep=create_proj_NEP(nep);
+julia> V=ones(200,1);  W=ones(200,1);
 julia> set_projectmatrices!(pnep,W,V);
-julia> compute_Mder(pnep,3.0)
-2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
-julia> compute_Mder(nep,3.0)[1:2,1:2]
-2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
+julia> compute_Mder(pnep,0)
+1×1 Array{Complex{Float64},2}:
+ 48.948104019482756 + 0.0im
+julia> sum(compute_Mder(nep,0),dims=[1,2])
+1×1 Array{Float64,2}:
+ 48.948104019482955
 ```
+
 """
     function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
         m = size(nep.orgnep_Av,1);
-        T=eltype(eltype(nep.projnep_B_mem));
         k=size(V,2);
-        # Compute first matrix beforhand to determine type
-        B1=view(Matrix{T}(copy(W')*nep.orgnep_Av[1]*V),1:k,1:k);
-        T_sub = typeof(B1)
-        # The coeff matrices for the SPMF_NEP created in the end
-        B = Vector{T_sub}(undef,m);
-        B[1]=B1;
-        for i=2:m # From 2 since we already computed the first above
-            nep.projnep_B_mem[i][1:k,1:k]=copy(W')*nep.orgnep_Av[i]*V;
-            B[i]=view(nep.projnep_B_mem[i],1:k,1:k);
-        end
+        @assert(k <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
+        # For over all i: Compute the expanded matrices
+        WT=copy(W')
+        B = map(i -> begin
+                # Compute the projecte matrix
+                nep.projnep_B_mem[i][1:k,1:k]=WT*nep.orgnep_Av[i]*V;
+                view(nep.projnep_B_mem[i],1:k,1:k);
+                end, 1:m)
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
+"""
+    expand_projectmatrices!(nep::Proj_SPMF_NEP, Wnew, Vnew)
+
+The projected NEP is updated by adding the last column of `Wnew` and `Vnew`
+to the basis. Note that `Wnew` and `Vnew` contain also the "old" basis vectors.
+See also [`create_proj_NEP`](@ref)
+
+# Example:
+
+In the following example you see that the expanded projected problem
+has one row and column more, and the leading subblock is the same
+as the smaller projected NEP.
+```julia-repl
+julia> nep=nep_gallery("pep0"); n=size(nep,1);
+julia> V=Matrix(1.0*I,n,2); W=Matrix(1.0*I,n,2);
+julia> pnep=create_proj_NEP(nep);
+julia> set_projectmatrices!(pnep,W,V);
+julia> compute_Mder(pnep,0)
+2×2 Array{Complex{Float64},2}:
+ 0.679107+0.0im   -0.50376+0.0im
+ 0.828413+0.0im  0.0646768+0.0im
+julia> Vnew=[V ones(n)]
+julia> Wnew=[W ones(n)]
+julia> expand_projectmatrices!(pnep,Wnew,Vnew);
+julia> compute_Mder(pnep,0)
+3×3 Array{Complex{Float64},2}:
+ 0.679107+0.0im   -0.50376+0.0im  -12.1418+0.0im
+ 0.828413+0.0im  0.0646768+0.0im   16.3126+0.0im
+ -17.1619+0.0im   -10.1628+0.0im   48.9481+0.0im
+```
+
+"""
+    function expand_projectmatrices!(nep::Proj_SPMF_NEP,Wnew::AbstractMatrix,Vnew::AbstractMatrix)
+        w=Wnew[:,end];
+        v=Vnew[:,end];
+        Av=nep.orgnep_Av;
+        k=size(Vnew, 2)-1;
+        m = size(nep.orgnep_Av,1);
+        @assert(k+1 <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
+        WnewT=copy(Wnew[:,1:k]');
+        # For over all i: Compute expanded part of matrices:
+        B = map(i -> begin
+                # Expand the B-matrices
+                nep.projnep_B_mem[i][1:k,k+1]=WnewT*Av[i]*v;
+                nep.projnep_B_mem[i][k+1,1:(k+1)]=w'*Av[i]*view(Vnew,:,1:(k+1));
+                view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
+                end, 1:m)
+        # Keep the sequence of functions for SPMFs
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
+    end
 
     # Use delagation to the nep_proj
     compute_MM(nep::Union{Proj_SPMF_NEP},par...)=compute_MM(nep.nep_proj,par...)
@@ -1003,33 +1140,38 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
     include("nep_transformations.jl")
 
-    # structure exploitation for DEP (TODO: document this)
+    # structure exploitation for DEP
     function compute_Mlincomb(nep::DEP,λ::Number,V::AbstractVecOrMat,
                               a::Vector=ones(eltype(V),size(V,2)))
         n=size(V,1); k=size(V,2);
-        Av=get_Av(nep)
-        # determine type froom greates type of (eltype probtype and λ)
-        T=promote_type(promote_type(eltype(V),typeof(λ)),eltype(Av[1]),eltype(nep.tauv))
-        if (k>1)
-            broadcast!(*,V,V,transpose(a))
-        else
-            V=V*a[1];
-        end
+        # Type logic
+        TT=promote_type(eltype(V),typeof(λ),eltype(nep.A[1]),eltype(nep.tauv),eltype(a))
 
-
-        z=zeros(T,n)
+        # initialize variables
+        z=zeros(TT,n); Vw = Vector{TT}(undef, n); AVw = Vector{TT}(undef, n)
+        # with a direct computation one can see that
+        # z=-λV[:,1]-V[:,2]+\sum_{j=1}^{length(nep.tauv)} nep.Av[j+1] (V w)
+        # where w is the vector with the scaled delays
         for j=1:length(nep.tauv)
-            w=Array{T,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
-            if k>1
-                z[:]+=Av[j+1]*(V*w);
-            else
-                z[:]+=Av[j+1]*(V*w[1]);
-            end
+            w=Array{TT,1}(exp(-λ*nep.tauv[j])*(-nep.tauv[j]) .^(0:k-1))
+            mul!(Vw, V, a.*w)
+            mul!(AVw, nep.A[j], Vw)
+            z[:] .+= AVw;
         end
-        if k>1 z[:]-=view(V,:,2:2) end
-        z[:]-=λ*view(V,:,1:1);
+
+        # distinguis the case V is a vector and V is a matrix
+        # fix with the proper derivative count
+        if (V isa AbstractVector)
+            z .-= a[1]*λ*V
+        elseif k==1
+            z .-= a[1]*λ*V[:]
+        else
+            z .+= muladd(-λ*a[1],V[:,1],-a[2]*V[:,2])
+        end
         return z
     end
+
+    compute_Mlincomb!(nep::DEP,λ::Number,V::AbstractVecOrMat, a::Vector=ones(size(V,2)))=compute_Mlincomb(nep,λ,V, a)
 
     function compute_Mlincomb!(nep::SPMF_NEP{T,Ftype},
                                λ::Number,

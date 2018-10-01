@@ -42,7 +42,7 @@ function gallery_dep_distributed()
     oneop = S -> one(S)
     f1 = S -> exp(-S)
     N = 10
-    f2 = S -> distributed_kernel_gauss_legendre(Matrix(S), N)
+    f2 = S -> distributed_kernel_gauss_legendre(S, N)
     #N = 1000
     #f2 = S -> distributed_kernel_trapezoidal(Matrix(S), N)
     return SPMF_NEP([A0,A1,A2,A3],[idop,oneop,f1,f2])
@@ -53,7 +53,7 @@ function distributed_kernel_trapezoidal(S,N0)
 
     fS = x -> exp(x*S) * (exp((x+0.5)^2) - exp(1/4))
 
-    F=zeros(eltype(S),size(S,1),size(S,2));
+    F=zero(S)
 
     h=1/N0;
     for i=1:(N0+1) # Trapezoidal rule
@@ -72,9 +72,9 @@ Gauss-Legender quadrature.
 """
 function distributed_kernel_gauss_legendre(S,N)
     f=x-> (exp((x+0.5)^2)-exp(1/4))
-    F=zeros(eltype(S),size(S,1),size(S,1))
+    F=zero(S);
     xv,wv=gauss_legendre_weights(N,-1,0);
-    local E = Matrix{eltype(S)}(I, size(S,1), size(S,1))
+    local E = one(S)
 
     accumulative_expm_comp=true
     for i=1:length(xv)

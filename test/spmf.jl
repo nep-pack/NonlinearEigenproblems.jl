@@ -34,6 +34,7 @@ using SparseArrays
         @test norm(V-W)>sqrt(eps())*100
     end
 
+
     @bench @testset "compute_MM" begin
 
         S=randn(3,3);
@@ -61,6 +62,36 @@ using SparseArrays
         @test opnorm(N1-N2)<sqrt(eps())
 
     end
+#    @bench @testset "SPMF sparse" begin
+#
+#
+#        Random.seed!(0)
+#        B0=sprandn(5,5,0.2)
+#        B1=sprandn(5,5,0.2)
+#
+#        fv=[S->one(S),S->sin(S)];
+#        spmf1=SPMF_NEP([B0,B1],fv,align_sparsity_patterns=false)
+#        spmf2=SPMF_NEP([copy(B0),copy(B1)],fv,align_sparsity_patterns=true)
+#
+#        spmf3=SPMF_NEP([Matrix(B0),Matrix(B1)],fv)
+#
+#        λ=1.0;
+#        Ma1=compute_Mder(spmf1,λ);
+#        Ma2=compute_Mder(spmf2,λ);
+#        Ma3=compute_Mder(spmf3,λ);
+#        @test Ma1 ≈ Ma2
+#        @test Matrix(Ma1) ≈ Matrix(Ma3)
+#
+#
+#        λ=1.0+3im;
+#        Mb1=compute_Mder(spmf1,λ);
+#        Mb2=compute_Mder(spmf2,λ);
+#        Mb3=compute_Mder(spmf3,λ);
+#        @test Matrix(Mb1) ≈ Matrix(Mb2)
+#        @test Matrix(Mb1) ≈ Matrix(Mb3)
+#
+#
+#    end
     @bench @testset "compute_Mder_from_MM" begin
 
         S=randn(3,3);
@@ -102,9 +133,9 @@ using SparseArrays
 
         # Same nonlinearities as the GUN NLEVP problem
         minusop= S-> -S
-        oneop = S -> Matrix(1.0I, size(S))
-        sqrt1op = S -> 1im * sqrt(Matrix(S))
-        sqrt2op = S -> 1im * sqrt(Matrix(S) - 108.8774^2*I)
+        oneop = S -> one(S)
+        sqrt1op = S -> 1im * sqrt(S)
+        sqrt2op = S -> 1im * sqrt(S - 108.8774^2*one(S))
 
         A0=sparse(randn(n,n))+1im*sparse(randn(n,n));
         A1=sparse(randn(n,n))+1im*sparse(randn(n,n));
@@ -146,6 +177,7 @@ using SparseArrays
         end
 
     end
+
 
     @onlybench @testset "SPMF benchmark" begin
         # To check performance of SPMF-compute_MM function

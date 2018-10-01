@@ -8,12 +8,12 @@ include("nleigs_test_utils.jl")
 include("particle_test_utils.jl")
 
 @bench @testset "NLEIGS: Particle variant R2" begin
-    verbose = 1
+    verbose = displaylevel
 
     nep, Σ, Ξ, v, nodes, xmin, xmax = particle_init(2)
 
     # solve nlep
-    @time lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, maxdgr=50, minit=30, maxit=100, v=v, nodes=nodes, return_details=verbose > 1)
+    lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, maxdgr=50, minit=30, maxit=100, v=v, nodes=nodes, return_details=verbose > 1)
 
     nleigs_verify_lambdas(2, nep, X, lambda)
 

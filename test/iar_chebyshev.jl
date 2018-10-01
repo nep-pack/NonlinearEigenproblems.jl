@@ -136,7 +136,7 @@ end
 
             n=1000; K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(K, J, rand(3*n-2)); A1=sparse(K, J, rand(3*n-2))
-            nep = SPMF_NEP([Matrix(1.0I, n, n), A0, A1], [λ -> -λ, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
+            nep = SPMF_NEP([sparse(1.0I, n, n), A0, A1], [λ -> -λ, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
             (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)
@@ -146,7 +146,7 @@ end
 
         @bench @testset "DEP WITH DELAYS>1" begin
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
-            tau1=0; tau2=1.3; tau3=.1;
+            tau1=0; tau2=1.1; tau3=.2;
             nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
             (λ,Q)=iar_chebyshev(nep,σ=0,Neig=3,displaylevel=0,maxit=90,tol=eps()*100)
 

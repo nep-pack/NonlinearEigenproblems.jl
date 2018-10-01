@@ -14,16 +14,18 @@ import ..NEPCore.compute_Mlincomb
 
 
 
-   """
- For Jacobi-Davidson type solvers see ```jd_betcke``` or ```jd_effenberger```
+"""
+ For Jacobi-Davidson type solvers see
+[`jd_betcke`](@ref) or
+[`jd_effenberger`](@ref).
 """
 function jd()
     error("The function `jd` is not implemented. See `jd_betcke` or jd_effenberger`.")
 end
 
 
-   """
-    function jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+"""
+    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
@@ -31,7 +33,7 @@ The function tries to compute `Neig` number of eigenvalues, and throws a `NoConv
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvlues are computed.
 `errmeasure` is a function handle which can be used to specify how the error is measured.
-By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence W^H T(λ) V is the projection considered. By specifying  `projtype` to be `:Galerkin` then W=V.
+By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence ``W^H T(λ) V`` is the projection considered. By specifying  `projtype` to be `:Galerkin` then `W=V`.
 
 
 # Example
@@ -176,15 +178,15 @@ end
 
 
 
-   """
-function jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=NEPSolver.DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
+"""
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=NEPSolver.DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
-The `target` is the center around which eiganvlues are computed.
+The `target` is the center around which eiganvalues are computed.
 
 # Example
 ```julia-repl

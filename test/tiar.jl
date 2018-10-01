@@ -57,8 +57,8 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     # iar and tiar ara mathematically equivalent it maxit<<nep
     # verify the equivalence numerically
     @bench @testset "equivalance with IAR" begin
-        (λ_tiar,Q_tiar)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
-        (λ_iar,Q_iar)=iar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
+        (λ_tiar,Q_tiar)=tiar(dep,σ=2.0,γ=3,Neig=2,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
+        (λ_iar,Q_iar)=iar(dep,σ=2.0,γ=3,Neig=2,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
         @test norm(λ_tiar-λ_iar)<1e-6
         @test norm(Q_tiar-Q_iar)<1e-6
     end

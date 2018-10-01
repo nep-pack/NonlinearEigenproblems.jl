@@ -386,7 +386,6 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
           y2 = -2*e - mm^2*(e ./ i_n.^2);
           y = [y1; y2; -1 + 1/(2*n) - mm^2/n^2];
           i = 1:n-1;
-          println(size(y))
           z = (i.+0.5) ./ sqrt.( i.*(i.+1) );
 
           A0=spdiagm(0  => y[1:n], 1=> z[1:n-1], -1 => z[1:n-1])
