@@ -69,6 +69,23 @@ end
     @test_throws MethodError nep_gallery("pep0_sym", 15, 8)
     @test_throws ErrorException nep_gallery("pep0_sym", 15, t=8)
 
+    @info "real_quadratic"
+    nep = nep_gallery("real_quadratic")
+    A = compute_Mder(nep, 3.0)
+    @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
+    @test_throws MethodError nep_gallery("real_quadratic", 15)
+    @test_throws ErrorException nep_gallery("real_quadratic", t=15)
+
+
+    for i = [0, 1]
+        nep_name = "qdep" * string(i)
+        @info nep_name
+        nep = nep_gallery(nep_name)
+        A = compute_Mder(nep, 3.0)
+        @test isa(nep, SPMF_NEP) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery(nep_name, 15)
+        @test_throws ErrorException nep_gallery(nep_name, t=15)
+    end
 
     @info "Testing sine"
     nep=nep_gallery("sine")
@@ -95,9 +112,19 @@ end
 
 
     @info "Testing qep_fixed_eig"
+    nep=nep_gallery("qep_fixed_eig")
+    nep=nep_gallery("qep_fixed_eig",3)
     nep=nep_gallery("qep_fixed_eig",3,1:6)
     A=compute_Mder(nep,3.0)
     λstar=5.0 # this problem is constructed such that this is an eigenvalue
     @test minimum(svdvals(compute_Mder(nep,λstar)))<100*eps()
+    @test_throws MethodError nep_gallery("qep_fixed_eig",3,1:6, 8)
+    @test_throws ErrorException nep_gallery("qep_fixed_eig",3,1:6, t=8)
+
+    @info "Testing neuron0"
+    nep=nep_gallery("neuron0")
+    A=compute_Mder(nep,3.0)
+    @test_throws MethodError nep_gallery("neuron0", 8)
+    @test_throws ErrorException nep_gallery("neuron0", t=8)
 
 end
