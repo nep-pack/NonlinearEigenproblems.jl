@@ -22,15 +22,15 @@ Then we can start to load the NEP-PACK package
 ```julia-repl
 julia> using NonlinearEigenproblems
 ```
-We are now ready to create and solve a nonlinear eigenvalue problem, in this
-illustrative example we set
+As a first example we will solve the NEP associated with the matrix polynomial
 
 ```math
 M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 λ\begin{bmatrix}3&4\newline6&6\end{bmatrix}+
 λ^2\begin{bmatrix}1&0\newline0&1\end{bmatrix}
 ```
-The following code creates this NEP (which is a so called polynomial eigenvalue problem)
+The following code creates this NEP, which is a so called `PEP`
+as an abbreviation for polynomial eigenvalue problem,
 and solves it using the NEP solution method implemented in `polyeig()`:
 ```julia-repl
 julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
@@ -70,9 +70,10 @@ julia> resnorm=norm(compute_Mlincomb(nep,λ,v))
 Information about the gallery can be found by typing `?nep_gallery`.
 The second arument in the call to `nep_gallery` is a problem parameter,
 in this case specifying that the  size of the problem should be `100`.
-The example solves the problem with the method MSLP. The parameter `tol` specifies the
+The example solves the problem with the NEP-algorithm [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
+The parameter `tol` specifies the
 tolerance for iteration termination. Type `?mslp` for more information
-about this method.
+about this NEP-algorithm.
 
 # A model of a neuron
 
@@ -136,9 +137,19 @@ Iteration 3: Error: 1.814887e-02 Armijo scaling=0.250000
 Iteration 13: Error: 6.257442e-09
 Iteration 14: Error: 2.525942e-15
 ```
-The solutions are eigenvalues of `Z`.
-
-julia>
+This algorithm returns a partial Schur factorization
+of the NEP, and therefore the eigenvalues of the small matrix
+`Z` are eigenvalues of the problem. An eigenpair of the NEP
+can be extracted by diagonalizing:
+```julia-repl
+julia> using LinearAlgebra
+julia> (Λ,P)=eigen(Z);
+julia> VV=X*P;  # Construct the eigenvector matrix
+julia> v=VV[:,1]; λ=Λ[1]
+61330.208714730004 + 63185.15983933589im
+julia> norm(compute_Mlincomb(nep,λ,v)) # Very small residual
+1.8270553408452648e-16
+```
 
 # What now?
 
