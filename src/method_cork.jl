@@ -79,7 +79,7 @@ function cork(
     shifts = repeat(reshape(shifts, :, 1), nb, 1)
 
     # initialization
-    Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ = initialize(CT, v0, n, m, d, p, maxrest, return_details)
+    Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ = initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
 
     return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
@@ -116,7 +116,7 @@ function cork(
     outputs(return_details, flag, i)
 end
 
-function initialize(CT, v0, n, m, d, p, maxrest, return_details)
+function initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
     # matrix Q -- start vector can be sized any multiple of 'n'
     Q,U0 = qr(reshape(normalize(v0), n, :))
     Q = Matrix(Q) # Thin QR-factorization
@@ -150,7 +150,8 @@ function initialize(CT, v0, n, m, d, p, maxrest, return_details)
     # lu variables
     LU = []
     SHIFTS = []
-    NNZ = [] #TODO: struct('A',cellfun(@(x) nnz(x) > 0,L.A), 'B',cellfun(@(x) nnz(x) > 0,L.B))
+    anynnz(X) = nnz(X) > 0
+    NNZ = (A = map(anynnz, L.A), B = map(anynnz, L.B))
 
     return (Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ)
 end
@@ -267,13 +268,13 @@ function backslash(shift,y)
     # build yt
     yt = L.B[1] * y[:,1]
     for ii = 2:d
-        if NNZ.A(ii) && NNZ.B(ii)
+        if NNZ.A[ii] && NNZ.B[ii]
             # experimental:
 #            corr = L.A{ii}*x(:,ii-1) - L.B{ii}*(shift*x(:,ii-1)+y(:,ii));
 #            norm(corr) < tolres && break
 #            yt -= corr
             yt -= L.A[ii] * x[:,ii-1] - L.B[ii] * (shift*x[:,ii-1] + y[:,ii])
-        elseif NNZ.A(ii)
+        elseif NNZ.A[ii]
             yt -= L.A[ii] * x[:,ii-1]
         else
             yt = yt + L.B[ii] * (shift*x[:,ii-1] + y[:,ii])
