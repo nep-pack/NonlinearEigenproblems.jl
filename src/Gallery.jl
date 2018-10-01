@@ -353,10 +353,11 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         Random.seed!(0) # reset the random seed
         A0 = randn(n,n)
         A1 = randn(n,n)
-       tau = 1.0
-       nep = DEP([A0,A1],[0,tau])
-       return nep
-   end
+        tau = 1.0
+        nep = DEP([A0,A1],[0,tau])
+        return nep
+    end
+
 
     function dep0_sparse(n::Integer=100, p::Real=0.25)
     # A delay eigenvalue problem with sparse matrices
@@ -368,6 +369,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         return nep
     end
 
+
     function dep0_tridiag(n::Integer=100)
     # A delay eigenvalue problem with sparse tridiagonal matrices
         Random.seed!(1) # reset the random seed
@@ -378,6 +380,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         nep = DEP([A0,A1],[0,tau])
         return nep
     end
+
 
     function dep_symm_double(n::Integer=100)
     # A symmetric delay eigenvalue problem with double eigenvalues
@@ -398,6 +401,7 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         nep=DEP([A,B],[0,2.0])
         return nep
     end
+
 
     function dep_double()
     # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
