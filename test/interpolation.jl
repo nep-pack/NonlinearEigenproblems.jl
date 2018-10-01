@@ -86,7 +86,7 @@ end
 
 #########################################################################################
 @bench @testset "Random sparse pep (original pep of degree 2)" begin
-nep=nep_gallery("pep0_sparse_003")
+nep=nep_gallery("pep0_sparse")
 λ1,x1 =newton(nep,displaylevel=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 

@@ -14,7 +14,7 @@ using Random
 
         local nep::NEP
         if (nepstr == "pep")
-            nep=nep_gallery("pep0_sparse_003");
+            nep=nep_gallery("pep0_sparse");
         elseif (nepstr == "dep")
 
             n=5;

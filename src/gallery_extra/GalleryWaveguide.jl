@@ -49,23 +49,17 @@ include("waveguide/waveguide_preconditioner.jl")
 """
     nep_gallery(WEP, kwargs...)
 
-  **Create the NEP associated with the Waveguide Eigenvalue Problem (WEP)**
-  found in both\\
-  E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,\\
-  ''Sylvester-based preconditioning for the waveguide eigenvalue problem'',
-  Linear Algebra Appl., 2018\\
-  and\\
-  E. Jarlebring, and G. Mele, and O. Runborg\\
-  ''The waveguide eigenvalue problem and the tensor infinite Arnoldi method''\\
-  SIAM J. Sci. Comput., 2017\\
-  \\
-  * keyword parameters:\\
-    # nx::Integer = 3 * 5 * 7,         disctretization points in x-direction\\
-    # nz::Integer = 3 * 5 * 7,         disctretization points in z-direction\\
-    # benchmark_problem = 'TAUSCH',    which waveguide (TAUSCH, JARLEBRING)\\
-    # discretization::String = 'FD',   which discretization (FD)\\
-    # neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended\\
-    # delta = 0.1,                     Slack from the absorbing boundary conditions
+Create the NEP associated with the **Waveguide Eigenvalue Problem (WEP)** found in both
+* E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring, Sylvester-based preconditioning for the waveguide eigenvalue problem, Linear Algebra Appl., 2018
+* E. Jarlebring, and G. Mele, and O. Runborg, The waveguide eigenvalue problem and the tensor infinite Arnoldi method, SIAM J. Sci. Comput., 2017
+
+# keyword parameters:
+* nx::Integer = 3 * 5 * 7,         disctretization points in x-direction
+* nz::Integer = 3 * 5 * 7,         disctretization points in z-direction
+* benchmark_problem = 'TAUSCH',    which waveguide (TAUSCH, JARLEBRING)
+* discretization::String = 'FD',   which discretization (FD)
+* neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended
+* delta = 0.1,                     Slack from the absorbing boundary conditions
 """
 function nep_gallery(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", discretization::String = "FD", neptype::String = "WEP",  delta::Number = 0.1) where T<:WEP
 
