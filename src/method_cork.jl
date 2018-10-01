@@ -12,17 +12,17 @@ Find a few eigenvalues and eigenvectors of a linearization pencil.
 # Arguments
 - `nep`: An instance of a nonlinear eigenvalue problem.
 - `L`: Linearization pencil. See Linearization.
-- `shift`: Scalar shift.
+- `σ`: Scalar for finding the eigenvalues closest to.
 - `Σ`: A vector containing the points of a polygonal target set in the complex plane.
 - `m`: Maximum number of ritz values.
 - `p`: Number of restarted ritz values.
-- `σ`: Cyclically repeated shifts for the rational Krylov process.
+- `shifts`: Cyclically repeated shifts for the rational Krylov process.
 - `maxrest`: Maximum number or restarts.
 - `displaylevel`: Level of display (0, 1, 2).
 - `tol`: Tolerance for residual.
 - `tolrnk`: Tolerance for truncating rank.
 - `tollck`: Tolerance for locking.
-- `v`: Starting vector.
+- `v`: Starting vector (sized any multiple of NEP size).
 - `errmeasure`: Function for error measure (residual norm). Called with arguments (λ,v).
 - `reusefact`: Whether to reuse matrix factorizations.
 - `return_details`: Whether to return solution details (see NleigsSolutionDetails).
@@ -78,10 +78,10 @@ function cork(
     nb = ceil(Int, (m + maxrest*(m-p) + 1) / length(shifts))
     shifts = repeat(reshape(shifts, :, 1), nb, 1)
 
-    return ([],[],[],true,CorkSolutionDetails{T,CT}())
-
     # initialization
-    Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ = initialize(v0)
+    Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ = initialize(CT, v0, n, m, d, p, maxrest, return_details)
+
+    return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
     # CORK loop
     i = 1
@@ -116,13 +116,14 @@ function cork(
     outputs(return_details, flag, i)
 end
 
-function initialize(v0)
-    # matrix Q
-    Q,U0 = qr(reshape(v0/norm(v0), n, []), 0)
+function initialize(CT, v0, n, m, d, p, maxrest, return_details)
+    # matrix Q -- start vector can be sized any multiple of 'n'
+    Q,U0 = qr(reshape(normalize(v0), n, :))
+    Q = Matrix(Q) # Thin QR-factorization
     r = size(Q, 2)
 
     # tensor U
-    U = zeros(r, m+1, d)
+    U = zeros(CT, r, m+1, d)
     U[1:r,1,1:size(U0,1)] = U0
     j = 1
 
@@ -136,7 +137,7 @@ function initialize(v0)
     res = fill(NaN, m)
 
     # info variables
-    if info
+    if return_details
         Lam = fill(NaN, m, m + maxrest*(m-p))
         Res = fill(NaN, m, m + maxrest*(m-p))
     else
@@ -147,7 +148,7 @@ function initialize(v0)
     R = [r; zeros(m + maxrest*(m-p))]
 
     # lu variables
-    LU = cell(1)
+    LU = []
     SHIFTS = []
     NNZ = [] #TODO: struct('A',cellfun(@(x) nnz(x) > 0,L.A), 'B',cellfun(@(x) nnz(x) > 0,L.B))
 

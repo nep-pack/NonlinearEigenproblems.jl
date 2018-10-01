@@ -1,7 +1,9 @@
 using NonlinearEigenproblems
+using NonlinearEigenproblems.RKHelper
 
-include("../nleigs/gun_test_utils.jl")
-include("../../src/cork/linearize.jl")
+include(joinpath("..", "rk_helper", "gun_test_utils.jl"))
+
+# TODO: test with start vector v sized 2*n
 
 #function cork_gun()
     nep, Σ, Ξ, _, nodes, funres = gun_init()
@@ -11,11 +13,8 @@ include("../../src/cork/linearize.jl")
     n = CL.n
     d = CL.d
 
-    A = CL.D
-    B = Vector{SparseMatrixCSC}(undef, d)
-    for i = 1:d
-        B[i] = spzeros(n, n)
-    end
+    A = CL.D[1:d]
+    B = map(_ -> spzeros(n, n), 1:d)
     CT = eltype(CL.σ)
     M = [diagm(0 => CL.σ[1:d-1], 1 => CL.β[2:d-1]) [zeros(CT, d-2); CL.β[d]]]
     N = [I + diagm(1 => CL.β[2:d-1]./CL.ξ[1:d-2]) [zeros(CT, d-2); CL.β[d]/CL.ξ[d-1]]]

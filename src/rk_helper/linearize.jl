@@ -1,4 +1,5 @@
 using NonlinearEigenproblems
+using Statistics
 
 export ConvergedLinearization, Linearization,
        linearize
