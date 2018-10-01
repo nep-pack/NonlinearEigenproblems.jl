@@ -59,4 +59,9 @@ dep_distributed_exact_eigvals = [
                         tol=eps()*100)
         @test abs((dep_distributed_exact_eigvals[i]-λ)/λ)<eps()*100
     end
+
+    @testset "Errors thrown" begin
+        @test_throws MethodError nep_gallery("dep_distributed", 15)
+        @test_throws ErrorException nep_gallery("dep_distributed", t=15)
+    end
 end
