@@ -5,7 +5,7 @@ using Test
 # explicit import needed for overloading functions from packages
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 
-nep_test_problems=["pep0_sparse_003","dep0","pep0"]
+nep_test_problems=["pep0_sparse","dep0","pep0"]
 
 @testset "Eigenvector extraction (small scale)" begin
     @testset "Test problem: $nep_test_problem" for nep_test_problem in nep_test_problems

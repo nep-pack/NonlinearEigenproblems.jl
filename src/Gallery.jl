@@ -48,11 +48,11 @@ Create a random delay eiganvalue problem with sparse matrices and one delay tau 
 \\
       `dep0_tridiag`\\
 Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1\\
-       * one optional parameter determining the size (default = 100)\\
+      * one optional parameter determining the size (default = 100)\\
 \\
       `dep_symm_double`\\
 Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1\\
-       * one optional parameter determining the size (default = 100)\\
+      * one optional parameter determining the size (default = 100)\\
        Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017\\
 \\
      `dep_double`\\
@@ -63,15 +63,15 @@ Create problem with a double non-semisimple eigenvalue in λ=3πi\\
 \\
      `pep0`\\
 Create a random polynomial eigenvalue problem\\
-     * one optional parameter determining the size (default = 200)\\
+      * one optional parameter determining the size (default = 200)\\
  \\
       `pep0_sym`\\
 Create a random symmetric polynomial eigenvalue problem\\
       * one optional parameter determining the size (default = 200)\\
 \\
-     `pep0_sparse_003`\\
-Create a random polynomial eigenvalue problem with sparse matrices with about 3% fill-in
-     * one optional parameter determining the size (default = 200)\\
+     `pep0_sparse`\\
+Create a random polynomial eigenvalue problem with sparse matrices
+      * two optional parameter determining the size (default = 200) and the fill (default = 0.03)
 \\
      `real_quadratic`\\
 Create a quadratic problem with real eigenvalues\\
@@ -142,21 +142,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
             return pep0(params...; kwargs...)
         elseif (name == "pep0_sym")
             return pep0_sym(params...; kwargs...)
-      elseif (name== "pep0_sparse_003")
-          # A sparse polynomial eigenvalue problem
-          if (length(params)>0)
-              n=params[1]
-          else
-              n=200; # Default size
-          end
-
-          Random.seed!(0)
-          A0=sprandn(n,n,0.03)
-          A1=sprandn(n,n,0.03)
-          A2=sprandn(n,n, 0.03)
-          A=[A0,A1,A2]
-          nep=PEP(A)
-          return nep
+        elseif (name == "pep0_sparse")
+          return pep0_sparse(params...; kwargs...)
 
       elseif (name== "real_quadratic")
           # Create a quadratic problem with real eigenvalues
@@ -417,5 +404,16 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         return nep
     end
 
+
+    # A sparse polynomial eigenvalue problem
+    function pep0_sparse(n::Integer=200, p::Real=0.03)
+        Random.seed!(0)
+        A0=sprandn(n,n,p)
+        A1=sprandn(n,n,p)
+        A2=sprandn(n,n,p)
+        A=[A0,A1,A2]
+        nep=PEP(A)
+        return nep
+    end
 
 end
