@@ -1,10 +1,5 @@
 using NonlinearEigenproblems
-
-include("../nleigs/discretizepolygon.jl")
-include("../nleigs/lejabagby.jl")
-include("../nleigs/ratnewtoncoeffs.jl")
-include("../nleigs/ratnewtoncoeffsm.jl")
-include("../nleigs/scgendivdiffs.jl")
+using NonlinearEigenproblems.RKHelper
 
 """
 Construct a pencil for the linearization of a nonlinear eigenvalue problem.
