@@ -6,37 +6,64 @@ using LinearAlgebra
 using SparseArrays
 using Test
 
-@testset "Gallery extra loading" begin
-    # Test if it is possible to load some extra gallery
-    @test (using GalleryWaveguide) == nothing
-end
-
 
 @testset "Gallery" begin
-    @info "Testing dep0"
-    nep = nep_gallery("dep0")
-    nep = nep_gallery("dep0", 15)
-    A = compute_Mder(nep, 3.0)
-    @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
-    @test_throws MethodError nep_gallery("dep0", 15, 8)
-    @test_throws ErrorException nep_gallery("dep0", 15, t=8)
+    @testset "Gallery extra loading" begin
+        # Test if it is possible to load some extra gallery
+        @test (using GalleryWaveguide) == nothing
+    end
 
-    @info "Testing dep0_sparse"
-    nep = nep_gallery("dep0_sparse")
-    nep = nep_gallery("dep0_sparse", 20)
-    nep = nep_gallery("dep0_sparse", 20, 0.25)
-    A = compute_Mder(nep, 3.0)
-    @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
-    @test_throws MethodError nep_gallery("dep0_sparse", 20, 0.25, 8)
-    @test_throws ErrorException nep_gallery("dep0_sparse", 20, 0.25, n=8)
+    @testset "Basic random examples" begin
+        @info "Testing dep0"
+        nep = nep_gallery("dep0")
+        nep = nep_gallery("dep0", 15)
+        A = compute_Mder(nep, 3.0)
+        @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery("dep0", 15, 8)
+        @test_throws ErrorException nep_gallery("dep0", 15, t=8)
 
-    @info "Testing dep0_tridiag"
-    nep = nep_gallery("dep0_tridiag")
-    nep = nep_gallery("dep0_tridiag", 15)
-    A = compute_Mder(nep, 3.0)
-    @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
-    @test_throws MethodError nep_gallery("dep0", 15, 8)
-    @test_throws ErrorException nep_gallery("dep0", 15, t=8)
+        @info "Testing dep0_sparse"
+        nep = nep_gallery("dep0_sparse")
+        nep = nep_gallery("dep0_sparse", 20)
+        nep = nep_gallery("dep0_sparse", 20, 0.25)
+        A = compute_Mder(nep, 3.0)
+        @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery("dep0_sparse", 20, 0.25, 8)
+        @test_throws ErrorException nep_gallery("dep0_sparse", 20, 0.25, n=8)
+
+        @info "Testing dep0_tridiag"
+        nep = nep_gallery("dep0_tridiag")
+        nep = nep_gallery("dep0_tridiag", 15)
+        A = compute_Mder(nep, 3.0)
+        @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery("dep0", 15, 8)
+        @test_throws ErrorException nep_gallery("dep0", 15, t=8)
+
+        @info "pep0"
+        nep = nep_gallery("pep0")
+        nep = nep_gallery("pep0", 15)
+        A = compute_Mder(nep, 3.0)
+        @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery("pep0", 15, 8)
+        @test_throws ErrorException nep_gallery("pep0", 15, t=8)
+
+        @info "pep0_sym"
+        nep = nep_gallery("pep0_sym")
+        nep = nep_gallery("pep0_sym", 15)
+        A = compute_Mder(nep, 3.0)
+        @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery("pep0_sym", 15, 8)
+        @test_throws ErrorException nep_gallery("pep0_sym", 15, t=8)
+
+        @info "Testing pep0_sparse"
+        nep=nep_gallery("pep0_sparse")
+        nep=nep_gallery("pep0_sparse", 15)
+        nep=nep_gallery("pep0_sparse", 15, 0.12)
+        A=compute_Mder(nep,3.0)
+        @test issparse(A) # Not so sophisticated, but improves code coverage
+        @test_throws MethodError nep_gallery("pep0_sparse", 15, 0.12, 8)
+        @test_throws ErrorException nep_gallery("pep0_sparse", 15, 0.12, t=8)
+    end
 
     @info "Testing dep_symm_double"
     nep = nep_gallery("dep_symm_double")
@@ -52,22 +79,6 @@ end
     @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
     @test_throws MethodError nep_gallery("dep_double", 15)
     @test_throws ErrorException nep_gallery("dep_double", t=15)
-
-    @info "pep0"
-    nep = nep_gallery("pep0")
-    nep = nep_gallery("pep0", 15)
-    A = compute_Mder(nep, 3.0)
-    @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
-    @test_throws MethodError nep_gallery("pep0", 15, 8)
-    @test_throws ErrorException nep_gallery("pep0", 15, t=8)
-
-    @info "pep0_sym"
-    nep = nep_gallery("pep0_sym")
-    nep = nep_gallery("pep0_sym", 15)
-    A = compute_Mder(nep, 3.0)
-    @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
-    @test_throws MethodError nep_gallery("pep0_sym", 15, 8)
-    @test_throws ErrorException nep_gallery("pep0_sym", 15, t=8)
 
     @info "real_quadratic"
     nep = nep_gallery("real_quadratic")
@@ -98,21 +109,11 @@ end
     @test_throws MethodError nep_gallery("sine", 15)
     @test_throws ErrorException nep_gallery("sine", t=15)
 
+
     @info "Testing dep_symm_double"
     nep=nep_gallery("dep_symm_double")
     A=compute_Mder(nep,3.0)
     @test norm(A-A')==0
-
-
-    @info "Testing pep0_sparse"
-    nep=nep_gallery("pep0_sparse")
-    nep=nep_gallery("pep0_sparse", 15)
-    nep=nep_gallery("pep0_sparse", 15, 0.12)
-    A=compute_Mder(nep,3.0)
-    @test issparse(A) # Not so sophisticated, but improves code coverage
-    @test_throws MethodError nep_gallery("pep0_sparse", 15, 0.12, 8)
-    @test_throws ErrorException nep_gallery("pep0_sparse", 15, 0.12, t=8)
-
 
     @info "Testing qep_fixed_eig"
     nep=nep_gallery("qep_fixed_eig")
