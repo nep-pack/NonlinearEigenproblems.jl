@@ -33,6 +33,7 @@ struct Linearization
     B::Vector # vector of n x n matrices of length d
     M::AbstractMatrix # (d-1) x d matrix
     N::AbstractMatrix # (d-1) x d matrix
+    Pfun # function for P(λ), or `missing` to use default function
 end
 
 """

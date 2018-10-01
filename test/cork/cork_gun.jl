@@ -19,7 +19,7 @@ include(joinpath("..", "rk_helper", "gun_test_utils.jl"))
     M = [diagm(0 => CL.σ[1:d-1], 1 => CL.β[2:d-1]) [zeros(CT, d-2); CL.β[d]]]
     N = [I + diagm(1 => CL.β[2:d-1]./CL.ξ[1:d-2]) [zeros(CT, d-2); CL.β[d]/CL.ξ[d-1]]]
 
-    L = Linearization(A, B, M, N)
+    L = Linearization(A, B, M, N, missing)
 
     Random.seed!(0)
     v = randn(n) .+ im * randn(n) # TODO: use gun_init v?

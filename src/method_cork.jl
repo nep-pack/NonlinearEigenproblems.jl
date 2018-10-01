@@ -72,7 +72,7 @@ function cork(
 
     n = size(nep, 1)
     d = length(L.A)
-    reuselu = true
+    reuselu = false
     maxreorth = 2
 
     nb = ceil(Int, (m + maxrest*(m-p) + 1) / length(shifts))
@@ -80,8 +80,6 @@ function cork(
 
     # initialization
     Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ = initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
-
-    return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
     # CORK loop
     i = 1
@@ -91,7 +89,9 @@ function cork(
     flag = true
 
     while i <= m + maxrest*(m-p)
-        r = corkstep(shifts(i), r, j, i)
+        r = corkstep(shifts[i], r, j, i, L, Q, U, d, NNZ, displaylevel)
+
+        return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
         # compute Ritz pairs and residuals
         flag = ritzpairs(r, j, i, l)
@@ -156,13 +156,13 @@ function initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
     return (Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ)
 end
 
-function corkstep(shift, r, j, i)
+function corkstep(shift, r, j, i, L, Q, U, d, NNZ, displaylevel)
     displaylevel > 0 && println("iteration $i")
     eta = 1/sqrt(2) # reorthogonalization constant
 
     # compute next vector
-    v = Q[:, 1:r] * reshape(U[1:r, j, 1:d], r, [])
-    v1,MsN1inv0,MsN1invN = backslash(shift, v)
+    v = Q[:, 1:r] * reshape(U[1:r, j, 1:d], r, :)
+    v1,MsN1inv0,MsN1invN = backslash(shift, v, L, d, NNZ)
 
     # level 1 orthogonalization
     q = v1
@@ -194,13 +194,13 @@ function corkstep(shift, r, j, i)
         u1 = [u1; q'*v1]
     end
     u2 = [] #TODO: reshape(U(1:rnew,j,1:d),rnew,[])*transpose(MsN1invN) - bsxfun(@times,transpose(MsN1inv0),u1)
-    u = [u1; reshape(u2, [], 1)]
+    u = [u1; reshape(u2, :, 1)]
     delta = Inf
     nborth = 0
     while norm(u) < eta*delta && nborth <= maxreorth
         delta = norm(u)
-        h = reshape(conj(permute(U[1:rnew,1:j,1:d],[2,1,3])),[],d*rnew)*u
-        u = u - reshape(permute(U[1:rnew,1:j,1:d],[1,3,2]),[],j)*h
+        h = reshape(conj(permute(U[1:rnew,1:j,1:d], [2,1,3])), :, d*rnew) * u
+        u = u - reshape(permute(U[1:rnew,1:j,1:d], [1,3,2]), :, j) * h
         H[1:j,j] = H[1:j,j] + h
         nborth += 1
     end
@@ -209,7 +209,7 @@ function corkstep(shift, r, j, i)
     K[j+1,j] = shift*H[j+1,j]
     # update U
     u = u/H[j+1,j]
-    U[1:rnew,j+1,1:d] = reshape(u, [], d)
+    U[1:rnew,j+1,1:d] = reshape(u, :, d)
 
     # dimensions
     J[i+1] = j+1
@@ -218,9 +218,11 @@ function corkstep(shift, r, j, i)
     return rnew
 end
 
-function backslash(shift,y)
+function backslash(shift, y, L, d, NNZ)
     # check for new shift
-    if ~reuselu
+    newlu = true
+    # TODO: the below will be replaced by LinSolverCache
+#=    if !reuselu
         newlu = true
     else
         newlu = false
@@ -236,7 +238,7 @@ function backslash(shift,y)
                 newlu = true
             end
         end
-    end
+    end=#
 
     # initialize
     m0 = L.M[1:d-1,1]
@@ -252,12 +254,12 @@ function backslash(shift,y)
 
     # build At
     if newlu
-        if isfield(L,"Pfun")
+        if !ismissing(L.Pfun)
             At = L.Pfun(shift)
         else
             At = L.A[1] - shift*L.B[1]
             for ii = 2:d
-                At = At - MsN1inv0(ii-1)*(L.A[ii] - shift*L.B[ii])
+                At = At - MsN1inv0[ii-1]*(L.A[ii] - shift*L.B[ii])
             end
         end
     end
