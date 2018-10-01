@@ -775,8 +775,8 @@ julia> compute_Mder(nep,3)
     end
 
     # Evaluation of matrix polynomial with coefficient a
-    function lpolyvalm(a::Array{<:Number,1},S::Array{<:Number,2})
-        Sp = Matrix{eltype(S)}(I, size(S))
+    function lpolyvalm(a::Array{<:Number,1},S::Union{Number,AbstractMatrix})
+        Sp = one(S)
         Ssum = zero(S)
         for j=1:size(a,1)
             Ssum+= a[j]*Sp;
