@@ -48,8 +48,6 @@ Executes z if displaylevel>1.
     include("method_ilan.jl")
     include("nleigs/NleigsTypes.jl")
 
-
-
     include("inner_solver.jl");
 
     """
