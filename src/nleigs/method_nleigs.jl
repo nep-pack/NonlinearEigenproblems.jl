@@ -361,60 +361,6 @@ function nleigs(
     return lam[conv], X[:,conv], res[conv], details
 end
 
-"Create NleigsNEP instance, exploiting the type of the input NEP as much as possible"
-function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
-    # Most generic case: No coefficient matrices, all we have is M(λ)
-    if !isa(nep, AbstractSPMF)
-        return NleigsNEP(T, nep)
-    end
-
-    Av = get_Av(nep)
-    BBCC = vcat(Av...)::eltype(Av)
-
-    # Polynomial eigenvalue problem
-    if isa(nep, PEP)
-        return NleigsNEP(nep, length(Av) - 1, 0, BBCC)
-    end
-
-    # If we can't separate the problem into a PEP + SPMF, consider it purely SPMF
-    if !isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
-        return NleigsNEP(nep, -1, length(Av), BBCC)
-    end
-
-    p = length(get_Av(nep.nep1)) - 1
-    q = length(get_Av(nep.nep2))
-
-    # Case when there is no low rank structure to exploit
-    if q == 0 || !isa(nep.nep2, LowRankFactorizedNEP{S} where S<:Any)
-        return NleigsNEP(nep, p, q, BBCC)
-    end
-
-    # L and U factors of the low rank nonlinear part
-    L = nep.nep2.L
-    UU = hcat(nep.nep2.U...)::eltype(nep.nep2.U)
-    r = nep.nep2.r
-    iL = zeros(Int, r)
-    c = 0
-    for ii = 1:q
-        ri = size(L[ii], 2)
-        iL[c+1:c+ri] .= ii
-        c += ri
-    end
-
-    # Store L factors in a compact format to speed up system solves later on
-    LL = Vector{SparseVector{eltype(L[1]),Int}}()
-    iLr = Vector{Int}()
-    for ri = 1:size(nep, 1)
-        row = reduce(vcat, [L[i][ri,:] for i=1:length(L)])
-        if nnz(row) > 0
-            push!(LL, row)
-            push!(iLr, ri)
-        end
-    end
-
-    return NleigsNEP(nep, p, q, BBCC, r, iL, iLr, L, LL, UU)
-end
-
 "Construct generalized divided difference for number `nb`."
 function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     n = size(P.nep, 1)
