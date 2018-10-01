@@ -26,7 +26,7 @@ module Gallery
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra"))
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/periodic_dde.jl")
-    include("gallery_extra/GalleryNLEVP_native.jl")
+    include("gallery_extra/NLEVP_native.jl")
 
   """
      nep=nep_gallery(name)
@@ -359,7 +359,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
     # A quadratic delay eigenvalue problem in "The infinite Bi-Lanczos method for nonlinear eigenvalue problems",  Sarah W. Gaaf and Elias Jarlebring
     function qdep0()
         qdepbase=joinpath(dirname(@__FILE__()),
-                          "gallery_extra", "qdep_infbilanczos_")
+                          "gallery_extra", "converted_misc" ,"qdep_infbilanczos_")
         A0=read_sparse_matrix(qdepbase * "A0.txt")
         A1=read_sparse_matrix(qdepbase * "A1.txt")
         tau::Float64 = 1
@@ -455,4 +455,4 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         return nep;
     end
 
-end
+end # end of Gallery-module
