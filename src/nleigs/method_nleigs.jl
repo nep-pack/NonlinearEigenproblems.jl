@@ -417,26 +417,6 @@ function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
     return NleigsNEP(nep, p, q, BBCC, r, iL, iLr, L, LL, UU)
 end
 
-"""
-Compute scalar generalized divided differences.
-
-# Arguments
-- `σ`: Discretization of target set.
-- `ξ`: Discretization of singularity set.
-- `β`: Scaling factors.
-"""
-function scgendivdiffs(σ::AbstractVector{CT}, ξ, β, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
-    sgdd = zeros(CT, length(pff), maxdgr+2)
-    for ii = 1:length(pff)
-        if isfunm
-            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], σ, ξ, β)
-        else
-            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], σ, ξ, β))
-        end
-    end
-    return sgdd
-end
-
 "Construct generalized divided difference for number `nb`."
 function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     n = size(P.nep, 1)

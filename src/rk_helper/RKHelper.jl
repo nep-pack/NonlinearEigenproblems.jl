@@ -5,13 +5,12 @@ like NLEIGS and CORK.
 module RKHelper
 
 export inpolygon, discretizepolygon,
-       lejabagby, ratnewtoncoeffs, ratnewtoncoeffsm,
+       lejabagby, scgendivdiffs, ratnewtoncoeffs, ratnewtoncoeffsm,
        LinSolverCache, solve
 
 include("inpolygon.jl")
 include("discretizepolygon.jl")
-include("lejabagby.jl")
-include("ratnewtoncoeffs.jl")
+include("rk_utils.jl")
 include("linsolvercache.jl")
 
 end
