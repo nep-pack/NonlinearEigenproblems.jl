@@ -1,6 +1,6 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

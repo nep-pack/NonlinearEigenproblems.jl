@@ -1,7 +1,7 @@
 # Unit test for the Nonlinear Arnoldi method (in src/method_nlar.jl)
 # The "Gun" problem form gun_native.jl
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -59,4 +59,3 @@ using Random
     @test norm(compute_Mlincomb(pepnep,λ[3],u[:,3])) < TOL
 
 end
-
