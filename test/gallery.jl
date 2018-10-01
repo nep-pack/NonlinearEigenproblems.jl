@@ -53,6 +53,22 @@ end
     @test_throws MethodError nep_gallery("dep_double", 15)
     @test_throws ErrorException nep_gallery("dep_double", t=15)
 
+    @info "pep0"
+    nep = nep_gallery("pep0");
+    nep = nep_gallery("pep0", 15);
+    A = compute_Mder(nep, 3.0);
+    @test isa(nep, PEP); # Not so sophisticated, but improves code coverage
+    @test_throws MethodError nep_gallery("pep0", 15, 8);
+    @test_throws ErrorException nep_gallery("pep0", 15, t=8);
+
+    @info "pep0_sym"
+    nep = nep_gallery("pep0_sym");
+    nep = nep_gallery("pep0_sym", 15);
+    A = compute_Mder(nep, 3.0);
+    @test isa(nep, PEP); # Not so sophisticated, but improves code coverage
+    @test_throws MethodError nep_gallery("pep0_sym", 15, 8);
+    @test_throws ErrorException nep_gallery("pep0_sym", 15, t=8);
+
 
     @info "Testing sine"
     nep=nep_gallery("sine")

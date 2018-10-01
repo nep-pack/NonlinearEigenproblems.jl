@@ -138,38 +138,10 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
             return dep_symm_double(params...; kwargs...)
         elseif (name == "dep_double")
             return dep_double(params...; kwargs...)
-        elseif (name== "pep0")
-          # A polynomial eigenvalue problem
-          if (length(params)>0)
-              n=params[1]
-          else
-              n=200; # Default size
-          end
-
-          Random.seed!(0)
-          A0=randn(n,n)
-          A1=randn(n,n)
-          A2=randn(n,n)
-          A=[A0,A1,A2]
-          nep=PEP(A)
-          return nep
-
-      elseif (name== "pep0_sym")
-          # A polynomial eigenvalue problem
-          if (length(params)>0)
-              n=params[1]
-          else
-              n = 200; # Default size
-          end
-
-          Random.seed!(0)
-          A0 = Symmetric(randn(n,n))
-          A1 = Symmetric(randn(n,n))
-          A2 = Symmetric(randn(n,n))
-          A = [A0]#, A1, A2]
-          nep = PEP(A)
-          return nep
-
+        elseif (name == "pep0")
+            return pep0(params...; kwargs...)
+        elseif (name == "pep0_sym")
+            return pep0_sym(params...; kwargs...)
       elseif (name== "pep0_sparse_003")
           # A sparse polynomial eigenvalue problem
           if (length(params)>0)
@@ -348,8 +320,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
     end
 
 
-    function dep0(n::Int=5)
     # A delay eigenvalue problem
+    function dep0(n::Int=5)
         Random.seed!(0) # reset the random seed
         A0 = randn(n,n)
         A1 = randn(n,n)
@@ -359,8 +331,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
     end
 
 
-    function dep0_sparse(n::Integer=100, p::Real=0.25)
     # A delay eigenvalue problem with sparse matrices
+    function dep0_sparse(n::Integer=100, p::Real=0.25)
         Random.seed!(0) # reset the random seed
         A0 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
         A1 = sparse(1:n,1:n,rand(n))+sprand(n,n,p)
@@ -370,8 +342,8 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
     end
 
 
-    function dep0_tridiag(n::Integer=100)
     # A delay eigenvalue problem with sparse tridiagonal matrices
+    function dep0_tridiag(n::Integer=100)
         Random.seed!(1) # reset the random seed
         K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n] # sparsity pattern of tridiag matrix
         A0 = sparse(K, J, rand(3*n-2))
@@ -382,9 +354,9 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
     end
 
 
-    function dep_symm_double(n::Integer=100)
     # A symmetric delay eigenvalue problem with double eigenvalues
     # Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017
+    function dep_symm_double(n::Integer=100)
         LL=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
 
         x = range(0, stop = pi, length = n)
@@ -403,9 +375,9 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
     end
 
 
-    function dep_double()
     # A delay eigenvalue problem with a double non-semisimple eigenvalue in λ=3πi
     # Examle from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012
+    function dep_double()
         denom = 8+5*pi;
         a1 = 2/5 *(65*pi + 32)/(denom);
         a2 = 9*pi^2*(13+5*pi)/(denom);
@@ -420,5 +392,30 @@ The benchmark problem from the NLEVP-collection called "fiber", represented in t
         nep=DEP([A0,A1],[0,tau])
         return nep
     end
+
+
+    # A polynomial eigenvalue problem
+    function pep0(n::Integer=200)
+        Random.seed!(0)
+        A0=randn(n,n)
+        A1=randn(n,n)
+        A2=randn(n,n)
+        A=[A0,A1,A2]
+        nep=PEP(A)
+        return nep
+    end
+
+
+    # A polynomial eigenvalue problem with symmetric matrices
+    function pep0_sym(n::Integer=200)
+        Random.seed!(0)
+        A0 = Symmetric(randn(n,n))
+        A1 = Symmetric(randn(n,n))
+        A2 = Symmetric(randn(n,n))
+        A = [A0]#, A1, A2]
+        nep = PEP(A)
+        return nep
+    end
+
 
 end
