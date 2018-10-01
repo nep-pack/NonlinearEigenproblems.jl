@@ -1,5 +1,4 @@
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
-using InteractiveUtils
+using NonlinearEigenproblemsTest
 using BenchmarkTools
 using Statistics
 using Printf
@@ -37,8 +36,8 @@ end
 "Hierarchically aggregate benchmark trials"
 function aggregate_trials(aggregated_trials, test, chain)
     chain = [chain; test]
-    if haskey(TestUtils.benchmark_results, test)
-        trial = minimum(TestUtils.benchmark_results[test])
+    if haskey(NonlinearEigenproblemsTest.benchmark_results, test)
+        trial = minimum(NonlinearEigenproblemsTest.benchmark_results[test])
         for i in 1:length(chain)
             t = chain[i]
             name = " "^((i-1)*2) * t.description
@@ -61,7 +60,7 @@ function save_benchmark(test_results, runtime_seconds, file_name)
 
     dict["time"] = Dates.now(Dates.UTC)
     dict["runtime"] = runtime_seconds
-    dict["config"] = @sprintf("seconds=%.1f", TestUtils.benchmark_duration_seconds)
+    dict["config"] = @sprintf("seconds=%.1f", NonlinearEigenproblemsTest.benchmark_duration_seconds)
     dict["julia-version"] = string(VERSION)
     dict["julia-commit"] = Base.GIT_VERSION_INFO.commit_short
     dict["cpu"] = @sprintf("%s (%s), %d threads, %.0f GB memory",

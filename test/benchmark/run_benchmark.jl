@@ -1,7 +1,7 @@
 ################################################################################
 # Runs the test suite in benchmark mode and saves the results to a JSON file
 ################################################################################
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+using NonlinearEigenproblemsTest
 using Logging
 
 # turn off logging of @info statements and test output

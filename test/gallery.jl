@@ -1,6 +1,6 @@
 # Run tests on nep_gallery (not tested elsewhere)
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using LinearAlgebra
 using SparseArrays

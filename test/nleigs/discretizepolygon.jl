@@ -1,4 +1,4 @@
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+using NonlinearEigenproblemsTest
 using Test
 
 include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "discretizepolygon.jl"))
