@@ -40,7 +40,7 @@ function nleigs_nep_types()
     for problem in problems
         @bench @testset "$(problem[1])" begin
             lambda, X = nleigs(problem[2], Σ, maxit=10, v=ones(n).+0im, blksize=5)
-            verify_lambdas(4, problem[2], X, lambda)
+            verify_lambdas(4, problem[2], lambda, X)
         end
     end
 end

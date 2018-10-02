@@ -68,17 +68,17 @@ function benchit(f)
 end
 
 """
-`@test` that there are `expected_nr_lambdas` eigenvalues in `lambdas`, and that all norms
-of the eigenvectors in `vectors` are below the given tolerance.
+`@test` that there are `expected_nr_λ` eigenvalues in the `λ` vector, and that all
+`default_errmeasure` norms of the `nep` with corresponding eigenvectors in the `V`
+matrix are below the given tolerance.
 """
-function verify_lambdas(expected_nr_lambdas, nep::NEP, vectors, lambdas, tol = 1e-5)
-    @test length(lambdas) == expected_nr_lambdas
-    @info "Found $(length(lambdas)) lambdas:"
-    for i in eachindex(lambdas)
-        λ = lambdas[i]
-        nrm = default_errmeasure(nep)(λ, vectors[:, i])
+function verify_lambdas(expected_nr_λ, nep::NEP, λ, V, tol = 1e-5)
+    @test length(λ) == expected_nr_λ
+    @info "Found $(length(λ)) lambdas:"
+    for i in eachindex(λ)
+        nrm = default_errmeasure(nep)(λ[i], V[:, i])
         @test nrm < tol
-        @info "λ[$i] = $λ (norm = $(@sprintf("%.3g", nrm)))"
+        @info "λ[$i] = $(λ[i]) (norm = $(@sprintf("%.4g", nrm)))"
     end
 end
 

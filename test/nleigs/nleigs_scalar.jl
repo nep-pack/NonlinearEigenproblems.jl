@@ -19,7 +19,7 @@ function nleigs_scalar()
         lambda, X = nleigs(nep, Σ, displaylevel=displaylevel, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # single eigenvalue converges
-        verify_lambdas(1, nep, X, lambda)
+        verify_lambdas(1, nep, lambda, X)
     end
 
     @bench @testset "Fully rational" begin
@@ -29,7 +29,7 @@ function nleigs_scalar()
         lambda, X = nleigs(nep, Σ, Ξ=Ξ, displaylevel=displaylevel, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # three eigenvalues converge
-        verify_lambdas(3, nep, X, lambda)
+        verify_lambdas(3, nep, lambda, X)
     end
 end
 
