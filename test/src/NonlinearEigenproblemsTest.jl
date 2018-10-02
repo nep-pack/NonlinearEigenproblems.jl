@@ -1,16 +1,15 @@
 module NonlinearEigenproblemsTest
 
+using NonlinearEigenproblems
 using BenchmarkTools
 using Statistics
 using Printf
+using Test
 
-export @bench
-export @onlybench
-export is_test_script
-export set_benchmark_duration_seconds
-export enable_benchmark
-export displaylevel
-export set_displaylevel
+export @bench, @onlybench,
+       displaylevel, set_displaylevel,
+       set_benchmark_duration_seconds, enable_benchmark,
+       verify_lambdas
 
 displaylevel = 1
 set_displaylevel(level) = global displaylevel = level
@@ -66,6 +65,21 @@ function benchit(f)
     # There will be a single eval per sample, which at least should be fine for benchmark
     # expressions longer than ~1 μs.
     benchmark_results[test[1]] = run((@benchmarkable $f()), samples = typemax(Int), seconds = benchmark_duration_seconds)
+end
+
+"""
+`@test` that there are `expected_nr_lambdas` eigenvalues in `lambdas`, and that all norms
+of the eigenvectors in `vectors` are below the given tolerance.
+"""
+function verify_lambdas(expected_nr_lambdas, nep::NEP, vectors, lambdas, tol = 1e-5)
+    @test length(lambdas) == expected_nr_lambdas
+    @info "Found $(length(lambdas)) lambdas:"
+    for i in eachindex(lambdas)
+        λ = lambdas[i]
+        nrm = default_errmeasure(nep)(λ, vectors[:, i])
+        @test nrm < tol
+        @info "λ[$i] = $λ (norm = $(@sprintf("%.3g", nrm)))"
+    end
 end
 
 end

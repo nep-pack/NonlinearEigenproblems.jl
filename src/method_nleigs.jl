@@ -1,13 +1,8 @@
+using NonlinearEigenproblems.RKHelper
 using LinearAlgebra
 using Random
 
-export nleigs
-
-include("linsolvercache.jl")
-include("discretizepolygon.jl")
-include("lejabagby.jl")
-include("ratnewtoncoeffs.jl")
-include("ratnewtoncoeffsm.jl")
+export nleigs, NleigsSolutionDetails
 
 """
     nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
@@ -15,9 +10,7 @@ include("ratnewtoncoeffsm.jl")
 Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 
 # Arguments
-- `nep`: An instance of a nonlinear eigenvalue problem. If the problem can be
-  expressed as a sum of constant matrices times scalar functions, use the PNEP
-  type for best performance.
+- `nep`: An instance of a nonlinear eigenvalue problem.
 - `Σ`: A vector containing the points of a polygonal target set in the complex plane.
 - `Ξ`: A vector containing a discretization of the singularity set.
 - `displaylevel`: Level of display (0, 1, 2).
@@ -38,8 +31,8 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `check_error_every`: Check for convergence / termination every this number of iterations.
 
 # Return values
-- `X`: Matrix of eigenvectors of the nonlinear eigenvalue problem NLEP inside the target set Σ.
-- `λ`: Corresponding vector of eigenvalues.
+- `λ`: Vector of eigenvalues of the nonlinear eigenvalue problem NLEP inside the target set Σ.
+- `X`: Corresponding matrix of eigenvectors.
 - `res`: Corresponding residuals.
 - `details`: Solution details, if requested (see NleigsSolutionDetails).
 
@@ -80,7 +73,7 @@ function nleigs(
     X = Matrix{CT}(undef, 0, 0)
     res = Vector{T}()
 
-    P = get_nleigs_nep(T, nep)
+    P = get_rk_nep(T, nep)
     n = size(nep, 1)
     n == 1 && (maxdgr = maxit + 1)
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
@@ -368,80 +361,6 @@ function nleigs(
     return lam[conv], X[:,conv], res[conv], details
 end
 
-"Create NleigsNEP instance, exploiting the type of the input NEP as much as possible"
-function get_nleigs_nep(::Type{T}, nep::NEP) where T<:Real
-    # Most generic case: No coefficient matrices, all we have is M(λ)
-    if !isa(nep, AbstractSPMF)
-        return NleigsNEP(T, nep)
-    end
-
-    Av = get_Av(nep)
-    BBCC = vcat(Av...)::eltype(Av)
-
-    # Polynomial eigenvalue problem
-    if isa(nep, PEP)
-        return NleigsNEP(nep, length(Av) - 1, 0, BBCC)
-    end
-
-    # If we can't separate the problem into a PEP + SPMF, consider it purely SPMF
-    if !isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
-        return NleigsNEP(nep, -1, length(Av), BBCC)
-    end
-
-    p = length(get_Av(nep.nep1)) - 1
-    q = length(get_Av(nep.nep2))
-
-    # Case when there is no low rank structure to exploit
-    if q == 0 || !isa(nep.nep2, LowRankFactorizedNEP{S} where S<:Any)
-        return NleigsNEP(nep, p, q, BBCC)
-    end
-
-    # L and U factors of the low rank nonlinear part
-    L = nep.nep2.L
-    UU = hcat(nep.nep2.U...)::eltype(nep.nep2.U)
-    r = nep.nep2.r
-    iL = zeros(Int, r)
-    c = 0
-    for ii = 1:q
-        ri = size(L[ii], 2)
-        iL[c+1:c+ri] .= ii
-        c += ri
-    end
-
-    # Store L factors in a compact format to speed up system solves later on
-    LL = Vector{SparseVector{eltype(L[1]),Int}}()
-    iLr = Vector{Int}()
-    for ri = 1:size(nep, 1)
-        row = reduce(vcat, [L[i][ri,:] for i=1:length(L)])
-        if nnz(row) > 0
-            push!(LL, row)
-            push!(iLr, ri)
-        end
-    end
-
-    return NleigsNEP(nep, p, q, BBCC, r, iL, iLr, L, LL, UU)
-end
-
-"""
-Compute scalar generalized divided differences.
-
-# Arguments
-- `σ`: Discretization of target set.
-- `ξ`: Discretization of singularity set.
-- `β`: Scaling factors.
-"""
-function scgendivdiffs(σ::AbstractVector{CT}, ξ, β, maxdgr, isfunm, pff) where CT<:Complex{<:Real}
-    sgdd = zeros(CT, length(pff), maxdgr+2)
-    for ii = 1:length(pff)
-        if isfunm
-            sgdd[ii,:] = ratnewtoncoeffsm(pff[ii], σ, ξ, β)
-        else
-            sgdd[ii,:] = map(m -> m[1], ratnewtoncoeffs(pff[ii], σ, ξ, β))
-        end
-    end
-    return sgdd
-end
-
 "Construct generalized divided difference for number `nb`."
 function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     n = size(P.nep, 1)
@@ -600,3 +519,32 @@ function resize_matrix(A, rows, cols)
     resized[1:size(A, 1), 1:size(A, 2)] = A
     return resized
 end
+
+struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
+    "matrix of Ritz values in each iteration"
+    Lam::AbstractMatrix{CT}
+
+    "matrix of residuals in each iteraion"
+    Res::AbstractMatrix{T}
+
+    "vector of interpolation nodes"
+    σ::AbstractVector{CT}
+
+    "vector of poles"
+    ξ::AbstractVector{T}
+
+    "vector of scaling parameters"
+    β::AbstractVector{T}
+
+    "vector of norms of generalized divided differences (in function handle
+    case) or maximum of absolute values of scalar divided differences in
+    each iteration (in matrix function case)"
+    nrmD::AbstractVector{T}
+
+    "number of iterations until linearization converged"
+    kconv::Int
+end
+
+NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
+    Matrix{CT}(undef, 0, 0), Matrix{T}(undef, 0, 0), Vector{CT}(),
+    Vector{T}(), Vector{T}(), Vector{T}(), 0)

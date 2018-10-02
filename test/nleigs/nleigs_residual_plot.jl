@@ -1,7 +1,6 @@
+using NonlinearEigenproblems.RKHelper
 using Plots
 import GR
-
-include("../../src/nleigs/inpolygon.jl")
 
 function nleigs_residual_plot(title, solution_info, Σ; plot_attributes...)
     Lam = solution_info["Lam"]

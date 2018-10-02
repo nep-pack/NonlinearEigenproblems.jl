@@ -6,8 +6,6 @@ using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 
-include("nleigs_test_utils.jl")
-
 function nleigs_scalar()
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(undef,1,1); M[1] = x; M)
     n = 1
@@ -21,7 +19,7 @@ function nleigs_scalar()
         lambda, X = nleigs(nep, Σ, displaylevel=displaylevel, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # single eigenvalue converges
-        nleigs_verify_lambdas(1, nep, X, lambda)
+        verify_lambdas(1, nep, X, lambda)
     end
 
     @bench @testset "Fully rational" begin
@@ -31,7 +29,7 @@ function nleigs_scalar()
         lambda, X = nleigs(nep, Σ, Ξ=Ξ, displaylevel=displaylevel, maxit=100, v=ones(n).+0im, leja=2, isfunm=false)
 
         # three eigenvalues converge
-        nleigs_verify_lambdas(3, nep, X, lambda)
+        verify_lambdas(3, nep, X, lambda)
     end
 end
 

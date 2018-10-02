@@ -46,9 +46,7 @@ Executes z if displaylevel>1.
     include("method_blocknewton.jl")
     include("method_broyden.jl")
     include("method_ilan.jl")
-    include("nleigs/NleigsTypes.jl")
-
-
+    include("method_nleigs.jl")
 
     include("inner_solver.jl");
 

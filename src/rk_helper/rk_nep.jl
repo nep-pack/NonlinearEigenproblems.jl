@@ -1,10 +1,12 @@
+using NonlinearEigenproblems
 using SparseArrays
 
-export NleigsNEP
+export RKNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
 export LowRankFactorizedNEP
-export NleigsSolutionDetails
+
+export get_rk_nep
 
 import Base.size
 import ..NEPCore.compute_Mder
@@ -12,7 +14,8 @@ import ..NEPCore.compute_Mlincomb
 import ..NEPTypes.get_Av
 import ..NEPTypes.get_fv
 
-struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
+"NEP instance supplemented with various structures used for rational Krylov problems."
+struct RKNEP{S<:AbstractMatrix{<:Number}, T<:Number}
     nep::NEP            # Original NEP problem
     spmf::Bool          # Whether this NEP is a sum a products of matrices and functions
     p::Int              # Order of polynomial part
@@ -27,14 +30,14 @@ struct NleigsNEP{S<:AbstractMatrix{<:Number}, T<:Number}
     UU::S               # The U factors concatenated vertically
 end
 
-NleigsNEP(::Type{T}, nep::NEP) where T<:Number =
-    NleigsNEP(nep, false, 0, 0, Matrix{T}(undef, 0, 0), false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
+RKNEP(::Type{T}, nep::NEP) where T<:Number =
+    RKNEP(nep, false, 0, 0, Matrix{T}(undef, 0, 0), false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
-NleigsNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
-    NleigsNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
+RKNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
+    RKNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
-NleigsNEP(nep::NEP, p, q, BBCC, r, iL, iLr, L, LL, UU) =
-    NleigsNEP(nep, true, p, q, BBCC, true, r, iL, iLr, L, LL, UU)
+RKNEP(nep::NEP, p, q, BBCC, r, iL, iLr, L, LL, UU) =
+    RKNEP(nep, true, p, q, BBCC, true, r, iL, iLr, L, LL, UU)
 
 struct LowRankMatrixAndFunction{S<:AbstractMatrix{<:Number}}
     A::S
@@ -124,33 +127,56 @@ size(nep::LowRankFactorizedNEP, dim) = size(nep.spmf, dim)
 get_Av(nep::LowRankFactorizedNEP) = get_Av(nep.spmf)
 get_fv(nep::LowRankFactorizedNEP) = get_fv(nep.spmf)
 
-struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
-    "matrix of Ritz values in each iteration"
-    Lam::AbstractMatrix{CT}
+"Create RKNEP instance, exploiting the type of the input NEP as much as possible"
+function get_rk_nep(::Type{T}, nep::NEP) where T<:Real
+    # Most generic case: No coefficient matrices, all we have is M(λ)
+    if !isa(nep, AbstractSPMF)
+        return RKNEP(T, nep)
+    end
 
-    "matrix of residuals in each iteraion"
-    Res::AbstractMatrix{T}
+    Av = get_Av(nep)
+    BBCC = vcat(Av...)::eltype(Av)
 
-    "vector of interpolation nodes"
-    σ::AbstractVector{CT}
+    # Polynomial eigenvalue problem
+    if isa(nep, PEP)
+        return RKNEP(nep, length(Av) - 1, 0, BBCC)
+    end
 
-    "vector of poles"
-    ξ::AbstractVector{T}
+    # If we can't separate the problem into a PEP + SPMF, consider it purely SPMF
+    if !isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
+        return RKNEP(nep, -1, length(Av), BBCC)
+    end
 
-    "vector of scaling parameters"
-    β::AbstractVector{T}
+    p = length(get_Av(nep.nep1)) - 1
+    q = length(get_Av(nep.nep2))
 
-    "vector of norms of generalized divided differences (in function handle
-    case) or maximum of absolute values of scalar divided differences in
-    each iteration (in matrix function case)"
-    nrmD::AbstractVector{T}
+    # Case when there is no low rank structure to exploit
+    if q == 0 || !isa(nep.nep2, LowRankFactorizedNEP{S} where S<:Any)
+        return RKNEP(nep, p, q, BBCC)
+    end
 
-    "number of iterations until linearization converged"
-    kconv::Int
+    # L and U factors of the low rank nonlinear part
+    L = nep.nep2.L
+    UU = hcat(nep.nep2.U...)::eltype(nep.nep2.U)
+    r = nep.nep2.r
+    iL = zeros(Int, r)
+    c = 0
+    for ii = 1:q
+        ri = size(L[ii], 2)
+        iL[c+1:c+ri] .= ii
+        c += ri
+    end
+
+    # Store L factors in a compact format to speed up system solves later on
+    LL = Vector{SparseVector{eltype(L[1]),Int}}()
+    iLr = Vector{Int}()
+    for ri = 1:size(nep, 1)
+        row = reduce(vcat, [L[i][ri,:] for i=1:length(L)])
+        if nnz(row) > 0
+            push!(LL, row)
+            push!(iLr, ri)
+        end
+    end
+
+    return RKNEP(nep, p, q, BBCC, r, iL, iLr, L, LL, UU)
 end
-
-NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
-    Matrix{CT}(undef, 0, 0), Matrix{T}(undef, 0, 0), Vector{CT}(),
-    Vector{T}(), Vector{T}(), Vector{T}(), 0)
-
-include("method_nleigs.jl")

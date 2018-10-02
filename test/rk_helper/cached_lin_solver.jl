@@ -1,10 +1,9 @@
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
+using NonlinearEigenproblems.RKHelper
 using Random
 using SparseArrays
 using Test
-
-include(normpath(string(@__DIR__), "..", "..", "src", "nleigs", "linsolvercache.jl"))
 
 @bench @testset "cached_lin_solver" begin
     dep = nep_gallery("dep0")

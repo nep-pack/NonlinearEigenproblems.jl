@@ -4,8 +4,7 @@ using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 
-include("nleigs_test_utils.jl")
-include("gun_test_utils.jl")
+include(joinpath("..", "rk_helper", "gun_test_utils.jl"))
 
 @bench @testset "NLEIGS: Gun variant P" begin
     verbose = displaylevel
@@ -15,7 +14,7 @@ include("gun_test_utils.jl")
     # solve nlep
     lambda, X, res, solution_info = nleigs(nep, Σ, displaylevel=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reusefact=2, errmeasure=funres, return_details=verbose > 1)
 
-    nleigs_verify_lambdas(17, nep, X, lambda)
+    verify_lambdas(17, nep, X, lambda)
 
     if verbose > 1
         include("nleigs_residual_plot.jl")
