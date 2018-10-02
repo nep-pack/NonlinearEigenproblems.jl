@@ -1,4 +1,5 @@
 using NonlinearEigenproblems
+using NonlinearEigenproblems.RKHelper
 using LinearAlgebra
 using SparseArrays
 using Random
