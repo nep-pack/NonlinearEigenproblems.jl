@@ -138,7 +138,7 @@ for matrices in the standard matrix function sense.
      SPMF_NEP(AA, fii, check_consistency, Schur_fact = false, align_sparsity_patterns = false, , Ftype)
 
 Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. The `SPMF_NEP` is defined by
-a sum of matrices and functions
+a sum of products of matrices and functions
 ```math
 M(λ)=∑_i A_i f_i(λ).
 ```
@@ -149,8 +149,7 @@ for matrices in the standard matrix function sense.
 
 # Parameters
 
-* `AA` is a `Vector` of matrices. The matrices have to be of the same type. If you need a NEP with
-different types you can use [`SumNEP`](@ref) to construct a sum of two `SPMF_NEP`.
+* `AA` is a `Vector` of matrices. The matrices have to be of the same type. If you need a NEP with different types you can use [`SumNEP`](@ref) to construct a sum of two `SPMF_NEP`.
 
 * `fii` is a `Vector` of functions. Each function takes one parameter `S`. The functions must be available both as a scalar valid function and a matrix function. If `S` is a square matrix, `fii[k](S)` musst also be a square matrix. If `S` is a scalar `fii[k](S)` is a scalar.
 
