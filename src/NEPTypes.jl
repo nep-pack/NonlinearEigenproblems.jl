@@ -306,9 +306,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
     function compute_Mder_fi_and_output_type(nep::AbstractSPMF,λ::Number)
         ff=get_fv(nep);
         AA=get_Av(nep)
-        x = [f(reshape([λ],1,1))[1] for f in ff]
-        # The above line should be replace by below once we handled #71
-        #x = [f(λ) for f in ff]
+        x = [f(λ) for f in ff]
 
         # figure out the return type, as the greatest type of all input
         Tx = promote_typeof(x)
@@ -1193,9 +1191,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         local S,TS;
         if (V isa AbstractVector)
             #Vector means just compute matrix vector
-            S=reshape([λ],1,1)
-            # The above line should be replaced by below when all examples have handled #71
-            #S=λ
+            S=λ
             TS = eltype(λ)
         else
             # V matrix means compute linear combination of derivatives. Use
@@ -1212,9 +1208,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         for i=1:size(nep.A,1)
             # Get the function value if V is a vector,
             # otherwise get a vector of scaled derivatives
-            Fi1=(V isa AbstractVector) ? nep.fi[i](S)[1] : nep.fi[i](S)[:,1]
-            # The above line should be replaced by below when all examples have handled #71
-            #Fi1=(V isa AbstractVector) ? nep.fi[i](S) : nep.fi[i](S)[:,1]
+            Fi1=(V isa AbstractVector) ? nep.fi[i](S) : nep.fi[i](S)[:,1]
 
             VFi1=V*Fi1
             z .+= nep.A[i]*VFi1
