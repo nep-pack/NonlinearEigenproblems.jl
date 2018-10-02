@@ -1,5 +1,4 @@
 using NonlinearEigenproblems.RKHelper
-using IterativeSolvers
 using LinearAlgebra
 using Random
 
@@ -90,7 +89,7 @@ function cork(
     flag = true
 
     while i <= m + maxrest*(m-p)
-        r = corkstep(T, shifts[i], r, j, i, L, Q, U, d, NNZ, displaylevel)
+        r = corkstep(T, shifts[i], r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
 
         return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
@@ -157,9 +156,9 @@ function initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
     return (Q,U,r,j,H,K,X,lambda,res,Lam,Res,J,R,LU,SHIFTS,NNZ)
 end
 
-function corkstep(T, shift, r, j, i, L, Q, U, d, NNZ, displaylevel)
+# TODO: expand matrices in blocks, as in NLEIGS
+function corkstep(T, shift, r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
     displaylevel > 0 && println("iteration $i")
-    eta = 1/sqrt(2) # reorthogonalization constant
 
     # compute next vector
     v = Q[:, 1:r] * reshape(U[1:r, j, 1:d], r, :)
@@ -167,11 +166,26 @@ function corkstep(T, shift, r, j, i, L, Q, U, d, NNZ, displaylevel)
 
     # level 1 orthogonalization
     q = copy(v1)
-    delta = orthogonalize_and_normalize!(view(Q, :, 1:r), q, zeros(eltype(q), r), DGKS)
+    delta = Inf
+    nborth = 0
+    Qview = view(Q, :, 1:r)
+    eta = 1/sqrt(2) # reorthogonalization constant
+    while norm(q) < eta*delta && nborth <= maxreorth
+        delta = norm(q)
+        if nborth == 0
+            u1 = Qview'*v1
+            q .-= Qview*u1
+        else
+            q .-= Qview * (Qview'*q)
+        end
+        nborth += 1
+    end
+    delta = norm(q)
+    # update Q
     if delta > eps(T)
         rnew = r + 1
-        # expand Q (TODO: expand in blocks, as in NLEIGS)
         Q = resize_matrix(Q, size(Q, 1), rnew)
+        q /= delta
         Q[:,rnew] = q
     else
         rnew = r
@@ -179,10 +193,12 @@ function corkstep(T, shift, r, j, i, L, Q, U, d, NNZ, displaylevel)
 
     # level 2 orthogonalization
     if rnew > r
-        U[rnew,:,:] = 0
+        U = resize_matrix(U, rnew, size(U, 2), size(U, 3))
+        U[rnew,:,:] .= 0
         u1 = [u1; q'*v1]
     end
-    u2 = [] #TODO: reshape(U(1:rnew,j,1:d),rnew,[])*transpose(MsN1invN) - bsxfun(@times,transpose(MsN1inv0),u1)
+    u2 = []#reshape(U[1:rnew,j,1:d], rnew, :) * transpose(MsN1invN)
+        #- bsxfun(@times, transpose(MsN1inv0), u1)
     u = [u1; reshape(u2, :, 1)]
     delta = Inf
     nborth = 0
