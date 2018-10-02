@@ -4,8 +4,28 @@ using SparseArrays
 export companion
 export polyeig #Wrapper around the solver for a linearized PEP pencil
 
+
 """
-    Return the most commonly used companion linearization(as in "Non-linear eigenvalue problems, a challenge for modern eigenvalue methods", by Mehrmann and Voss) of a PEP. For a k-th degree PEP with n-by-n coefficient matrices, this returns E and A, both kn-by-kn, the linearized problem is Ax = λEx
+    E,A = companion(nep::Pep);
+
+Linearizes a  polynomial eigenvalue problem (PEP) a to the companion form, as in the paper by Mehrmann and Voss.
+More precisely, for a k-th degree PEP with n-by-n coefficient matrices,
+this returns matrices E and A, both kn-by-kn, corresponding to the linearized problem
+```math
+Ax = λEx
+```
+
+# Example
+```julia-repl
+julia> pep = nep_gallery("pep0");
+julia> E,A = companion(pep);
+julia> λ, V = eigen(A,E);
+julia> minimum(svd(compute_Mder(pep,λ[1])).S)
+2.703104679937224e-12
+```
+
+# References
+* V. Mehrmann and H. Voss, Non-linear eigenvalue problems, a challenge for modern eigenvalue methods, GAMM‐Mitteilungen (2004)
 """
     function companion(pep::PEP)
 
@@ -47,8 +67,25 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
     #############################################################################
     #Solve the linearized companion of a PEP
 
-    polyeig(pep::PEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
+    """
+λ,v = polyeig([eltype],nep::PEP,[eigsolvertype,])
 
+Linearizes a  polynomial eigenvalue problem (PEP) a to the companion form
+and solves the corresponding linear eigenvalue problem; see `companion`.
+The `eigsolvertype` is optinal can be used to specify how the linear problem
+is solved; see `eig_solve` and `EigSolver`.
+
+# Example
+```julia-repl
+julia> pep = nep_gallery("pep0");
+julia> λ,V = polyeig(pep);
+julia> minimum(svd(compute_Mder(pep,λ[1])).S)
+2.1724582040065456e-14
+julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
+1.2210363164200074e-12
+```
+"""
+    polyeig(pep::PEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
     function polyeig(::Type{T},pep::PEP,eigsolvertype::DataType=DefaultEigSolver) where T
 
         #Linearize to Ax = λEx
@@ -57,8 +94,8 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
         solver::EigSolver = eigsolvertype(A,E);
         D,V = eig_solve(solver,target=one(T),nev=size(A)[1]);
 
-        D = Array{T,1}(D)
-        V = Array{T,2}(V)
+        D = Vector{T}(D)
+        V = Matrix{T}(V)
 
         return D,V[1:pep.n,:]
     end
