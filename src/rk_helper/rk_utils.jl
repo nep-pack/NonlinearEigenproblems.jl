@@ -2,7 +2,8 @@
 # Rational Krylov utility functions
 ####################################
 
-export lejabagby, scgendivdiffs, ratnewtoncoeffs, ratnewtoncoeffsm
+export lejabagby, scgendivdiffs, ratnewtoncoeffs, ratnewtoncoeffsm,
+       resize_matrix
 
 """
 Generate Leja-Bagby points (a,b) on (A,B), with scaling factors β such that
@@ -125,4 +126,10 @@ function evalrat(σ::AbstractVector{CT}, ξ::AbstractVector{T}, β::AbstractVect
         r .*= (z .- σ[j]) ./ (1 .- z/ξ[j]) / β[j+1]
     end
     return r
+end
+
+function resize_matrix(A, rows, cols)
+    resized = zeros(eltype(A), rows, cols)
+    resized[1:size(A, 1), 1:size(A, 2)] = A
+    return resized
 end

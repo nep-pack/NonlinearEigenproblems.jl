@@ -515,12 +515,6 @@ function in_Σ(z::AbstractVector{CT}, Σ::AbstractVector{CT}, tol::T) where {T<:
     return map(p -> inpolygon(real(p), imag(p), realΣ, imagΣ), z)
 end
 
-function resize_matrix(A, rows, cols)
-    resized = zeros(eltype(A), rows, cols)
-    resized[1:size(A, 1), 1:size(A, 2)] = A
-    return resized
-end
-
 struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
     "matrix of Ritz values in each iteration"
     Lam::AbstractMatrix{CT}
