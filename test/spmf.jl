@@ -13,7 +13,7 @@ using SparseArrays
     Random.seed!(1)
     A0=sparse(randn(n,n));
     A1=sparse(randn(n,n));
-    t=3.0
+    t::Float64=3.0
 
     minusop = S -> -S
     oneop = S -> one(S)
@@ -247,7 +247,10 @@ using SparseArrays
         A2=randn(5,5)
         # Check that REP generates the
         # same values as an SPMF generated from the REP
-        nep0=REP([A0,A1,A2],[1,2,3.3])
+        d1::Float64=1;
+        d2::Float64=2;
+        d3::Float64=3.3;
+        nep0=REP([A0,A1,A2],[d1,d2,d3])
         nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
         for  λ in [3,10,-3,-100]
             M0=compute_Mder(nep0,λ)
@@ -261,8 +264,8 @@ using SparseArrays
         Random.seed!(88)
         A1=randn(5,5)
         A2=randn(5,5)
-        τ1 = 1.5
-        τ2 = 3.75
+        τ1::Float64 = 1.5
+        τ2::Float64 = 3.75
         # Check that DEP generates the
         # same values as an SPMF generated from the DEP
         nep0=DEP([A1,A2],[τ1, τ2])

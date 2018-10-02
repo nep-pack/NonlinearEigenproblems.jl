@@ -786,7 +786,7 @@ julia> compute_Mder(nep,3)
     function get_fv(nep::REP)
         fv = Vector{Function}(undef, size(nep.qi, 1))
         for i=1:size(fv,1)
-            fv[i]=S -> (lpolyvalm(nep.qi[i],S)\lpolyvalm(nep.si[i],S))
+            fv[i]=S->(lpolyvalm(nep.qi[i],S)\lpolyvalm(nep.si[i],S))::((S isa Number) ? Number : Matrix)
         end
         return fv
     end
