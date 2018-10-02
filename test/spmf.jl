@@ -164,7 +164,7 @@ using SparseArrays
         A3=randn(5,5)
         # Check that PEP generates the
         # same values as an SPMF generated from the PEP
-        nep0=PEP([A0,A1,A2, A3])
+        nep0=PEP([A0,A1,A2,A3])
         nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
         for  λ in [3,10,-3,-100]
             M0=compute_Mder(nep0,λ)
