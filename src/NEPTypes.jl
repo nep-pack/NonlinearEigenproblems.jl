@@ -178,7 +178,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
                        Schur_fact = false,
-                       check_consistency=false, Ftype=ComplexF64,
+                       check_consistency=true, Ftype=ComplexF64,
                        align_sparsity_patterns=false)
 
          matrices_are_sparse = issparse.(AA)

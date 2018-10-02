@@ -21,7 +21,7 @@ using Random
             Random.seed!(1)
             A0=randn(5,5);
             A1=randn(5,5);
-            t=3.0
+            t::Float64=3.0
 
             minusop= S-> -S
             oneop= S -> one(S)
@@ -41,7 +41,7 @@ using Random
 
             minusop= S-> -S
             oneop= S -> one(S)  # one(S) replaced by I it would not return a matrix
-            expmop= S -> sqrt(-t*S + 30*I) # Note: I should work heree
+            expmop= S -> sqrt(-t*S + 30*one(S))
             fi=[minusop, oneop, expmop];
 
             nep=SPMF_NEP([A0,A1,A2],fi)
