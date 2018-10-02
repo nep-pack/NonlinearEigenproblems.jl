@@ -17,7 +17,7 @@ julia> ]
 
 After that, check out "Getting started" in 
 
-<p align="center">[NEP-PACK online user's guide](https://nep-pack.github.io/NonlinearEigenproblems.jl])</p>
+<p align="center">[NEP-PACK online user's guide](https://nep-pack.github.io/NonlinearEigenproblems.jl)</p>
 
 
 ## Older julia versions:
