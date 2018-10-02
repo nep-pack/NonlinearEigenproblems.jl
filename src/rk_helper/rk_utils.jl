@@ -128,8 +128,8 @@ function evalrat(σ::AbstractVector{CT}, ξ::AbstractVector{T}, β::AbstractVect
     return r
 end
 
-function resize_matrix(A, rows, cols)
-    resized = zeros(eltype(A), rows, cols)
-    resized[1:size(A, 1), 1:size(A, 2)] = A
+function resize_matrix(A, dims...)
+    resized = zeros(eltype(A), dims...)
+    resized[map(d -> 1:size(A, d), 1:ndims(A))...] = A
     return resized
 end
