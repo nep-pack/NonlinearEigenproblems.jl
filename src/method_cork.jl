@@ -1,4 +1,5 @@
 using NonlinearEigenproblems.RKHelper
+using IterativeSolvers
 using LinearAlgebra
 using Random
 
@@ -165,24 +166,9 @@ function corkstep(shift, r, j, i, L, Q, U, d, NNZ, displaylevel)
     v1,MsN1inv0,MsN1invN = backslash(shift, v, L, d, NNZ)
 
     # level 1 orthogonalization
-    q = v1
-    delta = Inf
-    nborth = 0
-    while norm(q) < eta*delta && nborth <= maxreorth
-        delta = norm(q)
-        if nborth == 0
-            u1 = Q[:,1:r]'*v1
-            q = q - Q[:,1:r]*u1
-        else
-            q = q - Q[:,1:r] * (Q[:,1:r]'*q)
-        end
-        nborth += 1
-    end
-    delta = norm(q)
-    # update Q
+    delta = orthogonalize_and_normalize!(view(Q, :, 1:r), q, zero(q), DGKS)
     if delta > eps(T)
         rnew = r + 1
-        q = q/delta
         Q[:,rnew] = q
     else
         rnew = r

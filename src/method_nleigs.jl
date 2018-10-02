@@ -1,4 +1,5 @@
 using NonlinearEigenproblems.RKHelper
+using IterativeSolvers
 using LinearAlgebra
 using Random
 
