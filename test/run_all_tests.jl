@@ -1,4 +1,4 @@
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using Printf
 using Test
 
@@ -9,7 +9,7 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
-    "TestUtils.jl", # utilities used by other tests
+    "NonlinearEigenproblemsTest.jl", # utilities used by other tests
 ]))
 
 function run_all_tests(test_name_regex = "")

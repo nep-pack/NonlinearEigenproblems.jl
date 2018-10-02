@@ -1,4 +1,4 @@
-push!(LOAD_PATH, normpath(@__DIR__, "..")); using TestUtils
+using NonlinearEigenproblemsTest
 using Test
 using NonlinearEigenproblems.RKHelper
 

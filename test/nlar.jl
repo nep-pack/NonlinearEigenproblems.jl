@@ -1,7 +1,7 @@
 # Unit test for the Nonlinear Arnoldi method (in src/method_nlar.jl)
 # The "Gun" problem form gun_native.jl
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -29,7 +29,9 @@ using Random
     nep1 = shift_and_scale(nep1_spmf,shift=shift,scale=scale);
 
     #Run NLAR on the shifted and scaled NEP (neigs set to 1 to save time. Method works for the case of finding multiple eigenvalues as well)
-    λ,u = nlar(nep1, tol=TOL, λ = 0,maxit=100, neigs = 2, R=0.01,displaylevel=1,v=ones(n),eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false,num_restart_ritz_vecs=8,max_subspace=150);
+    λ,u = nlar(nep1, tol=TOL, λ=0, maxit=100, neigs=2, R=0.01, displaylevel=displaylevel, v=ones(n),
+        eigval_sorter=residual_eigval_sorter, inner_solver_method=NEPSolver.IARInnerSolver,
+        qrfact_orth=false, num_restart_ritz_vecs=8, max_subspace=150)
 
     λ_shifted = λ[1];v=u[:,1];
 
@@ -49,7 +51,9 @@ using Random
     c = sortperm(abs.(Dc))
     @info " 6 smallest eigenvalues found by polyeig() according to the absolute values: $(Dc[c[1:6]])"
 
-    λ,u = nlar(pepnep, tol=TOL, maxit=60, neigs = 3, R=0.001,displaylevel=1, λ=Dc[4]+1e-2,v=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,inner_solver_method=NEPSolver.IARInnerSolver,qrfact_orth=false);
+    λ,u = nlar(pepnep, tol=TOL, maxit=60, neigs=3, R=0.001, displaylevel=displaylevel,
+        λ=Dc[4]+1e-2, v=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,
+        inner_solver_method=NEPSolver.IARInnerSolver, qrfact_orth=false)
 
     @info " Smallest eigenvalues found: $λ"
 
@@ -59,4 +63,3 @@ using Random
     @test norm(compute_Mlincomb(pepnep,λ[3],u[:,3])) < TOL
 
 end
-

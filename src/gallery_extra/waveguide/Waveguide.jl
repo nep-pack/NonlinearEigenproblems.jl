@@ -20,7 +20,7 @@ function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMat
     A[3] = hvcat((2,2), Q2, spzeros(ComplexF64,nx*nz, 2*nz), spzeros(ComplexF64,2*nz, nx*nz), spzeros(ComplexF64,2*nz, 2*nz) )
 
     f = Vector{Function}(undef, 3+2*nz)
-    f[1] = λ -> Matrix{ComplexF64}(I, size(λ,1),size(λ,2))
+    f[1] = λ -> one(λ)
     f[2] = λ -> λ
     f[3] = λ -> λ^2
 
@@ -79,17 +79,17 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
 
     # Note: γ should be scalar or matrix (not vector)
     betaM = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + Matrix{ComplexF64}(cM[j]*I, size(γ,1), size(γ,1))
+        return γ^2 + b[j]*γ + cM[j]*one(γ)
     end
     betaP = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + Matrix{ComplexF64}(cP[j]*I, size(γ,1), size(γ,1))
+        return γ^2 + b[j]*γ + cP[j]*one(γ)
     end
 
     sM = function(γ, j::Integer)
-        return  1im*sqrtm_schur_pos_imag(betaM(γ, j)) + Matrix{ComplexF64}(d0*I, size(γ,1), size(γ,1))
+        return  1im*sqrt_schur_pos_imag(betaM(γ, j)) + d0*one(γ)
     end
     sP = function(γ, j::Integer)
-        return  1im*sqrtm_schur_pos_imag(betaP(γ, j)) + Matrix{ComplexF64}(d0*I, size(γ,1), size(γ,1))
+        return  1im*sqrt_schur_pos_imag(betaP(γ, j)) + d0*one(γ)
     end
 
 
@@ -109,12 +109,13 @@ end
 
 ###########################################################
     """
-    sqrtm_schur_pos_imag(A::AbstractMatrix)
+    sqrt_schur_pos_imag(A::AbstractMatrix)
  Computes the matrix square root on the 'correct branch',
  that is, with positivt imaginary part. Similar to Schur method
  in Algorithm 6.3 in Higham matrix functions.
 """
-function sqrtm_schur_pos_imag(A::AbstractMatrix)
+sqrt_schur_pos_imag(A::Number) = sqrt_pos_imag(A)
+function sqrt_schur_pos_imag(A::AbstractMatrix)
     n = size(A,1);
     AA = Matrix{ComplexF64}(A);
     (T, Q, ) = schur(AA)

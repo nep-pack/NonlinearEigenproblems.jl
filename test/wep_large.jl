@@ -24,7 +24,7 @@ matlab_debug_WEP_FD(119, 115, delta)
 
 matlab_debug_full_matrix_WEP_FD_SPMF(21, 17, delta)
 
-debug_sqrtm_schur(281)
+debug_sqrt_schur(281)
 
 debug_sqrt_derivative()
 

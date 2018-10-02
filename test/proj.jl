@@ -1,6 +1,6 @@
 #  Tests for the projected NEPs
 
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -14,7 +14,7 @@ using Random
 
         local nep::NEP
         if (nepstr == "pep")
-            nep=nep_gallery("pep0_sparse_003");
+            nep=nep_gallery("pep0_sparse");
         elseif (nepstr == "dep")
 
             n=5;

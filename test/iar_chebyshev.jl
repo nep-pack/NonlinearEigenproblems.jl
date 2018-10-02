@@ -1,4 +1,4 @@
-push!(LOAD_PATH, @__DIR__); using TestUtils
+using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using Random
@@ -136,7 +136,7 @@ end
 
             n=1000; K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(K, J, rand(3*n-2)); A1=sparse(K, J, rand(3*n-2))
-            nep = SPMF_NEP([sparse(1.0I, n, n), A0, A1], [λ -> -λ, λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> exp(-λ)])
+            nep = SPMF_NEP([sparse(1.0I, n, n), A0, A1], [λ -> -λ, λ -> one(λ), λ -> exp(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
             (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)
@@ -173,7 +173,7 @@ end
 
         @bench @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
             A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
-            nep = SPMF_NEP([A0, A1, A2], [λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> λ, λ -> λ^2])
+            nep = SPMF_NEP([A0, A1, A2], [λ -> one(λ), λ -> λ, λ -> λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
             @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
@@ -191,7 +191,7 @@ end
 
         @bench @testset "PEP in SPMF format" begin
             A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
-            nep = SPMF_NEP([A0, A1, A2], [λ -> Matrix{eltype(λ)}(I, size(λ)), λ -> λ, λ -> λ^2])
+            nep = SPMF_NEP([A0, A1, A2], [λ -> one(λ), λ -> λ, λ -> λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(n));
             @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());

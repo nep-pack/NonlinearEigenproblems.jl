@@ -15,14 +15,19 @@ julia> ]
 (v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 ```
 
+After that, check out "Getting started" in 
+
+<p align="center">[NEP-PACK online user's guide](https://nep-pack.github.io/NonlinearEigenproblems.jl)</p>
+
+
+## Older julia versions:
+
 We don't support Julia 0.6, but it is possible to use it by running
 ```
 julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 ```
 and switch to the git-tag v0.1.
 
-After that, check out "Getting started" in the user documentation
-https://nep-pack.github.io/NonlinearEigenproblems.jl
 
 
 # Development
