@@ -149,10 +149,10 @@ function particle_nep(interval)
     # nonlinear functions
     f = Vector(undef, length(brpts))
     for j = 1:interval-1
-        f[j] = lambda -> exp(im * sqrt(Matrix(m * (lambda - brpts[j] * I))))
+        f[j] = lambda -> exp(im * sqrt((m * (lambda - brpts[j] * I))))
     end
     for j = interval:length(brpts)
-        f[j] = lambda -> exp(-sqrt(Matrix(m * (-lambda + brpts[j] * I))))
+        f[j] = lambda -> exp(-sqrt((m * (-lambda + brpts[j] * I))))
     end
 
     # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only

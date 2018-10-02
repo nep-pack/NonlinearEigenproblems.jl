@@ -12,7 +12,7 @@ function nleigs_scalar()
     as_matrix(x::Number) = (M = Matrix{eltype(x)}(undef,1,1); M[1] = x; M)
     n = 1
     C = [as_matrix(0.2), as_matrix(-0.6)]
-    f = [λ -> sqrt(λ), λ -> sin.(2*λ)]
+    f = [λ -> sqrt(λ), λ -> sin(2*λ)]
     nep = SPMF_NEP([C[1], C[2]], [f[1], f[2]])
 
     Σ = complex([0.01, 4])
