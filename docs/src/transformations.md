@@ -27,12 +27,19 @@ N(λ)u=0.
 ```
 
 NEPs for which this projection can be computed
-inherit from `ProjectableNEP`. The result of the
+inherit from `ProjectableNEP`.
+
+```@docs
+ProjectableNEP
+```
+
+The result of the
 projection is represented in a `Proj_NEP`.
 
 ```@docs
 Proj_NEP
 ```
+
 You can create a projected NEP with `create_proj_NEP`:
 
 ```@docs
@@ -41,9 +48,6 @@ create_proj_NEP
 
 ```@docs
 set_projectmatrices!
-```
-
-```@docs
 expand_projectmatrices!
 ```
 

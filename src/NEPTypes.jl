@@ -53,12 +53,17 @@ module NEPTypes
     promote_eltype(A::AbstractArray{<:AbstractArray}) = isempty(A) ? eltype(eltype(A)) : mapreduce(eltype, promote_type, A)
 
     #
-    """
+"""
     abstract ProjectableNEP <: NEP
 
-A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP. A NEP which is of this must have the function `create_proj_NEP(orgnep::ProjectableNEP)` implemented. This function must return a `Proj_NEP` See also `set_projectmatrices!".
+A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem ``W'*M(λ)Vw=0`` with the [`Proj_NEP`](@ref).
+A NEP which is of this must have the function [`create_proj_NEP(orgnep::ProjectableNEP)`](@ref) implemented.
+This function must return a `Proj_NEP`.
+
+ See also: [`set_projectmatrices!`](@ref).
 
 # Example:
+```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> typeof(nep)
 DEP{Float64,Array{Float64,2}}
@@ -72,6 +77,7 @@ julia> compute_Mder(nep,3.0)[1,1]
 julia> compute_Mder(projnep,3.0)
 1×1 Array{Float64,2}:
  -2.315345215259418
+```
 """
     abstract type ProjectableNEP <: NEP end
 
@@ -92,21 +98,23 @@ functions and matrices.
 
 """
     get_Av(nep::AbstractSPMF)
-Returns an array of matrices A_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+
+Returns an array of matrices ``A_i`` in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
     function get_Av(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_Av for all AbstractSPMFs")
     end
 """
     get_Av(nep::AbstractSPMF)
-Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+
+Returns an Array of functions (that can be evaluated both as scalar and matrix functions) ``f_i`` in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
     function get_fv(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_fv for all AbstractSPMFs")
     end
 
 """
-    SPMF_NEP
+    struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
 
 An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions,
 i.e.,
@@ -407,9 +415,6 @@ A DEP (Delay Eigenvalue problem) is defined by
 the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
 of the matrices are of size n times n.\\
 Constructor: DEP(AA,tauv) where AA is an array of the
-```math
-\\frac{n!}{k!(n - k)!} = \\binom{n}{k}
-```
 matrices A_i, and tauv is a vector of the values tau_i
 
 # Example:
@@ -839,7 +844,7 @@ The optional parameter `maxsize::Int` determines how large the projected
 problem can be and `T` is the Number type used for the projection matrices
 (default `ComplexF64`).
 These are needed for memory preallocation reasons.
-Use [`set_projectmatrices!()`](@ref) and [`expand_projectmatrices!()`](@ref)
+Use [`set_projectmatrices!`](@ref) and [`expand_projectmatrices!`](@ref)
  to specify projection matrices ``V`` and ``W``.
 
 # Example:

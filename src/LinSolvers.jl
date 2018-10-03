@@ -92,8 +92,8 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`DefaultSolver`](@ref), [`default_linsolvercreator`](@ref),
-[`BackslashSolver`](@ref), [`backslash_linsolvercreator`](@ref),
+[`DefaultLinSolver`](@ref), [`default_linsolvercreator`](@ref),
+[`BackslashLinSolver`](@ref), [`backslash_linsolvercreator`](@ref),
 [`GMRESLinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 
 """
@@ -249,8 +249,8 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
     abstract type EigSolver
 
 Structs inheriting from this type are able to solve linear eigenvalue problems
-arising in certain methods, such as, e.g., [`mslp`](@ref), [`sgiter`](@ref),
-and [`polyeig`](@ref).
+arising in certain methods, such as, e.g., `mslp`, `sgiter`,
+and `polyeig`.
 
 The `EigSolver` objects are passed as types to the NEP-algorithms,
 which uses it to dispatch the correct version of the function [`eig_solve`](@ref).
@@ -259,7 +259,7 @@ which uses it to dispatch the correct version of the function [`eig_solve`](@ref
 
 The most common usecase is that you do not want to specify anything in particular, since
 the [`DefaultEigSolver`](@ref) will use a dense or a sparse method depending on you problem.
-However, this example shows how you can force [`mslp`](@ref) to use the sparse solver.
+However, this example shows how you can force `mslp` to use the sparse solver.
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
 julia> λ,v = mslp(nep, eigsolvertype=NativeEigSSolver);
