@@ -35,6 +35,7 @@ See also: [`inner_solve`](@ref), [`DefaultInnerSolver`](@ref), [`NewtonInnerSolv
 """
 abstract type InnerSolver end;
 
+
 """
     abstract type DefaultInnerSolver <: InnerSolver
 
@@ -44,6 +45,7 @@ See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 abstract type DefaultInnerSolver <: InnerSolver end;
 
+
 """
     abstract type NewtonInnerSolver <: InnerSolver
 
@@ -52,6 +54,7 @@ Uses [`augnewton`](@ref) to solve the inner problem.
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 abstract type NewtonInnerSolver <: InnerSolver end;
+
 
 """
     abstract type PolyeigInnerSolver <: InnerSolver
@@ -63,6 +66,7 @@ See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 abstract type PolyeigInnerSolver <: InnerSolver end;
 
+
 """
     abstract type IARInnerSolver <: InnerSolver
 
@@ -70,16 +74,18 @@ Uses [`iar`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type IARChebInnerSolver <: InnerSolver end;
+abstract type IARInnerSolver <: InnerSolver end;
+
 
 """
-    abstract type IARInnerSolver <: InnerSolver
+    abstract type IARChebInnerSolver <: InnerSolver
 
 Uses [`iar_chebyshev`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 abstract type IARChebInnerSolver <: InnerSolver end;
+
 
 """
     abstract type SGIterInnerSolver <: InnerSolver
@@ -90,6 +96,7 @@ See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 abstract type SGIterInnerSolver <: InnerSolver end;
 
+
 """
     abstract type ContourBeynInnerSolver <: InnerSolver
 
@@ -98,6 +105,7 @@ Uses [`contour_beyn`](@ref) to solve the inner problem.
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 abstract type ContourBeynInnerSolver <: InnerSolver end;
+
 
 """
   inner_solve(T,T_arit,nep;kwargs...)
