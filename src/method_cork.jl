@@ -89,7 +89,7 @@ function cork(
     flag = true
 
     while i <= m + maxrest*(m-p)
-        r = corkstep(T, shifts[i], r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
+        r = corkstep(T, shifts[i], r, j, i, L, Q, U, H, K, J, R, d, maxreorth, NNZ, displaylevel)
 
         return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
@@ -128,8 +128,8 @@ function initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
     j = 1
 
     # Hessenberg matrices H and K
-    H = zeros(m+1, m)
-    K = zeros(m+1, m)
+    H = zeros(CT, m+1, m)
+    K = zeros(CT, m+1, m)
 
     # eigenpairs and residuals
     X = fill(NaN, n, m)
@@ -157,7 +157,7 @@ function initialize(CT, v0, L, n, m, d, p, maxrest, return_details)
 end
 
 # TODO: expand matrices in blocks, as in NLEIGS
-function corkstep(T, shift, r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
+function corkstep(T, shift, r, j, i, L, Q, U, H, K, J, R, d, maxreorth, NNZ, displaylevel)
     displaylevel > 0 && println("iteration $i")
 
     # compute next vector
@@ -171,6 +171,8 @@ function corkstep(T, shift, r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
     Qview = view(Q, :, 1:r)
     eta = 1/sqrt(2) # reorthogonalization constant
     while norm(q) < eta*delta && nborth <= maxreorth
+        # TODO: use BLAS-2 as in https://github.com/JuliaMath/IterativeSolvers.jl/blob/master/src/orthogonalize.jl
+        # (we can't use that method since we need access to 'u1' below)
         delta = norm(q)
         if nborth == 0
             u1 = Qview'*v1
@@ -185,7 +187,7 @@ function corkstep(T, shift, r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
     if delta > eps(T)
         rnew = r + 1
         Q = resize_matrix(Q, size(Q, 1), rnew)
-        q /= delta
+        q ./= delta
         Q[:,rnew] = q
     else
         rnew = r
@@ -197,23 +199,23 @@ function corkstep(T, shift, r, j, i, L, Q, U, d, maxreorth, NNZ, displaylevel)
         U[rnew,:,:] .= 0
         u1 = [u1; q'*v1]
     end
-    u2 = []#reshape(U[1:rnew,j,1:d], rnew, :) * transpose(MsN1invN)
-        #- bsxfun(@times, transpose(MsN1inv0), u1)
+    u2 = reshape(U[1:rnew,j,1:d], rnew, :) * transpose(MsN1invN) - transpose(MsN1inv0) .* u1
     u = [u1; reshape(u2, :, 1)]
     delta = Inf
     nborth = 0
     while norm(u) < eta*delta && nborth <= maxreorth
         delta = norm(u)
-        h = reshape(conj(permute(U[1:rnew,1:j,1:d], [2,1,3])), :, d*rnew) * u
-        u = u - reshape(permute(U[1:rnew,1:j,1:d], [1,3,2]), :, j) * h
-        H[1:j,j] = H[1:j,j] + h
+        h = reshape(conj(permutedims(U[1:rnew,1:j,1:d], [2,1,3])), :, d*rnew) * u
+        u .-= reshape(permutedims(U[1:rnew,1:j,1:d], [1,3,2]), :, j) * h
+        H[1:j,j] .+= vec(h)
         nborth += 1
     end
-    K[1:j,j] = shift*H[1:j,j] + flipud(eye(j,1))
+    K[1:j,j] = shift*H[1:j,j]
+    K[j,j] += 1
     H[j+1,j] = norm(u)
     K[j+1,j] = shift*H[j+1,j]
     # update U
-    u = u/H[j+1,j]
+    u ./= H[j+1,j]
     U[1:rnew,j+1,1:d] = reshape(u, :, d)
 
     # dimensions
