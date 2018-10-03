@@ -15,12 +15,12 @@ julia> ]
 (v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 ```
 
-After that, check out "Getting started" in 
+After that, check out "Getting started" in
 
 <p align="center">[NEP-PACK online user's guide](https://nep-pack.github.io/NonlinearEigenproblems.jl)</p>
 
 
-## Older julia versions:
+## Older Julia versions:
 
 We don't support Julia 0.6, but it is possible to use it by running
 ```

@@ -56,10 +56,13 @@ broyden
 ## Projection methods
 ```@docs
 nlar
+jd_betcke
+jd_effenberger
 ```
 ## Arnoldi type methods
 ```@docs
 iar
+iar_chebyshev
 tiar
 infbilanczos
 ```
@@ -67,5 +70,9 @@ infbilanczos
 ## Class specific methods
 
 ### Companion linearizations
+```@docs
+companion
+polyeig
+```
 
 ### Rational ?

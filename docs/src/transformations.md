@@ -40,11 +40,11 @@ create_proj_NEP
 ```
 
 ```@docs
-set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
+set_projectmatrices!
 ```
 
 ```@docs
-expand_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
+expand_projectmatrices!
 ```
 
 

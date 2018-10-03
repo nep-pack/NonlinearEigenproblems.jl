@@ -137,7 +137,7 @@ Computes linear combination starting with derivative startder, i.e.,
 ``Σ_i a_i M^{(i+startder)}(λ) v_i``
 
 The default implementation of this can be slow. Overload for specific NEP
-if you want efficiency (for aug_newton, IAR, ..).
+if you want efficiency, e.g., in  [`augnewton`](@ref), [`iar`](@ref), and others.
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector,startder::Integer)
         aa=[zeros(eltype(a), startder);a];
@@ -236,10 +236,8 @@ a jordan block becomes derivatives
 
     """
     compute_resnorm(nep::NEP,λ,v)
-Computes the residual norm of the `nep`, in the point `λ`, with the vector `v`, i.e.,
-```math
-||M(λ)v||
-```
+Computes the residual norm of the `nep`, in the point `λ`, with the vector
+`v`, i.e., ``||M(λ)v||``.
 """
     function compute_resnorm(nep::NEP,λ,v)
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))

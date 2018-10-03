@@ -1,7 +1,7 @@
 
-# NEPPACK
+# NEP-PACK
 
-NEPPACK is a package with implementations of methods to solve nonlinear eigenvalue problems of
+NEP-PACK is a package with implementations of methods to solve nonlinear eigenvalue problems of
 the type: Find ``(λ,v)\in\mathbb{C}\times\mathbb{C}^n`` such that
 ```math
 M(λ)v=0
@@ -11,7 +11,7 @@ and ``v\neq 0``.
 
 # Getting started
 
-Install it as an unregistered package in julia's REPL package mode by
+Install it as an unregistered package in Julia's REPL package mode by
 writing `] add git:/..`:
 ```
 julia> ]
@@ -39,13 +39,13 @@ PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.
 julia> λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
 ```
-You have now solved your first nonlinear eigenvalue problem with NEPPACK.
+You have now solved your first nonlinear eigenvalue problem with NEP-PACK.
 
 In order to verify that we have a solution, we can check that  ``M(λ)`` is singular,
 with a singular vector ``v`` such that ``M(λ)v=0``:
 ```julia-repl
 julia> λ1=λ[1]; v1=v[:,1];
-julia> using LinearAlgebra # the norm-function is in this julia package
+julia> using LinearAlgebra # the norm-function is in this Julia package
 julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 1.1502634749464687e-14
 ```
@@ -53,7 +53,7 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 
 # Accessing more complicated applications
 
-We have made benchmark examples available in through the function `nep_gallery`:
+We have made benchmark examples available in through the function [`nep_gallery`](gallery.md#NonlinearEigenproblems.nep_gallery):
 
 ```julia-repl
 julia> nep=nep_gallery("dep0",100);

@@ -84,7 +84,8 @@ julia> compute_Mder(projnep,3.0)
 An AbstractSPMF is an abstract class representing NEPs which can be represented
 as a Sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,
 where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions.
-Any AbstractSPMF has to have implementations of get_Av() and get_fv() which return the
+
+Any AbstractSPMF has to have implementations of [`get_Av()`](@ref) and [`get_fv()`](@ref) which return the
 functions and matrices.
 """
     abstract  type AbstractSPMF{T} <: ProjectableNEP end # See issue #17
@@ -116,11 +117,9 @@ All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
 """
-
-# Logic behind Ftype:
-#  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
-
     struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
+    # Logic behind Ftype:
+    #  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
@@ -1062,11 +1061,37 @@ julia> compute_Mder(pnep,0)
         return false; # A projected NEP is (essentially) never sparse
     end
 
-    """
-        type SumNEP{nep1::NEP,nep2::NEP} <: NEP
+"""
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
 
-SumNEP corresponds to a sum of two NEPs, i.e., if nep is a SumNEP it
-is defined by
+See also: [`SumNEP`](@ref), [`SPMFSumNEP`](@ref)
+"""
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+"""
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
+
+See also: [`SumNEP`](@ref), [`GenericSumNEP`](@ref)
+"""
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
+    # Creator functions for SumNEP
+    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
+        return SPMFSumNEP(nep1,nep2);
+    end
+    """
+    SumNEP{nep1::NEP,nep2::NEP}
+    SumNEP{nep1::AbstractSPMF,nep2::AbstractSPMF}
+
+SumNEP is a function creating an object that corresponds to a sum of two NEPs,
+i.e., if nep is created by SumNEP it is defined by
 ```math
 M(λ)=M_1(λ)+M_2(λ)
 ```
@@ -1091,22 +1116,10 @@ julia> M1+M2  # Same as M
  -0.943908  -13.0795   -0.621659
   6.03155    -7.26726  -6.42828
 ```
+
+See also: [`SPMFSumNEP`](@ref), [`GenericSumNEP`](@ref)
+
 """
-    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
-        nep1::NEP1
-        nep2::NEP2
-    end
-
-    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
-        nep1::NEP1
-        nep2::NEP2
-    end
-
-    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
-    # Creator functions for SumNEP
-    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
-        return SPMFSumNEP(nep1,nep2);
-    end
     function SumNEP(nep1::NEP,nep2::NEP)
         return GenericSumNEP(nep1,nep2);
     end

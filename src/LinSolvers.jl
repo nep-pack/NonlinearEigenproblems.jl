@@ -40,7 +40,7 @@ module LinSolvers
 Structs inheriting from this type are able to solve linear systems associated with
 a NEP, for a specific `λ`-value. The most common are direct solvers such as
 [`DefaultLinSolver`](@ref), [`BackslashLinSolver`](@ref) and iterative solvers
-such as [`GMRESlinsolver`](@ref).
+such as [`GMRESLinSolver`](@ref).
 
 The LinSolver objects are usually created by the NEP-algorithms through
 creator functions, which are passed as parameters.
