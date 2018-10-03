@@ -91,10 +91,10 @@ function cork(
     while i <= m + maxrest*(m-p)
         r = corkstep(T, shifts[i], r, j, i, L, Q, U, H, K, J, R, d, maxreorth, NNZ, displaylevel)
 
-        return ([],[],[],true,CorkSolutionDetails{T,CT}())
-
         # compute Ritz pairs and residuals
-        flag = ritzpairs(r, j, i, l)
+        flag = ritzpairs(r, j, i, l, σ, Σ, K, H, nbrest, Lam, Res, displaylevel)
+
+        return ([],[],[],true,CorkSolutionDetails{T,CT}())
 
         # check for convergence
         !flag && break
@@ -338,7 +338,7 @@ function backslash(shift, y, L, d, NNZ)
 end
 
 
-function ritzpairs(r,j,i,l)
+function ritzpairs(r, j, i, l, σ, Σ, K, H, nbrest, Lam, Res, displaylevel)
     # QZ factorization
     qzreal = isreal(σ) && isreal(K) && isreal(H)
     if qzreal
@@ -349,8 +349,8 @@ function ritzpairs(r,j,i,l)
 
     # ritz pairs
     ordlam = ordeig(G, F)
-    lambda[l+1:j] = ordlam(l+1:j)
-    idx,in = sortlam(lambda[1:j])
+    lambda[l+1:j] = ordlam[l+1:j]
+    idx,in = sortlam(lambda[1:j], Σ)
     if qzreal
         ii = l+1
         while ii <= j
@@ -446,17 +446,19 @@ function ritzpairs(r,j,i,l)
     return flag
 end
 
-function sortlam(lambda)
+function sortlam(lambda, Σ)
     if isempty(Σ)
-        _,idx = sort(abs(lambda - σ))
+        idx = sortperm(abs(lambda .- σ))
         in = fill(true, length(lambda))
     else
-        in = inpolygon(real(lambda), imag(lambda), real(Σ), imag(Σ))
+        realΣ = real(Σ)
+        imagΣ = imag(Σ)
+        in = map(p -> inpolygon(real(p), imag(p), realΣ, imagΣ), lambda)
         Ilambda = 1:length(lambda)
         Ilamin = Ilambda[in]
         Ilamout = Ilambda[!in]
-        _,Iin = sort(abs(lambda[in] - σ))
-        _,Iout = sort(abs(lambda[!in] - σ))
+        Iin = sortperm(abs(lambda[in] .- σ))
+        Iout = sortperm(abs(lambda[!in] .- σ))
         idx = [Ilamin[Iin]; Ilamout[Iout]]
     end
     return (idx,in)
