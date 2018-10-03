@@ -12,7 +12,6 @@ module NEPTypes
     export PEP
     export REP
     export SPMF_NEP
-    export SPMF_NEP_dense
 
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
