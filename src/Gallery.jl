@@ -143,6 +143,15 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
 * GalleryNLEVP
 * GalleryWaveguide
   """
+    nep_gallery(name::String, params...; kwargs...)=nep_gallery(NEP, name, params...; kwargs...)
+    function nep_gallery(::Type{T}, name::String, params...; kwargs...) where T<:NEP
+        global Gallery
+        if !haskey(GALLERY, name)
+            error("$name not supported")
+        end
+
+        return GALLERY[name](params...; kwargs...)
+    end
 
     const GALLERY = Dict(
         "dep0" => dep0,
@@ -167,14 +176,5 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "sine" => sine_nep,
     )
 
-    nep_gallery(name::String, params...; kwargs...)=nep_gallery(NEP, name, params...; kwargs...)
-    function nep_gallery(::Type{T}, name::String, params...; kwargs...) where T<:NEP
-        global Gallery
-        if !haskey(GALLERY, name)
-            error("$name not supported")
-        end
-
-        return GALLERY[name](params...; kwargs...)
-    end
 
 end # end of Gallery-module
