@@ -571,15 +571,45 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             a[i]=dot(y,nep.A[i]*x);
         end
         m=size(nep.A,1);
+        # Build a bigfloat companion matrix
         A=zeros(T,m-1,m-1);
         for k=1:m-1
-            A[ķ,k+1]=1;
+            if (k<m-1)
+                A[k,k+1]=1;
+            end
             A[end,k]=-a[k]/a[end]
         end
         pp=eigvals(A);
         rr=real(pp);  # This function only works if polynomial roots are real
-        return rr
+        II=sortperm(abs.(rr .- target))
+        return rr[II];
     end
+
+    # Overload a version of eigvals(::Matrix{BigFloat}) for compute_rf
+    import LinearAlgebra.eigvals
+    function eigvals(A::Union{Matrix{BigFloat},Matrix{Complex{BigFloat}}})
+        T=eltype(A);
+        Tfloat= (T <: Complex) ? (ComplexF64) : (Float64)
+        Afloat=Matrix{Tfloat}(A);
+        λv,X=eigen(Afloat);
+        local λv_bigfloat=Vector{Complex{BigFloat}}(λv);
+        # Some Rayleigh quotient iteration steps in bigfloat to improve accuracy:
+        for j=1:size(λv,1)
+            local s=λv_bigfloat[j];
+            z=Vector{Complex{BigFloat}}(X[:,j])
+            for f=1:3
+                z=(A-s*I)\z; normalize!(z);
+                s=z'*A*z;
+            end
+            λv_bigfloat[j]=s
+        end
+        if (maximum(abs.((λv_bigfloat-λv)./λv_bigfloat)) > eps()*100)
+            @warn("Correction iteration of eigvals for bigfloat, made the eigenvalues move considerably")
+        end
+
+        return λv_bigfloat
+    end
+
 
 
 # Compute the ith derivative of a PEP
