@@ -432,10 +432,6 @@ See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [
         end
     end
 
-    # Additional constructor that allows for calling the default linear eigensolver with a NEP rather than an explicit matrix
-    function DefaultEigSolver(nep::NEP,λ::Number)
-        return DefaultEigSolver(compute_Mder(nep,λ))
-    end
 
 """
     eig_solve(solver::EigSolver; [nev,] [target,])
