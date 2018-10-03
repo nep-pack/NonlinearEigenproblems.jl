@@ -57,4 +57,9 @@ using Random
 
     verify_lambdas(3, pepnep, λ, u, TOL)
 
+
+    @info "Testing errors thrown"
+    nep = nep_gallery("pep0",4)
+    @test_throws NEPCore.NoConvergenceException λ,u= nlar(nep, tol=1e-20, maxit=2, neigs=3)
+
 end
