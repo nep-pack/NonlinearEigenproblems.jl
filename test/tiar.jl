@@ -67,7 +67,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
         λ,Q = tiar(depp, σ=0, γ=3, Neig=3, v=ones(np), displaylevel=0, maxit=50,
                    tol=sqrt(eps()), check_error_every=3,
-                   proj_solve=true, inner_solver_method=NEPSolver.IARInnerSolver,
+                   proj_solve=true, inner_solver_method=IARInnerSolver,
                    errmeasure=errmeasure);
 
         @test errmeasure(λ[1],Q[:,1])<sqrt(eps())*10
