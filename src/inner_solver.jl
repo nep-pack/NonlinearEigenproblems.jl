@@ -4,6 +4,13 @@ using LinearAlgebra
 
 export inner_solve;
 export InnerSolver;
+export NewtonInnerSolver
+export PolyeigInnerSolver
+export DefaultInnerSolver
+export IARInnerSolver
+export IARChebInnerSolver
+export SGIterInnerSolver
+export ContourBeynInnerSolver
 
 """
     abstract type InnerSolver
