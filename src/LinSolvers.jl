@@ -252,7 +252,7 @@ Structs inheriting from this type are able to solve linear eigenvalue problems
 arising in certain methods, such as, e.g., [`mslp`](@ref), [`sgiter`](@ref),
 and [`polyeig`](@ref).
 
-The EigSolver objects are passed as types to the NEP-algorithms,
+The `EigSolver` objects are passed as types to the NEP-algorithms,
 which uses it to dispatch the correct version of the function [`eig_solve`](@ref).
 
 # Example

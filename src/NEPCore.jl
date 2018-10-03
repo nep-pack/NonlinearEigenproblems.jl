@@ -219,6 +219,7 @@ Usage normally by overloading:
         end
         return z
     end
+
     """
     compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
 Computes the Mder function from MM using the fact that MM of
@@ -232,9 +233,13 @@ a jordan block becomes derivatives
         W=compute_MM(nep,S,V)
         return W[1:n,1:n]
     end
+
     """
     compute_resnorm(nep::NEP,λ,v)
-Computes the residual norm ||M(λ)v|| of the nep.
+Computes the residual norm of the `nep`, in the point `λ`, with the vector `v`, i.e.,
+```math
+||M(λ)v||
+```
 """
     function compute_resnorm(nep::NEP,λ,v)
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
@@ -353,7 +358,10 @@ Exeption thrown in case an iterative method does not converge\\
 
     """
     default_errmeasure(nep::NEP)
-The default way of measuring error (residual norm).
+The default way of measuring error.
+Returns a function computing the relative residual norm.
+
+See also: [`compute_resnorm`](@ref),
 """
     function default_errmeasure(nep::NEP)
         return (λ,v) -> compute_resnorm(nep,λ,v)/norm(v)
