@@ -578,9 +578,12 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             A[end,k]=-a[k]/a[end]
         end
         pp=eigvals(A);
-        rr=real(pp);  # This function only works if polynomial roots are real
-        II=sortperm(abs.(rr .- target))
-        return rr[II];
+        if (T <: Real) # If we specify real arithmetic, return real eigvals
+            pp=real(pp);
+        end
+
+        II=sortperm(abs.(pp .- target))
+        return pp[II];
     end
 
     # Overload a version of eigvals(::Matrix{BigFloat}) for compute_rf
