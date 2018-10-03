@@ -1,4 +1,5 @@
 export iar_chebyshev
+export compute_y0_cheb
 
 using IterativeSolvers
 using LinearAlgebra
@@ -36,7 +37,7 @@ Run the infinite Arnoldi method (Chebyshev version) on the nonlinear eigenvalue 
 
 The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
 `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
-is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. The `linsolvercreator` is a function which specifies how the linear system is created and solved. The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See `compute_y0`(@ref)
+is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. The `linsolvercreator` is a function which specifies how the linear system is created and solved. The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See [`compute_y0_cheb`](@ref) in the module NEPSolver with the command `?NEPSolver.compute_y0_cheb`.
 
 
 # Example
@@ -272,11 +273,16 @@ function precompute_data(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},a,b,m,γ,σ)
     precomp.α=γ.^(0:m);
     return precomp;
 end
+"""
+    y0 = compute_y0_cheb([eltype],nep::NEPTypes.DEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
+
+Computes the vector y0 used in [`iar_chebyshev`](@ref) given by
+```math
+ y_0 = \\sum_{i=1}^N T_{i-1}(γ) x_i - \\sum_{j=1}^m A_j \\left( \\sum_{i=1}^{N+1} T_{i-1}(-ρ \\tau_j+γ) y_i \\right )
+```
+where T(c) is the vector containing \$T_i(c)\$ as coefficients, where \$T_i\$ is the i-th Chebyshev polynomial of the first kind.
+"""
 function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
-# compute_y0_dep computes y0 for the DEP
-# The formula is explicitly given by
-# y_0= \sum_{i=1}^N T_{i-1}(γ) x_i - \sum_{j=1}^m A_j \left( \sum_{i=1}^{N+1} T_{i-1}(-ρ \tau_j+γ) y_i\right )
-# where T_i is the i-th Chebyshev polynomial of the first kind
     Tc=precomp.Tc;
     Ttau=precomp.Ttau;
     Av=get_Av(nep);
@@ -289,12 +295,16 @@ function compute_y0_cheb(T,nep::NEPTypes.DEP,::Type{ComputeY0ChebDEP},X,Y,M0inv,
     y0=lin_solve(M0inv,y0)
     return y0
 end
-function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
-# compute_y0_pep computes y0 for the PEP
-# The formula is explicitly given by
-# y_0= \sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
-# where T(c) is the vector containing T_i(c) as coefficients, where T_i is the i-th Chebyshev polynomial of the first kind
+"""
+    y0 = compute_y0_cheb([eltype],nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
 
+Computes the vector y0 used in [`iar_chebyshev`](@ref) given by
+```math
+ y_0 = \\sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
+```
+where T(c) is the vector containing \$T_i(c)\$ as coefficients, where \$T_i\$ is the i-th Chebyshev polynomial of the first kind.
+"""
+function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
     Tc=precomp.Tc;
     n,N=size(X)
     d=length(nep.A)-1;  # degree of the PEP
@@ -309,6 +319,15 @@ function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,
     y0-=Y*(view(Tc,1:N+1));
     return y0
 end
+"""
+    y0 = compute_y0_cheb([eltype],nep::NEPTypes.SPMF_NEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
+
+Computes the vector y0 used in [`iar_chebyshev`](@ref) given by
+```math
+ y_0= \\sum_{j=0}^{m} M^{(j)}(\\mu) X b_j \\left( D_N \\right) T_N(c) - Y T_N(c)
+```
+where T(c) is the vector containing \$T_i(c)\$ as coefficients, where \$T_i\$ is the i-th Chebyshev polynomial of the first kind and \$b_j(\\lambda)=(f_j(0)-f_j(\\lambda))/\\lambda=f[\\lambda,0]\$ are divided differences.
+"""
 function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_NEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
     Tc=precomp.Tc;
     n,N=size(X);
