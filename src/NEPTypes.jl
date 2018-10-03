@@ -570,8 +570,14 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         for i=1:size(nep.A,1)
             a[i]=dot(y,nep.A[i]*x);
         end
-        p=Poly(a);
-        rr=real(poly_roots(p));  # Only works if polynomial roots are real
+        m=size(nep.A,1);
+        A=zeros(T,m-1,m-1);
+        for k=1:m-1
+            A[ķ,k+1]=1;
+            A[end,k]=-a[k]/a[end]
+        end
+        pp=eigvals(A);
+        rr=real(pp);  # This function only works if polynomial roots are real
         return rr
     end
 
