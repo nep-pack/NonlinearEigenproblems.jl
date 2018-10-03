@@ -32,9 +32,11 @@ end
 """
     iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1])
 
-### Infinite Arnoldi method
+Run the infinite Arnoldi method (Chebyshev version) on the nonlinear eigenvalue problem stored in `nep`.
 
-Runs the infinite Arnoldi method (Chebyshev version) which tries to find eigenvalues close to the shift σ. The shifted-and-scaled Chebyshev polynomials in the interval [a,b] are used as Krylov space.
+The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
+`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructin the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
+is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. The `linsolvercreator` is a function which specifies how the linear system is created and solved.
 
 
 # Example
