@@ -15,27 +15,27 @@ function nleigs_basic()
 
     @bench @testset "Polynomial only" begin
         lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5)
-        verify_lambdas(4, pep, X, lambda)
+        verify_lambdas(4, pep, lambda, X)
     end
 
     @bench @testset "Non-convergent linearization" begin
         @test_logs (:warn, r".*Linearization not converged.*") match_mode = :any begin
             lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5)
-            verify_lambdas(4, pep, X, lambda)
+            verify_lambdas(4, pep, lambda, X)
         end
     end
 
     @bench @testset "Non-convergent linearization (static)" begin
         @test_logs (:warn, r".*Linearization not converged.*") match_mode = :any begin
             lambda, X = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, maxdgr=5, blksize=5, static=true)
-            verify_lambdas(4, pep, X, lambda)
+            verify_lambdas(4, pep, lambda, X)
         end
     end
 
     @bench @testset "Non-convergent linearization (return_details)" begin
         @test_logs (:warn, r".*Linearization not converged.*") match_mode = :any begin
             lambda, X, _ = nleigs(pep, Σ, maxit=5, v=ones(n).+0im, blksize=5, return_details=true)
-            verify_lambdas(0, pep, X, lambda)
+            verify_lambdas(0, pep, lambda, X)
         end
     end
 
@@ -43,17 +43,17 @@ function nleigs_basic()
         complex_B = map(X -> X + im*I, B)
         complex_pep = PEP(complex_B)
         lambda, X, _ = nleigs(complex_pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
-        verify_lambdas(3, complex_pep, X, lambda)
+        verify_lambdas(3, complex_pep, lambda, X)
     end
 
     @bench @testset "Complex-valued start vector" begin
         lambda, X, _ = nleigs(pep, Σ, maxit=10, v=ones(n) * (1+0.1im), blksize=5, return_details=true)
-        verify_lambdas(4, pep, X, lambda)
+        verify_lambdas(4, pep, lambda, X)
     end
 
     @bench @testset "return_details" begin
         lambda, X, res, details = nleigs(pep, Σ, maxit=10, v=ones(n).+0im, blksize=5, return_details=true)
-        verify_lambdas(4, pep, X, lambda)
+        verify_lambdas(4, pep, lambda, X)
 
         lam = details.Lam[:,end]
         res = details.Res[:,end]

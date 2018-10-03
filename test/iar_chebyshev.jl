@@ -80,18 +80,14 @@ end
         a=-maximum(dep.tauv)
         b=0;
         (λ,Q)=iar_chebyshev(dep,a=a,b=b,Neig=10,maxit=100)
-        @testset "IAR eigval[$i]" for i in 1:length(λ)
-            @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<n*sqrt(eps());
-        end
+        verify_lambdas(10, dep, λ, Q, n*sqrt(eps()))
     end
 
 
     dep=nep_gallery("dep0"); n=size(dep,1);
     @bench @testset "accuracy eigenpairs" begin
         (λ,Q)=iar_chebyshev(dep,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100);
-        @testset "IAR eigval[$i]" for i in 1:length(λ)
-            @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<n*sqrt(eps());
-        end
+        verify_lambdas(5, dep, λ, Q, n*sqrt(eps()))
     end
 
     @testset "orthogonalization" begin
@@ -129,11 +125,10 @@ end
             nep=PEP(A)
             (λ,Q)=iar_chebyshev(nep,σ=0,Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
 
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "DEP WITH GENERIC Y0" begin
-
             n=1000; K=[1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]; # sparsity pattern of tridiag matrix
             A0=sparse(K, J, rand(3*n-2)); A1=sparse(K, J, rand(3*n-2))
             nep = SPMF_NEP([sparse(1.0I, n, n), A0, A1], [λ -> -λ, λ -> one(λ), λ -> exp(-λ)])
@@ -141,7 +136,7 @@ end
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
             (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,Neig=7,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)
 
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(7, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "DEP WITH DELAYS>1" begin
@@ -150,14 +145,13 @@ end
             nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
             (λ,Q)=iar_chebyshev(nep,σ=0,Neig=3,displaylevel=0,maxit=90,tol=eps()*100)
 
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(3, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "DEP SHIFTED AND SCALED" begin
             nep=nep_gallery("dep0_tridiag",1000)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
-
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "PEP SHIFTED AND SCALED" begin
@@ -166,27 +160,27 @@ end
             for j=0:d
                 A[j+1]=rand(n,n)
             end
-            nep=PEP(A);       (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
+            nep=PEP(A)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100)
 
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
             A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep = SPMF_NEP([A0, A1, A2], [λ -> one(λ), λ -> λ, λ -> λ^2])
-
             λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+
+            verify_lambdas(10, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "QDEP IN SPMF format" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=8,σ=0.0,γ=1,displaylevel=0,check_error_every=1);
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(8, nep, λ, Q, n*sqrt(eps()))
             # with scaling
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=8,σ=0.0,γ=0.9,displaylevel=0,check_error_every=1);
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
-
+            verify_lambdas(8, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "PEP in SPMF format" begin
@@ -194,19 +188,16 @@ end
             nep = SPMF_NEP([A0, A1, A2], [λ -> one(λ), λ -> λ, λ -> λ^2])
 
             λ,Q,err,V = iar_chebyshev(nep,maxit=100,Neig=10,σ=0.0,γ=1,displaylevel=0,check_error_every=1,v=ones(n));
-            @test compute_resnorm(nep,λ[1],Q[:,1])<n*sqrt(eps());
+            verify_lambdas(10, nep, λ, Q, n*sqrt(eps()))
 
             λ2,Q2,err2,V2, H2 = iar_chebyshev(nep,maxit=100,Neig=20,σ=0.0,γ=1,displaylevel=0,check_error_every=1,compute_y0_method=ComputeY0Cheb,v=ones(n));
-
             @test opnorm(V[:,1:10]-V2[:,1:10])<n*sqrt(eps());
-
         end
 
         @bench @testset "DEP format with ComputeY0ChebSPMF_NEP" begin
             nep=nep_gallery("dep0_tridiag",1000)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
-
-            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
+            verify_lambdas(5, nep, λ, Q, 1e-10)
         end
 
         @bench @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
@@ -218,22 +209,20 @@ end
             nep=PEP(A)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2,Neig=5,displaylevel=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
 
-            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10
+            verify_lambdas(5, nep, λ, Q, 1e-10)
         end
 
         @bench @testset "compute_y0 AS INPUT FOR QDEP (combine DEP and PEP)" begin
             nep=nep_gallery("qdep1")
             λ,Q,err,V,H = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
-            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+            verify_lambdas(10, nep, λ, Q, 1e-10)
 
             λ2,Q2,err2,V2,H2 = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QDEP,maxit=100,Neig=10,displaylevel=0,
                                         check_error_every=1,v=ones(size(nep,1)));
-            @test compute_resnorm(nep,λ[1],Q[:,1])<1e-10;
+            verify_lambdas(10, nep, λ, Q, 1e-10)
 
             @test opnorm(V[:,1:10]-V2[:,1:10])+opnorm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
-
         end
-
     end
 end

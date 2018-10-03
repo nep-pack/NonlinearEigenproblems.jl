@@ -20,18 +20,19 @@ using LinearAlgebra
     set_projectmatrices!(pnep,Q,Q)
 
     λv,V = inner_solve(NEPSolver.DefaultInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, Neig=3, V=ones(k, 2), tol=eps()*100)
-    @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+    verify_lambdas(2, pnep, λv, V, eps()*500)
 
     λv,V = inner_solve(NEPSolver.NewtonInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, V=ones(k, 2), tol=eps()*100)
-    @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+    verify_lambdas(2, pnep, λv, V, eps()*500)
 
     #λv,V=inner_solve(NEPSolver.SGIterInnerSolver,pnep,λv=[0.0],j=1);
-    #@test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+    #verify_lambdas(2, pnep, λv, V, eps()*500)
 
     λv,V = inner_solve(NEPSolver.IARChebInnerSolver, ComplexF64, pnep; λv=[0,1,2,3] .+ 0.0im)
-    @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+    verify_lambdas(10, pnep, λv, V, eps()*500)
 
+    # TODO: this test results in a "Rank drop" warning, and a third eigenvalue that's not converged
     λv,V = inner_solve(NEPSolver.ContourBeynInnerSolver, ComplexF64, pnep; λv=[0,1] .+ 0.0im, Neig=3)
     # @test minimum(svdvals(compute_Mder(pnep,λv[1]))) < eps()*100
-    @test norm(compute_Mlincomb(pnep,λv[1],V[:,1])) < eps()*100
+    verify_lambdas(2, pnep, λv[1:2], V[:,1:2], eps()*500)
 end

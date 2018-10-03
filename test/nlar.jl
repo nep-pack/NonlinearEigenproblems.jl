@@ -55,11 +55,6 @@ using Random
         λ=Dc[4]+1e-2, v=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,
         inner_solver_method=NEPSolver.IARInnerSolver, qrfact_orth=false)
 
-    @info " Smallest eigenvalues found: $λ"
-
-    # Test residuals
-    @test norm(compute_Mlincomb(pepnep,λ[1],u[:,1])) < TOL
-    @test norm(compute_Mlincomb(pepnep,λ[2],u[:,2])) < TOL
-    @test norm(compute_Mlincomb(pepnep,λ[3],u[:,3])) < TOL
+    verify_lambdas(3, pepnep, λ, u, TOL)
 
 end
