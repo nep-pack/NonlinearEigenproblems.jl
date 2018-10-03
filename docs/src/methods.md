@@ -1,6 +1,6 @@
 # NEP Methods
 
-The NEP solver methods implemented in NEP-pack, are accessed by
+The NEP solver methods implemented in NEP-PACK, are accessed by
 the functions below. The functions all return ``λ,v,w`` where
 ``λ`` is either a number (eigenvalue) a vector of eigenvalues
 ``v`` is either a vector containing an eigenvector
