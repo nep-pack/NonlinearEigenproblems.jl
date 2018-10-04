@@ -894,7 +894,7 @@ julia> compute_Mder(pnep,3.0)
     struct Proj_SPMF_NEP <: Proj_NEP
 
 This type represents the (generic) way to project NEPs which are
-`AbstractSPMF`. See examples in [`create_proj_SPMF`](@ref).
+`AbstractSPMF`. See examples in [`create_proj_NEP`](@ref).
 """
     mutable struct Proj_SPMF_NEP  <: Proj_NEP
         orgnep::AbstractSPMF
