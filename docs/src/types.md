@@ -1,39 +1,20 @@
-# The basic type
+# NEPTypes
 
+## The basic type
 The basic class is the abstract class `NEP` which represents
-a NEP.
+a NEP. All other defined NEPs should inherit from `NEP`, or from a more
+specialized version; see, e.g., [`ProjectableNEP`](transformations.md#NonlinearEigenproblems.NEPTypes.ProjectableNEP) or [`AbstractSPMF`](types.md#NonlinearEigenproblems.NEPTypes.AbstractSPMF).
 
 ```@docs
 NEP
 ```
 
-## Accessing the NEP
 
-The nonlinear eigenvalue problem is defined by the data
-stored in the NEP-class, and the NEP-solvers access
-the data mainly through three main functions, `compute_Mder`
-`compute_Mlincomb` and `compute_MM`.
-
-```@docs
-compute_Mder
-```
-```@docs
-compute_Mlincomb
-```
-
-```@docs
-compute_MM
-```
-
-
-# NEPTypes
-
-In order to use the methods,
-the user has the possibility to implement their own
-problem-specific functions above, or use one of the predefined
-types. The most common one is the `SPMF_NEP`.
+Below we list the most common types built-in to NEP-PACK, and further down how you can [access the NEP](types.md#accessNEP).
+However, the structure is made for extendability, and hence it is possible for you to extend with your own class of NEPs.
 
 ## SPMF
+One of the most common problem types is the `SPMF_NEP`.
 SPMF is short for Sum of Products of Matrices and Functions and the NEP is described by
 ```math
 M(λ) = \sum_{i} A_i f_i(λ).
@@ -106,7 +87,7 @@ REP(AA,poles::Array{<:Number,1})
 ```
 
 
-# SumNEP
+## SumNEP
 It is also possible to consider NEPs that are summs of other NEPs. For such situations
 there are SumNEPs. Specifically `GenericSumNEP` and `SPMFSumNEP`. Both are constructed using
 the function `SumNEP`.
@@ -119,4 +100,25 @@ GenericSumNEP
 ```
 ```@docs
 SPMFSumNEP
+```
+
+
+# Accessing the NEP
+<a name="accessNEP"></a>
+
+The nonlinear eigenvalue problem is defined by the data
+stored in the NEP-class, and the NEP-solvers access
+the data mainly through three main functions, `compute_Mder`
+`compute_Mlincomb` and `compute_MM`.
+
+```@docs
+compute_Mder
+```
+
+```@docs
+compute_Mlincomb!
+```
+
+```@docs
+compute_MM
 ```

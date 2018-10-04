@@ -1,5 +1,5 @@
 
-# nep_gallery
+# The Gallery function
 A large number of examples are provided in the `nep_gallery`.
 
 ```julia-repl
@@ -16,7 +16,7 @@ nep_gallery
 ```
 
 # Berlin-Manchester collection
-If MATLAB and the Berlin-Manchester collection are installed,
+If MATLAB and the [Berlin-Manchester collection](http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) are installed,
 we can access them with the GalleryNLEVP
 (which does MATLAB-access through Julia's MATLAB-package).
 
@@ -43,7 +43,7 @@ julia> norm(compute_Mder(nep1,0)-compute_Mder(nep2,0),1)
 
 # Other gallery examples
 Stand-alone implementation can be accessed in a similar way, e.g.,
-a native implementation of the Waveguide Eigenvalue Problem:
+a native implementation of the Waveguide Eigenvalue Problem can be accessed as
 ```julia-repl
 julia> using GalleryWaveguide
 julia> nep=nep_gallery(WEP,benchmark_problem="TAUSCH");

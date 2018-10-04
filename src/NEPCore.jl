@@ -47,11 +47,11 @@ A `NEP` object represents a nonlinear eigenvalue problem. All NEPs should implem
 size(nep::NEP,d)
 ```
 and at least one of the following
-```
-M=compute_Mder(nep::NEP,λ::Number;der=0)
-V=compute_Mlincomb(nep::NEP,λ::Number,V::Array{<:Number,2})
-MM=compute_MM(nep::NEP,S::Array{<:Number,2},V::Array{<:Number,2})
-```
+
+* M = [`compute_Mder(nep::NEP,λ::Number,i::Integer=0)`](@ref)
+* V = [`compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)`](@ref)
+* MM = [`compute_MM(nep::NEP,S,V)`](@ref)
+
 
 """
     abstract type NEP end
@@ -78,7 +78,8 @@ julia> opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
         error("You need to provide an implementation of compute_Mder for this NEP.\nIf you have a compute_MM-function you may want to define: \ncompute_Mder($(typeof(nep)),λ::Number,i::Integer)=compute_Mder_from_MM(nep,λ,i)")
     end
 
-    """
+
+"""
     compute_Mlincomb(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
     compute_Mlincomb!(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
 Computes the linear combination of derivatives\\
@@ -96,6 +97,8 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
 ```
 """
+compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector), compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector)
+
     function compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)
         # This will manually scale the columns in V by the vector a.
         if (ones(eltype(a),size(a,1))==a) # No scaling necessary
@@ -292,15 +295,17 @@ julia> x'*compute_Mlincomb(nep,s,x)
 
 
    """
-    size(nep::NEP,dim=-1)
+    size(nep::NEP)
+    size(nep::NEP,dim)
 Overloads the size functions for NEP.\\
 Size returns the size of the matrix defining the NEP.
+
 Note: All NEPs must implement this function.
 """
-    function size(nep::NEP,dim)
+    function size(nep::NEP)
         error("You need to provide an implementation of size for this NEP.")
     end
-    function size(nep::NEP)
+    function size(nep::NEP,dim)
         error("You need to provide an implementation of size for this NEP.")
     end
 
