@@ -193,14 +193,12 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                  s=one(T);
                  ci=@code_typed(fii[t](s)) # ci[end] gives the return type
                  if !(ci[end] <: Number)
-                     #@warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                     error("The given function does not return a scalar if evaluated in a scalar")
+                     @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
                  end
                  S=ones(T,2,2);
                  ci=@code_typed(fii[t](S))
                  if !(ci[end] <: Matrix)
-                     #@warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                     error("The given function does not return a scalar if evaluated in a scalar")
+                     @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
                  end
              end
          end
@@ -1031,7 +1029,7 @@ julia> compute_Mder(pnep,0)
                 view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
                 end, 1:m)
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=true)
     end
 
     # Use delagation to the nep_proj
