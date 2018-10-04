@@ -501,7 +501,9 @@ julia> norm(M1-M2)
             if nep.tauv[i] == 0 # Zero delay means constant term
                 fv[i+1] = S -> one(S)
             else
-                fv[i+1] = S -> exp(-nep.tauv[i]*S)
+                # introducing tau is needed to define type stable functions
+                tau=nep.tauv[i] #delay of the i-th term
+                fv[i+1] = S -> exp(-tau*S)
             end
         end
 
