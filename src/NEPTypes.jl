@@ -1066,7 +1066,7 @@ julia> compute_Mder(pnep,0)
                 view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
                 end, 1:m)
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=true)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
     # Use delagation to the nep_proj
