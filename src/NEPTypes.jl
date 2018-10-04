@@ -177,7 +177,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
 """
      function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
                        Schur_fact = false,
-                       check_consistency=false, Ftype=ComplexF64,
+                       check_consistency=true, Ftype=ComplexF64,
                        align_sparsity_patterns=false)
 
          matrices_are_sparse = issparse.(AA)
@@ -193,14 +193,14 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
                  s=one(T);
                  ci=@code_typed(fii[t](s)) # ci[end] gives the return type
                  if !(ci[end] <: Number)
-                     @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                     #error("The given function does not return a scalar if evaluated in a scalar")
+                     #@warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                     error("The given function does not return a scalar if evaluated in a scalar")
                  end
                  S=ones(T,2,2);
                  ci=@code_typed(fii[t](S))
                  if !(ci[end] <: Matrix)
-                     @warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
-                     #error("The given function does not return a scalar if evaluated in a scalar")
+                     #@warn "It seems you have not provided valid matrix-functions for defining SPMF_NEP. The functions fii should return a scalar if evaluated in a scalar and a matrix if evaluated in a matrix. If you want to disable to input checking, set check_consistency=false in SPMF_NEP."
+                     error("The given function does not return a scalar if evaluated in a scalar")
                  end
              end
          end
@@ -501,7 +501,7 @@ julia> norm(M1-M2)
             if nep.tauv[i] == 0 # Zero delay means constant term
                 fv[i+1] = S -> one(S)
             else
-                fv[i+1] = S -> exp(-nep.tauv[i] * S)
+                fv[i+1] = S -> exp(-nep.tauv[i]*S)
             end
         end
 
@@ -603,7 +603,9 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
             elseif (i==2);
                 fv[2]=S->S;
             else
-                fv[i]=S->S^(i-1);
+                # we need to introuce j otherwise the function is not typestable
+                j=i-1; # power of the coefficient
+                fv[i]=S->S^j;
             end
         end
         return fv;
