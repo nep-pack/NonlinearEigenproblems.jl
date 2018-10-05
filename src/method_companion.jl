@@ -65,8 +65,8 @@ julia> minimum(svd(compute_Mder(pep,λ[1])).S)
     end
 
 
-    """
-λ,v = polyeig([eltype],nep::PEP,[eigsolvertype,])
+"""
+    λ,v = polyeig([eltype],nep::PEP,[eigsolvertype,])
 
 Linearizes a  polynomial eigenvalue problem (PEP) a to the companion form
 and solves the corresponding linear eigenvalue problem; see [`companion`](@ref).
