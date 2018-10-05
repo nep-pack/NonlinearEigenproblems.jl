@@ -161,6 +161,42 @@ to give the author of the algorithm credit by citiation. The
 recommended citation can be found in the function
 documentation, e.g., `?blocknewton`.
 
+# Your own NEP nonlinearity
+
+If you work on an application and you think the algorithms
+provided here might be useful, you should first check
+if your problem can be easily expressed as follows.
+It helps your life a lot if your problem can be expressed
+as a (short) sum of products of matrices and functions.
+For instance, a problem with three terms
+```math
+M(λ) = A+λB+e^{\sin(λ/2)}C
+```
+Sum of products of matrices and functions are represented
+by [`SPMF`](types.md#spmf) in NEP-PACK. The problem
+above can be created by
+```julia-repl
+julia>  A=(1:4)*(1:4)'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);
+julia> f1= λ-> one(λ);
+julia> f2= λ-> λ;
+julia> f3= λ-> exp(sin(λ/2))
+julia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);
+julia> λ,v=quasinewton(nep,λ=3)
+(3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])
+```
+Note that the functions `f1`,`f2` and `f3` have to be defined for scalar values
+and for matrices (in the matrix function sense, not elementwise sense).
+
+As usual, you can check that we computed a sensible solution:
+```julia-repl
+julia> (A+B*λ+C*exp(sin(λ/2)))*v
+4-element Array{Complex{Float64},1}:
+  -6.586145128765412e-14 + 0.0im
+  2.8285461200559146e-14 + 0.0im
+ -4.1550357082583515e-14 + 0.0im
+  -8.815768150428286e-15 + 0.0im
+```
+
 # What now?
 
 Now you are ready to have a look at the examples
