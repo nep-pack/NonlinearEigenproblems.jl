@@ -147,6 +147,7 @@ if you want efficiency (for aug_newton, IAR, ..).
 
 """
     compute_MM(nep::NEP,S,V)
+
 Computes the sum ``Σ_i M_i V f_i(S)`` for a NEP, where ``S`` and ``V`` are matrices, and the NEP satisfies ``M(λ)=Σ_i M_i f_i(λ)``.
 
 # Example

@@ -273,7 +273,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         return As;
     end
 
-    function compute_MM(nep::SPMF_NEP{T,Ftype},S::AbstractMatrix,V::AbstractMatrix) where {T,Ftype}
+    function compute_MM(nep::SPMF_NEP{T,Ftype},S,V) where {T,Ftype}
 
         AA=get_Av(nep);
         ff=get_fv(nep);
