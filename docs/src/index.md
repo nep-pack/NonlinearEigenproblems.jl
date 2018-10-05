@@ -29,9 +29,9 @@ M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 λ\begin{bmatrix}3&4\newline6&6\end{bmatrix}+
 λ^2\begin{bmatrix}1&0\newline0&1\end{bmatrix}
 ```
-The following code creates this NEP, which is a so called `PEP`
-as an abbreviation for polynomial eigenvalue problem,
-and solves it using the NEP solution method implemented in `polyeig()`:
+The following code creates this NEP, by constructing an object called
+[`PEP`](types.md#PEP-1), an abbreviation for polynomial eigenvalue problem.
+Here we solve it using the NEP solution method implemented in [`polyeig()`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig):
 ```julia-repl
 julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia> nep=PEP([A0,A1,A2])
@@ -107,7 +107,10 @@ by first creating the problem
 julia> tauv=[0;0.2;0.2;1.5];
 julia> dep=DEP([A0, A1,   A2, A3],tauv);
 ```
-and solving it with for instance the infinite Arnoldi method
+The constructor  [`DEP`](types.md#DEP-1) is an abbreviation for a delay eigenvalue problem, which
+a  NEP with exponential terms stemming from the stability
+analysis of a delay-differential equation. See [`types`](types.md) for other NEP-types.
+You can now solve this NEP, for instance, with the infinite Arnoldi method
 ```julia-repl
 julia> λ,V=iar_chebyshev(dep,maxit=100); # This takes some time the first time is run due to JIT-compiler
 ```
