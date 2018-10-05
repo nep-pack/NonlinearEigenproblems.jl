@@ -8,7 +8,7 @@
   
   <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>LinSolver - NEPPACK</title>
+  <title>LinSolver - NEP-PACK</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -36,7 +36,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> NEPPACK</a>
+        <a href=".." class="icon icon-home"> NEP-PACK</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -71,6 +71,9 @@
     <li class="toctree-l2"><a href="#linsolvers">LinSolvers</a></li>
     
 
+    <li class="toctree-l2"><a href="#eigsolvers">EigSolvers</a></li>
+    
+
     </ul>
 	    </li>
           
@@ -99,7 +102,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">NEPPACK</a>
+        <a href="..">NEP-PACK</a>
       </nav>
 
       
@@ -132,7 +135,7 @@
 <pre><code>abstract type LinSolver
 </code></pre>
 
-<p>Structs inheriting from this type are able to solve linear systems associated with a NEP, for a specific <code>λ</code>-value. The most common are direct solvers such as <a href="./#NonlinearEigenproblems.LinSolvers.DefaultLinSolver"><code>DefaultLinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.BackslashLinSolver"><code>BackslashLinSolver</code></a> and iterative solvers such as <a href="../@ref"><code>GMRESlinsolver</code></a>.</p>
+<p>Structs inheriting from this type are able to solve linear systems associated with a NEP, for a specific <code>λ</code>-value. The most common are direct solvers such as <a href="./#NonlinearEigenproblems.LinSolvers.DefaultLinSolver"><code>DefaultLinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.BackslashLinSolver"><code>BackslashLinSolver</code></a> and iterative solvers such as <a href="./#NonlinearEigenproblems.LinSolvers.GMRESLinSolver"><code>GMRESLinSolver</code></a>.</p>
 <p>The LinSolver objects are usually created by the NEP-algorithms through creator functions, which are passed as parameters.</p>
 <p><strong>Example</strong></p>
 <p>The most common usecase is that you want to pass a <code>linsolvercreator</code>-function as parameter to the NEP-algorithm. This example shows how you can solvers based on backslash or <code>factorize()</code>. In the example, <code>BackslashLinSolver</code> does not exploit that the system matrix remains the same throughout the algorithm and is therefore slower.</p>
@@ -169,8 +172,8 @@ julia&gt; nep=SPMF_NEP([[1.0 3.0; 4.0 5.0], [2.0 1.0; -1 2.0]], [S-&gt;S^2,S-&gt
 julia&gt; λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 </code></pre>
 
-<p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.lin_solve"><code>lin_solve</code></a>, <a href="../@ref"><code>DefaultSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.default_linsolvercreator"><code>default_linsolvercreator</code></a>, <a href="../@ref"><code>BackslashSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.backslash_linsolvercreator"><code>backslash_linsolvercreator</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.GMRESLinSolver"><code>GMRESLinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.gmres_linsolvercreator"><code>gmres_linsolvercreator</code></a></p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L37-L99' class='documenter-source'>source</a><br></p>
+<p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.lin_solve"><code>lin_solve</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.DefaultLinSolver"><code>DefaultLinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.default_linsolvercreator"><code>default_linsolvercreator</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.BackslashLinSolver"><code>BackslashLinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.backslash_linsolvercreator"><code>backslash_linsolvercreator</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.GMRESLinSolver"><code>GMRESLinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.gmres_linsolvercreator"><code>gmres_linsolvercreator</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L37-L99' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.lin_solve' href='#NonlinearEigenproblems.LinSolvers.lin_solve'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.lin_solve</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>lin_solve(solver::LinSolver, b::AbstractVecOrMat; tol=0)
@@ -178,14 +181,14 @@ julia&gt; λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreato
 
 <p>This function solves the linear system represented in <code>solver::LinSolver</code> with a right-hand side <code>b</code>. The <code>tol</code> kwarg is controlling how accurate the linear system needs to be solved. A NEP-algorithm will call this solver every time a linear system associated with <code>M(λ)</code> needs to be solved.</p>
 <p>This function must be overloaded if a user wants to define their own way of solving linear systems. See <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a> for examples.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L121-L131' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L120-L130' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.DefaultLinSolver' href='#NonlinearEigenproblems.LinSolvers.DefaultLinSolver'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.DefaultLinSolver</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>struct DefaultLinSolver &lt;: LinSolver
 </code></pre>
 
 <p>This represents the linear solver associated with julia <code>factorize()</code>. See <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a> and <a href="./#NonlinearEigenproblems.LinSolvers.default_linsolvercreator"><code>default_linsolvercreator</code></a> for examples.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L104-L109' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L103-L108' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.default_linsolvercreator' href='#NonlinearEigenproblems.LinSolvers.default_linsolvercreator'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.default_linsolvercreator</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
@@ -194,7 +197,7 @@ julia&gt; λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreato
 <p>Create a linear solver of type <code>DefaultLinSolver</code> for the NEP evaluated in point <code>λ</code>. For sparse matrices (the underlying solver is usually UMFPACK) the maximum number of iterative refinements can be changed to trade accuracy for performance with the parameter <code>umfpack_refinements</code>. UMFPACK defaults to a maximum of 2 iterative refinements.</p>
 <p>For examples see <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a>.</p>
 <p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.DefaultLinSolver"><code>DefaultLinSolver</code></a>.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L148-L160' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L147-L159' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.BackslashLinSolver' href='#NonlinearEigenproblems.LinSolvers.BackslashLinSolver'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.BackslashLinSolver</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>struct BackslashLinSolver &lt;: LinSolver
@@ -202,7 +205,7 @@ julia&gt; λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreato
 
 <p>This represents a linear solver corresponding to the backslash operator (no pre-factorization).</p>
 <p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a> and <a href="./#NonlinearEigenproblems.LinSolvers.backslash_linsolvercreator"><code>backslash_linsolvercreator</code></a></p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L166-L172' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L165-L171' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.backslash_linsolvercreator' href='#NonlinearEigenproblems.LinSolvers.backslash_linsolvercreator'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.backslash_linsolvercreator</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>backslash_linsolvercreator(nep::NEP, λ)
@@ -210,15 +213,15 @@ julia&gt; λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreato
 
 <p>Create a linear solver of type 'BackslashLinSolver' evaluated in <code>λ</code>.</p>
 <p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.BackslashLinSolver"><code>BackslashLinSolver</code></a></p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L187-L192' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L186-L191' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.GMRESLinSolver' href='#NonlinearEigenproblems.LinSolvers.GMRESLinSolver'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.GMRESLinSolver</code></strong> &mdash; <em>Type</em>.</p>
-<pre><code> struct GMRESLinSolver &lt;: LinSolver
+<pre><code>struct GMRESLinSolver &lt;: LinSolver
 </code></pre>
 
 <p>This represents a solver done with the julia GMRES implementation.</p>
 <p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.gmres_linsolvercreator"><code>gmres_linsolvercreator</code></a></p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L199-L204' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L198-L203' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.LinSolvers.gmres_linsolvercreator' href='#NonlinearEigenproblems.LinSolvers.gmres_linsolvercreator'>#</a>
 <strong><code>NonlinearEigenproblems.LinSolvers.gmres_linsolvercreator</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>gmres_linsolvercreator(nep::NEP, λ, kwargs=())
@@ -226,7 +229,93 @@ julia&gt; λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreato
 
 <p>Create a linear solver of type 'GMRESLinSolver'. The kwargs are passed as parameter to Julia-built-in-GMRES.</p>
 <p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.LinSolver"><code>LinSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.GMRESLinSolver"><code>GMRESLinSolver</code></a></p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/LinSolvers.jl#L234-L242' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L233-L241' class='documenter-source'>source</a><br></p>
+<p><a id='EigSolvers-1'></a></p>
+<h1 id="eigsolvers">EigSolvers</h1>
+<p>Some NEP-algorithms need to solve an associated linear eigenvalue problem. associated with <code>M(λ)</code>. You will likely only need the native eigensolvers in Julia. Nevertheless, we provide an interface to specify which solver to use or define your own solver.</p>
+<p><a id='NonlinearEigenproblems.LinSolvers.EigSolver' href='#NonlinearEigenproblems.LinSolvers.EigSolver'>#</a>
+<strong><code>NonlinearEigenproblems.LinSolvers.EigSolver</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>abstract type EigSolver
+</code></pre>
+
+<p>Structs inheriting from this type are able to solve linear eigenvalue problems arising in certain methods, such as, e.g., <code>mslp</code>, <code>sgiter</code>, and <code>polyeig</code>.</p>
+<p>The <code>EigSolver</code> objects are passed as types to the NEP-algorithms, which uses it to dispatch the correct version of the function <a href="./#NonlinearEigenproblems.LinSolvers.eig_solve"><code>eig_solve</code></a>.</p>
+<p><strong>Example</strong></p>
+<p>The most common usecase is that you do not want to specify anything in particular, since the <a href="./#NonlinearEigenproblems.LinSolvers.DefaultEigSolver"><code>DefaultEigSolver</code></a> will use a dense or a sparse method depending on you problem. However, this example shows how you can force <code>mslp</code> to use the sparse solver.</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;qdep0&quot;);
+julia&gt; λ,v = mslp(nep, eigsolvertype=NativeEigSSolver);
+julia&gt; norm(compute_Mlincomb(nep,λ,v))
+1.0324139764567768e-15
+</code></pre>
+
+<p><strong>Example</strong></p>
+<p>The <code>EigSolver</code>s are constructed for extendability. As an illustartion this example creates a naive <code>EigSolver</code> which casts the problem to a standard linear eigenproblem and calls the built-in function to solve it.</p>
+<p>Create the types and a creator.</p>
+<pre><code class="julia-repl">julia&gt; struct MyEigSolver &lt;: EigSolver
+   A
+   E
+   function MyEigSolver(A,E)
+      return new(A,E)
+   end
+end
+
+julia&gt; import NonlinearEigenproblems.LinSolvers.eig_solve;
+julia&gt; function eig_solve(solver::MyEigSolver;nev = 1, target = 0)
+   M = solver.E \ solver.A
+   eig = eigen(M)
+   i = argmin(abs.(eig.values))
+   return eig.values[i], eig.vectors[:,i]
+end
+julia&gt; nep=nep_gallery(&quot;dep0&quot;, 50);
+julia&gt; λ,v = mslp(nep, eigsolvertype=MyEigSolver, tol=1e-5);
+julia&gt; norm(compute_Mlincomb(nep,λ,v))
+3.0777795031319117e-10
+</code></pre>
+
+<p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.eig_solve"><code>eig_solve</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.DefaultEigSolver"><code>DefaultEigSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.NativeEigSolver"><code>NativeEigSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.NativeEigSSolver"><code>NativeEigSSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.eig_solve"><code>eig_solve</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L248-L303' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.LinSolvers.eig_solve' href='#NonlinearEigenproblems.LinSolvers.eig_solve'>#</a>
+<strong><code>NonlinearEigenproblems.LinSolvers.eig_solve</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>eig_solve(solver::EigSolver; [nev,] [target,])
+</code></pre>
+
+<p>This function solves the linear eigenvalue problem represented in <code>solver::EigSolver</code>. The <code>nev</code> kwarg is controlling the number of eigenvalues aimed for, and <code>target</code> specifies around which point the eigenvalues are computed. The former has a defalut value equalt to the seize of the problem, and the latter has a defalut value 0.</p>
+<p>This function must be overloaded if a user wants to define their own way of solving linear eigenvalue problems. See <a href="./#NonlinearEigenproblems.LinSolvers.EigSolver"><code>EigSolver</code></a> for examples.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L436-L446' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.LinSolvers.DefaultEigSolver' href='#NonlinearEigenproblems.LinSolvers.DefaultEigSolver'>#</a>
+<strong><code>NonlinearEigenproblems.LinSolvers.DefaultEigSolver</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>mutable struct DefaultEigSolver &lt;: EigSolver
+</code></pre>
+
+<p>A linear eigenvalueproblem solver that calls checks for sparsity and accordingly assigns an appropriate solver.</p>
+<p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.EigSolver"><code>EigSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.eig_solve"><code>eig_solve</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.NativeEigSolver"><code>NativeEigSolver</code></a>, <a href="./#NonlinearEigenproblems.LinSolvers.NativeEigSSolver"><code>NativeEigSSolver</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L413-L420' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.LinSolvers.NativeEigSolver' href='#NonlinearEigenproblems.LinSolvers.NativeEigSolver'>#</a>
+<strong><code>NonlinearEigenproblems.LinSolvers.NativeEigSolver</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>mutable struct NativeEigSolver &lt;: EigSolver
+</code></pre>
+
+<p>A linear eigenvalueproblem solver that calls Julia's in-built eigen()</p>
+<p>Constructed as <code>NativeEigSolver(A, [B,])</code>, and solves the problem</p>
+<p>$$
+Ax = λBx
+$$</p>
+<p>The paramter <code>B</code> is optional an default is indentity, for which a standard linear eigenproblem is solved.</p>
+<p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.EigSolver"><code>EigSolver</code></a> and <a href="./#NonlinearEigenproblems.LinSolvers.eig_solve"><code>eig_solve</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L308-L321' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.LinSolvers.NativeEigSSolver' href='#NonlinearEigenproblems.LinSolvers.NativeEigSSolver'>#</a>
+<strong><code>NonlinearEigenproblems.LinSolvers.NativeEigSSolver</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>mutable struct NativeEigSSolver &lt;: EigSolver
+</code></pre>
+
+<p>A linear eigenvalueproblem solver for large and sparse problems that calls Julia's in-built eigs()</p>
+<p>Constructed as <code>NativeEigSSolver(A, [B,])</code>, and solves the problem</p>
+<p>$$
+Ax = λBx
+$$</p>
+<p>The paramter <code>B</code> is optional an default is indentity, for which a standard linear eigenproblem is solved.</p>
+<p>See also: <a href="./#NonlinearEigenproblems.LinSolvers.EigSolver"><code>EigSolver</code></a> and <a href="./#NonlinearEigenproblems.LinSolvers.eig_solve"><code>eig_solve</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/LinSolvers.jl#L354-L368' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>

@@ -8,7 +8,7 @@
   
   <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>NEP Types - NEPPACK</title>
+  <title>NEP Types - NEP-PACK</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -36,7 +36,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> NEPPACK</a>
+        <a href=".." class="icon icon-home"> NEP-PACK</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -63,16 +63,26 @@
     <a class="current" href="./">NEP Types</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#the-basic-type">The basic type</a></li>
+    <li class="toctree-l2"><a href="#neptypes">NEPTypes</a></li>
     
         <ul>
         
-            <li><a class="toctree-l3" href="#accessing-the-nep">Accessing the NEP</a></li>
+            <li><a class="toctree-l3" href="#the-basic-type">The basic type</a></li>
+        
+            <li><a class="toctree-l3" href="#spmf">SPMF</a></li>
+        
+            <li><a class="toctree-l3" href="#pep">PEP</a></li>
+        
+            <li><a class="toctree-l3" href="#dep">DEP</a></li>
+        
+            <li><a class="toctree-l3" href="#rep">REP</a></li>
+        
+            <li><a class="toctree-l3" href="#sumnep">SumNEP</a></li>
         
         </ul>
     
 
-    <li class="toctree-l2"><a href="#neptypes">NEPTypes</a></li>
+    <li class="toctree-l2"><a href="#accessing-the-nep">Accessing the NEP</a></li>
     
 
     </ul>
@@ -108,7 +118,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">NEPPACK</a>
+        <a href="..">NEP-PACK</a>
       </nav>
 
       
@@ -133,9 +143,11 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='The-basic-type-1'></a></p>
-<h1 id="the-basic-type">The basic type</h1>
-<p>The basic class is the abstract class <code>NEP</code> which represents a NEP. </p>
+                <p><a id='NEPTypes-1'></a></p>
+<h1 id="neptypes">NEPTypes</h1>
+<p><a id='The-basic-type-1'></a></p>
+<h2 id="the-basic-type">The basic type</h2>
+<p>The basic class is the abstract class <code>NEP</code> which represents a NEP. All other defined NEPs should inherit from <code>NEP</code>, or from a more specialized version; see, e.g., <a href="../transformations/#NonlinearEigenproblems.NEPTypes.ProjectableNEP"><code>ProjectableNEP</code></a> or <a href="./#NonlinearEigenproblems.NEPTypes.AbstractSPMF"><code>AbstractSPMF</code></a>.</p>
 <p><a id='NonlinearEigenproblems.NEPCore.NEP' href='#NonlinearEigenproblems.NEPCore.NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPCore.NEP</code></strong> &mdash; <em>Type</em>.</p>
 <pre><code>abstract NEP
@@ -146,32 +158,53 @@
 </code></pre>
 
 <p>and at least one of the following</p>
-<pre><code>M=compute_Mder(nep::NEP,λ::Number;der=0)
-V=compute_Mlincomb(nep::NEP,λ::Number,V::Array{&lt;:Number,2})
-MM=compute_MM(nep::NEP,S::Array{&lt;:Number,2},V::Array{&lt;:Number,2})
-</code></pre>
-
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/NEPCore.jl#L44-L57' class='documenter-source'>source</a><br></p>
-<p><a id='Accessing-the-NEP-1'></a></p>
-<h2 id="accessing-the-nep">Accessing the NEP</h2>
-<p>The nonlinear eigenvalue problem is defined by the data stored in the NEP-class, and the NEP-solvers access the data mainly through three main functions, <code>compute_Mder</code> <code>compute_Mlincomb</code> and <code>compute_MM</code>.</p>
-<pre><code>compute_Mder(nep::NEPCore.NEP, λ::Number, i::Integer) 
-compute_Mlincomb(nep::NEPCore.NEP, λ::Number, V; a)
-compute_MM
-</code></pre>
-
-<p><a id='NEPTypes-1'></a></p>
-<h1 id="neptypes">NEPTypes</h1>
-<p>In order to use the methods, the user has the possibility to implement their own problem-specific functions above, or use one of the predefined types. The most common one is the <code>SPMF_NEP</code>.</p>
+<ul>
+<li>M = <a href="./#NonlinearEigenproblems.NEPCore.compute_Mder"><code>compute_Mder(nep::NEP,λ::Number,i::Integer=0)</code></a></li>
+<li>V = <a href="./#NonlinearEigenproblems.NEPCore.compute_Mlincomb!"><code>compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)</code></a></li>
+<li>MM = <a href="./#NonlinearEigenproblems.NEPCore.compute_MM"><code>compute_MM(nep::NEP,S,V)</code></a></li>
+</ul>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPCore.jl#L43-L56' class='documenter-source'>source</a><br></p>
+<p>Below we list the most common types built-in to NEP-PACK, and further down how you can <a href="./#accessNEP">access the NEP</a>. However, the structure is made for extendability, and hence it is possible for you to extend with your own class of NEPs.</p>
+<p><a id='SPMF-1'></a></p>
+<h2 id="spmf">SPMF</h2>
+<p>One of the most common problem types is the <code>SPMF_NEP</code>. SPMF is short for Sum of Products of Matrices and Functions and the NEP is described by</p>
+<p>$$
+M(λ) = \sum_{i} A_i f_i(λ).
+$$</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.SPMF_NEP' href='#NonlinearEigenproblems.NEPTypes.SPMF_NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.SPMF_NEP</code></strong> &mdash; <em>Type</em>.</p>
-<pre><code> SPMF_NEP(AA, fii, Schur_fact = false, align_sparsity_patterns = false, check_consistency=true)
+<pre><code>struct SPMF_NEP{T&lt;:AbstractMatrix,Ftype}  &lt;: AbstractSPMF{T}
 </code></pre>
 
-<p>Creates a <code>SPMF_NEP</code> consisting of matrices <code>AA</code> and functions <code>fii</code>. <code>fii</code> must be an array of functions defined for matrices and numbers. <code>AA</code> is an array of matrices. <code>Schur_fact</code> specifies if the computation of <code>compute_MM</code> should be done by first pre-computing a Schur-factorization (which can be faster). If <code>align_sparsity_patterns</code> is true, and the <code>AA</code> matrices are sparse, each matrix will be stored with a sparsity pattern matching the union of all <code>AA</code> matrices.  This leads to more efficient calculation of <code>compute_Mder</code>. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false. If <code>align_sparsity pattern=true</code> the <code>A</code>-matrices in the SPMF object should be viewed as read-only. If <code>check_consistency</code> is <code>true</code> input checking will be performed.</p>
+<p>An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions, i.e.,</p>
+<p>$$
+M(λ)=∑_i A_i f_i(λ).
+$$</p>
+<p>All of the matrices $A_0,...$ are of size $n×n$ and $f_i$ are a functions. The  functions $f_i$ must be defined for matrices in the standard matrix function sense.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L113-L124' class='documenter-source'>source</a><br></p>
+<p>In order to construct an <code>SPMF_NEP</code>, we need to provide the matrices and the functions.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.SPMF_NEP-Tuple{Array{#s12,1} where #s12<:(AbstractArray{T,2} where T),Array{#s13,1} where #s13<:Function}' href='#NonlinearEigenproblems.NEPTypes.SPMF_NEP-Tuple{Array{#s12,1} where #s12<:(AbstractArray{T,2} where T),Array{#s13,1} where #s13<:Function}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.SPMF_NEP</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code> SPMF_NEP(AA, fii, check_consistency, Schur_fact = false, align_sparsity_patterns = false, , Ftype)
+</code></pre>
+
+<p>Creates a <code>SPMF_NEP</code> consisting of matrices <code>AA</code> and functions <code>fii</code>. The <code>SPMF_NEP</code> is defined by a sum of products of matrices and functions</p>
+<p>$$
+M(λ)=∑_i A_i f_i(λ).
+$$</p>
+<p>All of the matrices $A_0,...$ are of size $n×n$ and $f_i$ are a functions. The  functions $f_i$ must be defined for matrices in the standard matrix function sense.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>AA</code> is a <code>Vector</code> of matrices. The matrices have to be of the same type. If you need a NEP with different types you can use <a href="./#NonlinearEigenproblems.NEPTypes.SumNEP"><code>SumNEP</code></a> to construct a sum of two <code>SPMF_NEP</code>.</li>
+<li><code>fii</code> is a <code>Vector</code> of functions. Each function takes one parameter <code>S</code>. The functions must be available both as a scalar valid function and a matrix function. If <code>S</code> is a square matrix, <code>fii[k](S)</code> musst also be a square matrix. If <code>S</code> is a scalar <code>fii[k](S)</code> is a scalar.</li>
+<li><code>check_consistency</code> (default <code>true</code>) determines if we should initiate by running tests to verify that the <code>fii</code> satisfies the conditions that every function is valid both for matrices and scalars. This is done by using <code>@code_typed</code> and the functions need to be type-stable in that sense.</li>
+<li><code>align_sparsity_patterns</code> (default <code>false</code>) has effect only for sparse matrices (<code>SparseMatrixCSC</code>). If <code>align_sparsity_patterns=true</code> the <code>SparseMatrixCSC</code> matrices will be replaced by equivalent <code>SparseMatrixCSC</code> matrices where the <code>colptr</code> and <code>rowval</code> are identical. This increases the speed of some functions, e.g., <code>compute_Mder</code>. If <code>align_sparsity_patterns=true</code> the matrices in the NEP should be considered read only. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false.</li>
+<li><code>Ftype</code> (default <code>ComplexF64</code>) determines an underlying type of the functions. The output of any function should be "smaller" than the promoted type of the input and <code>Ftype</code>. More precisely, if <code>F=fii[k]</code>, then the type logic is as follows <code>eltype(F(λ))=promote_type(eltype(λ),Ftype)</code>.</li>
+<li><code>Schur_fact</code> (default <code>false</code>) determines if the <code>compute_MM</code> function should tridiagonalize the matrix before carrying out the computation. This can be faster for large matrices.</li>
+</ul>
 <p><strong>Example</strong></p>
 <pre><code class="julia-repl">julia&gt; A0=[1 3; 4 5]; A1=[3 4; 5 6];
-julia&gt; id_op=S -&gt; one(S)
+julia&gt; id_op=S -&gt; one(S) # Note: We use one(S) to be valid both for matrices and scalars
 julia&gt; exp_op=S -&gt; exp(S)
 julia&gt; nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
 julia&gt; compute_Mder(nep,1)-(A0+A1*exp(1))
@@ -180,11 +213,157 @@ julia&gt; compute_Mder(nep,1)-(A0+A1*exp(1))
  0.0  0.0
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/NEPTypes.jl#L137-L154' class='documenter-source'>source</a><br></p>
-<p>In order to construct an <code>SPMF_NEP</code>, we need to provide the matrices and the functions.</p>
-<pre><code>SPMF_NEP(AA::Array, fii::Array{Function,1}) 
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L141-L182' class='documenter-source'>source</a><br></p>
+<p><a id='Abstract-SPMFs-1'></a></p>
+<h3 id="abstract-spmfs">Abstract SPMFs</h3>
+<p>Many problems can be described in the class of SPMF. There might be more specialized and efficient implementations such as, e.g. <code>PEP</code>, <code>DEP</code> or <code>REP</code>. However, on an abstract level it may still be important to recognize the similarities. Hence there is an abstract class <code>AbstractSPMF</code>, which in itself inherits from <a href="../transformations/#NonlinearEigenproblems.NEPTypes.ProjectableNEP"><code>ProjectableNEP</code></a>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.AbstractSPMF' href='#NonlinearEigenproblems.NEPTypes.AbstractSPMF'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.AbstractSPMF</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>abstract  AbstractSPMF &lt;: ProjectableNEP
 </code></pre>
 
+<p>An AbstractSPMF is an abstract class representing NEPs which can be represented as a Sum of products of matrices and functions $M(λ)=Σ_i A_i f_i(λ)$, where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions.</p>
+<p>Any AbstractSPMF has to have implementations of <a href="./#NonlinearEigenproblems.NEPTypes.get_Av"><code>get_Av()</code></a> and <a href="./#NonlinearEigenproblems.NEPTypes.get_fv"><code>get_fv()</code></a> which return the functions and matrices.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L84-L93' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPTypes.get_Av' href='#NonlinearEigenproblems.NEPTypes.get_Av'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.get_Av</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>get_Av(nep::AbstractSPMF)
+</code></pre>
+
+<p>Returns an array of matrices $A_i$ in the AbstractSPMF: $M(λ)=Σ_i A_i f_i(λ)$</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L96-L100' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPTypes.get_fv' href='#NonlinearEigenproblems.NEPTypes.get_fv'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.get_fv</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>get_Av(nep::AbstractSPMF)
+</code></pre>
+
+<p>Returns an Array of functions (that can be evaluated both as scalar and matrix functions) $f_i$ in the AbstractSPMF: $M(λ)=Σ_i A_i f_i(λ)$</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L104-L108' class='documenter-source'>source</a><br></p>
+<p><a id='PEP-1'></a></p>
+<h2 id="pep">PEP</h2>
+<p>The Polynomial Eigenvalue Problem is described by</p>
+<p>$$
+M(λ) = \sum_{i} A_i λ^i.
+$$</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.PEP' href='#NonlinearEigenproblems.NEPTypes.PEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.PEP</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>struct PEP &lt;: AbstractSPMF
+</code></pre>
+
+<p>A polynomial eigenvalue problem (PEP) is defined by the sum the sum $Σ_i A_i λ^i$, where i = 0,1,2,..., and  all of the matrices are of size n times n.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L517-L521' class='documenter-source'>source</a><br></p>
+<p>In order to construct a <code>PEP</code>, we only need to provide the matrices.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.PEP-Tuple{Array}' href='#NonlinearEigenproblems.NEPTypes.PEP-Tuple{Array}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.PEP</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>PEP(AA::Array)
+</code></pre>
+
+<p>Creates a polynomial eigenvalue problem with monomial matrices specified in AA, which is an array of matrices.</p>
+<pre><code class="julia-repl">julia&gt; A0=[1 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
+julia&gt; pep=PEP([A0,A1,A2])
+julia&gt; compute_Mder(pep,3)-(A0+A1*3+A2*9)
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+</code></pre>
+
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L527-L541' class='documenter-source'>source</a><br></p>
+<p><a id='DEP-1'></a></p>
+<h2 id="dep">DEP</h2>
+<p>The Delay Eigenvalue Problem is described by</p>
+<p>$$
+M(λ) = -λI + \sum_{i} A_i e^{-τ_i λ}.
+$$</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.DEP' href='#NonlinearEigenproblems.NEPTypes.DEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.DEP</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>type DEP &lt;: AbstractSPMF
+</code></pre>
+
+<p>Delay eigenvalue problem A DEP (Delay Eigenvalue problem) is defined by the sum  $-λI + Σ_i A_i exp(-tau_i λ)$ where all of the matrices are of size n times n.
+Constructor: DEP(AA,tauv) where AA is an array of the matrices A<em>i, and tauv is a vector of the values tau</em>i</p>
+<p><strong>Example:</strong></p>
+<p>julia&gt; A0=randn(3,3); A1=randn(3,3); julia&gt; tauv=[0,0.2] # Vector with delays julia&gt; dep=DEP([A0,A1],tauv) julia&gt; λ=3.0; julia&gt; M1=compute_Mder(dep,λ) julia&gt; M2=-λ<em>I+A0+A1</em>exp(-tauv[2]*λ) julia&gt; norm(M1-M2) 0.0</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L406-L424' class='documenter-source'>source</a><br></p>
+<p><a id='REP-1'></a></p>
+<h2 id="rep">REP</h2>
+<p>The Rational Eigenvalue Problem is described by:</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.REP' href='#NonlinearEigenproblems.NEPTypes.REP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.REP</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>struct REP &lt;: AbstractSPMF
+</code></pre>
+
+<p>A REP represents a rational eigenvalue problem. The REP is defined by the sum $Σ_i A_i s_i(λ)/q_i(λ)$, where i = 0,1,2,..., all of the matrices are of size n times n and s<em>i and q</em>i are polynomials.</p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L728-L734' class='documenter-source'>source</a><br></p>
+<p>The constructor is called as:</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.REP-Tuple{Any,Array{#s13,1} where #s13<:Number}' href='#NonlinearEigenproblems.NEPTypes.REP-Tuple{Any,Array{#s13,1} where #s13<:Number}'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.REP</code></strong> &mdash; <em>Method</em>.</p>
+<pre><code>REP(A,poles)
+</code></pre>
+
+<p>Creates a rational eigenvalue problem. The constructor takes the matrices A_i and a sequence of poles as input (not complete).</p>
+<p><strong>Example</strong></p>
+<pre><code class="julia-repl">julia&gt; A0=[1 2; 3 4]; A1=[3 4; 5 6];
+julia&gt; nep=REP([A0,A1],[1,3]);
+julia&gt; compute_Mder(nep,3)
+2×2 Array{Float64,2}:
+ NaN  NaN
+ NaN  NaN
+</code></pre>
+
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L741-L758' class='documenter-source'>source</a><br></p>
+<p><a id='SumNEP-1'></a></p>
+<h2 id="sumnep">SumNEP</h2>
+<p>It is also possible to consider NEPs that are summs of other NEPs. For such situations there are SumNEPs. Specifically <code>GenericSumNEP</code> and <code>SPMFSumNEP</code>. Both are constructed using the function <code>SumNEP</code>.</p>
+<p><a id='NonlinearEigenproblems.NEPTypes.SumNEP' href='#NonlinearEigenproblems.NEPTypes.SumNEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.SumNEP</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>SumNEP{nep1::NEP,nep2::NEP}
+SumNEP{nep1::AbstractSPMF,nep2::AbstractSPMF}
+</code></pre>
+
+<p>SumNEP is a function creating an object that corresponds to a sum of two NEPs, i.e., if nep is created by SumNEP it is defined by</p>
+<p>$$
+M(λ)=M_1(λ)+M_2(λ)
+$$</p>
+<p>where M<em>1 and M</em>2 are defined by <code>nep1</code> and <code>nep2</code>.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="julia-repl">julia&gt; nep1=DEP([ones(3,3),randn(3,3)])
+julia&gt; nep2=PEP([ones(3,3),randn(3,3),randn(3,3)])
+julia&gt; sumnep=SumNEP(nep1,nep2);
+julia&gt; s=3.0;
+julia&gt; M=compute_Mder(sumnep,s);
+3×3 Array{Float64,2}:
+  8.54014     6.71897   7.12007
+ -0.943908  -13.0795   -0.621659
+  6.03155    -7.26726  -6.42828
+julia&gt; M1=compute_Mder(nep1,s);
+julia&gt; M2=compute_Mder(nep2,s);
+julia&gt; M1+M2  # Same as M
+3×3 Array{Float64,2}:
+  8.54014     6.71897   7.12007
+ -0.943908  -13.0795   -0.621659
+  6.03155    -7.26726  -6.42828
+</code></pre>
+
+<p>See also: <a href="./#NonlinearEigenproblems.NEPTypes.SPMFSumNEP"><code>SPMFSumNEP</code></a>, <a href="./#NonlinearEigenproblems.NEPTypes.GenericSumNEP"><code>GenericSumNEP</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L1132-L1165' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPTypes.GenericSumNEP' href='#NonlinearEigenproblems.NEPTypes.GenericSumNEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.GenericSumNEP</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>struct GenericSumNEP{NEP1&lt;:NEP,NEP2&lt;:NEP}  &lt;: NEP
+</code></pre>
+
+<p>See also: <a href="./#NonlinearEigenproblems.NEPTypes.SumNEP"><code>SumNEP</code></a>, <a href="./#NonlinearEigenproblems.NEPTypes.SPMFSumNEP"><code>SPMFSumNEP</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L1107-L1111' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPTypes.SPMFSumNEP' href='#NonlinearEigenproblems.NEPTypes.SPMFSumNEP'>#</a>
+<strong><code>NonlinearEigenproblems.NEPTypes.SPMFSumNEP</code></strong> &mdash; <em>Type</em>.</p>
+<pre><code>struct SPMFSumNEP{NEP1&lt;:AbstractSPMF,NEP2&lt;:AbstractSPMF}  &lt;: AbstractSPMF{AbstractMatrix}
+</code></pre>
+
+<p>See also: <a href="./#NonlinearEigenproblems.NEPTypes.SumNEP"><code>SumNEP</code></a>, <a href="./#NonlinearEigenproblems.NEPTypes.GenericSumNEP"><code>GenericSumNEP</code></a></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPTypes.jl#L1117-L1121' class='documenter-source'>source</a><br></p>
+<p><a id='Accessing-the-NEP-1'></a></p>
+<h1 id="accessing-the-nep">Accessing the NEP</h1>
+<p><a name="accessNEP"></a></p>
+<p>The nonlinear eigenvalue problem is defined by the data stored in the NEP-class, and the NEP-solvers access the data mainly through three main functions, <code>compute_Mder</code> <code>compute_Mlincomb</code> and <code>compute_MM</code>.</p>
 <p><a id='NonlinearEigenproblems.NEPCore.compute_Mder' href='#NonlinearEigenproblems.NEPCore.compute_Mder'>#</a>
 <strong><code>NonlinearEigenproblems.NEPCore.compute_Mder</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>compute_Mder(nep::NEP,λ::Number [,i::Integer=0])
@@ -202,19 +381,53 @@ julia&gt; opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
 1.990970375089371e-11
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/NEPCore.jl#L61-L77' class='documenter-source'>source</a><br></p>
-<p><a id='NonlinearEigenproblems.NEPCore.compute_Mlincomb' href='#NonlinearEigenproblems.NEPCore.compute_Mlincomb'>#</a>
-<strong><code>NonlinearEigenproblems.NEPCore.compute_Mlincomb</code></strong> &mdash; <em>Function</em>.</p>
-<pre><code>compute_Mlincomb(nep::NEP,λ::Number,V,a::Array,startder::Integer)
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPCore.jl#L60-L76' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_Mlincomb!' href='#NonlinearEigenproblems.NEPCore.compute_Mlincomb!'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_Mlincomb!</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>compute_Mlincomb(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
+compute_Mlincomb!(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
 </code></pre>
 
-<p>Computes linear combination starting with derivative startder, i.e., $Σ_i a_i M^{(i+startder)}(λ) v_i$</p>
-<p>The default implementation of this can be slow. Overload for specific NEP if you want efficiency (for aug_newton, IAR, ..).</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/3911d24736dfc60b875903ba617b66460bb623a5/src/NEPCore.jl#L134-L142' class='documenter-source'>source</a><br></p>
-<p>Let's try an equation $x=f(x)$. (a \ne 0)</p>
-<p>$$
-x=x_1+1
-$$</p>
+<p>Computes the linear combination of derivatives
+$Σ_i a_i M^{(i)}(λ) v_i$ starting from derivative <code>startder</code>. The function <code>compute_Mlincomb!</code> does the same but may modify the <code>V</code> matrix/array.</p>
+<p><strong>Example</strong></p>
+<p>This example shows that <code>compute_Mder</code> gives a result consistent with <code>compute_Mlincomb</code>. Note that <code>compute_Mlincomb</code> is in general faster since no matrix needs to be constructed.</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
+julia&gt; v=ones(size(nep,1)); λ=-1+1im;
+julia&gt; norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
+1.0778315928076987e-15
+
+</code></pre>
+
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPCore.jl#L82-L99' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPCore.compute_MM' href='#NonlinearEigenproblems.NEPCore.compute_MM'>#</a>
+<strong><code>NonlinearEigenproblems.NEPCore.compute_MM</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>compute_MM(nep::NEP,S,V)
+</code></pre>
+
+<p>Computes the sum $Σ_i M_i V f_i(S)$ for a NEP, where $S$ and $V$ are matrices, and the NEP satisfies $M(λ)=Σ_i M_i f_i(λ)$.</p>
+<p><strong>Example</strong></p>
+<p>This example shows that for diagonal <code>S</code>, the result of <code>compute_MM</code> can also be computed with <code>compute_Mlincomb</code></p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
+julia&gt; D=diagm(0 =&gt; [1,2])
+2×2 Array{Int64,2}:
+ 1  0
+ 0  2
+julia&gt; V=ones(size(n,1),2);
+julia&gt; W=compute_MM(nep,D,V);
+julia&gt; norm(W[:,1]-compute_Mlincomb(nep,D[1,1],V[:,1]))
+1.1102230246251565e-16
+julia&gt; norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
+0.0
+</code></pre>
+
+<p><strong>Reference</strong></p>
+<p>Properties of the quantity $Σ_i M_i V f_i(S)$ for non-polynomial nonlinear eigenvalue problems were extensively used in:</p>
+<ul>
+<li>D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372</li>
+<li>C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne</li>
+</ul>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/NEPCore.jl#L151-L179' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>

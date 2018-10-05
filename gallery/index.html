@@ -8,7 +8,7 @@
   
   <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>NEP Gallery - NEPPACK</title>
+  <title>NEP Gallery - NEP-PACK</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="../css/theme.css" type="text/css" />
@@ -36,7 +36,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> NEPPACK</a>
+        <a href=".." class="icon icon-home"> NEP-PACK</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,6 +78,15 @@
     <a class="current" href="./">NEP Gallery</a>
     <ul class="subnav">
             
+    <li class="toctree-l2"><a href="#the-gallery-function">The Gallery function</a></li>
+    
+
+    <li class="toctree-l2"><a href="#berlin-manchester-collection">Berlin-Manchester collection</a></li>
+    
+
+    <li class="toctree-l2"><a href="#other-gallery-examples">Other gallery examples</a></li>
+    
+
     </ul>
 	    </li>
           
@@ -96,7 +105,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="..">NEPPACK</a>
+        <a href="..">NEP-PACK</a>
       </nav>
 
       
@@ -121,7 +130,9 @@
           <div role="main">
             <div class="section">
               
-                <p>A large number of examples are provided in the <code>nep_gallery</code>.</p>
+                <p><a id='The-Gallery-function-1'></a></p>
+<h1 id="the-gallery-function">The Gallery function</h1>
+<p>A large number of examples are provided in the <code>nep_gallery</code>.</p>
 <pre><code class="julia-repl">julia&gt; using Gallery
 julia&gt; nep=nep_gallery(&quot;dep0&quot;)
 julia&gt; λ,v=newton(nep)
@@ -130,7 +141,101 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
 4.718447854656915e-16
 </code></pre>
 
-<p>If MATLAB and the Berlin-Manchester collection areinstalled, we can access them with the GalleryNLEVP (which does MATLAB-access through julia's MATLAB-package).</p>
+<p><a id='NonlinearEigenproblems.Gallery.nep_gallery' href='#NonlinearEigenproblems.Gallery.nep_gallery'>#</a>
+<strong><code>NonlinearEigenproblems.Gallery.nep_gallery</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code> nep=nep_gallery(name)
+ nep=nep_gallery(name,params)
+ nep=nep_gallery(name,params;kwargs)
+</code></pre>
+
+<p>Collection of nonlinear eigenvalue problems. Returns a NEP object from a gallery of examples of nonlinear eigenvalue problems. The parameter <code>name</code> decides which NEP.</p>
+<p><strong>Supported problems:</strong></p>
+<p>The following list describes the NEP with a certain <code>name</code> and the associated parameters (<code>params</code>) and keyword arguments (<code>kwargs</code>), if any.</p>
+<ul>
+<li><code>dep0</code>   Create a random delay eiganvalue problem with one delay tau = 1.
+      One optional <code>params</code> determining the size (default = 5)</li>
+<li><code>dep0_sparse</code>
+      Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1.
+      Two optional <code>params</code> determining the size (default = 5) and the fill (default = 0.25)</li>
+<li><code>dep0_tridiag</code>
+      Create a random delay eiganvalue problem with sparse tridiaognal matrices and one delay tau = 1.
+      One optional <code>params</code> determining the size (default = 100)</li>
+<li><code>dep_symm_double</code>
+      Create delay eiganvalue problem with double eigenvalues and sparse symmetric matrices and one delay tau = 1.
+      Examle from H. Voss and M. M. Betcke, Restarting iterative projection methods for Hermitian nonlinear eigenvalue problems with minmax property, Numer. Math., 2017
+      One optional <code>params</code> determining the size (default = 100)</li>
+<li><code>dep_double</code>
+      Create problem with a double non-semisimple eigenvalue in λ=3πi.
+      Example from E. Jarlebring, Convergence factors of Newton methods for nonlinear eigenvalue problems, LAA, 2012</li>
+<li><code>dep1</code>
+      A delay eigenvalue problem with one eigenvalue equal to one.</li>
+<li><code>pep0</code>
+      Create a random polynomial eigenvalue problem.
+      One optional <code>params</code> determining the size (default = 200)</li>
+<li><code>pep0_sym</code>
+      Creates a random symmetric polynomial eigenvalue problem.
+      One optional <code>params</code> determining the size (default = 200)</li>
+<li><code>pep0_sparse</code>
+      Creates a random polynomial eigenvalue problem with sparse matrices.
+      Two optional <code>params</code> determining the size (default = 200) and the fill (default = 0.03)</li>
+<li><code>real_quadratic</code>
+      Creates a quadratic problem with real eigenvalues.
+            Four smallest eigenvalues of the problem:
+            -2051.741417993845
+            -182.101627437811
+            -39.344930222838
+            -4.039879577113</li>
+<li><code>dep_distributed</code>
+      Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,   The infinite Arnoldi method and an application to time-delay systems with distributed delays,   Delay Systems - Methods, Applications and New Trends, 2012.
+           Some correct eigenvalues:
+           -0.400236388049641 + 0.970633098237807i
+           -0.400236388049641 - 0.970633098237807i
+            2.726146249832675 + 0.000000000000000i
+           -1.955643591177653 + 3.364550574688863i
+           -1.955643591177653 - 3.364550574688863i
+            4.493937056300693 + 0.000000000000000i
+           -1.631513006819252 + 4.555484848248613i
+           -1.631513006819252 - 4.555484848248613i
+           -1.677320660400946 + 7.496870451838560i
+           -1.677320660400946 - 7.496870451838560i</li>
+<li><code>qdep0</code> 
+      Quadratic delay eigenvalue problem in S. W. Gaaf and E. Jarlebring, The infinite Bi-Lanczos method for   nonlinear eigenvalue problems, SIAM J. Sci. Comput., 2017</li>
+<li><code>qdep1</code> 
+      Quadratic delay eigenvalue problem in E. Jarlebring and W. Michiels and K. Meerbergen,   A linear eigenvalue algorithm for the  nonlinear eigenvalue problem, Numer. Math., 2011</li>
+<li><code>qep_fixed_eig</code>
+      A quadratic eigenvalue problem with chosen eigenvalues.
+      Two optional <code>params</code> determining the size (default = 5)   and a vector containing the eigenvalues (default = randn)</li>
+<li><code>neuron0</code>
+      A DEP that stems from L. P. Shayer and S. A. Campbell, Stability, bifurcation and multistability   in a system of two coupled neurons with multiple time delays,   SIAM J. Applied Mathematics, 2000. It is also a benchmark example in DDE-BIFTOOL</li>
+<li><code>beam</code>
+      The DEP modelling a beam with delayed stabilizing feedback described in R. Van Beeumen, E. Jarlebring, and W. Michiels,   A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.
+      The A1-term has rank one.
+      One optional <code>params</code> which is the size of the matrix (defalut = 100)</li>
+<li><code>sine</code> 
+      The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi   algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.</li>
+</ul>
+<p>The MATLAB-package "NLEVP: A Collection of Nonlinear Eigenvalue Problems, ACM Transactions on Mathematical Software 39(2), January 2011, T. Betcke, N. J. Higham, V. Mehrmann, Ch. Schröder, F. Tisseur" provides a number of benchmark problems for NEPs. These are available in NEP-PACK in two different ways. We have native implementations of some problems (referred to as <code>nlevp_native_</code>) and the separate <code>GalleryNLEVP</code>. The native implementation is preferred since the <code>GalleryNLEVP</code> interfaces with MATLAB and is therefore considerably slower.</p>
+<ul>
+<li><code>nlevp_native_gun</code>
+      The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format.   B.-S. Liao, Z. Bai, L.-Q. Lee, and K. Ko. Nonlinear Rayleigh-Ritz iterative method for solving large scale   nonlinear eigenvalue problems.  Taiwan. Journal of Mathematics, 14(3):869–883, 2010</li>
+<li><code>nlevp_native_fiber</code>
+      The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format.   One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark.   L. Kaufman, Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117, 2006.  and   X. Huang, Z. Bai, and Y. Su, Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234, 2010</li>
+</ul>
+<p><strong>Example</strong></p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;,100);
+julia&gt; norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
+104.76153002802755
+</code></pre>
+
+<p><strong>See also the following galleries:</strong></p>
+<ul>
+<li>GalleryNLEVP</li>
+<li>GalleryWaveguide</li>
+</ul>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/Gallery.jl#L33-L156' class='documenter-source'>source</a><br></p>
+<p><a id='Berlin-Manchester-collection-1'></a></p>
+<h1 id="berlin-manchester-collection">Berlin-Manchester collection</h1>
+<p>If MATLAB and the <a href="http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/">Berlin-Manchester collection</a> are installed, we can access them with the GalleryNLEVP (which does MATLAB-access through Julia's MATLAB-package).</p>
 <pre><code class="julia-repl">julia&gt; using GalleryNLEVP
 julia&gt; nep=nep_gallery(NLEVP_NEP,&quot;hadeler&quot;)
 julia&gt; λ,v=quasinewton(nep,λ=0.2,displaylevel=1,maxit=20,tol=1e-10);
@@ -138,7 +243,7 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))/norm(v)
 9.698206079849311e-11
 </code></pre>
 
-<p>Problems loaded from the Berlin-Manchester collection are NEP-objects where every call to access a function generates a call to an underlying MATLAB-session. Some problems in the Berlin-Manchester collection have native support in NEPPACK, i.e., avoiding a MATLAB-access in every call. The native equivalent object is generated with  <code>nlevp_make_native</code>:</p>
+<p>Problems loaded from the Berlin-Manchester collection are NEP-objects where every call to access a function generates a call to an underlying MATLAB-session. Some problems in the Berlin-Manchester collection have native support in NEP-PACK, i.e., avoiding a MATLAB-access in every call. Either directly from <code>nep_gallery</code> (see above) or can be made native with  <code>nlevp_make_native</code>, e.g.,</p>
 <pre><code class="juli-repl">julia&gt; using GalleryNLEVP
 julia&gt; nep1=nep_gallery(NLEVP_NEP,&quot;gun&quot;)
 julia&gt; nep2=nlevp_make_native(nep1);
@@ -146,7 +251,9 @@ julia&gt; norm(compute_Mder(nep1,0)-compute_Mder(nep2,0),1)
 0.0
 </code></pre>
 
-<p>Stand-alone implementation can be accessed in a similar way, e.g., a native implementation of the waveguide eigenvalue problem:</p>
+<p><a id='Other-gallery-examples-1'></a></p>
+<h1 id="other-gallery-examples">Other gallery examples</h1>
+<p>Stand-alone implementation can be accessed in a similar way, e.g., a native implementation of the Waveguide Eigenvalue Problem can be accessed as</p>
 <pre><code class="julia-repl">julia&gt; using GalleryWaveguide
 julia&gt; nep=nep_gallery(WEP,benchmark_problem=&quot;TAUSCH&quot;);
 </code></pre>

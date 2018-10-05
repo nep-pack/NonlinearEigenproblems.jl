@@ -5,10 +5,10 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Nonlinear eigenvalue problems in julia">
+  <meta name="description" content="Nonlinear eigenvalue problems in Julia">
   <meta name="author" content="NEP-PACK team">
   <link rel="shortcut icon" href="./img/favicon.ico">
-  <title>Introduction - NEPPACK</title>
+  <title>Introduction - NEP-PACK</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
   <link rel="stylesheet" href="./css/theme.css" type="text/css" />
@@ -36,7 +36,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> NEPPACK</a>
+        <a href="." class="icon icon-home"> NEP-PACK</a>
         <div role="search">
   <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -53,7 +53,7 @@
     <a class="current" href=".">Introduction</a>
     <ul class="subnav">
             
-    <li class="toctree-l2"><a href="#neppack">NEPPACK</a></li>
+    <li class="toctree-l2"><a href="#nep-pack">NEP-PACK</a></li>
     
 
     <li class="toctree-l2"><a href="#getting-started">Getting started</a></li>
@@ -114,7 +114,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href=".">NEPPACK</a>
+        <a href=".">NEP-PACK</a>
       </nav>
 
       
@@ -139,16 +139,16 @@
           <div role="main">
             <div class="section">
               
-                <p><a id='NEPPACK-1'></a></p>
-<h1 id="neppack">NEPPACK</h1>
-<p>NEPPACK is a package with implementations of methods to solve nonlinear eigenvalue problems of the type: Find $(λ,v)\in\mathbb{C}\times\mathbb{C}^n$ such that</p>
+                <p><a id='NEP-PACK-1'></a></p>
+<h1 id="nep-pack">NEP-PACK</h1>
+<p>NEP-PACK is a package with implementations of methods to solve nonlinear eigenvalue problems of the type: Find $(λ,v)\in\mathbb{C}\times\mathbb{C}^n$ such that</p>
 <p>$$
 M(λ)v=0
 $$</p>
 <p>and $v\neq 0$.</p>
 <p><a id='Getting-started-1'></a></p>
 <h1 id="getting-started">Getting started</h1>
-<p>Install it as an unregistered package in julia's REPL package mode by writing <code>] add git:/..</code>:</p>
+<p>Install it as an unregistered package in Julia's REPL package mode by writing <code>] add git:/..</code>:</p>
 <pre><code>julia&gt; ]
 (v1.0) pkg&gt; add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 
@@ -172,17 +172,17 @@ julia&gt; λ,v=polyeig(nep)
 (Complex{Float64}[1.36267+0.0im, -0.824084+0.280682im, -0.824084-0.280682im, -8.7145+0.0im], Complex{Float64}[-1.0+0.0im 0.739183-0.196401im 0.739183+0.196401im 0.627138+0.0im; 0.821812+0.0im -0.501408-0.375337im -0.501408+0.375337im 1.0+0.0im])
 </code></pre>
 
-<p>You have now solved your first nonlinear eigenvalue problem with NEPPACK.</p>
+<p>You have now solved your first nonlinear eigenvalue problem with NEP-PACK.</p>
 <p>In order to verify that we have a solution, we can check that  $M(λ)$ is singular, with a singular vector $v$ such that $M(λ)v=0$:</p>
 <pre><code class="julia-repl">julia&gt; λ1=λ[1]; v1=v[:,1];
-julia&gt; using LinearAlgebra # the norm-function is in this julia package
+julia&gt; using LinearAlgebra # the norm-function is in this Julia package
 julia&gt; norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 1.1502634749464687e-14
 </code></pre>
 
 <p><a id='Accessing-more-complicated-applications-1'></a></p>
 <h1 id="accessing-more-complicated-applications">Accessing more complicated applications</h1>
-<p>We have made benchmark examples available in through the function <code>nep_gallery</code>:</p>
+<p>We have made benchmark examples available in through the function <a href="gallery/#NonlinearEigenproblems.nep_gallery"><code>nep_gallery</code></a>:</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;,100);
 julia&gt; size(nep)
 (100, 100)
@@ -310,5 +310,5 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-09-28 09:25:58
+Build Date UTC : 2018-10-05 09:11:46
 -->
