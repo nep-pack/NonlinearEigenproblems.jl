@@ -89,17 +89,17 @@ The following list describes the NEP with a certain `name` and the associated pa
     Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,
     The infinite Arnoldi method and an application to time-delay systems with distributed delays,
     Delay Systems - Methods, Applications and New Trends, 2012.\\
-         Some correct eigenvalues:\\
-         -0.400236388049641 + 0.970633098237807i\\
-         -0.400236388049641 - 0.970633098237807i\\
-          2.726146249832675 + 0.000000000000000i\\
-         -1.955643591177653 + 3.364550574688863i\\
-         -1.955643591177653 - 3.364550574688863i\\
-          4.493937056300693 + 0.000000000000000i\\
-         -1.631513006819252 + 4.555484848248613i\\
-         -1.631513006819252 - 4.555484848248613i\\
-         -1.677320660400946 + 7.496870451838560i\\
-         -1.677320660400946 - 7.496870451838560i
+         Some correct eigenvalues:
+         `-0.400236388049641 + 0.970633098237807i`,\\
+         `-0.400236388049641 - 0.970633098237807i`,\\
+         ` 2.726146249832675 + 0.000000000000000i`,\\
+         `-1.955643591177653 + 3.364550574688863i`,\\
+         `-1.955643591177653 - 3.364550574688863i`,\\
+         ` 4.493937056300693 + 0.000000000000000i`,\\
+         `-1.631513006819252 + 4.555484848248613i`,\\
+         `-1.631513006819252 - 4.555484848248613i`,\\
+         `-1.677320660400946 + 7.496870451838560i`,\\
+         `-1.677320660400946 - 7.496870451838560i`
 
 * `qdep0` \\
     Quadratic delay eigenvalue problem in S. W. Gaaf and E. Jarlebring, The infinite Bi-Lanczos method for
