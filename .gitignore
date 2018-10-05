@@ -1,2 +1,6 @@
 *.jl.*.cov
 *.jl.mem
+
+# Produced from /docs/src during build of documentation
+/docs/site
+/docs/build

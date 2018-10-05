@@ -12,36 +12,126 @@ export IARChebInnerSolver
 export SGIterInnerSolver
 export ContourBeynInnerSolver
 
+"""
+    abstract type InnerSolver
+
+Structs inheriting from this type are used to solve inner problems
+in an inner-outer iteration.
+
+The `InnerSolver` objects are passed as types to the NEP-algorithms,
+which uses it to dispatch the correct version of the function [`inner_solve`](@ref).
+Utilizes existing implementations of NEP-solvers and [`inner_solve`](@ref) acts as a wrapper
+to these. Functionality can be extended in analogy with [`LinSolver`](@ref) and [`EigSolver`](@ref).
+
+# Example
+
+There is a [`DefaultInnerSolver`](@ref) that dispatches an inner solver based on the
+provided NEP.
+However, this example shows how you can force [`nlar`](@ref) to use the
+[`IARInnerSolver`](@ref) for a PEP.
+```julia-repl
+julia> nep=nep_gallery("pep0", 100);
+julia> λ,v = nlar(nep, inner_solver_method=NEPSolver.IARInnerSolver, neigs=1, num_restart_ritz_vecs=1, maxit=70, tol=1e-8);
+julia> norm(compute_Mlincomb(nep,λ[1],vec(v)))
+8.68118417430353e-9
+```
+
+See also: [`inner_solve`](@ref), [`DefaultInnerSolver`](@ref), [`NewtonInnerSolver`](@ref),
+[`PolyeigInnerSolver`](@ref), [`IARInnerSolver`](@ref), [`IARChebInnerSolver`](@ref),
+[`SGIterInnerSolver`](@ref), [`ContourBeynInnerSolver`](@ref)
+"""
 abstract type InnerSolver end;
-abstract type NewtonInnerSolver <: InnerSolver end;
-abstract type PolyeigInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type DefaultInnerSolver <: InnerSolver
+
+Dispatches a version of [`inner_solve`](@ref) based on the type of the NEP provided.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
 abstract type DefaultInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type NewtonInnerSolver <: InnerSolver
+
+Uses [`augnewton`](@ref) to solve the inner problem.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
+abstract type NewtonInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type PolyeigInnerSolver <: InnerSolver
+
+For polynomial eigenvalue problems.
+Uses [`polyeig`](@ref) to solve the inner problem.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
+abstract type PolyeigInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type IARInnerSolver <: InnerSolver
+
+Uses [`iar`](@ref) to solve the inner problem.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
 abstract type IARInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type IARChebInnerSolver <: InnerSolver
+
+Uses [`iar_chebyshev`](@ref) to solve the inner problem.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
 abstract type IARChebInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type SGIterInnerSolver <: InnerSolver
+
+Uses [`sgiter`](@ref) to solve the inner problem.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
 abstract type SGIterInnerSolver <: InnerSolver end;
+
+
+"""
+    abstract type ContourBeynInnerSolver <: InnerSolver
+
+Uses [`contour_beyn`](@ref) to solve the inner problem.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
 abstract type ContourBeynInnerSolver <: InnerSolver end;
 
-   """
+
+"""
   inner_solve(T,T_arit,nep;kwargs...)
 
 Solves the projected linear problem with solver specied with T. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
-to use. The most common choice is `DefaultInnersolver`. The function returns
+to use. The most common choice is [`DefaultInnersolver`](@ref). The function returns
 `(λv,V)` where `λv` is an array of eigenvalues and `V` a matrix with corresponding
- vectors.
-The type T_arit defines the arithmetics used in the outer iteration and should prefereably
+vectors.
+The type `T_arit` defines the arithmetics used in the outer iteration and should prefereably
 also be used in the inner iteration.
 
 Different inner_solve methods take different kwargs. The meaning of
-the kwargs are the following
-
- Neig: Number of wanted eigenvalues (but less or more may be returned)
- σ: target specifying where eigenvalues
- λv, V: Vector/matrix of guesses to be used as starting values
- j: the jth eigenvalue in a min-max characterization
- tol: Termination tolarance for inner solver
-
-
+the kwargs are the following:\\
+`Neig`: Number of wanted eigenvalues (but less or more may be returned)\\
+`σ`: target specifying where eigenvalues\\
+`λv`, `V`: Vector/matrix of guesses to be used as starting values\\
+`j`: the jth eigenvalue in a min-max characterization\\
+`tol`: Termination tolarance for inner solver
 """
 function inner_solve(TT::Type{DefaultInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
@@ -55,6 +145,7 @@ function inner_solve(TT::Type{DefaultInnerSolver},T_arit::DataType,nep::NEPTypes
         return inner_solve(NewtonInnerSolver,T_arit,nep;kwargs...);
     end
 end
+
 
 
 function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;
@@ -84,6 +175,7 @@ function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.
     return λv,V
 end
 
+
 function inner_solve(TT::Type{PolyeigInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
         error("Wrong type");
@@ -91,6 +183,7 @@ function inner_solve(TT::Type{PolyeigInnerSolver},T_arit::DataType,nep::NEPTypes
     pep=NEPTypes.PEP(NEPTypes.get_Av(nep.nep_proj))
     return polyeig(T_arit,pep);
 end
+
 
 
 function inner_solve(TT::Type{IARInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
@@ -107,6 +200,8 @@ function inner_solve(TT::Type{IARInnerSolver},T_arit::DataType,nep::NEPTypes.Pro
         end
     end
 end
+
+
 
 function inner_solve(TT::Type{IARChebInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
     if isa(nep.orgnep, NEPTypes.DEP)
@@ -135,6 +230,7 @@ function inner_solve(TT::Type{IARChebInnerSolver},T_arit::DataType,nep::NEPTypes
         end
     end
 end
+
 
 
 function inner_solve(TT::Type{SGIterInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...)

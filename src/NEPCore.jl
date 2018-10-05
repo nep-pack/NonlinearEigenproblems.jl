@@ -47,11 +47,11 @@ A `NEP` object represents a nonlinear eigenvalue problem. All NEPs should implem
 size(nep::NEP,d)
 ```
 and at least one of the following
-```
-M=compute_Mder(nep::NEP,λ::Number;der=0)
-V=compute_Mlincomb(nep::NEP,λ::Number,V::Array{<:Number,2})
-MM=compute_MM(nep::NEP,S::Array{<:Number,2},V::Array{<:Number,2})
-```
+
+* M = [`compute_Mder(nep::NEP,λ::Number,i::Integer=0)`](@ref)
+* V = [`compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)`](@ref)
+* MM = [`compute_MM(nep::NEP,S,V)`](@ref)
+
 
 """
     abstract type NEP end
@@ -78,7 +78,8 @@ julia> opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
         error("You need to provide an implementation of compute_Mder for this NEP.\nIf you have a compute_MM-function you may want to define: \ncompute_Mder($(typeof(nep)),λ::Number,i::Integer)=compute_Mder_from_MM(nep,λ,i)")
     end
 
-    """
+
+"""
     compute_Mlincomb(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
     compute_Mlincomb!(nep::NEP,λ::Number,V, a::Vector=ones(size(V,2)), startder=0)
 Computes the linear combination of derivatives\\
@@ -96,6 +97,8 @@ julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
 
 ```
 """
+compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector), compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector)
+
     function compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)
         # This will manually scale the columns in V by the vector a.
         if (ones(eltype(a),size(a,1))==a) # No scaling necessary
@@ -137,7 +140,7 @@ Computes linear combination starting with derivative startder, i.e.,
 ``Σ_i a_i M^{(i+startder)}(λ) v_i``
 
 The default implementation of this can be slow. Overload for specific NEP
-if you want efficiency (for aug_newton, IAR, ..).
+if you want efficiency, e.g., in  `augnewton`, `iar`, and others.
 """
     function compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector,startder::Integer)
         aa=[zeros(eltype(a), startder);a];
@@ -220,6 +223,7 @@ Usage normally by overloading:
         end
         return z
     end
+
     """
     compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
 Computes the Mder function from MM using the fact that MM of
@@ -233,9 +237,11 @@ a jordan block becomes derivatives
         W=compute_MM(nep,S,V)
         return W[1:n,1:n]
     end
+
     """
     compute_resnorm(nep::NEP,λ,v)
-Computes the residual norm ||M(λ)v|| of the nep.
+Computes the residual norm of the `nep`, in the point `λ`, with the vector
+`v`, i.e., ``||M(λ)v||``.
 """
     function compute_resnorm(nep::NEP,λ,v)
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
@@ -290,15 +296,17 @@ julia> x'*compute_Mlincomb(nep,s,x)
 
 
    """
-    size(nep::NEP,dim=-1)
+    size(nep::NEP)
+    size(nep::NEP,dim)
 Overloads the size functions for NEP.\\
 Size returns the size of the matrix defining the NEP.
+
 Note: All NEPs must implement this function.
 """
-    function size(nep::NEP,dim)
+    function size(nep::NEP)
         error("You need to provide an implementation of size for this NEP.")
     end
-    function size(nep::NEP)
+    function size(nep::NEP,dim)
         error("You need to provide an implementation of size for this NEP.")
     end
 
@@ -354,7 +362,10 @@ Exeption thrown in case an iterative method does not converge\\
 
     """
     default_errmeasure(nep::NEP)
-The default way of measuring error (residual norm).
+The default way of measuring error.
+Returns a function computing the relative residual norm.
+
+See also: [`compute_resnorm`](@ref),
 """
     function default_errmeasure(nep::NEP)
         return (λ,v) -> compute_resnorm(nep,λ,v)/norm(v)

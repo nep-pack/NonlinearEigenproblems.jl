@@ -50,12 +50,17 @@ module NEPTypes
     promote_eltype(A::AbstractArray{<:AbstractArray}) = isempty(A) ? eltype(eltype(A)) : mapreduce(eltype, promote_type, A)
 
     #
-    """
+"""
     abstract ProjectableNEP <: NEP
 
-A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem W'*M(λ)Vw=0 with the Proj_NEP. A NEP which is of this must have the function `create_proj_NEP(orgnep::ProjectableNEP)` implemented. This function must return a `Proj_NEP` See also `set_projectmatrices!".
+A ProjectableNEP is a NEP which can be projected, i.e., one can construct the problem ``W'*M(λ)Vw=0`` with the [`Proj_NEP`](@ref).
+A NEP which is of this must have the function [`create_proj_NEP(orgnep::ProjectableNEP)`](@ref) implemented.
+This function must return a `Proj_NEP`.
+
+ See also: [`set_projectmatrices!`](@ref).
 
 # Example:
+```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> typeof(nep)
 DEP{Float64,Array{Float64,2}}
@@ -69,6 +74,7 @@ julia> compute_Mder(nep,3.0)[1,1]
 julia> compute_Mder(projnep,3.0)
 1×1 Array{Float64,2}:
  -2.315345215259418
+```
 """
     abstract type ProjectableNEP <: NEP end
 
@@ -81,28 +87,31 @@ julia> compute_Mder(projnep,3.0)
 An AbstractSPMF is an abstract class representing NEPs which can be represented
 as a Sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,
 where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions.
-Any AbstractSPMF has to have implementations of get_Av() and get_fv() which return the
+
+Any AbstractSPMF has to have implementations of [`get_Av()`](@ref) and [`get_fv()`](@ref) which return the
 functions and matrices.
 """
     abstract  type AbstractSPMF{T} <: ProjectableNEP end # See issue #17
 
 """
     get_Av(nep::AbstractSPMF)
-Returns an array of matrices A_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+
+Returns an array of matrices ``A_i`` in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
     function get_Av(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_Av for all AbstractSPMFs")
     end
 """
     get_Av(nep::AbstractSPMF)
-Returns an Array of functions (matrix functions) f_i in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
+
+Returns an Array of functions (that can be evaluated both as scalar and matrix functions) ``f_i`` in the AbstractSPMF: ``M(λ)=Σ_i A_i f_i(λ)``
 """
     function get_fv(nep::AbstractSPMF) # Dummy function which enforces that you have to implement
         error("You need to implement get_fv for all AbstractSPMFs")
     end
 
 """
-    SPMF_NEP
+    struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
 
 An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions,
 i.e.,
@@ -113,11 +122,9 @@ All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
 """
-
-# Logic behind Ftype:
-#  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
-
     struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
+    # Logic behind Ftype:
+    #  The eltype(F(λ))=promote_type(eltype(λ),Ftype)
         n::Int
         A::Vector{T}   # Array of Array of matrices
         fi::Vector{Function}  # Array of functions
@@ -403,9 +410,6 @@ A DEP (Delay Eigenvalue problem) is defined by
 the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
 of the matrices are of size n times n.\\
 Constructor: DEP(AA,tauv) where AA is an array of the
-```math
-\\frac{n!}{k!(n - k)!} = \\binom{n}{k}
-```
 matrices A_i, and tauv is a vector of the values tau_i
 
 # Example:
@@ -878,7 +882,7 @@ The optional parameter `maxsize::Int` determines how large the projected
 problem can be and `T` is the Number type used for the projection matrices
 (default `ComplexF64`).
 These are needed for memory preallocation reasons.
-Use [`set_projectmatrices!()`](@ref) and [`expand_projectmatrices!()`](@ref)
+Use [`set_projectmatrices!`](@ref) and [`expand_projectmatrices!`](@ref)
  to specify projection matrices ``V`` and ``W``.
 
 # Example:
@@ -927,7 +931,7 @@ julia> compute_Mder(pnep,3.0)
     struct Proj_SPMF_NEP <: Proj_NEP
 
 This type represents the (generic) way to project NEPs which are
-`AbstractSPMF`. See examples in [`create_proj_SPMF`](@ref).
+`AbstractSPMF`. See examples in [`create_proj_NEP`](@ref).
 """
     mutable struct Proj_SPMF_NEP  <: Proj_NEP
         orgnep::AbstractSPMF
@@ -1100,11 +1104,37 @@ julia> compute_Mder(pnep,0)
         return false; # A projected NEP is (essentially) never sparse
     end
 
-    """
-        type SumNEP{nep1::NEP,nep2::NEP} <: NEP
+"""
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
 
-SumNEP corresponds to a sum of two NEPs, i.e., if nep is a SumNEP it
-is defined by
+See also: [`SumNEP`](@ref), [`SPMFSumNEP`](@ref)
+"""
+    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+"""
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
+
+See also: [`SumNEP`](@ref), [`GenericSumNEP`](@ref)
+"""
+    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
+        nep1::NEP1
+        nep2::NEP2
+    end
+
+    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
+    # Creator functions for SumNEP
+    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
+        return SPMFSumNEP(nep1,nep2);
+    end
+    """
+    SumNEP{nep1::NEP,nep2::NEP}
+    SumNEP{nep1::AbstractSPMF,nep2::AbstractSPMF}
+
+SumNEP is a function creating an object that corresponds to a sum of two NEPs,
+i.e., if nep is created by SumNEP it is defined by
 ```math
 M(λ)=M_1(λ)+M_2(λ)
 ```
@@ -1129,22 +1159,10 @@ julia> M1+M2  # Same as M
  -0.943908  -13.0795   -0.621659
   6.03155    -7.26726  -6.42828
 ```
+
+See also: [`SPMFSumNEP`](@ref), [`GenericSumNEP`](@ref)
+
 """
-    struct GenericSumNEP{NEP1<:NEP,NEP2<:NEP}  <: NEP
-        nep1::NEP1
-        nep2::NEP2
-    end
-
-    struct SPMFSumNEP{NEP1<:AbstractSPMF,NEP2<:AbstractSPMF}  <: AbstractSPMF{AbstractMatrix}
-        nep1::NEP1
-        nep2::NEP2
-    end
-
-    AnySumNEP=Union{GenericSumNEP,SPMFSumNEP};
-    # Creator functions for SumNEP
-    function SumNEP(nep1::AbstractSPMF,nep2::AbstractSPMF)
-        return SPMFSumNEP(nep1,nep2);
-    end
     function SumNEP(nep1::NEP,nep2::NEP)
         return GenericSumNEP(nep1,nep2);
     end
@@ -1169,16 +1187,16 @@ julia> M1+M2  # Same as M
 
    #
 """
-    size(nep::NEP,dim=-1)
- Overloads the size functions for NEPs storing size in nep.n
+    size(nep::Union{DEP,PEP,REP,SPMF_NEP})
+    size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
+
+Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
-        return nep.n
-    end
-
-
     function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
         return (nep.n,nep.n)
+    end
+    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
+        return nep.n
     end
 
 """

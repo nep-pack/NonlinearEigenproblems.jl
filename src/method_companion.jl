@@ -64,16 +64,14 @@ julia> minimum(svd(compute_Mder(pep,λ[1])).S)
 
     end
 
-    #############################################################################
-    #Solve the linearized companion of a PEP
 
     """
 λ,v = polyeig([eltype],nep::PEP,[eigsolvertype,])
 
 Linearizes a  polynomial eigenvalue problem (PEP) a to the companion form
-and solves the corresponding linear eigenvalue problem; see `companion`.
+and solves the corresponding linear eigenvalue problem; see [`companion`](@ref).
 The `eigsolvertype` is optinal can be used to specify how the linear problem
-is solved; see `eig_solve` and `EigSolver`.
+is solved; see [`eig_solve`](@ref), and [`EigSolver`](@ref).
 
 # Example
 ```julia-repl

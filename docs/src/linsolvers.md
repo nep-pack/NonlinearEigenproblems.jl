@@ -27,3 +27,26 @@ GMRESLinSolver
 ```@docs
 gmres_linsolvercreator
 ```
+
+
+# EigSolvers
+
+Some NEP-algorithms need to solve an associated linear eigenvalue problem. associated with `M(λ)`.
+You will likely only need the native eigensolvers in Julia.
+Nevertheless, we provide an interface to specify which solver to use or define your own solver.
+
+```@docs
+EigSolver
+```
+```@docs
+eig_solve
+```
+```@docs
+DefaultEigSolver
+```
+```@docs
+NativeEigSolver
+```
+```@docs
+NativeEigSSolver
+```
