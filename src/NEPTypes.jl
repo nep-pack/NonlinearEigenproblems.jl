@@ -405,14 +405,15 @@ SPMF. The result will be stored in an  AbstractMatrix with eltype T.  """
 
     """
     type DEP <: AbstractSPMF
-Delay eigenvalue problem
+
 A DEP (Delay Eigenvalue problem) is defined by
 the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
 of the matrices are of size n times n.\\
-Constructor: DEP(AA,tauv) where AA is an array of the
-matrices A_i, and tauv is a vector of the values tau_i
+Constructor: `DEP(AA,tauv)` where `AA` is an array of the
+matrices ``A_i``, and `tauv` is a vector of the values  ``tau_i``.
 
 # Example:
+```julia-repl
 julia> A0=randn(3,3); A1=randn(3,3);
 julia> tauv=[0,0.2] # Vector with delays
 julia> dep=DEP([A0,A1],tauv)
@@ -421,6 +422,7 @@ julia> M1=compute_Mder(dep,λ)
 julia> M2=-λ*I+A0+A1*exp(-tauv[2]*λ)
 julia> norm(M1-M2)
 0.0
+```
 """
     struct DEP{Z<:Real, T<:AbstractMatrix} <: AbstractSPMF{T}
         n::Int
