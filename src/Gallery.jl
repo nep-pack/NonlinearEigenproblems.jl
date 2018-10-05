@@ -129,7 +129,11 @@ The following list describes the NEP with a certain `name` and the associated pa
     The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi
     algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.
 
-The MATLAB-package "NLEVP: A Collection of Nonlinear Eigenvalue Problems, ACM Transactions on Mathematical Software 39(2), January 2011, T. Betcke, N. J. Higham, V. Mehrmann, Ch. Schröder, F. Tisseur" provides a number of benchmark problems for NEPs. These are available in NEP-PACK in two different ways. We have native implementations of some problems (referred to as `nlevp_native_`) and the separate `GalleryNLEVP`. The native implementation is preferred since the `GalleryNLEVP` interfaces with MATLAB and is therefore considerably slower.
+    The MATLAB-package "NLEVP: A Collection of Nonlinear Eigenvalue Problems, ACM Transactions on Mathematical Software 39(2), January 2011,
+    T. Betcke, N. J. Higham, V. Mehrmann, Ch. Schröder, F. Tisseur" provides a number of benchmark problems for NEPs.
+    These are available in NEP-PACK in two different ways. We have native implementations of some problems (referred to as `nlevp_native_`)
+    and the separate `GalleryNLEVP`. The native implementation is preferred since the `GalleryNLEVP`
+    interfaces with MATLAB and is therefore considerably slower.
 
 
 * `nlevp_native_gun`\\
@@ -137,10 +141,26 @@ The MATLAB-package "NLEVP: A Collection of Nonlinear Eigenvalue Problems, ACM Tr
     B.-S. Liao, Z. Bai, L.-Q. Lee, and K. Ko. Nonlinear Rayleigh-Ritz iterative method for solving large scale
     nonlinear eigenvalue problems.  Taiwan. Journal of Mathematics, 14(3):869–883, 2010
 
+* `nlevp_native_cd_player`\\
+    The benchmark problem from the NLEVP-collection called "cd_player", represented in the native NEP-PACK format.
+    Y. Chahlaoui, and P. M. Van Dooren, Benchmark examples for model reduction of linear time-
+    invariant dynamical systems. In Dimension Reduction of Large-Scale Systems, P. Benner, V. Mehrmann,
+    and D. C. Sorensen, Eds. Lecture Notes in Computational Science and Engineering Series, vol. 45.
+    Springer-Verlag, Berlin, 380–392, 2005.\\
+    and\\
+    P. M. R. Wortelboer, M. Steinbuch, and  O. H. Bosgra, Closed-loop balanced reduction with
+    application to a compact disc mechanism. In Selected Topics in Identification, Modeling and Control.
+    Vol. 9. Delft University Press, 47–58, 1996.\\
+    and\\
+    W. Draijer, M. Steinbuch, and  O. H. Bosgra, Adaptive control of the radial servo system of a
+    compact disc player. Automatica 28, 3, 455–462. 1992.\\
+
+
 * `nlevp_native_fiber`\\
     The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format.
     One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark.
-    L. Kaufman, Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117, 2006.  and
+    L. Kaufman, Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117, 2006.\\
+    and\\
     X. Huang, Z. Bai, and Y. Su, Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234, 2010
 
 # Example
@@ -182,6 +202,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
         "neuron0" => neuron0,
         "nlevp_native_gun" => nlevp_native_gun,
+        "nlevp_native_cd_player" => nlevp_native_cd_player,
         "nlevp_native_fiber" => nlevp_native_fiber,
         "beam" => beam,
         "sine" => sine_nep,
