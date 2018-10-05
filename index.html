@@ -68,6 +68,9 @@
     <li class="toctree-l2"><a href="#the-gun-benchmark-problem">The "gun" benchmark problem</a></li>
     
 
+    <li class="toctree-l2"><a href="#your-own-nep-nonlinearity">Your own NEP nonlinearity</a></li>
+    
+
     <li class="toctree-l2"><a href="#what-now">What now?</a></li>
     
 
@@ -258,6 +261,32 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 </code></pre>
 
 <p>If you use the NEP-algorithms for research, please to give the author of the algorithm credit by citiation. The recommended citation can be found in the function documentation, e.g., <code>?blocknewton</code>.</p>
+<p><a id='Your-own-NEP-nonlinearity-1'></a></p>
+<h1 id="your-own-nep-nonlinearity">Your own NEP nonlinearity</h1>
+<p>If you work on an application and you think the algorithms provided here might be useful, you should first check if your problem can be easily expressed as follows. It helps your life a lot if your problem can be expressed as a (short) sum of products of matrices and functions. For instance, a problem with three terms</p>
+<p>$$
+M(λ) = A+λB+e^{\sin(λ/2)}C
+$$</p>
+<p>Sum of products of matrices and functions are represented by <a href="types/#spmf"><code>SPMF</code></a> in NEP-PACK. The problem above can be created by</p>
+<pre><code class="julia-repl">julia&gt;  A=(1:4)*(1:4)'+I; B=diagm(1 =&gt; [1,2,3]); C=ones(4,4);
+julia&gt; f1= λ-&gt; one(λ);
+julia&gt; f2= λ-&gt; λ;
+julia&gt; f3= λ-&gt; exp(sin(λ/2))
+julia&gt; nep=SPMF_NEP([A,B,C],[f1,f2,f3]);
+julia&gt; λ,v=quasinewton(nep,λ=3)
+(3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])
+</code></pre>
+
+<p>Note that the functions <code>f1</code>,<code>f2</code> and <code>f3</code> have to be defined for scalar values and for matrices (in the matrix function sense, not elementwise sense).</p>
+<p>As usual, you can check that we computed a sensible solution:</p>
+<pre><code class="julia-repl">julia&gt; (A+B*λ+C*exp(sin(λ/2)))*v
+4-element Array{Complex{Float64},1}:
+  -6.586145128765412e-14 + 0.0im
+  2.8285461200559146e-14 + 0.0im
+ -4.1550357082583515e-14 + 0.0im
+  -8.815768150428286e-15 + 0.0im
+</code></pre>
+
 <p><a id='What-now?-1'></a></p>
 <h1 id="what-now">What now?</h1>
 <p>Now you are ready to have a look at the examples in <a href="./methods/">NEP methods</a> and  <a href="./gallery/">NEP Gallery</a>.</p>
@@ -311,5 +340,5 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-10-05 15:56:19
+Build Date UTC : 2018-10-05 16:38:45
 -->
