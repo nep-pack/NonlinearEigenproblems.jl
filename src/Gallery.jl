@@ -129,6 +129,9 @@ The following list describes the NEP with a certain `name` and the associated pa
     The NEP formed by the sum of a polynomial and a sine-function in "A rank-exploiting infinite Arnoldi
     algorithm for nonlinear eigenvalue problems", R. Van Beeumen, E. Jarlebring and W. Michiels, 2016. The sine-term has rank one.
 
+The MATLAB-package "NLEVP: A Collection of Nonlinear Eigenvalue Problems, ACM Transactions on Mathematical Software 39(2), January 2011, T. Betcke, N. J. Higham, V. Mehrmann, Ch. Schröder, F. Tisseur" provides a number of benchmark problems for NEPs. These are available in NEP-PACK in two different ways. We have native implementations of some problems (referred to as `nlevp_native_`) and the separate `GalleryNLEVP`. The native implementation is preferred since the `GalleryNLEVP` interfaces with MATLAB and is therefore considerably slower.
+
+
 * `nlevp_native_gun`\\
     The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format.
     B.-S. Liao, Z. Bai, L.-Q. Lee, and K. Ko. Nonlinear Rayleigh-Ritz iterative method for solving large scale
@@ -174,7 +177,9 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "real_quadratic" => real_quadratic,
         "dep_distributed" => gallery_dep_distributed,
         "qdep0" => qdep0,
-        "qdep1" => qdep1,
+        "qdep1
+
+" => qdep1,
         "qep_fixed_eig" => qep_fixed_eig,
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
         "neuron0" => neuron0,
