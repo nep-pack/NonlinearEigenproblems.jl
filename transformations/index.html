@@ -155,7 +155,7 @@ julia&gt; opnorm(compute_Mder(nep0,α*(4+4im)+σ)-compute_Mder(nep1,4+4im))
 8.875435870738592e-12
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/nep_transformations.jl#L23-L39' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/nep_transformations.jl#L23-L39' class='documenter-source'>source</a><br></p>
 <p>Similarly <code>mobius_transform()</code> is more general than <code>shift_and_scale</code> which transform the problem using a Möbius transformation. The function <code>taylor_exp</code> create new PEP by doing truncating a Taylor expansion.</p>
 <p><a id='Projection-1'></a></p>
 <h1 id="projection">Projection</h1>
@@ -193,7 +193,7 @@ julia&gt; compute_Mder(projnep,3.0)
  -2.315345215259418
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/NEPTypes.jl#L53-L78' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/NEPTypes.jl#L53-L78' class='documenter-source'>source</a><br></p>
 <p>The result of the projection is represented in a <code>Proj_NEP</code>.</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.Proj_NEP' href='#NonlinearEigenproblems.NEPTypes.Proj_NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.Proj_NEP</code></strong> &mdash; <em>Type</em>.</p>
@@ -210,7 +210,7 @@ $$</p>
 <li><a href="./#NonlinearEigenproblems.NEPTypes.set_projectmatrices!"><code>set_projectmatrices!</code></a>: Set matrices <code>W</code> and <code>V</code></li>
 <li><a href="./#NonlinearEigenproblems.NEPTypes.expand_projectmatrices!"><code>expand_projectmatrices!</code></a>: Effectively expand the matrices <code>W</code> and <code>V</code> with one column.</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/NEPTypes.jl#L855-L873' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/NEPTypes.jl#L855-L873' class='documenter-source'>source</a><br></p>
 <p>One explicit instance is the <code>Proj_SPMF_NEP</code>.</p>
 <p><a id='NonlinearEigenproblems.NEPTypes.Proj_SPMF_NEP' href='#NonlinearEigenproblems.NEPTypes.Proj_SPMF_NEP'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.Proj_SPMF_NEP</code></strong> &mdash; <em>Type</em>.</p>
@@ -218,7 +218,7 @@ $$</p>
 </code></pre>
 
 <p>This type represents the (generic) way to project NEPs which are <code>AbstractSPMF</code>. See examples in <a href="./#NonlinearEigenproblems.NEPTypes.create_proj_NEP"><code>create_proj_NEP</code></a>.</p>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/NEPTypes.jl#L930-L935' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/NEPTypes.jl#L930-L935' class='documenter-source'>source</a><br></p>
 <p><a id='Associated-functions-1'></a></p>
 <h2 id="associated-functions">Associated functions</h2>
 <p>You can create a projected NEP with <code>create_proj_NEP</code>:</p>
@@ -254,7 +254,7 @@ julia&gt; compute_Mder(pnep,3.0)
  -1.35069  -13.0975
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/NEPTypes.jl#L876-L917' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/NEPTypes.jl#L876-L917' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPTypes.set_projectmatrices!' href='#NonlinearEigenproblems.NEPTypes.set_projectmatrices!'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.set_projectmatrices!</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>set_projectmatrices!(pnep::Proj_NEP,W,V)
@@ -275,7 +275,7 @@ julia&gt; sum(compute_Mder(nep,0),dims=[1,2])
  48.948104019482955
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/NEPTypes.jl#L986-L1007' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/NEPTypes.jl#L986-L1007' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPTypes.expand_projectmatrices!' href='#NonlinearEigenproblems.NEPTypes.expand_projectmatrices!'>#</a>
 <strong><code>NonlinearEigenproblems.NEPTypes.expand_projectmatrices!</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>expand_projectmatrices!(nep::Proj_SPMF_NEP, Wnew, Vnew)
@@ -302,7 +302,7 @@ julia&gt; compute_Mder(pnep,0)
  -17.1619+0.0im   -10.1628+0.0im   48.9481+0.0im
 </code></pre>
 
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/NEPTypes.jl#L1025-L1056' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/NEPTypes.jl#L1025-L1056' class='documenter-source'>source</a><br></p>
 <p><a id='Deflation-1'></a></p>
 <h1 id="deflation">Deflation</h1>
 <p>Due to structure of the representation of NEPs in NEP-PACK it is possible to do deflation, by transformation of the NEP-object. The deflation is based on theory provided in Effenbergers thesis and the main function consists of <code>effenberger_deflation</code>.</p>
@@ -328,7 +328,7 @@ julia&gt; minimum(svdvals(compute_Mder(nep,λ2)))
 <ul>
 <li>C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/nep_transformations.jl#L206-L230' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/bce70a1cc837dc08752970c11bf08569e311ca3d/src/nep_transformations.jl#L206-L230' class='documenter-source'>source</a><br></p>
               
             </div>
           </div>
