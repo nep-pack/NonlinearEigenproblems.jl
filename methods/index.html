@@ -66,7 +66,7 @@
         
             <li><a class="toctree-l3" href="#projection-methods">Projection methods</a></li>
         
-            <li><a class="toctree-l3" href="#arnoldi-type-methods">Arnoldi type methods</a></li>
+            <li><a class="toctree-l3" href="#arnoldi-and-krylov-based-methods">Arnoldi and Krylov based methods</a></li>
         
             <li><a class="toctree-l3" href="#class-specific-methods">Class specific methods</a></li>
         
@@ -459,8 +459,8 @@ julia&gt; norm(compute_Mlincomb(nep,λ[1],v[:,1]))
 <li>H. Voss, A Jacobi–Davidson method for nonlinear eigenproblems. In: International Conference on Computational Science. Springer, Berlin, Heidelberg, 2004. pp. 34-41.</li>
 </ul>
 <p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/016ce0f070d76abf5667fc6b86824e4e6b4d839f/src/method_jd.jl#L181-L204' class='documenter-source'>source</a><br></p>
-<p><a id='Arnoldi-type-methods-1'></a></p>
-<h2 id="arnoldi-type-methods">Arnoldi type methods</h2>
+<p><a id='Arnoldi-and-Krylov-based-methods-1'></a></p>
+<h2 id="arnoldi-and-krylov-based-methods">Arnoldi and Krylov based methods</h2>
 <p><a id='IAR-1'></a></p>
 <h3 id="iar">IAR</h3>
 <p>The Infinite ARnoldi method.</p>
@@ -608,6 +608,47 @@ julia&gt; norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 <li>The infinite bi-Lanczos method for nonlinear eigenvalue problems, S. W. Gaaf and E. Jarlebring, SIAM J. Sci. Comput. 39:S898-S919, 2017, <a href="https://arxiv.org/abs/1607.03454">preprint</a></li>
 </ul>
 <p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/016ce0f070d76abf5667fc6b86824e4e6b4d839f/src/method_infbilanczos.jl#L5-L26' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPSolver.nleigs' href='#NonlinearEigenproblems.NEPSolver.nleigs'>#</a>
+<strong><code>NonlinearEigenproblems.NEPSolver.nleigs</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
+</code></pre>
+
+<p>Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.</p>
+<p><strong>Arguments</strong></p>
+<ul>
+<li><code>nep</code>: An instance of a nonlinear eigenvalue problem.</li>
+<li><code>Σ</code>: A vector containing the points of a polygonal target set in the complex plane.</li>
+<li><code>Ξ</code>: A vector containing a discretization of the singularity set.</li>
+<li><code>displaylevel</code>: Level of display (0, 1, 2).</li>
+<li><code>maxdgr</code>: Max degree of approximation.</li>
+<li><code>minit</code>: Min number of iterations after linearization is converged.</li>
+<li><code>maxit</code>: Max number of total iterations.</li>
+<li><code>tol</code>: Tolerance for residual.</li>
+<li><code>tollin</code>: Tolerance for convergence of linearization.</li>
+<li><code>v</code>: Starting vector.</li>
+<li><code>errmeasure</code>: Function for error measure (residual norm). Called with arguments (λ,v).</li>
+<li><code>isfunm</code> : Whether to use matrix functions.</li>
+<li><code>static</code>: Whether to use static version of NLEIGS.</li>
+<li><code>leja</code>: Use of Leja-Bagby points (0 = no, 1 = only in expansion phase, 2 = always).</li>
+<li><code>nodes</code>: Prefixed interpolation nodes (only when leja is 0 or 1).</li>
+<li><code>reusefact</code>: Reuse of matrix factorizations (0 = no, 1 = only after converged linearization, 2 = always).</li>
+<li><code>blksize</code>: Block size for pre-allocation.</li>
+<li><code>return_details</code>: Whether to return solution details (see NleigsSolutionDetails).</li>
+<li><code>check_error_every</code>: Check for convergence / termination every this number of iterations.</li>
+</ul>
+<p><strong>Return values</strong></p>
+<ul>
+<li><code>λ</code>: Vector of eigenvalues of the nonlinear eigenvalue problem NLEP inside the target set Σ.</li>
+<li><code>X</code>: Corresponding matrix of eigenvectors.</li>
+<li><code>res</code>: Corresponding residuals.</li>
+<li><code>details</code>: Solution details, if requested (see NleigsSolutionDetails).</li>
+</ul>
+<p><strong>References</strong></p>
+<ul>
+<li>S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class of fully rational Krylov methods for nonlinear eigenvalue problems. SIAM J. Sci. Comput., 36(6), A2842-A2864, 2014.</li>
+<li><a href="http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php">NLEIGS Matlab toolbox</a></li>
+</ul>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/016ce0f070d76abf5667fc6b86824e4e6b4d839f/src/method_nleigs.jl#L7-L44' class='documenter-source'>source</a><br></p>
 <p><a id='Class-specific-methods-1'></a></p>
 <h2 id="class-specific-methods">Class specific methods</h2>
 <p><a id='Companion-linearizations-1'></a></p>
