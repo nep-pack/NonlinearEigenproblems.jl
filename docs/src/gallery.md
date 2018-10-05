@@ -31,15 +31,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 Problems loaded from the Berlin-Manchester collection are NEP-objects
 where every call to access a function generates a call to an
 underlying MATLAB-session. Some problems in the Berlin-Manchester collection
-have native support in NEP-PACK, i.e., avoiding a MATLAB-access in every call.
-Either directly from `nep_gallery` (see above) or can be made native with  `nlevp_make_native`, e.g.,
-```juli-repl
-julia> using GalleryNLEVP
-julia> nep1=nep_gallery(NLEVP_NEP,"gun")
-julia> nep2=nlevp_make_native(nep1);
-julia> norm(compute_Mder(nep1,0)-compute_Mder(nep2,0),1)
-0.0
-```
+have native support in NEP-PACK, i.e., avoiding a MATLAB-access in every call;
+see `nep_gallery` above.
 
 # Other gallery examples
 Stand-alone implementation can be accessed in a similar way, e.g.,

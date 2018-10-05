@@ -10,8 +10,8 @@ using GalleryNLEVP
 
 @testset "GUN (NLEVP interface)" begin
 
-    nep_org=nep_gallery(NLEVP_NEP,"gun");
-    nep1=nlevp_make_native(nep_org);
+    nep_org = nep_gallery(NLEVP_NEP,"gun")
+    nep1 = nep_gallery("nlevp_native_gun")
     n=size(nep1,1);
     tol=1e-11;
     @bench @testset "Running alg" begin
