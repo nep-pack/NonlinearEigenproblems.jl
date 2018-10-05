@@ -164,7 +164,7 @@ M(λ)=\begin{bmatrix}1&amp;3\newline5&amp;6\end{bmatrix}+
 λ\begin{bmatrix}3&amp;4\newline6&amp;6\end{bmatrix}+
 λ^2\begin{bmatrix}1&amp;0\newline0&amp;1\end{bmatrix}
 $$</p>
-<p>The following code creates this NEP, by constructing an object called <a href="types/#PEP-1"><code>PEP</code></a>, an abbreviation for polynomial eigenvalue problem. Here we solve it using the NEP solution method implemented in <a href="methods/#NonlinearEigenproblems.NEPSolver.polyeig"><code>polyeig()</code></a>:</p>
+<p>The following code creates this NEP, by constructing an object called <a href="types/#PEP-1"><code>PEP</code></a>, an abbreviation for polynomial eigenvalue problem. It subsequencly solves it using the NEP solution method implemented in <a href="methods/#NonlinearEigenproblems.NEPSolver.polyeig"><code>polyeig()</code></a>:</p>
 <pre><code class="julia-repl">julia&gt; A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia&gt; nep=PEP([A0,A1,A2])
 PEP(2, Array{Float64,2}[[1.0 3.0; 5.0 6.0], [3.0 4.0; 6.0 6.0], [1.0 0.0; 0.0 1.0]])
@@ -222,7 +222,7 @@ A3=beta*[1 0; 0 1];
 julia&gt; dep=DEP([A0, A1,   A2, A3],tauv);
 </code></pre>
 
-<p>The constructor  <a href="types/#DEP-1"><code>DEP</code></a> is an abbreviation for a delay eigenvalue problem, which a  NEP with exponential terms stemming from the stability analysis of a delay-differential equation. See <a href="types/"><code>types</code></a> for other NEP-types. You can now solve this NEP, for instance, with the <a href="methods/#NonlinearEigenproblems.NEPSolver.mslp">infinite Arnoldi method</a>:</p>
+<p>The constructor  <a href="types/#DEP-1"><code>DEP</code></a> is an abbreviation for a delay eigenvalue problem, which is a NEP with exponential terms stemming from the stability analysis of a delay-differential equation. See <a href="types/"><code>types</code></a> for other NEP-types. You can now solve this NEP, for instance, with the <a href="methods/#NonlinearEigenproblems.NEPSolver.iar_chebyshev">infinite Arnoldi method</a>:</p>
 <pre><code class="julia-repl">julia&gt; λ,V=iar_chebyshev(dep,maxit=100); # This takes some time the first time is run due to JIT-compiler
 </code></pre>
 
@@ -257,6 +257,7 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 1.8270553408452648e-16
 </code></pre>
 
+<p>If you use the NEP-algorithms for research, please to give the author of the algorithm credit by citiation. The recommended citation can be found in the function documentation, e.g., <code>?blocknewton</code>.</p>
 <p><a id='What-now?-1'></a></p>
 <h1 id="what-now">What now?</h1>
 <p>Now you are ready to have a look at the examples in <a href="./methods/">NEP methods</a> and  <a href="./gallery/">NEP Gallery</a>.</p>
@@ -310,5 +311,5 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-10-05 15:41:00
+Build Date UTC : 2018-10-05 15:53:59
 -->

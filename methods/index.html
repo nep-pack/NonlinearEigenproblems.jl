@@ -290,6 +290,41 @@ julia&gt; compute_resnorm(nept,λ,u) % u is a left eigenvector
 <li>Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008.</li>
 </ul>
 <p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/016ce0f070d76abf5667fc6b86824e4e6b4d839f/src/method_rfi.jl#L7-L28' class='documenter-source'>source</a><br></p>
+<p><a id='NonlinearEigenproblems.NEPSolver.blocknewton' href='#NonlinearEigenproblems.NEPSolver.blocknewton'>#</a>
+<strong><code>NonlinearEigenproblems.NEPSolver.blocknewton</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>(S,X)=blocknewton(nep [S,] [X,] [errmeasure,] [tol,] [maxit,] [armijo_factor,] [armijo_max,] [displaylevel])
+</code></pre>
+
+<p>Applies the block Newton method to <code>nep::AbstractSPMF</code>. The method computes an invariant pair <code>(S,X)</code> using the block Newton approach of Kressner. The variables <code>S</code>,<code>X</code> correspond to starting approximations. The function <code>errmeasure</code> shoule be defined for errmeasure(S,X) and meausures the error in the pair <code>(S,X)</code>. See <code>newton()</code> for the other parameters.</p>
+<p><strong>Example</strong></p>
+<p>The example shows that <code>compute_MM()</code> becomes zero when a solution has been computed.</p>
+<pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;dep0&quot;,3);
+julia&gt; (S,X)= blocknewton(nep)
+julia&gt; compute_MM(nep,S,X)
+3×2 Array{Complex{Float64},2}:
+ -2.22045e-16-1.0842e-19im  -2.08167e-17+0.0im
+  1.94289e-16-1.0842e-19im  -5.55112e-17-6.77626e-20im
+  7.63278e-17-1.0842e-19im   2.77556e-17-2.71051e-20im
+</code></pre>
+
+<p>This example solves the <code>gun</code> problem from the Berlin-Manchester collection</p>
+<pre><code class="julia-repl">julia&gt; using NonlinearEigenproblems.Gallery
+julia&gt; nep=nep_gallery(&quot;nlevp_native_gun&quot;);
+julia&gt; II=[1.0 0; 0 1]; S=150^2*II; V=[II;zeros(size(nep,1)-2,2)];
+julia&gt; (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
+Iteration 1: Error: 6.081316e+03
+Iteration 2: Error: 1.701970e-02 Armijo scaling=0.031250
+Iteration 3: Error: 1.814887e-02 Armijo scaling=0.250000
+...
+Iteration 13: Error: 6.257442e-09
+Iteration 14: Error: 2.525942e-15
+</code></pre>
+
+<p><strong>References</strong></p>
+<ul>
+<li>D. Kressner A block Newton method for nonlinear eigenvalue problems, Numer. Math., 114 (2) (2009), pp. 355-372</li>
+</ul>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/016ce0f070d76abf5667fc6b86824e4e6b4d839f/src/method_blocknewton.jl#L7-L46' class='documenter-source'>source</a><br></p>
 <p><a id='NonlinearEigenproblems.NEPSolver.newtonqr' href='#NonlinearEigenproblems.NEPSolver.newtonqr'>#</a>
 <strong><code>NonlinearEigenproblems.NEPSolver.newtonqr</code></strong> &mdash; <em>Function</em>.</p>
 <pre><code>λ,v = newtonqr([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel])
