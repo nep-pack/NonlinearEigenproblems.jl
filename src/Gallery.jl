@@ -177,9 +177,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "real_quadratic" => real_quadratic,
         "dep_distributed" => gallery_dep_distributed,
         "qdep0" => qdep0,
-        "qdep1
-
-" => qdep1,
+        "qdep1" => qdep1,
         "qep_fixed_eig" => qep_fixed_eig,
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
         "neuron0" => neuron0,
