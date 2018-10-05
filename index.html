@@ -222,7 +222,7 @@ A3=beta*[1 0; 0 1];
 julia&gt; dep=DEP([A0, A1,   A2, A3],tauv);
 </code></pre>
 
-<p>The constructor  <a href="types/#DEP-1"><code>DEP</code></a> is an abbreviation for a delay eigenvalue problem, which a  NEP with exponential terms stemming from the stability analysis of a delay-differential equation. See <a href="types/"><code>types</code></a> for other NEP-types. You can now solve this NEP, for instance, with the infinite Arnoldi method</p>
+<p>The constructor  <a href="types/#DEP-1"><code>DEP</code></a> is an abbreviation for a delay eigenvalue problem, which a  NEP with exponential terms stemming from the stability analysis of a delay-differential equation. See <a href="types/"><code>types</code></a> for other NEP-types. You can now solve this NEP, for instance, with the <a href="methods/#NonlinearEigenproblems.NEPSolver.mslp">infinite Arnoldi method</a>:</p>
 <pre><code class="julia-repl">julia&gt; λ,V=iar_chebyshev(dep,maxit=100); # This takes some time the first time is run due to JIT-compiler
 </code></pre>
 
@@ -234,7 +234,7 @@ julia&gt; plot(real(λ),imag(λ),&quot;*&quot;)
 <p>This problem is also available in the <code>Gallery</code> by calling <code>dep=nep_gallery("neuron0")</code>.</p>
 <p><a id='The-"gun"-benchmark-problem-1'></a></p>
 <h1 id="the-gun-benchmark-problem">The "gun" benchmark problem</h1>
-<p>One of the most common benchmark problems for NEPs is the so-called "gun"-problem. It models an electromagnetic cavity, and it is directly available in the <code>Gallery</code>. (See <code>?nep_gallery</code> for references.) This is how you can solve it with the block Newton method:</p>
+<p>One of the most common benchmark problems for NEPs is the so-called "gun"-problem. It models an electromagnetic cavity, and it is directly available in the <code>Gallery</code>. (See <code>?nep_gallery</code> for references.) This is how you can solve it with the <a href="methods/#NonlinearEigenproblems.NEPSolver.blocknewton">block Newton method</a>:</p>
 <pre><code class="julia-repl">julia&gt; nep=nep_gallery(&quot;nlevp_native_gun&quot;);
 julia&gt; n=size(nep,1)
 julia&gt; S=150^2*[1.0 0; 0 1]; V=[[1 0; 0 1]; zeros(n-2,2)];
@@ -310,5 +310,5 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 
 <!--
 MkDocs version : 0.16.3
-Build Date UTC : 2018-10-05 14:49:31
+Build Date UTC : 2018-10-05 15:41:00
 -->
