@@ -7,6 +7,7 @@
 push!(LOAD_PATH, "@stdlib") # needed for "using Pkg"
 using Pkg
 Pkg.activate(@__DIR__)
+Pkg.instantiate();
 
 include("run_all_tests.jl")
 
