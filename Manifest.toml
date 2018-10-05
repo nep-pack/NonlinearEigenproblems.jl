@@ -1,9 +1,3 @@
-[[AbstractAlgebra]]
-deps = ["InteractiveUtils", "LinearAlgebra", "Markdown", "Pkg", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "71feaaa29a5ce42f45c2814bc2993c46b141c338"
-uuid = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
-version = "0.1.3"
-
 [[AbstractFFTs]]
 deps = ["Compat", "LinearAlgebra"]
 git-tree-sha1 = "8d59c3b1463b5e0ad05a3698167f85fac90e184d"
@@ -112,24 +106,6 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 [[Pkg]]
 deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-
-[[PolynomialFactors]]
-deps = ["AbstractAlgebra", "Combinatorics", "LinearAlgebra", "Primes", "Test"]
-git-tree-sha1 = "b6669bc583e224fda09917771b4f3874c3cee99a"
-uuid = "ec145902-31c2-532e-934a-7c64254c4b82"
-version = "0.2.0"
-
-[[PolynomialRoots]]
-deps = ["Pkg", "Test"]
-git-tree-sha1 = "0ba43554d01a5f4d63e4ac51623d3d8595b7146e"
-uuid = "3a141323-8675-5d76-9d11-e1df1406c778"
-version = "0.2.0"
-
-[[PolynomialZeros]]
-deps = ["AbstractAlgebra", "LinearAlgebra", "PolynomialFactors", "PolynomialRoots", "Polynomials", "Printf", "Random", "Roots", "Test"]
-git-tree-sha1 = "048b773c30f7a0563eed4c70d5dae2625f41b0ec"
-uuid = "11d3f387-6b1b-5124-abbd-847758a5de3c"
-version = "0.2.0"
 
 [[Polynomials]]
 deps = ["LinearAlgebra", "SparseArrays", "Test"]

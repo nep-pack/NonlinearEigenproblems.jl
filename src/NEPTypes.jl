@@ -2,8 +2,6 @@ module NEPTypes
     using ..NEPCore
     using SparseArrays
     using LinearAlgebra
-    using PolynomialZeros
-    using Polynomials
     using InteractiveUtils
 
     # Specializalized NEPs
@@ -569,10 +567,49 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
         for i=1:size(nep.A,1)
             a[i]=dot(y,nep.A[i]*x);
         end
-        p=Poly(a);
-        rr=real(poly_roots(p));  # Only works if polynomial roots are real
-        return rr
+        m=size(nep.A,1);
+        # Build a bigfloat companion matrix
+        A=zeros(T,m-1,m-1);
+        for k=1:m-1
+            if (k<m-1)
+                A[k,k+1]=1;
+            end
+            A[end,k]=-a[k]/a[end]
+        end
+        pp=eigvals(A);
+        if (T <: Real) # If we specify real arithmetic, return real eigvals
+            pp=real(pp);
+        end
+
+        II=sortperm(abs.(pp .- target))
+        return pp[II];
     end
+
+    # Overload a version of eigvals(::Matrix{BigFloat}) for compute_rf
+    import LinearAlgebra.eigvals
+    function eigvals(A::Union{Matrix{BigFloat},Matrix{Complex{BigFloat}}})
+        T=eltype(A);
+        Tfloat= (T <: Complex) ? (ComplexF64) : (Float64)
+        Afloat=Matrix{Tfloat}(A);
+        λv,X=eigen(Afloat);
+        local λv_bigfloat=Vector{Complex{BigFloat}}(λv);
+        # Some Rayleigh quotient iteration steps in bigfloat to improve accuracy:
+        for j=1:size(λv,1)
+            local s=λv_bigfloat[j];
+            z=Vector{Complex{BigFloat}}(X[:,j])
+            for f=1:3
+                z=(A-s*I)\z; normalize!(z);
+                s=z'*A*z;
+            end
+            λv_bigfloat[j]=s
+        end
+        if (maximum(abs.((λv_bigfloat-λv)./λv_bigfloat)) > eps()*100)
+            @warn("Correction iteration of eigvals for bigfloat, made the eigenvalues move considerably")
+        end
+
+        return λv_bigfloat
+    end
+
 
 
 # Compute the ith derivative of a PEP
@@ -1029,7 +1066,7 @@ julia> compute_Mder(pnep,0)
                 view(nep.projnep_B_mem[i],1:(k+1),1:(k+1));
                 end, 1:m)
         # Keep the sequence of functions for SPMFs
-        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=true)
+        nep.nep_proj=SPMF_NEP(B,nep.orgnep_fv,check_consistency=false)
     end
 
     # Use delagation to the nep_proj
