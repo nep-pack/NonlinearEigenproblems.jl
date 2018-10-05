@@ -9,7 +9,6 @@ module Gallery
     using Random
     using LinearAlgebra
     using SparseArrays
-    using PolynomialRoots
     using SpecialFunctions
 
     export nep_gallery

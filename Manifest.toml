@@ -25,12 +25,6 @@ git-tree-sha1 = "48c147e63431adbcee69bc40b04c3f0fec0a4982"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.0"
 
-[[Combinatorics]]
-deps = ["LinearAlgebra", "Polynomials", "Test"]
-git-tree-sha1 = "50b3ae4d643dc27eaff69fb6be06ee094d5500c9"
-uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-version = "0.7.0"
-
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
 git-tree-sha1 = "ff2595695fc4f14427358ce2593f867085c45dcb"
@@ -113,12 +107,6 @@ git-tree-sha1 = "1a1eae52956658a6acae6fa1b6d6c3d488192895"
 uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 version = "0.5.1"
 
-[[Primes]]
-deps = ["Test"]
-git-tree-sha1 = "ff1a2323cb468ec5f201838fcbe3c232266b1f95"
-uuid = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
-version = "0.4.0"
-
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
@@ -142,12 +130,6 @@ deps = ["Pkg"]
 git-tree-sha1 = "7b1d07f411bc8ddb7977ec7f377b97b158514fe0"
 uuid = "189a3867-3050-52da-a836-e630ba90ab69"
 version = "0.2.0"
-
-[[Roots]]
-deps = ["Compat", "Printf"]
-git-tree-sha1 = "9a66815d2530705097a5668efa8b88aa238ada47"
-uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-version = "0.7.3"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
