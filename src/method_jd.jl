@@ -25,7 +25,7 @@ end
 
 
 """
-    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=NEPSolver.DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
@@ -56,7 +56,7 @@ function jd_betcke(::Type{T},
                    maxit::Int = 100,
                    Neig::Int = 1,
                    projtype::Symbol = :PetrovGalerkin,
-                   inner_solver_method::Type = NEPSolver.DefaultInnerSolver,
+                   inner_solver_method::Type = DefaultInnerSolver,
                    orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
                    errmeasure::Function = default_errmeasure(nep::NEP),
                    linsolvercreator::Function = default_linsolvercreator,
@@ -73,7 +73,7 @@ function jd_betcke(::Type{T},
     if (projtype != :Galerkin) && projtype != :PetrovGalerkin
         error("Only accepted values of 'projtype' are :Galerkin and :PetrovGalerkin.")
     end
-    if (projtype != :Galerkin) && (inner_solver_method == NEPSolver.SGIterInnerSolver)
+    if (projtype != :Galerkin) && (inner_solver_method == SGIterInnerSolver)
         error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
 
@@ -179,7 +179,7 @@ end
 
 
 """
-    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=NEPSolver.DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
@@ -207,7 +207,7 @@ function jd_effenberger(::Type{T},
                         nep::ProjectableNEP;
                         maxit::Int = 100,
                         Neig::Int = 1,
-                        inner_solver_method::Type = NEPSolver.DefaultInnerSolver,
+                        inner_solver_method::Type = DefaultInnerSolver,
                         orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
                         linsolvercreator::Function = default_linsolvercreator,
                         tol::Number = eps(real(T))*100,
@@ -220,7 +220,7 @@ function jd_effenberger(::Type{T},
     if (maxit > n)
         error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
     end
-    if (inner_solver_method == NEPSolver.SGIterInnerSolver)
+    if (inner_solver_method == SGIterInnerSolver)
         error("_Method SGITER not accepted as inner solver since deflated problem not min-max.")
     end
 

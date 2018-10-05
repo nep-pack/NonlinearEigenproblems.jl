@@ -73,7 +73,7 @@ function shift_and_scale(orgnep::SPMF_NEP;shift=0,scale=1)
     # create anonymous functions corresponding to the
     # shift and scaled problem
     for i=1:m
-        fv[i] = S -> orgfv[i](scale*S + shift*one(S))
+        fv[i] = S -> orgfv[i](scale*S + shift*one(S))::((S isa Number) ? Number : Matrix)
     end
     # create a new SPMF with transformed functions
     return SPMF_NEP(get_Av(orgnep),fv;Schur_fact=orgnep.Schur_factorize_before);
@@ -140,7 +140,7 @@ function mobius_transform(orgnep::SPMF_NEP;a=1,b=0,c=0,d=1)
     # create anonymous functions corresponding to the
     # möbius transformed problem
     for i=1:m
-        fv[i] = S -> orgfv[i]((a*S + b*I) / (c*S + d*I))
+        fv[i] = S -> orgfv[i]((a*S + b*one(S)) / (c*S + d*one(S)))::((S isa Number) ? Number : Matrix)
     end
     # create a new SPMF with transformed functions
     return SPMF_NEP(get_Av(orgnep),fv;Schur_fact=orgnep.Schur_factorize_before);

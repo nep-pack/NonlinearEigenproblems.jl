@@ -1,4 +1,5 @@
 using NonlinearEigenproblems
+using NonlinearEigenproblems.RKHelper
 using LinearAlgebra
 using SparseArrays
 using Random
@@ -149,10 +150,12 @@ function particle_nep(interval)
     # nonlinear functions
     f = Vector(undef, length(brpts))
     for j = 1:interval-1
-        f[j] = lambda -> exp(im * sqrt((m * (lambda - brpts[j] * I))))
+        coeff=brpts[j]
+        f[j] = lambda -> exp(im * sqrt((m * (lambda - coeff * one(lambda)))))
     end
     for j = interval:length(brpts)
-        f[j] = lambda -> exp(-sqrt((m * (-lambda + brpts[j] * I))))
+        coeff=brpts[j]
+        f[j] = lambda -> exp(-sqrt((m * (-lambda + coeff * one(lambda)))))
     end
 
     # finally assemble nep instance; note that the nonlinear matrices are defined by their LU factors only

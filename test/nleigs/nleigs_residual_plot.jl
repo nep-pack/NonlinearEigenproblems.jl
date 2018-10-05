@@ -1,14 +1,13 @@
 using NonlinearEigenproblems.RKHelper
 using Plots
-import GR
 
 function nleigs_residual_plot(title, solution_info, Σ; plot_attributes...)
-    Lam = solution_info["Lam"]
-    Res = solution_info["Res"]
+    Lam = solution_info.Lam
+    Res = solution_info.Res
 
     n = size(Lam, 1)
-    LamC = zeros(Lam)
-    ResC = zeros(Res)
+    LamC = zero(Lam)
+    ResC = zero(Res)
 
     # first iteration
     LamC[1,1] = Lam[1,1]
@@ -19,7 +18,7 @@ function nleigs_residual_plot(title, solution_info, Σ; plot_attributes...)
         sLam = Lam[1:i,i]
         sRes = Res[1:i,i]
         for j = 1:i-1
-            _,ii = findmin(abs.(sLam - LamC[j,i-1]))
+            _,ii = findmin(abs.(sLam .- LamC[j,i-1]))
             LamC[j,i] = sLam[ii]
             ResC[j,i] = sRes[ii]
             deleteat!(sLam, ii)

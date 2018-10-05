@@ -40,7 +40,7 @@ module LinSolvers
 Structs inheriting from this type are able to solve linear systems associated with
 a NEP, for a specific `λ`-value. The most common are direct solvers such as
 [`DefaultLinSolver`](@ref), [`BackslashLinSolver`](@ref) and iterative solvers
-such as [`GMRESlinsolver`](@ref).
+such as [`GMRESLinSolver`](@ref).
 
 The LinSolver objects are usually created by the NEP-algorithms through
 creator functions, which are passed as parameters.
@@ -92,13 +92,12 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`DefaultSolver`](@ref), [`default_linsolvercreator`](@ref),
-[`BackslashSolver`](@ref), [`backslash_linsolvercreator`](@ref),
+[`DefaultLinSolver`](@ref), [`default_linsolvercreator`](@ref),
+[`BackslashLinSolver`](@ref), [`backslash_linsolvercreator`](@ref),
 [`GMRESLinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 
 """
     abstract type LinSolver end
-    abstract type EigSolver end
 
 ##############################################################################
 """
@@ -197,7 +196,7 @@ See also: [`LinSolver`](@ref), [`BackslashLinSolver`](@ref)
 
 ##############################################################################
 """
-     struct GMRESLinSolver <: LinSolver
+    struct GMRESLinSolver <: LinSolver
 This represents a solver done with the julia GMRES implementation.
 
 See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
@@ -244,9 +243,81 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
     end
 
 
+
 ##############################################################################
 """
-    A linear EP solver that calls Julia's in-built eigen()
+    abstract type EigSolver
+
+Structs inheriting from this type are able to solve linear eigenvalue problems
+arising in certain methods, such as, e.g., `mslp`, `sgiter`,
+and `polyeig`.
+
+The `EigSolver` objects are passed as types to the NEP-algorithms,
+which uses it to dispatch the correct version of the function [`eig_solve`](@ref).
+
+# Example
+
+The most common usecase is that you do not want to specify anything in particular, since
+the [`DefaultEigSolver`](@ref) will use a dense or a sparse method depending on you problem.
+However, this example shows how you can force `mslp` to use the sparse solver.
+```julia-repl
+julia> nep=nep_gallery("qdep0");
+julia> λ,v = mslp(nep, eigsolvertype=NativeEigSSolver);
+julia> norm(compute_Mlincomb(nep,λ,v))
+1.0324139764567768e-15
+```
+
+# Example
+
+The `EigSolver`s are constructed for extendability. As an illustartion this example
+creates a naive `EigSolver` which casts the problem to a standard linear eigenproblem
+and calls the built-in function to solve it.
+
+Create the types and a creator.
+```julia-repl
+julia> struct MyEigSolver <: EigSolver
+   A
+   E
+   function MyEigSolver(A,E)
+      return new(A,E)
+   end
+end
+
+julia> import NonlinearEigenproblems.LinSolvers.eig_solve;
+julia> function eig_solve(solver::MyEigSolver;nev = 1, target = 0)
+   M = solver.E \\ solver.A
+   eig = eigen(M)
+   i = argmin(abs.(eig.values))
+   return eig.values[i], eig.vectors[:,i]
+end
+julia> nep=nep_gallery("dep0", 50);
+julia> λ,v = mslp(nep, eigsolvertype=MyEigSolver, tol=1e-5);
+julia> norm(compute_Mlincomb(nep,λ,v))
+3.0777795031319117e-10
+```
+
+See also: [`eig_solve`](@ref),
+[`DefaultEigSolver`](@ref), [`NativeEigSolver`](@ref),
+[`NativeEigSSolver`](@ref), [`eig_solve`](@ref)
+
+"""
+    abstract type EigSolver end
+
+
+##############################################################################
+"""
+    mutable struct NativeEigSolver <: EigSolver
+
+A linear eigenvalueproblem solver that calls Julia's in-built eigen()
+
+Constructed as `NativeEigSolver(A, [B,])`, and solves the problem
+```math
+Ax = λBx
+```
+The paramter `B` is optional an default is indentity, for which a standard linear
+eigenproblem is solved.
+
+See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
     mutable struct NativeEigSolver <: EigSolver
         A
@@ -281,7 +352,19 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
     end
 
 """
-    A linear EP solve that calls Julia's in-built eigs()
+    mutable struct NativeEigSSolver <: EigSolver
+
+A linear eigenvalueproblem solver for large and sparse problems that calls
+Julia's in-built eigs()
+
+Constructed as `NativeEigSSolver(A, [B,])`, and solves the problem
+```math
+Ax = λBx
+```
+The paramter `B` is optional an default is indentity, for which a standard linear
+eigenproblem is solved.
+
+See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
     mutable struct NativeEigSSolver <: EigSolver
         A
@@ -327,9 +410,13 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
 
 
 
-
 """
-    Default linear EP solver which calls checks for sparsity and accordingly assigns an appropriate solver
+    mutable struct DefaultEigSolver <: EigSolver
+
+A linear eigenvalueproblem solver that calls checks for sparsity and accordingly
+assigns an appropriate solver.
+
+See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [`NativeEigSSolver`](@ref)
 """
     mutable struct DefaultEigSolver <: EigSolver
         subsolver::EigSolver
@@ -345,14 +432,20 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
         end
     end
 
-    # Additional constructor that allows for calling the default linear eigensolver with a NEP rather than an explicit matrix
-    function DefaultEigSolver(nep::NEP,λ::Number)
-        return DefaultEigSolver(compute_Mder(nep,λ))
-    end
 
+"""
+    eig_solve(solver::EigSolver; [nev,] [target,])
+
+This function solves the linear eigenvalue problem represented in `solver::EigSolver`.
+The `nev` kwarg is controlling the number of eigenvalues aimed for, and `target`
+specifies around which point the eigenvalues are computed. The former has a defalut value
+equalt to the seize of the problem, and the latter has a defalut value 0.
+
+This function must be overloaded if a user wants to define their own
+way of solving linear eigenvalue problems. See [`EigSolver`](@ref) for examples.
+"""
     function eig_solve(solver::DefaultEigSolver;nev=size(solver.subsolver.A,1),target=0)
-
         return eig_solve(solver.subsolver,nev=nev,target=target)
-
     end
+
 end

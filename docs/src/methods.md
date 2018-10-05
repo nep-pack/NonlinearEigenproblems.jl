@@ -1,6 +1,6 @@
 # NEP Methods
 
-The NEP solver methods implemented in NEP-pack, are accessed by
+The NEP solver methods implemented in NEP-PACK, are accessed by
 the functions below. The functions all return ``λ,v,w`` where
 ``λ`` is either a number (eigenvalue) a vector of eigenvalues
 ``v`` is either a vector containing an eigenvector
@@ -56,16 +56,52 @@ broyden
 ## Projection methods
 ```@docs
 nlar
+jd_betcke
+jd_effenberger
 ```
 ## Arnoldi type methods
+
+### IAR
+The Infinite ARnoldi method.
 ```@docs
 iar
+```
+
+### IAR Chebyshev
+A Chebyshev version of the IAR method.
+
+```@docs
+iar_chebyshev
+```
+For the `iar_chebyshev` the following `compute_y0_cheb` method is needed, in order
+to avoid explicit conversions between the Chebyshev basis and the monimial basis.
+
+```@docs
+NEPSolver.compute_y0_cheb
+```
+
+
+### TIAR
+The Tensor Infinite ARnoldi method.
+
+```@docs
 tiar
+```
+
+### Infbilanczos
+The Infinite Bi-Lanczos method.
+```@docs
 infbilanczos
 ```
+
+
 
 ## Class specific methods
 
 ### Companion linearizations
+```@docs
+companion
+polyeig
+```
 
 ### Rational ?

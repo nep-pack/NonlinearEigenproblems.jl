@@ -23,9 +23,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     @bench @testset "accuracy eigenpairs" begin
         (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
-        @testset "TIAR eigval[$i]" for i in 1:length(λ)
-            @test norm(compute_Mlincomb(dep,λ[i],Q[:,i]))<eps()*100;
-        end
+        verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
     @testset "orthogonalization" begin
@@ -69,7 +67,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
         λ,Q = tiar(depp, σ=0, γ=3, Neig=3, v=ones(np), displaylevel=0, maxit=50,
                    tol=sqrt(eps()), check_error_every=3,
-                   proj_solve=true, inner_solver_method=NEPSolver.IARInnerSolver,
+                   proj_solve=true, inner_solver_method=IARInnerSolver,
                    errmeasure=errmeasure);
 
         @test errmeasure(λ[1],Q[:,1])<sqrt(eps())*10

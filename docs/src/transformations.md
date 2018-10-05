@@ -26,25 +26,43 @@ and the corresponding projected problem
 N(λ)u=0.
 ```
 
+## Types
 NEPs for which this projection can be computed
-inherit from `ProjectableNEP`. The result of the
+inherit from `ProjectableNEP`.
+
+```@docs
+ProjectableNEP
+```
+
+The result of the
 projection is represented in a `Proj_NEP`.
 
 ```@docs
 Proj_NEP
 ```
+
+One explicit instance is the `Proj_SPMF_NEP`.
+
+```@docs
+Proj_SPMF_NEP
+```
+
+
+## Associated functions
+
 You can create a projected NEP with `create_proj_NEP`:
 
 ```@docs
 create_proj_NEP
 ```
 
+
 ```@docs
-set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
+set_projectmatrices!
 ```
 
 ```@docs
-expand_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
+expand_projectmatrices!
 ```
 
 
