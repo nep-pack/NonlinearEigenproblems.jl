@@ -302,7 +302,7 @@ Computes the vector y0 used in [`iar_chebyshev`](@ref) given by
 ```math
  y_0 = \\sum_{j=0}^{d-1} A_{j+1} x D^j T(c) - y T(c)
 ```
-where T(c) is the vector containing \$T_i(c)\$ as coefficients, where \$T_i\$ is the i-th Chebyshev polynomial of the first kind.
+where T(c) is the vector containing \$T_i(c)\$ as coefficients, where \$T_i\$ is the i-th Chebyshev polynomial of the first kind and \$D\$ is the derivation matrix in Chebyshev basis.
 """
 function compute_y0_cheb(T,nep::NEPTypes.PEP,::Type{ComputeY0ChebPEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
     Tc=precomp.Tc;
@@ -342,6 +342,15 @@ function compute_y0_cheb(T,nep::NEPTypes.AbstractSPMF,::Type{ComputeY0ChebSPMF_N
     return y0
 end
 function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb},X,Y,M0inv,precomp::AbstractPrecomputeData)
+    """
+        y0 = compute_y0_cheb([eltype],nep::NEPTypes.NEP,::Type{ComputeY0ChebNEP},X,Y,M0inv,precomp::AbstractPrecomputeData)
+
+    Computes the vector y0 used in [`iar_chebyshev`](@ref) defined as
+    ```math
+     y_0 =\\left( \\sum_{i=0}^{N-1} B \\left( \\frac{d}{d \\theta} \\right) \\hat T_i(\\theta) x_i \\right)(0) - \\sum_{i=0}^{N} T_i(c) y_i
+    ```
+    where \$T_i\$ is the i-th Chebyshev polynomial of the first kind, \$ \\ hat T_i\$ is the i-th Chebyshev polynomial of the first kind for the interval [a,b]. For a generic `nep`, this quantity is computed by converting polynomials in monomial basis. This procedure may be numerical unstable if many iterations are required. If for the specific `nep` a closed formula is available, we suggest to overload this function.
+    """
     # compute_y0_cheb computes y0 for the NEP
     # This function convert the coefficients x=vec(X) from the Chebyshev basis to the monomial basis, then compute the vector y=vec(Y) as in iar (Taylor version) and then convert y=vec(Y) in Chebyshev basis
     k=size(X,2);
