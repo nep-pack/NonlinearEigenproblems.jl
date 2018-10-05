@@ -7,8 +7,6 @@ module GalleryNLEVP
     using NonlinearEigenproblems.NEPTypes
     using NonlinearEigenproblems.Gallery
 
-    export nlevp_make_native
-
     # We have to explicitly specify functions that we want "overload"
     import .NEPCore.compute_Mder
     import .NEPCore.size
@@ -129,47 +127,4 @@ eigenvalue problems.
         return nep
     end
 
-
-    """
-   nlevp_make_native(nep::NLEVP_NEP)
-
-Tries to convert the NLEVP_NEP a NEP of NEP-PACK types
-"""
-    function nlevp_make_native(nep::NLEVP_NEP)
-        if (nep.name == "gun")
-            minusop= S-> -S
-            oneop= S -> one(S)
-            sqrt1op= S -> 1im*sqrt(Matrix(S))
-            sqrt2op= S -> 1im*sqrt(Matrix(S)-108.8774^2*one(S))
-            # The nep.Ai object which comes from MATLAB
-            # is Array{Any,2} (with one row). Reshape to correct type.
-            AA=Array{AbstractMatrix,1}(vec(nep.Ai));
-            nep2=SPMF_NEP(AA,[oneop,minusop,sqrt1op,sqrt2op])
-            return nep2
-        elseif (nep.name == "cd_player")
-            AA=Array{AbstractMatrix,1}(vec(nep.Ai));
-            return PEP(AA);
-        elseif (nep.name == "fiber")
-            error("Native implementation of fiber not finished")
-        else
-            error("Unable to make NEP native")
-        end
-
-    end
-
-    # # In progress
-    #function fiber2(S)
-    #    # poor-mans version of
-    #    f0=z -> z.*(- besselk.(1, z)./z - besselk.(0, z))./besselk.(1,z)
-    #    f1=z ->
-    #    zsamples=eps()+1+cos(range(0, stop = pi, length = 100))
-    #
-    #    a=eps();
-    #    b=3;
-    #    α=-(a+b)/(b-a)
-    #    β=2/(b-a);
-    #
-    #
-    #end
-    #
 end
