@@ -187,17 +187,16 @@ julia&gt; norm(compute_Mlincomb(nep,λ,v))
             -4.039879577113</li>
 <li><code>dep_distributed</code>
       Creates the NEP associated with example in E. Jarlebring and W. Michiels and K. Meerbergen,   The infinite Arnoldi method and an application to time-delay systems with distributed delays,   Delay Systems - Methods, Applications and New Trends, 2012.
-           Some correct eigenvalues:
-           -0.400236388049641 + 0.970633098237807i
-           -0.400236388049641 - 0.970633098237807i
-            2.726146249832675 + 0.000000000000000i
-           -1.955643591177653 + 3.364550574688863i
-           -1.955643591177653 - 3.364550574688863i
-            4.493937056300693 + 0.000000000000000i
-           -1.631513006819252 + 4.555484848248613i
-           -1.631513006819252 - 4.555484848248613i
-           -1.677320660400946 + 7.496870451838560i
-           -1.677320660400946 - 7.496870451838560i</li>
+           Some correct eigenvalues:        <code>-0.400236388049641 + 0.970633098237807i</code>,
+           <code>-0.400236388049641 - 0.970633098237807i</code>,
+           <code>2.726146249832675 + 0.000000000000000i</code>,
+           <code>-1.955643591177653 + 3.364550574688863i</code>,
+           <code>-1.955643591177653 - 3.364550574688863i</code>,
+           <code>4.493937056300693 + 0.000000000000000i</code>,
+           <code>-1.631513006819252 + 4.555484848248613i</code>,
+           <code>-1.631513006819252 - 4.555484848248613i</code>,
+           <code>-1.677320660400946 + 7.496870451838560i</code>,
+           <code>-1.677320660400946 - 7.496870451838560i</code></li>
 <li><code>qdep0</code> 
       Quadratic delay eigenvalue problem in S. W. Gaaf and E. Jarlebring, The infinite Bi-Lanczos method for   nonlinear eigenvalue problems, SIAM J. Sci. Comput., 2017</li>
 <li><code>qdep1</code> 
@@ -232,7 +231,7 @@ julia&gt; norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
 <li>GalleryNLEVP</li>
 <li>GalleryWaveguide</li>
 </ul>
-<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/1831b9e5630d9e2ee55321273383077174fb2a66/src/Gallery.jl#L33-L156' class='documenter-source'>source</a><br></p>
+<p><a target='_blank' href='https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/a129977bb8bcad052fff6d47cd86cfc5d4d8fb2f/src/Gallery.jl#L33-L156' class='documenter-source'>source</a><br></p>
 <p><a id='Berlin-Manchester-collection-1'></a></p>
 <h1 id="berlin-manchester-collection">Berlin-Manchester collection</h1>
 <p>If MATLAB and the <a href="http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/">Berlin-Manchester collection</a> are installed, we can access them with the GalleryNLEVP (which does MATLAB-access through Julia's MATLAB-package).</p>
