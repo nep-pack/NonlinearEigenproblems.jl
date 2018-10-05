@@ -31,7 +31,8 @@ M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 ```
 The following code creates this NEP, by constructing an object called
 [`PEP`](types.md#PEP-1), an abbreviation for polynomial eigenvalue problem.
-Here we solve it using the NEP solution method implemented in [`polyeig()`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig):
+It subsequencly solves it using the NEP solution method implemented
+in [`polyeig()`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig):
 ```julia-repl
 julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia> nep=PEP([A0,A1,A2])
@@ -108,9 +109,10 @@ julia> tauv=[0;0.2;0.2;1.5];
 julia> dep=DEP([A0, A1,   A2, A3],tauv);
 ```
 The constructor  [`DEP`](types.md#DEP-1) is an abbreviation for a delay eigenvalue problem, which
-a  NEP with exponential terms stemming from the stability
+is a NEP with exponential terms stemming from the stability
 analysis of a delay-differential equation. See [`types`](types.md) for other NEP-types.
-You can now solve this NEP, for instance, with the infinite Arnoldi method
+You can now solve this NEP, for instance,
+with the [infinite Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.iar_chebyshev):
 ```julia-repl
 julia> λ,V=iar_chebyshev(dep,maxit=100); # This takes some time the first time is run due to JIT-compiler
 ```
@@ -126,7 +128,7 @@ This problem is also available in the `Gallery` by calling `dep=nep_gallery("neu
 
 One of the most common benchmark problems for NEPs is the so-called "gun"-problem.
 It models an electromagnetic cavity, and it is directly available in the `Gallery`.
-(See `?nep_gallery` for references.) This is how you can solve it with the block Newton method:
+(See `?nep_gallery` for references.) This is how you can solve it with the [block Newton method](methods.md#NonlinearEigenproblems.NEPSolver.blocknewton):
 
 ```julia-repl
 julia> nep=nep_gallery("nlevp_native_gun");
@@ -153,6 +155,11 @@ julia> v=VV[:,1]; λ=Λ[1]
 julia> norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 1.8270553408452648e-16
 ```
+
+If you use the NEP-algorithms for research, please
+to give the author of the algorithm credit by citiation. The
+recommended citation can be found in the function
+documentation, e.g., `?blocknewton`.
 
 # What now?
 

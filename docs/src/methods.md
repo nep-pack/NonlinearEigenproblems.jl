@@ -45,6 +45,9 @@ mslp
 rfi
 ```
 ```@docs
+blocknewton
+```
+```@docs
 newtonqr
 ```
 ```@docs
@@ -59,7 +62,9 @@ nlar
 jd_betcke
 jd_effenberger
 ```
-## Arnoldi type methods
+## Arnoldi and Krylov based methods
+
+
 
 ### IAR
 The Infinite ARnoldi method.
@@ -94,6 +99,9 @@ The Infinite Bi-Lanczos method.
 infbilanczos
 ```
 
+```@docs
+nleigs
+```
 
 
 ## Class specific methods
