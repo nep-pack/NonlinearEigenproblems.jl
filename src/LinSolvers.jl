@@ -169,23 +169,24 @@ This represents a linear solver corresponding to the backslash operator (no pre-
 
 See also: [`LinSolver`](@ref) and [`backslash_linsolvercreator`](@ref)
 """
-    struct BackslashLinSolver{T_num<:Number, T_mat<:AbstractMatrix} <: LinSolver
+    struct BackslashLinSolver{T_mat} <: LinSolver
         A::T_mat
     end
-    BackslashLinSolver(A::AbstractMatrix{T_num}) where T_num = new(A)
+#    BackslashLinSolver(A::AbstractMatrix{T_num}) where T_num = new(A)
 
     function BackslashLinSolver(nep::NEP,λ)
         A=compute_Mder(nep,λ)
-        return BackslashLinSolver{eltype(A), typeof(A)}(A)
+        return BackslashLinSolver{typeof(A)}(A)
     end
 
-    function lin_solve(solver::BackslashLinSolver{T_num}, x::Array; tol=eps(real(T_num))) where T_num
+    function lin_solve(solver::BackslashLinSolver{T_mat}, x::Array; tol=0) where T_mat
         return solver.A\x
     end
 
 """
     backslash_linsolvercreator(nep::NEP, λ)
-Create a linear solver of type 'BackslashLinSolver' evaluated in `λ`.
+
+Create a linear solver of type `BackslashLinSolver` evaluated in `λ`.
 
 See also: [`LinSolver`](@ref), [`BackslashLinSolver`](@ref)
 """
@@ -197,49 +198,42 @@ See also: [`LinSolver`](@ref), [`BackslashLinSolver`](@ref)
 ##############################################################################
 """
     struct GMRESLinSolver <: LinSolver
+
 This represents a solver done with the julia GMRES implementation.
 
 See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 """
-    mutable struct GMRESLinSolver{T_num<:Number, T_nep<:NEP} <: LinSolver
+    mutable struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
         A::LinearMap{T_num}
-        kwargs
-        gmres_log::Bool
+        kwargs::T_kwargs
 
-        function GMRESLinSolver{T_num, T_nep}(nep::T_nep, λ::T_num, kwargs) where {T_num<:Number, T_nep<:NEP}
-            function f(v::AbstractVector)
-              return compute_Mlincomb(nep, λ, v)
-            end
+        function GMRESLinSolver{T_num}(nep, λ::T_num, kwargs::T_kwargs) where {T_num<:Number, T_kwargs}
+            f = v -> compute_Mlincomb(nep,λ,v)
             A = LinearMap{T_num}(f, size(nep,1), ismutating=false)
-            gmres_log = false
-            for elem in kwargs
-                gmres_log |= ((elem[1] == :log) && elem[2])
-            end
-            new{T_num, T_nep}(A, kwargs, gmres_log)
+            new{T_num, T_kwargs}(A, kwargs)
         end
 
     end
 
 
-    function lin_solve(solver::GMRESLinSolver{T_num, T_nep}, x::Array; tol=eps(real(T_num))) where {T_num, T_nep}
-        if( solver.gmres_log )
-            x, convhist = gmres(solver.A, x; tol=tol, solver.kwargs...)
-        else
-            x = gmres(solver.A, x; tol=tol, solver.kwargs...)
-        end
-        return x
+    function lin_solve(solver::GMRESLinSolver{T_num,T_kwargs}, b::Vector{T_num}; tol=eps(real(T_num))) where {T_num,T_kwargs}
+        v = zero(x)
+        gmres!(v, solver.A, x; tol=tol, solver.kwargs...)
+        return v
     end
+
 
 """
-    gmres_linsolvercreator(nep::NEP, λ, kwargs=())\n
-Create a linear solver of type 'GMRESLinSolver'. The kwargs are
+    gmres_linsolvercreator(nep::NEP, λ, kwargs=())
+
+Create a linear solver of type `GMRESLinSolver`. The `kwargs` are
 passed as parameter to Julia-built-in-GMRES.
 
 See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
 
 """
     function gmres_linsolvercreator(nep::NEP, λ, kwargs=())
-        return GMRESLinSolver{typeof(λ), typeof(nep)}(nep, λ, kwargs)
+        return GMRESLinSolver{typeof(λ)}(nep, λ, kwargs)
     end
 
 
