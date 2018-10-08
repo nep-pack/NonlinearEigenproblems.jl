@@ -444,7 +444,7 @@ function backslash(wc, P, lin_solver_cache, reusefact, computeD, σ, k, D, β, N
             end
         else
             if !P.is_low_rank || ii < P.p
-                z[1:n] -= sum(reshape(BBCC * z[i1b:i1e], n, :) .* transpose(sgdd[:,ii+1]), 2)
+                z[1:n] -= sum(reshape(P.BBCC * z[i1b:i1e], n, :) .* transpose(sgdd[:,ii+1]), dims = 2)
             elseif ii > P.p
                 dd = sgdd[P.p+2:end,ii+1]
                 @inbounds for i = 1:length(P.iLr)
