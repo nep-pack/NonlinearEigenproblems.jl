@@ -12,12 +12,13 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 On Julia 1.0.0 and Julia 0.7, install it as an unregistered package by writing `] add ...` at the REPL-prompt:
 ```
 julia> ]
-(v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
+(v1.0) pkg> add NonlinearEigenproblems
 ```
 
 After that, check out "Getting started" in
 
 <p align="center">[NEP-PACK online user's guide](https://nep-pack.github.io/NonlinearEigenproblems.jl)</p>
+
 
 
 ## Older Julia versions:
@@ -28,6 +29,13 @@ julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
 ```
 and switch to the git-tag v0.1.
 
+## GIT Version
+
+If you want the cutting edge development version and not the latest release, install it with the URL:
+```
+julia> ]
+(v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
+```
 
 
 # Development
