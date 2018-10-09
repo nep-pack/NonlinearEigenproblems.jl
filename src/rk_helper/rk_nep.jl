@@ -34,7 +34,7 @@ RKNEP(::Type{T}, nep::NEP) where T<:Number =
     RKNEP(nep, false, 0, 0, Matrix{T}(undef, 0, 0), false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
 
 RKNEP(nep::NEP, p, q, BBCC::AbstractMatrix{T}) where T<:Number =
-    RKNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(), Vector{Int}(), Vector{Matrix{T}}(), Vector{SparseVector{T,Int}}(), Matrix{T}(undef, 0, 0))
+    RKNEP(nep, true, p, q, BBCC, false, 0, Vector{Int}(), Vector{Int}(), Vector{typeof(BBCC)}(), Vector{SparseVector{T,Int}}(), similar(BBCC, 0, 0))
 
 RKNEP(nep::NEP, p, q, BBCC, r, iL, iLr, L, LL, UU) =
     RKNEP(nep, true, p, q, BBCC, true, r, iL, iLr, L, LL, UU)
