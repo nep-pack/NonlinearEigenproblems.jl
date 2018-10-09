@@ -40,7 +40,7 @@ function mslp(::Type{T},
                  maxit::Integer=100,
                  λ::Number=zero(T),
                  displaylevel::Integer=0,
-                 eigsolvertype::DataType=DefaultEigSolver) where {T<:Number}
+                 eigsolvertype::Type=DefaultEigSolver) where {T<:Number}
 
     # Ensure types λ is of type T
     λ::T = T(λ)
@@ -68,14 +68,13 @@ function mslp(::Type{T},
         # Checck for convergence
         err=errmeasure(λ,v)
         @ifd(println("Iteration:",k," errmeasure:",err, " λ=",λ))
-        
+
         if (err< tol)
             return (λ,v)
         end
-        
+
     end
 
     msg="Number of iterations exceeded. maxit=$(maxit)."
     throw(NoConvergenceException(λ,v,err,msg))
 end
-
