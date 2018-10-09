@@ -20,10 +20,9 @@ module LinSolvers
 
     # Eigenvalue solvers
     export EigSolver
+    export DefaultEigSolver
     export NativeEigSolver
     export NativeEigSSolver
-
-    export DefaultEigSolver
     export eig_solve
 
     import Base.eltype
@@ -313,25 +312,22 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    mutable struct NativeEigSolver <: EigSolver
-        A
-        B
+    mutable struct NativeEigSolver{T_A,T_B} <: EigSolver
+        A::T_A
+        B::T_B
 
-        function NativeEigSolver(A,B=zeros(eltype(A),0))
-            this = new()
-            this.A = A
-            this.B = B
-
-            return this
+        function NativeEigSolver(A)
+            return new{typeof(A),Missing}(A,missing)
+        end
+        function NativeEigSolver(A,B)
+            return new{typeof(A),typeof(B)}(A,B)
         end
     end
 
-    function eig_solve(solver::NativeEigSolver;nev = 1, target = 0)
-        if(solver.B != zeros(eltype(solver.A),0))
-            D,V = eigen(solver.A,solver.B)
-        else
-            D,V = eigen(solver.A)
-        end
+
+
+    function eig_solve(solver::NativeEigSolver; nev = 1, target = 0)
+        D,V = inner_eig_solve(solver)
 
         #Sort the eigenvalues wrt distance from target, and permute
         I = sortperm(abs.(target*ones(size(D,1))-D));
@@ -343,6 +339,13 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
         end
 
         return D[1:nev],V[:,1:nev];
+    end
+
+    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B}
+        D,V = eigen(solver.A,solver.B)
+    end
+    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B<:Missing}
+        D,V = eigen(solver.A)
     end
 
 """
@@ -360,45 +363,47 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    mutable struct NativeEigSSolver <: EigSolver
-        A
-        B
+    mutable struct NativeEigSSolver{T_A,T_B} <: EigSolver
+        A::T_A
+        B::T_B
 
-        function NativeEigSSolver(A,B=spzeros(eltype(A),0))
-            this = new()
-            this.A = A
-            this.B = B
-
-            return this
+        function NativeEigSSolver(A)
+            return new{typeof(A),Missing}(A,missing)
+        end
+        function NativeEigSSolver(A,B)
+            return new{typeof(A),typeof(B)}(A,B)
         end
 
     end
 
-    function eig_solve(solver::NativeEigSSolver;nev=6,target=0)
-        if(solver.B != spzeros(eltype(solver.A),0))
-            # Julia's eigs(A,B) is currently broken for
-            # indefinite B
-            # https://github.com/JuliaLang/julia/issues/24668
-            # This is what we want to do:
-            # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
-            # We do a work-around by computing
-            # largest eigenvalue of (target B -A)\B
-            C=target*solver.B-solver.A;
-            Cfact=factorize(C);
-            Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
-                                   size(solver.A,1),size(solver.A,1));
-            D0,V = eigs(Atransformed; nev=nev, which=:LM)
-            # And reverse transformation
-            D = target .- inv.(D0) # Reverse transformation
-        else
-            D,V = eigs(solver.A; nev=nev, sigma=target)
-        end
 
+    function eig_solve(solver::NativeEigSSolver; nev=6, target=0)
+        D,V = inner_eigs_solve(solver, nev, target)
         if(nev == 1)
             return D[1],V[:,1]
         end
-
         return D,V
+    end
+    
+    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
+        # Julia's eigs(A,B) is currently broken for
+        # indefinite B
+        # https://github.com/JuliaLang/julia/issues/24668
+        # This is what we want to do:
+        # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
+        # We do a work-around by computing
+        # largest eigenvalue of (target B -A)\B
+        C=target*solver.B-solver.A;
+        Cfact=factorize(C);
+        Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
+                               size(solver.A,1),size(solver.A,1));
+        D0,V = eigs(Atransformed; nev=nev, which=:LM)
+        # And reverse transformation
+        D = target .- inv.(D0) # Reverse transformation
+        return D,V
+    end
+    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B<:Missing}
+        D,V = eigs(solver.A; nev=nev, sigma=target)
     end
 
 
@@ -412,17 +417,26 @@ assigns an appropriate solver.
 
 See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [`NativeEigSSolver`](@ref)
 """
-    mutable struct DefaultEigSolver <: EigSolver
-        subsolver::EigSolver
+    mutable struct DefaultEigSolver{T_sub} <: EigSolver
+        subsolver::T_sub
 
-        function DefaultEigSolver(A,B=zeros(eltype(A),0))
-            this = new()
+        function DefaultEigSolver(A,B)
+            local subsolver
             if(issparse(A))
-                this.subsolver = NativeEigSSolver(A,B);
+                subsolver = NativeEigSSolver(A,B)
             else
-                this.subsolver = NativeEigSolver(A,B);
+                subsolver = NativeEigSolver(A,B)
             end
-            return this
+            return new{typeof(subsolver)}(subsolver)
+        end
+        function DefaultEigSolver(A)
+            local subsolver
+            if(issparse(A))
+                subsolver = NativeEigSSolver(A)
+            else
+                subsolver = NativeEigSolver(A)
+            end
+            return new{typeof(subsolver)}(subsolver)
         end
     end
 
