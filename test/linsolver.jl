@@ -90,4 +90,74 @@ using LinearAlgebra
         memory2 = r2[3]
         @test memory0 < memory2 * 0.75
     end
+
+
+
+    @bench @testset "eigsolvers" begin
+
+        @info "DefaultEigSolver - full"
+        Random.seed!(0)
+        n = 20
+        A = rand(ComplexF64, n, n)
+        B = rand(ComplexF64, n, n)
+
+        eigsolver1 = DefaultEigSolver(A,B)
+        eigsolver2 = DefaultEigSolver(B\A)
+
+        λ1,v1 = eig_solve(eigsolver1, nev=3)
+        λ2,v2 = eig_solve(eigsolver2, nev=3)
+
+        for i = 1:3
+            @test λ1[i] ≈ λ2[i]
+        end
+
+        @info "DefaultEigSolver - sparse"
+        Random.seed!(0)
+        n = 20
+        A = sprand(ComplexF64, n, n, 0.25) + sparse(1.0*I,n,n)
+        B = sprand(ComplexF64, n, n, 0.25) + sparse(1.0*I,n,n)
+
+        eigsolver1 = DefaultEigSolver(A,B)
+        eigsolver2 = DefaultEigSolver(sparse(Matrix(B)\Matrix(A)))
+
+        λ1,v1 = eig_solve(eigsolver1, nev=3)
+        λ2,v2 = eig_solve(eigsolver2, nev=3)
+
+        for i = 1:3
+            @test λ1[i] ≈ λ2[i]
+        end
+
+        @info "NativeEigSolver"
+        Random.seed!(0)
+        n = 20
+        A = rand(ComplexF64, n, n)
+        B = rand(ComplexF64, n, n)
+
+        eigsolver1 = NativeEigSolver(A,B)
+        eigsolver2 = NativeEigSolver(B\A)
+
+        λ1,v1 = eig_solve(eigsolver1, nev=3)
+        λ2,v2 = eig_solve(eigsolver2, nev=3)
+
+        for i = 1:3
+            @test λ1[i] ≈ λ2[i]
+        end
+
+        @info "NativeEigSSolver"
+        Random.seed!(0)
+        n = 20
+        A = sprand(ComplexF64, n, n, 0.25) + sparse(1.0*I,n,n)
+        B = sprand(ComplexF64, n, n, 0.25) + sparse(1.0*I,n,n)
+
+        eigsolver1 = NativeEigSSolver(A,B)
+        eigsolver2 = NativeEigSSolver(sparse(Matrix(B)\Matrix(A)))
+
+        λ1,v1 = eig_solve(eigsolver1, nev=3)
+        λ2,v2 = eig_solve(eigsolver2, nev=3)
+
+        for i = 1:3
+            @test λ1[i] ≈ λ2[i]
+        end
+
+    end
 end

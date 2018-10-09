@@ -385,7 +385,7 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
             # largest eigenvalue of (target B -A)\B
             C=target*solver.B-solver.A;
             Cfact=factorize(C);
-            Atransformed=LinearMap(x->Cfact\(solver.B*x),
+            Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
                                    size(solver.A,1),size(solver.A,1));
             D0,V = eigs(Atransformed; nev=nev, which=:LM)
             # And reverse transformation
