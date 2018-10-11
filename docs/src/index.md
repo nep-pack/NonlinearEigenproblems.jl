@@ -11,12 +11,11 @@ and ``v\neq 0``.
 
 # Getting started
 
-Install it as an unregistered package in Julia's REPL package mode by
-writing `] add git:/..`:
+Install it as a registered  package in Julia's REPL package mode by
+typing `] add Nonline...`:
 ```
 julia> ]
-(v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
-
+(v1.0) pkg> add NonlinearEigenproblems
 ```
 Then we can start to load the NEP-PACK package
 ```julia-repl
