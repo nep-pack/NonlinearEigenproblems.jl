@@ -1,8 +1,24 @@
-#Intended to be run from nep-pack/ directory or nep-pack/profiling directory
-
-#import NEPSolver.inner_solve;
+using Random, SparseArrays
 include("../src/inner_solver.jl");
-#import NEPSolver.ilan;
 include("../src/method_ilan.jl");
-nep=nep_gallery("dep_symm_double",1000)
-ilan(nep,σ=0,γ=1;Neig=5,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
+
+
+n=1000;
+Random.seed!(1) # reset the random seed
+K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
+A1 = sparse(K, J, rand(3*n-2))
+A2 = sparse(K, J, rand(3*n-2))
+A3 = sparse(K, J, rand(3*n-2))
+A1 = A1+A1';
+A2 = A2+A2';
+A3 = A3+A3';
+
+
+f1= S -> one(S)
+f2= S -> -S
+f3= S -> exp(-S)
+
+nep=SPMF_NEP([A1,A2,A3],[f1,f2,f3])
+
+λ=ilan(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
+λ

@@ -63,6 +63,7 @@ function ilan(
     y = zeros(T,n,m+1);
     α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
+    #local M0inv::LinSolver = x->x;
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 
