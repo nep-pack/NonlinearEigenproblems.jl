@@ -2,7 +2,10 @@
 
 #workspace(); push!(LOAD_PATH, string(@__DIR__, "/../src"));push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra")); push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra/waveguide")); using NEPCore; using NEPTypes; using LinSolvers; using NEPSolver; using Gallery; using IterativeSolvers; using Test
 
-import NEPSolver.inner_solve; include("../src/inner_solver.jl");import NEPSolver.iar; include("../src/method_iar.jl");
+import NEPSolver.inner_solve;
+include("../src/inner_solver.jl");
+import NEPSolver.iar;
+include("../src/method_iar.jl");
 
 Profile.clear()
 nep=nep_gallery("dep0_tridiag",100)
