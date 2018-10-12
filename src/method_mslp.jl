@@ -5,7 +5,7 @@ export mslp
 
 
 """
-     mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::DataType][armijo_factor=1,][armijo_max])
+     mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::Type][armijo_factor=1,][armijo_max])
 
 Runs the method of successive linear problems. The  method requires the solution of a
 generalized eigenvalue problem in every iteration. The method used for the eigenvalue
