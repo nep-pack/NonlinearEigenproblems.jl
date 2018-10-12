@@ -95,5 +95,5 @@ julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
         D = Vector{T}(D)
         V = Matrix{T}(V)
 
-        return D,V
+        return D,V[1:size(pep,1),:]
     end
