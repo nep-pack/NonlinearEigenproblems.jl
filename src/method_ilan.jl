@@ -117,8 +117,7 @@ function ilan(
         for t=1:p
             Z[:,1:k+1]=Z[:,1:k+1]+Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
         end
-        println("matrix Z")
-        display(Z)
+
         # orthogonalization (three terms recurrence)
         α=sum(sum(conj(Z).*Q,dims=1))
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
