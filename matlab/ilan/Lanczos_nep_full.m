@@ -32,23 +32,21 @@ for j=1:k
     end
 end
 
-
-
-W=zeros(n,k+1);
+Qn=zeros(n,k+1);
 Z=zeros(n,k+1);
 p=length(nep.f);
 
 for j=1:k
     
     % action of A^(-1) B 
-    W(:,2:j+1)=bsxfun(@rdivide,Q(:,1:j),1:j);
-    W(:,1)=nep.Mlincomb(ones(j,1),W(:,2:j+1));
-    W(:,1)=-nep.Minv(W(:,1));
+    Qn(:,2:j+1)=bsxfun(@rdivide,Q(:,1:j),1:j);
+    Qn(:,1)=nep.Mlincomb(ones(j,1),Qn(:,2:j+1));
+    Qn(:,1)=-nep.Minv(Qn(:,1));
     
     % B-multiplcation 
     Z=0*Z;
     for t=1:p
-        Z(:,1:j+1)=Z(:,1:j+1)+(nep.A{t}*W(:,1:j+1))*(G(1:j+1,1:j+1).*nep.FHD{t}(1:j+1,1:j+1));
+        Z(:,1:j+1)=Z(:,1:j+1)+(nep.A{t}*Qn(:,1:j+1))*(G(1:j+1,1:j+1).*nep.FHD{t}(1:j+1,1:j+1));
     end
             
     % orthogonlization (three terms recurrence)
@@ -56,7 +54,7 @@ for j=1:k
     if j>1
         beta=sum(sum(bsxfun(@times,conj(Z),Qp)));%=Z(:)'*Qp(:);
     end
-    gamma=sum(sum(bsxfun(@times,conj(Z),W)));%=Z(:)'*W(:);
+    gamma=sum(sum(bsxfun(@times,conj(Z),Qn)));%=Z(:)'*W(:);
     
     % from this point nothing changes
     T(j,j)=alpha/omega(j);    
@@ -64,7 +62,7 @@ for j=1:k
         T(j-1,j)=beta/omega(j-1);
     end
     
-    W_orth=W-T(j,j)*Q;
+    W_orth=Qn-T(j,j)*Q;
     if j>1
         W_orth=W_orth-T(j-1,j)*Qp;
     end

@@ -58,17 +58,32 @@ function ilan(
     m = maxit;
 
     # initialization
-    V = zeros(T,n*(m+1),m+1);
-    H = zeros(T,m+1,m);
-    y = zeros(T,n,m+1);
-    α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
+    V=zeros(T,n,m+1)
+    Q=zeros(T,n,m+1)
+    Qp=zeros(T,n,m+1)
+    Qn=zeros(T,n,m+1)
+    Z=zeros(T,n,m+1)
+    H=zeros(T,m+1,m)
+    ω=zeros(T,m+1)
+    α=Vector{T}(γ.^(0:m)); α[1]=zero(T); # TODO
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     #local M0inv::LinSolver = x->x;
     err = ones(m,m);
-    λ=zeros(T,m+1); Q=zeros(T,n,m+1);
+    λ=zeros(T,m+1);
 
-    vv=view(V,1:1:n,1); # next vector V[:,k+1]
-    vv[:]=v; vv[:]=vv[:]/norm(vv);
+    # precompute the symmetrizer coefficients
+    G=zeros(m,m);
+    for i=1:m G[i,1]=1/i end
+    for j=1:m-1
+        for i=1:m
+            G[i,j+1]=(G[i,j]*j)/(i+j);
+        end
+    end
+
+    # setting initial step
+    Q[:,1]=v/norm(v)
+    ω[1]=Q[:,1]⋅compute_Mlincomb(nep,0,Q[:,1],1,startder=1);
+
     k=1; conv_eig=0;
     local pnep::NEP;
     if (proj_solve)
@@ -79,15 +94,14 @@ function ilan(
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
         end
-        VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
-        vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
-        y[:,2:k+1] = reshape(VV[1:1:n*k,k],n,k);
-        broadcast!(/,view(y,:,2:k+1),view(y,:,2:k+1),(1:k)')
-        y[:,1] = compute_Mlincomb!(nep,σ,y[:,1:k+1],α[1:k+1]);
-        y[:,1] = -lin_solve(M0inv,y[:,1]);
+        broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
+        Qn[:,1] = compute_Mlincomb!(nep,σ,Qn[:,1:k+1],α[1:k+1]);
+        Qn[:,1] = -lin_solve(M0inv,Qn[:,1]);
 
-        vv[:]=reshape(y[:,1:k+1],(k+1)*n,1);
+        # B-multiplication
+
+
         # orthogonalization
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 

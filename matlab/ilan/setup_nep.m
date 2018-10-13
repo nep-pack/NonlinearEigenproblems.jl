@@ -153,10 +153,10 @@ function F = Fmat(fD,t,k)
 %FMAT Contruct the derivative-coefficients Hankel matrix
 %   Construct the matrix
 %  \begin{pmatrix}
-%  f_t^{(1)} (\mu)	& f_t^{(2)}(\mu)	& f_t^{(3)}(\mu)	& \dots 	& f_t^{(k+1)}(\mu)	\\
-%  f_t^{(2)} (\mu)	& f_t^{(3)}(\mu)	& \dots			& 	 	& f_t^{(k+2)}(\mu)	\\
+%  f_t^{(1)} (\mu)      & f_t^{(2)}(\mu)	& f_t^{(3)}(\mu)	& \dots 	& f_t^{(k+1)}(\mu)	\\
+%  f_t^{(2)} (\mu)      & f_t^{(3)}(\mu)	& \dots			& 	 	& f_t^{(k+2)}(\mu)	\\
 %  f^{(3)} (\mu)		&  \dots		&			&		& f_t^{(k+3)}(\mu)	\\
-%   \vdots		&			&			&		& \vdots		\\
+%   \vdots              &			&			&		& \vdots		\\
 %  f_t^{(k+1)} (\mu)	&  f_t^{(k+2)}(\mu)	& f_t^{(k+3)}(\mu)	& \dots		& f_t^{(2k+1)}(\mu)
 %  \end{pmatrix}
 

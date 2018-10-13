@@ -7,11 +7,11 @@ n=1000;
 m=2*maxit+2;
 
 % matrices defining the problem
-A{1}=spdiags(rand(n,3),-1:1,n,n);       A{1}=A{1}+A{1}';
-A{2}=spdiags(rand(n,3),-1:1,n,n);       A{2}=A{2}+A{2}';
-A{3}=spdiags(rand(n,3),-1:1,n,n);       A{3}=A{3}+A{3}';
+A{1}=spdiags(rand(n,3),-1:1,n,n);        A{1}=A{1}+A{1}';
+A{2}=spdiags(rand(n,3),-1:1,n,n);        A{2}=A{2}+A{2}';
+A{3}=spdiags(rand(n,3),-1:1,n,n);        A{3}=A{3}+A{3}';
 A{4}=1e-12*spdiags(rand(n,3),-1:1,n,n);  A{4}=A{4}+A{4}';
-A{5}=spdiags(rand(n,3),-1:1,n,n);       A{5}=A{5}+A{5}';
+A{5}=spdiags(rand(n,3),-1:1,n,n);        A{5}=A{5}+A{5}';
 
 % functions defining the problem
 f{1}=@(l) -l; 

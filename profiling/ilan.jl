@@ -1,4 +1,4 @@
-using Random, SparseArrays
+using NonlinearEigenproblems, Random, SparseArrays
 include("../src/inner_solver.jl");
 include("../src/method_ilan.jl");
 
