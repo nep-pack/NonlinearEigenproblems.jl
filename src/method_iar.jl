@@ -132,16 +132,16 @@ function iar(
     end
     k=k-1
     # NoConvergenceException
-    if conv_eig<Neig
-        err=err[end,1:Neig];
-        idx=sortperm(err); # sort the error
-        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
-        msg="Number of iterations exceeded. maxit=$(maxit)."
-        if conv_eig<3
-            msg=string(msg, " Check that σ is not an eigenvalue.")
-        end
-        throw(NoConvergenceException(λ,Q,err,msg))
-    end
+    # if conv_eig<Neig
+    #     err=err[end,1:Neig];
+    #     idx=sortperm(err); # sort the error
+    #     λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+    #     msg="Number of iterations exceeded. maxit=$(maxit)."
+    #     if conv_eig<3
+    #         msg=string(msg, " Check that σ is not an eigenvalue.")
+    #     end
+    #     throw(NoConvergenceException(λ,Q,err,msg))
+    # end
 
 
     return λ,Q,err[1:k,:],V[:,1:k]
