@@ -62,13 +62,13 @@ for j=1:k
         T(j-1,j)=beta/omega(j-1);
     end
     
-    W_orth=Qn-T(j,j)*Q;
+    Qn=Qn-T(j,j)*Q;
     if j>1
-        W_orth=W_orth-T(j-1,j)*Qp;
+        Qn=Qn-T(j-1,j)*Qp;
     end
     
-    T(j+1,j)=norm(W_orth,'fro');% =norm(W_orth(:))
-    Qn=W_orth/T(j+1,j);
+    T(j+1,j)=norm(Qn,'fro');% =norm(W_orth(:))
+    Qn=Qn/T(j+1,j);
     
     omega(j+1)=gamma-2*T(j,j)*alpha+T(j,j)^2*omega(j);
     if j>1

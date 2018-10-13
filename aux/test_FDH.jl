@@ -28,11 +28,8 @@ S=diagm(0 => μ*ones(T,2m)) + diagm(-1 => (1:2m-1))
 fD=zeros(2*m,p)
 for t=1:p fD[:,t]=fv[t](S)[:,1] end
 FDH=Vector{Array{T,2}}(undef,p)
-for t=1:p
-    FDH[t]=zeros(T,m,m)
-    for i=1:m
-        for j=1:m
-            FDH[t][i,j]=fD[i+j,t];
-        end
-    end
+for t=1:p FDH[t]=zeros(T,m,m)
+    for i=1:m for j=1:m
+        FDH[t][i,j]=fD[i+j,t];
+    end end
 end
