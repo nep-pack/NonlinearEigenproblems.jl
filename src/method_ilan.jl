@@ -117,30 +117,32 @@ function ilan(
         for t=1:p
             Z[:,1:k+1]=Z[:,1:k+1]+Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
         end
-
+        println("matrix Z")
+        display(Z)
         # orthogonalization (three terms recurrence)
         α=sum(sum(conj(Z).*Q,dims=1))
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
-        γ=sum(sum(conj(Z).*Qn,dims=1))
+        η=sum(sum(conj(Z).*Qn,dims=1))
 
         H[k,k]=α/ω[k]
         if k>1 H[k-1,k]=β/ω[k-1] end
         Qn=Qn-H[k,k]*Q;
+        if k>1 Qn=Qn-H[k-1,k]*Qp end
 
-        H[k+1,k]=norm(Qn);
+        H[k+1,k]=1;#norm(Qn);
         Qn=Qn/H[k+1,k];
 
-        ω[k+1]=γ-2α*H[k,k]+ω[k]*H[k,k]^2;
+        ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
-            ω[k+1]=ω[k+1]-2β*H[k-1,k]+ω[k-1]*H[k-1,k]^2;
+            ω[k+1]=ω[k+1]-2*β*H[k-1,k]+ω[k-1]*H[k-1,k]^2;
         end
         ω[k+1]=ω[k+1]/H[k+1,k]^2;
-        V[:,k]=Qn[:,1];
+        V[:,k]=Q[:,1];
         k=k+1;
         # shift the vectors
-        Qp=Q;   Q=Qn;
+        Qp=Q;   Q=Qn; Qn=0*Qn;
     end
     k=k-1
 
-    return V
+    return V, H, ω
 end

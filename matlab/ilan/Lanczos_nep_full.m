@@ -38,6 +38,7 @@ p=length(nep.f);
 
 for j=1:k
     
+    
     % action of A^(-1) B 
     Qn(:,2:j+1)=bsxfun(@rdivide,Q(:,1:j),1:j);
     Qn(:,1)=nep.Mlincomb(ones(j,1),Qn(:,2:j+1));
@@ -48,7 +49,7 @@ for j=1:k
     for t=1:p
         Z(:,1:j+1)=Z(:,1:j+1)+(nep.A{t}*Qn(:,1:j+1))*(G(1:j+1,1:j+1).*nep.FHD{t}(1:j+1,1:j+1));
     end
-            
+    Z
     % orthogonlization (three terms recurrence)
     alpha=sum(sum(bsxfun(@times,conj(Z),Q)));%=Z(:)'*Q(:);
     if j>1
@@ -67,7 +68,7 @@ for j=1:k
         Qn=Qn-T(j-1,j)*Qp;
     end
     
-    T(j+1,j)=norm(Qn,'fro');% =norm(W_orth(:))
+    T(j+1,j)=1;%norm(Qn,'fro');% =norm(W_orth(:))
     Qn=Qn/T(j+1,j);
     
     omega(j+1)=gamma-2*T(j,j)*alpha+T(j,j)^2*omega(j);
