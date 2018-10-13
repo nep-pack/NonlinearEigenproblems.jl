@@ -25,7 +25,7 @@ A{4}=[ -1  1   12
 f{1}=@(l) eye(size(l));
 f{2}=@(l) -l;
 f{3}=@(l) expm(-l);
-f{4}=@(l) sqrtm(eye(size(l))-2*l);
+f{4}=@(l) sqrt(one(S)-2*S);
 
 
 mu=0;

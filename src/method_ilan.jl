@@ -58,7 +58,7 @@ function ilan(
     m = maxit;
 
     # initialization
-    V=zeros(T,n,m+1)
+    V=zeros(T,n,m)
     Q=zeros(T,n,m+1)
     Qp=zeros(T,n,m+1)
     Qn=zeros(T,n,m+1)
@@ -129,7 +129,7 @@ function ilan(
         Qn=Qn-H[k,k]*Q;
         if k>1 Qn=Qn-H[k-1,k]*Qp end
 
-        H[k+1,k]=1;#norm(Qn);
+        H[k+1,k]=norm(Qn);
         Qn=Qn/H[k+1,k];
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
@@ -144,5 +144,5 @@ function ilan(
     end
     k=k-1
 
-    return V, H, ω
+    return V, H[1:end-1,1:end-1], ω[1:end-1]
 end

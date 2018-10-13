@@ -68,7 +68,7 @@ for j=1:k
         Qn=Qn-T(j-1,j)*Qp;
     end
     
-    T(j+1,j)=1;%norm(Qn,'fro');% =norm(W_orth(:))
+    T(j+1,j)=norm(Qn,'fro');% =norm(W_orth(:))
     Qn=Qn/T(j+1,j);
     
     omega(j+1)=gamma-2*T(j,j)*alpha+T(j,j)^2*omega(j);
