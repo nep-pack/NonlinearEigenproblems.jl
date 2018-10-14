@@ -72,7 +72,7 @@ function ilan(
     λ=zeros(T,m+1);
 
     # precompute the symmetrizer coefficients
-    G=zeros(m+1,m+1);
+    G=zeros(T,m+1,m+1);
     for i=1:m+1 G[i,1]=1/i end
     for j=1:m
         for i=1:m+1
@@ -111,13 +111,13 @@ function ilan(
         end
 
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
-        Qn[:,1] = compute_Mlincomb!(nep,σ,Qn[:,1:k+1],a[1:k+1]);
-        Qn[:,1] = -lin_solve(M0inv,Qn[:,1]);
+        Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
+        Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # B-multiplication
-        Z=0*Z;
+        Z[:,1:k+1]=zeros(T,n,k+1);
         for t=1:p
-            Z[:,1:k+1]=Z[:,1:k+1]+Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
+            Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
         end
 
         # orthogonalization (three terms recurrence)
@@ -127,11 +127,11 @@ function ilan(
 
         H[k,k]=α/ω[k]
         if k>1 H[k-1,k]=β/ω[k-1] end
-        Qn=Qn-H[k,k]*Q;
-        if k>1 Qn=Qn-H[k-1,k]*Qp end
+        Qn[:,1:k] .-= H[k,k]*view(Q,:,1:k);
+        if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
 
         H[k+1,k]=norm(Qn);
-        Qn=Qn/H[k+1,k];
+        mul!(Qn,1/H[k+1,k],Qn)
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
