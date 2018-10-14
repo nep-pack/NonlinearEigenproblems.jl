@@ -2,13 +2,7 @@ using NonlinearEigenproblems, Random, SparseArrays, Revise
 include("../src/inner_solver.jl");
 include("../src/method_ilan.jl");
 
-
 n=4;
-Random.seed!(1) # reset the random seed
-#K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
-#A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
-#A2 = sparse(K, J, rand(3*n-2)): A2 = A2+A2';
-#A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
 
 A1=[ 1 -4 -2
     -4  6  3

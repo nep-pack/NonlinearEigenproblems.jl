@@ -32,8 +32,8 @@ julia> λ    # print the computed eigenvalues
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
-ilan(nep::NEP;params...)=ilan(ComplexF64,nep;params...)
-function ilan(
+ilan_benchmark(nep::NEP;params...)=ilan(ComplexF64,nep;params...)
+function ilan_benchmark(
     ::Type{T},
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
