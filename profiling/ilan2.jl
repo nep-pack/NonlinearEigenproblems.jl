@@ -20,7 +20,7 @@ f4= S -> exp(-S)
 
 
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
-V,H,ω=ilan(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,v=v0)
+V,H,ω,HH=ilan(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,orthmethod=DGK)
 #Q,_,_=svd(V)
 Q=V;
 

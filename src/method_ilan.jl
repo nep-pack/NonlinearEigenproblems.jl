@@ -64,6 +64,7 @@ function ilan(
     Qn=zeros(T,n,m+1)
     Z=zeros(T,n,m+1)
     H=zeros(T,m+1,m)
+    HH=zeros(T,m+1,m)
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:m)); a[1]=zero(T); # TODO
     local M0inv::LinSolver = linsolvercreator(nep,σ);
@@ -84,7 +85,7 @@ function ilan(
 
     # precompute derivatives and FDH matrices
     SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => (1:2m+1))
-    fD=zeros(2*m+2,p)
+    fD=zeros(T,2*m+2,p)
     for t=1:p fD[:,t]=fv[t](SS)[:,1] end
     FDH=Vector{Array{T,2}}(undef,p)
     for t=1:p FDH[t]=zeros(T,m+1,m+1)
@@ -139,12 +140,15 @@ function ilan(
         ω[k+1]=ω[k+1]/H[k+1,k]^2;
         V[:,k+1]=Qn[:,1];
 
-        hh=1
-        while norm(hh)>1e-12
-            hh=V[:,1:k]'*V[:,k+1];
-            V[:,k+1]=V[:,k+1]-V[:,1:k]*hh
-        end
-        V[:,k+1]=V[:,k+1]/norm(V[:,k+1])
+        #hh=1
+        #while norm(hh)>1e-12
+        #    hh=V[:,1:k]'*V[:,k+1];
+        #    V[:,k+1]=V[:,k+1]-V[:,1:k]*hh
+        #end
+        #V[:,k+1]=V[:,k+1]/norm(V[:,k+1])
+
+        nn = orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
+
 
         k=k+1;
         # shift the vectors
@@ -153,5 +157,5 @@ function ilan(
     end
     k=k-1
 
-    return V, H[1:end-1,1:end-1], ω[1:end-1]
+    return V, H[1:end-1,1:end-1], ω[1:end-1], HH
 end

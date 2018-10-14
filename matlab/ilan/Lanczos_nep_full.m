@@ -49,7 +49,7 @@ for j=1:k
     for t=1:p
         Z(:,1:j+1)=Z(:,1:j+1)+(nep.A{t}*Qn(:,1:j+1))*(G(1:j+1,1:j+1).*nep.FHD{t}(1:j+1,1:j+1));
     end
-    Z
+    
     % orthogonlization (three terms recurrence)
     alpha=sum(sum(bsxfun(@times,conj(Z),Q)));%=Z(:)'*Q(:);
     if j>1
