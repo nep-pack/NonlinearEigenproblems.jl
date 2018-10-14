@@ -58,7 +58,7 @@ function ilan(
     m = maxit;
 
     # initialization
-    V=zeros(T,n,m)
+    V=zeros(T,n,m+1)
     Q=zeros(T,n,m+1)
     Qp=zeros(T,n,m+1)
     Qn=zeros(T,n,m+1)
@@ -96,6 +96,7 @@ function ilan(
     # setting initial step
     Q[:,1]=v/norm(v)
     ω[1]=Q[:,1]⋅compute_Mlincomb(nep,0,hcat(Q[:,1],Q[:,1]),[0,1]);
+    V[:,1]=Q[:,1];
 
     k=1; conv_eig=0;
     local pnep::NEP;
@@ -136,10 +137,19 @@ function ilan(
             ω[k+1]=ω[k+1]-2*β*H[k-1,k]+ω[k-1]*H[k-1,k]^2;
         end
         ω[k+1]=ω[k+1]/H[k+1,k]^2;
-        V[:,k]=Q[:,1];
+        V[:,k+1]=Qn[:,1];
+
+        hh=1
+        while norm(hh)>1e-12
+            hh=V[:,1:k]'*V[:,k+1];
+            V[:,k+1]=V[:,k+1]-V[:,1:k]*hh
+        end
+        V[:,k+1]=V[:,k+1]/norm(V[:,k+1])
+
         k=k+1;
         # shift the vectors
         Qp=Q;   Q=Qn; Qn=0*Qn;
+
     end
     k=k-1
 
