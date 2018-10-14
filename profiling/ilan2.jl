@@ -4,7 +4,7 @@ include("../src/method_ilan.jl");
 #include("../src/method_iar.jl");
 
 
-n=1000
+n=200
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -20,7 +20,7 @@ f4= S -> exp(-S)
 
 
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
-V,H,ω=ilan(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
+V,H,ω=ilan(Float64,nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)
 Q,_,_=svd(V)
 
 # project (hardcoded for now)
