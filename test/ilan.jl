@@ -1,7 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, Test
-include("../src/inner_solver.jl");
-include("../src/method_ilan.jl");
-include("../src/method_ilan_benchmark.jl");
+using NonlinearEigenproblems, Random, SparseArrays, Revise, Test, LinearAlgebra
 
 @testset "ILAN" begin
 

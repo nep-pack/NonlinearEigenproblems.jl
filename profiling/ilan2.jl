@@ -1,6 +1,6 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise
-include("../src/inner_solver.jl");
-include("../src/method_ilan.jl");
+using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
+#include("../src/inner_solver.jl");
+#include("../src/method_ilan.jl");
 #include("../src/method_iar.jl");
 
 
@@ -33,6 +33,15 @@ err_lifted=(λ,z)->compute_resnorm(nep,λ,Q*z)/n;
 pnep=SPMF_NEP([AA1,AA2,AA3,AA4],[f1,f2,f3,f4])
 λ,_,err=iar(pnep,σ=0,γ=1;Neig=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,errmeasure=err_lifted)
 
+m,p=size(err);
 
-using DelimitedFiles
-writedlm("profiling/error_ilan.txt", err)
+# sort error
+for j=1:p
+    err[1:m,j]=sort(err[1:m,j];rev=true);
+end
+
+for j=1:p
+    semilogy(1:m,err[1:m,j],color="black",linestyle="-");
+end
+ylim(ymax=1)
+plt.show()
