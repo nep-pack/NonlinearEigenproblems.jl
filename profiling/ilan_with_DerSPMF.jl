@@ -7,7 +7,12 @@ struct DerSPMF
     σ::Number
 end
 
-
+## one constructor takes spmf as input and compute the derivatives
+function DerSPMF(spmf::SPMF_NEP,σ::Number)
+      # Compute Q-matrix from get_fv(spmf)
+      DD=rand(2,2)
+      return DerSPMF(spmf,DD,σ);
+end
 
 
 n=1000
@@ -27,3 +32,4 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 σ=rand()
 DD=rand(2,2)
 Dnep=DerSPMF(nep,DD,σ)
+Dnep2=DerSPMF(nep,σ)
