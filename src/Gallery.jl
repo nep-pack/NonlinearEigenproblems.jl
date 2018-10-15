@@ -15,12 +15,11 @@ module Gallery
 
     function __init__()
         # Add the search-path to the extra galleries - so that unloaded modules can be easily loaded from top level
-        this_path = string(@__DIR__, "/gallery_extra")
+        this_path = string(@__DIR__, "/gallery_extra") 
         if !(this_path in LOAD_PATH)
             push!(LOAD_PATH, this_path)
         end
     end
-
     # Add the search-path to the extra galleries - temporarily so so needed files can be included
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra"))
     include("gallery_extra/basic_random_examples.jl")

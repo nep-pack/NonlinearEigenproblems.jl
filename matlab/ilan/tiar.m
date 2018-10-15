@@ -1,4 +1,4 @@
-function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
+function [ W, E ] = tiar( nep, k, opts )
 %tiar Tensor Infinite Arnoldi for nonlinear eigenvalue problems
 %
 %   [W,E] = tiar(nep) produces a column vector E of nep's 6 smallest
@@ -14,18 +14,18 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %
 %   (optional*): nep.Md:  function handle for the evaluation of M^(j)(0)v 
 %                where M^(j)(0) is the j-th derivative of M(l) 
-%                and (j[scalar], v[vector]). nep.Md or nep.Md_lin_comb has
+%                and (j[scalar], v[vector]). nep.Md or nep.Mlincomb has
 %                to be provided.
 %                           [ @(j,v) {vector M^(j)(0)*v} ]
 %
-%   (optional*): nep.Md_lin_comb: function handle for the evaluation of
+%   (optional*): nep.Mlincomb: function handle for the evaluation of
 %                M^(1)(0)X(:,1)+M^(2)(0)X(:,2)+...+M^(j)(0) X(:,j)
 %                where M^(s)(0) is the s-th derivative of M(l) 
-%                and (j[scalar], v[vector]). nep.Md or nep.Md_lin_comb has
+%                and (j[scalar], v[vector]). nep.Md or nep.Mlincomb has
 %                to be provided.
 %                           [ @(X) {vector \sum_{s=1}^j M^(s)(0)X(:,s)} ]
 %
-%   nep.M_inv: function handle for the solution of linear systems 
+%   nep.Minv: function handle for the solution of linear systems 
 %                 M(0)x=v where (v[vector])
 %                            [ @(v) {solution of M(0)x=v } ]
 %
@@ -44,10 +44,10 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %   opts.sigma: compute the eigenvalues close to the shift sigma. If the 
 %               shift is specified, nep.Md (if provided) has to be the 
 %               function handle for the evaluation of M^(j)(sigma)v,  
-%               nep.Md_lin_comb (if provided) has to be the 
+%               nep.Mlincomb (if provided) has to be the 
 %               function handle for the evaluation of 
 %               M^(1)(sigma)X(:,1)+M^(2)(sigma)X(:,2)+...+M^(j)(sigma) X(:,j)
-%               and nep.M_inv the function handle for the solution 
+%               and nep.Minv the function handle for the solution 
 %               of linear systems M(sigma)x=v [scalar |{0}]
 %   opts.gamma: rescale the problem
 %   opts.p: the convergence is checked every p iterations [integer |{1}]
@@ -65,7 +65,7 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %   nep.M =@(l,v) l^2*A2*v+l*A1*v+A0*v;
 %   nep.Md=@(j,v) (j==1)*(A1*v+2*sigma*A2*v)+(j==2)*2*A2*v;
 %   [L,U,P,Q] = lu(A0+sigma*A1+sigma^2*A2);
-%   nep.M_inv=@(v) Q*(U\(L\(P*v)));
+%   nep.Minv=@(v) Q*(U\(L\(P*v)));
 %   nep.n=n;
 %   nep.resnorm=@(l,v) norm(nep.M(l,v))/((abs(l)^2*norm(A2,inf)+abs(l)*norm(A1,inf)+norm(A0,inf))*norm(v));
 %   opts.maxit=100; opts.tol=1e-10; opts.disp=1;  k=20;
@@ -77,7 +77,7 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %   title('Converged Eigenvalues')
 %
 %   The following example shows that, for some problems, the algorithm is
-%   more efficient if nep.Md_lin_comb is provided. Test it 
+%   more efficient if nep.Mlincomb is provided. Test it 
 %
 %   Example (Delay Eigenvalue Problem):
 %   compute eigenpairs of M(l)=-l*I+A0+exp(-l)*A1
@@ -95,7 +95,7 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %   nep.Md=@(j,v) AA{min(j,3)}(v)*(-1)^j;
 %   [L,U,P,Q] = lu(A0+A1);
 % 
-%   nep.M_inv=@(v) Q*(U\(L\(P*v)));
+%   nep.Minv=@(v) Q*(U\(L\(P*v)));
 %   nep.n=n;
 %   nep.resnorm=@(l,v) norm(nep.M(l,v))/((abs(l)+norm(A0,inf)+abs(exp(-l))*norm(A1,inf))*norm(v));
 %   opts.maxit=50; opts.tol=1e-10; opts.disp=0; opts.v0=ones(n,1); opts.p=inf; k=inf;
@@ -105,7 +105,7 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %   toc;
 %  
 %   tic; 
-%   nep.Md_lin_comb=@(X,j) -X(:,1)+A1*(sum(bsxfun(@times, X(:,1:j),(-1).^(1:j)),2));
+%   nep.Mlincomb=@(X,j) -X(:,1)+A1*(sum(bsxfun(@times, X(:,1:j),(-1).^(1:j)),2));
 %   [ W2, E2 ] = tiar( nep, k, opts );
 %   toc;
 %
@@ -123,7 +123,7 @@ function [ W, E, Z, ERR, t_it ] = tiar( nep, k, opts )
 %   version: 25/05/2017
 
 n        =  nep.n;
-M_inv    =  nep.M_inv;
+Minv     =  nep.Minv;
 M        =  nep.M;
 
 % check input
@@ -136,14 +136,14 @@ end
 if ~exist('k','var')
     k=6;
 end
-if (isfield(nep,'Md_lin_comb'))
-    Md_lin_comb=nep.Md_lin_comb;
+if (isfield(nep,'Mlincomb'))
+    Mlincomb=nep.Mlincomb;
 elseif isfield(nep,'Md')
     % Compute linear combination of derivatives
     % in the naive way by calling Md several times:
-    Md_lin_comb=@(X,j) sum(bsxfun(@(jj,y) nep.Md(jj,X(:,jj)), 1:j, zeros(n,1)),2);
+    Mlincomb=@(X,j) sum(bsxfun(@(jj,y) nep.Md(jj,X(:,jj)), 1:j, zeros(n,1)),2);
 else    
-    error('You must provide either Md or Md_lin_comb');
+    error('You must provide either Md or Mlincomb');
 end
 
 
@@ -204,14 +204,12 @@ end
     
 % initialize tiar factorization
 Z=zeros(n,maxit+1);     H=zeros(maxit+1,maxit);
+size(v0)
 Z(:,1)=v0;              Z(:,1)=Z(:,1)/norm(Z(:,1));
-a=zeros(maxit+1,maxit+1,maxit+1);
 a(1,1,1)=1;             W=[];   E=[];
 
 % expand the tiar factorization
 j=1; conv_eig=0;    kp=1;
-t_it=[];
-temp=cputime;
 while (j<=maxit-1)&&(conv_eig<k)
   
     if disp==1
@@ -226,25 +224,15 @@ while (j<=maxit-1)&&(conv_eig<k)
     AK(1:j,1:j)=a(1:j,j,1:j); 
     y(:,2:j+1) = bsxfun (@rdivide, Z(:,1:j)*AK.', 1:j);
 
-    %slower computation of y(:,2), ..., y(:,k+1)     
-%     y(1:n,1:j)=0;
-%     for k=2:j+1
-%         y(:,k)=0;
-%         for l=1:j
-%             y(:,k)=y(:,k)+a(k-1,j,l)*Z(:,l);
-%         end
-%         y(:,k)=1/(k-1)*y(:,k);
-%     end    
-    
-    
     % computation of y(:,1)
     if (gamma~=1)
-        ZZ=bsxfun (@times, y(:,2:(j+1)), gamma.^(1:j));    
+        ZZ=bsxfun(@times, y(:,1:(j+1)), gamma.^(0:j));    
     else
-        ZZ=y(:,2:(j+1));
+        ZZ=y(:,1:(j+1));
     end
-    y(:,1)=Md_lin_comb(ZZ,j);
-    y(:,1)=-M_inv(y(:,1));
+    ZZ(:,1)=0;
+    y(:,1)=Mlincomb(ones(j,1),ZZ(:,2:end));
+    y(:,1)=-Minv(y(:,1));
     
     % Gram–Schmidt orthogonalization in Z
     t=zeros(j,1);    t(1:j)=Z(:,1:j)'*y(:,1);
@@ -270,12 +258,14 @@ while (j<=maxit-1)&&(conv_eig<k)
     % compute h (orthogonalization with tensors factorization)
     h=zeros(j,1);
     for l=1:j
-        h=h+a(1:j,1:j,l)'*g(1:j,l);
+        Al=a(1:j,1:j,l);
+        h=h+Al'*g(1:j,l);
     end
     
     % compute the matrix F
     for l=1:j
-        f(1:j+1,l)=g(1:j+1,l)-a(1:j+1,1:j,l)*h;
+        Al=a(1:j+1,1:j,l);
+        f(1:j+1,l)=g(1:j+1,l)-Al*h;
     end
     
     for i=1:j+1
@@ -286,12 +276,14 @@ while (j<=maxit-1)&&(conv_eig<k)
     % compute hh (re-orthogonalization with tensors factorization)
     hh=zeros(j,1);
     for l=1:j
-        hh=hh+a(1:j,1:j,l)'*f(1:j,l);
+        Al=a(1:j,1:j,l);
+        hh=hh+Al'*f(1:j,l);
     end
     
     % compute the matrix FF
     for l=1:j
-        ff(1:j+1,l)=f(1:j+1,l)-a(1:j+1,1:j,l)*hh;
+        Al=a(1:j+1,1:j,l);
+        ff(1:j+1,l)=f(1:j+1,l)-Al*hh;
     end
     
     for i=1:j+1
@@ -318,7 +310,7 @@ while (j<=maxit-1)&&(conv_eig<k)
         kp=k;
 
         % partial extraction of the basis
-        AA(1:j+1,1:j+1,1)=a(1,1:j+1,1:j+1);  AA=AA.';
+        AA(1:j+1,1:j+1,1)=a(1,:,:);  AA=AA.';
         V=Z(:,1:j+1)*AA;
 
         [RitzVec, RitzVal] = eig(H(1:j,1:j));
@@ -344,7 +336,7 @@ while (j<=maxit-1)&&(conv_eig<k)
         end
         
     end
-    t_it(j)=cputime-temp;
+    
     j=j+1;
 end
 
