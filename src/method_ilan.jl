@@ -66,7 +66,7 @@ function ilan(
     H=zeros(T,m+1,m)
     HH=zeros(T,m+1,m)
     ω=zeros(T,m+1)
-    a=Vector{T}(γ.^(0:m)); a[1]=zero(T); # TODO
+    a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T); # TODO
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err=ones(m,m);
     λ=zeros(T,m+1);
@@ -84,7 +84,7 @@ function ilan(
     fv=get_fv(nep); p=length(fv);    Av=get_Av(nep)
 
     # precompute derivatives and FDH matrices
-    SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => (1:2m+1))
+    SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => γ*(1:2m+1))
     fD=zeros(T,2*m+2,p)
     for t=1:p fD[:,t]=fv[t](SS)[:,1] end
     FDH=Vector{Array{T,2}}(undef,p)
