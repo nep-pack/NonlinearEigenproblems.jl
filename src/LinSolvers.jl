@@ -202,7 +202,7 @@ This represents a solver done with the julia GMRES implementation.
 
 See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 """
-    mutable struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
+    struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
         A::LinearMap{T_num}
         kwargs::T_kwargs
 
@@ -299,7 +299,7 @@ See also: [`eig_solve`](@ref),
 
 ##############################################################################
 """
-    mutable struct NativeEigSolver <: EigSolver
+    struct NativeEigSolver <: EigSolver
 
 A linear eigenvalueproblem solver that calls Julia's in-built eigen()
 
@@ -312,7 +312,7 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    mutable struct NativeEigSolver{T_A,T_B} <: EigSolver
+    struct NativeEigSolver{T_A,T_B} <: EigSolver
         A::T_A
         B::T_B
 
@@ -349,7 +349,7 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
     end
 
 """
-    mutable struct NativeEigSSolver <: EigSolver
+    struct NativeEigSSolver <: EigSolver
 
 A linear eigenvalueproblem solver for large and sparse problems that calls
 Julia's in-built eigs()
@@ -363,7 +363,7 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    mutable struct NativeEigSSolver{T_A,T_B} <: EigSolver
+    struct NativeEigSSolver{T_A,T_B} <: EigSolver
         A::T_A
         B::T_B
 
@@ -384,7 +384,7 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
         end
         return D,V
     end
-    
+
     function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
         # Julia's eigs(A,B) is currently broken for
         # indefinite B
@@ -410,14 +410,14 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 
 
 """
-    mutable struct DefaultEigSolver <: EigSolver
+    struct DefaultEigSolver <: EigSolver
 
 A linear eigenvalueproblem solver that calls checks for sparsity and accordingly
 assigns an appropriate solver.
 
 See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [`NativeEigSSolver`](@ref)
 """
-    mutable struct DefaultEigSolver{T_sub} <: EigSolver
+    struct DefaultEigSolver{T_sub} <: EigSolver
         subsolver::T_sub
 
         function DefaultEigSolver(A,B)
