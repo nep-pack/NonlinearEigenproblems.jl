@@ -19,7 +19,7 @@ f4= S -> exp(-S)
 
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 
-σ=-1;
+σ=0;
 γ=1;
 V,H,ω,HH=ilan(nep;σ=σ,γ=γ,Neig=10,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
 #Q,_,_=svd(V)
