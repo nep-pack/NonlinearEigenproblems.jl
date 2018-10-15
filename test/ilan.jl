@@ -1,4 +1,9 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, Test, LinearAlgebra
+using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra
+import ..NEPSolver.ilan;
+import ..NEPSolver.ilan_benchmark;
+
+include("../src/method_ilan.jl");
+include("../src/method_ilan_benchmark.jl");
 
 @testset "ILAN" begin
 

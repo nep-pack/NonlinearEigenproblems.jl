@@ -1,8 +1,4 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
-#include("../src/inner_solver.jl");
-#include("../src/method_ilan.jl");
-#include("../src/method_iar.jl");
-
 
 n=1000
 Random.seed!(1) # reset the random seed
@@ -44,4 +40,3 @@ for j=1:p
     semilogy(1:m,err[1:m,j],color="black",linestyle="-");
 end
 ylim(ymax=1)
-plt.show()
