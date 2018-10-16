@@ -5,7 +5,7 @@ export mslp
 
 
 """
-     mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::DataType][armijo_factor=1,][armijo_max])
+     mslp([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][displaylevel,][eigsolvertype::Type][armijo_factor=1,][armijo_max])
 
 Runs the method of successive linear problems. The  method requires the solution of a
 generalized eigenvalue problem in every iteration. The method used for the eigenvalue
@@ -40,13 +40,15 @@ function mslp(::Type{T},
                  maxit::Integer=100,
                  λ::Number=zero(T),
                  displaylevel::Integer=0,
-                 eigsolvertype::DataType=DefaultEigSolver) where {T<:Number}
+                 eigsolvertype::Type=DefaultEigSolver) where {T<:Number}
 
     # Ensure types λ is of type T
     λ::T = T(λ)
 
     # Allocate memory for the eigenvector approximation
     v = zeros(T,size(nep,1));
+    d = zeros(T,1);
+
 
     err=Inf;
 
@@ -57,10 +59,10 @@ function mslp(::Type{T},
         solver=eigsolvertype(compute_Mder(nep,λ,0),compute_Mder(nep,λ,1));
 
         # This will throw an error if the eigenvector is not of correct type
-        d,v[:] = eig_solve(solver,target=0,nev=1);
+        d[:],v[:] = eig_solve(solver,target=0,nev=1);
 
         # update eigenvalue
-        λ += -d # This will throw an error if the eigval update d is not of correct type
+        λ += -d[1] # This will throw an error if the eigval update d is not of correct type
 
         # Normalize
         normalize!(v)
@@ -68,14 +70,13 @@ function mslp(::Type{T},
         # Checck for convergence
         err=errmeasure(λ,v)
         @ifd(println("Iteration:",k," errmeasure:",err, " λ=",λ))
-        
+
         if (err< tol)
             return (λ,v)
         end
-        
+
     end
 
     msg="Number of iterations exceeded. maxit=$(maxit)."
     throw(NoConvergenceException(λ,v,err,msg))
 end
-

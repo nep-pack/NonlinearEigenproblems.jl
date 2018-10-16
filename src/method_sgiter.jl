@@ -1,9 +1,15 @@
 export sgiter
 
 """
-    λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eigsolvertype::DataType,])
+    λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eigsolvertype::Type,])
 
-Finds the `j`-th eigenvalue of the NEP using safeguarded iteration, with eigenvalue numbering according to min-max theory. The method only works for Hermitian problems, and the eigenvalues are assumed to be real. If an interval [`λ_min`,`λ_max`] is given, then the Rayleigh functional is assumed to be unique on the interval. If no interval is given, then the minimum solution is always taken. The method requires the computation of (all) eigenvalues of a matrix. The `eigsolvertype` is a `DataType` that specifies which eigevalue solver is used inside the algorithm. See `newton`for the meaning of other kwargs.
+Finds the `j`-th eigenvalue of the NEP using safeguarded iteration, with eigenvalue numbering
+according to min-max theory. The method only works for Hermitian problems, and the eigenvalues
+are assumed to be real. If an interval [`λ_min`,`λ_max`] is given, then the Rayleigh functional
+is assumed to be unique on the interval. If no interval is given, then the minimum solution is
+always taken. The method requires the computation of (all) eigenvalues of a matrix. The `eigsolvertype`
+is a `Type` that specifies which eigevalue solver is used inside the algorithm. See `newton` for
+the meaning of other kwargs.
 
 
 # Example
@@ -33,7 +39,7 @@ function sgiter(::Type{T},
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
                    displaylevel::Integer = 0,
-                   eigsolvertype::DataType = DefaultEigSolver
+                   eigsolvertype::Type = DefaultEigSolver
                    ) where {T<:Number}
 
     n = size(nep,1)
