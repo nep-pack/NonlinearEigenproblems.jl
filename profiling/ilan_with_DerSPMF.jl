@@ -26,7 +26,14 @@ function compute_Mlincomb(
                     λ::Number,
                     V::AbstractVecOrMat,
                     a::Vector=ones(eltype(V),size(V,2)))
-    return 0
+    # implement here the correct formula
+    p=size(nep.fD,2)
+    m=length(a)
+    z=zeros(size(nep.spmf,1)) #TODO: fix later with delegation
+    for j=1:p
+        z=z+nep.spmf.A[j]*(V*(a.*nep.fD[1:m,j]))
+    end
+    return z
 end
 
 
@@ -51,5 +58,8 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 DD=rand(2,2)
 #Dnep=DerSPMF(nep,DD,σ)
 Dnep=DerSPMF(nep,σ)
-V=rand(n,4)
-z=compute_Mlincomb(Dnep,σ,V)
+m=4
+V=rand(n,m)
+z1=compute_Mlincomb(Dnep,σ,V)
+z2=compute_Mlincomb(nep,σ,V)
+norm(z1-z2)
