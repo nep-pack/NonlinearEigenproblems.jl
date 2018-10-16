@@ -1,7 +1,7 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra
 import ..NEPTypes.AbstractSPMF
 
-struct DerSPMF
+struct DerSPMF <: AbstractSPMF{AbstractMatrix}
     spmf::SPMF_NEP
     fD::Matrix
     σ::Number
@@ -19,6 +19,11 @@ function DerSPMF(spmf::SPMF_NEP,σ::Number)
       for t=1:p fD[:,t]=nep.fi[t](SS)[:,1] end
       return DerSPMF(spmf,fD,σ);
 end
+
+#function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a::Array{<:Number,1})
+#end
+
+
 
 
 n=1000
