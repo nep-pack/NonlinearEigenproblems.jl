@@ -133,7 +133,7 @@ the kwargs are the following:\\
 `j`: the jth eigenvalue in a min-max characterization\\
 `tol`: Termination tolarance for inner solver
 """
-function inner_solve(TT::Type{DefaultInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;kwargs...)
+function inner_solve(TT::Type{DefaultInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver,T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.DEP)
@@ -148,7 +148,7 @@ end
 
 
 
-function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;
+function inner_solve(TT::Type{NewtonInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;
                      λv=zeros(T_arit,1),
                      V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
                      tol=sqrt(eps(real(T_arit))),
@@ -176,7 +176,7 @@ function inner_solve(TT::Type{NewtonInnerSolver},T_arit::DataType,nep::NEPTypes.
 end
 
 
-function inner_solve(TT::Type{PolyeigInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;kwargs...)
+function inner_solve(TT::Type{PolyeigInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
         error("Wrong type");
     end
@@ -186,7 +186,7 @@ end
 
 
 
-function inner_solve(TT::Type{IARInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
+function inner_solve(TT::Type{IARInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
     try
         λ,V=iar(T_arit,nep,σ=σ,Neig=Neig,tol=1e-13,maxit=50);
         return λ,V
@@ -203,7 +203,7 @@ end
 
 
 
-function inner_solve(TT::Type{IARChebInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
+function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
     if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
         TT = eltype(AA);
@@ -233,14 +233,14 @@ end
 
 
 
-function inner_solve(TT::Type{SGIterInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...)
+function inner_solve(TT::Type{SGIterInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...)
     λ,V=sgiter(T_arit,nep,j)
     return [λ],reshape(V,size(V,1),1);
 end
 
 
 
-function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::DataType,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],Neig=10,kwargs...)
+function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],Neig=10,kwargs...)
     # Radius  computed as the largest distance σ and λv and a litte more
     radius = maximum(abs.(σ .- λv))*1.5
     Neig = min(Neig,size(nep,1))

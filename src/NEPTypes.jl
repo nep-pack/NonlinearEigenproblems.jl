@@ -658,7 +658,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 """
     interpolate([T=ComplexF64,] nep::NEP, intpoints::Array)
  Interpolates a NEP in the points `intpoints` and returns a `PEP`.\\
- `T` is the DataType in which the matrices of the PEP should be defined.
+ `T` is the Type in which the matrices of the PEP should be defined.
 """
     interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
     function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}

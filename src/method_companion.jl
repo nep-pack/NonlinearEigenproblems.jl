@@ -84,16 +84,16 @@ julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
 ```
 """
     polyeig(pep::PEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
-    function polyeig(::Type{T},pep::PEP,eigsolvertype::DataType=DefaultEigSolver) where T
+    function polyeig(::Type{T},pep::PEP,eigsolvertype::Type=DefaultEigSolver) where T
 
         #Linearize to Ax = λEx
         E,A = companion(pep);
 
         solver::EigSolver = eigsolvertype(A,E);
-        D,V = eig_solve(solver,target=one(T),nev=size(A)[1]);
+        D,V = eig_solve(solver,target=one(T),nev=size(A,1));
 
         D = Vector{T}(D)
         V = Matrix{T}(V)
 
-        return D,V[1:pep.n,:]
+        return D,V[1:size(pep,1),:]
     end

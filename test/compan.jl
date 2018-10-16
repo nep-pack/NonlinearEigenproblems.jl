@@ -40,13 +40,14 @@ tolerance = 1e-14;
 Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;
-for i = 1:(deg*n)
-    if(abs(λa-Dc[i])/abs(λa) < tolerance*10)
+nn = min(deg*n, length(Dc))
+for i = 1:nn
+    if(abs(λa-Dc[i])/abs(λa) < tolerance*50)
         ind = i;
         break
     end
 end
-@test (abs(λa-Dc[ind])/abs(λa) < tolerance*10)
+@test (abs(λa-Dc[ind])/abs(λa) < tolerance*50)
 
 
 ########################

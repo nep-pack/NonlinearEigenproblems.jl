@@ -20,10 +20,9 @@ module LinSolvers
 
     # Eigenvalue solvers
     export EigSolver
+    export DefaultEigSolver
     export NativeEigSolver
     export NativeEigSSolver
-
-    export DefaultEigSolver
     export eig_solve
 
     import Base.eltype
@@ -203,7 +202,7 @@ This represents a solver done with the julia GMRES implementation.
 
 See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 """
-    mutable struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
+    struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
         A::LinearMap{T_num}
         kwargs::T_kwargs
 
@@ -300,7 +299,7 @@ See also: [`eig_solve`](@ref),
 
 ##############################################################################
 """
-    mutable struct NativeEigSolver <: EigSolver
+    struct NativeEigSolver <: EigSolver
 
 A linear eigenvalueproblem solver that calls Julia's in-built eigen()
 
@@ -313,40 +312,38 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    mutable struct NativeEigSolver <: EigSolver
-        A
-        B
+    struct NativeEigSolver{T_A,T_B} <: EigSolver
+        A::T_A
+        B::T_B
 
-        function NativeEigSolver(A,B=zeros(eltype(A),0))
-            this = new()
-            this.A = A
-            this.B = B
-
-            return this
+        function NativeEigSolver(A)
+            return new{typeof(A),Missing}(A,missing)
+        end
+        function NativeEigSolver(A,B)
+            return new{typeof(A),typeof(B)}(A,B)
         end
     end
 
-    function eig_solve(solver::NativeEigSolver;nev = 1, target = 0)
-        if(solver.B != zeros(eltype(solver.A),0))
-            D,V = eigen(solver.A,solver.B)
-        else
-            D,V = eigen(solver.A)
-        end
+
+
+    function eig_solve(solver::NativeEigSolver; nev = 1, target = 0)
+        D,V = inner_eig_solve(solver)
 
         #Sort the eigenvalues wrt distance from target, and permute
         I = sortperm(abs.(target*ones(size(D,1))-D));
         D = D[I];V = V[:,I];
-
-        #Return the nev closest values to target
-        if(nev == 1)
-            return D[1],V[:,1]
-        end
-
         return D[1:nev],V[:,1:nev];
     end
 
+    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B}
+        D,V = eigen(solver.A,solver.B)
+    end
+    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B<:Missing}
+        D,V = eigen(solver.A)
+    end
+
 """
-    mutable struct NativeEigSSolver <: EigSolver
+    struct NativeEigSSolver <: EigSolver
 
 A linear eigenvalueproblem solver for large and sparse problems that calls
 Julia's in-built eigs()
@@ -360,69 +357,77 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    mutable struct NativeEigSSolver <: EigSolver
-        A
-        B
+    struct NativeEigSSolver{T_A,T_B} <: EigSolver
+        A::T_A
+        B::T_B
 
-        function NativeEigSSolver(A,B=spzeros(eltype(A),0))
-            this = new()
-            this.A = A
-            this.B = B
-
-            return this
+        function NativeEigSSolver(A)
+            return new{typeof(A),Missing}(A,missing)
+        end
+        function NativeEigSSolver(A,B)
+            return new{typeof(A),typeof(B)}(A,B)
         end
 
     end
 
-    function eig_solve(solver::NativeEigSSolver;nev=6,target=0)
-        if(solver.B != spzeros(eltype(solver.A),0))
-            # Julia's eigs(A,B) is currently broken for
-            # indefinite B
-            # https://github.com/JuliaLang/julia/issues/24668
-            # This is what we want to do:
-            # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
-            # We do a work-around by computing
-            # largest eigenvalue of (target B -A)\B
-            C=target*solver.B-solver.A;
-            Cfact=factorize(C);
-            Atransformed=LinearMap(x->Cfact\(solver.B*x),
-                                   size(solver.A,1),size(solver.A,1));
-            D0,V = eigs(Atransformed; nev=nev, which=:LM)
-            # And reverse transformation
-            D = target .- inv.(D0) # Reverse transformation
-        else
-            D,V = eigs(solver.A; nev=nev, sigma=target)
-        end
 
-        if(nev == 1)
-            return D[1],V[:,1]
-        end
-
+    function eig_solve(solver::NativeEigSSolver; nev=6, target=0)
+        D,V = inner_eigs_solve(solver, nev, target)
         return D,V
+    end
+
+    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
+        # Julia's eigs(A,B) is currently broken for
+        # indefinite B
+        # https://github.com/JuliaLang/julia/issues/24668
+        # This is what we want to do:
+        # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
+        # We do a work-around by computing
+        # largest eigenvalue of (target B -A)\B
+        C=target*solver.B-solver.A;
+        Cfact=factorize(C);
+        Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
+                               size(solver.A,1),size(solver.A,1));
+        D0,V = eigs(Atransformed; nev=nev, which=:LM)
+        # And reverse transformation
+        D = target .- inv.(D0) # Reverse transformation
+        return D,V
+    end
+    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B<:Missing}
+        D,V = eigs(solver.A; nev=nev, sigma=target)
     end
 
 
 
 
 """
-    mutable struct DefaultEigSolver <: EigSolver
+    struct DefaultEigSolver <: EigSolver
 
 A linear eigenvalueproblem solver that calls checks for sparsity and accordingly
 assigns an appropriate solver.
 
 See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [`NativeEigSSolver`](@ref)
 """
-    mutable struct DefaultEigSolver <: EigSolver
-        subsolver::EigSolver
+    struct DefaultEigSolver{T_sub} <: EigSolver
+        subsolver::T_sub
 
-        function DefaultEigSolver(A,B=zeros(eltype(A),0))
-            this = new()
+        function DefaultEigSolver(A,B)
+            local subsolver
             if(issparse(A))
-                this.subsolver = NativeEigSSolver(A,B);
+                subsolver = NativeEigSSolver(A,B)
             else
-                this.subsolver = NativeEigSolver(A,B);
+                subsolver = NativeEigSolver(A,B)
             end
-            return this
+            return new{typeof(subsolver)}(subsolver)
+        end
+        function DefaultEigSolver(A)
+            local subsolver
+            if(issparse(A))
+                subsolver = NativeEigSSolver(A)
+            else
+                subsolver = NativeEigSolver(A)
+            end
+            return new{typeof(subsolver)}(subsolver)
         end
     end
 
@@ -434,6 +439,9 @@ This function solves the linear eigenvalue problem represented in `solver::EigSo
 The `nev` kwarg is controlling the number of eigenvalues aimed for, and `target`
 specifies around which point the eigenvalues are computed. The former has a defalut value
 equalt to the seize of the problem, and the latter has a defalut value 0.
+
+Return values are of the form (Vector, Matrix) where the former contains the eigenvalues
+and the latter the eigenvectors.
 
 This function must be overloaded if a user wants to define their own
 way of solving linear eigenvalue problems. See [`EigSolver`](@ref) for examples.
