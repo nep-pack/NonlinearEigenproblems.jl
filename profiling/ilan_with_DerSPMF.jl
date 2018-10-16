@@ -28,19 +28,17 @@ function compute_Mlincomb(
                     a::Vector=ones(eltype(V),size(V,2)))
     # implement here the correct formula
     p=size(nep.fD,2)
-    m=length(a)
-    z=zeros(size(nep.spmf,1)) #TODO: fix later with delegation
+    n,m=size(V)
+    # Type logic
+    TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
+    z=zeros(TT,n)
     for j=1:p
-        z=z+nep.spmf.A[j]*(V*(a.*nep.fD[1:m,j]))
+        z .+= nep.spmf.A[j]*(V*(a.*nep.fD[1:m,j]))
     end
     return z
 end
 
-
-
-
-
-n=1000
+n=10000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -51,15 +49,19 @@ A4 = sparse(K, J, rand(3*n-2)); A4 = A4+A4';
 f1= S -> one(S)
 f2= S -> -S
 f3= S -> exp(-S)
-f4= S -> exp(-S)
+f4= S -> sqrt(10*one(S)-S)
 
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 σ=rand()
 DD=rand(2,2)
 #Dnep=DerSPMF(nep,DD,σ)
 Dnep=DerSPMF(nep,σ)
-m=4
+m=10
 V=rand(n,m)
-z1=compute_Mlincomb(Dnep,σ,V)
-z2=compute_Mlincomb(nep,σ,V)
+function compare()
+@time begin z1=compute_Mlincomb(nep,σ,V) end
+@time begin z2=compute_Mlincomb(Dnep,σ,V) end
 norm(z1-z2)
+end
+
+compare()
