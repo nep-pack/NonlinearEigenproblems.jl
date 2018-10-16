@@ -20,8 +20,15 @@ function DerSPMF(spmf::SPMF_NEP,σ::Number)
       return DerSPMF(spmf,fD,σ);
 end
 
-#function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a::Array{<:Number,1})
-#end
+import ..NEPCore.compute_Mlincomb
+function compute_Mlincomb(
+                    nep::DerSPMF,
+                    λ::Number,
+                    V::AbstractVecOrMat,
+                    a::Vector=ones(eltype(V),size(V,2)))
+    return 0
+end
+
 
 
 
@@ -42,5 +49,7 @@ f4= S -> exp(-S)
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 σ=rand()
 DD=rand(2,2)
-Dnep=DerSPMF(nep,DD,σ)
-Dnep2=DerSPMF(nep,σ)
+#Dnep=DerSPMF(nep,DD,σ)
+Dnep=DerSPMF(nep,σ)
+V=rand(n,4)
+z=compute_Mlincomb(Dnep,σ,V)
