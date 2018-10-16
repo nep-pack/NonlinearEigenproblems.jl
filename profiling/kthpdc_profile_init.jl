@@ -1,12 +1,10 @@
 using Pkg;
-###Pkg.rm("NonlinearEigenproblems");
-#Pkg.activate("NonlinearEigenproblems");
-Pkg.activate(".");
+Pkg.activate("."); # Assumes . is the NonlinearEigenproblems directory
 
 
 # Profile some code
 using Profile
-hpc_script="hpc1.jl";
+hpc_script="hpc1.jl"; # Script to be run
 include(hpc_script) # always run without profiling first to compile, etc
 @profile include(hpc_script)
 
@@ -17,4 +15,3 @@ li, lidict = Profile.retrieve()
 using Serialization
 open("profile_li.data", "w") do f; serialize(f, li); end
 open("profile_lidict.data", "w") do f; serialize(f, lidict); end
-
