@@ -1,17 +1,23 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise
+using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra
 import ..NEPTypes.AbstractSPMF
 
 struct DerSPMF
     spmf::SPMF_NEP
-    DD::Matrix
+    fD::Matrix
     σ::Number
 end
 
 ## one constructor takes spmf as input and compute the derivatives
 function DerSPMF(spmf::SPMF_NEP,σ::Number)
-      # Compute Q-matrix from get_fv(spmf)
-      DD=rand(2,2)
-      return DerSPMF(spmf,DD,σ);
+      # Compute DD-matrix from get_fv(spmf)
+      m=100;    # it should be an input
+      p=length(nep.fi)
+      fD=zeros(m,p)
+      # matrix for the computation of derivatives
+      SS=diagm(0 => σ*ones(2m+2)) + diagm(-1 => (1:2m+1))
+      fD=zeros(2*m+2,p)
+      for t=1:p fD[:,t]=nep.fi[t](SS)[:,1] end
+      return DerSPMF(spmf,fD,σ);
 end
 
 
