@@ -33,13 +33,13 @@ function compute_Mlincomb(
     # Type logic
     TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a),eltype(nep.fD))
     z=zeros(TT,n)
-    for j=1:p
+    @inbounds for j=1:p
         z += nep.spmf.A[j]*(V*(a.*nep.fD[1:m,j]))
     end
     return z
 end
 
-n=500000
+n=10000
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
 A2 = sparse(K, J, rand(3*n-2)); A2 = A2+A2';
