@@ -1,16 +1,14 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra
+using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, BenchmarkTools
 import ..NEPTypes.AbstractSPMF
-
-struct DerSPMF <: AbstractSPMF{AbstractMatrix}
-    spmf::SPMF_NEP
-    fD::Matrix
+struct DerSPMF{T<:AbstractMatrix,FDtype} <: AbstractSPMF{T}
+    spmf::SPMF_NEP{T}
+    fD::Matrix{FDtype}
     σ::Number
 end
 
 ## one constructor takes spmf as input and compute the derivatives
-function DerSPMF(spmf::SPMF_NEP,σ::Number)
+function DerSPMF(spmf::SPMF_NEP,σ::Number,m::Int)
       # Compute DD-matrix from get_fv(spmf)
-      m=10;    # it should be an input
       p=length(nep.fi)
       fD=zeros(m,p)
       # matrix for the computation of derivatives
@@ -32,13 +30,14 @@ function compute_Mlincomb(
     # Type logic
     TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
     z=zeros(TT,n)
-    for j=1:p
-        z .+= nep.spmf.A[j]*(V*(a.*nep.fD[1:m,j]))
+    afD=a.*nep.fD[1:m,:];
+    @inbounds for j=1:p
+        z .+= nep.spmf.A[j]*(V*afD[:,j])
     end
     return z
 end
 
-n=10000
+n=1000000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -55,13 +54,15 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 σ=rand()
 DD=rand(2,2)
 #Dnep=DerSPMF(nep,DD,σ)
-Dnep=DerSPMF(nep,σ)
-m=10
+Dnep=DerSPMF(nep,σ,100)
+m=40
 V=rand(n,m)
 function compare()
-@time begin z1=compute_Mlincomb(nep,σ,V) end
-@time begin z2=compute_Mlincomb(Dnep,σ,V) end
-norm(z1-z2)
+      @btime begin z1=compute_Mlincomb(nep,σ,V) end
+      @btime begin z2=compute_Mlincomb(Dnep,σ,V) end
 end
 
 compare()
+z1=compute_Mlincomb(nep,σ,V)
+z2=compute_Mlincomb(Dnep,σ,V)
+norm(z1-z2)
