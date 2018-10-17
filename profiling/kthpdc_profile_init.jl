@@ -4,7 +4,7 @@ Pkg.activate("."); # Assumes . is the NonlinearEigenproblems directory
 
 # Profile some code
 using Profile
-hpc_script="hpc1.jl"; # Script to be run
+hpc_script="hpc2.jl"; # Script to be run
 include(hpc_script) # always run without profiling first to compile, etc
 @profile include(hpc_script)
 
