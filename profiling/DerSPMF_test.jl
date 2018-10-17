@@ -1,28 +1,9 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, PyPlot
+using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, BenchmarkTools
 import ..NEPTypes.AbstractSPMF
 struct DerSPMF{T<:AbstractMatrix,FDtype} <: AbstractSPMF{T}
     spmf::SPMF_NEP{T}
     fD::Matrix{FDtype}
     σ::Number
-end
-
-# implement all the functions
-import ..NEPTypes.size
-function size(nep::DerSPMF)
-    return size(nep.spmf)
-end
-function size(nep::DerSPMF,dim)
-    return size(nep.spmf,dim)
-end
-
-import ..NEPTypes.get_fv
-function get_fv(nep::DerSPMF)
-    return get_fv(nep.spmf)
-end
-
-import ..NEPTypes.get_Av
-function get_Av(nep::DerSPMF)
-    return get_Av(nep.spmf)
 end
 
 ## one constructor takes spmf as input and compute the derivatives
@@ -58,8 +39,7 @@ function compute_Mlincomb(
     return reshape(z,n)
 end
 
-
-n=1000
+n=1000000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -70,34 +50,21 @@ A4 = sparse(K, J, rand(3*n-2)); A4 = A4+A4';
 f1= S -> one(S)
 f2= S -> -S
 f3= S -> exp(-S)
-f4= S -> exp(-S)
+f4= S -> sqrt(10*one(S)-S)
 
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
-σ=0
-Dnep=DerSPMF(nep,σ,200)
-
-V,H,ω,HH=ilan(Dnep;Neig=10,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
-Q=V;
-
-# project (hardcoded for now)
-AA1=Q'*(A1*Q);
-AA2=Q'*(A2*Q);
-AA3=Q'*(A3*Q);
-AA4=Q'*(A4*Q);
-#err_lifted=(λ,z)->compute_resnorm(nep,λ,Q*z)/n;
-err_lifted=(λ,z)->compute_resnorm(nep,λ,Q*z)/n;
-
-pnep=SPMF_NEP([AA1,AA2,AA3,AA4],[f1,f2,f3,f4])
-λ,_,err=iar(pnep;Neig=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,errmeasure=err_lifted)
-
-m,p=size(err);
-
-# sort error
-for j=1:p
-    err[1:m,j]=sort(err[1:m,j];rev=true);
+σ=rand()
+DD=rand(2,2)
+#Dnep=DerSPMF(nep,DD,σ)
+Dnep=DerSPMF(nep,σ,100)
+m=40
+V=rand(n,m)
+function compare()
+      @btime begin z1=compute_Mlincomb(nep,σ,V) end
+      @btime begin z2=compute_Mlincomb(Dnep,σ,V) end
 end
 
-for j=1:p
-    semilogy(1:m,err[1:m,j],color="black",linestyle="-");
-end
-ylim(ymax=1)
+compare()
+z1=compute_Mlincomb(nep,σ,V)
+z2=compute_Mlincomb(Dnep,σ,V)
+norm(z1-z2)
