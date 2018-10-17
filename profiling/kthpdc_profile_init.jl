@@ -1,5 +1,6 @@
 using Pkg;
 Pkg.activate("."); # Assumes . is the NonlinearEigenproblems directory
+Pkg.instantiate();
 
 
 # Profile some code
