@@ -22,6 +22,11 @@ end
 
 # Profile the code
 using Profile
+Profile.init(n=10^7,delay=0.005)
+# From documentation: n is the total number of instruction pointers you can store, with a default value of 10^6. If your typical backtrace is 20 instruction pointers, then you can collect 50000 backtraces, which suggests a statistical uncertainty of less than 1%. This may be good enough for most applications. The default setting is delay = 0.001. Of...
+
+# n=10^7 delay=0.005 => 2 hours runtime
+
 t1 = time_ns()
 run_hpc(preprun=true) # preparation run without profiling first to compile, etc
 t2 = time_ns()
