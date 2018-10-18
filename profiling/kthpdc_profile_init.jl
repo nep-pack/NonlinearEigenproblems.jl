@@ -1,9 +1,9 @@
-using Pkg, Dates;
+using Pkg, Dates, Printf;
 Pkg.activate("."); # Assumes . is the NonlinearEigenproblems directory
 Pkg.instantiate();
 
-
-hpc_script="hpc2.jl"; # Script to be run
+hpc_script="hpc1.jl"; # Script to be run
+include(hpc_script);
 
 # Create a directory for the profiling data:
 datetime=mkdir(Dates.format(now(),"yyyy-mm-dd-HH:MM:SS"));
@@ -11,12 +11,21 @@ profile_data_dir="prf_"*datetime*"_";
 profile_data_dir=profile_data_dir*replace(hpc_script,".jl" => "")
 mkdir(profile_data_dir)
 
+println("profile data dir: ",profile_data_dir);
+
+# Copy the HPC-script to the profiling directory
+s = read(joinpath(@__DIR__(),hpc_script), String)
+open(joinpath(profile_data_dir,"hpc_script.jl"), "w") do f
+    write(f, s)
+end
+
+
 # Profile the code
 using Profile
 t1 = time_ns()
-include(hpc_script) # always run without profiling first to compile, etc
+run_hpc(preprun=true) # preparation run without profiling first to compile, etc
 t2 = time_ns()
-@profile include(hpc_script);
+@profile run_hpc()
 t3 = time_ns()
 
 # Extract profiling data to variables
