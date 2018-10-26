@@ -203,7 +203,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
         "neuron0" => neuron0,
         "nlevp_native_gun" => nlevp_native_gun,
-        "nlevp_native_gun" => nlevp_native_hadeler,
+        "nlevp_native_hadeler" => nlevp_native_hadeler,
         "nlevp_native_cd_player" => nlevp_native_cd_player,
         "nlevp_native_fiber" => nlevp_native_fiber,
         "beam" => beam,
