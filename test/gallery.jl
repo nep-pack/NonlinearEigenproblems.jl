@@ -144,6 +144,13 @@ using Test
     @test_throws MethodError nep_gallery("beam", 15, 8)
     @test_throws ErrorException nep_gallery("beam", 15, t=8)
 
+
+    @info "Testing hadeler"
+    nep=nep_gallery("nlevp_native_hadeler")
+    A=compute_Mder(nep,3.0);
+    @test isreal(A)
+
+
     @info "non-existing example"
     @test_throws ErrorException nep_gallery("non-existing example")
 
