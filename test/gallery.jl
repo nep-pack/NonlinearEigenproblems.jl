@@ -63,6 +63,12 @@ using Test
         @test issparse(A) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("pep0_sparse", 15, 0.12, 8)
         @test_throws ErrorException nep_gallery("pep0_sparse", 15, 0.12, t=8)
+
+        @info "Testing pdde_stability"
+        pep=nep_gallery("nlevp_native_pdde_stability",3);
+        λ=-0.5064627366803098 - 0.00019049029618525343im; # Reference solution
+        @test minimum(svdvals!(Matrix(compute_Mder(pep,λ)))) < eps()*100;
+
     end
 
     @info "Testing dep_symm_double"
@@ -138,14 +144,7 @@ using Test
     @test_throws MethodError nep_gallery("beam", 15, 8)
     @test_throws ErrorException nep_gallery("beam", 15, t=8)
 
-    @info "Testing hadeler"
-    nep=nep_gallery("nlevp_native_hadeler")
-    A=compute_Mder(nep,3.0);
-    @test isreal(A)
-
-
     @info "non-existing example"
     @test_throws ErrorException nep_gallery("non-existing example")
-
 
 end
