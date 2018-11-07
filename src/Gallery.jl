@@ -15,11 +15,12 @@ module Gallery
 
     function __init__()
         # Add the search-path to the extra galleries - so that unloaded modules can be easily loaded from top level
-        this_path = string(@__DIR__, "/gallery_extra") 
+        this_path = string(@__DIR__, "/gallery_extra")
         if !(this_path in LOAD_PATH)
             push!(LOAD_PATH, this_path)
         end
     end
+
     # Add the search-path to the extra galleries - temporarily so so needed files can be included
     push!(LOAD_PATH, string(@__DIR__, "/gallery_extra"))
     include("gallery_extra/basic_random_examples.jl")
@@ -161,6 +162,21 @@ The following list describes the NEP with a certain `name` and the associated pa
     and\\
     X. Huang, Z. Bai, and Y. Su, Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234, 2010
 
+
+* `nlevp_native_hadeler`\\
+    The benchmark problem from the NLEVP-collection called "hadeler", represented in the native NEP-PACK format. The problem is of the form ``M(λ)=(e^λ-1)B+A0+A2λ^2``. \\
+ Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.\\
+
+* `nlevp_native_pdde_stability`\\
+    The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format.
+    This problem is a quadratic eigenvalue with arbitrary given size `n`. See
+    E. Jarlebring, The Spectrum of Delay-Differential Equations:
+    Numerical Methods, Stability and Perturbation, PhD thesis,
+    TU Braunschweig, Institut Computational Mathematics, Germany, 2008 and \\
+    H. Fassbender, N. Mackey, D. S. Mackey and C. Schroeder, Structured
+    Polynomial Eigenproblems Related to Time-Delay Systems, ETNA, 2008, vol 31, pp 306-330\\
+
+
 # Example
 ```julia-repl
 julia> nep=nep_gallery("dep0",100);
@@ -200,8 +216,10 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
         "neuron0" => neuron0,
         "nlevp_native_gun" => nlevp_native_gun,
+        "nlevp_native_hadeler" => nlevp_native_hadeler,
         "nlevp_native_cd_player" => nlevp_native_cd_player,
         "nlevp_native_fiber" => nlevp_native_fiber,
+        "nlevp_native_pdde_stability" => nlevp_native_pdde_stability,
         "beam" => beam,
         "sine" => sine_nep,
     )

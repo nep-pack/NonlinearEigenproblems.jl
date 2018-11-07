@@ -9,7 +9,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 # How to use it?
 
-On Julia 1.0.0 and Julia 0.7, install it as a registered package by typing `] add ...` at the REPL-prompt:
+On Julia 1.0.X and Julia 0.7, install it as a registered package by typing `] add ...` at the REPL-prompt:
 ```
 julia> ]
 (v1.0) pkg> add NonlinearEigenproblems
@@ -36,7 +36,31 @@ If you want the cutting edge development version and not the latest release, ins
 julia> ]
 (v1.0) pkg> add git://github.com/nep-pack/NonlinearEigenproblems.jl.git
 ```
+## NEP solvers
 
+These solvers are currently available (see https://nep-pack.github.io/NonlinearEigenproblems.jl/methods/):
+
+* Newton & Rayleigh type:
+    * Classical Newton-Raphson
+    * Augmented Newton
+    * Residual inverse iteration
+    * Quasi-Newton
+    * Block Newton
+    * Rayleigh functional iteration (RFI a, b)
+    * Newton-QR
+    * Implicit determinant method
+    * Broyden's method 
+* Arnoldi/Krylov type
+    * NLEIGS
+    * Infinite Arnoldi method (IAR, TIAR, Infinite bi-Lanczos)
+* Projection methods
+    * Jacobi-Davidson (two versions)
+    * Nonlinear Arnoldi method
+* Contour integral 
+    * Beyn's contour integral method
+* Deflation
+    * Effenberger style deflation
+    
 
 # Development
 

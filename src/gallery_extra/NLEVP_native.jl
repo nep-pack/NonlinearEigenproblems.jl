@@ -135,3 +135,57 @@ function newton_eval(coeffs,S,interp_points)  # This works for λ::Number and λ
     end
     return F
 end
+
+
+
+function nlevp_native_hadeler(α=100,n=8)
+    i=1:n
+    I2 = ones(n)*i'  # matrix with constant columns 1,2,3,4...n
+    # Identity matrix
+    II = Matrix{typeof(α)}(I,n,n);
+    # Matrices
+    A0= α*II
+    A2 = n*II+1 ./(I2 + I2');
+    B = ((n+1) .- max.(I2',I2)) .* (i*i');
+    # Functions
+    fv= [S->-one(S) ; S->S^2 ; S->(exp(S)-one(S))]
+    nep=SPMF_NEP([A0, A2, B], fv);
+    return nep
+end
+
+function nlevp_native_pdde_stability(n=15)
+
+    # default values
+    a0 = 2;
+    b0 = .3;
+    a1 = -2;
+    b1 = .2;
+    a2 = -2;
+    b2 = -.3;
+    t1 = -pi/2;
+
+    # Construct a DEP
+    h = pi/(n+1);  x = (1:n)*h;
+    e = ones(n);
+    A0 = spdiagm(-1 => e[1:end-1], 0 => -2*e, 1 => e[1:end-1])/(h^2)
+    A0 = A0 + spdiagm(0 => (a0 .+ b0*sin.(x)))
+    A1 = spdiagm(0 => (a1 .+ b1*x.*(1 .- exp.(x .- pi))))
+    A2 = spdiagm(0 => (a2 .+ b2*x.*(pi .- x)))
+
+    # The stabiltiy of the DEP given by -λI+A0+A1exp(-t1 λ)+A2exp(- TT λ) can be
+    # as a function of TT can be analyzed with a QEP
+    II=complex(sparse(1.0*I,n,n))
+    E = kron(II,A2);
+    gamma = exp(1im*t1); gamma = gamma/abs(gamma);
+    F = kron(II,A0-gamma*A1) + kron(A0+gamma*A1,II);
+
+    # Compute a permutation vector (faster than multiplication)
+    p = vec(copy(reshape(1:n^2,n,n)'));
+
+    Av = [E[p,p],F,E];
+
+    return PEP(Av)
+
+
+
+end
