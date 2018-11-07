@@ -31,9 +31,9 @@ function compute_Mlincomb(
     # Type logic
     TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
     z=zeros(TT,n)
-    VafD=V*(a.*nep.fD[1:k,:]);
+    VafD=V*(a.*view(nep.fD,1:k,:));
     @inbounds for j=1:p
-        z .+= nep.spmf.A[j]*(VafD[:,j])
+        z .+= nep.spmf.A[j]*(view(VafD,:,j))
     end
     return z
 end
