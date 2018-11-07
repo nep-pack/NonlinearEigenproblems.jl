@@ -13,10 +13,11 @@ module NEPTypes
 
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
-    export Proj_NEP;
-    export Proj_SPMF_NEP;
+    export Proj_NEP
+    export Proj_SPMF_NEP
+    export DerSPMF
 
-    export create_proj_NEP;
+    export create_proj_NEP
     export get_Av
     export get_fv
 
@@ -1327,4 +1328,59 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         end
         return z
     end
-end
+
+
+
+    ########## THE FOLLOWING TYPE DerSPMF AND FUNCTION WILL BE DOCUMENTED AND THE CODE BETTER ORGANIZED ##########
+    struct DerSPMF{T<:AbstractMatrix,FDtype,TT<:Number} <: AbstractSPMF{T}
+        spmf::SPMF_NEP{T}
+        fD::Matrix{FDtype}
+        σ::TT
+    end
+
+    # implement all the functions
+    function size(nep::DerSPMF)
+        return size(nep.spmf)
+    end
+    function size(nep::DerSPMF,dim)
+        return size(nep.spmf,dim)
+    end
+    function get_fv(nep::DerSPMF)
+        return get_fv(nep.spmf)
+    end
+    function get_Av(nep::DerSPMF)
+        return get_Av(nep.spmf)
+    end
+
+    ## one constructor takes spmf as input and compute the derivatives
+    function DerSPMF(spmf::SPMF_NEP,σ::Number,m::Int)
+          # Compute DD-matrix from get_fv(spmf)
+          TT=promote_type(typeof(σ),eltype(spmf.A[1]))
+          p=length(spmf.fi)
+          # matrix for the computation of derivatives
+          SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
+          fD=Matrix{TT}(undef, 2*m+2,p)
+          for t=1:p fD[:,t]=spmf.fi[t](SS)[:,1] end
+          return DerSPMF(spmf,fD,σ);
+    end
+
+    function compute_Mlincomb(
+                        nep::DerSPMF{T,FDtype},
+                        λ::Number,
+                        V::AbstractVecOrMat,
+                        a::Vector=ones(size(V,2))) where {T,FDtype}
+
+        local n,k,p
+        p=size(nep.fD,2)
+        n,k=size(V)
+        # Type logic
+        TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
+        z=zeros(TT,n)
+        VafD=V*(a.*view(nep.fD,1:k,:));
+        @inbounds for j=1:p
+            z .+= nep.spmf.A[j]*(view(VafD,:,j))
+        end
+        return z
+    end
+
+end  # End Module

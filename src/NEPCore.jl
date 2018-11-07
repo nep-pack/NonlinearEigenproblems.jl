@@ -379,4 +379,5 @@ See also: [`compute_resnorm`](@ref),
         msg
     end
 
+
 end  # End Module
