@@ -13,7 +13,7 @@ function DerSPMF(spmf::SPMF_NEP,σ::Number,m::Int)
       p=length(nep.fi)
       fD=zeros(TT,m,p)
       # matrix for the computation of derivatives
-      SS=diagm(0 => σ*ones(TT,2m+2)) + diagm(-1 => (1:2m+1))
+      SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
       fD=zeros(2*m+2,p)
       for t=1:p fD[:,t]=nep.fi[t](SS)[:,1] end
       return DerSPMF(spmf,fD,σ);
