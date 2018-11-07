@@ -1,9 +1,9 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, BenchmarkTools
 import ..NEPTypes.AbstractSPMF
-struct DerSPMF{T<:AbstractMatrix,FDtype} <: AbstractSPMF{T}
+struct DerSPMF{T<:AbstractMatrix,FDtype,TT<:Number} <: AbstractSPMF{T}
     spmf::SPMF_NEP{T}
     fD::Matrix{FDtype}
-    σ::Number
+    σ::TT
 end
 
 ## one constructor takes spmf as input and compute the derivatives
