@@ -1,9 +1,9 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, BenchmarkTools
 import ..NEPTypes.AbstractSPMF
-struct DerSPMF{T<:AbstractMatrix,FDtype} <: AbstractSPMF{T}
+struct DerSPMF{T<:AbstractMatrix,FDtype,TT<:Number} <: AbstractSPMF{T}
     spmf::SPMF_NEP{T}
     fD::Matrix{FDtype}
-    σ::Number
+    σ::TT
 end
 
 # implement all the functions
@@ -30,10 +30,9 @@ function DerSPMF(spmf::SPMF_NEP,σ::Number,m::Int)
       # Compute DD-matrix from get_fv(spmf)
       TT=promote_type(typeof(σ),eltype(nep.A[1]))
       p=length(nep.fi)
-      fD=zeros(TT,m,p)
       # matrix for the computation of derivatives
-      SS=diagm(0 => σ*ones(TT,2m+2)) + diagm(-1 => (1:2m+1))
-      fD=zeros(2*m+2,p)
+      SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
+      fD=Matrix{TT}(undef, 2*m+2,p)
       for t=1:p fD[:,t]=nep.fi[t](SS)[:,1] end
       return DerSPMF(spmf,fD,σ);
 end
@@ -51,11 +50,11 @@ function compute_Mlincomb(
     # Type logic
     TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
     z=zeros(TT,n)
-    afD=a.*nep.fD[1:k,:];
+    VafD=V*(a.*view(nep.fD,1:k,:));
     @inbounds for j=1:p
-        z .+= nep.spmf.A[j]*(V*afD[:,j])
+        z .+= nep.spmf.A[j]*(view(VafD,:,j))
     end
-    return reshape(z,n)
+    return z
 end
 
 
