@@ -1332,10 +1332,15 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
 
     ########## THE FOLLOWING TYPE DerSPMF AND FUNCTION WILL BE DOCUMENTED AND THE CODE BETTER ORGANIZED ##########
-    struct DerSPMF{T<:AbstractMatrix,FDtype,TT<:Number} <: AbstractSPMF{T}
+    """
+        struct DerSPMF{T<:AbstractMatrix,FDtype,TT<:Number} <: AbstractSPMF{T}
+
+    A DerSPMF is a shift-tuned representation of NEP defined by a Sum of Products of Matrices and Functions [`SPMF_NEP`](@ref). This format makes more efficient the execution of [`compute_Mlincomb`](@ref) for the selected shift σ.
+    """
+    struct DerSPMF{T<:AbstractMatrix,TT<:Number,FDtype} <: AbstractSPMF{T}
         spmf::SPMF_NEP{T}
-        fD::Matrix{FDtype}
         σ::TT
+        fD::Matrix{FDtype}
     end
 
     # implement all the functions
@@ -1352,7 +1357,32 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         return get_Av(nep.spmf)
     end
 
-    ## one constructor takes spmf as input and compute the derivatives
+    """
+         DerSPMF(spmf,σ,m)
+
+    Creates a `DerSPMF` representing the NEP `spmf` where the first `m` derivatives of the functions `f_i` in the number `σ` are precomputed. This format makes more efficient the execution of [`compute_Mlincomb`](@ref) for the selected shift σ.
+
+    # Parameters
+
+    * `spmf` is an `AbstractSPMF`.
+
+    * `σ` is a `Number` represeing the shift where the derivatives will be precomputed.
+
+    # Example
+    ```julia-repl
+    julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
+    julia> id_op=S -> one(S) # Note: We use one(S) to be valid both for matrices and scalars
+    julia> exp_op=S -> exp(S)
+    julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
+    julia> m=5
+    julia> Dnep=DerSPMF(nep,σ,m)
+    julia> V=rand(2,m)
+    julia> z=compute_Mlincomb(Dnep,σ,V)
+    2-element Array{Float64,1}:
+    39.47327945131233
+    64.31391434063991
+    ```
+    """
     function DerSPMF(spmf::AbstractSPMF,σ::Number,m::Int)
           # Compute DD-matrix from get_fv(spmf)
           Av=get_Av(spmf)
@@ -1363,7 +1393,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
           SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
           fD=Matrix{TT}(undef, 2*m+2,p)
           for t=1:p fD[:,t]=fv[t](SS)[:,1] end
-          return DerSPMF(SPMF_NEP(Av,fv),fD,σ);
+          return DerSPMF(SPMF_NEP(Av,fv),σ,fD);
     end
 
     function compute_Mlincomb(
