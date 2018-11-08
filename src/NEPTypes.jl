@@ -1353,14 +1353,16 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
 
     ## one constructor takes spmf as input and compute the derivatives
-    function DerSPMF(spmf::SPMF_NEP,σ::Number,m::Int)
+    function DerSPMF(spmf::AbstractSPMF,σ::Number,m::Int)
           # Compute DD-matrix from get_fv(spmf)
-          TT=promote_type(typeof(σ),eltype(spmf.A[1]))
+          Av=get_Av(spmf)
+          TT=promote_type(typeof(σ),eltype(Av[1]))
           p=length(spmf.fi)
           # matrix for the computation of derivatives
           SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
           fD=Matrix{TT}(undef, 2*m+2,p)
-          for t=1:p fD[:,t]=spmf.fi[t](SS)[:,1] end
+          fv=get_fv(spmf)
+          for t=1:p fD[:,t]=fv[t](SS)[:,1] end
           return DerSPMF(spmf,fD,σ);
     end
 
