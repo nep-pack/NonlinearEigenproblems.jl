@@ -1356,14 +1356,14 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     function DerSPMF(spmf::AbstractSPMF,σ::Number,m::Int)
           # Compute DD-matrix from get_fv(spmf)
           Av=get_Av(spmf)
+          fv=get_fv(spmf)
           TT=promote_type(typeof(σ),eltype(Av[1]))
-          p=length(spmf.fi)
+          p=length(fv)
           # matrix for the computation of derivatives
           SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
           fD=Matrix{TT}(undef, 2*m+2,p)
-          fv=get_fv(spmf)
           for t=1:p fD[:,t]=fv[t](SS)[:,1] end
-          return DerSPMF(spmf,fD,σ);
+          return DerSPMF(SPMF_NEP(Av,fv),fD,σ);
     end
 
     function compute_Mlincomb(
@@ -1372,17 +1372,22 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
                         V::AbstractVecOrMat,
                         a::Vector=ones(size(V,2))) where {T,FDtype}
 
-        local n,k,p
-        p=size(nep.fD,2)
-        n,k=size(V)
-        # Type logic
-        TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
-        z=zeros(TT,n)
-        VafD=V*(a.*view(nep.fD,1:k,:));
-        @inbounds for j=1:p
-            z .+= nep.spmf.A[j]*(view(VafD,:,j))
+        if λ!=nep.σ
+            return compute_Mlincomb(nep.spmf,λ,V,a)
+        else
+
+            local n,k,p
+            p=size(nep.fD,2)
+            n,k=size(V)
+            # Type logic
+            TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
+            z=zeros(TT,n)
+            VafD=V*(a.*view(nep.fD,1:k,:));
+            @inbounds for j=1:p
+                z .+= nep.spmf.A[j]*(view(VafD,:,j))
+            end
+            return z
         end
-        return z
     end
 
 end  # End Module

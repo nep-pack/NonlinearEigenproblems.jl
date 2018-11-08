@@ -29,3 +29,19 @@ compare()
 z1=compute_Mlincomb(nep,σ,V)
 z2=compute_Mlincomb(Dnep,σ,V)
 norm(z1-z2)
+
+σ2=rand()
+Dnep2=DerSPMF(Dnep,σ2,100)
+
+function compare2()
+      @btime begin z1=compute_Mlincomb(nep,σ2,V) end
+      @btime begin z2=compute_Mlincomb(Dnep,σ2,V) end
+      @btime begin z3=compute_Mlincomb(Dnep2,σ2,V) end
+end
+compare2()
+
+z1=compute_Mlincomb(nep,σ2,V)
+z2=compute_Mlincomb(Dnep,σ2,V)
+z3=compute_Mlincomb(Dnep2,σ2,V)
+display(norm(z1-z2))
+display(norm(z1-z3))
