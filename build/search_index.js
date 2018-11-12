@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "What now?",
     "category": "section",
-    "text": "Now you are ready to have a look at the examples in NEP methods and  NEP Gallery."
+    "text": "Now you are ready to have a look at the examples in NEP methods and  NEP Gallery.(Image: To the top)"
 },
 
 {
