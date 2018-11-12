@@ -1,6 +1,7 @@
 #
 echo did you refresh the pages by running?
-echo 'julia --color=yes make.jl &&  mkdocs build --clean'
+echo 'julia --color=yes make.jl &&  mkdocs build --clean '
+echo 'Or on newer Documenter.jl: julia --color=yes make.jl cp -a build site'
 echo 'firefox site/index.html'
 echo "press enter to continue. Ctrl-C to stop"
 read -n 1

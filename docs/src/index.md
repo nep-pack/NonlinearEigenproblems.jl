@@ -1,4 +1,5 @@
 
+
 # NEP-PACK
 
 NEP-PACK is a package with implementations of methods to solve nonlinear eigenvalue problems of
@@ -121,6 +122,7 @@ julia> using PyPlot;
 julia> plot(real(λ),imag(λ),"*")
 ```
 
+
 This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`.
 
 # The "gun" benchmark problem
@@ -199,4 +201,4 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
 # What now?
 
 Now you are ready to have a look at the examples
-in [NEP methods](methods/) and  [NEP Gallery](gallery/).
+in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
