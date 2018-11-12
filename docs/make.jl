@@ -9,6 +9,7 @@ makedocs(
     pages = Any[
         "Home" => "index.md",
         "NEP Methods" => "methods.md",
+        "NEP Types" => "types.md",
         "LinSolver" => "linsolvers.md",
         "NEP Transformations" => "transformations.md",
         "NEP Gallery" => "gallery.md"

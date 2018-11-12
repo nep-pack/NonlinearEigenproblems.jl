@@ -202,3 +202,5 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
 
 Now you are ready to have a look at the examples
 in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC)
