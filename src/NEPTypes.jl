@@ -1338,7 +1338,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     A DerSPMF is a shift-tuned representation of NEP defined by a Sum of Products of Matrices and Functions [`SPMF_NEP`](@ref). This format makes more efficient the execution of [`compute_Mlincomb`](@ref) for the selected shift σ.
     """
     struct DerSPMF{T<:AbstractMatrix,TT<:Number,FDtype} <: AbstractSPMF{T}
-        spmf::SPMF_NEP{T}
+        spmf::AbstractSPMF{T}
         σ::TT
         fD::Matrix{FDtype}
     end
@@ -1393,7 +1393,7 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
           SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
           fD=Matrix{TT}(undef, 2*m+2,p)
           for t=1:p fD[:,t]=fv[t](SS)[:,1] end
-          return DerSPMF(SPMF_NEP(Av,fv),σ,fD);
+          return DerSPMF(spmf,σ,fD);
     end
 
     function compute_Mlincomb(
@@ -1409,12 +1409,13 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
             local n,k,p
             p=size(nep.fD,2)
             n,k=size(V)
+            Av=get_Av(nep)
             # Type logic
-            TT=promote_type(eltype(V),typeof(λ),eltype(nep.spmf.A[1]),eltype(a))
+            TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(a))
             z=zeros(TT,n)
             VafD=V*(a.*view(nep.fD,1:k,:));
             @inbounds for j=1:p
-                z .+= nep.spmf.A[j]*(view(VafD,:,j))
+                z .+= Av[j]*(view(VafD,:,j))
             end
             return z
         end
