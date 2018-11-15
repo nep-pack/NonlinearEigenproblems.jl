@@ -20,6 +20,10 @@ DD=rand(2,2)
 Dnep=DerSPMF(nep,σ,100)
 m=40
 V=rand(n,m)
+
+
+
+
 function compare()
       @btime begin z1=compute_Mlincomb(nep,σ,V) end
       @btime begin z2=compute_Mlincomb(Dnep,σ,V) end
