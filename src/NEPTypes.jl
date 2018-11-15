@@ -1417,7 +1417,14 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 
             local n,k,p
             p=size(nep.fD,2)
-            n,k=size(V)
+
+            if (V isa AbstractVector)
+                k=1; n=length(V)
+            else
+                n,k=size(V)
+            end
+
+
             Av=get_Av(nep)
             # Type logic
             TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(a))
