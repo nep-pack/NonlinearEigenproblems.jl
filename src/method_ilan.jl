@@ -100,10 +100,7 @@ function ilan(
     V[:,1]=Q[:,1];
 
     k=1; conv_eig=0;
-    local pnep::NEP;
-    if (proj_solve)
-        pnep=create_proj_NEP(nep);
-    end
+
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))

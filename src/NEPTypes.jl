@@ -13,10 +13,11 @@ module NEPTypes
 
     export AbstractSPMF
     export SumNEP, SPMFSumNEP, GenericSumNEP
-    export Proj_NEP;
-    export Proj_SPMF_NEP;
+    export Proj_NEP
+    export Proj_SPMF_NEP
+    export DerSPMF
 
-    export create_proj_NEP;
+    export create_proj_NEP
     export get_Av
     export get_fv
 
@@ -1327,4 +1328,113 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
         end
         return z
     end
-end
+
+
+
+    ########## THE FOLLOWING TYPE DerSPMF AND FUNCTION WILL BE DOCUMENTED AND THE CODE BETTER ORGANIZED ##########
+    """
+        struct DerSPMF{T<:AbstractMatrix,FDtype,TT<:Number} <: AbstractSPMF{T}
+
+    A DerSPMF is a shift-tuned representation of NEP defined by a Sum of Products of Matrices and Functions [`SPMF_NEP`](@ref). This format makes more efficient the execution of [`compute_Mlincomb`](@ref) for the selected shift σ.
+    """
+    struct DerSPMF{T<:AbstractMatrix,TT<:Number,FDtype} <: AbstractSPMF{T}
+        spmf::AbstractSPMF{T}
+        σ::TT
+        fD::Matrix{FDtype}
+    end
+
+    # implement all the functions
+    function size(nep::DerSPMF)
+        return size(nep.spmf)
+    end
+    function size(nep::DerSPMF,dim)
+        return size(nep.spmf,dim)
+    end
+    function get_fv(nep::DerSPMF)
+        return get_fv(nep.spmf)
+    end
+    function get_Av(nep::DerSPMF)
+        return get_Av(nep.spmf)
+    end
+
+    """
+         DerSPMF(spmf,σ,m)
+
+    Creates a `DerSPMF` representing the NEP `spmf` where the first `m` derivatives of the functions `f_i` in the number `σ` are precomputed. This format makes more efficient the execution of [`compute_Mlincomb`](@ref) for the selected shift σ.
+
+    # Parameters
+
+    * `spmf` is an `AbstractSPMF`.
+
+    * `σ` is a `Number` represeing the shift where the derivatives will be precomputed.
+
+    # Example
+    ```julia-repl
+    julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
+    julia> id_op=S -> one(S) # Note: We use one(S) to be valid both for matrices and scalars
+    julia> exp_op=S -> exp(S)
+    julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
+    julia> m=5
+    julia> Dnep=DerSPMF(nep,σ,m)
+    julia> V=rand(2,m)
+    julia> z=compute_Mlincomb(Dnep,σ,V)
+    2-element Array{Float64,1}:
+    39.47327945131233
+    64.31391434063991
+    ```
+    """
+    function DerSPMF(spmf::AbstractSPMF,σ::Number,m::Int)
+          # Compute DD-matrix from get_fv(spmf)
+
+          Av=get_Av(spmf)
+          fv=get_fv(spmf)
+
+          TT=promote_type(typeof(σ),eltype(Av[1]))
+
+          # test if the functions fv introduce a super type
+          SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
+          for t=1:length(fv)
+              ci=@code_typed(fv[t](SS[1])); TT=promote_type(eltype(ci[end]),TT);
+          end
+
+          p=length(fv)
+          # matrix for the computation of derivatives
+
+          fD=Matrix{TT}(undef, 2*m+2,p)
+          for t=1:p fD[:,t]=fv[t](SS)[:,1] end
+          return DerSPMF(spmf,σ,fD);
+    end
+
+    function compute_Mlincomb(
+                        nep::DerSPMF{T,FDtype},
+                        λ::Number,
+                        V::AbstractVecOrMat,
+                        a::Vector=ones(size(V,2))) where {T,FDtype}
+
+        if λ!=nep.σ
+            return compute_Mlincomb(nep.spmf,λ,V,a)
+        else
+
+            local n,k,p
+            p=size(nep.fD,2)
+
+            if (V isa AbstractVector)
+                k=1; n=length(V)
+            else
+                n,k=size(V)
+            end
+
+
+            Av=get_Av(nep)
+            # Type logic
+            TT=promote_type(eltype(V),typeof(λ),eltype(Av[1]),eltype(a))
+            z=zeros(TT,n)
+            VafD=V*(a.*view(nep.fD,1:k,:));
+            @inbounds for j=1:p
+                z .+= Av[j]*(view(VafD,:,j))
+            end
+            return z
+        end
+    end
+
+end  # End Module
