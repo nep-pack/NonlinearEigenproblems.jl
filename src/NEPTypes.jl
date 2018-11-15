@@ -1385,12 +1385,21 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     """
     function DerSPMF(spmf::AbstractSPMF,σ::Number,m::Int)
           # Compute DD-matrix from get_fv(spmf)
+
           Av=get_Av(spmf)
           fv=get_fv(spmf)
+
           TT=promote_type(typeof(σ),eltype(Av[1]))
+
+          # test if the functions fv introduce a super type
+          SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
+          for t=1:length(fv)
+              ci=@code_typed(fv[t](SS)); TT=promote_type(eltype(ci[end]),TT);
+          end
+          
           p=length(fv)
           # matrix for the computation of derivatives
-          SS=diagm(0=> σ*ones(TT,2m+2),  -1 => (1:2m+1))
+
           fD=Matrix{TT}(undef, 2*m+2,p)
           for t=1:p fD[:,t]=fv[t](SS)[:,1] end
           return DerSPMF(spmf,σ,fD);
