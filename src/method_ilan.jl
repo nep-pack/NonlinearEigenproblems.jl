@@ -113,6 +113,10 @@ function ilan(
 
         # B-multiplication
         Z[:,1:k+1]=zeros(T,n,k+1);
+        # low-rank factorization of G
+        tolG=1e-14; # move it up, or as optional parameter, or depending on other tol
+        U,S,V=svd(G); q=sum(S.>tolG*ones(length(S)))
+        U=U[:,1:q]; S=S[1:q]; V=V[:,1:q]
         for t=1:p
             Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
         end
