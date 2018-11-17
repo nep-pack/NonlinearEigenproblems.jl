@@ -114,9 +114,16 @@ function ilan(
         # B-multiplication
         Z[:,1:k+1]=zeros(T,n,k+1);
         # low-rank factorization of G
-        tolG=1e-14; # move it up, or as optional parameter, or depending on other tol
+        tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
+        Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
+        Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
+        #println("errG=",norm(G[1:k+1,1:k+1]-Ug*Vg'))
         for t=1:p
-            Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
+            #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
+            #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*((Ug*Vg').*FDH[t][1:k+1,1:k+1]);
+            for j=1:q
+                Z[:,1:k+1]=Z[:,1:k+1]+Av[t]*(broadcast(*,broadcast(*,Qn[:,1:k+1],view(Ug,:,j)')*FDH[t][1:k+1,1:k+1],view(Vg,:,j)'));
+            end
         end
 
         # orthogonalization (three terms recurrence)

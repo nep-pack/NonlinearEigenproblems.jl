@@ -14,8 +14,8 @@ function Gprod_test()
     tolG=1e-14
     U,S,V=svd(G);
     q=sum(S.>tolG*ones(length(S)))
-    U=U[:,1:q]*diagm(0=>sqrt.(S[1:q]));
-    V=V[:,1:q]*diagm(0=>sqrt.(S[1:q]));
+    U=broadcast(*,view(U,:,1:q),sqrt.(S[1:q])');
+    V=broadcast(*,view(V,:,1:q),sqrt.(S[1:q])');
     display(norm(G-U*V'))
 
     FDH=rand(m+1,m+1);
