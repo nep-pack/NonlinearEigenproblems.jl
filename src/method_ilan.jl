@@ -111,24 +111,13 @@ function ilan(
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
-        # B-multiplication
-        Z[:,1:k+1]=zeros(T,n,k+1);
-        # low-rank factorization of G
-        tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
-        Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
-        Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
-        #println("errG=",norm(G[1:k+1,1:k+1]-Ug*Vg'))
-        for t=1:p
-            #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*(G[1:k+1,1:k+1].*FDH[t][1:k+1,1:k+1]);
-            #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*((Ug*Vg').*FDH[t][1:k+1,1:k+1]);
-            for j=1:q
-                Z[:,1:k+1]=Z[:,1:k+1]+Av[t]*(broadcast(*,broadcast(*,Qn[:,1:k+1],view(Ug,:,j)')*FDH[t][1:k+1,1:k+1],view(Vg,:,j)'));
-            end
-        end
+        # call B mult
+        Z[:,1:k+1]=Bmult(k,T,Z[:,1:k+1],Qn,Av,FDH,G)
+
 
         # orthogonalization (three terms recurrence)
-        α=sum(sum(conj(Z).*Q,dims=1))
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
+        α=sum(sum(conj(Z).*Q,dims=1))
         η=sum(sum(conj(Z).*Qn,dims=1))
 
         H[k,k]=α/ω[k]
@@ -155,4 +144,26 @@ function ilan(
     end
     k=k-1
     return V, H[1:end-1,1:end-1], ω[1:end-1], HH
+end
+
+
+function Bmult(k,T,Z,Qn,Av,FDH,G)
+    # B-multiplication
+    Z[:,1:k+1]=zeros(T,n,k+1);
+    # low-rank factorization of G
+    #tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
+    #Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
+    #Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
+    p=length(Av)
+    for t=1:p
+        #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*((Ug*Vg').*view(FDH[t],1:k+1,1:k+1));
+        Z[:,1:k+1] .+= Av[t]*view(Qn,:,1:k+1)*(view(G,1:k+1,1:k+1).*view(FDH[t],1:k+1,1:k+1));
+        #for j=1:q
+        #    ZZ=broadcast(*,view(Qn,:,1:k+1),view(Ug,:,j)')
+        #    FF=view(FDH[t],1:k+1,1:k+1)
+        #    Z .+=
+        #    Av[t]*(broadcast(*,ZZ*FF,view(Vg,:,j)'));
+        #end
+    end
+    return Z
 end
