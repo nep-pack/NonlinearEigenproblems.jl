@@ -112,7 +112,7 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call B mult
-        Z[:,1:k+1]=Bmult(k,T,Z[:,1:k+1],Qn,Av,FDH,G)
+        Bmult!(k,T,view(Z,:,1:k+1),Qn,Av,FDH,G)
 
 
         # orthogonalization (three terms recurrence)
@@ -147,7 +147,17 @@ function ilan(
 end
 
 
-function Bmult(k,T,Z,Qn,Av,FDH,G)
+function Bmult!(k,T,Z,Qn,Av,FDH,G)
+    # B-multiplication
+    Z[:,1:k+1]=zeros(T,n,k+1);
+    p=length(Av)
+    for t=1:p
+        Z .+= Av[t]*view(Qn,:,1:k+1)*(view(G,1:k+1,1:k+1).*view(FDH[t],1:k+1,1:k+1));
+    end
+end
+
+# TODO: WORK ON THIS
+function Bmult_lr(k,T,Z,Qn,Av,FDH,G)
     # B-multiplication
     Z[:,1:k+1]=zeros(T,n,k+1);
     # low-rank factorization of G
