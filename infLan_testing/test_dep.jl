@@ -14,8 +14,8 @@ nep=DEP([A1,A2,A3],[0,1,0.8])
 σ=0;
 γ=1;
 
-Dnep=DerSPMF(nep,σ,400)
-V,H,ω,HH=ilan(Dnep;σ=σ,γ=γ,Neig=10,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
+#Dnep=DerSPMF(nep,σ,400)
+V,H,ω,HH=ilan(nep;σ=σ,γ=γ,Neig=10,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
 #Q,_,_=svd(V)
 Q=V;
 

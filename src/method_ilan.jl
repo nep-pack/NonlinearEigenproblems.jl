@@ -83,7 +83,7 @@ function ilan(
     # getting matrices and functions
     fv=get_fv(nep); p=length(fv);    Av=get_Av(nep)
 
-    # precompute derivatives and FDH matrices
+    # precompute derivatives and FDH matrices (TODO: move in a preomputation function)
     SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => γ*(1:2m+1))
     fD=zeros(T,2*m+2,p)
     for t=1:p fD[:,t]=fv[t](SS)[:,1] end
@@ -93,6 +93,14 @@ function ilan(
             FDH[t][i,j]=fD[i+j,t];
         end end
     end
+
+    # precomputation for DEP (TODO: move in a preomputation function)
+    vv=zeros(T,m+1,p-1)
+    τ=nep.tauv
+    for j=1:p-1
+        vv[:,j]=sqrt(τ[j]*γ)*exp(-σ)*(-τ[j]*γ).^(0:m)
+    end
+
 
     # setting initial step
     Q[:,1]=v/norm(v)
@@ -113,8 +121,7 @@ function ilan(
 
         # call B mult
         #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-        Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-
+        Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1),view(vv,1:k+1,:))
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -140,7 +147,7 @@ function ilan(
 
         k=k+1;
         # shift the vectors
-        Qp=Q;   Q=Qn; Qn=0*Qn;
+        Qp=Q;   Q=Qn; Qn=zero(Qn);
 
     end
     k=k-1
@@ -156,19 +163,21 @@ function Bmult!(k,Z,Qn,Av,FDH,G)
     end
 end
 
-# TODO: WORK ON THIS
-function Bmult_lr!(k,Z,Qn,Av,FDH,G)
+# TODO: WORK ON THIS. FOR NOW IS DEP SPECIALIZED
+function Bmult_lr!(k,Z,Qn,Av,FDH,G,vv)
     # B-multiplication
     Z[:,:]=zero(Z);
     # low-rank factorization of G
-    tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
+    tolG=1e-4; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
     Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
     Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
-    @inbounds for t=1:length(Av)
+    Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
+    @inbounds for t=2:length(Av)
         @inbounds for j=1:q
             ZZ=Qn*diagm(0=>view(Ug,:,j))
             FF=view(FDH[t],1:k+1,1:k+1)
-            ZZ=ZZ*FF
+            #ZZ=ZZ*FF
+            ZZ=-broadcast(*,ZZ*vv[:,t-1],vv[:,t-1]')
             Z[:,:] .+= Av[t]*(ZZ*diagm(0=>view(Vg,:,j)));
         end
     end

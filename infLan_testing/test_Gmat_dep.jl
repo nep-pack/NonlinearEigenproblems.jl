@@ -27,12 +27,12 @@ fD=zeros(2*m+2,p)
 for t=1:p fD[:,t]=fv[t](SS)[:,1] end
 
 FDH=Vector{Array{Float64,2}}(undef,p)
-for t=1:p FDH[t]=zeros(m+1,m+1)
+for t=1:p
+    FDH[t]=zeros(m+1,m+1)
     for i=1:m+1 for j=1:m+1
         FDH[t][i,j]=fD[i+j,t];
     end end
 end
-v=(-τ*γ).^(0:m)
-v=exp(-σ)*v
+v=sqrt(τ*γ)*exp(-σ)*(-τ*γ).^(0:m)
 
-norm(FDH[1]+(τ*γ)*v*v')
+norm(FDH[1]+v*v')
