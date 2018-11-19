@@ -151,7 +151,7 @@ end
 function Bmult!(k,Z,Qn,Av,FDH,G)
     # B-multiplication
     Z[:,:]=zero(Z);
-    for t=1:length(Av)
+    @inbounds for t=1:length(Av)
         Z[:,:] .+= Av[t]*Qn*(G.*view(FDH[t],1:k+1,1:k+1));
     end
 end
@@ -164,12 +164,12 @@ function Bmult_lr!(k,Z,Qn,Av,FDH,G)
     tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
     Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
     Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
-    for t=1:length(Av)
-        #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*((Ug*Vg').*view(FDH[t],1:k+1,1:k+1));
-        for j=1:q
-            ZZ=broadcast(*,Qn,view(Ug,:,j)')
+    @inbounds for t=1:length(Av)
+        @inbounds for j=1:q
+            ZZ=Qn*diagm(0=>view(Ug,:,j))
             FF=view(FDH[t],1:k+1,1:k+1)
-            Z[:,:] .+= Av[t]*(broadcast(*,ZZ*FF,view(Vg,:,j)'));
+            ZZ=ZZ*FF
+            Z[:,:] .+= Av[t]*(ZZ*diagm(0=>view(Vg,:,j)));
         end
     end
     return Z
