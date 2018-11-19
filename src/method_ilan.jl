@@ -112,7 +112,9 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call B mult
-        Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
+        #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
+        Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
+
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -155,23 +157,20 @@ function Bmult!(k,Z,Qn,Av,FDH,G)
 end
 
 # TODO: WORK ON THIS
-function Bmult_lr!(k,T,Z,Qn,Av,FDH,G)
+function Bmult_lr!(k,Z,Qn,Av,FDH,G)
     # B-multiplication
-    Z[:,1:k+1]=zeros(T,n,k+1);
+    Z[:,:]=zero(Z);
     # low-rank factorization of G
-    #tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
-    #Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
-    #Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
-    p=length(Av)
-    for t=1:p
+    tolG=1e-14; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
+    Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
+    Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
+    for t=1:length(Av)
         #Z[:,1:k+1] .+= Av[t]*Qn[:,1:k+1]*((Ug*Vg').*view(FDH[t],1:k+1,1:k+1));
-        Z[:,1:k+1] .+= Av[t]*view(Qn,:,1:k+1)*(view(G,1:k+1,1:k+1).*view(FDH[t],1:k+1,1:k+1));
-        #for j=1:q
-        #    ZZ=broadcast(*,view(Qn,:,1:k+1),view(Ug,:,j)')
-        #    FF=view(FDH[t],1:k+1,1:k+1)
-        #    Z .+=
-        #    Av[t]*(broadcast(*,ZZ*FF,view(Vg,:,j)'));
-        #end
+        for j=1:q
+            ZZ=broadcast(*,Qn,view(Ug,:,j)')
+            FF=view(FDH[t],1:k+1,1:k+1)
+            Z[:,:] .+= Av[t]*(broadcast(*,ZZ*FF,view(Vg,:,j)'));
+        end
     end
     return Z
 end

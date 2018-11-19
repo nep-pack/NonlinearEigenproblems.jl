@@ -20,7 +20,7 @@ using Revise
     f1= S -> one(S)
     f2= S -> -S
     f3= S -> exp(-S)
-    f4= S -> sqrt(one(S)-2*S)
+    f4= S -> S;#sqrt(one(S)-2*S)
 
     v0=rand(n)
     nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
@@ -29,10 +29,10 @@ using Revise
 
     V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=20,tol=eps()*100,check_error_every=1,v=v0)
 
-    @test norm(V-V2)<1e-12
-    @test norm(H-H2)<1e-12
-    @test norm(ω-ω2)<1e-12
-    @test norm(HH-HH2)<1e-12
+    @test norm(V-V2)<sqrt(eps())
+    @test norm(H-H2)<sqrt(eps())
+    @test norm(ω-ω2)<sqrt(eps())
+    @test norm(HH-HH2)<sqrt(eps())
 
 
 end
