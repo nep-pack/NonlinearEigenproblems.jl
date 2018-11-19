@@ -168,17 +168,19 @@ function Bmult_lr!(k,Z,Qn,Av,FDH,G,vv)
     # B-multiplication
     Z[:,:]=zero(Z);
     # low-rank factorization of G
-    tolG=1e-4; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
+    tolG=1e-12; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
+#    q=1
     Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
     Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
     Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
+    # TODO: avoid materialization
     @inbounds for t=2:length(Av)
         @inbounds for j=1:q
-            ZZ=Qn*diagm(0=>view(Ug,:,j))
-            FF=view(FDH[t],1:k+1,1:k+1)
+            ZZ=Qn.*(Ug[:,j]')
+            #FF=view(FDH[t],1:k+1,1:k+1)
             #ZZ=ZZ*FF
             ZZ=-broadcast(*,ZZ*vv[:,t-1],vv[:,t-1]')
-            Z[:,:] .+= Av[t]*(ZZ*diagm(0=>view(Vg,:,j)));
+            Z[:,:] .+= Av[t]*(ZZ.*(Vg[:,j]'));
         end
     end
     return Z
