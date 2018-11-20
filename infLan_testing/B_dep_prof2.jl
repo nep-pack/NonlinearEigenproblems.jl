@@ -22,7 +22,7 @@ function Bmult_lr!(k,Z,Qn,Av,G,vv)
 end
 
 
-n=100000
+n=1000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -32,7 +32,7 @@ A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
 nep=DEP([A1,A2,A3],[0,1,0.8])
 fv=get_fv(nep); p=length(fv);    Av=get_Av(nep)
 
-k=300; T=Float64
+k=200; T=Float64
 
 # precomputation for DEP (TODO: move in a preomputation function)
 vv=zeros(T,k+1,p-1)
@@ -82,7 +82,7 @@ function Bmult_lr2!(k,Z,Qn,Av,G,vv)
     Z[:,1]=Qn[:,1] # first matrix: fix for different \sigma
     @inbounds for t=2:length(Av)
         #Z[:,:] += Av[t]*((Qn*(U.*view(vv,:,t-1)))*(V.*view(vv,:,t-1))')
-        mul!(ZZ,Av[t],Qn*(U.*view(vv,:,t-1))*(V.*view(vv,:,t-1))'); Z[:,:] += ZZ
+        mul!(ZZ,Av[t],(Qn*(U.*view(vv,:,t-1)))*(V.*view(vv,:,t-1))'); Z[:,:] += ZZ
         #Z[:,:] = muladd(Av[t],((Qn*(U.*view(vv,:,t-1)))*(V.*view(vv,:,t-1))'),Z[:,:])
     end
     Z[:,:] = -Z[:,:]
