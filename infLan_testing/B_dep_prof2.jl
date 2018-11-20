@@ -22,7 +22,7 @@ function Bmult_lr!(k,Z,Qn,Av,G,vv)
 end
 
 
-n=10000
+n=100000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -32,7 +32,7 @@ A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
 nep=DEP([A1,A2,A3],[0,1,0.8])
 fv=get_fv(nep); p=length(fv);    Av=get_Av(nep)
 
-k=100; T=Float64
+k=300; T=Float64
 
 # precomputation for DEP (TODO: move in a preomputation function)
 vv=zeros(T,k+1,p-1)
@@ -95,13 +95,13 @@ Z=rand(T,n,k+1)
 
 @btime begin Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G) end
 @btime begin Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv) end
-@btime begin Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv) end
+#@btime begin Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv) end
 
 
 Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
 Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
-Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv)
+#Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv)
 
-display(norm(Z1-Z2))
-display(norm(Z1-Z3))
+#display(norm(Z1-Z2))
+#display(norm(Z1-Z3))
 display(norm(Z2-Z3))
