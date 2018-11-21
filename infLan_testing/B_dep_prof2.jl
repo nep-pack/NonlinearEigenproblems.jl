@@ -1,5 +1,5 @@
 # TODO: compare also with the original function that does not perform the lr approximation
-using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, BenchmarkTools
+using NonlinearEigenproblems, Random, SparseArrays, Revise, LinearAlgebra, BenchmarkTools, Profile
 
 function Bmult_lr!(k,Z,Qn,Av,G,vv)
     # B-multiplication
@@ -22,7 +22,7 @@ function Bmult_lr!(k,Z,Qn,Av,G,vv)
 end
 
 
-n=1000
+n=100000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -73,19 +73,27 @@ end
 
 function Bmult_lr2!(k,Z,Qn,Av,G,vv)
     # B-multiplication
+    T=eltype(Z)
     Z[:,:]=zero(Z)
-    ZZ=zero(Z)  # aux matrix for pre-allocation
     # low-rank factorization of G
     tolG=1e-12; U,S,V=svd(G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
-    Z[:,1]=Qn[:,1] # first matrix: fix for different \sigma
+    Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
+
+    ZZ=zero(Z)      # aux matrix for pre-allocation
+    QQ=zeros(n,q)   # aux matrix for pre-allocation
+    QQ2=zero(Qn)    # aux matrix for pre-allocation
+
     @inbounds for t=2:length(Av)
         #Z[:,:] += Av[t]*((Qn*(U.*view(vv,:,t-1)))*(V.*view(vv,:,t-1))')
-        mul!(ZZ,Av[t],(Qn*(U.*view(vv,:,t-1)))*(V.*view(vv,:,t-1))'); Z[:,:] += ZZ
+        mul!(QQ,Qn,U.*(view(vv,:,t-1)))
+        mul!(QQ2,QQ,(V.*view(vv,:,t-1))')
+        mul!(ZZ,Av[t],QQ2);
+        Z .-= ZZ
         #Z[:,:] = muladd(Av[t],((Qn*(U.*view(vv,:,t-1)))*(V.*view(vv,:,t-1))'),Z[:,:])
     end
-    Z[:,:] = -Z[:,:]
+    #Z .= -Z
     return Z
 end
 
@@ -95,13 +103,15 @@ Z=rand(T,n,k+1)
 
 @btime begin Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G) end
 @btime begin Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv) end
-#@btime begin Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv) end
+#Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
+#Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
 
+# Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
+# Profile.clear()
+# Profile.init(n = 10^7, delay = 0.01)
+# Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
+# @profile Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
+# Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv)
+# Profile.print(format=:flat,sortedby=:count)
 
-Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
-Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
-#Z1=Bmult_lr!(k,copy(Z),Qn,Av,G,vv)
-
-#display(norm(Z1-Z2))
-#display(norm(Z1-Z3))
 display(norm(Z2-Z3))
