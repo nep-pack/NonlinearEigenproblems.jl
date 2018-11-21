@@ -5,6 +5,18 @@ using LinearAlgebra
 using Random
 using Statistics
 
+# # Types specifying which way to compute y0 in chebyshev iar
+# abstract type ComputeZIlan end;
+# abstract type ComputeZIlanDEP <: ComputeZIlan end;
+#
+# # Data collected in a precomputation phase.
+# abstract type AbstractPrecomputeData end
+# mutable struct PrecomputeDataDEP <: AbstractPrecomputeData
+#     vv; ZZ; QQ; QQ2
+# end
+
+
+
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
 
@@ -71,19 +83,22 @@ function ilan(
     err=ones(m,m);
     λ=zeros(T,m+1);
 
+    # preallocation for DEP, move in precomputation
+    ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+    QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+    QQ2=zeros(T,n,m+1)      # aux matrix for pre-allocation
+
     # precompute the symmetrizer coefficients
     G=zeros(T,m+1,m+1);
     for i=1:m+1 G[i,1]=1/i end
-    for j=1:m
-        for i=1:m+1
+    for j=1:m for i=1:m+1
             G[i,j+1]=(G[i,j]*j)/(i+j);
-        end
-    end
+    end end
 
     # getting matrices and functions
-    fv=get_fv(nep); p=length(fv);    Av=get_Av(nep)
+    fv=get_fv(nep); p=length(fv); Av=get_Av(nep)
 
-    # precompute derivatives and FDH matrices (TODO: move in a preomputation function)
+    # precompute derivatives and FDH matrices
     SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => γ*(1:2m+1))
     fD=zeros(T,2*m+2,p)
     for t=1:p fD[:,t]=fv[t](SS)[:,1] end
@@ -121,12 +136,12 @@ function ilan(
 
         # call B mult
         #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-        @time Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,view(G,1:k+1,1:k+1),view(vv,1:k+1,:))
+        Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,view(G,1:k+1,1:k+1),view(vv,1:k+1,:),ZZ,QQ,QQ2)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
-        α=sum(sum(conj(Z).*Q,dims=1))
-        η=sum(sum(conj(Z).*Qn,dims=1))
+        α=sum(sum(conj(view(Z,:,1:k+1)).*view(Q,:,1:k+1),dims=1))
+        η=sum(sum(conj(view(Z,:,1:k+1)).*view(Qn,:,1:k+1),dims=1))
 
         H[k,k]=α/ω[k]
         if k>1 H[k-1,k]=β/ω[k-1] end
@@ -134,7 +149,7 @@ function ilan(
         if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
 
         H[k+1,k]=norm(Qn);
-        mul!(Qn,1/H[k+1,k],Qn)
+        Qn[:,1:k+1] ./= H[k+1,k]
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
@@ -147,7 +162,7 @@ function ilan(
 
         k=k+1;
         # shift the vectors
-        Qp=Q;   Q=Qn; Qn=zero(Qn);
+        Qp[:,1:k]=Q[:,1:k];   Q[:,1:k]=Qn[:,1:k]; Qn[:,1:k]=zeros(T,n,k);
 
     end
     k=k-1
@@ -168,7 +183,7 @@ function Bmult!(k,Z,Qn,Av,FDH,G)
 end
 
 
-function Bmult_lr!(k,Z,Qn,Av,G,vv)
+function Bmult_lr!(k,Z,Qn,Av,G,vv,ZZ,QQ,QQ2)
     # B-multiplication
     T=eltype(Z)
     Z[:,:]=zero(Z)
@@ -177,16 +192,12 @@ function Bmult_lr!(k,Z,Qn,Av,G,vv)
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
     Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
-
     n=size(Z,1)
-    ZZ=zero(Z)      # aux matrix for pre-allocation
-    QQ=zeros(n,q)   # aux matrix for pre-allocation
-    QQ2=zero(Qn)    # aux matrix for pre-allocation
 
     @inbounds for t=2:length(Av)
-        mul!(QQ,Qn,U.*(view(vv,:,t-1)))
-        mul!(QQ2,QQ,(V.*view(vv,:,t-1))')
-        mul!(ZZ,Av[t],QQ2);
-        Z .-= ZZ
+        mul!(view(QQ,:,1:q),Qn,U.*(view(vv,:,t-1)))
+        mul!(view(QQ2,:,1:k+1),view(QQ,:,1:q),(V.*view(vv,:,t-1))')
+        mul!(view(ZZ,:,1:k+1),Av[t],view(QQ2,:,1:k+1));
+        Z .-= view(ZZ,:,1:k+1)
     end
 end
