@@ -120,8 +120,8 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call B mult
-        Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-        #Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1),view(vv,1:k+1,:))
+        #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
+        @time Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,view(G,1:k+1,1:k+1),view(vv,1:k+1,:))
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -167,24 +167,26 @@ function Bmult!(k,Z,Qn,Av,FDH,G)
     end
 end
 
-# TODO: WORK ON THIS. FOR NOW IS DEP SPECIALIZED
-function Bmult_lr!(k,Z,Qn,Av,FDH,G,vv)
+
+function Bmult_lr!(k,Z,Qn,Av,G,vv)
     # B-multiplication
-    Z[:,:]=zero(Z);
+    T=eltype(Z)
+    Z[:,:]=zero(Z)
     # low-rank factorization of G
-    tolG=1e-12; Ug,Sg,Vg=svd(G[1:k+1,1:k+1]);q=sum(Sg.>tolG*ones(length(Sg)))
-    q=1
-    Ug=broadcast(*,view(Ug,:,1:q),sqrt.(Sg[1:q])');
-    Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
+    tolG=1e-12; U,S,V=svd(G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
+    U=view(U,:,1:q).*sqrt.(S[1:q]')
+    V=view(V,:,1:q).*sqrt.(S[1:q]');
     Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
-    # TODO: avoid materialization
-    @time @inbounds for t=2:length(Av)
-        #@simd
-        for j=1:q
-            ZZ=Qn.*(Ug[:,j]')
-            ZZ=-broadcast(*,ZZ*vv[:,t-1],vv[:,t-1]')
-            Z[:,:] .+= Av[t]*(ZZ.*(Vg[:,j]'));
-        end
+
+    n=size(Z,1)
+    ZZ=zero(Z)      # aux matrix for pre-allocation
+    QQ=zeros(n,q)   # aux matrix for pre-allocation
+    QQ2=zero(Qn)    # aux matrix for pre-allocation
+
+    @inbounds for t=2:length(Av)
+        mul!(QQ,Qn,U.*(view(vv,:,t-1)))
+        mul!(QQ2,QQ,(V.*view(vv,:,t-1))')
+        mul!(ZZ,Av[t],QQ2);
+        Z .-= ZZ
     end
-    return Z
 end
