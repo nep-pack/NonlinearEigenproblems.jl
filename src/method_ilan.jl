@@ -120,8 +120,8 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call B mult
-        #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-        Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1),view(vv,1:k+1,:))
+        @time Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
+        #Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1),view(vv,1:k+1,:))
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -158,8 +158,12 @@ end
 function Bmult!(k,Z,Qn,Av,FDH,G)
     # B-multiplication
     Z[:,:]=zero(Z);
+    ZZ=zero(Z)  #preallocation
+    QQ=zero(Qn) #preallocation
     @inbounds for t=1:length(Av)
-        Z[:,:] .+= Av[t]*Qn*(G.*view(FDH[t],1:k+1,1:k+1));
+        mul!(QQ,Qn,G.*view(FDH[t],1:k+1,1:k+1))
+        mul!(ZZ,Av[t],QQ)
+        Z .+= ZZ;
     end
 end
 
@@ -174,7 +178,7 @@ function Bmult_lr!(k,Z,Qn,Av,FDH,G,vv)
     Vg=broadcast(*,view(Vg,:,1:q),sqrt.(Sg[1:q])');
     Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
     # TODO: avoid materialization
-    @time @inbounds for t=2:length(Av)
+    @inbounds for t=2:length(Av)
         #@simd
         for j=1:q
             ZZ=Qn.*(Ug[:,j]')

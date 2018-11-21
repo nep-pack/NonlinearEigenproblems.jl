@@ -22,7 +22,7 @@ function Bmult_lr!(k,Z,Qn,Av,G,vv)
 end
 
 
-n=100000
+n=10000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -32,7 +32,7 @@ A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
 nep=DEP([A1,A2,A3],[0,1,0.8])
 fv=get_fv(nep); p=length(fv);    Av=get_Av(nep)
 
-k=200; T=Float64
+k=300; T=Float64
 
 # precomputation for DEP (TODO: move in a preomputation function)
 vv=zeros(T,k+1,p-1)
@@ -65,8 +65,12 @@ end
 function Bmult!(k,Z,Qn,Av,FDH,G)
     # B-multiplication
     Z[:,:]=zero(Z);
+    ZZ=zero(Z)  #preallocation
+    QQ=zero(Qn) #preallocation
     @inbounds for t=1:length(Av)
-        Z[:,:] .+= Av[t]*Qn*(G.*view(FDH[t],1:k+1,1:k+1));
+        mul!(QQ,Qn,G.*view(FDH[t],1:k+1,1:k+1))
+        mul!(ZZ,Av[t],QQ)
+        Z .+= ZZ;
     end
     return Z
 end
@@ -103,8 +107,8 @@ Z=rand(T,n,k+1)
 
 @btime begin Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G) end
 @btime begin Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv) end
-#Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
-#Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
+Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
+Z2=Bmult_lr2!(k,copy(Z),Qn,Av,G,vv)
 
 # Z3=Bmult!(k,copy(Z),Qn,Av,FDH,G)
 # Profile.clear()
