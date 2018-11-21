@@ -1,4 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
+using NonlinearEigenproblems, Random, SparseArrays, Revise
 import ..NEPSolver.ilan;
 include("../src/method_ilan.jl");
 
@@ -11,7 +11,7 @@ A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
 A2 = sparse(K, J, rand(3*n-2)); A2 = A2+A2';
 A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
 
-#nep=DEP([A1,A2,A3],[0,1,0.8])
+nep=DEP([A1,A2,A3],[0,1,0.8])
 #Dnep=DerSPMF(nep,0,400)
 
 v0=rand(n)
