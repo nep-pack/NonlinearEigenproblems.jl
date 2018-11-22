@@ -5,17 +5,17 @@ using LinearAlgebra
 using Random
 using Statistics
 
-# # Types specifying which way to compute y0 in chebyshev iar
-# abstract type ComputeZIlan end;
-# abstract type ComputeZIlanDEP <: ComputeZIlan end;
-#
-# # Data collected in a precomputation phase.
-# abstract type AbstractPrecomputeData end
-# mutable struct PrecomputeDataDEP <: AbstractPrecomputeData
-#     vv; ZZ; QQ; QQ2
-# end
+# Types specifying which way to B_prod in chebyshev iar
+abstract type Compute_Bmul_method end;
+abstract type Compute_Bmul_method_DEP <: Compute_Bmul_method end;
+abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
 
 
+# Data collected in a precomputation phase.
+abstract type IlanAbstractPrecomputeData end
+mutable struct IlanPrecomputeDataDEP <: IlanAbstractPrecomputeData
+     vv; ZZ; QQ; QQ2
+end
 
 """
     iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
@@ -60,11 +60,22 @@ function ilan(
     displaylevel=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_solver_method=DefaultInnerSolver,
+    Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
+    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
 
     # Ensure types σ and v are of type T
     σ=T(σ)
     v=Array{T,1}(v)
+
+    if (Compute_Bmul_method == Compute_Bmul_method_Auto)
+        if (isa(nep,DEP))
+            Compute_Bmul_method=Compute_Bmul_method_DEP;
+        else
+            println("Error")
+        end
+    end
+
 
     n = size(nep,1);
     m = maxit;
@@ -83,17 +94,15 @@ function ilan(
     err=ones(m,m);
     λ=zeros(T,m+1);
 
-    # preallocation for DEP, move in precomputation
-    ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
-    QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
-    QQ2=zeros(T,n,m+1)      # aux matrix for pre-allocation
-
     # precompute the symmetrizer coefficients
     G=zeros(T,m+1,m+1);
     for i=1:m+1 G[i,1]=1/i end
     for j=1:m for i=1:m+1
             G[i,j+1]=(G[i,j]*j)/(i+j);
     end end
+
+    # precomputation for exploiting the structure DEP, PEP, GENERAL
+    precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
 
     # getting matrices and functions
     fv=get_fv(nep); p=length(fv); Av=get_Av(nep)
@@ -108,14 +117,6 @@ function ilan(
             FDH[t][i,j]=fD[i+j,t];
         end end
     end
-
-    # precomputation for DEP (TODO: move in a preomputation function)
-    vv=zeros(T,m+1,p-1)
-    τ=nep.tauv
-    for j=1:p-1
-        vv[:,j]=sqrt(τ[j]*γ)*exp(-σ)*(-τ[j]*γ).^(0:m)
-    end
-
 
     # setting initial step
     Q[:,1]=v/norm(v)
@@ -136,7 +137,7 @@ function ilan(
 
         # call B mult
         #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-        Bmult_lr!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,view(G,1:k+1,1:k+1),view(vv,1:k+1,:),ZZ,QQ,QQ2)
+        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,view(G,1:k+1,1:k+1),precomp)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -169,6 +170,23 @@ function ilan(
     return V, H[1:end-1,1:end-1], ω[1:end-1], HH
 end
 
+# Contructors for the precomputed data
+function PrecomputeDataInit(::Type{Compute_Bmul_method_DEP})
+    return IlanPrecomputeDataDEP(0,0,0,0)
+end
+
+function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m,σ,γ)
+    τ=nep.tauv
+    precomp=PrecomputeDataInit(Compute_Bmul_method_DEP)
+    precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+    precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+    precomp.QQ2=zeros(T,n,m+1)      # aux matrix for pre-allocation
+    precomp.vv=zeros(T,m+1,length(τ))
+    for j=1:length(τ)
+        precomp.vv[:,j]=sqrt(τ[j]*γ)*exp(-σ)*(-τ[j]*γ).^(0:m)
+    end
+    return precomp
+end
 
 function Bmult!(k,Z,Qn,Av,FDH,G)
     # B-multiplication
@@ -183,7 +201,7 @@ function Bmult!(k,Z,Qn,Av,FDH,G)
 end
 
 
-function Bmult_lr!(k,Z,Qn,Av,G,vv,ZZ,QQ,QQ2)
+function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,G,precomp)
     # B-multiplication
     T=eltype(Z)
     Z[:,:]=zero(Z)
@@ -195,9 +213,9 @@ function Bmult_lr!(k,Z,Qn,Av,G,vv,ZZ,QQ,QQ2)
     n=size(Z,1)
 
     @inbounds for t=2:length(Av)
-        mul!(view(QQ,:,1:q),Qn,U.*(view(vv,:,t-1)))
-        mul!(view(QQ2,:,1:k+1),view(QQ,:,1:q),(V.*view(vv,:,t-1))')
-        mul!(view(ZZ,:,1:k+1),Av[t],view(QQ2,:,1:k+1));
-        Z .-= view(ZZ,:,1:k+1)
+        mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
+        mul!(view(precomp.QQ2,:,1:k+1),view(precomp.QQ,:,1:q),(V.*view(precomp.vv,1:k+1,t-1))')
+        mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ2,:,1:k+1));
+        Z .-= view(precomp.ZZ,:,1:k+1)
     end
 end
