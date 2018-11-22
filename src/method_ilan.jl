@@ -8,6 +8,7 @@ using Statistics
 # Types specifying which way to B_prod in chebyshev iar
 abstract type Compute_Bmul_method end;
 abstract type Compute_Bmul_method_DEP <: Compute_Bmul_method end;
+abstract type Compute_Bmul_method_SPMF_NEP <: Compute_Bmul_method end;
 abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
 
 
@@ -15,6 +16,9 @@ abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
 abstract type IlanAbstractPrecomputeData end
 mutable struct IlanPrecomputeDataDEP <: IlanAbstractPrecomputeData
      vv; ZZ; QQ; QQ2
+end
+mutable struct IlanPrecomputeDataSPMF_NEP <: IlanAbstractPrecomputeData
+     FDH; ZZ; QQ
 end
 
 """
@@ -70,7 +74,9 @@ function ilan(
 
     if (Compute_Bmul_method == Compute_Bmul_method_Auto)
         if (isa(nep,DEP))
-            Compute_Bmul_method=Compute_Bmul_method_DEP;
+            Compute_Bmul_method=Compute_Bmul_method_DEP
+        elseif  (isa(nep,SPMF_NEP))
+            Compute_Bmul_method=Compute_Bmul_method_SPMF_NEP
         else
             println("Error")
         end
@@ -104,19 +110,6 @@ function ilan(
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
 
-    # getting matrices and functions
-    fv=get_fv(nep); p=length(fv); Av=get_Av(nep)
-
-    # precompute derivatives and FDH matrices
-    SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => γ*(1:2m+1))
-    fD=zeros(T,2*m+2,p)
-    for t=1:p fD[:,t]=fv[t](SS)[:,1] end
-    FDH=Vector{Array{T,2}}(undef,p)
-    for t=1:p FDH[t]=zeros(T,m+1,m+1)
-        for i=1:m+1 for j=1:m+1
-            FDH[t][i,j]=fD[i+j,t];
-        end end
-    end
 
     # setting initial step
     Q[:,1]=v/norm(v)
@@ -124,7 +117,7 @@ function ilan(
     V[:,1]=Q[:,1];
 
     k=1; conv_eig=0;
-
+    Av=get_Av(nep)
 
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
@@ -174,7 +167,11 @@ end
 function PrecomputeDataInit(::Type{Compute_Bmul_method_DEP})
     return IlanPrecomputeDataDEP(0,0,0,0)
 end
+function PrecomputeDataInit(::Type{Compute_Bmul_method_SPMF_NEP})
+    return IlanPrecomputeDataSPMF_NEP(0,0,0)
+end
 
+# functions that precompute datas
 function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m,σ,γ)
     τ=nep.tauv
     precomp=PrecomputeDataInit(Compute_Bmul_method_DEP)
@@ -188,18 +185,40 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m
     return precomp
 end
 
-function Bmult!(k,Z,Qn,Av,FDH,G)
+# functions that precompute datas
+function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPMF_NEP},n,m,σ,γ)
+    precomp=PrecomputeDataInit(Compute_Bmul_method_SPMF_NEP)
+    precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+    precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+
+    # getting matrices and functions
+    fv=get_fv(nep); p=length(fv); Av=get_Av(nep)
+
+    # precompute derivatives and FDH matrices
+    SS=diagm(0 => σ*ones(T,2m+2)) + diagm(-1 => γ*(1:2m+1))
+    fD=zeros(T,2*m+2,p)
+    for t=1:p fD[:,t]=fv[t](SS)[:,1] end
+    precomp.FDH=Vector{Array{T,2}}(undef,p)
+    for t=1:p precomp.FDH[t]=zeros(T,m+1,m+1)
+        for i=1:m+1 for j=1:m+1
+            precomp.FDH[t][i,j]=fD[i+j,t];
+        end end
+    end
+    return precomp
+end
+
+function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,G,precomp)
     # B-multiplication
     Z[:,:]=zero(Z);
     ZZ=zero(Z)  #preallocation
     QQ=zero(Qn) #preallocation
     @inbounds for t=1:length(Av)
-        mul!(QQ,Qn,G.*view(FDH[t],1:k+1,1:k+1))
-        mul!(ZZ,Av[t],QQ)
-        Z .+= ZZ;
+#        mul!(view(QQ,:,1:k+1),view(Qn,:,1:k+1),G.*view(precomp.FDH[t],1:k+1,1:k+1))
+#        mul!(view(ZZ,:,1:k+1),Av[t],view(QQ,:,1:k+1))
+#        Z .+= ZZ;
+        Z += Av[t]*(Qn*(G.*precomp.FDH[t][1:k+1,1:k+1]))
     end
 end
-
 
 function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,G,precomp)
     # B-multiplication
