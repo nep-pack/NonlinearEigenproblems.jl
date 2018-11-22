@@ -15,10 +15,10 @@ f1= S -> one(S)
 f2= S -> -S
 f3= S -> exp(-S)
 #f4= S -> sqrt(one(S)-2*S)
-f4= S -> exp(-S)
+#f4= S -> exp(-2*S)
 
 
-nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
+nep=SPMF_NEP([A1,A2,A3],[f1,f2,f3])
 
 
 σ=0;
