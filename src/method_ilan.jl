@@ -210,13 +210,13 @@ end
 function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,G,precomp)
     # B-multiplication
     Z[:,:]=zero(Z);
-    ZZ=zero(Z)  #preallocation
-    QQ=zero(Qn) #preallocation
+    #ZZ=zero(Z)  #preallocation
+    #QQ=zero(Qn) #preallocation
     @inbounds for t=1:length(Av)
 #        mul!(view(QQ,:,1:k+1),view(Qn,:,1:k+1),G.*view(precomp.FDH[t],1:k+1,1:k+1))
 #        mul!(view(ZZ,:,1:k+1),Av[t],view(QQ,:,1:k+1))
 #        Z .+= ZZ;
-        Z += Av[t]*(Qn*(G.*precomp.FDH[t][1:k+1,1:k+1]))
+        Z[:,:] += Av[t]*(Qn*(G.*precomp.FDH[t][1:k+1,1:k+1]))
     end
 end
 
@@ -235,6 +235,6 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,G,precomp)
         mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
         mul!(view(precomp.QQ2,:,1:k+1),view(precomp.QQ,:,1:q),(V.*view(precomp.vv,1:k+1,t-1))')
         mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ2,:,1:k+1));
-        Z .-= view(precomp.ZZ,:,1:k+1)
+        Z[:,:] .-= view(precomp.ZZ,:,1:k+1)
     end
 end

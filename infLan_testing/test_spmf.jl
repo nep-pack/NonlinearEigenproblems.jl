@@ -25,7 +25,7 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 γ=1;
 
 #Dnep=DerSPMF(nep,σ,400)
-V,H,ω,HH=ilan(Float64,nep;σ=σ,γ=γ,Neig=10,displaylevel=1,maxit=10,tol=eps()*100,check_error_every=1)
+V,H,ω,HH=ilan(Float64,nep;σ=σ,γ=γ,Neig=200,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
 #Q,_,_=svd(V)
 Q=V;
 
