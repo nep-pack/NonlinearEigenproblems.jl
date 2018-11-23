@@ -5,7 +5,7 @@ include("../src/method_ilan.jl");
 Profile.clear()
 Profile.init(n = 10^7, delay = 0.01)
 
-n=10000
+n=100000
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
