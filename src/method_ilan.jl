@@ -15,10 +15,10 @@ abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
 # Data collected in a precomputation phase.
 abstract type IlanAbstractPrecomputeData end
 mutable struct IlanPrecomputeDataDEP <: IlanAbstractPrecomputeData
-     vv; ZZ; QQ; QQ2
+     G; vv; ZZ; QQ; QQ2
 end
 mutable struct IlanPrecomputeDataSPMF_NEP <: IlanAbstractPrecomputeData
-     FDH; ZZ; QQ
+     G; FDH; ZZ; QQ
 end
 
 """
@@ -100,13 +100,6 @@ function ilan(
     err=ones(m,m);
     λ=zeros(T,m+1);
 
-    # precompute the symmetrizer coefficients
-    G=zeros(T,m+1,m+1);
-    for i=1:m+1 G[i,1]=1/i end
-    for j=1:m for i=1:m+1
-            G[i,j+1]=(G[i,j]*j)/(i+j);
-    end end
-
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
 
@@ -129,7 +122,7 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call B mult
-        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,G,precomp)
+        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -164,10 +157,10 @@ end
 
 # Contructors for the precomputed data
 function PrecomputeDataInit(::Type{Compute_Bmul_method_DEP})
-    return IlanPrecomputeDataDEP(0,0,0,0)
+    return IlanPrecomputeDataDEP(0,0,0,0,0)
 end
 function PrecomputeDataInit(::Type{Compute_Bmul_method_SPMF_NEP})
-    return IlanPrecomputeDataSPMF_NEP(0,0,0)
+    return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
 end
 
 # functions that precompute datas
@@ -181,6 +174,8 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m
     for j=1:length(τ)
         precomp.vv[:,j]=sqrt(τ[j]*γ)*exp(-σ)*(-τ[j]*γ).^(0:m)
     end
+    precomp.G=symmetrizer_coefficients(T,m)
+
     return precomp
 end
 
@@ -203,25 +198,26 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPM
             precomp.FDH[t][i,j]=fD[i+j,t];
         end end
     end
+    precomp.G=symmetrizer_coefficients(T,m)
     return precomp
 end
 
-function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,G,precomp)
+function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp)
     # B-multiplication
     Z[:,:]=zero(Z);
     @inbounds for t=1:length(Av)
-        mul!(view(precomp.QQ,:,1:k+1),view(Qn,:,1:k+1),view(G,1:k+1,1:k+1).*view(precomp.FDH[t],1:k+1,1:k+1))
+        mul!(view(precomp.QQ,:,1:k+1),view(Qn,:,1:k+1),view(precomp.G,1:k+1,1:k+1).*view(precomp.FDH[t],1:k+1,1:k+1))
         mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ,:,1:k+1))
         Z .+= view(precomp.ZZ,:,1:k+1);
     end
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,G,precomp)
+function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)
     # B-multiplication
     T=eltype(Z)
     Z[:,:]=zero(Z)
     # low-rank factorization of G
-    tolG=1e-12; U,S,V=svd(G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
+    tolG=1e-12; U,S,V=svd(precomp.G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
     Z[:,1]=-Qn[:,1] # first matrix: TODO fix for different \sigma
@@ -233,4 +229,13 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,G,precomp)
         mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ2,:,1:k+1));
         Z .-= view(precomp.ZZ,:,1:k+1)
     end
+end
+
+function symmetrizer_coefficients(T,m)
+    G=zeros(T,m+1,m+1); # symmetrizer coefficients
+    for i=1:m+1 G[i,1]=1/i end
+    for j=1:m for i=1:m+1
+            G[i,j+1]=(G[i,j]*j)/(i+j);
+    end end
+    return G
 end
