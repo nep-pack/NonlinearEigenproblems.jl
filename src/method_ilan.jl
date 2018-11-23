@@ -217,7 +217,7 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)
     T=eltype(Z)
     Z[:,:]=zero(Z)
     # low-rank factorization of G
-    tolG=1e-10; U,S,V=svd(precomp.G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
+    tolG=1e-12; U,S,V=svd(precomp.G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
     Z[:,1]=-Qn[:,1] # first matrix: TODO fix for different \sigma
@@ -225,8 +225,14 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)
 
     @inbounds for t=2:length(Av)
         mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
-        mul!(view(precomp.QQ2,:,1:q),Av[t],view(precomp.QQ,:,1:q));
-        mul!(view(precomp.ZZ,:,1:k+1),view(precomp.QQ2,:,1:q),(V.*view(precomp.vv,1:k+1,t-1))')
+        # decide multiplication order based on matrix size
+        if q>k+1
+            mul!(view(precomp.QQ2,:,1:k+1),view(precomp.QQ,:,1:q),(V.*view(precomp.vv,1:k+1,t-1))')
+            mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ2,:,1:k+1));
+        else
+            mul!(view(precomp.QQ2,:,1:q),Av[t],view(precomp.QQ,:,1:q));
+            mul!(view(precomp.ZZ,:,1:k+1),view(precomp.QQ2,:,1:q),(V.*view(precomp.vv,1:k+1,t-1))')
+        end
         Z .-= view(precomp.ZZ,:,1:k+1)
     end
 end
