@@ -129,8 +129,7 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call B mult
-        #Bmult!(k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,FDH,view(G,1:k+1,1:k+1))
-        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),view(Qn,:,1:k+1),Av,view(G,1:k+1,1:k+1),precomp)
+        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,G,precomp)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
@@ -210,13 +209,10 @@ end
 function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,G,precomp)
     # B-multiplication
     Z[:,:]=zero(Z);
-    ZZ=zero(Z)  #preallocation
-    QQ=zero(Qn) #preallocation
     @inbounds for t=1:length(Av)
-        mul!(view(QQ,:,1:k+1),view(Qn,:,1:k+1),G.*view(precomp.FDH[t],1:k+1,1:k+1))
-        mul!(view(ZZ,:,1:k+1),Av[t],view(QQ,:,1:k+1))
-        Z[:,:] .+= ZZ;
-#        Z[:,:] += Av[t]*(Qn*(G.*precomp.FDH[t][1:k+1,1:k+1]))
+        mul!(view(precomp.QQ,:,1:k+1),view(Qn,:,1:k+1),G.*view(precomp.FDH[t],1:k+1,1:k+1))
+        mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ,:,1:k+1))
+        Z .+= view(precomp.ZZ,:,1:k+1);
     end
 end
 
@@ -228,13 +224,13 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,G,precomp)
     tolG=1e-12; U,S,V=svd(G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
-    Z[:,1]=-Qn[:,1] # first matrix: fix for different \sigma
+    Z[:,1]=-Qn[:,1] # first matrix: TODO fix for different \sigma
     n=size(Z,1)
 
     @inbounds for t=2:length(Av)
         mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
         mul!(view(precomp.QQ2,:,1:k+1),view(precomp.QQ,:,1:q),(V.*view(precomp.vv,1:k+1,t-1))')
         mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ2,:,1:k+1));
-        Z[:,:] .-= view(precomp.ZZ,:,1:k+1)
+        Z .-= view(precomp.ZZ,:,1:k+1)
     end
 end
