@@ -19,9 +19,9 @@ f4 = l-> sqrt(a2*l+b2*one(l));
 
 nep=SPMF_NEP([K-λ0*M,-α*M,1im*W1,1im*W2],[f1,f2,f3,f4])
 
-err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v);
+err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
-λ,_,err=tiar(nep,Neig=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1)#,errmeasure=err_measure)
+λ,_,err=tiar(nep,Neig=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,errmeasure=err_measure)
 
 m,p=size(err);
 # sort error
