@@ -17,17 +17,17 @@ n=100; nep=nep_gallery("dep_symm_double",n)
 # nep=DEP([A1,A2],[0,1])
 
 
-mm=100
-v0=rand(Float64,n^2)
-@time begin ilan(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
-@time begin tiar(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
-
 mm=200
 v0=rand(Float64,n^2)
 @time begin ilan(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
 @time begin tiar(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
 
-mm=400
+mm=300
+v0=rand(Float64,n^2)
+@time begin ilan(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
+@time begin tiar(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
+
+mm=600
 v0=rand(Float64,n^2)
 @time begin ilan(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
 @time begin tiar(Float64,nep;Neig=200,displaylevel=0,maxit=mm,tol=eps()*100,check_error_every=Inf,v=v0) end
