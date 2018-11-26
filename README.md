@@ -76,7 +76,7 @@ If you find this software useful please cite
 ```bibtex
 @Misc{,
   author = 	 {E. Jarlebring, M. Bennedich, G. Mele, E. Ringh, P. Upadhyaya},
-  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenvalue problems},
+  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenproblems},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
   eprint = {arXiv:1811.09592},
