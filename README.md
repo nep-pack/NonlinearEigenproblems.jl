@@ -78,6 +78,7 @@ If you find this software useful please cite
   title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenvalue problems},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
+  eprint = {arXiv:1811.09592},
 }
 ```
 If you use a specific method, please also give credit to the algorithm researcher.
