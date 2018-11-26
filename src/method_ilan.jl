@@ -125,17 +125,23 @@ function ilan(
         Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp)
 
         # orthogonalization (three terms recurrence)
-        if k>1 β=sum(sum(conj(Z).*Qp,dims=1)) end
-        α=sum(sum(conj(view(Z,:,1:k+1)).*view(Q,:,1:k+1),dims=1))
-        η=sum(sum(conj(view(Z,:,1:k+1)).*view(Qn,:,1:k+1),dims=1))
+        if k>1 β=mat_sum(view(Z,:,1:k),view(Qp,:,1:k)) end
+        α=mat_sum(view(Z,:,1:k),view(Q,:,1:k))
+        η=mat_sum(view(Z,:,1:k+1),view(Qn,:,1:k+1))
 
         H[k,k]=α/ω[k]
         if k>1 H[k-1,k]=β/ω[k-1] end
-        Qn[:,1:k] .-= H[k,k]*view(Q,:,1:k);
-        if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
+        #Qn[:,1:k] .-= H[k,k]*view(Q,:,1:k);
+        mul_and_sub!(view(Qn,:,1:k),view(Q,:,1:k),H[k,k])
+        #if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
+        if k>1 mul_and_sub!(view(Qn,:,1:k),view(Qp,:,1:k),H[k-1,k]) end
+
 
         H[k+1,k]=norm(Qn);
-        Qn[:,1:k+1] ./= H[k+1,k]
+#        Qn[:,1:k+1] ./= H[k+1,k]
+        scal_mul!(view(Qn,:,1:k+1), 1/H[k+1,k])
+
+
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
@@ -148,11 +154,55 @@ function ilan(
 
         k=k+1;
         # shift the vectors
-        Qp[:,1:k]=Q[:,1:k];   Q[:,1:k]=Qn[:,1:k]; Qn[:,1:k]=zeros(T,n,k);
+        Qp=Q;   Q=Qn;
+        Qn=zero(Qn);
 
     end
     k=k-1
     return V, H[1:end-1,1:end-1], ω[1:end-1], HH
+end
+
+# this function computes V *= h avoiding allocations (overwrites V)
+function scal_mul!(V,h)
+    n,m=size(V)
+    for j=1:m
+        for i=1:n
+            @inbounds V[i,j] = h*V[i,j]
+        end
+    end
+end
+
+# this function computes V.-= h*W avoiding allocations (overwrites V)
+function mul_and_sub!(V,W,h)
+    n,m=size(V)
+    for j=1:m
+        for i=1:n
+            @inbounds V[i,j] -= h*W[i,j]
+        end
+    end
+end
+
+# this function set to zero the variable V avoiding allocations
+function mat_zero!(V)
+    n,m=size(V)
+    for j=1:m
+        for i=1:n
+            @inbounds V[i,j] = 0
+        end
+    end
+end
+
+# this function computes sum(V.*W) avoiding allocations
+function mat_sum(V,W)
+    TT=eltype(V)
+    β::TT=0
+    n,m=size(V)
+    for j=1:m
+        for i=1:n
+            @inbounds β += V[i,j]*W[i,j]
+        end
+    end
+    return β
 end
 
 # Contructors for the precomputed data
@@ -204,7 +254,8 @@ end
 
 function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp)
     # B-multiplication
-    Z[:,:]=zero(Z);
+    #Z[:,:]=zero(Z);
+    mat_zero!(Z)
     @inbounds for t=1:length(Av)
         mul!(view(precomp.QQ,:,1:k+1),view(Qn,:,1:k+1),view(precomp.G,1:k+1,1:k+1).*view(precomp.FDH[t],1:k+1,1:k+1))
         mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ,:,1:k+1))
@@ -215,13 +266,14 @@ end
 function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)
     # B-multiplication
     T=eltype(Z)
-    Z[:,:]=zero(Z)
+    n=size(Z,1)
+#    Z[:,:]=zeros(T,n,k+1)
+    mat_zero!(Z)
     # low-rank factorization of G
     tolG=1e-12; U,S,V=svd(precomp.G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
     Z[:,1]=-Qn[:,1] # first matrix: TODO fix for different \sigma
-    n=size(Z,1)
 
     @inbounds for t=2:length(Av)
         mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
