@@ -100,6 +100,9 @@ function ilan(
     err=ones(m,m);
     λ=zeros(T,m+1);
 
+    # temp var for plot
+    conv_eig_hist=zeros(Int,m+1)
+
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
 
@@ -152,6 +155,20 @@ function ilan(
 
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
+        # extract eigenpair approximation
+        compute_eig=false
+        if (compute_eig==true)&&(rem(k,check_error_every)==0)
+            VV=view(V,:,1:k+1)
+            # Create a projected NEP
+            mm=size(VV,2)
+            pnep=create_proj_NEP(nep,mm); # maxsize=mm
+            set_projectmatrices!(pnep,VV,VV);
+            err_lifted=(λ,z)->compute_resnorm(nep,λ,VV*z)/(m);
+            λ,_,_,_,conv_eig_hist_tiar=tiar(Float64,pnep;Neig=200,displaylevel=0,maxit=mm,tol=1e-10,check_error_every=1,errmeasure=err_lifted)
+            conv_eig=maximum(conv_eig_hist_tiar)
+            conv_eig_hist[k]=conv_eig
+        end
+
         k=k+1;
         # shift the vectors
         Qp=Q;   Q=Qn;
@@ -159,7 +176,7 @@ function ilan(
 
     end
     k=k-1
-    return V, H[1:end-1,1:end-1], ω[1:end-1], HH
+    return V, H[1:end-1,1:end-1], ω[1:end-1], HH, conv_eig_hist
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)

@@ -5,7 +5,7 @@ include("../src/method_ilan.jl");
 Profile.clear()
 Profile.init(n = 10^7, delay = 0.01)
 
-n=100000
+#n=100000
 # Random.seed!(1) # reset the random seed
 # K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
 # A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
@@ -14,14 +14,14 @@ n=100000
 #
 # nep=DEP([A1,A2,A3],[0,1,0.8])
 
-n=160; nep=nep_gallery("dep_symm_double",n)
+n=320; nep=nep_gallery("dep_symm_double",n)
 
 
 σ=0;
 γ=1;
 
 #Dnep=DerSPMF(nep,σ,400)
-mm=100
+mm=400
 ilan(Float64,nep;σ=σ,γ=γ,Neig=10,displaylevel=1,maxit=mm,tol=eps()*100,check_error_every=1)
 @profile ilan(Float64,nep;σ=σ,γ=γ,Neig=10,displaylevel=1,maxit=mm,tol=eps()*100,check_error_every=1)
 Profile.print(format=:flat,sortedby=:count)

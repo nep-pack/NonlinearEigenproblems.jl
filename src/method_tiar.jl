@@ -82,6 +82,9 @@ function tiar(
     Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);
     a[1,1,1]=one(T);
 
+    # temp var for plot
+    conv_eig_hist=zeros(Int,m+1)
+
     local pnep::NEP;
     if (proj_solve)
         pnep=create_proj_NEP(nep,maxit,T);
@@ -196,6 +199,7 @@ function tiar(
                 λ=λ[idx[1:min(length(λ),Neig)]]
                 Q=Q[:,idx[1:length(λ)]]
             end
+            conv_eig_hist[k]=conv_eig
         end
         k=k+1;
     end
@@ -212,9 +216,8 @@ function tiar(
     #     throw(NoConvergenceException(λ,Q,err,msg))
     # end
 
-
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];
     Q=Q[:,1:min(size(Q,2),conv_eig)];
-    return λ,Q,err[1:k,:],Z[:,1:k]
+    return λ,Q,err[1:k,:],Z[:,1:k],conv_eig_hist
 end
