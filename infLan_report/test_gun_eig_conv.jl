@@ -1,4 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
+using NonlinearEigenproblems, Random, SparseArrays, Revise, DelimitedFiles
 import ..NEPSolver.ilan;
 import ..NEPSolver.tiar;
 
@@ -45,7 +45,7 @@ end
 
 
 # mm is the number of iterations we will do
-mm=80
+mm=100
 DD=zeros(ComplexF64,2*mm+2,4);
 DD[1,1]=1; DD[2,2]=1;
 DD[:,3]=1im*fD_sqrt(0,2*mm+2,a1,b1);
@@ -55,39 +55,18 @@ Dnep=DerSPMF(nep,0,DD)
 err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
 
-λ,_,err=tiar(Dnep,Neig=100,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
-
-m,p=size(err);
-# sort error
-for j=1:p
-    err[1:m,j]=sort(err[1:m,j];rev=true);
-end
-
-figure()
-for j=1:p
-    semilogy(1:m,err[1:m,j],color="black",linestyle="-");
-end
-ylim(ymax=1)
+_,_,_,_,conv_eig_hist_ilan=ilan(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-6,check_error_every=10,errmeasure=err_measure)
+_,_,_,_,conv_eig_hist_tiar=tiar(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-6,check_error_every=10,errmeasure=err_measure)
 
 
-V,H,ω,HH=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
+# now export the conv-matrix that will be loaded in tikz
+m=100
+conv_eig_hist_tiar_print=ones(10,2)
+conv_eig_hist_tiar_print[1:10,1]=10:10:100
+conv_eig_hist_tiar_print[:,2]=conv_eig_hist_tiar[10:10:m]
+writedlm("gun_conv_eig_hist_tiar_print.csv",conv_eig_hist_tiar_print,",")
 
-
-# Create a projected NEP
-mm=size(V,2)
-pnep=create_proj_NEP(nep,mm); # maxsize=mm
-set_projectmatrices!(pnep,V,V);
-
-n=size(K,1)
-err_lifted=(λ,z)->err_measure(λ,V*z);
-λ,_,err=iar(pnep;Neig=200,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
-
-m,p=size(err);
-
-# sort error
-for j=1:p err[1:m,j]=sort(err[1:m,j];rev=true) end
-
-figure()
-# plot conv hist
-for j=1:p semilogy(1:m,err[1:m,j],color="red",linestyle="-") end
-ylim(ymax=1)
+conv_eig_hist_ilan_print=ones(10,2)
+conv_eig_hist_ilan_print[1:10,1]=10:10:100
+conv_eig_hist_ilan_print[:,2]=conv_eig_hist_ilan[10:10:m]
+writedlm("gun_conv_eig_hist_ilan_print.csv",conv_eig_hist_ilan_print,",")

@@ -9,6 +9,7 @@ using Statistics
 abstract type Compute_Bmul_method end;
 abstract type Compute_Bmul_method_DEP <: Compute_Bmul_method end;
 abstract type Compute_Bmul_method_SPMF_NEP <: Compute_Bmul_method end;
+abstract type Compute_Bmul_method_DerSPMF <: Compute_Bmul_method end;
 abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
 
 
@@ -18,6 +19,9 @@ mutable struct IlanPrecomputeDataDEP <: IlanAbstractPrecomputeData
      G; vv; ZZ; QQ; QQ2
 end
 mutable struct IlanPrecomputeDataSPMF_NEP <: IlanAbstractPrecomputeData
+     G; FDH; ZZ; QQ
+end
+mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
      G; FDH; ZZ; QQ
 end
 
@@ -75,7 +79,9 @@ function ilan(
     if (Compute_Bmul_method == Compute_Bmul_method_Auto)
         if (isa(nep,DEP))
             Compute_Bmul_method=Compute_Bmul_method_DEP
-        elseif  (isa(nep,SPMF_NEP))
+        elseif (isa(nep,DerSPMF))
+            Compute_Bmul_method=Compute_Bmul_method_DerSPMF
+        elseif (isa(nep,SPMF_NEP))
             Compute_Bmul_method=Compute_Bmul_method_SPMF_NEP
         else
             println("Error")
@@ -163,8 +169,8 @@ function ilan(
             mm=size(VV,2)
             pnep=create_proj_NEP(nep,mm); # maxsize=mm
             set_projectmatrices!(pnep,VV,VV);
-            err_lifted=(λ,z)->compute_resnorm(nep,λ,VV*z)/(m);
-            λ,_,_,_,conv_eig_hist_tiar=tiar(Float64,pnep;Neig=200,displaylevel=0,maxit=mm,tol=1e-10,check_error_every=1,errmeasure=err_lifted)
+            err_lifted=(λ,z)->errmeasure(λ,VV*z);
+            λ,_,_,_,conv_eig_hist_tiar=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
             conv_eig=maximum(conv_eig_hist_tiar)
             conv_eig_hist[k]=conv_eig
         end
@@ -226,6 +232,9 @@ end
 function PrecomputeDataInit(::Type{Compute_Bmul_method_DEP})
     return IlanPrecomputeDataDEP(0,0,0,0,0)
 end
+function PrecomputeDataInit(::Type{Compute_Bmul_method_DerSPMF})
+    return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
+end
 function PrecomputeDataInit(::Type{Compute_Bmul_method_SPMF_NEP})
     return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
 end
@@ -269,6 +278,25 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPM
     return precomp
 end
 
+# functions that precompute datas
+function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{Compute_Bmul_method_DerSPMF},n,m,σ,γ)
+    precomp=PrecomputeDataInit(Compute_Bmul_method_DerSPMF)
+    precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+    precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
+
+    # getting matrices and functions
+    fv=get_fv(nep); p=length(fv); Av=get_Av(nep)
+
+    precomp.FDH=Vector{Array{T,2}}(undef,p)
+    for t=1:p precomp.FDH[t]=zeros(T,m+1,m+1)
+        for i=1:m+1 for j=1:m+1
+            precomp.FDH[t][i,j]=nep.fD[i+j,t];
+        end end
+    end
+    precomp.G=symmetrizer_coefficients(T,m)
+    return precomp
+end
+
 function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp)
     # B-multiplication
     #Z[:,:]=zero(Z);
@@ -278,6 +306,10 @@ function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp)
         mul!(view(precomp.ZZ,:,1:k+1),Av[t],view(precomp.QQ,:,1:k+1))
         Z .+= view(precomp.ZZ,:,1:k+1);
     end
+end
+
+function Bmult!(::Type{Compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp)
+    Bmult!(Compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp)
 end
 
 function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)

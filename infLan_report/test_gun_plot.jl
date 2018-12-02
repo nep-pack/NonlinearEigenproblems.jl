@@ -1,4 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
+using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot, DelimitedFiles
 import ..NEPSolver.ilan;
 import ..NEPSolver.tiar;
 
@@ -55,23 +55,7 @@ Dnep=DerSPMF(nep,0,DD)
 err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
 
-λ,_,err=tiar(Dnep,Neig=100,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
-
-m,p=size(err);
-# sort error
-for j=1:p
-    err[1:m,j]=sort(err[1:m,j];rev=true);
-end
-
-figure()
-for j=1:p
-    semilogy(1:m,err[1:m,j],color="black",linestyle="-");
-end
-ylim(ymax=1)
-
-
 V,H,ω,HH=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
-
 
 # Create a projected NEP
 mm=size(V,2)
@@ -80,7 +64,7 @@ set_projectmatrices!(pnep,V,V);
 
 n=size(K,1)
 err_lifted=(λ,z)->err_measure(λ,V*z);
-λ,_,err=iar(pnep;Neig=200,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
+λ,_,err=iar(pnep;Neig=200,displaylevel=1,maxit=80,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
 
 m,p=size(err);
 
@@ -91,3 +75,9 @@ figure()
 # plot conv hist
 for j=1:p semilogy(1:m,err[1:m,j],color="red",linestyle="-") end
 ylim(ymax=1)
+
+# now export the error-matrix that will be loaded in tikz
+err_print=ones(m,m+1)
+err_print[1:m,1]=1:m
+err_print[:,2:m+1]=err
+writedlm("gun_err_hist.csv",err_print,",")
