@@ -165,7 +165,7 @@ The following list describes the NEP with a certain `name` and the associated pa
 
 * `nlevp_native_hadeler`\\
     The benchmark problem from the NLEVP-collection called "hadeler", represented in the native NEP-PACK format. The problem is of the form ``M(λ)=(e^λ-1)B+A0+A2λ^2``. \\
- Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.\\
+    Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.\\
 
 * `nlevp_native_pdde_stability`\\
     The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format.
@@ -175,6 +175,10 @@ The following list describes the NEP with a certain `name` and the associated pa
     TU Braunschweig, Institut Computational Mathematics, Germany, 2008 and \\
     H. Fassbender, N. Mackey, D. S. Mackey and C. Schroeder, Structured
     Polynomial Eigenproblems Related to Time-Delay Systems, ETNA, 2008, vol 31, pp 306-330\\
+
+* `nlevp_native_loaded_string`\\
+    The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format. The parameters are (n,kappa,m) where n is the size, and the NEP is a SPMF with rational terms and the coefficient matrices are rank one modifications of Toeplitz matrices.\\
+   S. I. Solov"ev. Preconditioned iterative methods for a class of nonlinear eigenvalue problems. Linear Algebra Appl., 415 (2006), pp.210-229.
 
 
 # Example
@@ -220,6 +224,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "nlevp_native_cd_player" => nlevp_native_cd_player,
         "nlevp_native_fiber" => nlevp_native_fiber,
         "nlevp_native_pdde_stability" => nlevp_native_pdde_stability,
+        "nlevp_native_loaded_string" => nlevp_native_loaded_string,
         "beam" => beam,
         "sine" => sine_nep,
     )
