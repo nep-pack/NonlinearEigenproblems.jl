@@ -28,6 +28,7 @@ module Gallery
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/periodic_dde.jl")
     include("gallery_extra/NLEVP_native.jl")
+    include("gallery_extra/bem_hardcoded/bem_hardcoded.jl");
 
   """
      nep=nep_gallery(name)
@@ -180,6 +181,10 @@ The following list describes the NEP with a certain `name` and the associated pa
     The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format. The parameters are (n,kappa,m) where n is the size, and the NEP is a SPMF with rational terms and the coefficient matrices are rank one modifications of Toeplitz matrices.\\
    S. I. Solov"ev. Preconditioned iterative methods for a class of nonlinear eigenvalue problems. Linear Algebra Appl., 415 (2006), pp.210-229.
 
+* `bem_fichera`\\
+    Represents a boundary element discretization of Helmholtz equation for a domain consisting of the unit cube, except one removed corner (Fichera corner). The mesh is hardcoded. The parameter N determines the size of the problem (default N = 5). The model stems from the model in the paper:\\
+   Effenberger and Kressner, Chebyshev interpolation for nonlinear eigenvalue problems, BIT Numerical Mathematics, December 2012, Volume 52, Issue 4, pp 933–951
+
 
 # Example
 ```julia-repl
@@ -227,6 +232,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "nlevp_native_loaded_string" => nlevp_native_loaded_string,
         "beam" => beam,
         "sine" => sine_nep,
+        "bem_fichera" => bem_fichera,
     )
 
 
