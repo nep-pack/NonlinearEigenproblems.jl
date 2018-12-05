@@ -105,6 +105,7 @@ function ilan(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err=ones(m,m);
     λ=zeros(T,m+1);
+    WW=zeros(T,n,m+1) # TODO: DELETE THIS LINE
 
     # temp var for plot
     conv_eig_hist=zeros(Int,m+1)
@@ -117,6 +118,7 @@ function ilan(
     Q[:,1]=v/norm(v)
     ω[1]=Q[:,1]⋅compute_Mlincomb(nep,0,hcat(Q[:,1],Q[:,1]),[0,1]);
     V[:,1]=Q[:,1];
+    WW[:,1]=Q[:,1]; # TODO: DELETE THIS LINE
 
     k=1; conv_eig=0;
     Av=get_Av(nep)
@@ -151,13 +153,13 @@ function ilan(
         scal_mul!(view(Qn,:,1:k+1), 1/H[k+1,k])
 
 
-
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
             ω[k+1]=ω[k+1]-2*β*H[k-1,k]+ω[k-1]*H[k-1,k]^2;
         end
         ω[k+1]=ω[k+1]/H[k+1,k]^2;
         V[:,k+1]=Qn[:,1];
+        WW[:,k+1]=Qn[:,1]; # TODO: DELETE THIS LINE
 
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
@@ -182,7 +184,7 @@ function ilan(
 
     end
     k=k-1
-    return V, H[1:end-1,1:end-1], ω[1:end-1], HH, conv_eig_hist
+    return V, H, ω[1:end-1], HH, conv_eig_hist, WW
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)

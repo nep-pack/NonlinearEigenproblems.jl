@@ -149,5 +149,5 @@ function iar(
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];
     Q=Q[:,1:min(size(Q,2),conv_eig)];
-    return λ,Q,err[1:k,:],V[:,1:k],conv_eig_hist
+    return λ,Q,err[1:k,:],V[:,1:k],conv_eig_hist,H
 end

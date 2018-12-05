@@ -8,7 +8,7 @@ nep = nep_gallery("nlevp_native_gun")
 
 # manually loading the matrices
 Av=get_Av(nep)
-K=Av[1]; M=-Av[2]; W1=Av[3]; W2=Av[4]
+K=Av[1]; M=-Av[2]; W1=im*Av[3]; W2=im*Av[4]
 nK=opnorm(K,1); nM=opnorm(M,1); nW1=opnorm(W1,1); nW2=opnorm(W2,1);
 
 
@@ -17,8 +17,8 @@ nK=opnorm(K,1); nM=opnorm(M,1); nW1=opnorm(W1,1); nW2=opnorm(W2,1);
 a1 =α; b1=λ0; a2=α; b2=λ0-σ^2
 f1 = l-> one(l);
 f2 = l-> l;
-f3 = l-> 1im*sqrt(a1*l+b1*one(l)+0im*l);
-f4 = l-> 1im*sqrt(a2*l+b2*one(l)+0im*l);
+f3 = l-> sqrt(a1*l+b1*one(l)+0im*l);
+f4 = l-> sqrt(a2*l+b2*one(l)+0im*l);
 
 # define the nep as SPMF_NEP
 nep=SPMF_NEP([K-λ0*M,-α*M,W1,W2],[f1,f2,f3,f4])
@@ -46,10 +46,10 @@ end
 
 # mm is the number of iterations we will do
 mm=80
-DD=zeros(ComplexF64,2*mm+2,4);
+DD=zeros(2*mm+2,4);
 DD[1,1]=1; DD[2,2]=1;
-DD[:,3]=1im*fD_sqrt(0,2*mm+2,a1,b1);
-DD[:,4]=1im*fD_sqrt(0,2*mm+2,a2,b2);
+DD[:,3]=fD_sqrt(0,2*mm+2,a1,b1);
+DD[:,4]=fD_sqrt(0,2*mm+2,a2,b2);
 Dnep=DerSPMF(nep,0,DD)
 
 err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
