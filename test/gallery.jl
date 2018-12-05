@@ -172,7 +172,7 @@ using Test
     λ_ref=8.790558462139456 - 0.010815457827738698im
     M=compute_Mder(nep,λ_ref);
     @test rank(M)<size(M,1)
-    @bench @testset "bem_fichera + IAR" begin
+    @onlybench @testset "bem_fichera + IAR" begin
        v=ones(size(nep,1));
        (λ,vv)=iar(nep,σ=9,v=v,displaylevel=displaylevel,Neig=4) # normally takes 30 iterations
        @test norm(compute_Mlincomb(nep,λ[1],vv[:,1]))<sqrt(eps());
