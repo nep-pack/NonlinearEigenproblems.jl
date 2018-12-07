@@ -197,3 +197,54 @@ resulting in
 <br>
 <img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450>
 ```
+
+## Measuring error
+
+For this application, the matrix ``M(λ)`` has very large elements if $n$ is large.
+This makes the default way to measure the error a bit misleading. We now
+show how to specify a way to user-defined way to measure the error.
+
+The following function provides an estimate of the backward error:
+```julia
+myerrmeasure=(λ,v) ->
+    norm(compute_Mlincomb(nep,λ,v))/
+       (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
+
+```
+The  `quasinewton` simulations above converge in less iterations when this
+error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.
+```julia-repl
+julia> (λ,v)=iar(nep,displaylevel=1,σ=6im,v=ones(n),tol=1e-9,errmeasure=myerrmeasure,Neig=9);
+Iteration:1 conveig:0
+Iteration:2 conveig:0
+Iteration:3 conveig:0
+Iteration:4 conveig:0
+Iteration:5 conveig:0
+Iteration:6 conveig:0
+Iteration:7 conveig:1
+Iteration:8 conveig:1
+Iteration:9 conveig:2
+Iteration:10 conveig:3
+Iteration:11 conveig:3
+Iteration:12 conveig:3
+Iteration:13 conveig:4
+Iteration:14 conveig:4
+Iteration:15 conveig:4
+Iteration:16 conveig:6
+Iteration:17 conveig:6
+Iteration:18 conveig:7
+Iteration:19 conveig:7
+Iteration:20 conveig:8
+Iteration:21 conveig:8
+julia> λ
+9-element Array{Complex{Float64},1}:
+  -5.727047162897789e-17 + 5.910221927320824im
+   6.963744072781171e-17 + 6.256228528917848im
+  1.0970608583497804e-17 + 5.572890322785551im
+  3.1043414565249204e-16 + 6.607721906725883im
+  2.4460145556799514e-16 + 5.247797365668429im
+  -1.952358132366166e-15 + 6.962789407390986im
+   5.980095795388115e-15 + 4.538592358810864im
+ -1.8684249682409502e-15 + 7.4860568985227225im
+ -3.3202707271314164e-13 + 8.672107296833325im
+```
