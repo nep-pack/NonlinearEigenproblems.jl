@@ -1,5 +1,7 @@
 # This file is a direct conversion of the work of
-# Effenberger and Steinlachner published in
+# Steinlechner described in
+#    Steinlechner, A boundary element method for solving PDE eigenvalue problems, M. Steinlechner, bachelor thesis, ETH Zürich, 2010, http://sma.epfl.ch/~anchpcommon/students/steinlechner.pdf
+# and used in
 # "Chebyshev interpolation for nonlinear eigenvalue problems",
 # Effenberger and Kressner
 # BIT Numerical Mathematics, December 2012, Volume 52, Issue 4, pp 933–951
