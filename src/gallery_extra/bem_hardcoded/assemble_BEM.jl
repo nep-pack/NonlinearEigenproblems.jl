@@ -1,5 +1,7 @@
 include("deHoop.jl");
-function assemble_BEM(lambda, mesh, gauss_order,der=0)
+
+# Precompute some guass quadrature coefficieints
+function precompute_quad!(mesh,gauss_order)
     # define Gauss-Legendre quadrature points and weights
     local pt,wg;
     if (gauss_order==3)
@@ -14,6 +16,15 @@ function assemble_BEM(lambda, mesh, gauss_order,der=0)
     else
         error("The Gauss quadrature order you specified is not implemented")
     end
+    # pre-compute guassP and guassW for all triangles
+    for tri = mesh
+	VK = [tri.P1'; tri.P2'; tri.P3'];
+	tri.aux.gaussP = transpose(pt * VK);
+	tri.aux.gaussW = tri.area * wg;
+    end
+end
+
+function assemble_BEM(lambda, mesh, gauss_order,der=0)
 
     # Number of triangles = size of matrix
     n = size(mesh,1);
@@ -25,12 +36,6 @@ function assemble_BEM(lambda, mesh, gauss_order,der=0)
     rowind = vec(repeat(1:gauss_order,1,gauss_order)'); # [1 1 1 2 2 2 3 3 3 ]
     colind = vec(repeat(1:gauss_order,1,gauss_order))  # [1 2 3 1 2 3 1 2 3]
 
-    # pre-compute guassP and guassW for all triangles
-    for tri = mesh
-	VK = [tri.P1'; tri.P2'; tri.P3'];
-	tri.aux.gaussP = transpose(pt * VK);
-	tri.aux.gaussW = tri.area * wg;
-    end
 
     for row = 1:n
 	@inbounds for col = row:n # Skip because of symmetry
