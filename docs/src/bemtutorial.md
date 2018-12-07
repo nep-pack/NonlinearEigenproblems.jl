@@ -6,7 +6,8 @@ you can define a NEP where the only way to access the NEP
 is a function to compute ``M^{(k)}(λ)``. To illustrate this
 we use a boundary element method approach for computation
 of resonances. The complete code is available in
-`gallery_extra/bem_hardcoded`.
+`gallery_extra/bem_hardcoded`. The example is also
+available as a gallery problem: `nep=nep_gallery("bem_fichera")`.
 
 ## Boundary element method
 
