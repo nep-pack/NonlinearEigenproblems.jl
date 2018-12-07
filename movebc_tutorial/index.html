@@ -10,7 +10,8 @@
 \begin{cases}
 1+\sin(\alpha x)  &amp; x\in[0,L_0]=[0,1]\\
 V_0 &amp; x\in(L_0,L_1)=(1,8)
-\end{cases}\]</div><p>where <span>$α$</span> is large, i.e., the potential has high oscillations in one part of the domain. This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP.</p><h2><a class="nav-anchor" id="Derivation-of-reduced-domain-differential-equation-1" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_1$</span> to depend on <span>$λ$</span>. The technique is called absorbing boundary conditions.</p><p>We first note that we can transform the problem to first order form</p><div>\[  \frac{d}{dx}
+\end{cases}\]</div><p>where <span>$α$</span> is large, i.e., the potential has high oscillations in one part of the domain.</p><br>
+<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300><p>This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP.</p><h2><a class="nav-anchor" id="Derivation-of-reduced-domain-differential-equation-1" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_1$</span> to depend on <span>$λ$</span>. The technique is called absorbing boundary conditions.</p><p>We first note that we can transform the problem to first order form</p><div>\[  \frac{d}{dx}
 \begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
 =
 \begin{bmatrix}
@@ -34,7 +35,7 @@ V_0 &amp; x\in(L_0,L_1)=(1,8)
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</div><p>By explicitly computing the matrix exponential of the antidiagonal two-by-two matrix we obtain the relation</p><div>\[0=
 g(λ)\psi(L_0)+
-f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\sqrt{λ^2+V_0}\cosh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)\]</div><div>\[f(λ):=\sinh\left((L_1-L_0)\sqrt{λ^2+V_0}\right).\]</div><p>We now observe that the differential equation for the domain <span>$[0,L_0]$</span> is</p><div>\[\begin{eqnarray*}
+f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)\]</div><div>\[f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)}{\sqrt{λ^2+V_0}}.\]</div><p>We now observe that the differential equation for the domain <span>$[0,L_0]$</span> is</p><div>\[\begin{eqnarray*}
  \left(
  \frac{\partial^2}{\partial x^2}
 -V(x)-\lambda^2
@@ -51,7 +52,7 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\sqrt{λ^2+V_0}\cosh\left(
 0 &amp; 1 &amp;-2 &amp; 1\\
 0 &amp; \cdots &amp; 0 &amp; 0
 \end{bmatrix}\textrm{ and }
-\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\ 0&amp;\cdots &amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as <span>$M(λ)v=0$</span> where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ^2\underline{I}_n
+\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as <span>$M(λ)v=0$</span> where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ^2\underline{I}_n
 +g(λ)e_ne_n^T+f(λ)F\]</div><p>and</p><div>\[F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
 xv=Vector(range(0,stop=L0,length=1000))
 h=xv[2]-xv[1];
@@ -62,11 +63,11 @@ Dn=spdiagm(-1 =&gt; [ones(n-2);0]/h^2, 0 =&gt; -2*ones(n-1)/h^2, 1 =&gt; ones(n-
 Vn=spdiagm(0 =&gt; [V.(xv[1:end-1]);0]);
 In=spdiagm(0 =&gt; [ones(n-1);0])
 F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
-G=sparse([n],[n],[1]);</code></pre><p>The corresponding functions</p><pre><code class="language-julia">f1=S-&gt;one(S);
+G=sparse([n],[n],[1]);</code></pre><p>The corresponding functions in the SPMF</p><pre><code class="language-julia">f1=S-&gt;one(S);
 f2=S-&gt;-S^2;
 hh=S-&gt; sqrt(S^2+V0*one(S))
 g=S-&gt; cosh((L1-L0)*hh(S))
-f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>Note that <code>sinh(A)</code> and <code>cosh(A)</code> for matrices <code>A</code>, are interpreted as matrix functions (not elementwise) which is also what we need. Create the NEP and solve it:</p><pre><code class="language-julia">using NonlinearEigenproblems
+f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>In Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrices <code>A</code> are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. Now we can create the NEP and solve it:</p><pre><code class="language-julia">using NonlinearEigenproblems
 nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);</code></pre><p>We can apply a NEP-solver and compute solutions</p><pre><code class="language-julia">(λ1,v1)=quasinewton(nep,displaylevel=1,λ=2.5im,v=ones(n),tol=1e-9);
 (λ2,v2)=quasinewton(nep,displaylevel=1,λ=3.2im,v=ones(n),tol=1e-9)
 (λ3,v3)=quasinewton(nep,displaylevel=1,λ=5im,v=ones(n),tol=1e-9)
