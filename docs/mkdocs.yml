@@ -22,6 +22,7 @@ pages:
   - NEP transformations: transformations.md
   - NEP Gallery: gallery.md
   - Developer info: development.md
+  - Tutorial 1 (BEM): bemtutorial.md
 
 markdown_extensions:
   - extra
