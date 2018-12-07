@@ -23,7 +23,10 @@ mesh=gen_ficheramesh(N) # computes a mesh
 precompute_quad!(mesh,gauss_order) # precompute quadrature coefficients
 assemble_BEM(λ, mesh, gauss_order,der) # Compute the matrix consisting of all the integrals corresponding to λ
 ```
-These functions are based on the model (and inspired by some of the code) in ["Chebyshev interpolation for nonlinear eigenvalue problems", Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951](https://link.springer.com/article/10.1007/s10543-012-0381-5).
+These functions are based on the model (and inspired by some of the code) in
+in ["A boundary element method for solving PDE eigenvalue problems", Steinlechner, bachelor thesis, ETH Zürich, 2010](http://sma.epfl.ch/~anchpcommon/students/steinlechner.pdf) and also
+used in the simulations in
+["Chebyshev interpolation for nonlinear eigenvalue problems", Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951](https://link.springer.com/article/10.1007/s10543-012-0381-5).
 
 ## Implementation in NEP-PACK
 
