@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 1 (BEM) · NEP-PACK</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>NEP-PACK</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../methods/">NEP Methods</a></li><li><a class="toctext" href="../types/">NEP Types</a></li><li><a class="toctext" href="../linsolvers/">LinSolver</a></li><li><a class="toctext" href="../transformations/">NEP Transformations</a></li><li><a class="toctext" href="../gallery/">NEP Gallery</a></li><li class="current"><a class="toctext" href>Tutorial 1 (BEM)</a><ul class="internal"><li><a class="toctext" href="#Boundary-element-method-1">Boundary element method</a></li><li><a class="toctext" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></li><li><a class="toctext" href="#Solving-the-NEP-1">Solving the NEP</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial 1 (BEM)</a></li></ul><a class="edit-page" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/bemtutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial 1 (BEM)</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial:-User-defined-matrices-boundary-element-method-1" href="#Tutorial:-User-defined-matrices-boundary-element-method-1">Tutorial: User-defined matrices - boundary element method</a></h1><p>Suppose you have a new type of NEP, which does not naturally fit into the standard types in NEP-PACK. This tutorial shows how you can define a NEP where the only way to access the NEP is a function to compute <span>$M^{(k)}(λ)$</span>. To illustrate this we use a boundary element method approach for computation of resonances. The complete code is available in <code>gallery_extra/bem_hardcoded</code>.</p><h2><a class="nav-anchor" id="Boundary-element-method-1" href="#Boundary-element-method-1">Boundary element method</a></h2><p>The boundary element method applied to Helmholtz eigenvalue problem can be described by the matrix consisting of elements</p><div>\[[M(λ)]_{ij}=\frac{1}{4\pi}\int_{\Delta_i}\int_{\Delta_j}\frac{e^{\iota\lambda\|\xi-\eta\|}}{\|\xi-\eta\|}dS(\eta)dS(\xi)\]</div><p>where <span>$\Delta_i$</span>,<span>$i=1,\ldots,n$</span> are boundary elements. The boundary element approach is available through three functions</p><pre><code class="language-julia">mesh=gen_ficheramesh(N) # computes a mesh
+precompute_quad!(mesh,gauss_order) # precompute quadrature coefficients
+assemble_BEM(λ, mesh, gauss_order,der) # Compute the matrix consisting of all the integrals corresponding to λ</code></pre><p>These functions are based on the model (and inspired by some of the code) in <a href="https://link.springer.com/article/10.1007/s10543-012-0381-5">&quot;Chebyshev interpolation for nonlinear eigenvalue problems&quot;, Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951</a>.</p><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>In order to define your new NEP you need to define a new NEP-type</p><pre><code class="language-julia">struct BEM_NEP &lt;: NEP
+    mesh::Vector{Triangle}
+    n::Int
+    gauss_order::Int
+end</code></pre><p>The <code>mesh</code> variable is a vector of triangle objects defining the domain, <code>n</code> is the size of the mesh and <code>gauss_order</code> the quadrature order. All NEPs have to defined <code>size()</code> functions</p><pre><code class="language-julia"># We overload the size function from Base so we need to import it explicitly
+import Base.size;
+function size(nep::BEM_NEP)
+    return (nep.n,nep.n);
+end
+function size(nep::BEM_NEP,dim)
+    return nep.n;
+end</code></pre><p>The function <code>assemble_BEM</code> computes the matrix defined by the integrals. Hence, we need to call this function for every call to <code>compute_Mder</code>:</p><pre><code class="language-julia">import NonlinearEigenproblems.NEPCore.compute_Mder # We overload the function
+function compute_Mder(nep::BEM_NEP,λ::Number,der::Int=0)
+    return assemble_BEM(λ, nep.mesh, nep.gauss_order,der)[:,:,1];
+end</code></pre><p>In order to make other compute functions available to the methods, we can use the conversion functions. In particular, the <code>compute_Mlincomb</code> function can be implemented by making several calls in <code>compute_Mder</code>. This is done in the NEP-PACK-provided helper function <code>compute_Mlincomb_from_Mder</code>. We make this the default behaviour for this NEP:</p><pre><code class="language-julia">import NonlinearEigenproblems.NEPCore.compute_Mlincomb # Since we overload
+# Delegate the compute Mlincomb functions. This can be quite inefficient.
+compute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat, a::Vector) =
+      compute_Mlincomb_from_Mder(nep,λ,V,a)
+compute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat) =
+      compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))</code></pre><p>We can now create a <code>BEM_NEP</code> as follows:</p><pre><code class="language-julia">gauss_order=3; N=5;
+mesh=gen_ficheramesh(5)
+precompute_quad!(mesh,gauss_order)
+nep=BEM_NEP(mesh,gauss_order);</code></pre><h2><a class="nav-anchor" id="Solving-the-NEP-1" href="#Solving-the-NEP-1">Solving the NEP</a></h2><p>After creating the NEP, you can try to solve the problem with methods in the package, e.g., <a href="../methods/#NonlinearEigenproblems.NEPSolver.mslp"><code>MSLP</code></a> works quite well for this problem:</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=mslp(nep,λ=8,displaylevel=1)
+Iteration:1 errmeasure:4.122635537095636e-6 λ=8.128272919317748 + 0.007584851218214716im
+Iteration:2 errmeasure:1.787963303973586e-8 λ=8.132181234599427 - 1.952792817964521e-5im
+Iteration:3 errmeasure:3.2884958163572594e-13 λ=8.132145310156643 - 1.2648247028455485e-5im
+Iteration:4 errmeasure:4.6607986030841e-18 λ=8.132145310195453 - 1.264891804832194e-5im
+(8.132145310195453 - 1.264891804832194e-5im, Complex{Float64}[3.08473e-5-9.8713e-6im, 9.46458e-5+2.08586e-5im, -0.000418303-9.3624e-5im, -2.27161e-5+3.2045e-5im, -0.00168228-0.000446522im, -0.00660488-0.0018462im, -0.00705554-0.00195021im, -0.000714245-0.000123651im, -0.010653-0.00296256im, -0.0250155-0.00702815im  …  0.00369925+0.00101557im, 0.025547+0.00717101im, 0.0333126+0.00931856im, 0.0158614+0.00438927im, 0.00325204+0.000835354im, 0.021329+0.00595943im, 0.0126512+0.0034611im, 0.00130882+0.000172086im, 0.00131286+0.000207463im, 0.0125435+0.00344975im])</code></pre><p>This is the computed solution</p><br>
+<img src="https://user-images.githubusercontent.com/11163595/49595409-324b7d80-f978-11e8-818d-eeeaf9441505.png" height=450><p>The plotting was done with the following code (by using internals of the BEM-implementation):</p><pre><code class="language-julia">using NonlinearEigenproblems, PyPlot
+nep=nep_gallery(&quot;bem_fichera&quot;)
+(λ,v)=mslp(nep,λ=8.1,displaylevel=1)
+v=v./maximum(abs.(v));
+for k=1:size(nep.mesh,1);
+    tri=nep.mesh[k];
+    col=[1-abs.(v)[k];0;0]; # plot abslolute value
+    X=[tri.P1[1] tri.P2[1]; tri.P3[1] tri.P3[1]];
+    Y=[tri.P1[2] tri.P2[2]; tri.P3[2] tri.P3[2]];
+    Z=[tri.P1[3] tri.P2[3]; tri.P3[3] tri.P3[3]];
+    plot_surface(X,Y,Z,color=col,alpha=0.8);
+    plot_wireframe(X,Y,Z,color=[0;0;0],linewidth=1,alpha=0.5,);
+end</code></pre><footer><hr/><a class="previous" href="../gallery/"><span class="direction">Previous</span><span class="title">NEP Gallery</span></a></footer></article></body></html>
