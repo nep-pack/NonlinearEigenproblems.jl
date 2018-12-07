@@ -25,6 +25,10 @@ V_0 & x\in(L_0,L_1)=(1,8)
 ```
 where ``α`` is large, i.e., the potential has high oscillations
 in one part of the domain.
+```@raw html
+<br>
+<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300>
+```
 This tutorial illustrates how we can avoid a discretization
 of the domain ``[L_0,L_1]`` and only discretize ``[0,L_0]``,
 by solving a NEP.
@@ -84,10 +88,10 @@ f(λ)\psi'(L_0).
 ```
 where
 ```math
-g(λ):=\sqrt{λ^2+V_0}\cosh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)
+g(λ):=\cosh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)
 ```
 ```math
-f(λ):=\sinh\left((L_1-L_0)\sqrt{λ^2+V_0}\right).
+f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)}{\sqrt{λ^2+V_0}}.
 ```
 We now observe that the differential equation
 for the domain ``[0,L_0]`` is
@@ -130,7 +134,7 @@ Let
 0 & 1 &-2 & 1\\
 0 & \cdots & 0 & 0
 \end{bmatrix}\textrm{ and }
-\underline{I}_n=\begin{bmatrix}1 &\\ &\ddots\\ &&1 \\ 0&\cdots &0\end{bmatrix}
+\underline{I}_n=\begin{bmatrix}1 &\\ &\ddots\\ &&1 \\  & &&0\end{bmatrix}
 ```
 Then the boundary value problem can expressed as ``M(λ)v=0`` where
 ```math
@@ -158,7 +162,7 @@ In=spdiagm(0 => [ones(n-1);0])
 F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
 G=sparse([n],[n],[1]);
 ```
-The corresponding functions
+The corresponding functions in the SPMF
 ```julia
 f1=S->one(S);
 f2=S->-S^2;
@@ -166,7 +170,8 @@ hh=S-> sqrt(S^2+V0*one(S))
 g=S-> cosh((L1-L0)*hh(S))
 f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 ```
-Note that `sinh(A)` and `cosh(A)` for matrices `A`, are interpreted as matrix functions (not elementwise) which is also what we need. Create the NEP and solve it:
+In Julia, `sinh(A)` and `cosh(A)` for matrices `A` are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. Now
+we can create the NEP and solve it:
 ```julia
 using NonlinearEigenproblems
 nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
