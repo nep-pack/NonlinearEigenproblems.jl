@@ -188,3 +188,7 @@ plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))
 ```
 resulting in
+```@raw html
+<br>
+<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450>
+```
