@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 2 (ABC) · NEP-PACK</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>NEP-PACK</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../methods/">NEP Methods</a></li><li><a class="toctext" href="../types/">NEP Types</a></li><li><a class="toctext" href="../linsolvers/">LinSolver</a></li><li><a class="toctext" href="../transformations/">NEP Transformations</a></li><li><a class="toctext" href="../gallery/">NEP Gallery</a></li><li><a class="toctext" href="../bemtutorial/">Tutorial 1 (BEM)</a></li><li class="current"><a class="toctext" href>Tutorial 2 (ABC)</a><ul class="internal"><li><a class="toctext" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></li><li><a class="toctext" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></li><li><a class="toctext" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></li><li><a class="toctext" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial 2 (ABC)</a></li></ul><a class="edit-page" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/movebc_tutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial 2 (ABC)</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial:-Application-to-absorbing-boundary-conditions-1" href="#Tutorial:-Application-to-absorbing-boundary-conditions-1">Tutorial: Application to absorbing boundary conditions</a></h1><h2><a class="nav-anchor" id="A-Schrödinger-equation-1" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></h2><p>Consider Schrödinger type eigenvalue problem on the interval <span>$[0,L_1]$</span>,</p><div>\[\begin{eqnarray*}
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 2 (ABC) · NEP-PACK</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>NEP-PACK</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../methods/">NEP Methods</a></li><li><a class="toctext" href="../types/">NEP Types</a></li><li><a class="toctext" href="../linsolvers/">LinSolver</a></li><li><a class="toctext" href="../transformations/">NEP Transformations</a></li><li><a class="toctext" href="../gallery/">NEP Gallery</a></li><li><a class="toctext" href="../bemtutorial/">Tutorial 1 (BEM)</a></li><li class="current"><a class="toctext" href>Tutorial 2 (ABC)</a><ul class="internal"><li><a class="toctext" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></li><li><a class="toctext" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></li><li><a class="toctext" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></li><li><a class="toctext" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></li><li><a class="toctext" href="#Measuring-error-1">Measuring error</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial 2 (ABC)</a></li></ul><a class="edit-page" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/movebc_tutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial 2 (ABC)</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial:-Application-to-absorbing-boundary-conditions-1" href="#Tutorial:-Application-to-absorbing-boundary-conditions-1">Tutorial: Application to absorbing boundary conditions</a></h1><h2><a class="nav-anchor" id="A-Schrödinger-equation-1" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></h2><p>Consider Schrödinger type eigenvalue problem on the interval <span>$[0,L_1]$</span>,</p><div>\[\begin{eqnarray*}
  \left(
  \frac{\partial^2}{\partial x^2}
 -V(x)-\lambda^2
@@ -76,4 +76,39 @@ plot(xv,real(v1)/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
-<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><footer><hr/><a class="previous" href="../bemtutorial/"><span class="direction">Previous</span><span class="title">Tutorial 1 (BEM)</span></a></footer></article></body></html>
+<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a way to user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error:</p><pre><code class="language-julia">myerrmeasure=(λ,v) -&gt;
+    norm(compute_Mlincomb(nep,λ,v))/
+       (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
+</code></pre><p>The  <code>quasinewton</code> simulations above converge in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,displaylevel=1,σ=6im,v=ones(n),tol=1e-9,errmeasure=myerrmeasure,Neig=9);
+Iteration:1 conveig:0
+Iteration:2 conveig:0
+Iteration:3 conveig:0
+Iteration:4 conveig:0
+Iteration:5 conveig:0
+Iteration:6 conveig:0
+Iteration:7 conveig:1
+Iteration:8 conveig:1
+Iteration:9 conveig:2
+Iteration:10 conveig:3
+Iteration:11 conveig:3
+Iteration:12 conveig:3
+Iteration:13 conveig:4
+Iteration:14 conveig:4
+Iteration:15 conveig:4
+Iteration:16 conveig:6
+Iteration:17 conveig:6
+Iteration:18 conveig:7
+Iteration:19 conveig:7
+Iteration:20 conveig:8
+Iteration:21 conveig:8
+julia&gt; λ
+9-element Array{Complex{Float64},1}:
+  -5.727047162897789e-17 + 5.910221927320824im
+   6.963744072781171e-17 + 6.256228528917848im
+  1.0970608583497804e-17 + 5.572890322785551im
+  3.1043414565249204e-16 + 6.607721906725883im
+  2.4460145556799514e-16 + 5.247797365668429im
+  -1.952358132366166e-15 + 6.962789407390986im
+   5.980095795388115e-15 + 4.538592358810864im
+ -1.8684249682409502e-15 + 7.4860568985227225im
+ -3.3202707271314164e-13 + 8.672107296833325im</code></pre><footer><hr/><a class="previous" href="../bemtutorial/"><span class="direction">Previous</span><span class="title">Tutorial 1 (BEM)</span></a></footer></article></body></html>
