@@ -837,7 +837,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial 1 (BEM)",
     "title": "Tutorial: User-defined matrices - boundary element method",
     "category": "section",
-    "text": "Suppose you have a new type of NEP, which does not naturally fit into the standard types in NEP-PACK. This tutorial shows how you can define a NEP where the only way to access the NEP is a function to compute M^(k)(λ). To illustrate this we use a boundary element method approach for computation of resonances. The complete code is available in gallery_extra/bem_hardcoded."
+    "text": "Suppose you have a new type of NEP, which does not naturally fit into the standard types in NEP-PACK. This tutorial shows how you can define a NEP where the only way to access the NEP is a function to compute M^(k)(λ). To illustrate this we use a boundary element method approach for computation of resonances. The complete code is available in gallery_extra/bem_hardcoded. The example is also available as a gallery problem: nep=nep_gallery(\"bem_fichera\")."
 },
 
 {
