@@ -12,7 +12,8 @@ makedocs(
         "NEP Types" => "types.md",
         "LinSolver" => "linsolvers.md",
         "NEP Transformations" => "transformations.md",
-        "NEP Gallery" => "gallery.md"
+        "NEP Gallery" => "gallery.md",
+        "Tutorial 1 (BEM)" => "bemtutorial.md"
     ]
 )
 
