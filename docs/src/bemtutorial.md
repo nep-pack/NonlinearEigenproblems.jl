@@ -22,10 +22,11 @@ mesh=gen_ficheramesh(N) # computes a mesh
 precompute_quad!(mesh,gauss_order) # precompute quadrature coefficients
 assemble_BEM(λ, mesh, gauss_order,der) # Compute the matrix consisting of all the integrals corresponding to λ
 ```
+These functions are based on the model (and inspired by some of the code) in ["Chebyshev interpolation for nonlinear eigenvalue problems", Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951](https://link.springer.com/article/10.1007/s10543-012-0381-5).
 
 ## Implementation in NEP-PACK
 
-In order to define your new NEP you need to define a newNEP-type
+In order to define your new NEP you need to define a new NEP-type
 ```julia
 struct BEM_NEP <: NEP
     mesh::Vector{Triangle}
@@ -33,11 +34,12 @@ struct BEM_NEP <: NEP
     gauss_order::Int
 end
 ```
-The mesh is a vector of triangle objects defining the domain,
+The `mesh` variable is a vector of triangle objects defining the domain,
 `n` is the size of the mesh and `gauss_order` the quadrature order.
 All NEPs have to defined `size()` functions
 ```julia
-import Base.size; # We overload the size function from Base so we need to import it explicitly
+# We overload the size function from Base so we need to import it explicitly
+import Base.size;
 function size(nep::BEM_NEP)
     return (nep.n,nep.n);
 end
@@ -59,9 +61,12 @@ can be implemented by making several calls in `compute_Mder`. This
 is done in the NEP-PACK-provided helper function `compute_Mlincomb_from_Mder`.
 We make this the default behaviour for this NEP:
 ```julia
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb # Since we overload
 # Delegate the compute Mlincomb functions. This can be quite inefficient.
-compute_Mlincomb(nep::BEM_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}, a::Vector) = compute_Mlincomb_from_Mder(nep,λ,V,a)
-compute_Mlincomb(nep::BEM_NEP,λ::Number,V::Union{AbstractMatrix,AbstractVector}) = compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))
+compute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat, a::Vector) =
+      compute_Mlincomb_from_Mder(nep,λ,V,a)
+compute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat) =
+      compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))
 ```
 We can now create a `BEM_NEP` as follows:
 ```julia
