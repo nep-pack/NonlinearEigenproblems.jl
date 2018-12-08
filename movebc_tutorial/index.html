@@ -11,7 +11,7 @@
 1+\sin(\alpha x)  &amp; x\in[0,L_0]=[0,1]\\
 V_0 &amp; x\in(L_0,L_1)=(1,8)
 \end{cases}\]</div><p>where <span>$α$</span> is large, i.e., the potential has high frequency oscillations in one part of the domain.</p><br>
-<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300><p>This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP.</p><h2><a class="nav-anchor" id="Derivation-of-reduced-domain-differential-equation-1" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_1$</span> to depend on <span>$λ$</span>. The technique is called <em>absorbing boundary conditions</em>.</p><p>We first note that we can transform the problem to first order form</p><div>\[  \frac{d}{dx}
+<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300><p>This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP. The implementation described below is also directly available in the gallery: <code>nep_gallery(&quot;schrodinger_movebc&quot;)</code>.</p><h2><a class="nav-anchor" id="Derivation-of-reduced-domain-differential-equation-1" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_1$</span> to depend on <span>$λ$</span>. The technique is called <em>absorbing boundary conditions</em>.</p><p>We first note that we can transform the problem to first order form</p><div>\[  \frac{d}{dx}
 \begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
 =
 \begin{bmatrix}
@@ -67,11 +67,12 @@ G=sparse([n],[n],[1]);</code></pre><p>The corresponding functions in the SPMF</p
 f2=S-&gt;-S;
 hh=S-&gt; sqrt(S+V0*one(S))
 g=S-&gt; cosh((L1-L0)*hh(S))
-f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>In Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrices <code>A</code> are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. Now we can create the NEP and solve it:</p><pre><code class="language-julia">using NonlinearEigenproblems
-nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);</code></pre><p>We can apply a NEP-solver and compute solutions</p><pre><code class="language-julia">(λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
+f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>In Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrices <code>A</code> are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. The NEP can now be created and solved as follows</p><pre><code class="language-julia">using NonlinearEigenproblems
+nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
+(λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
 (λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
 (λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
-(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)</code></pre><p>We can plot the solutions:</p><pre><code class="language-julia">using Plots
+(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)</code></pre><p>For sanity check, the are visualized in this way</p><pre><code class="language-julia">using Plots
 plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
