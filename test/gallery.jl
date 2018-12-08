@@ -137,6 +137,13 @@ using Test
     @test_throws MethodError nep_gallery("neuron0", 8)
     @test_throws ErrorException nep_gallery("neuron0", t=8)
 
+    @info "Testing schrodinger_movebc"
+    n=5; λ=-3.0;
+    nep=nep_gallery("schrodinger_movebc",n)
+    A=compute_Mder(nep,λ)
+    h=1/(n-1);
+    @test A[1,1]== -2/(h^2)-λ-1 # Check (1,1)-point in discretization
+
     @info "Testing beam"
     nep=nep_gallery("beam")
     nep=nep_gallery("beam", 15)

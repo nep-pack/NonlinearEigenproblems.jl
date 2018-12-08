@@ -169,3 +169,29 @@ function sine_nep()
     nep=SPMFSumNEP(pep,sin_nep) # Note: nep has a low-rank term
     return nep;
 end
+
+
+# From the tutorial on NEP-PACK online user's manual
+function schrodinger_movebc(n=1000,L0=1,L1=8,α=25*pi/2,V0=10.0)
+
+    # Discreatization matrices
+    xv=Vector(range(0,stop=L0,length=n))
+    h=xv[2]-xv[1];
+    n=size(xv,1);
+    V=x->1+sin(α*x);
+    Dn=spdiagm(-1 => [ones(n-2);0]/h^2, 0 => -2*ones(n-1)/h^2, 1 => ones(n-1)/h^2)
+    Vn=spdiagm(0 => [V.(xv[1:end-1]);0]);
+    In=spdiagm(0 => [ones(n-1);0])
+    F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
+    G=sparse([n],[n],[1]);
+    # Construct functions
+    f1=S->one(S);
+    f2=S->-S;
+    hh=S-> sqrt(S+V0*one(S))
+    g=S-> cosh((L1-L0)*hh(S))
+    f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
+
+    # Construct NEP (This could be a low-rank SPMF NEP since G & F are low rank)
+    nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
+    return nep
+end

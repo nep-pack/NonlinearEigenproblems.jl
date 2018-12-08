@@ -1,12 +1,12 @@
 # Tutorial: Application to absorbing boundary conditions
 ## A Schrödinger equation
 
-Consider Schrödinger type eigenvalue problem on the interval $[0,L_1]$,
+We consider the  Schrödinger type eigenvalue problem on the interval $[0,L_1]$,
 ```math
 \begin{eqnarray*}
  \left(
  \frac{\partial^2}{\partial x^2}
--V(x)-\lambda^2
+-V(x)-\lambda
 \right)\psi(x)&=&0,\,\; x\in[0,L_1]\\
    \psi(0)&=&0\\
    \psi(L_1)&=&0.
@@ -23,7 +23,7 @@ function
 V_0 & x\in(L_0,L_1)=(1,8)
 \end{cases}
 ```
-where ``α`` is large, i.e., the potential has high oscillations
+where ``α`` is large, i.e., the potential has high frequency oscillations
 in one part of the domain.
 ```@raw html
 <br>
@@ -31,14 +31,15 @@ in one part of the domain.
 ```
 This tutorial illustrates how we can avoid a discretization
 of the domain ``[L_0,L_1]`` and only discretize ``[0,L_0]``,
-by solving a NEP.
+by solving a NEP. The implementation described below
+is also directly available in the gallery: `nep_gallery("schrodinger_movebc")`.
 
 ## Derivation of reduced domain differential equation
 
 The technique is based on moving the boundary condition at ``L_1``
 to ``L_0``. This can be done without doing any approximation,
 if we allow the new artificial boundary condition at ``L_1``
-to depend on ``λ``. The technique is called absorbing boundary conditions.
+to depend on ``λ``. The technique is called *absorbing boundary conditions*.
 
 
 
@@ -49,19 +50,19 @@ We first note that we can transform the problem to first order form
 =
 \begin{bmatrix}
 0 & 1\\
-\lambda^2+V(x) & 0
+\lambda+V(x) & 0
 \end{bmatrix}
 \begin{bmatrix}\psi(x)\\\psi'(x)\end{bmatrix},
 ```
-We now apply this in the domain ``[L_0,L_1]``,
-the fact that ``V(x)`` is constant allows us to directly
+The potential ``V(x)`` is constant in the domain ``[L_0,L_1]``.
+This  allows us to directly
 express the solution using the matrix exponential
 ```math
 \begin{bmatrix}\psi(x)\\\psi'(x)\end{bmatrix}
 =\exp\left((x-L_0)
 \begin{bmatrix}
 0 & 1\\
-\lambda^2+V_0 & 0
+\lambda+V_0 & 0
 \end{bmatrix}
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi'(L_0)\end{bmatrix}.
@@ -74,7 +75,7 @@ as
 =\begin{bmatrix}1 & 0\end{bmatrix}\exp\left((L_1-L_0)
 \begin{bmatrix}
 0 & 1\\
-\lambda^2+V_0 & 0
+\lambda+V_0 & 0
 \end{bmatrix}
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi'(L_0)\end{bmatrix}.
@@ -88,18 +89,20 @@ f(λ)\psi'(L_0).
 ```
 where
 ```math
-g(λ):=\cosh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)
+g(λ):=\cosh\left((L_1-L_0)\sqrt{λ+V_0}\right)
 ```
 ```math
-f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)}{\sqrt{λ^2+V_0}}.
+f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ+V_0}\right)}{\sqrt{λ+V_0}}.
 ```
-We now observe that the differential equation
-for the domain ``[0,L_0]`` is
+A solution to the original boundary value problem must satisfy
+the condition ``0=g(λ)\psi(L_0)+f(λ)\psi'(L_0)`` in the middle of the domain.
+If we now consider only the domain ``[0,L_0]``, we see that the
+function must satisfy
 ```math
 \begin{eqnarray*}
  \left(
  \frac{\partial^2}{\partial x^2}
--V(x)-\lambda^2
+-V(x)-\lambda
 \right)\psi(x)&=&0,\,\; x\in[0,L_0]\\
    \psi(0)&=&0\\
    g(λ)\psi(L_0)+f(λ)\psi'(L_1)&=&0.
@@ -107,7 +110,9 @@ for the domain ``[0,L_0]`` is
 ```
 which is a boundary value problem
 with a mixed boundary condition (since it contains
-both ``\psi(L_0)`` and ``\psi'(L_0)``).
+both ``\psi(L_0)`` and ``\psi'(L_0)``). In general, the
+solutions to the original problem are the same as the
+solutions on the reduced domain.
 
 
 ## Discretization of the λ-dependent boundary value problem
@@ -138,7 +143,7 @@ Let
 ```
 Then the boundary value problem can expressed as ``M(λ)v=0`` where
 ```math
-M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ^2\underline{I}_n
+M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
 +g(λ)e_ne_n^T+f(λ)F
 ```
 and
@@ -165,8 +170,8 @@ G=sparse([n],[n],[1]);
 The corresponding functions in the SPMF
 ```julia
 f1=S->one(S);
-f2=S->-S^2;
-hh=S-> sqrt(S^2+V0*one(S))
+f2=S->-S;
+hh=S-> sqrt(S+V0*one(S))
 g=S-> cosh((L1-L0)*hh(S))
 f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 ```
@@ -179,15 +184,15 @@ nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
 
 We can apply a NEP-solver and compute solutions
 ```julia
-(λ1,v1)=quasinewton(nep,displaylevel=1,λ=2.5im,v=ones(n),tol=1e-9);
-(λ2,v2)=quasinewton(nep,displaylevel=1,λ=3.2im,v=ones(n),tol=1e-9)
-(λ3,v3)=quasinewton(nep,displaylevel=1,λ=5im,v=ones(n),tol=1e-9)
-(λ4,v4)=quasinewton(nep,displaylevel=1,λ=6im,v=ones(n),tol=1e-9)
+(λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
+(λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
+(λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
+(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)
 ```
 We can plot the solutions:
 ```julia
 using Plots
-plot(xv,real(v1)/norm(v1))
+plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))
@@ -214,37 +219,34 @@ myerrmeasure=(λ,v) ->
 The  `quasinewton` simulations above converge in less iterations when this
 error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.
 ```julia-repl
-julia> (λ,v)=iar(nep,displaylevel=1,σ=6im,v=ones(n),tol=1e-9,errmeasure=myerrmeasure,Neig=9);
+julia> (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
+                 errmeasure=myerrmeasure,Neig=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
 Iteration:3 conveig:0
 Iteration:4 conveig:0
 Iteration:5 conveig:0
 Iteration:6 conveig:0
-Iteration:7 conveig:1
-Iteration:8 conveig:1
-Iteration:9 conveig:2
-Iteration:10 conveig:3
-Iteration:11 conveig:3
-Iteration:12 conveig:3
-Iteration:13 conveig:4
-Iteration:14 conveig:4
-Iteration:15 conveig:4
-Iteration:16 conveig:6
-Iteration:17 conveig:6
-Iteration:18 conveig:7
-Iteration:19 conveig:7
-Iteration:20 conveig:8
-Iteration:21 conveig:8
+Iteration:7 conveig:0
+Iteration:8 conveig:0
+Iteration:9 conveig:1
+Iteration:10 conveig:1
+Iteration:11 conveig:1
+...
+Iteration:30 conveig:3
+Iteration:31 conveig:3
+Iteration:32 conveig:4
+Iteration:33 conveig:4
+Iteration:34 conveig:4
+Iteration:35 conveig:4
+Iteration:36 conveig:4
+Iteration:37 conveig:4
+Iteration:38 conveig:4
 julia> λ
-9-element Array{Complex{Float64},1}:
-  -5.727047162897789e-17 + 5.910221927320824im
-   6.963744072781171e-17 + 6.256228528917848im
-  1.0970608583497804e-17 + 5.572890322785551im
-  3.1043414565249204e-16 + 6.607721906725883im
-  2.4460145556799514e-16 + 5.247797365668429im
-  -1.952358132366166e-15 + 6.962789407390986im
-   5.980095795388115e-15 + 4.538592358810864im
- -1.8684249682409502e-15 + 7.4860568985227225im
- -3.3202707271314164e-13 + 8.672107296833325im
+5-element Array{Complex{Float64},1}:
+  -34.93072323018405 + 4.272712516424266e-18im
+  -39.14039540604307 + 2.054980381709175e-16im
+ -31.057106551809486 - 3.2616991503097867e-15im
+  -43.66198303378091 - 4.3753274496659e-15im
+ -27.537645678335437 + 4.8158177866759774e-15im
 ```

@@ -119,6 +119,9 @@ The following list describes the NEP with a certain `name` and the associated pa
     in a system of two coupled neurons with multiple time delays,
     SIAM J. Applied Mathematics, 2000. It is also a benchmark example in DDE-BIFTOOL
 
+* `schrodinger_movebc` \\
+    This NEP stems from the discretization of a Schrödinger equation as described in the NEP-PACK online tutorial. The nonlinearity contains ``sinh()``, ``cosh()`` and ``sqrt()``. The optional parameters are size of discretization `n`  and domain and potential description `L0`,`L1`,`α` and `V0`.
+
 * `beam`\\
     The DEP modelling a beam with delayed stabilizing feedback described in R. Van Beeumen, E. Jarlebring, and W. Michiels,
     A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.\\
@@ -134,7 +137,6 @@ The following list describes the NEP with a certain `name` and the associated pa
     These are available in NEP-PACK in two different ways. We have native implementations of some problems (referred to as `nlevp_native_`)
     and the separate `GalleryNLEVP`. The native implementation is preferred since the `GalleryNLEVP`
     interfaces with MATLAB and is therefore considerably slower.
-
 
 * `nlevp_native_gun`\\
     The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format.
@@ -224,6 +226,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "qdep1" => qdep1,
         "qep_fixed_eig" => qep_fixed_eig,
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
+        "schrodinger_movebc" => schrodinger_movebc,
         "neuron0" => neuron0,
         "nlevp_native_gun" => nlevp_native_gun,
         "nlevp_native_hadeler" => nlevp_native_hadeler,
