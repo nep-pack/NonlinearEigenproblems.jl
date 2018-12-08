@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 2 (ABC) · NEP-PACK</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>NEP-PACK</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../methods/">NEP Methods</a></li><li><a class="toctext" href="../types/">NEP Types</a></li><li><a class="toctext" href="../linsolvers/">LinSolver</a></li><li><a class="toctext" href="../transformations/">NEP Transformations</a></li><li><a class="toctext" href="../gallery/">NEP Gallery</a></li><li><a class="toctext" href="../bemtutorial/">Tutorial 1 (BEM)</a></li><li class="current"><a class="toctext" href>Tutorial 2 (ABC)</a><ul class="internal"><li><a class="toctext" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></li><li><a class="toctext" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></li><li><a class="toctext" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></li><li><a class="toctext" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></li><li><a class="toctext" href="#Measuring-error-1">Measuring error</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial 2 (ABC)</a></li></ul><a class="edit-page" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/movebc_tutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial 2 (ABC)</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial:-Application-to-absorbing-boundary-conditions-1" href="#Tutorial:-Application-to-absorbing-boundary-conditions-1">Tutorial: Application to absorbing boundary conditions</a></h1><h2><a class="nav-anchor" id="A-Schrödinger-equation-1" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></h2><p>Consider Schrödinger type eigenvalue problem on the interval <span>$[0,L_1]$</span>,</p><div>\[\begin{eqnarray*}
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 2 (ABC) · NEP-PACK</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>NEP-PACK</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../methods/">NEP Methods</a></li><li><a class="toctext" href="../types/">NEP Types</a></li><li><a class="toctext" href="../linsolvers/">LinSolver</a></li><li><a class="toctext" href="../transformations/">NEP Transformations</a></li><li><a class="toctext" href="../gallery/">NEP Gallery</a></li><li><a class="toctext" href="../bemtutorial/">Tutorial 1 (BEM)</a></li><li class="current"><a class="toctext" href>Tutorial 2 (ABC)</a><ul class="internal"><li><a class="toctext" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></li><li><a class="toctext" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></li><li><a class="toctext" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></li><li><a class="toctext" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></li><li><a class="toctext" href="#Measuring-error-1">Measuring error</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial 2 (ABC)</a></li></ul><a class="edit-page" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/movebc_tutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial 2 (ABC)</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial:-Application-to-absorbing-boundary-conditions-1" href="#Tutorial:-Application-to-absorbing-boundary-conditions-1">Tutorial: Application to absorbing boundary conditions</a></h1><h2><a class="nav-anchor" id="A-Schrödinger-equation-1" href="#A-Schrödinger-equation-1">A Schrödinger equation</a></h2><p>We consider the  Schrödinger type eigenvalue problem on the interval <span>$[0,L_1]$</span>,</p><div>\[\begin{eqnarray*}
  \left(
  \frac{\partial^2}{\partial x^2}
--V(x)-\lambda^2
+-V(x)-\lambda
 \right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_1]\\
    \psi(0)&amp;=&amp;0\\
    \psi(L_1)&amp;=&amp;0.
@@ -10,19 +10,19 @@
 \begin{cases}
 1+\sin(\alpha x)  &amp; x\in[0,L_0]=[0,1]\\
 V_0 &amp; x\in(L_0,L_1)=(1,8)
-\end{cases}\]</div><p>where <span>$α$</span> is large, i.e., the potential has high oscillations in one part of the domain.</p><br>
-<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300><p>This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP.</p><h2><a class="nav-anchor" id="Derivation-of-reduced-domain-differential-equation-1" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_1$</span> to depend on <span>$λ$</span>. The technique is called absorbing boundary conditions.</p><p>We first note that we can transform the problem to first order form</p><div>\[  \frac{d}{dx}
+\end{cases}\]</div><p>where <span>$α$</span> is large, i.e., the potential has high frequency oscillations in one part of the domain.</p><br>
+<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300><p>This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP.</p><h2><a class="nav-anchor" id="Derivation-of-reduced-domain-differential-equation-1" href="#Derivation-of-reduced-domain-differential-equation-1">Derivation of reduced domain differential equation</a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_1$</span> to depend on <span>$λ$</span>. The technique is called <em>absorbing boundary conditions</em>.</p><p>We first note that we can transform the problem to first order form</p><div>\[  \frac{d}{dx}
 \begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
 =
 \begin{bmatrix}
 0 &amp; 1\\
-\lambda^2+V(x) &amp; 0
+\lambda+V(x) &amp; 0
 \end{bmatrix}
-\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix},\]</div><p>We now apply this in the domain <span>$[L_0,L_1]$</span>, the fact that <span>$V(x)$</span> is constant allows us to directly express the solution using the matrix exponential</p><div>\[\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
+\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix},\]</div><p>The potential <span>$V(x)$</span> is constant in the domain <span>$[L_0,L_1]$</span>. This  allows us to directly express the solution using the matrix exponential</p><div>\[\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
 =\exp\left((x-L_0)
 \begin{bmatrix}
 0 &amp; 1\\
-\lambda^2+V_0 &amp; 0
+\lambda+V_0 &amp; 0
 \end{bmatrix}
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</div><p>when <span>$x\in[L_0,L_1]$</span>. The boundary condition <span>$\psi(L_1)=0$</span> can be imposed as</p><div>\[0=\psi(L_1)=\begin{bmatrix}1 &amp; 0\end{bmatrix}
@@ -30,19 +30,19 @@ V_0 &amp; x\in(L_0,L_1)=(1,8)
 =\begin{bmatrix}1 &amp; 0\end{bmatrix}\exp\left((L_1-L_0)
 \begin{bmatrix}
 0 &amp; 1\\
-\lambda^2+V_0 &amp; 0
+\lambda+V_0 &amp; 0
 \end{bmatrix}
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</div><p>By explicitly computing the matrix exponential of the antidiagonal two-by-two matrix we obtain the relation</p><div>\[0=
 g(λ)\psi(L_0)+
-f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)\]</div><div>\[f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ^2+V_0}\right)}{\sqrt{λ^2+V_0}}.\]</div><p>We now observe that the differential equation for the domain <span>$[0,L_0]$</span> is</p><div>\[\begin{eqnarray*}
+f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{λ+V_0}\right)\]</div><div>\[f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ+V_0}\right)}{\sqrt{λ+V_0}}.\]</div><p>A solution to the original boundary value problem must satisfy the condition <span>$0=g(λ)\psi(L_0)+f(λ)\psi&#39;(L_0)$</span> in the middle of the domain. If we now consider only the domain <span>$[0,L_0]$</span>, we see that the function must satisfy</p><div>\[\begin{eqnarray*}
  \left(
  \frac{\partial^2}{\partial x^2}
--V(x)-\lambda^2
+-V(x)-\lambda
 \right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_0]\\
    \psi(0)&amp;=&amp;0\\
    g(λ)\psi(L_0)+f(λ)\psi&#39;(L_1)&amp;=&amp;0.
-\end{eqnarray*}\]</div><p>which is a boundary value problem with a mixed boundary condition (since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>).</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The λ-dependent boundary value problem can now be discretized in the domain <span>$[0,L_0]$</span> with usual techniques, e.g., with finite difference as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. Approximation of the <span>$\lambda$</span>-dependent boundary condition can be achieved with the a one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
+\end{eqnarray*}\]</div><p>which is a boundary value problem with a mixed boundary condition (since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>). In general, the solutions to the original problem are the same as the solutions on the reduced domain.</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The λ-dependent boundary value problem can now be discretized in the domain <span>$[0,L_0]$</span> with usual techniques, e.g., with finite difference as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. Approximation of the <span>$\lambda$</span>-dependent boundary condition can be achieved with the a one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
 -2\psi(x_{n-1})
 +\frac12\psi(x_{n-2})\right)+O(h^2)\]</div><p>Let</p><div>\[  D_n=
 \frac1{h^2}
@@ -52,7 +52,7 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 0 &amp; 1 &amp;-2 &amp; 1\\
 0 &amp; \cdots &amp; 0 &amp; 0
 \end{bmatrix}\textrm{ and }
-\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as <span>$M(λ)v=0$</span> where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ^2\underline{I}_n
+\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as <span>$M(λ)v=0$</span> where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
 +g(λ)e_ne_n^T+f(λ)F\]</div><p>and</p><div>\[F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
 xv=Vector(range(0,stop=L0,length=1000))
 h=xv[2]-xv[1];
@@ -64,51 +64,48 @@ Vn=spdiagm(0 =&gt; [V.(xv[1:end-1]);0]);
 In=spdiagm(0 =&gt; [ones(n-1);0])
 F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
 G=sparse([n],[n],[1]);</code></pre><p>The corresponding functions in the SPMF</p><pre><code class="language-julia">f1=S-&gt;one(S);
-f2=S-&gt;-S^2;
-hh=S-&gt; sqrt(S^2+V0*one(S))
+f2=S-&gt;-S;
+hh=S-&gt; sqrt(S+V0*one(S))
 g=S-&gt; cosh((L1-L0)*hh(S))
 f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>In Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrices <code>A</code> are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. Now we can create the NEP and solve it:</p><pre><code class="language-julia">using NonlinearEigenproblems
-nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);</code></pre><p>We can apply a NEP-solver and compute solutions</p><pre><code class="language-julia">(λ1,v1)=quasinewton(nep,displaylevel=1,λ=2.5im,v=ones(n),tol=1e-9);
-(λ2,v2)=quasinewton(nep,displaylevel=1,λ=3.2im,v=ones(n),tol=1e-9)
-(λ3,v3)=quasinewton(nep,displaylevel=1,λ=5im,v=ones(n),tol=1e-9)
-(λ4,v4)=quasinewton(nep,displaylevel=1,λ=6im,v=ones(n),tol=1e-9)</code></pre><p>We can plot the solutions:</p><pre><code class="language-julia">using Plots
-plot(xv,real(v1)/norm(v1))
+nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);</code></pre><p>We can apply a NEP-solver and compute solutions</p><pre><code class="language-julia">(λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
+(λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
+(λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
+(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)</code></pre><p>We can plot the solutions:</p><pre><code class="language-julia">using Plots
+plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
 <img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a way to user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error:</p><pre><code class="language-julia">myerrmeasure=(λ,v) -&gt;
     norm(compute_Mlincomb(nep,λ,v))/
        (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
-</code></pre><p>The  <code>quasinewton</code> simulations above converge in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,displaylevel=1,σ=6im,v=ones(n),tol=1e-9,errmeasure=myerrmeasure,Neig=9);
+</code></pre><p>The  <code>quasinewton</code> simulations above converge in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
+                 errmeasure=myerrmeasure,Neig=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
 Iteration:3 conveig:0
 Iteration:4 conveig:0
 Iteration:5 conveig:0
 Iteration:6 conveig:0
-Iteration:7 conveig:1
-Iteration:8 conveig:1
-Iteration:9 conveig:2
-Iteration:10 conveig:3
-Iteration:11 conveig:3
-Iteration:12 conveig:3
-Iteration:13 conveig:4
-Iteration:14 conveig:4
-Iteration:15 conveig:4
-Iteration:16 conveig:6
-Iteration:17 conveig:6
-Iteration:18 conveig:7
-Iteration:19 conveig:7
-Iteration:20 conveig:8
-Iteration:21 conveig:8
+Iteration:7 conveig:0
+Iteration:8 conveig:0
+Iteration:9 conveig:1
+Iteration:10 conveig:1
+Iteration:11 conveig:1
+...
+Iteration:30 conveig:3
+Iteration:31 conveig:3
+Iteration:32 conveig:4
+Iteration:33 conveig:4
+Iteration:34 conveig:4
+Iteration:35 conveig:4
+Iteration:36 conveig:4
+Iteration:37 conveig:4
+Iteration:38 conveig:4
 julia&gt; λ
-9-element Array{Complex{Float64},1}:
-  -5.727047162897789e-17 + 5.910221927320824im
-   6.963744072781171e-17 + 6.256228528917848im
-  1.0970608583497804e-17 + 5.572890322785551im
-  3.1043414565249204e-16 + 6.607721906725883im
-  2.4460145556799514e-16 + 5.247797365668429im
-  -1.952358132366166e-15 + 6.962789407390986im
-   5.980095795388115e-15 + 4.538592358810864im
- -1.8684249682409502e-15 + 7.4860568985227225im
- -3.3202707271314164e-13 + 8.672107296833325im</code></pre><footer><hr/><a class="previous" href="../bemtutorial/"><span class="direction">Previous</span><span class="title">Tutorial 1 (BEM)</span></a></footer></article></body></html>
+5-element Array{Complex{Float64},1}:
+  -34.93072323018405 + 4.272712516424266e-18im
+  -39.14039540604307 + 2.054980381709175e-16im
+ -31.057106551809486 - 3.2616991503097867e-15im
+  -43.66198303378091 - 4.3753274496659e-15im
+ -27.537645678335437 + 4.8158177866759774e-15im</code></pre><footer><hr/><a class="previous" href="../bemtutorial/"><span class="direction">Previous</span><span class="title">Tutorial 1 (BEM)</span></a></footer></article></body></html>
