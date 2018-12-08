@@ -175,21 +175,16 @@ hh=S-> sqrt(S+V0*one(S))
 g=S-> cosh((L1-L0)*hh(S))
 f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 ```
-In Julia, `sinh(A)` and `cosh(A)` for matrices `A` are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. Now
-we can create the NEP and solve it:
+In Julia, `sinh(A)` and `cosh(A)` for matrices `A` are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. The NEP can now be created and solved as follows
 ```julia
 using NonlinearEigenproblems
 nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
-```
-
-We can apply a NEP-solver and compute solutions
-```julia
 (λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
 (λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
 (λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
 (λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)
 ```
-We can plot the solutions:
+For sanity check, the are visualized in this way
 ```julia
 using Plots
 plot(xv,v1/norm(v1))
