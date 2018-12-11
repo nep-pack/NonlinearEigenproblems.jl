@@ -1,3 +1,4 @@
+
 # Tutorial: Application to absorbing boundary conditions
 ## A Schrödinger equation
 
@@ -80,8 +81,8 @@ as
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi'(L_0)\end{bmatrix}.
 ```
-By explicitly computing the matrix exponential of the antidiagonal two-by-two
-matrix we obtain the relation
+By explicitly using [the hyperbolic functions formula matrix exponential of the antidiagonal
+two-by-two matrix](https://math.stackexchange.com/q/3030982) we obtain the relation
 ```math
 0=
 g(λ)\psi(L_0)+
@@ -110,9 +111,9 @@ function must satisfy
 ```
 which is a boundary value problem
 with a mixed boundary condition (since it contains
-both ``\psi(L_0)`` and ``\psi'(L_0)``). In general, the
+both ``\psi(L_0)`` and ``\psi'(L_0)``). The
 solutions to the original problem are the same as the
-solutions on the reduced domain.
+solutions on the reduced domain (except for some special cases).
 
 
 ## Discretization of the λ-dependent boundary value problem
@@ -122,7 +123,7 @@ with usual techniques, e.g., with finite difference as follows.
 
 Let $x_k=hk$, $k=1,\ldots n$ and $h=1/n$ such that $x_1=h$ and
 $x_n=1=L_0$. Approximation of the $\lambda$-dependent boundary condition
-can be achieved with the a one-sided second order
+can be found with the one-sided second order
 difference scheme
 ```math
    0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
@@ -138,10 +139,14 @@ Let
 1 & \ddots &1& \\
 0 & 1 &-2 & 1\\
 0 & \cdots & 0 & 0
-\end{bmatrix}\textrm{ and }
+\end{bmatrix}\;\textrm{ and }\;
 \underline{I}_n=\begin{bmatrix}1 &\\ &\ddots\\ &&1 \\  & &&0\end{bmatrix}
 ```
-Then the boundary value problem can expressed as ``M(λ)v=0`` where
+Then the boundary value problem can expressed as
+```math
+M(λ)v=0
+```
+where
 ```math
 M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
 +g(λ)e_ne_n^T+f(λ)F
@@ -204,7 +209,12 @@ For this application, the matrix ``M(λ)`` has very large elements if $n$ is lar
 This makes the default way to measure the error a bit misleading. We now
 show how to specify a way to user-defined way to measure the error.
 
-The following function provides an estimate of the backward error:
+The following function provides an estimate of the backward error
+```math
+e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|+|λ|
++|g(λ)|+|f(λ)|\|F\|)}
+```
+which we define as a function
 ```julia
 myerrmeasure=(λ,v) ->
     norm(compute_Mlincomb(nep,λ,v))/
