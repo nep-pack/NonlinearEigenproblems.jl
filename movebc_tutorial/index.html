@@ -33,7 +33,7 @@ V_0 &amp; x\in(L_0,L_1)=(1,8)
 \lambda+V_0 &amp; 0
 \end{bmatrix}
 \right)
-\begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</div><p>By explicitly computing the matrix exponential of the antidiagonal two-by-two matrix we obtain the relation</p><div>\[0=
+\begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</div><p>By explicitly using <a href="https://math.stackexchange.com/q/3030982">the hyperbolic functions formula matrix exponential of the antidiagonal two-by-two matrix</a> we obtain the relation</p><div>\[0=
 g(λ)\psi(L_0)+
 f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{λ+V_0}\right)\]</div><div>\[f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ+V_0}\right)}{\sqrt{λ+V_0}}.\]</div><p>A solution to the original boundary value problem must satisfy the condition <span>$0=g(λ)\psi(L_0)+f(λ)\psi&#39;(L_0)$</span> in the middle of the domain. If we now consider only the domain <span>$[0,L_0]$</span>, we see that the function must satisfy</p><div>\[\begin{eqnarray*}
  \left(
@@ -42,7 +42,7 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 \right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_0]\\
    \psi(0)&amp;=&amp;0\\
    g(λ)\psi(L_0)+f(λ)\psi&#39;(L_1)&amp;=&amp;0.
-\end{eqnarray*}\]</div><p>which is a boundary value problem with a mixed boundary condition (since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>). In general, the solutions to the original problem are the same as the solutions on the reduced domain.</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The λ-dependent boundary value problem can now be discretized in the domain <span>$[0,L_0]$</span> with usual techniques, e.g., with finite difference as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. Approximation of the <span>$\lambda$</span>-dependent boundary condition can be achieved with the a one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
+\end{eqnarray*}\]</div><p>which is a boundary value problem with a mixed boundary condition (since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>). The solutions to the original problem are the same as the solutions on the reduced domain (except for some special cases).</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The λ-dependent boundary value problem can now be discretized in the domain <span>$[0,L_0]$</span> with usual techniques, e.g., with finite difference as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. Approximation of the <span>$\lambda$</span>-dependent boundary condition can be found with the one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
 -2\psi(x_{n-1})
 +\frac12\psi(x_{n-2})\right)+O(h^2)\]</div><p>Let</p><div>\[  D_n=
 \frac1{h^2}
@@ -51,8 +51,8 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 1 &amp; \ddots &amp;1&amp; \\
 0 &amp; 1 &amp;-2 &amp; 1\\
 0 &amp; \cdots &amp; 0 &amp; 0
-\end{bmatrix}\textrm{ and }
-\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as <span>$M(λ)v=0$</span> where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
+\end{bmatrix}\;\textrm{ and }\;
+\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as</p><div>\[M(λ)v=0\]</div><p>where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
 +g(λ)e_ne_n^T+f(λ)F\]</div><p>and</p><div>\[F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
 xv=Vector(range(0,stop=L0,length=1000))
 h=xv[2]-xv[1];
@@ -77,7 +77,8 @@ plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
-<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a way to user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error:</p><pre><code class="language-julia">myerrmeasure=(λ,v) -&gt;
+<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a way to user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error</p><div>\[e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|+|λ|
++|g(λ)|+|f(λ)|\|F\|)}\]</div><p>which we define as a function</p><pre><code class="language-julia">myerrmeasure=(λ,v) -&gt;
     norm(compute_Mlincomb(nep,λ,v))/
        (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
 </code></pre><p>The  <code>quasinewton</code> simulations above converge in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
