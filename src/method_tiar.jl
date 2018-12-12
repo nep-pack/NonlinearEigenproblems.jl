@@ -77,7 +77,7 @@ function tiar(
     y  = zeros(T,n,m+1);
     α=Array{T,1}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
-    err = ones(m+1,m+1);
+    err = NaN*ones(m+1,m+1);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
     Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);
     a[1,1,1]=one(T);

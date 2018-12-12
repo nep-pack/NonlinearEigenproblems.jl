@@ -1,6 +1,8 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, DelimitedFiles, PyPlot
 import ..NEPSolver.ilan;
+import ..NEPSolver.tiar;
 include("../src/method_ilan.jl");
+include("../src/method_tiar.jl");
 
 # load the Voss symmetric DEP
 n=320; nep=nep_gallery("dep_symm_double",n)
@@ -28,7 +30,7 @@ for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
 ylim(ymax=1)
 
 # now export the error-matrix that will be loaded in tikz
-err_print=ones(m,m+1)
+err_print=NaN*ones(m,m+1)
 err_print[1:m,1]=1:m
 err_print[:,2:m+1]=err
 writedlm("err_hist.csv",err_print,",")

@@ -63,7 +63,7 @@ function iar(
     y = zeros(T,n,m+1);
     α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
-    err = ones(m,m);
+    err = NaN*ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
     # temp var for plot
     conv_eig_hist=zeros(Int,m+1)

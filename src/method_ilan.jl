@@ -105,7 +105,7 @@ function ilan(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err=ones(m,m);
     λ=zeros(T,m+1);
-    WW=zeros(T,n,m+1) # TODO: DELETE THIS LINE
+    #WW=zeros(T,n,m+1) # TODO: DELETE THIS LINE
 
     # temp var for plot
     conv_eig_hist=zeros(Int,m+1)
@@ -118,7 +118,7 @@ function ilan(
     Q[:,1]=v/norm(v)
     ω[1]=Q[:,1]⋅compute_Mlincomb(nep,0,hcat(Q[:,1],Q[:,1]),[0,1]);
     V[:,1]=Q[:,1];
-    WW[:,1]=Q[:,1]; # TODO: DELETE THIS LINE
+    #WW[:,1]=Q[:,1]; # TODO: DELETE THIS LINE
 
     k=1; conv_eig=0;
     Av=get_Av(nep)
@@ -142,7 +142,7 @@ function ilan(
 
         H[k,k]=α/ω[k]
         if k>1 H[k-1,k]=β/ω[k-1] end
-        #Qn[:,1:k] .-= H[k,k]*view(Q,:,1:k);
+        #Qn[:,TODO1:k] .-= H[k,k]*view(Q,:,1:k);
         mul_and_sub!(view(Qn,:,1:k),view(Q,:,1:k),H[k,k])
         #if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
         if k>1 mul_and_sub!(view(Qn,:,1:k),view(Qp,:,1:k),H[k-1,k]) end
@@ -159,14 +159,16 @@ function ilan(
         end
         ω[k+1]=ω[k+1]/H[k+1,k]^2;
         V[:,k+1]=Qn[:,1];
-        WW[:,k+1]=Qn[:,1]; # TODO: DELETE THIS LINE
+        #WW[:,k+1]=Qn[:,1]; # TODO: DELETE THIS LINE
 
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
         # extract eigenpair approximation
-        compute_eig=false
+        compute_eig=true
         if (compute_eig==true)&&(rem(k,check_error_every)==0)
             VV=view(V,:,1:k+1)
+            #VV,_,_=svd(VV)
+
             # Create a projected NEP
             mm=size(VV,2)
             pnep=create_proj_NEP(nep,mm); # maxsize=mm
@@ -184,7 +186,7 @@ function ilan(
 
     end
     k=k-1
-    return V, H, ω[1:end-1], HH, conv_eig_hist, WW
+    return V, H, ω[1:end-1], HH, conv_eig_hist#, WW
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)

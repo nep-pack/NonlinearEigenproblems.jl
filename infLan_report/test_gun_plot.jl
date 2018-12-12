@@ -1,9 +1,13 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot, DelimitedFiles
 import ..NEPSolver.ilan;
 import ..NEPSolver.tiar;
+import ..NEPSolver.iar;
+
 
 include("../src/method_ilan.jl");
 include("../src/method_tiar.jl");
+include("../src/method_iar.jl");
+
 nep = nep_gallery("nlevp_native_gun")
 
 # manually loading the matrices
@@ -52,7 +56,7 @@ DD[:,3]=fD_sqrt(0,2*mm+2,a1,b1);
 DD[:,4]=fD_sqrt(0,2*mm+2,a2,b2);
 Dnep=DerSPMF(nep,0,DD)
 
-err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
+err_orig = (l,v) -> norm(K*v-l*M*v+sqrt(l)*W1*v+sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
 
 V,H,ω,HH=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
@@ -77,7 +81,7 @@ for j=1:p semilogy(1:m,err[1:m,j],color="red",linestyle="-") end
 ylim(ymax=1)
 
 # now export the error-matrix that will be loaded in tikz
-err_print=ones(m,m+1)
+err_print=NaN*ones(m,m+1)
 err_print[1:m,1]=1:m
 err_print[:,2:m+1]=err
 writedlm("gun_err_hist.csv",err_print,",")

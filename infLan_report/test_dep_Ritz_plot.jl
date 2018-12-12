@@ -7,15 +7,20 @@ include("../src/method_iar.jl");
 Random.seed!(1) # reset the random seed
 
 # load the Voss symmetric DEP
-n=1000
+n=300
 Random.seed!(1) # reset the random seed
 K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
-A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
-A2 = sparse(K, J, rand(3*n-2)); A2 = A2+A2';
+A1 = sparse(K, J, n*rand(3*n-2)); A1 = A1'+A1;
+A2 = sparse(K, J, n*rand(3*n-2)); A2 = A2'+A2;
+
 nep=DEP([A1,A2],[0,1])
 
+# define the error function
+nA1=opnorm(nep.A[1],Inf); nA2=opnorm(nep.A[2],Inf)
+rel_err=(λ,z)->compute_resnorm(nep,λ,z)/(abs(λ)+abs(exp(nep.tauv[1]))*nA1+abs(exp(nep.tauv[2]))*nA2);
+
 # compute exact eigenvalues
-λ1,_,err,V1,_,H1=iar(nep;Neig=100,displaylevel=1,maxit=150,tol=eps()*100,check_error_every=1)
+λ1,_,err,V1,_,H1=iar(nep;Neig=100,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1,errmeasure=rel_err)
 
 m=100
 V2,H2,ω2,_,_,WW=ilan(nep;Neig=10,displaylevel=1,maxit=m,tol=eps()*100,check_error_every=1)
@@ -32,18 +37,39 @@ set_projectmatrices!(pnep,V,V);
 
 # plot the eigenvalues and Ritz values
 figure()
-scatter(real(λ1),imag(λ1),marker="o",c=:red)        # original eigenvalues
-scatter(real(λ2),imag(λ2),marker="d",c=:none)       # Ritz values
-scatter(real(λ3),imag(λ3),marker="s",c=:none)       # eigenvalues of proj problem
+mm=100;
 
-# define the error function
+# filter converged Ritz pairs
+F=eigen(H2[1:mm,1:mm])
+λt=1 ./ F.values; z=F.vectors;
+λ2=[]
+for i=1:mm
+    if rel_err(λt[i],WW[:,1:mm]*z[:,i])<1e-12
+        push!(λ2,λt[i])
+    end
+end
 
-nA1=opnorm(nep.A[1],Inf); nA2=opnorm(nep.A[2],Inf)
-rel_err=(λ,z)->compute_resnorm(nep,λ,z)/(abs(λ)+abs(exp(nep.tauv[1]))*nA1+abs(exp(nep.tauv[2]))*nA2);
+F=eigen(H3[1:mm,1:mm])
+λt=1 ./ F.values; z=F.vectors;
+λ3=[]
+for i=1:mm
+    if rel_err(λt[i],V*(V3[1:mm,1:mm]*z[:,i]))<1e-12
+        push!(λ3,λt[i])
+    end
+end
+
+plot(real(λ1),imag(λ1),marker="+",markerfacecolor=:none,c=:black,linestyle=:none)       # original eigenvalues
+plot(real(λ2),imag(λ2),marker="d",markerfacecolor=:none,c=:red,linestyle=:none)         # Ritz values
+plot(real(λ3),imag(λ3),marker="o",markerfacecolor=:none,c=:blue,linestyle=:none)        # eigenvalues of proj NonlinearEigenproblems
+
+# save in a file the eigenvalues and Ritz pairs
+writedlm("Ritz_comp_l1.csv",[real(λ1) imag(λ1)],",")
+writedlm("Ritz_comp_l2.csv",[real(λ2) imag(λ2)],",")
+writedlm("Ritz_comp_l3.csv",[real(λ3) imag(λ3)],",")
 
 # compute and plot the different convergence histories
 # for ilan
-err1=ones(m,m)
+err1=NaN*ones(m,m)
 for j=1:m
     F=eigen(H2[1:j,1:j])
     λ=1 ./ F.values; z=F.vectors;
@@ -53,7 +79,7 @@ for j=1:m
 end
 
 # for the projected problem
-err2=ones(m,m)
+err2=NaN*ones(m,m)
 for j=1:m
     F=eigen(H3[1:j,1:j])
     λ=1 ./ F.values; z=F.vectors;
@@ -72,3 +98,14 @@ for j=1:m semilogy(1:m,err1[1:m,j],color="red",linestyle="-") end
 for j=1:m semilogy(1:m,err2[1:m,j],color="black",linestyle="-") end
 ylim(ymax=1)
 1
+
+# now export the error-matrix that will be loaded in tikz
+err_print=NaN*ones(m,m+1)
+err_print[1:m,1]=1:m
+err_print[:,2:m+1]=err1
+writedlm("Ritz_comp_err1.csv",err_print,",")
+
+err_print=NaN*ones(m,m+1)
+err_print[1:m,1]=1:m
+err_print[:,2:m+1]=err2
+writedlm("Ritz_comp_err2.csv",err_print,",")
