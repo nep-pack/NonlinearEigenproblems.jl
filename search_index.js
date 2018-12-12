@@ -53,7 +53,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Your own NEP nonlinearity",
     "category": "section",
-    "text": "If you work on an application and you think the algorithms provided here might be useful, you should first check if your problem can be easily expressed as follows. It helps your life a lot if your problem can be expressed as a (short) sum of products of matrices and functions. For instance, a problem with three termsM(λ) = A+λB+e^sin(λ2)CSum of products of matrices and functions are represented by SPMF in NEP-PACK. The problem above can be created byjulia>  A=(1:4)*(1:4)\'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);\njulia> f1= λ-> one(λ);\njulia> f2= λ-> λ;\njulia> f3= λ-> exp(sin(λ/2))\njulia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);\njulia> λ,v=quasinewton(nep,λ=3)\n(3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])Note that the functions f1,f2 and f3 have to be defined for scalar values and for matrices (in the matrix function sense, not elementwise sense).As usual, you can check that we computed a sensible solution:julia> (A+B*λ+C*exp(sin(λ/2)))*v\n4-element Array{Complex{Float64},1}:\n  -6.586145128765412e-14 + 0.0im\n  2.8285461200559146e-14 + 0.0im\n -4.1550357082583515e-14 + 0.0im\n  -8.815768150428286e-15 + 0.0im"
+    "text": "As an application researchers, you may first want to express your problem in the following form since this gives access to several efficient routines to access the NEP. A problem that can be expressed as a (short) sum of products of matrices and functions is called represented by the type SPMF in NEP-PACK. For instance, a problem with three termsM(λ) = A+λB+e^sin(λ2)Ccan be created byjulia>  A=(1:4)*(1:4)\'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);\njulia> f1= λ-> one(λ);\njulia> f2= λ-> λ;\njulia> f3= λ-> exp(sin(λ/2))\njulia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);The NEP can now be solved with many algorithms, e.g.,julia> λ,v=quasinewton(nep,λ=3)\n(3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])Note that the functions f1,f2 and f3 have to be defined for scalar values and for matrices (in the matrix function sense, not elementwise sense).As usual, you can check that we computed a sensible solution:julia> (A+B*λ+C*exp(sin(λ/2)))*v\n4-element Array{Complex{Float64},1}:\n  -6.586145128765412e-14 + 0.0im\n  2.8285461200559146e-14 + 0.0im\n -4.1550357082583515e-14 + 0.0im\n  -8.815768150428286e-15 + 0.0im"
 },
 
 {
@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "What now?",
     "category": "section",
-    "text": "Now you are ready to have a look at the examples in NEP methods and  NEP Gallery.(Image: To the top)"
+    "text": "Now you are ready to try out the tutorial on artificial boundary conditions or on the boundary element method or have a look at the examples in NEP methods and  NEP Gallery.(Image: To the top)"
 },
 
 {
