@@ -164,7 +164,7 @@ function ilan(
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
         # extract eigenpair approximation
-        compute_eig=true
+        compute_eig=false
         if (compute_eig==true)&&(rem(k,check_error_every)==0)
             VV=view(V,:,1:k+1)
             #VV,_,_=svd(VV)
