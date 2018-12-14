@@ -164,24 +164,26 @@ documentation, e.g., `?blocknewton`.
 
 # Your own NEP nonlinearity
 
-If you work on an application and you think the algorithms
-provided here might be useful, you should first check
-if your problem can be easily expressed as follows.
-It helps your life a lot if your problem can be expressed
-as a (short) sum of products of matrices and functions.
-For instance, a problem with three terms
+As an application researchers, you may first want to try
+express your problem in the following form since this
+gives access to several efficient routines
+to access the NEP. A problem that can be expressed
+as a (short) sum of products of matrices and functions
+is called represented by the type [`SPMF`](types.md#SPMF-1)
+in NEP-PACK. For instance, a problem with three terms
 ```math
 M(λ) = A+λB+e^{\sin(λ/2)}C
 ```
-Sum of products of matrices and functions are represented
-by [`SPMF`](types.md#spmf) in NEP-PACK. The problem
-above can be created by
+can be created by
 ```julia-repl
 julia>  A=(1:4)*(1:4)'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);
 julia> f1= λ-> one(λ);
 julia> f2= λ-> λ;
 julia> f3= λ-> exp(sin(λ/2))
 julia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);
+```
+The NEP can now be solved with many algorithms, e.g.,
+```julia-repl
 julia> λ,v=quasinewton(nep,λ=3)
 (3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])
 ```
@@ -200,7 +202,11 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
 
 # What now?
 
-Now you are ready to have a look at the examples
+Now you are ready to try out
+[the tutorial on artificial boundary conditions](movebc_tutorial.md)
+or on
+[the boundary element method](bemtutorial.md)
+or have a look at the examples
 in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC)

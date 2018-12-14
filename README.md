@@ -5,7 +5,8 @@
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
 *<p align="center">M(λ)v=0</p>*
-where *M* is an *nxn*-matrix depending on a parameter. This package aims to provide state-of-the-art algorithms to solve this problem, as well as a framework to formulate applications and easy access to benchmark problems. This currently includes (but are not restricted to) Newton-type methods, Subspace methods, Krylov methods, contour integral methods, block methods, companion matrix approaches. Problem transformation techniques such as scaling, shifting, deflating are also natively supported by the package.  
+where *M* is an *nxn*-matrix depending on a parameter. This package aims to provide state-of-the-art algorithms to solve this problem, as well as a framework to formulate applications and easy access to benchmark problems. This currently includes (but is not restricted to) Newton-type methods, Subspace methods, Krylov methods, contour integral methods, block methods, companion matrix approaches. Problem transformation techniques such as scaling, shifting, deflating are also natively supported by the package.  
+
 
 # How to use it?
 
@@ -19,7 +20,7 @@ After that, check out "Getting started" in
 
 <p align="center"><a href="https://nep-pack.github.io/NonlinearEigenproblems.jl">NEP-PACK online user's guide</a></p>
 
-
+or read the preprint: https://arxiv.org/abs/1811.09592
 
 ## Older Julia versions:
 
@@ -74,10 +75,11 @@ If you find this software useful please cite
 
 ```bibtex
 @Misc{,
-  author = 	 {E. Jarlebring, G. Mele, E. Ringh, P. Upadhyaya},
-  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenvalue problems},
+  author = 	 {E. Jarlebring, M. Bennedich, G. Mele, E. Ringh, P. Upadhyaya},
+  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenproblems},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
+  eprint = {arXiv:1811.09592},
 }
 ```
 If you use a specific method, please also give credit to the algorithm researcher.

@@ -1,3 +1,6 @@
+# This file contains code for native implementations of some of the
+# benchmarks in NLEIGS
+
 function nlevp_native_gun()
     gunbase=joinpath(dirname(@__FILE__()),
       "converted_nlevp", "gun_")
@@ -185,7 +188,44 @@ function nlevp_native_pdde_stability(n=15)
     Av = [E[p,p],F,E];
 
     return PEP(Av)
+end
 
 
+
+
+function toeplitz(v::AbstractVector)
+    # This can be replaced with the types in ToeplitzMatrices
+    # once the package is more stable (e.g. matrix matrix products works in general).
+    n=length(v);
+    T=zeros(eltype(v),n,n);
+    for i=1:n
+        for j=1:(n-i+1)
+            T[i,j+i-1]=v[j]
+            T[j+i-1,i]=v[j]
+        end
+    end
+    if (issparse(v))
+        return SparseMatrixCSC(T)
+    else
+        return T;
+    end
+
+end
+
+function nlevp_native_loaded_string(n=20,kappa=1,m=1)
+    # See Gallery for documentation
+    A0 = toeplitz(SparseVector([2.0*n;-n;zeros(n-2)]));
+    A1 = zeros(n,n); A1[n,n] = n-A0[n,n];
+    B0 = toeplitz(SparseVector([4/(6*n);1/(6*n);zeros(n-2)]));
+    B1 = zeros(n,n); B1[n,n] = 2/(6*n)-B0[n,n]
+    C = zeros(n,n); C[n,n] = kappa;
+    σ=kappa/m;
+    fv=[S->one(S), S->-S, S -> (S-σ*one(S))\S]
+
+    spmf1=SPMF_NEP([A0,B0],fv[1:2]);
+    spmf2=SPMF_NEP([A1,B1,C],fv);  # This can be a Low-Rank SPMF
+
+    nep=SPMFSumNEP(spmf1,spmf2)
+    return nep;
 
 end

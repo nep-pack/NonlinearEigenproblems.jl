@@ -28,6 +28,7 @@ module Gallery
     include("gallery_extra/distributed_example.jl")
     include("gallery_extra/periodic_dde.jl")
     include("gallery_extra/NLEVP_native.jl")
+    include("gallery_extra/bem_hardcoded/bem_hardcoded.jl");
 
   """
      nep=nep_gallery(name)
@@ -118,6 +119,9 @@ The following list describes the NEP with a certain `name` and the associated pa
     in a system of two coupled neurons with multiple time delays,
     SIAM J. Applied Mathematics, 2000. It is also a benchmark example in DDE-BIFTOOL
 
+* `schrodinger_movebc` \\
+    This NEP stems from the discretization of a Schrödinger equation as described in the NEP-PACK online tutorial. The nonlinearity contains ``sinh()``, ``cosh()`` and ``sqrt()``. The optional parameters are size of discretization `n`  and domain and potential description `L0`,`L1`,`α` and `V0`.
+
 * `beam`\\
     The DEP modelling a beam with delayed stabilizing feedback described in R. Van Beeumen, E. Jarlebring, and W. Michiels,
     A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.\\
@@ -133,7 +137,6 @@ The following list describes the NEP with a certain `name` and the associated pa
     These are available in NEP-PACK in two different ways. We have native implementations of some problems (referred to as `nlevp_native_`)
     and the separate `GalleryNLEVP`. The native implementation is preferred since the `GalleryNLEVP`
     interfaces with MATLAB and is therefore considerably slower.
-
 
 * `nlevp_native_gun`\\
     The benchmark problem from the NLEVP-collection called "gun", represented in the native NEP-PACK format.
@@ -165,7 +168,7 @@ The following list describes the NEP with a certain `name` and the associated pa
 
 * `nlevp_native_hadeler`\\
     The benchmark problem from the NLEVP-collection called "hadeler", represented in the native NEP-PACK format. The problem is of the form ``M(λ)=(e^λ-1)B+A0+A2λ^2``. \\
- Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.\\
+    Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.\\
 
 * `nlevp_native_pdde_stability`\\
     The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format.
@@ -175,6 +178,15 @@ The following list describes the NEP with a certain `name` and the associated pa
     TU Braunschweig, Institut Computational Mathematics, Germany, 2008 and \\
     H. Fassbender, N. Mackey, D. S. Mackey and C. Schroeder, Structured
     Polynomial Eigenproblems Related to Time-Delay Systems, ETNA, 2008, vol 31, pp 306-330\\
+
+* `nlevp_native_loaded_string`\\
+    The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format. The parameters are (n,kappa,m) where n is the size, and the NEP is a SPMF with rational terms and the coefficient matrices are rank one modifications of Toeplitz matrices.\\
+   S. I. Solov"ev. Preconditioned iterative methods for a class of nonlinear eigenvalue problems. Linear Algebra Appl., 415 (2006), pp.210-229.
+
+* `bem_fichera`\\
+    Represents a boundary element discretization of Helmholtz equation for a domain consisting of the unit cube, except one removed corner (Fichera corner). The mesh is hardcoded. The parameter N determines the size of the problem (default N = 5). The model stems from the model in these papers:\\
+   Steinlechner, A boundary element method for solving PDE eigenvalue problems, M. Steinlechner, bachelor thesis, ETH Zürich, 2010\\
+   Effenberger and Kressner, Chebyshev interpolation for nonlinear eigenvalue problems, BIT Numerical Mathematics, December 2012, Volume 52, Issue 4, pp 933–951
 
 
 # Example
@@ -214,14 +226,17 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "qdep1" => qdep1,
         "qep_fixed_eig" => qep_fixed_eig,
         "periodicdde" => (params...; kwargs...) -> periodic_dde_gallery(PeriodicDDE_NEP, params...; kwargs...),
+        "schrodinger_movebc" => schrodinger_movebc,
         "neuron0" => neuron0,
         "nlevp_native_gun" => nlevp_native_gun,
         "nlevp_native_hadeler" => nlevp_native_hadeler,
         "nlevp_native_cd_player" => nlevp_native_cd_player,
         "nlevp_native_fiber" => nlevp_native_fiber,
         "nlevp_native_pdde_stability" => nlevp_native_pdde_stability,
+        "nlevp_native_loaded_string" => nlevp_native_loaded_string,
         "beam" => beam,
         "sine" => sine_nep,
+        "bem_fichera" => bem_fichera,
     )
 
 

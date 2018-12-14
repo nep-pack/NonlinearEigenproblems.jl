@@ -137,6 +137,13 @@ using Test
     @test_throws MethodError nep_gallery("neuron0", 8)
     @test_throws ErrorException nep_gallery("neuron0", t=8)
 
+    @info "Testing schrodinger_movebc"
+    n=5; λ=-3.0;
+    nep=nep_gallery("schrodinger_movebc",n)
+    A=compute_Mder(nep,λ)
+    h=1/(n-1);
+    @test A[1,1]== -2/(h^2)-λ-1 # Check (1,1)-point in discretization
+
     @info "Testing beam"
     nep=nep_gallery("beam")
     nep=nep_gallery("beam", 15)
@@ -151,6 +158,32 @@ using Test
     @test isreal(A)
 
 
+    @info "Testing loaded_string"
+    # Compare with hard-coded value
+    λ=3.0+4im;
+    Zref=[9.600000000000000 - 0.533333333333333im -5.100000000000000 - 0.133333333333333im  0.000000000000000 + 0.000000000000000im  0.000000000000000 + 0.000000000000000im  0.000000000000000 + 0.000000000000000im
+ -5.100000000000000 - 0.133333333333333im  9.600000000000000 - 0.533333333333333im -5.100000000000000 - 0.133333333333333im  0.000000000000000 + 0.000000000000000im  0.000000000000000 + 0.000000000000000im
+  0.000000000000000 + 0.000000000000000im -5.100000000000000 - 0.133333333333333im  9.600000000000000 - 0.533333333333333im -5.100000000000000 - 0.133333333333333im  0.000000000000000 + 0.000000000000000im
+  0.000000000000000 + 0.000000000000000im  0.000000000000000 + 0.000000000000000im -5.100000000000000 - 0.133333333333333im  9.600000000000000 - 0.533333333333333im -5.100000000000000 - 0.133333333333333im
+       0.000000000000000 + 0.000000000000000im  0.000000000000000 + 0.000000000000000im  0.000000000000000 + 0.000000000000000im -5.100000000000000 - 0.133333333333333im  9.137811900191938 - 0.880870121561100im ];
+    nep=nep_gallery("nlevp_native_loaded_string",5,4,5);
+    Z=compute_Mder(nep,λ);
+    @test norm(Z-Zref)<1e-10
+
+
+
+
+    @info "testing bem_fichera"
+    nep=nep_gallery("bem_fichera",2);
+
+    λ_ref=8.790558462139456 - 0.010815457827738698im
+    M=compute_Mder(nep,λ_ref);
+    @test rank(M)<size(M,1)
+    @onlybench @testset "bem_fichera + IAR" begin
+       v=ones(size(nep,1));
+       (λ,vv)=iar(nep,σ=9,v=v,displaylevel=displaylevel,Neig=4) # normally takes 30 iterations
+       @test norm(compute_Mlincomb(nep,λ[1],vv[:,1]))<sqrt(eps());
+    end
     @info "non-existing example"
     @test_throws ErrorException nep_gallery("non-existing example")
 
