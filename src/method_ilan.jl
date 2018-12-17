@@ -105,6 +105,7 @@ function ilan(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err=ones(m,m);
     λ=zeros(T,m+1);
+    W=zeros(T,n,m+1);
     #WW=zeros(T,n,m+1) # TODO: DELETE THIS LINE
 
     # temp var for plot
@@ -164,19 +165,22 @@ function ilan(
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
         # extract eigenpair approximation
-        compute_eig=true
-        if (compute_eig==true)&&(rem(k,check_error_every)==0)
+        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             VV=view(V,:,1:k+1)
-            #VV,_,_=svd(VV)
 
-            # Create a projected NEP
+            # create the projected NEP
             mm=size(VV,2)
             pnep=create_proj_NEP(nep,mm); # maxsize=mm
             set_projectmatrices!(pnep,VV,VV);
             err_lifted=(λ,z)->errmeasure(λ,VV*z);
-            λ,_,_,_,conv_eig_hist_tiar=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
-            conv_eig=maximum(conv_eig_hist_tiar)
-            conv_eig_hist[k]=conv_eig
+
+            # solve the projected NEP
+            λ,Z,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
+
+            # eigenvectors computation
+            W=VV*Z;
+
+            conv_eig=length(λ)
         end
 
         k=k+1;
@@ -186,7 +190,7 @@ function ilan(
 
     end
     k=k-1
-    return V, H, ω[1:end-1], HH, conv_eig_hist#, WW
+    return λ,W,V,H,ω[1:end-1],HH
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)
