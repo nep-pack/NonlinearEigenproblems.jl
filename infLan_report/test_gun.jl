@@ -1,35 +1,33 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
+using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot, DelimitedFiles
 import ..NEPSolver.ilan;
+import ..NEPSolver.tiar;
+import ..NEPSolver.iar;
+
+
 include("../src/method_ilan.jl");
+include("../src/method_tiar.jl");
+include("../src/method_iar.jl");
+
+println("Loading the:", `gun`,"problem")
 nep = nep_gallery("nlevp_native_gun")
-
-# manually loading the matrices
-Av=get_Av(nep)
-K=Av[1]; M=-Av[2]; W1=Av[3]; W2=Av[4]
-nK=opnorm(K,1); nM=opnorm(M,1); nW1=opnorm(W1,1); nW2=opnorm(W2,1);
+println("Shifting and scaling the problem")
+include("shift_and_scale_gun.jl");
 
 
-# define the functions
-σ=108.8774; α=(300^2-200^2)/10;  λ0=250^2; # scale and shift
-a1 =α; b1=λ0; a2=α; b2=λ0-σ^2
-f1 = l-> one(l);
-f2 = l-> l;
-f3 = l-> 1im*sqrt(a1*l+b1*one(l));
-f4 = l-> 1im*sqrt(a2*l+b2*one(l));
+# run tiar
+println("Run TIAR")
+λ1,_,err_iar=tiar(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-5,check_error_every=1,errmeasure=err_measure)
+# run Infinite Lanczos
+println("Run the infinite Lanczos method")
+λ,W=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=Inf,errmeasure=err_measure)
 
-nep=SPMF_NEP([K-λ0*M,-α*M,W1,W2],[f1,f2,f3,f4])
+# plot the spectrum
+θ=range(0,stop=2*π,length=100); r=50000; c=250^2; plot(c.+r*cos.(θ),r*sin.(θ),label="region of interest")
+plot(real(λ0.+α*λ1),imag(λ0.+α*λ1),marker="*",markerfacecolor=:none,c=:black,linestyle=:none,label="TIAR")
+plot(real(λ0.+α*λ;),imag(λ0.+α*λ;),marker="o",markerfacecolor=:none,c=:green,linestyle=:none,label="Inf. Lan.")
+legend()
 
-err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
-err_measure = (l,v) -> err_orig(λ0+α*l,v);
-λ,_,err=tiar(nep,Neig=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,errmeasure=err_measure)
-
-m,p=size(err);
-# sort error
-for j=1:p
-    err[1:m,j]=sort(err[1:m,j];rev=true);
+println("Number of computed eigenpairs: ", length(λ))
+for j=1:length(λ)
+    println("Residual of the eigepair ", j, "th = ",err_measure(λ[j],W[:,j]))
 end
-
-for j=1:p
-    semilogy(1:m,err[1:m,j],color="black",linestyle="-");
-end
-ylim(ymax=1)

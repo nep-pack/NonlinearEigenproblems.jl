@@ -175,7 +175,8 @@ function ilan(
             err_lifted=(λ,z)->errmeasure(λ,VV*z);
 
             # solve the projected NEP
-            λ,Z,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
+            println("Solving the projected problem")
+            λ,Z,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=1,errmeasure=err_lifted)
 
             # eigenvectors computation
             W=VV*Z;

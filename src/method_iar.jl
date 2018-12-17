@@ -65,8 +65,6 @@ function iar(
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err = NaN*ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
-    # temp var for plot
-    conv_eig_hist=zeros(Int,m+1)
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
     vv[:]=v; vv[:]=vv[:]/norm(vv);
@@ -128,7 +126,6 @@ function iar(
                 λ=λ[idx[1:min(length(λ),Neig)]]
                 Q=Q[:,idx[1:length(λ)]]
             end
-            conv_eig_hist[k]=conv_eig
         end
 
         k=k+1;
@@ -149,5 +146,5 @@ function iar(
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];
     Q=Q[:,1:min(size(Q,2),conv_eig)];
-    return λ,Q,err[1:k,:],V[:,1:k],conv_eig_hist,H
+    return λ,Q,err[1:k,:],V[:,1:k]
 end
