@@ -13,7 +13,7 @@ nK=opnorm(K,1); nM=opnorm(M,1); nW1=opnorm(W1,1); nW2=opnorm(W2,1);
 
 
 # define the functions
-σ=108.8774; α=(300^2-200^2)/10;  λ0=250^2; # scale and shift
+σ=108.8774; α=(300^2-200^2);  λ0=250^2; # scale and shift
 a1 =α; b1=λ0; a2=α; b2=λ0-σ^2
 f1 = l-> one(l);
 f2 = l-> l;
@@ -55,7 +55,7 @@ Dnep=DerSPMF(nep,0,DD)
 err_orig = (l,v) -> norm(K*v-l*M*v+1im*sqrt(l)*W1*v+1im*sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
 
-λ,_,err=tiar(Dnep,Neig=100,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
+λ,_,err=tiar(Dnep,Neig=100,displaylevel=1,maxit=mm,tol=1e-7,check_error_every=1,errmeasure=err_measure)
 
 m,p=size(err);
 # sort error

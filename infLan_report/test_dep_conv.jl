@@ -8,14 +8,15 @@ include("../src/method_ilan.jl");
 include("../src/method_iar.jl");
 include("../src/method_tiar.jl");
 
+println("Started 2")
 
 # load the Voss symmetric DEP
 n=320; nep=nep_gallery("dep_symm_double",n)
 nA1=opnorm(nep.A[1],Inf)
 nA2=opnorm(nep.A[2],Inf)
 err_rel=(λ,z)->compute_resnorm(nep,λ,z)/(abs(λ)+abs(exp(nep.tauv[1]))*nA1+abs(exp(nep.tauv[1]))*nA2);
-_,_,_,_,conv_eig_hist_ilan=ilan(Float64,nep;Neig=200,displaylevel=1,maxit=100,tol=1e-12,check_error_every=10,errmeasure=err_rel)
-_,_,_,_,conv_eig_hist_tiar=tiar(Float64,nep;Neig=200,displaylevel=1,maxit=100,tol=1e-12,check_error_every=10,errmeasure=err_rel)
+_,_,_,_,conv_eig_hist_ilan=ilan(Float64,nep;Neig=200,displaylevel=1,maxit=100,tol=1e-6,check_error_every=10,errmeasure=err_rel)
+_,_,_,_,conv_eig_hist_tiar=tiar(Float64,nep;Neig=200,displaylevel=1,maxit=100,tol=1e-6,check_error_every=10,errmeasure=err_rel)
 
 for i=1:length(conv_eig_hist_ilan)
   println(conv_eig_hist_ilan[i])
@@ -36,3 +37,4 @@ conv_eig_hist_ilan_print=ones(10,2)
 conv_eig_hist_ilan_print[1:10,1]=10:10:100
 conv_eig_hist_ilan_print[:,2]=conv_eig_hist_ilan[10:10:m]
 writedlm("conv_eig_hist_ilan_print.csv",conv_eig_hist_ilan_print,",")
+1

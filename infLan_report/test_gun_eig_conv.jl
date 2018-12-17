@@ -1,6 +1,7 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, DelimitedFiles
 import ..NEPSolver.ilan;
 import ..NEPSolver.tiar;
+println("Started 3")
 
 include("../src/method_ilan.jl");
 include("../src/method_tiar.jl");
@@ -13,7 +14,7 @@ nK=opnorm(K,1); nM=opnorm(M,1); nW1=opnorm(W1,1); nW2=opnorm(W2,1);
 
 
 # define the functions
-σ=108.8774; α=(300^2-200^2)/10;  λ0=250^2; # scale and shift
+σ=108.8774; α=(300^2-200^2);  λ0=250^2; # scale and shift
 a1 =α; b1=λ0; a2=α; b2=λ0-σ^2
 f1 = l-> one(l);
 f2 = l-> l;
@@ -55,18 +56,18 @@ Dnep=DerSPMF(nep,0,DD)
 err_orig = (l,v) -> norm(K*v-l*M*v+sqrt(l)*W1*v+sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
 
-_,_,_,_,conv_eig_hist_ilan=ilan(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-12,check_error_every=10,errmeasure=err_measure)
-_,_,_,_,conv_eig_hist_tiar=tiar(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-12,check_error_every=10,errmeasure=err_measure)
+_,_,_,_,conv_eig_hist_ilan=ilan(Dnep;Neig=200,displaylevel=1,maxit=80,tol=1e-6,check_error_every=10,errmeasure=err_measure)
+_,_,_,_,conv_eig_hist_tiar=tiar(Dnep;Neig=200,displaylevel=1,maxit=80,tol=1e-6,check_error_every=10,errmeasure=err_measure)
 
 
 # now export the conv-matrix that will be loaded in tikz
-m=100
-conv_eig_hist_tiar_print=ones(10,2)
-conv_eig_hist_tiar_print[1:10,1]=10:10:100
-conv_eig_hist_tiar_print[:,2]=conv_eig_hist_tiar[10:10:m]
+m=80
+conv_eig_hist_tiar_print=ones(8,2)
+conv_eig_hist_tiar_print[1:8,1]=10:10:80
+conv_eig_hist_tiar_print[1:8,2]=conv_eig_hist_tiar[10:10:80]
 writedlm("gun_conv_eig_hist_tiar_print.csv",conv_eig_hist_tiar_print,",")
 
-conv_eig_hist_ilan_print=ones(10,2)
-conv_eig_hist_ilan_print[1:10,1]=10:10:100
-conv_eig_hist_ilan_print[:,2]=conv_eig_hist_ilan[10:10:m]
+conv_eig_hist_ilan_print=ones(8,2)
+conv_eig_hist_ilan_print[1:8,1]=10:10:80
+conv_eig_hist_ilan_print[1:8,2]=conv_eig_hist_ilan[10:10:m]
 writedlm("gun_conv_eig_hist_ilan_print.csv",conv_eig_hist_ilan_print,",")

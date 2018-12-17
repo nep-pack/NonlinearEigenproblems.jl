@@ -49,7 +49,7 @@ end
 
 
 # mm is the number of iterations we will do
-mm=80
+mm=100
 DD=zeros(2*mm+2,4);
 DD[1,1]=1; DD[2,2]=1;
 DD[:,3]=fD_sqrt(0,2*mm+2,a1,b1);
@@ -59,8 +59,30 @@ Dnep=DerSPMF(nep,0,DD)
 err_orig = (l,v) -> norm(K*v-l*M*v+sqrt(l)*W1*v+sqrt(l-σ^2)*W2*v)/((norm(v))*(nK-abs(l)*nM+abs(sqrt(l))*nW1+abs(sqrt(l-σ^2))*nW2));
 err_measure = (l,v) -> err_orig(λ0+α*l,v);
 
-λ_iar,_,err_iar=iar(Dnep;Neig=200,displaylevel=1,maxit=80,tol=1e-6,check_error_every=1,errmeasure=err_measure)
-V,H,ω,HH=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=1,errmeasure=err_measure)
+λ,_,err_iar=tiar(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-5,check_error_every=1,errmeasure=err_measure)
+
+# plot the spectrum
+λ1=λ0.+α*λ;
+figure()
+# region of interest
+θ=range(0,stop=2*π,length=100)
+plot(c.+r*cos.(θ),r*sin.(θ))
+#plot(real(λ0),imag(λ0))
+plot(real(λ1),imag(λ1),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)       # original eigenvalues
+
+##################################### eig approx 40 it ##############################3
+mm=60
+λ,_,err_iar=iar(Dnep;Neig=200,displaylevel=1,maxit=mm,tol=1e-12,check_error_every=1,errmeasure=err_measure)
+
+# plot the spectrum
+λ2=λ0.+α*λ;
+plot(real(λ2),imag(λ2),marker="s",markerfacecolor=:none,c=:green,linestyle=:none)       # original eigenvalues
+
+# run ilan
+V,H,ω,HH=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-18,check_error_every=1,errmeasure=err_measure)
+V,_,_=svd(V)
+
+
 
 # Create a projected NEP
 mm=size(V,2)
@@ -69,29 +91,12 @@ set_projectmatrices!(pnep,V,V);
 
 n=size(K,1)
 err_lifted=(λ,z)->err_measure(λ,V*z);
-λ,_,err=iar(pnep;Neig=200,displaylevel=1,maxit=80,tol=1e-6,check_error_every=1,errmeasure=err_lifted)
+λ,_,err=iar(pnep;Neig=200,displaylevel=1,maxit=150,tol=1e-12,check_error_every=1,errmeasure=err_lifted)
+λ3=λ0.+α*λ;
+plot(real(λ3),imag(λ3),marker="*",markerfacecolor=:none,c=:red,linestyle=:none)       # original eigenvalues
 
-m,p=size(err);
 
-# sort error
-for j=1:p err[1:m,j]=sort(err[1:m,j];rev=true) end
-for j=1:p err_iar[1:m,j]=sort(err_iar[1:m,j];rev=true) end
-
-figure()
-# plot conv hist
-for j=1:p
-    semilogy(1:m,err_iar[1:m,j],color="black",linestyle="--")
-    semilogy(1:m,err[1:m,j],color="red",linestyle="-")
-end
-ylim(ymax=1)
-
-# now export the error-matrix that will be loaded in tikz
-err_print=NaN*ones(m,m+1)
-err_print[1:m,1]=1:m
-err_print[1:m,2:m+1]=err[1:m,1:m]
-writedlm("gun_err_hist.csv",err_print,",")
-
-err_print=NaN*ones(m,m+1)
-err_print[1:m,1]=1:m
-err_print[1:m,2:m+1]=err_iar[1:m,1:m]
-writedlm("gun_err_hist_iar.csv",err_print,",")
+# save in a file the eigenvalues and Ritz pairs
+writedlm("gun_l1.csv",[real(λ1) imag(λ1)],",")
+writedlm("gun_l2.csv",[real(λ2) imag(λ2)],",")
+writedlm("gun_l3.csv",[real(λ3) imag(λ3)],",")
