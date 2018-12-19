@@ -24,7 +24,7 @@ println("Run the infinite Lanczos method")
 # plot the spectrum
 θ=range(0,stop=2*π,length=100); r=50000; c=250^2; plot(c.+r*cos.(θ),r*sin.(θ),label="region of interest")
 plot(real(λ0.+α*λ1),imag(λ0.+α*λ1),marker="*",markerfacecolor=:none,c=:black,linestyle=:none,label="TIAR")
-plot(real(λ0.+α*λ;),imag(λ0.+α*λ;),marker="o",markerfacecolor=:none,c=:green,linestyle=:none,label="Inf. Lan.")
+plot(real(λ0.+α*λ;),imag(λ0.+α*λ;),marker="o",markerfacecolor=:none,c=:green,linestyle=:none,label="INF. LAN.")
 legend()
 
 println("Number of computed eigenpairs: ", length(λ))

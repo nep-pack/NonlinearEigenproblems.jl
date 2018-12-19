@@ -12,9 +12,6 @@ A2=one(A1)
 A3=spdiagm(-1 => ones(n-1), 0 => 0*ones(n) , 1 => ones(n-1))
 A4=spdiagm(-1 =>  1im*ones(n-1) )
 
-
-
-
 f1= S -> one(S)
 f2= S -> -S
 f3= S -> S*sin(S)
@@ -42,6 +39,13 @@ nep=SPMF_NEP([AA1,AA2,AA3,AA4],[f1,f2,f3,f4])
 nep=DerSPMF(nep,0,2*m)
 
 λ,W,_=ilan(nep;Neig=200,displaylevel=1,maxit=100,tol=1e-6,check_error_every=Inf,errmeasure=(λ,v)->rel_err(λ,v[n+1:end]))
+W = W[n+1:end,:]    # extract the eigenvectors
 
-plot(real(λ1),imag(λ1),marker="o",markerfacecolor=:none,c=:red,linestyle=:none) # Ritz values
-plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none) # Ritz values
+println("Number of computed eigenpairs: ", length(λ))
+for j=1:length(λ)
+    println("Residual of the eigepair ", j, "th = ",rel_err(λ[j],W[:,j]))
+end
+
+plot(real(λ1),imag(λ1),marker="o",markerfacecolor=:none,c=:red,linestyle=:none,label="eigenvalues (TIAR)")
+plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none,label="INF. LAN.")
+legend()

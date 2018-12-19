@@ -176,10 +176,10 @@ function ilan(
 
             # solve the projected NEP
             println("Solving the projected problem")
-            λ,Z,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=1,errmeasure=err_lifted)
+            λ,ZZ,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=1,errmeasure=err_lifted)
 
             # eigenvectors computation
-            W=VV*Z;
+            W=VV*ZZ;
 
             conv_eig=length(λ)
         end
