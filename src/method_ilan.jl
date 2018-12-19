@@ -106,7 +106,6 @@ function ilan(
     err=ones(m,m);
     λ=zeros(T,m+1);
     W=zeros(T,n,m+1);
-    #WW=zeros(T,n,m+1) # TODO: DELETE THIS LINE
 
     # temp var for plot
     conv_eig_hist=zeros(Int,m+1)
@@ -119,7 +118,6 @@ function ilan(
     Q[:,1]=v/norm(v)
     ω[1]=Q[:,1]⋅compute_Mlincomb(nep,0,hcat(Q[:,1],Q[:,1]),[0,1]);
     V[:,1]=Q[:,1];
-    #WW[:,1]=Q[:,1]; # TODO: DELETE THIS LINE
 
     k=1; conv_eig=0;
     Av=get_Av(nep)
@@ -160,7 +158,6 @@ function ilan(
         end
         ω[k+1]=ω[k+1]/H[k+1,k]^2;
         V[:,k+1]=Qn[:,1];
-        #WW[:,k+1]=Qn[:,1]; # TODO: DELETE THIS LINE
 
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
@@ -178,10 +175,12 @@ function ilan(
             #if displaylevel>1
                 println("Solving the projected problem")
             #end
-            λ,ZZ,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            λ,ZZ=iar(pnep;Neig=Inf,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            W=VV*ZZ;
+
+
 
             # eigenvectors computation
-            W=VV*ZZ;
 
             conv_eig=length(λ)
         end
