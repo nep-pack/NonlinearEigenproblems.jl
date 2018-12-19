@@ -149,5 +149,5 @@ function ilan_benchmark(
     end
     k=k-1
 
-    return V, H[1:end-1,1:end-1], ω[1:end-1], HH
+    return V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end

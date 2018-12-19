@@ -175,7 +175,9 @@ function ilan(
             err_lifted=(λ,z)->errmeasure(λ,VV*z);
 
             # solve the projected NEP
-            println("Solving the projected problem")
+            if displaylevel>1
+                println("Solving the projected problem")
+            end
             λ,ZZ,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=1,errmeasure=err_lifted)
 
             # eigenvectors computation
@@ -191,7 +193,7 @@ function ilan(
 
     end
     k=k-1
-    return λ,W,V,H,ω[1:end-1],HH
+    return λ,W,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)
