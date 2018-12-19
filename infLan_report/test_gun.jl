@@ -16,10 +16,10 @@ include("shift_and_scale_gun.jl");
 
 # run tiar
 println("Run TIAR")
-λ1,_,err_iar=tiar(Dnep;Neig=200,displaylevel=1,maxit=100,tol=1e-5,check_error_every=1,errmeasure=err_measure)
+λ1,_,err_iar=tiar(Dnep;Neig=200,displaylevel=0,maxit=100,tol=1e-5,check_error_every=1,errmeasure=err_measure)
 # run Infinite Lanczos
 println("Run the infinite Lanczos method")
-λ,W=ilan(Dnep,Neig=80,displaylevel=1,maxit=mm,tol=1e-6,check_error_every=Inf,errmeasure=err_measure)
+λ,W=ilan(Dnep,Neig=80,displaylevel=0,maxit=mm,tol=1e-6,check_error_every=Inf,errmeasure=err_measure)
 
 # plot the spectrum
 θ=range(0,stop=2*π,length=100); r=50000; c=250^2; plot(c.+r*cos.(θ),r*sin.(θ),label="region of interest")

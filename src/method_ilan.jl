@@ -175,10 +175,10 @@ function ilan(
             err_lifted=(λ,z)->errmeasure(λ,VV*z);
 
             # solve the projected NEP
-            if displaylevel>1
+            #if displaylevel>1
                 println("Solving the projected problem")
-            end
-            λ,ZZ,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=1,errmeasure=err_lifted)
+            #end
+            λ,ZZ,=iar(pnep;Neig=200,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
 
             # eigenvectors computation
             W=VV*ZZ;
