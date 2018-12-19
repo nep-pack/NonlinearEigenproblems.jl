@@ -5,8 +5,6 @@ using IterativeSolvers
 using LinearAlgebra
 using Random
 using SparseArrays
-using Revise
-include("../src/method_ilan.jl");
 
 
 @testset "ILAN" begin
