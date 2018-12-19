@@ -26,9 +26,9 @@ mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
 end
 
 """
-    iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
 
-Run the infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`.
+Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
 The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
 `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
@@ -40,7 +40,7 @@ is continued until `Neig` Ritz pairs converge. This function throws a `NoConverg
 julia> using NonlinearEigenproblems, LinearAlgebra
 julia> nep=nep_gallery("dep0",100);
 julia> v0=ones(size(nep,1));
-julia> λ,v=iar(nep;v=v0,tol=1e-5,Neig=3);
+julia> λ,v=ilan(nep;v=v0,tol=1e-5,Neig=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
@@ -50,7 +50,7 @@ julia> λ    # print the computed eigenvalues
 ```
 
 # References
-* Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
+* Algorithm 2 in Mele, The infinite Lanczos method for symmetric nonlinear eigenvalue problems, https://arxiv.org/abs/1812.07557, 2018
 """
 ilan(nep::NEP;params...)=ilan(ComplexF64,nep;params...)
 function ilan(
@@ -66,7 +66,7 @@ function ilan(
     γ=one(T),
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
-    check_error_every=1,
+    check_error_every=30,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver,
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
