@@ -1,9 +1,5 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot, DelimitedFiles
-import ..NEPSolver.ilan;
-import ..NEPSolver.iar;
+using NonlinearEigenproblems, Random, SparseArrays, PyPlot, LinearAlgebra
 
-include("../src/method_ilan.jl");
-include("../src/method_iar.jl");
 
 println("LOAD THE PROBLEM")
 n=500; m=250

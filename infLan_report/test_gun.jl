@@ -1,12 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot, DelimitedFiles
-import ..NEPSolver.ilan;
-import ..NEPSolver.tiar;
-import ..NEPSolver.iar;
-
-
-include("../src/method_ilan.jl");
-include("../src/method_tiar.jl");
-include("../src/method_iar.jl");
+using NonlinearEigenproblems, Random, SparseArrays, PyPlot, LinearAlgebra
 
 println("Loading the:", `gun`,"problem")
 nep = nep_gallery("nlevp_native_gun")

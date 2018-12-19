@@ -1,4 +1,4 @@
-using LinearAlgebra, Revise, GenericSVD, DelimitedFiles
+using LinearAlgebra, Revise, GenericSVD
 m=200
 # precompute the symmetrizer coefficients
 setprecision(BigFloat,500)
@@ -17,4 +17,3 @@ SS=zeros(BigFloat,m+1,2)
 SS[1:m+1,1]=1:m+1
 SS[1:m+1,2]=S
 SS=SS[1:50,:]
-writedlm("G_svd200.csv",SS,",")

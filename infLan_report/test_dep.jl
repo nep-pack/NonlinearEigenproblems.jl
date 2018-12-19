@@ -1,6 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
-import ..NEPSolver.ilan;
-include("../src/method_ilan.jl");
+using NonlinearEigenproblems, Random, SparseArrays, PyPlot, LinearAlgebra
 
 println("Loading the DEP:", `dep_symm_double`)
 n=20; nep=nep_gallery("dep_symm_double",n)
