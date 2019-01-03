@@ -15,7 +15,9 @@ We consider the  Schrödinger type eigenvalue problem on the interval $[0,L_1]$,
 ```
 We wish to compute eigenvalue ``λ`` and eigenfunction ``\psi``.
 Moreover, we assume that the potential function ``V(x)`` is benign in
-the domain ``[L_0,L_1]``, e.g., constant. In the simulations we will consider this
+the domain ``[L_0,L_1]``, in our case for simplicity it is 
+constant, such that we can later solve the problem in that domain analytically.
+In the simulations we will consider this
 function
 ```math
   V(x)=
@@ -40,7 +42,7 @@ is also directly available in the gallery: `nep_gallery("schrodinger_movebc")`.
 The technique is based on moving the boundary condition at ``L_1``
 to ``L_0``. This can be done without doing any approximation,
 if we allow the new artificial boundary condition at ``L_1``
-to depend on ``λ``. The technique is called *absorbing boundary conditions*.
+to depend on ``λ``. We introduce what is called an *absorbing boundary condition*.
 
 
 
@@ -53,7 +55,7 @@ We first note that we can transform the problem to first order form
 0 & 1\\
 \lambda+V(x) & 0
 \end{bmatrix}
-\begin{bmatrix}\psi(x)\\\psi'(x)\end{bmatrix},
+\begin{bmatrix}\psi(x)\\\psi'(x)\end{bmatrix}.
 ```
 The potential ``V(x)`` is constant in the domain ``[L_0,L_1]``.
 This  allows us to directly
@@ -81,7 +83,7 @@ as
 \right)
 \begin{bmatrix}\psi(L_0)\\\psi'(L_0)\end{bmatrix}.
 ```
-By explicitly using [the hyperbolic functions formula matrix exponential of the antidiagonal
+By explicitly using [the hyperbolic functions formula for the matrix exponential of an antidiagonal
 two-by-two matrix](https://math.stackexchange.com/q/3030982) we obtain the relation
 ```math
 0=
@@ -95,10 +97,12 @@ g(λ):=\cosh\left((L_1-L_0)\sqrt{λ+V_0}\right)
 ```math
 f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ+V_0}\right)}{\sqrt{λ+V_0}}.
 ```
-A solution to the original boundary value problem must satisfy
-the condition ``0=g(λ)\psi(L_0)+f(λ)\psi'(L_0)`` in the middle of the domain.
-If we now consider only the domain ``[0,L_0]``, we see that the
-function must satisfy
+Note that a solution to the original boundary value problem will satisfy
+the condition ``0=g(λ)\psi(L_0)+f(λ)\psi'(L_0)``, which involves
+only the point $x=L_0$, i.e., the middle of the domain.
+We can now disconnect the problem and only
+consider only the domain ``[0,L_0]`` by using this condition instead,
+since a solution to the original boundary value problem satisfies
 ```math
 \begin{eqnarray*}
  \left(
@@ -109,26 +113,28 @@ function must satisfy
    g(λ)\psi(L_0)+f(λ)\psi'(L_1)&=&0.
 \end{eqnarray*}
 ```
-which is a boundary value problem
-with a mixed boundary condition (since it contains
+which is a boundary value problem on the reduced domain $[0,L_0]$, 
+with a mixed boundary condition and $x=L_0$ (since it contains
 both ``\psi(L_0)`` and ``\psi'(L_0)``). The
 solutions to the original problem are the same as the
-solutions on the reduced domain (except for some special cases).
+solutions on the reduced domain (except for some unintresting special cases).
 
 
 ## Discretization of the λ-dependent boundary value problem
 
-The λ-dependent boundary value problem can now be discretized in the domain ``[0,L_0]``
-with usual techniques, e.g., with finite difference as follows.
+The boundary condition in the reduced domain boundary condition is λ-dependent.
+Therefore a usual discretization the domain ``[0,L_0]``,
+e.g., with finite difference, will lead to a nonlinear eigenvalue problem.
+More precisely, we discretize the problem as follows.
 
 Let $x_k=hk$, $k=1,\ldots n$ and $h=1/n$ such that $x_1=h$ and
-$x_n=1=L_0$. Approximation of the $\lambda$-dependent boundary condition
+$x_n=1=L_0$. An approximation of the $\lambda$-dependent boundary condition
 can be found with the one-sided second order
 difference scheme
 ```math
    0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
 -2\psi(x_{n-1})
-+\frac12\psi(x_{n-2})\right)+O(h^2)
++\frac12\psi(x_{n-2})\right)+O(h^2).
 ```
 Let
 ```math
@@ -172,7 +178,7 @@ In=spdiagm(0 => [ones(n-1);0])
 F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
 G=sparse([n],[n],[1]);
 ```
-The corresponding functions in the SPMF
+The corresponding functions in the SPMF are defined as follows
 ```julia
 f1=S->one(S);
 f2=S->-S;
@@ -180,7 +186,8 @@ hh=S-> sqrt(S+V0*one(S))
 g=S-> cosh((L1-L0)*hh(S))
 f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 ```
-In Julia, `sinh(A)` and `cosh(A)` for matrices `A` are interpreted as matrix functions (not elementwise). The SPMF-format also requires the functions to work for matrices in a matrix functions. The NEP can now be created and solved as follows
+Note that when defining an SPMF all functions are defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, `sinh(A)` and `cosh(A)` for matrices `A` are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the `SPMF`-creator and applying
+a NEP-solver:
 ```julia
 using NonlinearEigenproblems
 nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
@@ -189,7 +196,7 @@ nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
 (λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
 (λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)
 ```
-For sanity check, the are visualized in this way
+We can easily to a sanity check of the solution by visualizing it in this way
 ```julia
 using Plots
 plot(xv,v1/norm(v1))
@@ -221,7 +228,7 @@ myerrmeasure=(λ,v) ->
        (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
 
 ```
-The  `quasinewton` simulations above converge in less iterations when this
+The  `quasinewton` simulations above terminate in less iterations when this
 error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.
 ```julia-repl
 julia> (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
@@ -255,3 +262,5 @@ julia> λ
   -43.66198303378091 - 4.3753274496659e-15im
  -27.537645678335437 + 4.8158177866759774e-15im
 ```
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_MOVEBC)
