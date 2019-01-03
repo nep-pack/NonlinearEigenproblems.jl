@@ -113,11 +113,12 @@ since a solution to the original boundary value problem satisfies
    g(λ)\psi(L_0)+f(λ)\psi'(L_1)&=&0.
 \end{eqnarray*}
 ```
-which is a boundary value problem on the reduced domain $[0,L_0]$, 
-with a mixed boundary condition and $x=L_0$ (since it contains
-both ``\psi(L_0)`` and ``\psi'(L_0)``). The
+which is a boundary value problem on the reduced domain $[0,L_0]$. The boundary condition
+is a [Robin boundary condition](https://en.wikipedia.org/wiki/Robin_boundary_condition) (also called
+mixed boundary condition) at $x=L_0$, since it contains
+both ``\psi(L_0)`` and ``\psi'(L_0)``. The
 solutions to the original problem are the same as the
-solutions on the reduced domain (except for some unintresting special cases).
+solutions on the reduced domain, except for some unintresting special cases.
 
 
 ## Discretization of the λ-dependent boundary value problem
