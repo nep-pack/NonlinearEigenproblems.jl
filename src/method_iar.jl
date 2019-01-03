@@ -63,7 +63,7 @@ function iar(
     y = zeros(T,n,m+1);
     α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
-    err = ones(m,m);
+    err = NaN*ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 
     vv=view(V,1:1:n,1); # next vector V[:,k+1]
@@ -123,8 +123,13 @@ function iar(
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
-                λ=λ[idx[1:min(length(λ),Neig)]]
-                Q=Q[:,idx[1:length(λ)]]
+                if Neig != Inf
+                    λ=λ[idx[1:min(length(λ),Neig)]]
+                    Q=Q[:,idx[1:length(λ)]]
+                else
+                    λ=λ[idx[1:min(length(λ))]]
+                    Q=Q[:,idx[1:length(λ)]]
+                end
             end
         end
 
@@ -132,7 +137,7 @@ function iar(
     end
     k=k-1
     # NoConvergenceException
-    if conv_eig<Neig && false 
+    if conv_eig<Neig && Neig != Inf
         err=err[end,1:Neig];
         idx=sortperm(err); # sort the error
         λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
@@ -143,6 +148,8 @@ function iar(
         throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-
+    # extract the converged Ritzpairs
+    λ=λ[1:min(length(λ),conv_eig)];
+    Q=Q[:,1:min(size(Q,2),conv_eig)];
     return λ,Q,err[1:k,:],V[:,1:k]
 end
