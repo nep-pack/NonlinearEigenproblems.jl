@@ -33,8 +33,8 @@ Another remedy is the use of *deflation*.
 ## Deflation in NEP-PACK
 
 The term deflation is referring to making
-something smaller (in the sense of opposite of inflating a balloon). In this case we can make the solution set smaller. We compute a solution and subsequently compute
-reconstruct a deflated problem, which has the same solution as the original
+something smaller (in the sense of opposite of inflating a balloon). In this case we can make the solution set smaller. We compute a solution and subsequently
+construct a deflated problem, which has the same solution as the original
 problem except of the solution we have already computed.
 
 A general deflation technique is available in NEP-PACK based on increasing
@@ -74,8 +74,8 @@ julia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)
 ## Repeated deflation
 
 The above procedure can be repeated by calling `effenberger_deflation` on
-the deflated NEP. The procedure can be repeated such that many eigenvalues
-can be computed. We now illustrate a slightly more robust variant of that
+the deflated NEP. The procedure can be done in such a way many eigenvalues
+can often be computed. We now illustrate a somewhat more robust variant of that
 approach by constructing a deflated NEP from the original NEP.
 This requires slightly more manipulation/understanding of invariant pairs which
 need to be extracted for every computed solution.
