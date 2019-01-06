@@ -825,56 +825,16 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "bemtutorial/#",
-    "page": "Tutorial 1 (BEM)",
-    "title": "Tutorial 1 (BEM)",
-    "category": "page",
-    "text": ""
-},
-
-{
-    "location": "bemtutorial/#Tutorial:-User-defined-matrices-boundary-element-method-1",
-    "page": "Tutorial 1 (BEM)",
-    "title": "Tutorial: User-defined matrices - boundary element method",
-    "category": "section",
-    "text": "Suppose you have a new type of NEP, which does not naturally fit into the standard types in NEP-PACK. This tutorial shows how you can define a NEP where the only way to access the NEP is a function to compute M^(k)(λ). To illustrate this we use a boundary element method approach for computation of resonances. The complete code is available in gallery_extra/bem_hardcoded. The example is also available as a gallery problem: nep=nep_gallery(\"bem_fichera\")."
-},
-
-{
-    "location": "bemtutorial/#Boundary-element-method-1",
-    "page": "Tutorial 1 (BEM)",
-    "title": "Boundary element method",
-    "category": "section",
-    "text": "The boundary element method applied to Helmholtz eigenvalue problem can be described by the matrix consisting of elementsM(λ)_ij=frac14piint_Delta_iint_Delta_jfrace^iotalambdaxi-etaxi-etadS(eta)dS(xi)where Delta_i,i=1ldotsn are boundary elements. The boundary element approach is available through three functionsmesh=gen_ficheramesh(N) # computes a mesh\nprecompute_quad!(mesh,gauss_order) # precompute quadrature coefficients\nassemble_BEM(λ, mesh, gauss_order,der) # Compute the matrix consisting of all the integrals corresponding to λThese functions are based on the model (and inspired by some of the code) in in \"A boundary element method for solving PDE eigenvalue problems\", Steinlechner, bachelor thesis, ETH Zürich, 2010 and also used in the simulations in \"Chebyshev interpolation for nonlinear eigenvalue problems\", Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951."
-},
-
-{
-    "location": "bemtutorial/#Implementation-in-NEP-PACK-1",
-    "page": "Tutorial 1 (BEM)",
-    "title": "Implementation in NEP-PACK",
-    "category": "section",
-    "text": "In order to define your new NEP you need to define a new NEP-typestruct BEM_NEP <: NEP\n    mesh::Vector{Triangle}\n    n::Int\n    gauss_order::Int\nendThe mesh variable is a vector of triangle objects defining the domain, n is the size of the mesh and gauss_order the quadrature order. All NEPs have to defined size() functions# We overload the size function from Base so we need to import it explicitly\nimport Base.size;\nfunction size(nep::BEM_NEP)\n    return (nep.n,nep.n);\nend\nfunction size(nep::BEM_NEP,dim)\n    return nep.n;\nendThe function assemble_BEM computes the matrix defined by the integrals. Hence, we need to call this function for every call to compute_Mder:import NonlinearEigenproblems.NEPCore.compute_Mder # We overload the function\nfunction compute_Mder(nep::BEM_NEP,λ::Number,der::Int=0)\n    return assemble_BEM(λ, nep.mesh, nep.gauss_order,der)[:,:,1];\nendIn order to make other compute functions available to the methods, we can use the conversion functions. In particular, the compute_Mlincomb function can be implemented by making several calls in compute_Mder. This is done in the NEP-PACK-provided helper function compute_Mlincomb_from_Mder. We make this the default behaviour for this NEP:import NonlinearEigenproblems.NEPCore.compute_Mlincomb # Since we overload\n# Delegate the compute Mlincomb functions. This can be quite inefficient.\ncompute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat, a::Vector) =\n      compute_Mlincomb_from_Mder(nep,λ,V,a)\ncompute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat) =\n      compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))We can now create a BEM_NEP as follows:gauss_order=3; N=5;\nmesh=gen_ficheramesh(5)\nprecompute_quad!(mesh,gauss_order)\nnep=BEM_NEP(mesh,gauss_order);"
-},
-
-{
-    "location": "bemtutorial/#Solving-the-NEP-1",
-    "page": "Tutorial 1 (BEM)",
-    "title": "Solving the NEP",
-    "category": "section",
-    "text": "After creating the NEP, you can try to solve the problem with methods in the package, e.g., MSLP works quite well for this problem:julia> (λ,v)=mslp(nep,λ=8,displaylevel=1)\nIteration:1 errmeasure:4.122635537095636e-6 λ=8.128272919317748 + 0.007584851218214716im\nIteration:2 errmeasure:1.787963303973586e-8 λ=8.132181234599427 - 1.952792817964521e-5im\nIteration:3 errmeasure:3.2884958163572594e-13 λ=8.132145310156643 - 1.2648247028455485e-5im\nIteration:4 errmeasure:4.6607986030841e-18 λ=8.132145310195453 - 1.264891804832194e-5im\n(8.132145310195453 - 1.264891804832194e-5im, Complex{Float64}[3.08473e-5-9.8713e-6im, 9.46458e-5+2.08586e-5im, -0.000418303-9.3624e-5im, -2.27161e-5+3.2045e-5im, -0.00168228-0.000446522im, -0.00660488-0.0018462im, -0.00705554-0.00195021im, -0.000714245-0.000123651im, -0.010653-0.00296256im, -0.0250155-0.00702815im  …  0.00369925+0.00101557im, 0.025547+0.00717101im, 0.0333126+0.00931856im, 0.0158614+0.00438927im, 0.00325204+0.000835354im, 0.021329+0.00595943im, 0.0126512+0.0034611im, 0.00130882+0.000172086im, 0.00131286+0.000207463im, 0.0125435+0.00344975im])This is the computed solution<br>\n<img src=\"https://user-images.githubusercontent.com/11163595/49595409-324b7d80-f978-11e8-818d-eeeaf9441505.png\" height=450>The plotting was done with the following code (by using internals of the BEM-implementation):using NonlinearEigenproblems, PyPlot\nnep=nep_gallery(\"bem_fichera\")\n(λ,v)=mslp(nep,λ=8.1,displaylevel=1)\nv=v./maximum(abs.(v));\nfor k=1:size(nep.mesh,1);\n    tri=nep.mesh[k];\n    col=[1-abs.(v)[k];0;0]; # plot abslolute value\n    X=[tri.P1[1] tri.P2[1]; tri.P3[1] tri.P3[1]];\n    Y=[tri.P1[2] tri.P2[2]; tri.P3[2] tri.P3[2]];\n    Z=[tri.P1[3] tri.P2[3]; tri.P3[3] tri.P3[3]];\n    plot_surface(X,Y,Z,color=col,alpha=0.8);\n    plot_wireframe(X,Y,Z,color=[0;0;0],linewidth=1,alpha=0.5,);\nend"
-},
-
-{
     "location": "movebc_tutorial/#",
-    "page": "Tutorial 2 (ABC)",
-    "title": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
+    "title": "Tutorial 1 (ABC)",
     "category": "page",
     "text": ""
 },
 
 {
     "location": "movebc_tutorial/#Tutorial:-Application-to-absorbing-boundary-conditions-1",
-    "page": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
     "title": "Tutorial: Application to absorbing boundary conditions",
     "category": "section",
     "text": ""
@@ -882,7 +842,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "movebc_tutorial/#A-Schrödinger-equation-1",
-    "page": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
     "title": "A Schrödinger equation",
     "category": "section",
     "text": "We consider the  Schrödinger type eigenvalue problem on the interval 0L_1,begineqnarray*\n left(\n fracpartial^2partial x^2\n-V(x)-lambda\nright)psi(x)=0 xin0L_1\n   psi(0)=0\n   psi(L_1)=0\nendeqnarray*We wish to compute eigenvalue λ and eigenfunction psi. Moreover, we assume that the potential function V(x) is benign in the domain L_0L_1, in our case for simplicity it is  constant, such that we can later solve the problem in that domain analytically. In the simulations we will consider this function  V(x)=\nbegincases\n1+sin(alpha x)   xin0L_0=01\nV_0  xin(L_0L_1)=(18)\nendcaseswhere α is large, i.e., the potential has high frequency oscillations in one part of the domain.<br>\n<img src=\"https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png\" height=300>This tutorial illustrates how we can avoid a discretization of the domain L_0L_1 and only discretize 0L_0, by solving a NEP. The implementation described below is also directly available in the gallery: nep_gallery(\"schrodinger_movebc\")."
@@ -890,15 +850,15 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "movebc_tutorial/#Derivation-of-reduced-domain-differential-equation-1",
-    "page": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
     "title": "Derivation of reduced domain differential equation",
     "category": "section",
-    "text": "The technique is based on moving the boundary condition at L_1 to L_0. This can be done without doing any approximation, if we allow the new artificial boundary condition at L_1 to depend on λ. We introduce what is called an absorbing boundary condition.We first note that we can transform the problem to first order form  fracddx\nbeginbmatrixpsi(x)psi(x)endbmatrix\n=\nbeginbmatrix\n0  1\nlambda+V(x)  0\nendbmatrix\nbeginbmatrixpsi(x)psi(x)endbmatrixThe potential V(x) is constant in the domain L_0L_1. This  allows us to directly express the solution using the matrix exponentialbeginbmatrixpsi(x)psi(x)endbmatrix\n=expleft((x-L_0)\nbeginbmatrix\n0  1\nlambda+V_0  0\nendbmatrix\nright)\nbeginbmatrixpsi(L_0)psi(L_0)endbmatrixwhen xinL_0L_1. The boundary condition psi(L_1)=0 can be imposed as0=psi(L_1)=beginbmatrix1  0endbmatrix\nbeginbmatrixpsi(L_1)psi(L_1)endbmatrix\n=beginbmatrix1  0endbmatrixexpleft((L_1-L_0)\nbeginbmatrix\n0  1\nlambda+V_0  0\nendbmatrix\nright)\nbeginbmatrixpsi(L_0)psi(L_0)endbmatrixBy explicitly using the hyperbolic functions formula for the matrix exponential of an antidiagonal two-by-two matrix we obtain the relation0=\ng(λ)psi(L_0)+\nf(λ)psi(L_0)whereg(λ)=coshleft((L_1-L_0)sqrtλ+V_0right)f(λ)=fracsinhleft((L_1-L_0)sqrtλ+V_0right)sqrtλ+V_0Note that a solution to the original boundary value problem will satisfy the condition 0=g(λ)psi(L_0)+f(λ)psi(L_0), which involves only the point x=L_0, i.e., the middle of the domain. We can now disconnect the problem and only consider only the domain 0L_0 by using this condition instead, since a solution to the original boundary value problem satisfiesbegineqnarray*\n left(\n fracpartial^2partial x^2\n-V(x)-lambda\nright)psi(x)=0 xin0L_0\n   psi(0)=0\n   g(λ)psi(L_0)+f(λ)psi(L_1)=0\nendeqnarray*which is a boundary value problem on the reduced domain 0L_0,  with a mixed boundary condition and x=L_0 (since it contains both psi(L_0) and psi(L_0)). The solutions to the original problem are the same as the solutions on the reduced domain (except for some unintresting special cases)."
+    "text": "The technique is based on moving the boundary condition at L_1 to L_0. This can be done without doing any approximation, if we allow the new artificial boundary condition at L_1 to depend on λ. We introduce what is called an absorbing boundary condition.We first note that we can transform the problem to first order form  fracddx\nbeginbmatrixpsi(x)psi(x)endbmatrix\n=\nbeginbmatrix\n0  1\nlambda+V(x)  0\nendbmatrix\nbeginbmatrixpsi(x)psi(x)endbmatrixThe potential V(x) is constant in the domain L_0L_1. This  allows us to directly express the solution using the matrix exponentialbeginbmatrixpsi(x)psi(x)endbmatrix\n=expleft((x-L_0)\nbeginbmatrix\n0  1\nlambda+V_0  0\nendbmatrix\nright)\nbeginbmatrixpsi(L_0)psi(L_0)endbmatrixwhen xinL_0L_1. The boundary condition psi(L_1)=0 can be imposed as0=psi(L_1)=beginbmatrix1  0endbmatrix\nbeginbmatrixpsi(L_1)psi(L_1)endbmatrix\n=beginbmatrix1  0endbmatrixexpleft((L_1-L_0)\nbeginbmatrix\n0  1\nlambda+V_0  0\nendbmatrix\nright)\nbeginbmatrixpsi(L_0)psi(L_0)endbmatrixBy explicitly using the hyperbolic functions formula for the matrix exponential of an antidiagonal two-by-two matrix we obtain the relation0=\ng(λ)psi(L_0)+\nf(λ)psi(L_0)whereg(λ)=coshleft((L_1-L_0)sqrtλ+V_0right)f(λ)=fracsinhleft((L_1-L_0)sqrtλ+V_0right)sqrtλ+V_0Note that a solution to the original boundary value problem will satisfy the condition 0=g(λ)psi(L_0)+f(λ)psi(L_0), which involves only the point x=L_0, i.e., the middle of the domain. We can now disconnect the problem and only consider only the domain 0L_0 by using this condition instead, since a solution to the original boundary value problem satisfiesbegineqnarray*\n left(\n fracpartial^2partial x^2\n-V(x)-lambda\nright)psi(x)=0 xin0L_0\n   psi(0)=0\n   g(λ)psi(L_0)+f(λ)psi(L_1)=0\nendeqnarray*which is a boundary value problem on the reduced domain 0L_0. The boundary condition is a Robin boundary condition (also called mixed boundary condition) at x=L_0, since it contains both psi(L_0) and psi(L_0). The solutions to the original problem are the same as the solutions on the reduced domain, except for some unintresting special cases."
 },
 
 {
     "location": "movebc_tutorial/#Discretization-of-the-λ-dependent-boundary-value-problem-1",
-    "page": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
     "title": "Discretization of the λ-dependent boundary value problem",
     "category": "section",
     "text": "The boundary condition in the reduced domain boundary condition is λ-dependent. Therefore a usual discretization the domain 0L_0, e.g., with finite difference, will lead to a nonlinear eigenvalue problem. More precisely, we discretize the problem as follows.Let x_k=hk, k=1ldots n and h=1n such that x_1=h and x_n=1=L_0. An approximation of the lambda-dependent boundary condition can be found with the one-sided second order difference scheme   0=g(λ)psi(L_0)+f(λ)frac1hleft(frac32 psi(L_0)\n-2psi(x_n-1)\n+frac12psi(x_n-2)right)+O(h^2)Let  D_n=\nfrac1h^2\nbeginbmatrix\n-2   1  0 \n1  ddots 1 \n0  1 -2  1\n0  cdots  0  0\nendbmatrixtextrm and \nunderlineI_n=beginbmatrix1  ddots 1    0endbmatrixThen the boundary value problem can expressed asM(λ)v=0whereM(λ)=D_n-operatornamediag(V(x_1)ldotsV(x_n-1)0)-λunderlineI_n\n+g(λ)e_ne_n^T+f(λ)FandF=frac12he_ne_n-2^T-frac2he_ne_n-1^T+frac32he_ne_n^T"
@@ -906,7 +866,7 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "movebc_tutorial/#Implementation-in-NEP-PACK-1",
-    "page": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
     "title": "Implementation in NEP-PACK",
     "category": "section",
     "text": "The above discretization can be expressed as a SPMF with four terms. Let us set up the matrices firstL0=1; L1=8; V0=10.0;\nxv=Vector(range(0,stop=L0,length=1000))\nh=xv[2]-xv[1];\nn=size(xv,1);\nα=25*pi/2;\nV=x->1+sin(α*x);\nDn=spdiagm(-1 => [ones(n-2);0]/h^2, 0 => -2*ones(n-1)/h^2, 1 => ones(n-1)/h^2)\nVn=spdiagm(0 => [V.(xv[1:end-1]);0]);\nIn=spdiagm(0 => [ones(n-1);0])\nF=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])\nG=sparse([n],[n],[1]);The corresponding functions in the SPMF are defined as followsf1=S->one(S);\nf2=S->-S;\nhh=S-> sqrt(S+V0*one(S))\ng=S-> cosh((L1-L0)*hh(S))\nf=S-> inv(hh(S))*sinh((L1-L0)*hh(S))Note that when defining an SPMF all functions are defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, sinh(A) and cosh(A) for matrices A are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the SPMF-creator and applying a NEP-solver:using NonlinearEigenproblems\nnep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);\n(λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);\n(λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)\n(λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)\n(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)We can easily to a sanity check of the solution by visualizing it in this wayusing Plots\nplot(xv,v1/norm(v1))\nplot!(xv,real(v2)/norm(v2))\nplot!(xv,real(v3)/norm(v3))\nplot!(xv,real(v4)/norm(v4))resulting in<br>\n<img src=\"https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png\" height=450>"
@@ -914,10 +874,90 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "movebc_tutorial/#Measuring-error-1",
-    "page": "Tutorial 2 (ABC)",
+    "page": "Tutorial 1 (ABC)",
     "title": "Measuring error",
     "category": "section",
     "text": "For this application, the matrix M(λ) has very large elements if n is large. This makes the default way to measure the error a bit misleading. We now show how to specify a way to user-defined way to measure the error.The following function provides an estimate of the backward errore(lambdav)=fracM(lambda)vv(D_n-operatornamediag(V(x_1)ldotsV(x_n-1)0)+λ\n+g(λ)+f(λ)F)which we define as a functionmyerrmeasure=(λ,v) ->\n    norm(compute_Mlincomb(nep,λ,v))/\n       (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))\nThe  quasinewton simulations above terminate in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.julia> (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,\n                 errmeasure=myerrmeasure,Neig=5,maxit=100);\nIteration:1 conveig:0\nIteration:2 conveig:0\nIteration:3 conveig:0\nIteration:4 conveig:0\nIteration:5 conveig:0\nIteration:6 conveig:0\nIteration:7 conveig:0\nIteration:8 conveig:0\nIteration:9 conveig:1\nIteration:10 conveig:1\nIteration:11 conveig:1\n...\nIteration:30 conveig:3\nIteration:31 conveig:3\nIteration:32 conveig:4\nIteration:33 conveig:4\nIteration:34 conveig:4\nIteration:35 conveig:4\nIteration:36 conveig:4\nIteration:37 conveig:4\nIteration:38 conveig:4\njulia> λ\n5-element Array{Complex{Float64},1}:\n  -34.93072323018405 + 4.272712516424266e-18im\n  -39.14039540604307 + 2.054980381709175e-16im\n -31.057106551809486 - 3.2616991503097867e-15im\n  -43.66198303378091 - 4.3753274496659e-15im\n -27.537645678335437 + 4.8158177866759774e-15im(Image: To the top)"
+},
+
+{
+    "location": "bemtutorial/#",
+    "page": "Tutorial 2 (BEM)",
+    "title": "Tutorial 2 (BEM)",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "bemtutorial/#Tutorial:-User-defined-matrices-boundary-element-method-1",
+    "page": "Tutorial 2 (BEM)",
+    "title": "Tutorial: User-defined matrices - boundary element method",
+    "category": "section",
+    "text": "Suppose you have a new type of NEP, which does not naturally fit into the standard types in NEP-PACK. This tutorial shows how you can define a NEP where the only way to access the NEP is a function to compute M^(k)(λ). To illustrate this we use a boundary element method approach for computation of resonances. The complete code is available in gallery_extra/bem_hardcoded. The example is also available as a gallery problem: nep=nep_gallery(\"bem_fichera\")."
+},
+
+{
+    "location": "bemtutorial/#Boundary-element-method-1",
+    "page": "Tutorial 2 (BEM)",
+    "title": "Boundary element method",
+    "category": "section",
+    "text": "The boundary element method applied to Helmholtz eigenvalue problem can be described by the matrix consisting of elementsM(λ)_ij=frac14piint_Delta_iint_Delta_jfrace^iotalambdaxi-etaxi-etadS(eta)dS(xi)where Delta_i,i=1ldotsn are boundary elements. The boundary element approach is available through three functionsmesh=gen_ficheramesh(N) # computes a mesh\nprecompute_quad!(mesh,gauss_order) # precompute quadrature coefficients\nassemble_BEM(λ, mesh, gauss_order,der) # Compute the matrix consisting of all the integrals corresponding to λThese functions are based on the model (and inspired by some of the code) in in \"A boundary element method for solving PDE eigenvalue problems\", Steinlechner, bachelor thesis, ETH Zürich, 2010 and also used in the simulations in \"Chebyshev interpolation for nonlinear eigenvalue problems\", Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951."
+},
+
+{
+    "location": "bemtutorial/#Implementation-in-NEP-PACK-1",
+    "page": "Tutorial 2 (BEM)",
+    "title": "Implementation in NEP-PACK",
+    "category": "section",
+    "text": "In order to define your new NEP you need to define a new NEP-typestruct BEM_NEP <: NEP\n    mesh::Vector{Triangle}\n    n::Int\n    gauss_order::Int\nendThe mesh variable is a vector of triangle objects defining the domain, n is the size of the mesh and gauss_order the quadrature order. All NEPs have to defined size() functions# We overload the size function from Base so we need to import it explicitly\nimport Base.size;\nfunction size(nep::BEM_NEP)\n    return (nep.n,nep.n);\nend\nfunction size(nep::BEM_NEP,dim)\n    return nep.n;\nendThe function assemble_BEM computes the matrix defined by the integrals. Hence, we need to call this function for every call to compute_Mder:import NonlinearEigenproblems.NEPCore.compute_Mder # We overload the function\nfunction compute_Mder(nep::BEM_NEP,λ::Number,der::Int=0)\n    return assemble_BEM(λ, nep.mesh, nep.gauss_order,der)[:,:,1];\nendIn order to make other compute functions available to the methods, we can use the conversion functions. In particular, the compute_Mlincomb function can be implemented by making several calls in compute_Mder. This is done in the NEP-PACK-provided helper function compute_Mlincomb_from_Mder. We make this the default behaviour for this NEP:import NonlinearEigenproblems.NEPCore.compute_Mlincomb # Since we overload\n# Delegate the compute Mlincomb functions. This can be quite inefficient.\ncompute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat, a::Vector) =\n      compute_Mlincomb_from_Mder(nep,λ,V,a)\ncompute_Mlincomb(nep::BEM_NEP,λ::Number,V::AbstractVecOrMat) =\n      compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))We can now create a BEM_NEP as follows:gauss_order=3; N=5;\nmesh=gen_ficheramesh(5)\nprecompute_quad!(mesh,gauss_order)\nnep=BEM_NEP(mesh,gauss_order);"
+},
+
+{
+    "location": "bemtutorial/#Solving-the-NEP-1",
+    "page": "Tutorial 2 (BEM)",
+    "title": "Solving the NEP",
+    "category": "section",
+    "text": "After creating the NEP, you can try to solve the problem with methods in the package, e.g., MSLP works quite well for this problem:julia> (λ,v)=mslp(nep,λ=8,displaylevel=1)\nIteration:1 errmeasure:4.122635537095636e-6 λ=8.128272919317748 + 0.007584851218214716im\nIteration:2 errmeasure:1.787963303973586e-8 λ=8.132181234599427 - 1.952792817964521e-5im\nIteration:3 errmeasure:3.2884958163572594e-13 λ=8.132145310156643 - 1.2648247028455485e-5im\nIteration:4 errmeasure:4.6607986030841e-18 λ=8.132145310195453 - 1.264891804832194e-5im\n(8.132145310195453 - 1.264891804832194e-5im, Complex{Float64}[3.08473e-5-9.8713e-6im, 9.46458e-5+2.08586e-5im, -0.000418303-9.3624e-5im, -2.27161e-5+3.2045e-5im, -0.00168228-0.000446522im, -0.00660488-0.0018462im, -0.00705554-0.00195021im, -0.000714245-0.000123651im, -0.010653-0.00296256im, -0.0250155-0.00702815im  …  0.00369925+0.00101557im, 0.025547+0.00717101im, 0.0333126+0.00931856im, 0.0158614+0.00438927im, 0.00325204+0.000835354im, 0.021329+0.00595943im, 0.0126512+0.0034611im, 0.00130882+0.000172086im, 0.00131286+0.000207463im, 0.0125435+0.00344975im])This is the computed solution<br>\n<img src=\"https://user-images.githubusercontent.com/11163595/49595409-324b7d80-f978-11e8-818d-eeeaf9441505.png\" height=450>The plotting was done with the following code (by using internals of the BEM-implementation):using NonlinearEigenproblems, PyPlot\nnep=nep_gallery(\"bem_fichera\")\n(λ,v)=mslp(nep,λ=8.1,displaylevel=1)\nv=v./maximum(abs.(v));\nfor k=1:size(nep.mesh,1);\n    tri=nep.mesh[k];\n    col=[1-abs.(v)[k];0;0]; # plot abslolute value\n    X=[tri.P1[1] tri.P2[1]; tri.P3[1] tri.P3[1]];\n    Y=[tri.P1[2] tri.P2[2]; tri.P3[2] tri.P3[2]];\n    Z=[tri.P1[3] tri.P2[3]; tri.P3[3] tri.P3[3]];\n    plot_surface(X,Y,Z,color=col,alpha=0.8);\n    plot_wireframe(X,Y,Z,color=[0;0;0],linewidth=1,alpha=0.5,);\nend"
+},
+
+{
+    "location": "deflate_tutorial/#",
+    "page": "Tutorial 3 (Deflate)",
+    "title": "Tutorial 3 (Deflate)",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "deflate_tutorial/#Tutorial:-Computing-several-solutions-with-deflation-1",
+    "page": "Tutorial 3 (Deflate)",
+    "title": "Tutorial: Computing several solutions with deflation",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "deflate_tutorial/#Background-1",
+    "page": "Tutorial 3 (Deflate)",
+    "title": "Background",
+    "category": "section",
+    "text": "Several algorithms for NEPs compute one solution to the NEP given a starting value. In many applications several solutions are of interest. A trivial work-around you may want to try to run an algorithm which computes one eigenvalue twice with different starting values, e.g., quasinewton as in this example:julia> nep=nep_gallery(\"dep0\");\njulia> (λ1,_)=quasinewton(nep,λ=0,v=ones(size(nep,1)))\n(-0.3587189459686377 + 0.0im, Complex{Float64}[4.41411+0.0im, -2.22171+0.0im, 4.31544+0.0im, -7.76501+0.0im, -9.51261+0.0im])\njulia> (λ2,_)=quasinewton(nep,λ=1im,v=ones(size(nep,1)))\n(-0.04093521177097875 + 1.4860115309416284im, Complex{Float64}[-3.28271+11.7399im, 5.08623-8.05479im, 7.16697-6.25547im, -2.69349+4.63954im, -9.91065+14.4678im])This simple approach often suffers from the problem of reconvergence (we obtain the same solution again) or solutions of interest may be missed. In this case we get reconvergence when we use starting value -1:julia> (λ3,_)=quasinewton(nep,λ=-1,v=ones(size(nep,1)))\n(-0.358718945968621 + 0.0im, Complex{Float64}[-6.65881+0.0im, 3.35151+0.0im, -6.50997+0.0im, 11.7137+0.0im, 14.3501+0.0im])Note that starting with λ=0 and λ=-1 lead to the same solution. Other solution methods do not suffer from this, e.g., block Newton method, the infinite Arnoldi method and nleigs since they compute several solutions at once. Another remedy is the use of deflation."
+},
+
+{
+    "location": "deflate_tutorial/#Deflation-in-NEPPACK-1",
+    "page": "Tutorial 3 (Deflate)",
+    "title": "Deflation in NEPPACK",
+    "category": "section",
+    "text": "The term deflation is referring to making something smaller (in the sense of opposite of inflate a baloon). In this case we can make the solution set smaller. We compute a solution and subsequently compute reconstruct a deflated problem, which has the same solution as the original problem except of the solution we have already computed.A general deflation technique is available in NEPPACK based on increasing the problem size. The technique is inspired by what is described in the PhD thesis of Cedric Effenberger. It is implemented in the method effenberger_deflation.julia> # first compute a solution\njulia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)))\njulia> # Construct a deflated NEP where we remove (λ1,v1)\njulia> dnep=effenberger_deflation(nep,λ1,v1)\njulia> # The dnep is a new NEP but with dimension increased by one\njulia> size(nep)\n(5, 5)\njulia> size(dnep)\n(6, 6)We now illustrate that we can avoid reconvergence:julia> (λ4,v4)=quasinewton(dnep,λ=-1,v=ones(size(dnep,1)),maxit=1000)\n(0.8347353572199264 + 0.0im, Complex{Float64}[10.6614+0.0im, 0.351814+0.0im, -0.940539+0.0im, 1.10798+0.0im, 3.53392+0.0im, -0.447213+0.0im])Note: In contrast to the initial example, starting value λ=-1 does not lead to converge to the eigenvalue we obtained from starting value λ=0.The computed solution is indeed a solution to the original NEP since M(λ4) is singular:julia> minimum(svdvals(compute_Mder(nep,λ4)))\n1.2941045763733582e-14In fact, you can even start with the first starting value λ=0, and get a new solutionjulia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)\n(0.8347353572199577 + 0.0im, Complex{Float64}[9.28596+0.0im, 0.306425+0.0im, -0.819196+0.0im, 0.965031+0.0im, 3.07799+0.0im, -0.389516+0.0im])"
+},
+
+{
+    "location": "deflate_tutorial/#Repeated-deflation-1",
+    "page": "Tutorial 3 (Deflate)",
+    "title": "Repeated deflation",
+    "category": "section",
+    "text": "The above procedure can be repeated by calling effenberg_deflation on the deflated NEP. The procedure can be repeated such that many eigenvalues can be computed. It is however more robust to deflate based on the original NEP, which requires slightly more manipulation/understanding of invariant pairs which needs to be extracted for every computed solution.function multiple_deflation(nep,λ0,p)\n   n=size(nep,1);\n   dnep=nep;\n   S0=zeros(ComplexF64,p,p);\n   V0=zeros(ComplexF64,size(nep,1),p);\n   S=view(S0,1:0,1:0);\n   V=view(V0,1:n,1:0);\n   for k=1:p\n      # Compute one solution of the deflated problem\n      (λ2,v2)=quasinewton(dnep,λ=λ0,v=ones(size(dnep,1)),maxit=1000);\n      # expand the invariant pair\n      S0[1:k-1,k]=v2[(n+1):end];\n      S0[k,k]=λ2;\n      S=view(S0,1:k,1:k)\n      V0[1:n,k]=v2[1:n];\n      V=view(V0,1:n,1:k);\n      @show S\n      # Construct the deflated problem\n      dnep=effenberger_deflation(nep,S,V)\n   end\n   return (S,V)\nendWe can now compute several solutions by calling multiple_deflation. Note that we use the same starting eigenvalue for all eigenvalues: 0.5im. It has to be complex in this case, since if it was real, we would not find complex solution and this problem only has two real eigenvalues.julia> nep=nep_gallery(\"dep0\");\njulia> (S,V)=multiple_deflation(nep,0.5im,3)\nS = Complex{Float64}[-0.358719+1.33901e-14im]\nS = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im; 0.0+0.0im 0.834735+1.25838e-14im]\nS = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im -0.735867-0.43166im; 0.0+0.0im 0.834735+1.25838e-14im 0.570725-0.153773im; 0.0+0.0im 0.0+0.0im -0.0409352+1.48601im]The matrix pair (S,V) is a partial Schur factorization of the NEP. The eigenvalues of S are eigenvalues of the original NEP, and we can find the eigenpairs by diagonalizing S:julia> (Λ,P)=eigen(S);\njulia> VV=V*P;  # Construct the eigenvector matrix\njulia> Λ # The computed eigenvalues\n3-element Array{Complex{Float64},1}:\n  -0.3587189459686267 + 1.339010598765711e-14im\n   0.8347353572199371 + 1.2583846244197297e-14im\n -0.04093521177096655 + 1.4860115309416284imThe values in Λ and VV are eigenpairs:julia> norm(compute_Mlincomb(nep,Λ[1],VV[:,1]))\n2.0521012310648373e-13\njulia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))\n2.8707903010898464e-13\njulia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))\n1.883394132275381e-13"
 },
 
 ]}
