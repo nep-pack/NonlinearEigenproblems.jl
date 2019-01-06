@@ -13,8 +13,9 @@ makedocs(
         "LinSolver" => "linsolvers.md",
         "NEP Transformations" => "transformations.md",
         "NEP Gallery" => "gallery.md",
-        "Tutorial 1 (BEM)" => "bemtutorial.md",
-        "Tutorial 2 (ABC)" => "movebc_tutorial.md"
+        "Tutorial 1 (ABC)" => "movebc_tutorial.md",
+        "Tutorial 2 (BEM)" => "bemtutorial.md",
+        "Tutorial 3 (Deflation)" => "deflate_tutorial.md"
     ]
 )
 
