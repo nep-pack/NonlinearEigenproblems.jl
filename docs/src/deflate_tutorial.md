@@ -144,3 +144,6 @@ julia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))
 julia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))
 1.883394132275381e-13
 ```
+
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_DEFLATION)
