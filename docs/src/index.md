@@ -54,7 +54,7 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 
 # Accessing more complicated applications
 
-We have made benchmark examples available in through the function [`nep_gallery`](gallery.md#NonlinearEigenproblems.nep_gallery):
+We have made benchmark examples available through the function [`nep_gallery`](gallery.md#NonlinearEigenproblems.nep_gallery):
 
 ```julia-repl
 julia> nep=nep_gallery("dep0",100);
