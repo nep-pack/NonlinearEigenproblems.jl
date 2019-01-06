@@ -173,19 +173,19 @@ documentation, e.g., `?blocknewton`.
 
 # Your own NEP nonlinearity
 
-As an application researchers, you may first want to try
+As an application researcher, you may first want to try
 express your problem in the following form since this
 gives access to several efficient routines
 to access the NEP. A problem that can be expressed
 as a (short) sum of products of matrices and functions
-is called represented by the type [`SPMF`](types.md#SPMF-1)
+is called represented by objects of the type [`SPMF`](types.md#SPMF-1)
 in NEP-PACK. For instance, a problem with three terms
 ```math
 M(λ) = A+λB+e^{\sin(λ/2)}C
 ```
 can be created by
 ```julia-repl
-julia>  A=(1:4)*(1:4)'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);
+julia> A=(1:4)*(1:4)'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);
 julia> f1= λ-> one(λ);
 julia> f2= λ-> λ;
 julia> f3= λ-> exp(sin(λ/2))
@@ -197,7 +197,8 @@ julia> λ,v=quasinewton(nep,λ=3)
 (3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])
 ```
 Note that the functions `f1`,`f2` and `f3` have to be defined for scalar values
-and for matrices (in the matrix function sense, not elementwise sense).
+and for matrices (in the matrix function sense, not elementwise sense). This is
+the reason `f1` needs to be defined as `one(λ)`, instead of just `1`.
 
 As usual, you can check that we computed a sensible solution:
 ```julia-repl
