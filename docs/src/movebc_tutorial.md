@@ -15,7 +15,7 @@ We consider the  Schrödinger type eigenvalue problem on the interval $[0,L_1]$,
 ```
 We wish to compute eigenvalue ``λ`` and eigenfunction ``\psi``.
 Moreover, we assume that the potential function ``V(x)`` is benign in
-the domain ``[L_0,L_1]``, in our case for simplicity it is 
+the domain ``[L_0,L_1]``, in our case for simplicity it is
 constant, such that we can later solve the problem in that domain analytically.
 In the simulations we will consider this
 function
@@ -110,13 +110,13 @@ since a solution to the original boundary value problem satisfies
 -V(x)-\lambda
 \right)\psi(x)&=&0,\,\; x\in[0,L_0]\\
    \psi(0)&=&0\\
-   g(λ)\psi(L_0)+f(λ)\psi'(L_1)&=&0.
+   g(λ)\psi(L_0)+f(λ)\psi'(L_0)&=&0.
 \end{eqnarray*}
 ```
 which is a boundary value problem on the reduced domain $[0,L_0]$. The boundary condition
 is a [Robin boundary condition](https://en.wikipedia.org/wiki/Robin_boundary_condition) (also called
 mixed boundary condition) at $x=L_0$, since it contains
-both ``\psi(L_0)`` and ``\psi'(L_0)``. The
+both ``\psi(L_0)`` and ``\psi'(L_0)``. It can be shown that the
 solutions to the original problem are the same as the
 solutions on the reduced domain, except for some unintresting special cases.
 
@@ -197,7 +197,7 @@ nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
 (λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
 (λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)
 ```
-We can easily to a sanity check of the solution by visualizing it in this way
+We can easily do a sanity check of the solution by visualizing it in this way
 ```julia
 using Plots
 plot(xv,v1/norm(v1))
