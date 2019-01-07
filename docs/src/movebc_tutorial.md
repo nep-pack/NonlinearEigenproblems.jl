@@ -215,7 +215,7 @@ resulting in
 
 For this application, the matrix ``M(λ)`` has very large elements if $n$ is large.
 This makes the default way to measure the error a bit misleading. We now
-show how to specify a way to user-defined way to measure the error.
+show how to specify a user-defined way to measure the error.
 
 The following function provides an estimate of the backward error
 ```math
@@ -268,7 +268,8 @@ julia> λ
 
 Let us verify the solution with a direct discretization of the domain.
 The [`ApproxFun.jl`](https://github.com/JuliaApproximation/ApproxFun.jl) package provides
-tools to solve differential equations in one dimension.
+tools to solve differential equations in one dimension. We use this package to discretize the
+entire domain $[0,L_1]$, whereas only a discretization of $[0,L_0]$ is necessary in the NEP-approach.
 
 The eigenvalues of the operator can be computed as follows (where we approximate the singular point
 of the potential with a regularized heaviside function).
