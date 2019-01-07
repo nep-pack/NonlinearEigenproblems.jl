@@ -173,12 +173,12 @@ documentation, e.g., `?blocknewton`.
 
 # Your own NEP nonlinearity
 
-As an application researcher, you may first want to try
-express your problem in the following form since this
-gives access to several efficient routines
-to access the NEP. A problem that can be expressed
+As an application researcher, you may first want to try to
+express your problem in the following form since it
+gives access to several efficient routines associated with the NEP,
+in turn making it possible to use many algorithms. A problem that can be expressed
 as a (short) sum of products of matrices and functions
-is called represented by objects of the type [`SPMF`](types.md#SPMF-1)
+is called by objects of the type [`SPMF`](types.md#SPMF-1)
 in NEP-PACK. For instance, a problem with three terms
 ```math
 M(λ) = A+λB+e^{\sin(λ/2)}C
