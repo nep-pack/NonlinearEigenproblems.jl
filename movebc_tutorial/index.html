@@ -77,7 +77,7 @@ plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
-<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a way to user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error</p><div>\[e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|+|λ|
+<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error</p><div>\[e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|+|λ|
 +|g(λ)|+|f(λ)|\|F\|)}\]</div><p>which we define as a function</p><pre><code class="language-julia">myerrmeasure=(λ,v) -&gt;
     norm(compute_Mlincomb(nep,λ,v))/
        (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
