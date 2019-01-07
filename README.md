@@ -88,12 +88,12 @@ Reference to a corresponding algorithm paper can be found by in, e.g., by writin
 Some links below are developer info on KTH. We will migrate them soon:
 
 
-* Checklist for first public version: https://github.com/nep-pack/NonlinearEigenproblems.jl/issues/26
-
 * NEP-page style "guide": https://github.com/nep-pack/NonlinearEigenproblems.jl/wiki/Style-guidelines-and-notes
 
-* GIT-usage: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki
+* GIT-workflow: https://github.com/nep-pack/NonlinearEigenproblems.jl/wiki/Git-workflow
 
-* NEP-methods: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/NEP-methods
+* GIT-usage @ KTH: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki
 
-* NEP-applications: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/Applications
+* NEP-methods @ KTH: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/NEP-methods
+
+* NEP-applications @ KTH: https://gitr.sys.kth.se/nep-pack/nep-pack-alpha/wiki/Applications
