@@ -110,7 +110,7 @@ julia&gt; λ
   -39.14039540604307 + 2.054980381709175e-16im
  -31.057106551809486 - 3.2616991503097867e-15im
   -43.66198303378091 - 4.3753274496659e-15im
- -27.537645678335437 + 4.8158177866759774e-15im</code></pre><h2><a class="nav-anchor" id="Verifying-the-solution-1" href="#Verifying-the-solution-1">Verifying the solution</a></h2><p>Let us verify the solution with a direct discretization of the domain. The <a href="https://github.com/JuliaApproximation/ApproxFun.jl"><code>ApproxFun.jl</code></a> package provides tools to solve differential equations in one dimension.</p><p>The eigenvalues of the operator can be computed as follows (where we approximate the singular point of the potential with a regularized heaviside function).</p><pre><code class="language-julia">julia&gt; using LinearAlgebra, ApproxFun;
+ -27.537645678335437 + 4.8158177866759774e-15im</code></pre><h2><a class="nav-anchor" id="Verifying-the-solution-1" href="#Verifying-the-solution-1">Verifying the solution</a></h2><p>Let us verify the solution with a direct discretization of the domain. The <a href="https://github.com/JuliaApproximation/ApproxFun.jl"><code>ApproxFun.jl</code></a> package provides tools to solve differential equations in one dimension. We use this package to discretize the entire domain <span>$[0,L_1]$</span>, whereas only a discretization of <span>$[0,L_0]$</span> is necessary in the NEP-approach.</p><p>The eigenvalues of the operator can be computed as follows (where we approximate the singular point of the potential with a regularized heaviside function).</p><pre><code class="language-julia">julia&gt; using LinearAlgebra, ApproxFun;
 julia&gt; x = Fun(0 .. 8)
 julia&gt; V0 = 10;
 julia&gt; α = 25*pi/2;
