@@ -6,7 +6,7 @@
 \right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_1]\\
    \psi(0)&amp;=&amp;0\\
    \psi(L_1)&amp;=&amp;0.
-\end{eqnarray*}\]</div><p>We wish to compute eigenvalue <span>$λ$</span> and eigenfunction <span>$\psi$</span>. Moreover, we assume that the potential function <span>$V(x)$</span> is benign in the domain <span>$[L_0,L_1]$</span>, in our case for simplicity it is  constant, such that we can later solve the problem in that domain analytically. In the simulations we will consider this function</p><div>\[  V(x)=
+\end{eqnarray*}\]</div><p>We wish to compute eigenvalue <span>$λ$</span> and eigenfunction <span>$\psi$</span>. Moreover, we assume that the potential function <span>$V(x)$</span> is benign in the domain <span>$[L_0,L_1]$</span>, in our case for simplicity it is constant, such that we can later solve the problem in that domain analytically. In the simulations we will consider this function</p><div>\[  V(x)=
 \begin{cases}
 1+\sin(\alpha x)  &amp; x\in[0,L_0]=[0,1]\\
 V_0 &amp; x\in(L_0,L_1)=(1,8)
@@ -41,8 +41,8 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 -V(x)-\lambda
 \right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_0]\\
    \psi(0)&amp;=&amp;0\\
-   g(λ)\psi(L_0)+f(λ)\psi&#39;(L_1)&amp;=&amp;0.
-\end{eqnarray*}\]</div><p>which is a boundary value problem on the reduced domain <span>$[0,L_0]$</span>. The boundary condition is a <a href="https://en.wikipedia.org/wiki/Robin_boundary_condition">Robin boundary condition</a> (also called mixed boundary condition) at <span>$x=L_0$</span>, since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>. The solutions to the original problem are the same as the solutions on the reduced domain, except for some unintresting special cases.</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The boundary condition in the reduced domain boundary condition is λ-dependent. Therefore a usual discretization the domain <span>$[0,L_0]$</span>, e.g., with finite difference, will lead to a nonlinear eigenvalue problem. More precisely, we discretize the problem as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. An approximation of the <span>$\lambda$</span>-dependent boundary condition can be found with the one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
+   g(λ)\psi(L_0)+f(λ)\psi&#39;(L_0)&amp;=&amp;0.
+\end{eqnarray*}\]</div><p>which is a boundary value problem on the reduced domain <span>$[0,L_0]$</span>. The boundary condition is a <a href="https://en.wikipedia.org/wiki/Robin_boundary_condition">Robin boundary condition</a> (also called mixed boundary condition) at <span>$x=L_0$</span>, since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>. It can be shown that the solutions to the original problem are the same as the solutions on the reduced domain, except for some unintresting special cases.</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The boundary condition in the reduced domain boundary condition is λ-dependent. Therefore a usual discretization the domain <span>$[0,L_0]$</span>, e.g., with finite difference, will lead to a nonlinear eigenvalue problem. More precisely, we discretize the problem as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. An approximation of the <span>$\lambda$</span>-dependent boundary condition can be found with the one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
 -2\psi(x_{n-1})
 +\frac12\psi(x_{n-2})\right)+O(h^2).\]</div><p>Let</p><div>\[  D_n=
 \frac1{h^2}
@@ -72,7 +72,7 @@ nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
 (λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
 (λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
 (λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
-(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)</code></pre><p>We can easily to a sanity check of the solution by visualizing it in this way</p><pre><code class="language-julia">using Plots
+(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)</code></pre><p>We can easily do a sanity check of the solution by visualizing it in this way</p><pre><code class="language-julia">using Plots
 plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
