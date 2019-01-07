@@ -3,7 +3,8 @@
 ## Background
 Several algorithms for NEPs compute one solution to the NEP
 given a starting value. In many applications several
-solutions are of interest. There is a trivial partial "work-around": You can try to
+solutions are of interest. Let us first consider the trivial partial
+"work-around": You can try to
 run an algorithm which computes one eigenvalue twice with
 different starting values, e.g., quasinewton as in this
 example:
@@ -21,7 +22,7 @@ reconvergence when we use starting value `-1`:
 julia> (λ3,_)=quasinewton(nep,λ=-1,v=ones(size(nep,1)))
 (-0.358718945968621 + 0.0im, Complex{Float64}[-6.65881+0.0im, 3.35151+0.0im, -6.50997+0.0im, 11.7137+0.0im, 14.3501+0.0im])
 ```
-Note that starting with `λ=0` and `λ=-1` lead to the same solution.
+Note that applying the algorithm with starting values `λ=0` and `λ=-1` lead to the same solution.
 Other solution methods do not suffer from this, e.g.,
 [block Newton method](methods.md#NonlinearEigenproblems.NEPSolver.blocknewton),
 [the infinite Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.iar)
@@ -34,11 +35,13 @@ Another remedy is the use of *deflation*.
 
 The term deflation is referring to making
 something smaller (in the sense of opposite of inflating a balloon). In this case we can make the solution set smaller. We compute a solution and subsequently
-construct a deflated problem, which has the same solution as the original
+construct a deflated problem, which has the same solutions as the original
 problem except of the solution we have already computed.
 
-A general deflation technique is available in NEP-PACK based on increasing
-the problem size. The technique is inspired by what is described in the [PhD thesis
+A general solver independent deflation technique is available in NEP-PACK based on increasing
+the problem size.
+(There are also NEP-solver deflation techniques incoprorated in, e.g., in [the nonlinear Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.nlar) and [the Jacobi-Davidson method](methods.md#NonlinearEigenproblems.NEPSolver.jd_betcke).)
+The solver independent technique is inspired by what is described in the [PhD thesis
 of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf).
 It is implemented in the method [effenberger_deflation](transformations.md#NonlinearEigenproblems.NEPTypes.effenberger_deflation).
 
@@ -74,10 +77,10 @@ julia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)
 ## Repeated deflation
 
 The above procedure can be repeated by calling `effenberger_deflation` on
-the deflated NEP. The procedure can be done in such a way many eigenvalues
-can often be computed. We now illustrate a somewhat more robust variant of that
+the deflated NEP. The procedure can be carried out in such a way many eigenvalues
+are obtained. We now illustrate a somewhat more robust variant of that
 approach by constructing a deflated NEP from the original NEP.
-This requires slightly more manipulation/understanding of invariant pairs which
+This requires slightly more manipulations/understanding of invariant pairs which
 need to be extracted for every computed solution.
 
 
