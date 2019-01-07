@@ -264,4 +264,36 @@ julia> λ
  -27.537645678335437 + 4.8158177866759774e-15im
 ```
 
+## Verifying the solution
+
+Let us verify the solution with a direct discretization of the domain.
+The [`ApproxFun.jl`](https://github.com/JuliaApproximation/ApproxFun.jl) package provides
+tools to solve differential equations in one dimension.
+
+The eigenvalues of the operator can be computed as follows (where we approximate the singular point
+of the potential with a regularized heaviside function).
+```julia
+julia> using LinearAlgebra, ApproxFun;
+julia> x = Fun(0 .. 8)
+julia> V0 = 10;
+julia> α = 25*pi/2;
+julia> # Let Ha be an approximation of H(x-1) where H is a Heaviside function
+julia> kk=10; Ha = 1 ./(1+exp(-2*kk*(x .- 1.0)));
+julia> VV=V0*Ha + (1-Ha) * sin(α*x)
+julia> L = 𝒟^2-VV
+julia> S = space(x)
+julia> B = Dirichlet(S)
+julia> ee= eigvals(B, L, 500,tolerance=1E-10);
+```
+We obtain approximations of the same eigenvalues as with the NEP-approach
+```julia
+julia> ee[sortperm(abs.(ee.+36))[1:5]]
+ -34.85722089717211
+ -39.051578662445074
+ -30.984470654329677
+ -43.54933251507695
+ -27.450712883781343
+```
+
+
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_MOVEBC)
