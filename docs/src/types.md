@@ -104,7 +104,6 @@ SPMFSumNEP
 
 
 # Accessing the NEP
-<a name="accessNEP"></a>
 
 The nonlinear eigenvalue problem is defined by the data
 stored in the NEP-class, and the NEP-solvers access
