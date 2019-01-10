@@ -273,6 +273,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "methods/#NonlinearEigenproblems.NEPSolver.ilan",
+    "page": "NEP Methods",
+    "title": "NonlinearEigenproblems.NEPSolver.ilan",
+    "category": "function",
+    "text": "ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])\n\nRun the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in nep.\n\nThe target σ is the center around which eiganvalues are computed. The kwarg errmeasure is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair λ and v is flagged a as converged (to an eigenpair) if errmeasure is less than tol. The vector v is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by orthmethod, see the package IterativeSolvers.jl. The iteration is continued until Neig Ritz pairs converge. This function throws a NoConvergenceException if the wanted eigenpairs are not computed after maxit iterations. The linsolvercreator is a function which specifies how the linear system is created and solved.\n\nExample\n\njulia> using NonlinearEigenproblems, LinearAlgebra\njulia> nep=nep_gallery(\"dep0\",100);\njulia> v0=ones(size(nep,1));\njulia> λ,v=ilan(nep;v=v0,tol=1e-5,Neig=3);\njulia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?\njulia> λ    # print the computed eigenvalues\n3-element Array{Complex{Float64},1}:\n -0.15606211475666945 - 0.12273439802763578im\n -0.15606211475666862 + 0.12273439802763489im\n  0.23169243065648365 - 9.464790582509696e-17im\n\nReferences\n\nAlgorithm 2 in Mele, The infinite Lanczos method for symmetric nonlinear eigenvalue problems, https://arxiv.org/abs/1812.07557, 2018\n\n\n\n\n\n"
+},
+
+{
+    "location": "methods/#Infinite-Lanczos-based-methods-1",
+    "page": "NEP Methods",
+    "title": "Infinite Lanczos based methods",
+    "category": "section",
+    "text": "The Infinite Bi-Lanczos method.infbilanczosThe Infinite Lanczos method, for symmetric NEPsilan"
+},
+
+{
     "location": "methods/#NonlinearEigenproblems.NEPSolver.nleigs",
     "page": "NEP Methods",
     "title": "NonlinearEigenproblems.NEPSolver.nleigs",
@@ -281,11 +297,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "methods/#Infbilanczos-1",
+    "location": "methods/#NLEIGS-1",
     "page": "NEP Methods",
-    "title": "Infbilanczos",
+    "title": "NLEIGS",
     "category": "section",
-    "text": "The Infinite Bi-Lanczos method.infbilanczosnleigs"
+    "text": "nleigs"
 },
 
 {
