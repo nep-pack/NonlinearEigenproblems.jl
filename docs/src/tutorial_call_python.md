@@ -93,6 +93,11 @@ struct PyNEP <: NEP # Set up a dummy type for our specific NEP
 end
 size(::PyNEP) = (2,2)
 size(::PyNEP,::Int) = 2
+```
+As explained in [NEPTypes](types.md), a NEP is defined by
+its compute functions. Here is how you define two compute functions
+that call our python-defined NEP:
+```julia
 function compute_Mder(::PyNEP,s::Number,der::Integer=0)
     if (der>0)
         error("Higher derivatives not implemented");
