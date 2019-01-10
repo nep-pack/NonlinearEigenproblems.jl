@@ -122,7 +122,7 @@ julia> compute_Mder(pnep,3+3im)
 ## Solving the NEP
 
 Since a NEP-object is defined by its compute functions,
-we can now use most NEP-solvers to for this problem.
+we can now use many NEP-solvers to solve this problem.
 Here we use IAR:
 ```julia-repl
 
