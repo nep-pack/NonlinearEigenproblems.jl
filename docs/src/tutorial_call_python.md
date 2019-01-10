@@ -3,8 +3,8 @@
 ## A problem defined in Python
 
 Julia is a great programming language,
-but your problem may for various reasons
-not be easy to define in Julia code, e.g., for legacy reasons.
+but your problem may not be easy to define in Julia code, e.g., for legacy reasons.
+Don't let that prevent you from using the package.
 We now show how a problem defined in python can be solved
 with NEP-PACK.
 
@@ -81,8 +81,8 @@ julia> mynep.compute_M(3+3im)
 
 We now just need to define a NEP which calls these routines.
 It is achieved by defining a new NEP-PACK type, for
-which we have define the size-function and some compute
-functions:
+which we have define the `size`-function, which is
+hard-coded in this example.
 
 ```julia
 using NonlinearEigenproblems
@@ -155,6 +155,6 @@ julia> r=A*v+λ*B*v+exp(λ)*C*v;
  -3.3306690738754696e-16 + 1.4448222154182884e-17im
  -1.0547118733938987e-15 + 2.4802198512062408e-17im
 ```
-
+Residual is almost zero, so we have a solution.
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_PYTHON1)
