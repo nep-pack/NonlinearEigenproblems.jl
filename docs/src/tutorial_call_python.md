@@ -1,4 +1,4 @@
-# Tutorial showing how to call solve a NEP defined in python code
+# Tutorial: Solving NEP defined in Python
 
 ## A problem defined in Python
 
