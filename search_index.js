@@ -968,4 +968,44 @@ var documenterSearchIndex = {"docs": [
     "text": "The above procedure can be repeated by calling effenberger_deflation on the deflated NEP. The procedure can be carried out in such a way many eigenvalues are obtained. We now illustrate a somewhat more robust variant of that approach by constructing a deflated NEP from the original NEP. This requires slightly more manipulations/understanding of invariant pairs which need to be extracted for every computed solution.function multiple_deflation(nep,λ0,p)\n   n=size(nep,1);\n   dnep=nep;\n   S0=zeros(ComplexF64,p,p);\n   V0=zeros(ComplexF64,size(nep,1),p);\n   S=view(S0,1:0,1:0);\n   V=view(V0,1:n,1:0);\n   for k=1:p\n      # Compute one solution of the deflated problem\n      (λ2,v2)=quasinewton(dnep,λ=λ0,v=ones(size(dnep,1)),maxit=1000);\n      # expand the invariant pair\n      S0[1:k-1,k]=v2[(n+1):end];\n      S0[k,k]=λ2;\n      S=view(S0,1:k,1:k)\n      V0[1:n,k]=v2[1:n];\n      V=view(V0,1:n,1:k);\n      @show S\n      # Construct the deflated problem\n      dnep=effenberger_deflation(nep,S,V)\n   end\n   return (S,V)\nendWe can now compute several solutions by calling multiple_deflation. Note that we use the same starting eigenvalue for all eigenvalues: 0.5im. It has to be complex in this case, since if it was real, we would not find complex solution and this problem only has two real eigenvalues.julia> nep=nep_gallery(\"dep0\");\njulia> (S,V)=multiple_deflation(nep,0.5im,3)\nS = Complex{Float64}[-0.358719+1.33901e-14im]\nS = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im; 0.0+0.0im 0.834735+1.25838e-14im]\nS = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im -0.735867-0.43166im; 0.0+0.0im 0.834735+1.25838e-14im 0.570725-0.153773im; 0.0+0.0im 0.0+0.0im -0.0409352+1.48601im]The matrix pair (S,V) is a partial Schur factorization of the NEP. This can be seen from the fact compute_MM vanishes for for (S,V):julia> norm(compute_MM(nep,S,V))\n4.341002168663845e-13The eigenvalues of S are eigenvalues of the original NEP, and we can find the eigenpairs by diagonalizing S:julia> (Λ,P)=eigen(S);\njulia> VV=V*P;  # Construct the eigenvector matrix\njulia> Λ # The computed eigenvalues\n3-element Array{Complex{Float64},1}:\n  -0.3587189459686267 + 1.339010598765711e-14im\n   0.8347353572199371 + 1.2583846244197297e-14im\n -0.04093521177096655 + 1.4860115309416284imThe values in Λ and VV are eigenpairs:julia> norm(compute_Mlincomb(nep,Λ[1],VV[:,1]))\n2.0521012310648373e-13\njulia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))\n2.8707903010898464e-13\njulia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))\n1.883394132275381e-13(Image: To the top)"
 },
 
+{
+    "location": "tutorial_call_python/#",
+    "page": "Tutorial 4 (Python NEP)",
+    "title": "Tutorial 4 (Python NEP)",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "tutorial_call_python/#Tutorial-showing-how-to-call-solve-a-NEP-defined-in-python-code-1",
+    "page": "Tutorial 4 (Python NEP)",
+    "title": "Tutorial showing how to call solve a NEP defined in python code",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "tutorial_call_python/#A-problem-defined-in-Python-1",
+    "page": "Tutorial 4 (Python NEP)",
+    "title": "A problem defined in Python",
+    "category": "section",
+    "text": "Julia is a great programming language, but your problem may for various reasons not be easy to define in Julia code, e.g., for legacy reasons. We now show how a problem defined in python can be solved with NEP-PACK.The following python code correspond to the NEPM(λ)=beginbmatrix12newline34endbmatrix+\nλbeginbmatrix00newline01endbmatrix+\ne^λbeginbmatrix11newline11endbmatrixThe code has two functions: one that can compute an evaluation of M(λ) and one that can form a linear combination of derivatives  sum_i=1^kM^(k)(λ)x_iPut a file  mynep.py  in your current directory with the following contents:import numpy as np;\nimport cmath as m;\ndef compute_M(s):\n    \"\"\"Compute the matrix M(s) for a given eigenvalue approximation\"\"\"\n    A=np.matrix(\'1 2; 3 4\');  B=np.matrix(\'0 0; 0 1\');   C=np.matrix(\'1 1; 1 1\');\n    M=A+s*B+m.exp(s)*C\n    return M\n\ndef compute_Mlincomb(s,X):\n    \"\"\"Compute the linear combination of derivatives for value s\"\"\"\n    A=np.matrix(\'1 2; 3 4\');  B=np.matrix(\'0 0; 0 1\');   C=np.matrix(\'1 1; 1 1\');\n\n    X=np.matrix(X) # Explicitly convert to matrix\n    z=np.zeros((2,1));\n    # Zeroth derivative\n    z=z+A*X[:,0]\n    z=z+B*(s*X[:,0])\n    z=z+C*(m.exp(s)*X[:,0])\n\n    # First derivative\n    if (np.size(X,1)>1):\n        z=z+B*(X[:,1])+C*(m.exp(s)*X[:,1])\n    # Higher derivatives\n    if (np.size(X,1)>1):\n        for k in range(2,np.size(X,1)):\n            z=z+C*(m.exp(s)*X[:,k])\n    return z"
+},
+
+{
+    "location": "tutorial_call_python/#Implementation-in-NEP-PACK-1",
+    "page": "Tutorial 4 (Python NEP)",
+    "title": "Implementation in NEP-PACK",
+    "category": "section",
+    "text": "One of the advantages of the Julia language is that it is reasonably easy to interface with code written in other langauges. The Julia package PyCall simplifies the use of Python code and Julia code.We first initiate PyCall as follows. Note that the pushfirst! command is needed, otherwise the module defined in the file mynep.py we gave above will not be found. (PyCall does not include the current directory in the module search path by default.)using PyCall\npushfirst!(PyVector(pyimport(\"sys\")[\"path\"]), \"\")\nlocal mynep\n@pyimport mynep as mynepThis gives us direct access to the compute_M and compute_Mlincomb functions from python, e.g., if we want to evaluate M(3+3i) we run this codejulia> mynep.compute_M(3+3im)\n2×2 Array{Complex{Float64},2}:\n -18.8845+2.83447im  -17.8845+2.83447im\n -16.8845+2.83447im  -12.8845+5.83447imWe now just need to define a NEP which calls these routines. It is achieved by defining a new NEP-PACK type, for which we have define the size-function and some compute functions:using NonlinearEigenproblems\nimport NonlinearEigenproblems.size\nimport NonlinearEigenproblems.compute_Mlincomb;\nimport NonlinearEigenproblems.compute_Mder;\nstruct PyNEP <: NEP # Set up a dummy type for our specific NEP\nend\nsize(::PyNEP) = (2,2)\nsize(::PyNEP,::Int) = 2\nfunction compute_Mder(::PyNEP,s::Number,der::Integer=0)\n    if (der>0)\n        error(\"Higher derivatives not implemented\");\n    end\n    return mynep.compute_M(complex(s)); # Call python\nend\nfunction compute_Mlincomb(::PyNEP,s::Number,X::AbstractVecOrMat)\n    XX=complex(reshape(X,size(X,1),size(X,2))) # Turn into a matrix\n    return mynep.compute_Mlincomb(complex(s),XX); # Call python\nendWe now create an object of our newly created type and we can access the compute NEP-PACK specific compute functions:julia> pnep=PyNEP();\njulia> compute_Mder(pnep,3+3im)\n2×2 Array{Complex{Float64},2}:\n -18.8845+2.83447im  -17.8845+2.83447im\n -16.8845+2.83447im  -12.8845+5.83447im"
+},
+
+{
+    "location": "tutorial_call_python/#Solving-the-NEP-1",
+    "page": "Tutorial 4 (Python NEP)",
+    "title": "Solving the NEP",
+    "category": "section",
+    "text": "Since a NEP-object is defined by its compute functions, we can now use most NEP-solvers to for this problem. Here we use IAR:\njulia> (λv,vv)=iar(pnep,v=[1;1],σ=1,displaylevel=1,Neig=3);\nIteration:1 conveig:0\nIteration:2 conveig:0\nIteration:3 conveig:0\nIteration:4 conveig:0\nIteration:5 conveig:0\nIteration:6 conveig:0\nIteration:7 conveig:0\n....\nIteration:26 conveig:1\nIteration:27 conveig:1\nIteration:28 conveig:1\njulia>We can verify that we actually computed solutions as follows:julia> λ=λv[1]; # Take the first eigenpair\njulia> v=vv[:,1]\n2-element Array{Complex{Float64},1}:\n -0.7606536306084172 + 4.723354443026557e-18im\n   0.568748796395112 + 1.8318449036023953e-19im\njulia> A=[1 2 ; 3 4];\njulia> B=[0 0 ; 0 1];\njulia> C=[1 1 ; 1 1];\njulia> r=A*v+λ*B*v+exp(λ)*C*v;\n2-element Array{Complex{Float64},1}:\n -3.3306690738754696e-16 + 1.4448222154182884e-17im\n -1.0547118733938987e-15 + 2.4802198512062408e-17im"
+},
+
 ]}
