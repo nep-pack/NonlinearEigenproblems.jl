@@ -40,8 +40,7 @@ import NonlinearEigenproblems.compute_Mder;
 struct PyNEP &lt;: NEP # Set up a dummy type for our specific NEP
 end
 size(::PyNEP) = (2,2)
-size(::PyNEP,::Int) = 2
-function compute_Mder(::PyNEP,s::Number,der::Integer=0)
+size(::PyNEP,::Int) = 2</code></pre><p>As explained in <a href="../types/">NEPTypes</a>, a NEP is defined by its compute functions. Here is how you define two compute functions that call our python-defined NEP:</p><pre><code class="language-julia">function compute_Mder(::PyNEP,s::Number,der::Integer=0)
     if (der&gt;0)
         error(&quot;Higher derivatives not implemented&quot;);
     end
@@ -50,7 +49,7 @@ end
 function compute_Mlincomb(::PyNEP,s::Number,X::AbstractVecOrMat)
     XX=complex(reshape(X,size(X,1),size(X,2))) # Turn into a matrix
     return mynep.compute_Mlincomb(complex(s),XX); # Call python
-end</code></pre><p>We now create an object of our newly created type and we can access the compute NEP-PACK specific compute functions:</p><pre><code class="language-julia-repl">julia&gt; pnep=PyNEP();
+end</code></pre><p>We now create an object of our newly created type and we can access the NEP with the NEP-PACK specific compute functions:</p><pre><code class="language-julia-repl">julia&gt; pnep=PyNEP();
 julia&gt; compute_Mder(pnep,3+3im)
 2×2 Array{Complex{Float64},2}:
  -18.8845+2.83447im  -17.8845+2.83447im
