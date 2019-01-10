@@ -993,9 +993,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial_call_python/#Tutorial-showing-how-to-call-solve-a-NEP-defined-in-python-code-1",
+    "location": "tutorial_call_python/#Tutorial:-Solving-NEP-defined-in-Python-1",
     "page": "Tutorial 4 (Python NEP)",
-    "title": "Tutorial showing how to call solve a NEP defined in python code",
+    "title": "Tutorial: Solving NEP defined in Python",
     "category": "section",
     "text": ""
 },
