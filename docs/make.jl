@@ -15,7 +15,8 @@ makedocs(
         "NEP Gallery" => "gallery.md",
         "Tutorial 1 (ABC)" => "movebc_tutorial.md",
         "Tutorial 2 (BEM)" => "bemtutorial.md",
-        "Tutorial 3 (Deflation)" => "deflate_tutorial.md"
+        "Tutorial 3 (Deflation)" => "deflate_tutorial.md",
+        "Tutorial 4 (Python NEP)" => "tutorial_call_python.md"
     ]
 )
 
