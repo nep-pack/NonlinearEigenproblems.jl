@@ -93,12 +93,17 @@ The Tensor Infinite ARnoldi method.
 tiar
 ```
 
-### Infbilanczos
+### Infinite Lanczos based methods
 The Infinite Bi-Lanczos method.
 ```@docs
 infbilanczos
 ```
+The Infinite Lanczos method, for symmetric NEPs
+```@docs
+ilan
+```
 
+### NLEIGS
 ```@docs
 nleigs
 ```
