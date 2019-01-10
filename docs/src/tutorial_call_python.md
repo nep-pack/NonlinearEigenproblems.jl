@@ -104,8 +104,8 @@ function compute_Mlincomb(::PyNEP,s::Number,X::AbstractVecOrMat)
     return mynep.compute_Mlincomb(complex(s),XX); # Call python
 end
 ```
-We now create an object of our newly created type and we can access the compute
-NEP-PACK specific compute functions:
+We now create an object of our newly created type and we can access the
+NEP with the NEP-PACK specific compute functions:
 ```julia-repl
 julia> pnep=PyNEP();
 julia> compute_Mder(pnep,3+3im)
