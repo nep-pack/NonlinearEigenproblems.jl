@@ -22,14 +22,6 @@ After that, check out "Getting started" in
 
 or read the preprint: https://arxiv.org/abs/1811.09592
 
-## Older Julia versions:
-
-We don't support Julia 0.6, but it is possible to use it by running
-```
-julia> Pkg.clone("git://github.com/nep-pack/NonlinearEigenproblems.jl.git");
-```
-and switch to the git-tag v0.1.
-
 ## GIT Version
 
 If you want the cutting edge development version and not the latest release, install it with the URL:
@@ -53,7 +45,7 @@ These solvers are currently available (see https://nep-pack.github.io/NonlinearE
     * Broyden's method 
 * Arnoldi/Krylov type
     * NLEIGS
-    * Infinite Arnoldi method (IAR, TIAR, Infinite bi-Lanczos)
+    * Infinite Arnoldi method (IAR, TIAR, Infinite bi-Lanczos, Infinite Lanczos)
 * Projection methods
     * Jacobi-Davidson (two versions)
     * Nonlinear Arnoldi method
