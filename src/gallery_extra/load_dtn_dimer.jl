@@ -93,8 +93,6 @@ include("petsc_naive_bin_read.jl")
     function load_dtn_dimer(data_dir::String,l::Int)
 
  Loads the DtN example in the NEP described in J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018  (http://arxiv.org/pdf/1606.09547)
- The directory with the unzipped contents of one
- of the files in  https://umu.app.box.com/s/b52yux3z9rcl8y0l7la22k0vi062cvu5
 """
 function load_dtn_dimer(data_dir::String,l::Int)
 
@@ -136,15 +134,10 @@ function load_dtn_dimer(data_dir::String,l::Int)
         P[i]=sparse(I.+start_dtn_dofs,J.+start_dtn_dofs,V);
     end
 
+    print("Loading DtN. Only first derivative implemented. compute_Mder is slow due to inconsistent sparsity pattern.")
     nep=DtN_NEP(A,M,Q,P,ind2,n);
 
     return nep
 
 
 end
-
-
-# Verify correctness of derivatives
-#v=randn(n);
-#p=(compute_Mlincomb(nep,λ+e,v)-compute_Mlincomb(nep,λ-e,v))/(2*e)
-#norm(compute_Mlincomb(nep,λ,[0*v v])-p)
