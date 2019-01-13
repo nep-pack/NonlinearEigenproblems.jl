@@ -1,12 +1,100 @@
 # Script which loads the DtN nep.
 import Base.size
 using Printf, SpecialFunctions;
-using NonlinearEigenproblems;
+using NonlinearEigenproblems
+import NonlinearEigenproblems.compute_Mder;
+import NonlinearEigenproblems.compute_Mlincomb;
+
+
+# A DtN-nep
+
+
+struct DtN_NEP <: NEP
+    A::SparseMatrixCSC{ComplexF64}
+    M::SparseMatrixCSC{ComplexF64}
+    Q::Matrix{ComplexF64};
+    P::Vector{SparseMatrixCSC{ComplexF64}} # Full matrix coefficents
+    ind2::Vector;
+    n::Int;
+end
+
+size(nep::DtN_NEP) = (nep.n,nep.n)
+size(nep::DtN_NEP,dim::Int) = nep.n
+
+function besselh_quotient(nu,S)
+# Compute: besselh'(nu,s)/besselh(nu,s)
+    Fder=0.5*(besselh(nu-1,S)-besselh(nu+1,S));
+    return besselh(nu,S)\Fder;
+end
+
+
+function besselh_quotient_der(nu,S)
+    # Compute: derivative of besselh'(nu,s)/besselh(nu,s)
+    Fderder=0.25*(besselh(nu-2,S)-2*besselh(nu,S)+besselh(nu+2,S));
+    Fder=0.5*(besselh(nu-1,S)-besselh(nu+1,S))
+    F=besselh(nu,S);
+    return (F^2)\(Fderder*F-Fder*Fder);
+end
+
+
+
+function compute_Mder(nep::DtN_NEP, λ::Number, der::Int=0)
+    if (der>0)
+        error("Not implemented");
+    end
+    A=copy(nep.A);
+    A -= nep.M*λ^2;
+    a=1.0;
+    for i=1:length(nep.ind2)
+        # add:  - s B'_m(s)/B_m(s)
+        m=nep.ind2[i];
+        f= S ->  -S*besselh_quotient(m,a*S);
+        A += f(λ)*nep.P[i]
+    end
+    return A;
+end
+
+function compute_Mlincomb(nep::DtN_NEP, λ::Number, V::AbstractVecOrMat)
+
+    if (size(V,2)>2)
+        error("Higher derivatives not implemented")
+    end
+    TT=promote_type(eltype(V),typeof(λ),eltype(nep.A));
+    n=size(nep,1);
+    v=nep.A*V[:,1]
+
+    v .-= nep.M*(λ^2*V[:,1]);
+
+
+    a=1.0;
+    for i=1:length(nep.ind2)
+        # add:  - s B'_m(s)/B_m(s)
+        m=nep.ind2[i];
+        f= S ->  -S*besselh_quotient(m,a*S);
+        v .+= f(λ)*nep.Q[:,i]*(nep.Q[:,i]'*V[:,1])
+    end
+    if (size(V,2)>1)
+       # First derivative:
+       v .-= 2*nep.M*(λ*V[:,2]); # The quadratic term
+       for i=1:length(nep.ind2)
+          # add derivative of: - s B'_m(s)/B_m(s)
+          m=nep.ind2[i];
+          f= S ->  -besselh_quotient(m,a*S)-a*S*besselh_quotient_der(m,a*S)
+          v .+= f(λ)*nep.Q[:,i]*(nep.Q[:,i]'*V[:,2])
+       end
+    end
+    return v;
+end
+
+## Load the matrices
 
 include("petsc_naive_bin_read.jl")
 
 l=40; # Number of terms
 
+# The directory with the unzipped contents of one
+# of the files in  https://umu.app.box.com/s/b52yux3z9rcl8y0l7la22k0vi062cvu5
+# which were used in J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018  (http://arxiv.org/pdf/1606.09547)
 data_dir="/home/jarl/archive/dtn_umea_collab_nosync_julia/dimer_TM_ref2_p10_g0_a1"
 
 A = naive_petsc_read(joinpath(data_dir,"K.bin"))
@@ -48,48 +136,7 @@ for i=1:size(ind,1)
 end
 
 
-
-struct DtN_NEP <: NEP
-    A::SparseMatrixCSC{ComplexF64}
-    M::SparseMatrixCSC{ComplexF64}
-    Q::Matrix{ComplexF64};
-    P::Vector{SparseMatrixCSC{ComplexF64}} # Full matrix coefficents
-    ind2::Vector;
-    n::Int;
-end
-
-
-
-size(nep::DtN_NEP) = (nep.n,nep.n)
-size(nep::DtN_NEP,dim::Int) = nep.n
-
-
-function besselh_quotient(nu,S)
-# Compute: besselh'(nu,s)/besselh(nu,s)
-    Fder=0.5*(besselh(nu-1,S)-besselh(nu+1,S));
-    return besselh(nu,S)\Fder;
-end
-
 nep=DtN_NEP(A,M,Q,P,ind2,n);
-
-
-der=0; λ=1+1im;
-function compute_Mder(nep::DtN_NEP,λ::Number,der::Int=0)
-    if (der>0)
-        error("Not implemented");
-    end
-    A=copy(nep.A);
-    A -= nep.M*λ^2;
-    a=1.0;
-    for i=1:length(nep.ind2)
-        # add:  - s B'_m(s)/B_m(s)
-        m=nep.ind2[i];
-        f= S ->  -S*besselh_quotient(m,a*S);
-        A += f(λ)*nep.P[i]
-    end
-    return A;
-end
-
 
 
 # Reference eigvals computed with MATLAB code
@@ -101,9 +148,13 @@ end
 
 λ=λv[end];
 
-MM=compute_Mder(nep,λ);
-using LinearAlgebra;
-z=MM\z; z=z/norm(z);
-z=MM\z; z=z/norm(z);
-should_be_zero=norm(MM*z)
-@show should_be_zero
+# Solve it:
+(λs,vs)=quasinewton(nep,λ=1.099+1.006im,v=ones(n),displaylevel=1,tol=1e-10)
+(λss,vss)=quasinewton(nep,λ=λs,v=vs,displaylevel=1)
+
+minimum(abs.(λss.-λv)) # gives 1.4512316607747323e-12
+
+# Verify correctness of derivatives
+#v=randn(n);
+#p=(compute_Mlincomb(nep,λ+e,v)-compute_Mlincomb(nep,λ-e,v))/(2*e)
+#norm(compute_Mlincomb(nep,λ,[0*v v])-p)
