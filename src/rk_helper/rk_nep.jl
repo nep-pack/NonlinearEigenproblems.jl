@@ -4,7 +4,7 @@ using SparseArrays
 export RKNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
-export LowRankFactorizedNEP
+
 
 export get_rk_nep
 
@@ -13,6 +13,27 @@ import ..NEPCore.compute_Mder
 import ..NEPCore.compute_Mlincomb
 import ..NEPTypes.get_Av
 import ..NEPTypes.get_fv
+
+# Additional constructor for particle example
+function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
+    q = length(Amf)
+    r = 0
+    f = Vector{Function}(undef, q)
+    A = Vector{S}(undef, q)
+    L = Vector{S}(undef, q)
+    U = Vector{S}(undef, q)
+
+    for k = 1:q
+        f[k] = Amf[k].f
+        L[k] = Amf[k].L
+        U[k] = Amf[k].U
+        # if A is not specified, create it from LU factors
+        A[k] = isempty(Amf[k].A) ? L[k] * U[k]' : Amf[k].A
+        r += size(U[k], 2)
+    end
+
+    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
+end
 
 "NEP instance supplemented with various structures used for rational Krylov problems."
 struct RKNEP{S<:AbstractMatrix{<:Number}, T<:Number}
@@ -82,50 +103,6 @@ function compactlu(L, U)
     return L[:,select], U[select,:]
 end
 
-"SPMF with low rank LU factors for each matrix."
-struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Number}} <: AbstractSPMF{AbstractMatrix}
-    spmf::SPMF_NEP
-    r::Int          # Sum of ranks of matrices
-    L::Vector{S}    # Low rank L factors of matrices
-    U::Vector{S}    # Low rank U factors of matrices
-end
-
-function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
-    q = length(Amf)
-    r = 0
-    f = Vector{Function}(undef, q)
-    A = Vector{S}(undef, q)
-    L = Vector{S}(undef, q)
-    U = Vector{S}(undef, q)
-
-    for k = 1:q
-        f[k] = Amf[k].f
-        L[k] = Amf[k].L
-        U[k] = Amf[k].U
-        # if A is not specified, create it from LU factors
-        A[k] = isempty(Amf[k].A) ? L[k] * U[k]' : Amf[k].A
-        r += size(U[k], 2)
-    end
-
-    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
-end
-
-"Create an empty LowRankFactorizedNEP."
-LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
-    LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(), Vector{Matrix{T}}())
-
-# forward function calls to SPMF
-compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
-    compute_Mder(nep.spmf, λ, i)
-
-compute_Mlincomb(nep::LowRankFactorizedNEP, λ::T, V::Union{Vector{T}, Matrix{T}}, a::Vector = ones(T, size(V, 2))) where T<:Number =
-    compute_Mlincomb(nep.spmf, λ, V, a)
-
-size(nep::LowRankFactorizedNEP) = size(nep.spmf)
-size(nep::LowRankFactorizedNEP, dim) = size(nep.spmf, dim)
-
-get_Av(nep::LowRankFactorizedNEP) = get_Av(nep.spmf)
-get_fv(nep::LowRankFactorizedNEP) = get_fv(nep.spmf)
 
 "Create RKNEP instance, exploiting the type of the input NEP as much as possible"
 function get_rk_nep(::Type{T}, nep::NEP) where T<:Real

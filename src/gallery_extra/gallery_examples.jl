@@ -171,7 +171,7 @@ function sine_nep()
 end
 
 
-# From the tutorial on NEP-PACK online user's manual
+# From the tutorial on NEP-PACK online user's manual (except we use LowRankNEP)
 function schrodinger_movebc(n=1000,L0=1,L1=8,α=25*pi/2,V0=10.0)
 
     # Discreatization matrices
@@ -191,7 +191,19 @@ function schrodinger_movebc(n=1000,L0=1,L1=8,α=25*pi/2,V0=10.0)
     g=S-> cosh((L1-L0)*hh(S))
     f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 
-    # Construct NEP (This could be a low-rank SPMF NEP since G & F are low rank)
-    nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
+    # First NEP
+    nep1=SPMF_NEP([Dn-Vn,In],[f1,f2]);
+
+    # Second NEP. Construct as a LowRankFactorizedNEP
+    nep2=SPMF_NEP([G,F],[g,f])
+
+    Lv1=sparse([zeros(n-1,1);1.0]);
+    Lv2=sparse([zeros(n-1,1);1.0]);
+    Uv1=sparse([zeros(n-1,1);1.0]);
+    Uv2=sparse(reshape(F[end,:],n,1));
+    nep2=LowRankFactorizedNEP([Lv1,Lv2],[Uv1,Uv2],[g,f]);
+
+    # Create a sum of the two
+    nep=SumNEP(nep1,nep2b);
     return nep
 end
