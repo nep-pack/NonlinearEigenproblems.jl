@@ -1,6 +1,26 @@
 export LowRankFactorizedNEP
 
-"SPMF with low rank LU factors for each matrix."
+"
+    struct LowRankFactorizedNEP <: AbstractSPMF
+    function LowRankFactorizedNEP(L::Vector,U::Vector,f::Vector)
+    function LowRankFactorizedNEP(L::Vector,U::Vector,A::Vector, f::Vector)
+
+Representation of a `NEP` which has low rank in the sense that it is an `SPMF`
+where each of the terms are factorized: `A[i]=L[i]*U[i]'`. The factorization
+is provided in the `L` and `U` vectors and the full matrix `A[i]` can be
+either provided (or is otherwise implicitly computed).
+
+# Example:
+```
+julia> L=randn(5,1); U=randn(5,1);
+julia> f=S->exp(S)
+julia> nep=LowRankFactorizedNEP([L],[U],[f]);
+julia> X=randn(5,2);
+julia> norm(compute_Mlincomb(nep,0.0,X)-L*U'*X*ones(2),1)
+6.661338147750939e-16
+```
+
+"
 struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Number}} <: AbstractSPMF{AbstractMatrix}
     spmf::SPMF_NEP
     r::Int          # Sum of ranks of matrices
@@ -35,7 +55,6 @@ end
 
 
 
-"Create an empty LowRankFactorizedNEP."
 LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
     LowRankFactorizedNEP(SPMF_NEP(n), 0, Vector{Matrix{T}}(), Vector{Matrix{T}}())
 
