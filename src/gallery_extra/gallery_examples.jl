@@ -204,6 +204,6 @@ function schrodinger_movebc(n=1000,L0=1,L1=8,α=25*pi/2,V0=10.0)
     nep2=LowRankFactorizedNEP([Lv1,Lv2],[Uv1,Uv2],[g,f]);
 
     # Create a sum of the two
-    nep=SumNEP(nep1,nep2b);
+    nep=SumNEP(nep1,nep2);
     return nep
 end

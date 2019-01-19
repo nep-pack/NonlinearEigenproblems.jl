@@ -5,7 +5,6 @@ export RKNEP
 export MatrixAndFunction
 export LowRankMatrixAndFunction
 
-
 export get_rk_nep
 
 import Base.size
@@ -13,27 +12,8 @@ import ..NEPCore.compute_Mder
 import ..NEPCore.compute_Mlincomb
 import ..NEPTypes.get_Av
 import ..NEPTypes.get_fv
+import ..NEPTypes.LowRankFactorizedNEP
 
-# Additional constructor for particle example
-function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
-    q = length(Amf)
-    r = 0
-    f = Vector{Function}(undef, q)
-    A = Vector{S}(undef, q)
-    L = Vector{S}(undef, q)
-    U = Vector{S}(undef, q)
-
-    for k = 1:q
-        f[k] = Amf[k].f
-        L[k] = Amf[k].L
-        U[k] = Amf[k].U
-        # if A is not specified, create it from LU factors
-        A[k] = isempty(Amf[k].A) ? L[k] * U[k]' : Amf[k].A
-        r += size(U[k], 2)
-    end
-
-    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
-end
 
 "NEP instance supplemented with various structures used for rational Krylov problems."
 struct RKNEP{S<:AbstractMatrix{<:Number}, T<:Number}
@@ -71,6 +51,29 @@ end
 function LowRankMatrixAndFunction(A::AbstractMatrix{<:Number}, f::Function)
     L, U = low_rank_lu_factors(A)
     LowRankMatrixAndFunction(A, L, U, f)
+end
+
+export LowRankFactorizedNEP
+
+# Additional constructor for particle example
+function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
+    q = length(Amf)
+    r = 0
+    f = Vector{Function}(undef, q)
+    A = Vector{S}(undef, q)
+    L = Vector{S}(undef, q)
+    U = Vector{S}(undef, q)
+
+    for k = 1:q
+        f[k] = Amf[k].f
+        L[k] = Amf[k].L
+        U[k] = Amf[k].U
+        # if A is not specified, create it from LU factors
+        A[k] = isempty(Amf[k].A) ? L[k] * U[k]' : Amf[k].A
+        r += size(U[k], 2)
+    end
+
+    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
 end
 
 function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
