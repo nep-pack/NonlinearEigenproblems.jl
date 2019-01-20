@@ -58,19 +58,27 @@ function compute_Mlincomb(nep::BesselNEP, λ::Number, V::AbstractVecOrMat)
 
     v = zeros(TT, size(nep,1));
     a=1.0;
-    for i=1:length(nep.ind2)
-        # add:  - s B'_m(s)/B_m(s)
-        m=nep.ind2[i];
-        f= S ->  -S*besselh_quotient(m,a*S);
-        v .+= f(λ)*nep.Q[:,i]*(nep.Q[:,i]'*V[:,1])
+    if (norm(V[:,1])>0)
+        # Zero'th derivative:
+        W0::Vector{TT}=nep.Q[:,1:size(nep.ind2,1)]'*V[:,1];
+        z=Vector{TT}(undef,size(nep.ind2,1));
+
+        @inbounds for i=1:size(nep.ind2,1)
+            # add:  - s B'_m(s)/B_m(s)
+            m=nep.ind2[i];
+            f = S ->  -S*besselh_quotient(m,a*S);
+            z[i] = W0[i]*f(λ);
+        end
+        v[:] .= nep.Q[:,1:size(nep.ind2,1)]*z;
     end
     if (size(V,2)>1)
-       # First derivative:
-       for i=1:length(nep.ind2)
+        # First derivative:
+        W1::Vector{TT}=nep.Q[:,1:size(nep.ind2,1)]'*V[:,2];
+        @inbounds for i=1:size(nep.ind2,1)
           # add derivative of: - s B'_m(s)/B_m(s)
           m=nep.ind2[i];
           f= S ->  -besselh_quotient(m,a*S)-a*S*besselh_quotient_der(m,a*S)
-          v .+= f(λ)*nep.Q[:,i]*(nep.Q[:,i]'*V[:,2])
+          v[:] .+= nep.Q[:,i]*(W1[i]*f(λ))
        end
     end
     return v;
