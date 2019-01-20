@@ -38,7 +38,7 @@ is continued until `Neig` Ritz pairs converge. This function throws a `NoConverg
 # Example
 ```julia-repl
 julia> using NonlinearEigenproblems, LinearAlgebra
-julia> nep=nep_gallery("dep0",100);
+julia> nep=nep_gallery("dep_symm_double",10)
 julia> v0=ones(size(nep,1));
 julia> λ,v=ilan(nep;v=v0,tol=1e-5,Neig=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
@@ -172,17 +172,18 @@ function ilan(
             err_lifted=(λ,z)->errmeasure(λ,VV*z);
 
             # solve the projected NEP
-            #if displaylevel>1
+            if displaylevel>1
                 println("Solving the projected problem")
-            #end
+            end
             λ,ZZ=iar(pnep;Neig=Inf,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
             W=VV*ZZ;
 
-
-
             # eigenvectors computation
-
             conv_eig=length(λ)
+            if conv_eig>Neig
+                λ=λ[1:Neig]; W=W[:,1:Neig]
+            end
+
         end
 
         k=k+1;
