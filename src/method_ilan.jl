@@ -38,15 +38,15 @@ is continued until `Neig` Ritz pairs converge. This function throws a `NoConverg
 # Example
 ```julia-repl
 julia> using NonlinearEigenproblems, LinearAlgebra
-julia> nep=nep_gallery("dep_symm_double",10)
+julia> nep=nep_gallery("dep_symm_double",10);
 julia> v0=ones(size(nep,1));
 julia> λ,v=ilan(nep;v=v0,tol=1e-5,Neig=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
- -0.15606211475666945 - 0.12273439802763578im
- -0.15606211475666862 + 0.12273439802763489im
-  0.23169243065648365 - 9.464790582509696e-17im
+ 0.04103537900075572 - 1.6342212662372832e-19im
+ 0.04103537900077957 - 2.5916996904875994e-19im
+ 0.04114919035623714 - 7.9738202040662040e-20im 
 ```
 
 # References
