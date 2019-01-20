@@ -46,7 +46,7 @@ julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
  0.04103537900075572 - 1.6342212662372832e-19im
  0.04103537900077957 - 2.5916996904875994e-19im
- 0.04114919035623714 - 7.9738202040662040e-20im 
+ 0.04114919035623714 - 7.9738202040662040e-20im
 ```
 
 # References
@@ -67,7 +67,6 @@ function ilan(
     v=randn(real(T),size(nep,1)),
     displaylevel=0,
     check_error_every=30,
-    proj_solve=false,
     inner_solver_method=DefaultInnerSolver,
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
@@ -84,7 +83,7 @@ function ilan(
         elseif (isa(nep,SPMF_NEP))
             Compute_Bmul_method=Compute_Bmul_method_SPMF_NEP
         else
-            println("Error")
+            println("Error in Compute_Bmul_method. You provided and invalid `nep` for which `Compute_Bmul_method` is not automatically supported. Provide the `nep` in a compatible format: `DEP`, `SPMF_NEP` or `DerSPMF`. Otherwise you can overload the function `Bmult` for your specif `nep`.")
         end
     end
 
@@ -131,7 +130,7 @@ function ilan(
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
-        # call B mult
+        # call Bmult
         Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp)
 
         # orthogonalization (three terms recurrence)
@@ -146,11 +145,9 @@ function ilan(
         #if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
         if k>1 mul_and_sub!(view(Qn,:,1:k),view(Qp,:,1:k),H[k-1,k]) end
 
-
         H[k+1,k]=norm(Qn);
 #        Qn[:,1:k+1] ./= H[k+1,k]
         scal_mul!(view(Qn,:,1:k+1), 1/H[k+1,k])
-
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
@@ -172,7 +169,7 @@ function ilan(
             err_lifted=(λ,z)->errmeasure(λ,VV*z);
 
             # solve the projected NEP
-            if displaylevel>1
+            if displaylevel>0
                 println("Solving the projected problem")
             end
             λ,ZZ=iar(pnep;Neig=Inf,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
