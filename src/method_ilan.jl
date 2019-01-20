@@ -317,7 +317,7 @@ function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
 end
 
 function Bmult!(::Type{Compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp,γ)
-    Bmult!(Compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp)
+    Bmult!(Compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp,γ)
 end
 
 function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
@@ -331,7 +331,7 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
     Z[:,1]=-γ*Qn[:,1]
-    
+
     @inbounds for t=2:length(Av)
         mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
         # decide multiplication order based on matrix size
