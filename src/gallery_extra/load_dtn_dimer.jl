@@ -135,7 +135,6 @@ function load_dtn_dimer(data_dir::String,l::Int)
         P[i]=sparse(I.+start_dtn_dofs,J.+start_dtn_dofs,V);
     end
 
-    print("Loading DtN. Only first derivative implemented. compute_Mder is slow due to inconsistent sparsity pattern.")
     nep1=SPMF_NEP([A, M], [S-> one(S), S->-S^2]);
     nep2=BesselNEP(Q,P,ind2,n);
     nep=SumNEP(nep1,nep2);
