@@ -100,7 +100,7 @@ function ilan(
     H=zeros(T,m+1,m)
     HH=zeros(T,m+1,m)
     ω=zeros(T,m+1)
-    a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T); # TODO
+    a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
     local M0inv::LinSolver = linsolvercreator(nep,σ);
     err=ones(m,m);
     λ=zeros(T,m+1);
@@ -131,7 +131,7 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call Bmult
-        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp)
+        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp,γ)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=mat_sum(view(Z,:,1:k),view(Qp,:,1:k)) end
@@ -140,7 +140,7 @@ function ilan(
 
         H[k,k]=α/ω[k]
         if k>1 H[k-1,k]=β/ω[k-1] end
-        #Qn[:,TODO1:k] .-= H[k,k]*view(Q,:,1:k);
+        #Qn[:,1:k] .-= H[k,k]*view(Q,:,1:k);
         mul_and_sub!(view(Qn,:,1:k),view(Q,:,1:k),H[k,k])
         #if k>1 Qn[:,1:k] .-= H[k-1,k]*view(Qp,:,1:k) end
         if k>1 mul_and_sub!(view(Qn,:,1:k),view(Qp,:,1:k),H[k-1,k]) end
@@ -305,7 +305,7 @@ function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{Compute_Bmul_method_DerS
     return precomp
 end
 
-function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp)
+function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
     # B-multiplication
     #Z[:,:]=zero(Z);
     mat_zero!(Z)
@@ -316,11 +316,11 @@ function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp)
     end
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp)
+function Bmult!(::Type{Compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp,γ)
     Bmult!(Compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp)
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)
+function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
     # B-multiplication
     T=eltype(Z)
     n=size(Z,1)
@@ -330,7 +330,7 @@ function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp)
     tolG=1e-12; U,S,V=svd(precomp.G[1:k+1,1:k+1]);q=sum(S.>tolG*ones(length(S)))
     U=view(U,:,1:q).*sqrt.(S[1:q]')
     V=view(V,:,1:q).*sqrt.(S[1:q]');
-    Z[:,1]=-Qn[:,1] # first matrix: TODO fix for different \sigma
+    Z[:,1]=-γ*Qn[:,1] # first matrix: TODO fix for different \sigma
 
     @inbounds for t=2:length(Av)
         mul!(view(precomp.QQ,:,1:q),view(Qn,:,1:k+1),U.*(view(precomp.vv,1:k+1,t-1)))
