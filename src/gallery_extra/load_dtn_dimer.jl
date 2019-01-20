@@ -6,17 +6,15 @@ import NonlinearEigenproblems.compute_Mlincomb;
 
 
 # A DtN-nep
-struct DtN_NEP <: NEP
-    A::SparseMatrixCSC{ComplexF64}
-    M::SparseMatrixCSC{ComplexF64}
+struct BesselNEP <: NEP
     Q::Matrix{ComplexF64};
     P::Vector{SparseMatrixCSC{ComplexF64}} # Full matrix coefficents
     ind2::Vector;
     n::Int;
 end
 
-size(nep::DtN_NEP) = (nep.n,nep.n)
-size(nep::DtN_NEP,dim::Int) = nep.n
+size(nep::BesselNEP) = (nep.n,nep.n)
+size(nep::BesselNEP,dim::Int) = nep.n
 
 function besselh_quotient(nu,S)
 # Compute: besselh'(nu,s)/besselh(nu,s)
@@ -35,12 +33,11 @@ end
 
 
 
-function compute_Mder(nep::DtN_NEP, λ::Number, der::Int=0)
+function compute_Mder(nep::BesselNEP, λ::Number, der::Int=0)
     if (der>0)
         error("Not implemented");
     end
-    A=copy(nep.A);
-    A -= nep.M*λ^2;
+    A=zero(nep.P[1]);
     a=1.0;
     for i=1:length(nep.ind2)
         # add:  - s B'_m(s)/B_m(s)
@@ -51,18 +48,15 @@ function compute_Mder(nep::DtN_NEP, λ::Number, der::Int=0)
     return A;
 end
 
-function compute_Mlincomb(nep::DtN_NEP, λ::Number, V::AbstractVecOrMat)
+function compute_Mlincomb(nep::BesselNEP, λ::Number, V::AbstractVecOrMat)
 
     if (size(V,2)>2)
         error("Higher derivatives not implemented")
     end
-    TT=promote_type(eltype(V),typeof(λ),eltype(nep.A));
+    TT=promote_type(eltype(V),typeof(λ),eltype(nep.P[1]));
     n=size(nep,1);
-    v=nep.A*V[:,1]
 
-    v .-= nep.M*(λ^2*V[:,1]);
-
-
+    v = zeros(TT, size(nep,1));
     a=1.0;
     for i=1:length(nep.ind2)
         # add:  - s B'_m(s)/B_m(s)
@@ -72,7 +66,6 @@ function compute_Mlincomb(nep::DtN_NEP, λ::Number, V::AbstractVecOrMat)
     end
     if (size(V,2)>1)
        # First derivative:
-       v .-= 2*nep.M*(λ*V[:,2]); # The quadratic term
        for i=1:length(nep.ind2)
           # add derivative of: - s B'_m(s)/B_m(s)
           m=nep.ind2[i];
@@ -135,8 +128,9 @@ function load_dtn_dimer(data_dir::String,l::Int)
     end
 
     print("Loading DtN. Only first derivative implemented. compute_Mder is slow due to inconsistent sparsity pattern.")
-    nep=DtN_NEP(A,M,Q,P,ind2,n);
-
+    nep1=SPMF_NEP([A, M], [S-> one(S), S->-S^2]);
+    nep2=BesselNEP(Q,P,ind2,n);
+    nep=SumNEP(nep1,nep2);
     return nep
 
 
