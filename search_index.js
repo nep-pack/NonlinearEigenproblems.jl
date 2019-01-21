@@ -1045,7 +1045,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial 5 (MATLAB 1)",
     "title": "A problem defined in MATLAB",
     "category": "section",
-    "text": "MATLAB is a de-facto standard for many tasks in scientific computing. If you have a NEP defined in MATLAB, you can quite easily use the NEP-solvers of this package. Below is a description of one way to interface with MATLAB. The example illustrates the principle at the cost of some efficiency.Suppose you have the following NEP in MATLABM(lambda)=A_0+lambda A_1+exp(lambda A2)The problem can be defined in MATLAB as follows. This is the contents of the file compute_derivative_k.mfunction Z=compute_derivative_k(s,k)\n     randn(\'seed\',0);\n     n=10;\n     A0=randn(n,n); A1=randn(n,n);\n     Z=zeros(n,n);\n     if (k==0)\n         Z=A0+s*A1;\n     end\n     if (k==1)\n         Z=A1;\n     end\n     Z=Z+(A1^k)*expm(s*A1);\nend"
+    "text": "MATLAB is a de-facto standard for many tasks in scientific computing. If you have a NEP defined in MATLAB, you can quite easily use the NEP-solvers of this package. Below is a description of one way to interface with MATLAB. The example illustrates the principle at the cost of some efficiency.Suppose you have the following NEP in MATLABM(lambda)=A_0+lambda A_1+exp(lambda A_2)The problem can be defined in MATLAB as follows. This is the contents of the file compute_derivative_k.mfunction Z=compute_derivative_k(s,k)\n     randn(\'seed\',0);\n     n=10;\n     A0=randn(n,n); A1=randn(n,n);\n     Z=zeros(n,n);\n     if (k==0)\n         Z=A0+s*A1;\n     end\n     if (k==1)\n         Z=A1;\n     end\n     Z=Z+(A1^k)*expm(s*A1);\nend"
 },
 
 {
