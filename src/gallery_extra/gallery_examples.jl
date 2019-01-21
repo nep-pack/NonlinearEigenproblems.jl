@@ -182,8 +182,6 @@ function schrodinger_movebc(n=1000,L0=1,L1=8,α=25*pi/2,V0=10.0)
     Dn=spdiagm(-1 => [ones(n-2);0]/h^2, 0 => -2*ones(n-1)/h^2, 1 => ones(n-1)/h^2)
     Vn=spdiagm(0 => [V.(xv[1:end-1]);0]);
     In=spdiagm(0 => [ones(n-1);0])
-    F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
-    G=sparse([n],[n],[1]);
     # Construct functions
     f1=S->one(S);
     f2=S->-S;
@@ -194,13 +192,11 @@ function schrodinger_movebc(n=1000,L0=1,L1=8,α=25*pi/2,V0=10.0)
     # First NEP
     nep1=SPMF_NEP([Dn-Vn,In],[f1,f2]);
 
-    # Second NEP. Construct as a LowRankFactorizedNEP
-    nep2=SPMF_NEP([G,F],[g,f])
-
+    # Create the Low-Rank NEP
     Lv1=sparse([zeros(n-1,1);1.0]);
     Lv2=sparse([zeros(n-1,1);1.0]);
     Uv1=sparse([zeros(n-1,1);1.0]);
-    Uv2=sparse(reshape(F[end,:],n,1));
+    Uv2=sparse([zeros(n-3,1); [1/(2*h), -2/h, 3/(2*h)]])
     nep2=LowRankFactorizedNEP([Lv1,Lv2],[Uv1,Uv2],[g,f]);
 
     # Create a sum of the two
