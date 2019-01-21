@@ -11,7 +11,7 @@ illustrates the principle at the cost of some efficiency.
 
 Suppose you have the following NEP in MATLAB
 ```math
-M(\lambda)=A_0+\lambda A_1+\exp(\lambda A2).
+M(\lambda)=A_0+\lambda A_1+\exp(\lambda A_2).
 ```
 The problem can be defined in MATLAB as follows.
 This is the contents of the file `compute_derivative_k.m`
