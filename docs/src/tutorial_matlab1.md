@@ -11,7 +11,7 @@ illustrates the principle at the cost of some efficiency.
 
 Suppose you have the following NEP in MATLAB
 ```math
-M(\lambda)=A_0+\lambda A_1+expm(\lambda A2).
+M(\lambda)=A_0+\lambda A_1+\exp(\lambda A2).
 ```
 The problem can be defined in MATLAB as follows.
 This is the contents of the file `compute_derivative_k.m`
@@ -42,7 +42,7 @@ end
 Base.size(nep::MATLABNEP) = (10,10)
 Base.size(nep::MATLABNEP,::Int) = 10
 ```
-
+Initiate the MATLAB package and prepare to integrate with NEP-PACK:
 ```julia
 julia> using MATLAB; # requires MATLAB to be installed
 julia> mat"addpath('.')" # Add path to your m-file
@@ -50,7 +50,11 @@ julia> import NonlinearEigenproblems.compute_Mder;
 julia> import NonlinearEigenproblems.compute_Mlincomb;
 julia> import NonlinearEigenproblems.compute_Mlincomb_from_Mder;
 ```
-
+NEP-objects in NEP-PACK are defined from compute-functions (as
+we describe in [NEPTypes](types.md)) and we need to define
+the derivative computation function, which calls the MATLAB-code.
+We also specify that linear combinations of derivatives should
+be computed by calling `compute_Mder` in the naive way:
 ```julia
 function compute_Mder(::MATLABNEP,s::Number,der::Integer=0)
     return mat"compute_derivative_k(double($s),double($der))"
@@ -58,7 +62,8 @@ end
 compute_Mlincomb(nep::MATLABNEP,λ::Number,V::AbstractVecOrMat, a::Vector) = compute_Mlincomb_from_Mder(nep,λ,V,a)
 compute_Mlincomb(nep::MATLABNEP,λ::Number,V::AbstractVecOrMat) = compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))
 ```
-Now you can instantiate the NEP and use your favorite NEP-solver
+Now you can instantiate the NEP and use your favorite NEP-solver,
+in this case we use [`newtonqr`](methods.md#NonlinearEigenproblems.NEPSolver.newtonqr).
 ```julia
 julia> nep=MATLABNEP();
 julia> (λ,v)=newtonqr(nep,λ=-3,displaylevel=1,maxit=30,v=ones(10))
