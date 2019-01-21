@@ -30,15 +30,15 @@ end
 
 
 function LowRankFactorizedNEP(L::AbstractVector{S}, U::AbstractVector{S},
-                              A, f) where {S<:AbstractMatrix}
+                              A::AbstractVector{S}, f) where {S<:AbstractMatrix}
     rank = mapreduce(u -> size(u, 2), +, U)
-    return LowRankFactorizedNEP{S}(SPMF_NEP(A, f, align_sparsity_patterns=true),
-                                   rank, L, U)
+    spmf=SPMF_NEP(A, f, align_sparsity_patterns=true);
+    return LowRankFactorizedNEP{S}(spmf, rank, L, U)
 end
 function LowRankFactorizedNEP(L::AbstractVector{S}, U::AbstractVector{S},
                               f) where {S<:AbstractMatrix}
     A = L .* adjoint.(U);
-    return LowRankFactorizedNEP{S}(L,U,A,f)
+    return LowRankFactorizedNEP(L,U,A,f)
 end
 
 
