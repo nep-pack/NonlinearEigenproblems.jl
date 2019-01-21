@@ -57,24 +57,15 @@ export LowRankFactorizedNEP
 
 # Additional constructor for particle example
 function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) where {T<:Number, S<:AbstractMatrix{T}}
-    q = length(Amf)
-    r = 0
-    f = Vector{Function}(undef, q)
-    A = Vector{S}(undef, q)
-    L = Vector{S}(undef, q)
-    U = Vector{S}(undef, q)
-
-    for k = 1:q
-        f[k] = Amf[k].f
-        L[k] = Amf[k].L
-        U[k] = Amf[k].U
-        # if A is not specified, create it from LU factors
-        A[k] = isempty(Amf[k].A) ? L[k] * U[k]' : Amf[k].A
-        r += size(U[k], 2)
-    end
-
-    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
+    # if A is not specified, create it from LU factors
+    A = [isempty(M.A) ? M.L * M.U' : M.A for M in Amf]
+    L = getfield.(Amf, :L)
+    U = getfield.(Amf, :U)
+    f = getfield.(Amf, :f)
+    rank = mapreduce(M -> size(M.U, 2), +, Amf)
+    return LowRankFactorizedNEP(SPMF_NEP(A, f, align_sparsity_patterns=true), rank, L, U)
 end
+
 
 function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
     n = size(A, 1)
