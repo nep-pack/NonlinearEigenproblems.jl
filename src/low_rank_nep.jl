@@ -28,31 +28,18 @@ struct LowRankFactorizedNEP{S<:AbstractMatrix{<:Number}} <: AbstractSPMF{Abstrac
     U::Vector{S}    # Low rank U factors of matrices
 end
 
-function LowRankFactorizedNEP(L::Vector{S},U::Vector{S},f) where {S<:AbstractMatrix}
-    q=size(L,1);
-    A = Vector{S}(undef, q)
-    r::Int=0
 
-    for k = 1:q
-        # if A is not specified, create it from LU factors
-        A[k] = L[k] * U[k]'
-        r += size(U[k], 2)
-    end
-    return LowRankFactorizedNEP{S}(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
-
-
+function LowRankFactorizedNEP(L::AbstractVector{S}, U::AbstractVector{S},
+                              A, f) where {S<:AbstractMatrix}
+    rank = mapreduce(u -> size(u, 2), +, U)
+    return LowRankFactorizedNEP{S}(SPMF_NEP(A, f, align_sparsity_patterns=true),
+                                   rank, L, U)
 end
-function LowRankFactorizedNEP(L::Vector{S},U::Vector{S},A, f) where {S<:AbstractMatrix}
-    q=size(L,1);
-    r::Int=0
-    for k = 1:q
-        r += size(U[k], 2)     # Compute the rank
-    end
-    return LowRankFactorizedNEP{S}(SPMF_NEP(A, f, align_sparsity_patterns=true), r, L, U)
-
-
+function LowRankFactorizedNEP(L::AbstractVector{S}, U::AbstractVector{S},
+                              f) where {S<:AbstractMatrix}
+    A = L .* adjoint.(U);
+    return LowRankFactorizedNEP{S}(L,U,A,f)
 end
-
 
 
 LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
