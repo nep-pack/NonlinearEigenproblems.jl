@@ -10,6 +10,7 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "gun.jl", # needs MATLAB
     "cd_player.jl", # needs MATLAB
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
+    "dtn_dimer.jl", #  Needs additional files
     "NonlinearEigenproblemsTest.jl", # utilities used by other tests
 ]))
 

@@ -29,6 +29,7 @@ module Gallery
     include("gallery_extra/periodic_dde.jl")
     include("gallery_extra/NLEVP_native.jl")
     include("gallery_extra/bem_hardcoded/bem_hardcoded.jl");
+    include("gallery_extra/load_dtn_dimer.jl");
 
   """
      nep=nep_gallery(name)
@@ -188,6 +189,10 @@ The following list describes the NEP with a certain `name` and the associated pa
    Steinlechner, A boundary element method for solving PDE eigenvalue problems, M. Steinlechner, bachelor thesis, ETH Zürich, 2010\\
    Effenberger and Kressner, Chebyshev interpolation for nonlinear eigenvalue problems, BIT Numerical Mathematics, December 2012, Volume 52, Issue 4, pp 933–951
 
+* `dtn_dimer`\\
+   NEP described in J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018  (http://arxiv.org/pdf/1606.09547) where the nonlinearity stems from the application of Dirichlet-to-Neumann map. The problem contains quotients of Bessel functions and derivatives of Bessel functions. This NEP takes two parameters: `data_dir::String` and `l::Int`. The `data_dir` specifies the directory of the dowloaded FEM-matrices (available here https://umu.app.box.com/s/b52yux3z9rcl8y0l7la22k0vi062cvu5). The integer l specifies the number of DtN-terms: 2*l+1.   \\
+   J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018  (http://arxiv.org/pdf/1606.09547).
+
 
 # Example
 ```julia-repl
@@ -237,6 +242,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "beam" => beam,
         "sine" => sine_nep,
         "bem_fichera" => bem_fichera,
+        "dtn_dimer" => load_dtn_dimer
     )
 
 
