@@ -167,7 +167,7 @@ julia> norm(compute_Mlincomb(nep,λ,v)) # Very small residual
 ```
 
 If you use the NEP-algorithms for research, please
-to give the author of the algorithm credit by citiation. The
+give the author of the algorithm credit by citiation. The
 recommended citation can be found in the function
 documentation, e.g., `?blocknewton`.
 
@@ -176,9 +176,8 @@ documentation, e.g., `?blocknewton`.
 As an application researcher, we recommend that you first try to
 express your problem in the following form since it
 gives access to several efficient routines associated with the NEP,
-in turn making it possible to use many NEP-solvers. A problem that can be expressed
-as a (short) sum of products of matrices and functions
-is called by objects of the type [`SPMF`](types.md#SPMF-1)
+in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) sum of products of matrices and functions
+can be represnted with the type [`SPMF`](types.md#SPMF-1) (sum of products of matrices and functions)
 in NEP-PACK. For instance, a problem with three terms
 ```math
 M(λ) = A+λB+e^{\sin(λ/2)}C
