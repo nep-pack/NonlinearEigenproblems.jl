@@ -1439,6 +1439,6 @@ Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
     end
 
 
-
+    include("nep_type_helpers.jl");
 
 end  # End Module
