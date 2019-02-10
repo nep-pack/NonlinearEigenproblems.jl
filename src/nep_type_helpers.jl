@@ -1,10 +1,12 @@
 # Helper functions for NEPTypes (imported from NEPTypes.jl)
 export Mder_NEP;
 
-struct Mder_NEP <: NEP
+struct Mder_Mlincomb_NEP <: NEP
     n::Int;
-    Mder_fun::Function
-    maxder::Int;
+    Mder_fun::Function #
+    maxder_Mder::Int;
+    Mlincomb_fun::Function
+    maxder_Mlincomb::Int;
 end
 """
     Mder_NEP(Mder_fun,n; maxder=max)
@@ -45,23 +47,32 @@ julia> norm(compute_Mder(nep,λ)*v)
 ```
 """
 function Mder_NEP(Mder_fun::Function,n; maxder=typemax(Int64))
-    return Mder_NEP(n,Mder_fun,maxder);
+    maxder_Mlincomb=-1; # This means we delegate every Mlincomb_call
+    Mlincomb_fun=s->s; # Dummy function
+    return Mder_Mlincomb_NEP(n,
+                             Mder_fun,maxder,
+                             Mlincomb_fun,maxder_Mlincomb);
 end
 
-function compute_Mder(nep::Mder_NEP,s::Number,der::Integer=0)
+function compute_Mder(nep::Mder_Mlincomb_NEP,s::Number,der::Integer=0)
     if (der>nep.maxder)
         error("Derivatives higher than ",nep.maxder," not available.");
     end
     return nep.Mder_fun(s,der);
 end
 
-# Delegate compute_Mlincomb to compute_Mlincomb_from_Mder
-compute_Mlincomb(nep::Mder_NEP,λ::Number,V::AbstractVecOrMat, a::Vector) = compute_Mlincomb_from_Mder(nep,λ,V,a)
-compute_Mlincomb(nep::Mder_NEP,λ::Number,V::AbstractVecOrMat) = compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))
+function compute_Mlincomb(nep::Mder_Mlincomb_NEP,s::Number,V::AbstractVecOrMat)
+    if (size(X,2)<=nep.maxder_Mlincomb)
+        return nep.Mlincomb_fun(s,V); # Call external routine
+    else
+        # Delegate to if we do not have implementation of Mlincomb
+        return compute_Mlincomb_from_Mder(nep,λ,V,ones(eltype(V),size(V,2)))
+    end
+end
 
-function size(nep::Union{Mder_NEP})
+function size(nep::Mder_Mlincomb_NEP)
     return (nep.n,nep.n)
 end
-function size(nep::Union{Mder_NEP},dim)
+function size(nep::Mder_Mlincomb_NEP,dim)
     return nep.n
 end
