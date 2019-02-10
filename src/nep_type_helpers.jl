@@ -2,6 +2,7 @@
 export Mder_NEP;
 export Mder_Mlincomb_NEP;
 
+# Type representing function handle NEP
 struct Mder_Mlincomb_NEP <: NEP
     n::Int;
     Mder_fun::Function #
@@ -10,7 +11,7 @@ struct Mder_Mlincomb_NEP <: NEP
     maxder_Mlincomb::Int;
 end
 """
-    Mder_NEP(Mder_fun,n; maxder=max)
+    Mder_NEP(n,Mder_fun; maxder=max)
 
 Creates a `NEP` from its `compute_Mder` function defined by the
 function handle `Mder_fun`. The `Mder_fun(λ,der)` takes two parameters a
@@ -40,13 +41,13 @@ julia> function my_Mder(s,der)
        return zero(A0);
     end
 end
-julia> nep=Mder_NEP(my_Mder,3);
+julia> nep=Mder_NEP(3,my_Mder);
 julia> (λ,v)=augnewton(nep,v=ones(3));
 julia> norm(compute_Mder(nep,λ)*v)
 5.551115123125783e-17
 ```
 """
-function Mder_NEP(Mder_fun::Function,n; maxder=typemax(Int64))
+function Mder_NEP(n,Mder_fun::Function; maxder=typemax(Int64))
     maxder_Mlincomb=-1; # This means we delegate every Mlincomb_call
     Mlincomb_fun=s->s; # Dummy function
     return Mder_Mlincomb_NEP(n,
@@ -56,7 +57,7 @@ end
 
 
 """
-    Mder_Mlincomb_NEP(n,Mder_fun [,maxder_Mder] Mlincomb_fun, [maxder_Mlincomb])
+    Mder_Mlincomb_NEP(n,Mder_fun, [maxder_Mder,] Mlincomb_fun, [maxder_Mlincomb])
 
 Creates a `NEP` from its `compute_Mder` and `compute_Mlincomb`functions
  defined by the function handles `Mder_fun` and `Mlincomb_fun`. The `Mlincomb_fun(λ,X)` takes two parameters a
@@ -114,13 +115,13 @@ Mder_Mlincomb_NEP(n,Mder_fun::Function,Mlincomb_fun::Function) = Mder_Mlincomb_N
 
 function compute_Mder(nep::Mder_Mlincomb_NEP,λ::Number,der::Integer=0)
     if (der>nep.maxder_Mder)
-        error("Derivatives higher than ",nep.maxder," not available.");
+        error("Derivatives higher than ",nep.maxder_Mder," are not available.");
     end
     return nep.Mder_fun(λ,der);
 end
 
 function compute_Mlincomb(nep::Mder_Mlincomb_NEP,λ::Number,V::AbstractVecOrMat)
-    if (size(V,2)<=nep.maxder_Mlincomb)
+    if ((size(V,2)-1)<=nep.maxder_Mlincomb)
         return nep.Mlincomb_fun(λ,V); # Call external routine
     else
         # Delegate to if we do not have implementation of Mlincomb

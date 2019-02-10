@@ -14,7 +14,7 @@ using LinearAlgebra
     AA0=ones(Float64,3,3);
     AA1=ones(Float64,3,3)*3; AA1[2,3]=0;
     nep_ref=SPMF_NEP([AA0,AA1],[s->exp(3*s), S->inv(3.3*I+S)]);
-    nep=Mder_NEP(my_Mder,3)
+    nep=Mder_NEP(3,my_Mder)
 
     λ=3.3;
     norm(compute_Mder(nep,λ,4)-compute_Mder(nep_ref,λ,4))
