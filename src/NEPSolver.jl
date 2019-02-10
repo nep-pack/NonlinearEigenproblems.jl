@@ -5,6 +5,7 @@ module NEPSolver
     using LinearAlgebra
     using SparseArrays
     using Random
+    using SuiteSparse
 
     export compute_eigvec_from_eigval_lu
     export compute_eigvec_from_eigval_lopcg
