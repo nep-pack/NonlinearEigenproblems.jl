@@ -582,7 +582,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
     # Step 1. Compute M0 and T0
 
     M1=compute_Mder(approxnep,σ);
-    T1=inv(M1);
+    T1=inv(Matrix(M1));
 
 
     X=zeros(TT,n,0);

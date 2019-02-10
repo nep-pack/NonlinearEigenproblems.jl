@@ -93,6 +93,7 @@ push!(methodlist,MethodTest("augnewton(nep,v=v0,λ=λ0,tol=algtol,displaylevel=d
 push!(methodlist,MethodTest("resinv(nep,v=v0,λ=λ0,tol=algtol,displaylevel=d)",Vector(["sine"])));
 push!(methodlist,MethodTest("implicitdet(nep,v=v0,λ=λ0,tol=algtol,displaylevel=d)",Vector()));
 push!(methodlist,MethodTest("quasinewton(nep,v=v0,λ=λ0,tol=algtol,displaylevel=d)",Vector()));
+push!(methodlist,MethodTest("broyden(nep,σ=λ0,pmax=1,tol=algtol)"));
 push!(methodlist,MethodTest("newtonqr(nep,v=v0,λ=λ0,tol=algtol)"));
 push!(methodlist,MethodTest("blocknewton(nep,S=reshape([λ0],1,1), X=reshape(v0,size(v0,1),1),tol=algtol)"))
 push!(methodlist,MethodTest("iar(nep,v=v0,σ=λ0,Neig=1,tol=algtol)"));
@@ -109,7 +110,7 @@ for test in tests
 
         if (size(II,1)==0)
             method=m.evalstr;
-            print(" $method");
+            print("  $method");
             methodSym=Meta.parse(method);
             global λ0=test.λapprox;
             global v0=test.vapprox;
@@ -127,13 +128,13 @@ for test in tests
             end
 
             if (error || size(λ,1)==0)
-                print("(E)");
+                println("(E)");
             else
                 λ=λ[1]; v=v[:,1];
                 v=v/norm(v);
                 λerr=abs(λ-test.λ)/(test.λ);
                 verr=norm(vec(v)-test.v);
-                print((λerr < eps()*100) ? "(+)" : "(-)")
+                println((λerr < eps()*100) ? "(+)" : "(-)")
             end
         end
 
