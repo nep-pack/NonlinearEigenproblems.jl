@@ -157,4 +157,6 @@ julia> r=A*v+λ*B*v+exp(λ)*C*v;
 ```
 Residual is almost zero, so we have a solution.
 
+Note: The above functionality can also be achieved with  `Mder_NEP` in the development version of NEP-PACK
+
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_PYTHON1)

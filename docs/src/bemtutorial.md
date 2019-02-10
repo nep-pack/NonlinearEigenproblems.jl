@@ -113,3 +113,7 @@ for k=1:size(nep.mesh,1);
     plot_wireframe(X,Y,Z,color=[0;0;0],linewidth=1,alpha=0.5,);
 end
 ```
+
+Note: The above functionality can also be achieved with  `Mder_NEP` in the development version of NEP-PACK
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_BEMTUTORIAL)
