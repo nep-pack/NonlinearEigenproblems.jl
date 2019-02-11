@@ -82,4 +82,7 @@ The residual is small and we have a solution
 julia> norm(compute_Mlincomb(nep,λ,v))
 3.111596859559977e-15
 ```
+
+Note: The above functionality can also be achieved with  `Mder_NEP` in the development version of NEP-PACK
+
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_MATLAB1)
