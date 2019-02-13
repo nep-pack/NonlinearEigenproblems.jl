@@ -599,14 +599,16 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 A = compute_Mder(nep,λ);
                 AA = [A b;c' 0];#The matrix G(λ)
-                L,U,PI = lu(AA);
+
+                F = lu(AA);
 
 
-                P[:,:] = Matrix{T}(I, n+1, n+1)[PI,:];
+                #P[:,:] = Matrix{T}(I, n+1, n+1)[PI,:];
 
-                v[:] = U\(L\(P*[zeros(T,n);T(1)]));
-                #vp = U\(L\(P*[compute_Mlincomb(nep,λ,v[1:n],[T(-1.0)],1);0]));
-                vp[:] = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
+                v[:] = F\([zeros(T,n);T(1)]);
+                vp[:] = F\([-1*compute_Mder(nep,λ,1)*v[1:n];0]);
+                #v[:] = U\(L\(P*[zeros(T,n);T(1)]));
+                #vp[:] = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
                 err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
