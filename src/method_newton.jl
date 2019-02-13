@@ -577,6 +577,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
     function implicitdet(::Type{T},
                          nep::NEP;
+                         errmeasure::Function =
+                          default_errmeasure(nep::NEP),
                          tol=eps(real(T))*100,
                          maxit=100,
                          λ=zero(T),
@@ -602,15 +604,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 F = lu(AA);
 
-
-                #P[:,:] = Matrix{T}(I, n+1, n+1)[PI,:];
-
                 v[:] = F\([zeros(T,n);T(1)]);
                 vp[:] = F\([-1*compute_Mder(nep,λ,1)*v[1:n];0]);
-                #v[:] = U\(L\(P*[zeros(T,n);T(1)]));
-                #vp[:] = U\(L\(P*[-1*compute_Mder(nep,λ,1)*v[1:n];0]))
 
-                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm
+                #err = errmeasure(λ,v[1:n]);
+                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
                 @ifd(println("Iteration: ",k," errmeasure: ", err))
                 if(err < tol)
                     return λ,v[1:n];
