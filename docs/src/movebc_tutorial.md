@@ -41,8 +41,8 @@ is also directly available in the gallery: `nep_gallery("schrodinger_movebc")`.
 
 The technique is based on moving the boundary condition at ``L_1``
 to ``L_0``. This can be done without doing any approximation,
-if we allow the new artificial boundary condition at ``L_1``
-to depend on ``λ``. We introduce what is called an *absorbing boundary condition*.
+if we allow the new artificial boundary condition at ``L_0``
+to depend on ``λ``. We introduce what is called an *absorbing boundary condition*, also known as a artificial boundary condition.
 
 
 
