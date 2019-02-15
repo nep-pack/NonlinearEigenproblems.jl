@@ -2,7 +2,7 @@
 
 ## A problem defined in MATLAB
 
-MATLAB is a de-facto standard for many tasks in scientific
+MATLAB is the de-facto standard language for many tasks in scientific
 computing.
 If you have a NEP defined in MATLAB, you can quite easily
 use the NEP-solvers of this package. Below is a description
