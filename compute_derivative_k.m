@@ -10,5 +10,4 @@ function Z=compute_derivative_k(s,k)
          Z=A1;
      end
      Z=Z+(A1^k)*expm(s*A1);
-
 end
