@@ -14,16 +14,19 @@ The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
 is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
-number of quadrature points. Circles is the only supported contour. The
+number of quadrature points. Circles are the only supported contours. The
 `linsolvercreator` must create a linsolver that can handle (rectangular) matrices
-as right-hand sides.
+as right-hand sides, not only vectors.
 
 # Example
 ```julia-repl
+julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
 julia> λv,V=contour_beyn(nep,radius=1,k=2,quad_method=:ptrapz);
-julia> minimum(svdvals(compute_Mder(nep,λv[1])))
-1.6106898471314257e-16
+julia> norm(compute_Mlincomb(nep,λv[1],V[:,1])) # Eigenpair 1
+5.778617503485546e-15
+julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
+3.095638020248726e-14
 ```
 # References
 * Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
