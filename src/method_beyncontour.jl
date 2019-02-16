@@ -8,15 +8,13 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,][compute_eigenvectors])
+    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
 is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
 number of quadrature points.
-In a standard setting only the eigenvalues are computed. But by setting `compute_eigenvectors`
-to true eigenvectors are also computed. Note that this requires matrix access.
 
 # Example
 ```julia-repl
@@ -39,7 +37,6 @@ function contour_beyn(::Type{T},
                          radius::Real=1, # integration radius
                          quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                          N::Integer=1000,  # Nof quadrature nodes
-                         compute_eigenvectors::Bool = false # If we should compute eigenvectors or not
                          )where{T<:Number}
 
     g=t -> radius*exp(1im*t)
@@ -104,25 +101,24 @@ function contour_beyn(::Type{T},
     V,S,W = svd(A0)
     V0 = V[:,1:k]
     W0 = W[:,1:k]
-    B = (copy(V0')*A1*W0) / diagm(0 => S[1:k])
+    B = (copy(V0')*A1*W0) * Diagonal(1 ./ S[1:k])
+
     if ((maximum(S)/minimum(S))>1/sqrt(eps()))
         @warn "Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver" S
     end
 
+    # Extract eigenval and eigvec approximations according to
+    # step 6 on page 3849 in the reference
     @ifd(println("Computing eigenvalues "))
-    λ,v_temp=eigen(B)
+    λ,VB=eigen(B)
     λ[:] = λ .+ σ
 
-    v = zeros(T,size(nep,1),k)
-    if (compute_eigenvectors)
-        @ifd(println("Computing eigenvectors "))
-        for i = 1:k
-            v[:,i] = compute_eigvec_from_eigval_lu(nep, λ[i], default_linsolvercreator)
-        end
-    else
-        @ifd(println("Obs: Not computing eigenvectors "))
-        v[:,:] = NaN*v
+    @ifd(println("Computing eigenvectors "))
+    v = V0 * VB;
+    for i = 1:k
+        normalize!(v[:,i]);
     end
+
 
     return (λ,v)
 end
