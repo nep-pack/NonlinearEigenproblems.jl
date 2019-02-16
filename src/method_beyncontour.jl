@@ -14,7 +14,9 @@ The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
 is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
-number of quadrature points.
+number of quadrature points. Circles is the only supported contour. The
+`linsolvercreator` must create a linsolver that can handle (rectangular) matrices
+as right-hand sides.
 
 # Example
 ```julia-repl
@@ -39,16 +41,16 @@ function contour_beyn(::Type{T},
                          N::Integer=1000,  # Nof quadrature nodes
                          )where{T<:Number}
 
+    # Geometry
     g=t -> radius*exp(1im*t)
-    gp=t -> 1im*radius*exp(1im*t)
+    gp=t -> 1im*radius*exp(1im*t) # Derivative
 
     n=size(nep,1);
     Random.seed!(10); # Reproducability
     Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
 
     if (k>n)
-        println("k=",k," n=",n);
-        error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn()");
+        error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn() k=",k," n=",n);
 
     end
 
@@ -71,10 +73,9 @@ function contour_beyn(::Type{T},
 
     local A0,A1
     if (quad_method == :quadg_parallel)
-        #@ifd(print(" using quadg_parallel"))
-        #A0=quadg_parallel(f1,0,2*pi,N);
-        #A1=quadg_parallel(f2,0,2*pi,N);
-        error("disabled");
+        @ifd(print(" using quadg_parallel"))
+        A0=quadg_parallel(f1,0,2*pi,N);
+        A1=quadg_parallel(f2,0,2*pi,N);
     elseif (quad_method == :quadg)
         #@ifd(print(" using quadg"))
         #A0=quadg(f1,0,2*pi,N);
