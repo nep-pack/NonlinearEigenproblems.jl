@@ -244,6 +244,6 @@ function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes
     # Radius  computed as the largest distance σ and λv and a litte more
     radius = maximum(abs.(σ .- λv))*1.5
     Neig = min(Neig,size(nep,1))
-    λ,V = contour_beyn(T_arit,nep,k=Neig,σ=σ,radius=radius)
+    λ,V = contour_beyn(T_arit,nep,neigs=Neig,σ=σ,radius=radius)
     return λ,V
 end

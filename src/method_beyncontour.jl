@@ -20,8 +20,9 @@ as right-hand sides, not only vectors.
 
 The kwargs `neigs` specifies the number of wanted eigvals, and `k` is the number
 of columns in the subspace (default `k=neigs+1`). The kwarg `sanity_check`
-disables the checking of eigenvalues and just returns (potentially inaccurate)
-eigpairs. The parameters `errmeasure` and `tol` are used for the sanity check.
+decides if checking of eigpars should be done. If disabled, the method
+returns `k` (potentially inaccurate) eigpairs. The parameters `errmeasure` and
+`tol` are used for the sanity check.
 
 # Example
 ```julia-repl
@@ -150,7 +151,7 @@ function contour_beyn(::Type{T},
         if (p==k)
             @warn "Rank-drop not detected and insufficient number of eigenvalues. Try increasing k." S
         else
-            @warn "Rank-drop detected and insufficient number of eigenvalues. Try increasing the domain, or the radius r." S errmeasures
+            @warn "Rank-drop detected and insufficient number of eigenvalues. Try increasing `tol`, the number of discretization points `N`, or the radius r." S errmeasures
         end
     end
 
