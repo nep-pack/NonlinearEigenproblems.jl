@@ -87,7 +87,7 @@ linux and GNU fortran, this is achieved with
 ```bash
 $ gfortran -shared -fPIC -o myproblem.so myproblem.f95
 ```
-Under windows, you would want to compile the code to a dll-file.
+(Under the windows OS, you would want to compile the code to a dll-file.)
 In Julia, you can now call this routine using the `Libdl`
 package:
 ```julia
@@ -105,8 +105,8 @@ I=Vector{Int}(undef,3*n); # 3*n nnz elements in matrix
 J=Vector{Int}(undef,3*n); # 3*n nnz elements in matrix
 F=Vector{Float64}(undef,3*n); # 3*n nnz elements in matrix
 # This is the call to the fortran code
-# Note that :mder_ is a reference to a fortran subroutine: it must
-# be lower-case and a _ shoule be appended
+# Note that :mder_ is a reference to a fortran subroutine:
+# it must be lower-case and  a _ should be appended
 ccall(Libdl.dlsym(mylib,:mder_), Nothing,
    (Ref{Float64}, Ref{Int},Ref{Int},  Ptr{Int}, Ptr{Int}, Ptr{Float64}),
    λ, n, der, I, J, F)
@@ -241,11 +241,14 @@ Iteration:3 errmeasure:4.3096620402514632e-16 λ=-1.794056168678654
 ## Implementation in NEP-PACK: advanced usage
 
 The above procedure requires that sparse matrices are created
-every time the NEP is accessed. A common call in NEP-PACK,
+every time the NEP is accessed. This may be computationally
+demanding. A common call in NEP-PACK,
 is to compute the matrix vector product `M(λ)*v`.
 If the creation of the matrix `M(λ)` requires considerable
 computation or storage, you may want to implement
 the function which directly computes the matrix vector product.
+This is made available to the NEP-PACK object
+as follows.
 
 Add the following to your `myproblem.f95`:
 
