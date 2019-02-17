@@ -93,11 +93,6 @@ package:
 ```julia
 using Libdl;
 mylib=Libdl.dlopen("./myproblem.so")
-input_types=(Float64, Int, Int)
-input_types_ref=map(S -> Ref{S}, input_types)
-output_types=(Int, Int, Float64)
-output_types_ptr=map(S -> Ptr{S}, output_types)
-type_list=(input_types_ref...,output_types_ptr...)
 λ=0.3;
 der=0;
 n=3; # Problem size
