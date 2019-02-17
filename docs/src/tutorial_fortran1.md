@@ -3,24 +3,27 @@
 ## A problem defined in fortran
 
 A situation may arise where you  have to
-(or have the opportunity to) work with fortran.
+(or have the opportunity to) work with fortran code.
 This is not as uncommon as many think, mostly
 due to the legacy software in many engineering disciplines.
 The Julia language is designed
-with interoperability in mind, and to call
-fortran routines should not scare you.
+with interoperability in mind. Don't let some
+fortran code scare you.
+The following tutorial illustrates interoperability
+in Julia and how to use it in NEP-PACK.
 
-We assume our NEP is defined by the following fortran code
-which corresponds to this NEP:
+We assume our NEP is defined in fortran code and
+defines the problem
 ```math
 M(\lambda)=A_0+\lambda^3e_ne_1^T+\exp(\lambda)e_1e_n^T.
 ```
 where ``A_0`` is a finite difference approximation of a scaled
-Laplacian matrix. This problem is obviously nice to represent
-in a sparse format.
+Laplacian matrix. The problem can be naturally represented
+in sparse format, which we will also take advantage of.
 
-We suppose the problem is defined in fortran,
-where the following routine returns (or sets)
+The fortran implementation of the problem
+is given in the following routine which
+returns (or more precisely *sets*)
 three vectors `I`, `J` and `F`, where `I` and `J`
 correspond to row and column pointers and `F` the value.
 The variable `s=λ` is the evaluation point.
@@ -28,8 +31,8 @@ The input `der` determines which derivative
 of `M` should be computed. (If derivatives are not easily available,
 see next section.)
 
-We assume the following is contained in `myproblem.f95`:
-```fortran
+This is the implementation which we put in `myproblem.f95`:
+```fortran90
 subroutine mder(s,n,der,I,J,F)
   real*8, intent(in) :: s
   integer*8, intent(in) :: n
@@ -86,7 +89,7 @@ $ gfortran -shared -fPIC -o myproblem.so myproblem.f95
 ```
 Under windows, you would want to compile the code to a dll-file.
 In Julia, you can now call this routine using the `Libdl`
-library:
+package:
 ```julia
 using Libdl;
 mylib=Libdl.dlopen("./myproblem.so")
@@ -136,9 +139,8 @@ julia> Matrix(A)
 (Note: The example below is based on `Mder_NEP` and `Mder_Mlincomb_NEP` which
 are available starting from NEP-PACK version 0.2.5.)
 
-We saw above how to compute a derivative
-matrix with a fortran call.
-This is sufficient to define a NEP in NEP-PACK using
+We saw above how to compute a derivative matrix with a fortran call.
+This is sufficient to define a NEP-object in NEP-PACK using
 the `Mder_NEP` type.
 
 ```julia
@@ -146,9 +148,10 @@ julia> n=100;
 julia> # A function which allocates vectors and calls fortran,
 julia> # and returns a sparse matrix
 julia> function my_Mder(λ::Float64,der::Int=0)
-  I=Vector{Int}(undef,3*n); # 3*n nnz elements in matrix
-  J=Vector{Int}(undef,3*n); # 3*n nnz elements in matrix
-  F=Vector{Float64}(undef,3*n); # 3*n nnz elements in matrix
+  # Index vectors: Length 3*n since we have 3n nnz elements in matrix
+  I=Vector{Int}(undef,3*n);
+  J=Vector{Int}(undef,3*n);
+  F=Vector{Float64}(undef,3*n);
   ccall(Libdl.dlsym(mylib,:mder_), Nothing,
      (Ref{Float64}, Ref{Int},Ref{Int},  Ptr{Int}, Ptr{Int}, Ptr{Float64}),
      λ, n, der, I, J, F)
@@ -170,20 +173,21 @@ Iteration: 13 errmeasure:3.874312247075750238e-16, λ=-1.7940561686786516
 
 ## Implementation in NEP-PACK: basic usage, no derivatives
 
-In the above example, all the derivatives of `M`
-were available in the function call. The nonlinearity
-is in many cases complicated, and its derivatives
-may require man-hours to compute, or may be very
-computationally expensive.
+In the above example, all the derivatives of `M` were
+easy to compute by hand and made available in the fortran subroutine.
+In many applications, the nonlinearity is not so simple,
+and its derivatives may require man-hours to analyze and implement,
+or may be very computationally expensive.
 
-Many algorithms do not require a very accurate derivative,
+Many NEP-algorithms in NEP-PACK
+do not require a very accurate derivative,
 and we now show how you can make a numerical
 approximation of the derivative available, if you
 do not want to compute the exact derivative.
 We compute it with finite differences below, but
-any procedure may be used.
-(We now suppose the fortran code above ignores the `der`
-variable.)
+any numerical differentiation procedure may be used.
+(The below code does not use derivatives in `mder`,
+since all calls are done with `der=0`.)
 
 ```julia
 julia> n=100;
@@ -259,7 +263,7 @@ After recompilation, restarting Julia
 and loading again the shared library, we
 can now make a matvec function available.
 ```julia
-julia> function matvec(λ,v)
+julia> function my_matvec(λ,v)
    v=vec(v);  # It has to be a vector
    x=copy(v); # Allocate a vector for storage of result
    ccall(Libdl.dlsym(mylib,:matvec_), Nothing,
@@ -267,7 +271,7 @@ julia> function matvec(λ,v)
       λ, n, v, x)
    return x;
 end
-julia> nep2=Mder_Mlincomb_NEP(n,my_Mder,1,matvec,0);
+julia> nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);
 ```
 The last call creates a `NEP` defined from both matrix derivative
 computations as well as matrix vector products (or more
@@ -286,4 +290,7 @@ Iteration:  8 errmeasure:2.989922602862964175e-15
 
 When using methods requiring higher derivatives,
 the above procedure can also be used to compute
-linear combinations of higher derivatives.
+linear combinations of higher derivatives by implementing
+a `compute_Mlincomb` which takes a matrix input.
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_FORTRAN1)
