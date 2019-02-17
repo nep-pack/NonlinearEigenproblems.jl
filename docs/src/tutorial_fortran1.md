@@ -22,14 +22,14 @@ Laplacian matrix. The problem can be naturally represented
 in sparse format, which we will also take advantage of.
 
 The fortran implementation of the problem
-is given in the following routine which
-returns (or more precisely *sets*)
-three vectors `I`, `J` and `F`, where `I` and `J`
-correspond to row and column pointers and `F` the value.
+is given in the following subroutine which
+computes three vectors `I`, `J` and `F`, where `I` and `J`
+correspond to row and column pointers and `F` the value
+of the sparse matrix.
 The variable `s=λ` is the evaluation point.
 The input `der` determines which derivative
-of `M` should be computed. (If derivatives are not easily available,
-see next section.)
+of `M` should be computed. (If derivatives are not easily available
+in your application, see next section.)
 
 This is the implementation which we put in `myproblem.f95`:
 ```fortran90
@@ -179,14 +179,22 @@ In many applications, the nonlinearity is not so simple,
 and its derivatives may require man-hours to analyze and implement,
 or may be very computationally expensive.
 
-Many NEP-algorithms in NEP-PACK
-do not require a very accurate derivative,
-and we now show how you can make a numerical
+Most NEP-algorithms in NEP-PACK do require the derivative
+(except for
+certain version of
+[`nleigs`](methods.md#NonlinearEigenproblems.NEPSolver.nleigs),
+[`broyden`](methods.md#NonlinearEigenproblems.NEPSolver.resinv),
+[`contour_beyn`](methods.md#NonlinearEigenproblems.NEPSolver.contour_beyn)
+and
+[`sgiter`](methods.md#NonlinearEigenproblems.NEPSolver.sgiter)).
+However, many NEP-algorithms
+do not require a very accurate derivative.
+We now show how you can make a numerical
 approximation of the derivative available, if you
 do not want to compute the exact derivative.
-We compute it with finite differences below, but
+The example below uses finite differences, but
 any numerical differentiation procedure may be used.
-(The below code does not use derivatives in `mder`,
+(The code does not use derivatives in `mder`,
 since all calls are done with `der=0`.)
 
 ```julia
@@ -220,7 +228,7 @@ julia> function my_Mder_FD(λ::Float64,der::Int=0)
 end
 ```
 Create the `NEP` and call a solver, in this case [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
-```
+```julia
 julia> nep=Mder_NEP(n,my_Mder_FD)
 julia> mslp(Float64,nep,λ=-1.8, displaylevel=1)
 Iteration:1 errmeasure:5.145479494934554e-6 λ=-1.7941228234498503
@@ -259,9 +267,9 @@ subroutine matvec(s,n,v,x)
   x(1)=x(1)-v(n)*exp(s);
 end subroutine matvec
 ```
-After recompilation, restarting Julia
-and loading again the shared library, we
-can now make a matvec function available.
+After recompilation of the `myproblem.so`,
+restarting Julia and loading again the shared library, we
+can make a matvec function available.
 ```julia
 julia> function my_matvec(λ,v)
    v=vec(v);  # It has to be a vector
@@ -273,11 +281,12 @@ julia> function my_matvec(λ,v)
 end
 julia> nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);
 ```
-The last call creates a `NEP` defined from both matrix derivative
+The last line creates a `NEP` defined from both matrix derivative
 computations as well as matrix vector products (or more
 generally linear combinations of derivatives). The `1` and `0`
 specify the highest derivative available for the two functions.
-We can now solve it with many methods, e.g. [`resinv`](methods.md#NonlinearEigenproblems.NEPSolver.resinv).
+We can now solve it with many methods, e.g.
+[`resinv`](methods.md#NonlinearEigenproblems.NEPSolver.resinv).
 ```julia
 julia> resinv(Float64,nep2,λ=-1.8,v=ones(n),displaylevel=1)
 Iteration:  1 errmeasure:4.903565024143570761e-01
