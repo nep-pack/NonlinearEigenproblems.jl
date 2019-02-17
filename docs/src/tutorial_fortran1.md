@@ -181,7 +181,7 @@ or may be very computationally expensive.
 
 Most NEP-algorithms in NEP-PACK do require the derivative
 (except for
-certain version of
+certain versions of
 [`nleigs`](methods.md#NonlinearEigenproblems.NEPSolver.nleigs),
 [`broyden`](methods.md#NonlinearEigenproblems.NEPSolver.resinv),
 [`contour_beyn`](methods.md#NonlinearEigenproblems.NEPSolver.contour_beyn)
@@ -267,8 +267,9 @@ subroutine matvec(s,n,v,x)
   x(1)=x(1)-v(n)*exp(s);
 end subroutine matvec
 ```
-After recompilation of the `myproblem.so`,
-restarting Julia and loading again the shared library, we
+After recompilation of the library file
+`myproblem.so`,
+restarting Julia and loading again `myproblem.so`, we
 can make a matvec function available.
 ```julia
 julia> function my_matvec(λ,v)
@@ -297,9 +298,9 @@ Iteration:  8 errmeasure:2.989922602862964175e-15
 (-1.794056168678641, [0.0275122, 0.0288257, 0.0301393, 0.0314528, 0.0327664, 0.0340799, 0.0353935, 0.036707, 0.0380206, 0.0393341  …  0.145731, 0.147045, 0.148358, 0.149672, 0.150986, 0.152299, 0.153613, 0.154926, 0.15624, 0.157553])
 ```
 
-When using methods requiring higher derivatives,
+When using NEP-solvers requiring higher derivatives,
 the above procedure can also be used to compute
 linear combinations of higher derivatives by implementing
-a `compute_Mlincomb` which takes a matrix input.
+a `compute_Mlincomb` which takes a matrix as input.
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_FORTRAN1)
