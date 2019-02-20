@@ -121,6 +121,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "methods/#NonlinearEigenproblems.NEPSolver.sgiter",
+    "page": "NEP Methods",
+    "title": "NonlinearEigenproblems.NEPSolver.sgiter",
+    "category": "function",
+    "text": "λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eigsolvertype::Type,])\n\nFinds the j-th eigenvalue of the NEP using safeguarded iteration, with eigenvalue numbering according to min-max theory. The method only works for Hermitian problems, and the eigenvalues are assumed to be real. If an interval [λ_min,λ_max] is given, then the Rayleigh functional is assumed to be unique on the interval. If no interval is given, then the minimum solution is always taken. The method requires the computation of (all) eigenvalues of a matrix. The eigsolvertype is a Type that specifies which eigevalue solver is used inside the algorithm. See newton for the meaning of other kwargs.\n\nExample\n\njulia> nep = nep_gallery(\"real_quadratic\");\njulia> λ,v = sgiter(nep, 1, λ_min = -10, λ_max = 0,  λ = -10, maxit = 100);\njulia> minimum(svdvals(compute_Mder(nep,λ)))\n0.0\njulia> norm(v)\n1.0\n\nReferences\n\nV. Mehrmann and H. Voss, Nonlinear eigenvalue problems: a challenge for modern eigenvalue methods, GAMM‐Mitteilungen 27.2 (2004): 121-152.\nH. Voss and B. Werner, Solving sparse nonlinear eigenvalue problems. Technical Report 82/4, Inst. f. Angew. Mathematik, Universität Hamburg, 1982.\nB. Werner. Das Spektrum von Operatorenscharen mit verallgemeinerten Rayleighquotienten. PhD thesis, Fachbereich Mathematik, Universität Hamburg, 1970\n\n\n\n\n\n"
+},
+
+{
     "location": "methods/#NonlinearEigenproblems.NEPSolver.rfi",
     "page": "NEP Methods",
     "title": "NonlinearEigenproblems.NEPSolver.rfi",
@@ -165,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "NEP Methods",
     "title": "Newton type methods",
     "category": "section",
-    "text": "newtonaugnewtonresinvquasinewtonmslprfiblocknewtonnewtonqrimplicitdetbroyden"
+    "text": "newtonaugnewtonresinvquasinewtonmslpsgiterrfiblocknewtonnewtonqrimplicitdetbroyden"
 },
 
 {
