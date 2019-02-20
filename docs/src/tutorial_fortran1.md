@@ -32,7 +32,7 @@ of `M` should be computed. (If derivatives are not easily available
 in your application, see next section.)
 
 This is the implementation which we put in `myproblem.f95`:
-```fortran90
+```fortran
 subroutine mder(s,n,der,I,J,F)
   real*8, intent(in) :: s
   integer*8, intent(in) :: n

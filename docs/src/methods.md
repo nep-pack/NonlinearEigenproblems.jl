@@ -42,6 +42,9 @@ quasinewton
 mslp
 ```
 ```@docs
+sgiter
+```
+```@docs
 rfi
 ```
 ```@docs
