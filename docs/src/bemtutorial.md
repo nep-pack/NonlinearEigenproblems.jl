@@ -24,7 +24,7 @@ precompute_quad!(mesh,gauss_order) # precompute quadrature coefficients
 assemble_BEM(λ, mesh, gauss_order,der) # Compute the matrix consisting of all the integrals corresponding to λ
 ```
 These functions are based on the model (and inspired by some of the code) in
-in ["A boundary element method for solving PDE eigenvalue problems", Steinlechner, bachelor thesis, ETH Zürich, 2010](http://sma.epfl.ch/~anchpcommon/students/steinlechner.pdf) and also
+["A boundary element method for solving PDE eigenvalue problems", Steinlechner, bachelor thesis, ETH Zürich, 2010](http://sma.epfl.ch/~anchpcommon/students/steinlechner.pdf) and also
 used in the simulations in
 ["Chebyshev interpolation for nonlinear eigenvalue problems", Effenberger, Kressner, BIT Numerical Mathematics, 2012, Volume 52, Issue 4, pp 933–951](https://link.springer.com/article/10.1007/s10543-012-0381-5).
 
@@ -90,7 +90,7 @@ Iteration:3 errmeasure:3.2884958163572594e-13 λ=8.132145310156643 - 1.264824702
 Iteration:4 errmeasure:4.6607986030841e-18 λ=8.132145310195453 - 1.264891804832194e-5im
 (8.132145310195453 - 1.264891804832194e-5im, Complex{Float64}[3.08473e-5-9.8713e-6im, 9.46458e-5+2.08586e-5im, -0.000418303-9.3624e-5im, -2.27161e-5+3.2045e-5im, -0.00168228-0.000446522im, -0.00660488-0.0018462im, -0.00705554-0.00195021im, -0.000714245-0.000123651im, -0.010653-0.00296256im, -0.0250155-0.00702815im  …  0.00369925+0.00101557im, 0.025547+0.00717101im, 0.0333126+0.00931856im, 0.0158614+0.00438927im, 0.00325204+0.000835354im, 0.021329+0.00595943im, 0.0126512+0.0034611im, 0.00130882+0.000172086im, 0.00131286+0.000207463im, 0.0125435+0.00344975im])
 ```
-This is the computed solution
+This is the computed solution:
 ```@raw html
 <br>
 <img src="https://user-images.githubusercontent.com/11163595/49595409-324b7d80-f978-11e8-818d-eeeaf9441505.png" height=450>

@@ -19,18 +19,15 @@ SPMF is short for Sum of Products of Matrices and Functions and the NEP is descr
 ```math
 M(λ) = \sum_{i} A_i f_i(λ).
 ```
+The constructor of the `SPMF_NEP`, takes the
+the matrices and the functions, but also a number of other (optional) parameters
+which may increase performance or preserve underlying types.
 
-```@docs
-SPMF_NEP
-```
-
-In order to construct an `SPMF_NEP`, we need to provide
-the matrices and the functions.
 
 ```@docs
 SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
                   Schur_fact = false,
-                  check_consistency=false, Ftype=ComplexF64,
+                  check_consistency=false,
                   align_sparsity_patterns=false)
 ```
 

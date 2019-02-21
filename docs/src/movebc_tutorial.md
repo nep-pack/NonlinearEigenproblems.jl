@@ -123,9 +123,9 @@ solutions on the reduced domain, except for some unintresting special cases.
 
 ## Discretization of the λ-dependent boundary value problem
 
-The boundary condition in the reduced domain boundary condition is λ-dependent.
-Therefore a usual discretization the domain ``[0,L_0]``,
-e.g., with finite difference, will lead to a nonlinear eigenvalue problem.
+The boundary condition in the reduced domain boundary value problem is λ-dependent.
+Therefore a standard discretization the domain ``[0,L_0]``,
+e.g., finite difference, will lead to a nonlinear eigenvalue problem.
 More precisely, we discretize the problem as follows.
 
 Let $x_k=hk$, $k=1,\ldots n$ and $h=1/n$ such that $x_1=h$ and
@@ -155,16 +155,16 @@ M(λ)v=0
 ```
 where
 ```math
-M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
-+g(λ)e_ne_n^T+f(λ)F
+M(λ)=A-λ\underline{I}_n
++g(λ)e_ne_n^T+f(λ)F,
 ```
 and
 ```math
-F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T
+A=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0),\;\;F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T.
 ```
 
 ## Implementation in NEP-PACK
-The above discretization can be expressed as a [`SPMF`](types.md#SPMF) with
+The above discretization can be expressed as a [`SPMF`](types.md#SPMF-1) with
 four terms. Let us set up the matrices first
 ```julia
 L0=1; L1=8; V0=10.0;
@@ -175,6 +175,7 @@ n=size(xv,1);
 V=x->1+sin(α*x);
 Dn=spdiagm(-1 => [ones(n-2);0]/h^2, 0 => -2*ones(n-1)/h^2, 1 => ones(n-1)/h^2)
 Vn=spdiagm(0 => [V.(xv[1:end-1]);0]);
+A=Dn-Vn;
 In=spdiagm(0 => [ones(n-1);0])
 F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
 G=sparse([n],[n],[1]);
@@ -187,7 +188,7 @@ hh=S-> sqrt(S+V0*one(S))
 g=S-> cosh((L1-L0)*hh(S))
 f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 ```
-Note that when defining an SPMF all functions are defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, `sinh(A)` and `cosh(A)` for matrices `A` are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the `SPMF`-creator and applying
+Note that when defining an SPMF all functions should be defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, `sinh(A)` and `cosh(A)` for matrix `A` are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the `SPMF`-creator and applying
 a NEP-solver:
 ```julia
 using NonlinearEigenproblems
@@ -226,9 +227,11 @@ which we define as a function
 ```julia
 myerrmeasure=(λ,v) ->
     norm(compute_Mlincomb(nep,λ,v))/
-       (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
+       (norm(v)*(norm(A)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
 
 ```
+Note that unlike many other languages, Julia's `norm`-function for matrices, returns the Frobenius norm by default.
+
 The  `quasinewton` simulations above terminate in less iterations when this
 error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.
 ```julia-repl
