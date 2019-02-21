@@ -42,7 +42,7 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 \right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_0]\\
    \psi(0)&amp;=&amp;0\\
    g(λ)\psi(L_0)+f(λ)\psi&#39;(L_0)&amp;=&amp;0.
-\end{eqnarray*}\]</div><p>which is a boundary value problem on the reduced domain <span>$[0,L_0]$</span>. The boundary condition is a <a href="https://en.wikipedia.org/wiki/Robin_boundary_condition">Robin boundary condition</a> (also called mixed boundary condition) at <span>$x=L_0$</span>, since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>. It can be shown that the solutions to the original problem are the same as the solutions on the reduced domain, except for some unintresting special cases.</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The boundary condition in the reduced domain boundary condition is λ-dependent. Therefore a usual discretization the domain <span>$[0,L_0]$</span>, e.g., with finite difference, will lead to a nonlinear eigenvalue problem. More precisely, we discretize the problem as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. An approximation of the <span>$\lambda$</span>-dependent boundary condition can be found with the one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
+\end{eqnarray*}\]</div><p>which is a boundary value problem on the reduced domain <span>$[0,L_0]$</span>. The boundary condition is a <a href="https://en.wikipedia.org/wiki/Robin_boundary_condition">Robin boundary condition</a> (also called mixed boundary condition) at <span>$x=L_0$</span>, since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>. It can be shown that the solutions to the original problem are the same as the solutions on the reduced domain, except for some unintresting special cases.</p><h2><a class="nav-anchor" id="Discretization-of-the-λ-dependent-boundary-value-problem-1" href="#Discretization-of-the-λ-dependent-boundary-value-problem-1">Discretization of the λ-dependent boundary value problem</a></h2><p>The boundary condition in the reduced domain boundary value problem is λ-dependent. Therefore a standard discretization the domain <span>$[0,L_0]$</span>, e.g., finite difference, will lead to a nonlinear eigenvalue problem. More precisely, we discretize the problem as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. An approximation of the <span>$\lambda$</span>-dependent boundary condition can be found with the one-sided second order difference scheme</p><div>\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
 -2\psi(x_{n-1})
 +\frac12\psi(x_{n-2})\right)+O(h^2).\]</div><p>Let</p><div>\[  D_n=
 \frac1{h^2}
@@ -52,8 +52,8 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 0 &amp; 1 &amp;-2 &amp; 1\\
 0 &amp; \cdots &amp; 0 &amp; 0
 \end{bmatrix}\;\textrm{ and }\;
-\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as</p><div>\[M(λ)v=0\]</div><p>where</p><div>\[M(λ)=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)-λ\underline{I}_n
-+g(λ)e_ne_n^T+f(λ)F\]</div><p>and</p><div>\[F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
+\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as</p><div>\[M(λ)v=0\]</div><p>where</p><div>\[M(λ)=A-λ\underline{I}_n
++g(λ)e_ne_n^T+f(λ)F,\]</div><p>and</p><div>\[A=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0),\;\;F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T.\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
 xv=Vector(range(0,stop=L0,length=1000))
 h=xv[2]-xv[1];
 n=size(xv,1);
@@ -61,13 +61,14 @@ n=size(xv,1);
 V=x-&gt;1+sin(α*x);
 Dn=spdiagm(-1 =&gt; [ones(n-2);0]/h^2, 0 =&gt; -2*ones(n-1)/h^2, 1 =&gt; ones(n-1)/h^2)
 Vn=spdiagm(0 =&gt; [V.(xv[1:end-1]);0]);
+A=Dn-Vn;
 In=spdiagm(0 =&gt; [ones(n-1);0])
 F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
 G=sparse([n],[n],[1]);</code></pre><p>The corresponding functions in the SPMF are defined as follows</p><pre><code class="language-julia">f1=S-&gt;one(S);
 f2=S-&gt;-S;
 hh=S-&gt; sqrt(S+V0*one(S))
 g=S-&gt; cosh((L1-L0)*hh(S))
-f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>Note that when defining an SPMF all functions are defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrices <code>A</code> are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the <code>SPMF</code>-creator and applying a NEP-solver:</p><pre><code class="language-julia">using NonlinearEigenproblems
+f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>Note that when defining an SPMF all functions should be defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrix <code>A</code> are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the <code>SPMF</code>-creator and applying a NEP-solver:</p><pre><code class="language-julia">using NonlinearEigenproblems
 nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
 (λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
 (λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
@@ -80,8 +81,8 @@ plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
 <img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><h2><a class="nav-anchor" id="Measuring-error-1" href="#Measuring-error-1">Measuring error</a></h2><p>For this application, the matrix <span>$M(λ)$</span> has very large elements if <span>$n$</span> is large. This makes the default way to measure the error a bit misleading. We now show how to specify a user-defined way to measure the error.</p><p>The following function provides an estimate of the backward error</p><div>\[e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|+|λ|
 +|g(λ)|+|f(λ)|\|F\|)}\]</div><p>which we define as a function</p><pre><code class="language-julia">myerrmeasure=(λ,v) -&gt;
     norm(compute_Mlincomb(nep,λ,v))/
-       (norm(v)*(norm(Dn-Vn)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
-</code></pre><p>The  <code>quasinewton</code> simulations above terminate in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
+       (norm(v)*(norm(A)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
+</code></pre><p>Note that unlike many other languages, Julia&#39;s <code>norm</code>-function for matrices, returns the Frobenius norm by default.</p><p>The  <code>quasinewton</code> simulations above terminate in less iterations when this error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
                  errmeasure=myerrmeasure,Neig=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
