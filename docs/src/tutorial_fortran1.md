@@ -15,7 +15,7 @@ in Julia and how to use it in NEP-PACK.
 We assume our NEP is defined in fortran code and
 defines the problem
 ```math
-M(\lambda)=A_0+\lambda^3e_ne_1^T+\exp(\lambda)e_1e_n^T.
+M(\lambda)=A_0+\lambda^3e_ne_1^T-\exp(\lambda)e_1e_n^T.
 ```
 where ``A_0`` is a finite difference approximation of a scaled
 Laplacian matrix. The problem can be naturally represented
