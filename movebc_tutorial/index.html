@@ -53,7 +53,7 @@ f(λ)\psi&#39;(L_0).\]</div><p>where</p><div>\[g(λ):=\cosh\left((L_1-L_0)\sqrt{
 0 &amp; \cdots &amp; 0 &amp; 0
 \end{bmatrix}\;\textrm{ and }\;
 \underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</div><p>Then the boundary value problem can expressed as</p><div>\[M(λ)v=0\]</div><p>where</p><div>\[M(λ)=A-λ\underline{I}_n
-+g(λ)e_ne_n^T+f(λ)F,\]</div><p>and</p><div>\[A=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0),\;\;F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T.\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
++g(λ)e_ne_n^T+f(λ)F,\]</div><p>and</p><div>\[A=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0),\;\;F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T.\]</div><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-1" href="#Implementation-in-NEP-PACK-1">Implementation in NEP-PACK</a></h2><p>The above discretization can be expressed as a <a href="../types/#SPMF-1"><code>SPMF</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia">L0=1; L1=8; V0=10.0;
 xv=Vector(range(0,stop=L0,length=1000))
 h=xv[2]-xv[1];
 n=size(xv,1);
