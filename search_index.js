@@ -385,14 +385,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "types/#NonlinearEigenproblems.NEPTypes.SPMF_NEP",
-    "page": "NEP Types",
-    "title": "NonlinearEigenproblems.NEPTypes.SPMF_NEP",
-    "category": "type",
-    "text": "struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}\n\nAn SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions, i.e.,\n\nM(λ)=_i A_i f_i(λ)\n\nAll of the matrices A_0 are of size nn and f_i are a functions. The  functions f_i must be defined for matrices in the standard matrix function sense.\n\n\n\n\n\n"
-},
-
-{
     "location": "types/#NonlinearEigenproblems.NEPTypes.SPMF_NEP-Tuple{Array{#s12,1} where #s12<:(AbstractArray{T,2} where T),Array{#s13,1} where #s13<:Function}",
     "page": "NEP Types",
     "title": "NonlinearEigenproblems.NEPTypes.SPMF_NEP",
@@ -405,7 +397,7 @@ var documenterSearchIndex = {"docs": [
     "page": "NEP Types",
     "title": "SPMF",
     "category": "section",
-    "text": "One of the most common problem types is the SPMF_NEP. SPMF is short for Sum of Products of Matrices and Functions and the NEP is described byM(λ) = sum_i A_i f_i(λ)SPMF_NEPIn order to construct an SPMF_NEP, we need to provide the matrices and the functions.SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};\n                  Schur_fact = false,\n                  check_consistency=false, Ftype=ComplexF64,\n                  align_sparsity_patterns=false)"
+    "text": "One of the most common problem types is the SPMF_NEP. SPMF is short for Sum of Products of Matrices and Functions and the NEP is described byM(λ) = sum_i A_i f_i(λ)The constructor of the SPMF_NEP, takes the the matrices and the functions, but also a number of other (optional) parameters which may increase performance or preserve underlying types.SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};\n                  Schur_fact = false,\n                  check_consistency=false,\n                  align_sparsity_patterns=false)"
 },
 
 {
