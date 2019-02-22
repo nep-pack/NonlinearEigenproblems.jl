@@ -34,5 +34,5 @@ using LinearAlgebra
     # TODO: this test results in a "Rank drop" warning, and a third eigenvalue that's not converged
     λv,V = inner_solve(ContourBeynInnerSolver, ComplexF64, pnep; λv=[0,1] .+ 0.0im, Neig=3)
     # @test minimum(svdvals(compute_Mder(pnep,λv[1]))) < eps()*100
-    verify_lambdas(2, pnep, λv[1:2], V[:,1:2], eps()*500)
+    verify_lambdas(2, pnep, λv[1:2], V[:,1:2], eps()*1000)
 end

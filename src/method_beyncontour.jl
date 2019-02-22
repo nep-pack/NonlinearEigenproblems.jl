@@ -8,22 +8,25 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,][compute_eigenvectors])
+    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
 is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
-number of quadrature points.
-In a standard setting only the eigenvalues are computed. But by setting `compute_eigenvectors`
-to true eigenvectors are also computed. Note that this requires matrix access.
+number of quadrature points. Circles are the only supported contours. The
+`linsolvercreator` must create a linsolver that can handle (rectangular) matrices
+as right-hand sides, not only vectors.
 
 # Example
 ```julia-repl
+julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
 julia> λv,V=contour_beyn(nep,radius=1,k=2,quad_method=:ptrapz);
-julia> minimum(svdvals(compute_Mder(nep,λv[1])))
-1.6106898471314257e-16
+julia> norm(compute_Mlincomb(nep,λv[1],V[:,1])) # Eigenpair 1
+5.778617503485546e-15
+julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
+3.095638020248726e-14
 ```
 # References
 * Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
@@ -39,19 +42,18 @@ function contour_beyn(::Type{T},
                          radius::Real=1, # integration radius
                          quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                          N::Integer=1000,  # Nof quadrature nodes
-                         compute_eigenvectors::Bool = false # If we should compute eigenvectors or not
                          )where{T<:Number}
 
+    # Geometry
     g=t -> radius*exp(1im*t)
-    gp=t -> 1im*radius*exp(1im*t)
+    gp=t -> 1im*radius*exp(1im*t) # Derivative
 
     n=size(nep,1);
     Random.seed!(10); # Reproducability
     Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
 
     if (k>n)
-        println("k=",k," n=",n);
-        error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn()");
+        error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn() k=",k," n=",n);
 
     end
 
@@ -74,10 +76,9 @@ function contour_beyn(::Type{T},
 
     local A0,A1
     if (quad_method == :quadg_parallel)
-        #@ifd(print(" using quadg_parallel"))
-        #A0=quadg_parallel(f1,0,2*pi,N);
-        #A1=quadg_parallel(f2,0,2*pi,N);
-        error("disabled");
+        @ifd(print(" using quadg_parallel"))
+        A0=quadg_parallel(f1,0,2*pi,N);
+        A1=quadg_parallel(f2,0,2*pi,N);
     elseif (quad_method == :quadg)
         #@ifd(print(" using quadg"))
         #A0=quadg(f1,0,2*pi,N);
@@ -104,25 +105,24 @@ function contour_beyn(::Type{T},
     V,S,W = svd(A0)
     V0 = V[:,1:k]
     W0 = W[:,1:k]
-    B = (copy(V0')*A1*W0) / diagm(0 => S[1:k])
+    B = (copy(V0')*A1*W0) * Diagonal(1 ./ S[1:k])
+
     if ((maximum(S)/minimum(S))>1/sqrt(eps()))
         @warn "Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver" S
     end
 
+    # Extract eigenval and eigvec approximations according to
+    # step 6 on page 3849 in the reference
     @ifd(println("Computing eigenvalues "))
-    λ,v_temp=eigen(B)
+    λ,VB=eigen(B)
     λ[:] = λ .+ σ
 
-    v = zeros(T,size(nep,1),k)
-    if (compute_eigenvectors)
-        @ifd(println("Computing eigenvectors "))
-        for i = 1:k
-            v[:,i] = compute_eigvec_from_eigval_lu(nep, λ[i], default_linsolvercreator)
-        end
-    else
-        @ifd(println("Obs: Not computing eigenvectors "))
-        v[:,:] = NaN*v
+    @ifd(println("Computing eigenvectors "))
+    v = V0 * VB;
+    for i = 1:k
+        normalize!(v[:,i]);
     end
+
 
     return (λ,v)
 end
