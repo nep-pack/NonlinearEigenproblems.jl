@@ -8,7 +8,7 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,])
+    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,][neigs,])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using a circle centered at `σ` with radius `radius`. The quadrature method
@@ -18,11 +18,17 @@ number of quadrature points. Circles are the only supported contours. The
 `linsolvercreator` must create a linsolver that can handle (rectangular) matrices
 as right-hand sides, not only vectors.
 
+The kwargs `neigs` specifies the number of wanted eigvals, and `k` is the number
+of columns in the subspace (default `k=neigs+1`). The kwarg `sanity_check`
+decides if checking of eigpars should be done. If disabled, the method
+returns `k` (potentially inaccurate) eigpairs. The parameters `errmeasure` and
+`tol` are used for the sanity check.
+
 # Example
 ```julia-repl
 julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
-julia> λv,V=contour_beyn(nep,radius=1,k=2,quad_method=:ptrapz);
+julia> λv,V=contour_beyn(nep,radius=1,neigs=2,quad_method=:ptrapz);
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1])) # Eigenpair 1
 5.778617503485546e-15
 julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
@@ -34,15 +40,19 @@ julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
 contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
 function contour_beyn(::Type{T},
                          nep::NEP;
-                         tol::Real=eps(real(T))*100,
+                         tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
                          σ::Number=zero(complex(T)),
                          displaylevel::Integer=0,
                          linsolvercreator::Function=backslash_linsolvercreator,
-                         k::Integer=3, # Number of eigenvals to compute
+                         neigs::Integer=2, # Number of wanted eigvals
+                         k::Integer=neigs+1, # Columns in matrix to integrate
                          radius::Real=1, # integration radius
                          quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                          N::Integer=1000,  # Nof quadrature nodes
-                         )where{T<:Number}
+                         errmeasure::Function =
+                           default_errmeasure(nep::NEP),
+                         sanity_check=true
+                        )where{T<:Number}
 
     # Geometry
     g=t -> radius*exp(1im*t)
@@ -107,9 +117,8 @@ function contour_beyn(::Type{T},
     W0 = W[:,1:k]
     B = (copy(V0')*A1*W0) * Diagonal(1 ./ S[1:k])
 
-    if ((maximum(S)/minimum(S))>1/sqrt(eps()))
-        @warn "Rank drop detected in A0. The disc probably has fewer eigenvalues than those in the disc. Try decreasing k in contour integral solver" S
-    end
+    rank_drop_tol=tol;
+    p = count( S/S[1] .> rank_drop_tol);
 
     # Extract eigenval and eigvec approximations according to
     # step 6 on page 3849 in the reference
@@ -118,13 +127,35 @@ function contour_beyn(::Type{T},
     λ[:] = λ .+ σ
 
     @ifd(println("Computing eigenvectors "))
-    v = V0 * VB;
+    V = V0 * VB;
     for i = 1:k
-        normalize!(v[:,i]);
+        normalize!(V[:,i]);
     end
 
+    if (!sanity_check)
+        return (λ,V)
+    end
 
-    return (λ,v)
+    # Compute all the errors
+    errmeasures=zeros(real(T),k);
+    for i = 1:k
+        errmeasures[i]=errmeasure(λ[i],V[:,i]);
+    end
+
+    good_index=(errmeasures .< tol);
+
+    Vgood=V[:,good_index];
+    λgood=λ[good_index];
+
+    if (size(λgood,1)<neigs)
+        if (p==k)
+            @warn "Rank-drop not detected and insufficient number of eigenvalues. Try increasing k." S
+        else
+            @warn "Rank-drop detected and insufficient number of eigenvalues. Try increasing `tol`, the number of discretization points `N`, or the radius r." S errmeasures
+        end
+    end
+
+    return (λgood,Vgood)
 end
 
 #  Carries out Gauss quadrature (with N) discretization points

@@ -10,7 +10,7 @@ using LinearAlgebra
     nep=nep_gallery("dep0")
     @bench @testset "disk at origin" begin
 
-        λ,v=contour_beyn(nep,displaylevel=displaylevel,radius=1,k=2,quad_method=:ptrapz)
+        λ,v=contour_beyn(nep,displaylevel=displaylevel,radius=1,neigs=2,quad_method=:ptrapz)
 
         for i = 1:2
             @info "$i: $(λ[i])"
@@ -30,14 +30,15 @@ using LinearAlgebra
     @bench @testset "shifted disk" begin
 
         λ,v=contour_beyn(nep,displaylevel=displaylevel,σ=-0.2,radius=1.5,
-                         k=4,quad_method=:ptrapz)
+                         neigs=4,quad_method=:ptrapz)
 
+        @test size(λ,1)==4
         for i = 1:4
             @info "$i: $(λ[i])"
             M=compute_Mder(nep,λ[i])
             minimum(svdvals(M))
-            @test minimum(svdvals(M)) < eps()*1000
-            @test norm(compute_Mlincomb(nep,λ[i],v[:,i]))/norm(v[:,i]) < eps()*500
+            @test minimum(svdvals(M)) < eps()*10000
+            @test norm(compute_Mlincomb(nep,λ[i],v[:,i]))/norm(v[:,i]) < eps()*10000
         end
 
     end
