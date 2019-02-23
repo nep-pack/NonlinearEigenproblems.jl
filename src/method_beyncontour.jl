@@ -11,7 +11,7 @@ export contour_beyn
     λv,V=contour_beyn([eltype,] nep;[tol,][displaylevel,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
 
 The function computes eigenvalues using Beyn's contour integral approach,
-using an ellipse centered at `σ` with radii given in `radius`, or if ond `radius` is given,
+using an ellipse centered at `σ` with radii given in `radius`, or if only one `radius` is given,
 the contour is a circle. The quadrature method is specified in `quad_method`
 (`:ptrapz`,`ptrapz_parallel`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
