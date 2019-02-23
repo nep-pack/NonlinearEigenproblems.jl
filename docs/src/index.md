@@ -76,7 +76,7 @@ The parameter `tol` specifies the
 tolerance for iteration termination.
 
 !!! note
-    All the NEP-solvers have considerble documentation available easily available.
+    All the NEP-solvers have considerble documentation easily available.
     Every NEP-solver has documentation is accompanied with at least one example,
     and references to where the research papers, which we strongly recommend you
     to cite if you use the method.
@@ -145,7 +145,7 @@ savefig("neuron_eigvals.svg"); nothing # hide
 ![](neuron_eigvals.svg)
 
 !!! tip
-    This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`. Most of the NEPs constructed in the tutorials are also available in corresponding gallery problems.
+    This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`. Most of the NEPs constructed in the tutorials are also available in corresponding gallery problems. See all gallery problems under [NEP Gallery](gallery.md). In particular, note that the problems in the Berlin-Manchester collection of problems NLEVP are also [directly available](gallery.md#Berlin-Manchester-collection-1).
 
 # The "gun" benchmark problem
 
