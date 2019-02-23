@@ -54,7 +54,7 @@ function contour_beyn(::Type{T},
                       quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                       N::Integer=1000,  # Nof quadrature nodes
                       errmeasure::Function =
-                       default_errmeasure(nep::NEP),
+                      default_errmeasure(nep::NEP),
                       sanity_check=true,
                       rank_drop_tol=tol # Used in sanity checking
                       )where{T<:Number}
