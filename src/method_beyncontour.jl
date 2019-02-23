@@ -8,7 +8,7 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,][neigs,])
+    λv,V=contour_beyn([eltype,] nep;[tol,][displaylevel,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using an ellipse centered at `σ` with radii given in `radius`, or if ond `radius` is given,
@@ -17,18 +17,21 @@ the contour is a circle. The quadrature method is specified in `quad_method`
 specifies the number of computed eigenvalues. `N` corresponds to the
 number of quadrature points. Ellipses are the only supported contours. The
 `linsolvercreator` must create a linsolver that can handle (rectangular) matrices
-as right-hand sides, not only vectors.
+as right-hand sides, not only vectors. We integrate in complex arithmetic so
+`eltype` must be complex type.
 
 The kwargs `neigs` specifies the number of wanted eigvals, and `k` is the number
-of columns in the subspace (default `k=neigs+1`). If you give the `k` parameter and set `neigs=typemax(Int)` all found eigenvalues will be returned. The kwarg `sanity_check`
-decides if checking of eigpars should be done. If disabled, the method
+of columns in the matrix to be integrated (default `k=neigs+1`). If you give the `k` parameter and set `neigs=typemax(Int)` all found eigenvalues will be returned. The kwarg `sanity_check` decides if sorting and checking (and removal) of eigpairs should be done.
+If disabled, the method
 returns `k` (potentially inaccurate) eigpairs. The parameters `errmeasure` and
-`tol` are used for the sanity check.
+`tol` and `rank_drop_tol` are used for the sanity check,
+to extract accurate eigenvalues.
 
 # Example
 ```julia-repl
 julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
+julia> # Look for two eigvals in unit disk
 julia> λv,V=contour_beyn(nep,radius=1,neigs=2,quad_method=:ptrapz);
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1])) # Eigenpair 1
 5.778617503485546e-15
@@ -53,6 +56,7 @@ function contour_beyn(::Type{T},
                          errmeasure::Function =
                            default_errmeasure(nep::NEP),
                          sanity_check=true
+                      rank_drop_tol=tol # Used in sanity checking
                         )where{T<:Number}
 
     # Geometry
@@ -123,7 +127,6 @@ function contour_beyn(::Type{T},
     W0 = W[:,1:k]
     B = (copy(V0')*A1*W0) * Diagonal(1 ./ S[1:k])
 
-    rank_drop_tol=tol;
     p = count( S/S[1] .> rank_drop_tol);
 
     @ifd(println(" p=",p));
@@ -158,7 +161,7 @@ function contour_beyn(::Type{T},
        good_index[sortperm(map(x->abs(σ-x), λ[good_index]))];
 
     # Remove all eigpairs not sufficiently accurate
-    # and potentially eigenvalues we do not want.
+    # and potentially remove eigenvalues if more than neigs.
     local Vgood,λgood
     if( size(sorted_good_index,1) > neigs)
         @ifd(println("Removing unwanted eigvals: neigs=",neigs,"<",size(sorted_good_index,1),"=found_eigvals"))
@@ -170,11 +173,11 @@ function contour_beyn(::Type{T},
     end
 
     if (p==k)
-       @warn "Rank-drop not detected, your eigvals may be correct, but the algorithm cannot verify. Try to increase k." S
+       @warn "Rank-drop not detected, your eigvals may be correct, but the algorithm cannot verify. Try to increase k. This warning can be disabled with `sanity_check=false`." S
     end
 
     if (size(λgood,1)<neigs  && neigs < typemax(Int))
-       @warn "We found less eigvals than requested. Try increasing domain, or decreasing `tol`." S
+       @warn "We found less eigvals than requested. Try increasing domain, or decreasing `tol`. This warning can be disabled with `sanity_check=false`." S
     end
 
     return (λgood,Vgood)

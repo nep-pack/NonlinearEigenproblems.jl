@@ -36,6 +36,16 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `res`: Corresponding residuals.
 - `details`: Solution details, if requested (see NleigsSolutionDetails).
 
+# Example
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> unit_square = float([1+1im, 1-1im, -1-1im,-1+1im])
+julia> (λ,v)=nleigs(nep,unit_square);
+julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
+2.4522684986758914e-12
+julia> norm(compute_Mlincomb(nep,λ[2],v[:,2]))
+2.7572460495529512e-12
+```
 # References
 - S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class
   of fully rational Krylov methods for nonlinear eigenvalue problems. SIAM J.

@@ -266,6 +266,15 @@ julia> λ
   -43.66198303378091 - 4.3753274496659e-15im
  -27.537645678335437 + 4.8158177866759774e-15im
 ```
+!!! tip
+    The performance of many NEP-algorithms for this problem can be improved.
+    One improvement is achieved with a simple variable transformation.
+    If we let ``\mu=\sqrt{\lambda+V_0}`` we have ``\lambda=\mu^2-V_0``.
+    Therefore the NEP can be transformed in a way that it does not contain square roots.
+    Square roots are undesirable, since they can limit convergence in many
+    methods due to the fact that they are not entire functions.
+    The ``\sinh`` and ``\cosh`` can be merged to a ``\tanh``-expression, leading to
+    less nonlinear terms (but possibly more difficult singularities).
 
 ## Verifying the solution
 
