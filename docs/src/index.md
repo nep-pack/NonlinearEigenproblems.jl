@@ -73,8 +73,20 @@ The second arument in the call to `nep_gallery` is a problem parameter,
 in this case specifying that the  size of the problem should be `100`.
 The example solves the problem with the NEP-algorithm [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
 The parameter `tol` specifies the
-tolerance for iteration termination. Type `?mslp` for more information
-about this NEP-algorithm.
+tolerance for iteration termination.
+
+!!! note
+    All the NEP-solvers have considerble documentation available easily available.
+    Every NEP-solver has documentation is accompanied with at least one example,
+    and references to where the research papers, which we strongly recommend you
+    to cite if you use the method.
+    This is available to you in Julia's documentation. Type `?mslp` and you will see
+    an example how to use `mslp` and that citation credit should go to *A. Ruhe,
+    Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal.
+    10 (1973) 674-689*. This documentation is the same as the online documentation
+    under the tab [NEP Methods](methods.md).
+
+
 
 # A model of a neuron
 
@@ -132,7 +144,8 @@ savefig("neuron_eigvals.svg"); nothing # hide
 ```
 ![](neuron_eigvals.svg)
 
-This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`.
+!!! tip
+    This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`. Most of the NEPs constructed in the tutorials are also available in corresponding gallery problems.
 
 # The "gun" benchmark problem
 
