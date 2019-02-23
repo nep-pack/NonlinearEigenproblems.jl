@@ -77,10 +77,10 @@ tolerance for iteration termination.
 
 !!! note
     All the NEP-solvers have considerble documentation easily available.
-    Every NEP-solver has documentation is accompanied with at least one example,
-    and references to where the research papers, which we strongly recommend you
+    Every NEP-solver has documentation accompanied with at least one example,
+    and references to corresponding research papers, which we strongly recommend you
     to cite if you use the method.
-    This is available to you in Julia's documentation. Type `?mslp` and you will see
+    This is available to you in Julia's repl-prompt. Type `?mslp` and you will see
     an example how to use `mslp` and that citation credit should go to *A. Ruhe,
     Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal.
     10 (1973) 674-689*. This documentation is the same as the online documentation
@@ -101,7 +101,7 @@ See [L. P. Shayer and S. A. Campbell.  Stability, bifurcation and multistability
 coupled neurons with multiple time delays. SIAM J. Applied Mathematics , 61(2):673–700, 2000](https://www.jstor.org/stable/3061744?seq=1#page_scan_tab_contents). It is
 also available as a first demo in [DDE-BIFTOOL](https://sourceforge.net/projects/ddebiftool/).
 The linear stability analysis of this problem requires the solution
-of a nonlinear eigenvalue eigenvalue problem
+of a nonlinear eigenvalue problem
 ```math
 M(λ)=-λI+A_0+A_1e^{-\tau_1λ}+A_2e^{-\tau_2λ}+A_3e^{-\tau_3λ}
 ```
@@ -150,8 +150,9 @@ savefig("neuron_eigvals.svg"); nothing # hide
 # The "gun" benchmark problem
 
 One of the most common benchmark problems for NEPs is the so-called "gun"-problem.
-It models an electromagnetic cavity, and it is directly available in the `Gallery`.
-(See `?nep_gallery` for references.) This is how you can solve it with the [block Newton method](methods.md#NonlinearEigenproblems.NEPSolver.blocknewton):
+It models an electromagnetic cavity, and it is directly available in the NEP-PACK
+gallery.
+(See [gallery](gallery.md#NonlinearEigenproblems.Gallery.nep_gallery) references or type `?nep_gallery` at the repl-prompt.) This is how you can set it up and solve it with the [block Newton method](methods.md#NonlinearEigenproblems.NEPSolver.blocknewton):
 
 ```julia-repl
 julia> nep=nep_gallery("nlevp_native_gun");
@@ -189,8 +190,8 @@ documentation, e.g., `?blocknewton`.
 As an application researcher, we recommend that you first try to
 express your problem in the following form since it
 gives access to several efficient routines associated with the NEP,
-in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) sum of products of matrices and functions
-can be represnted with the type [`SPMF`](types.md#SPMF-1) (sum of products of matrices and functions)
+in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) **S**um of **P**roducts of **M**atrices and **F**unctions
+can be represented with the objects of type [`SPMF`](types.md#SPMF-1)
 in NEP-PACK. For instance, a problem with three terms
 ```math
 M(λ) = A+λB+e^{\sin(λ/2)}C
