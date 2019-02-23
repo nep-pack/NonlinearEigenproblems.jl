@@ -43,21 +43,21 @@ julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
 """
 contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
 function contour_beyn(::Type{T},
-                         nep::NEP;
-                         tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
-                         σ::Number=zero(complex(T)),
-                         displaylevel::Integer=0,
-                         linsolvercreator::Function=backslash_linsolvercreator,
-                         neigs::Integer=2, # Number of wanted eigvals
-                         k::Integer=neigs+1, # Columns in matrix to integrate
-                         radius::Union{Real,Tuple,Array}=1, # integration radius
-                         quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
-                         N::Integer=1000,  # Nof quadrature nodes
-                         errmeasure::Function =
-                           default_errmeasure(nep::NEP),
-                         sanity_check=true,
-                         rank_drop_tol=tol # Used in sanity checking
-                        )where{T<:Number}
+                      nep::NEP;
+                      tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
+                      σ::Number=zero(complex(T)),
+                      displaylevel::Integer=0,
+                      linsolvercreator::Function=backslash_linsolvercreator,
+                      neigs::Integer=2, # Number of wanted eigvals
+                      k::Integer=neigs+1, # Columns in matrix to integrate
+                      radius::Union{Real,Tuple,Array}=1, # integration radius
+                      quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
+                      N::Integer=1000,  # Nof quadrature nodes
+                      errmeasure::Function =
+                       default_errmeasure(nep::NEP),
+                      sanity_check=true,
+                      rank_drop_tol=tol # Used in sanity checking
+                      )where{T<:Number}
 
     # Geometry
     length(radius)==1 ? radius=(radius,radius) : nothing
