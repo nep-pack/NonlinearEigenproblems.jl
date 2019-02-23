@@ -146,13 +146,6 @@ function contour_beyn(::Type{T},
     if (!sanity_check)
         sorted_index = sortperm(map(x->abs(σ-x), λ));
         inside_bool = (real(λ[sorted_index].-σ)/radius[1]).^2 + (imag(λ[sorted_index].-σ)/radius[2]).^2 .≤ 1
-        if any(.!inside_bool)
-            if neigs ≤ sum(inside_bool)
-                @warn "found $(sum(.!inside_bool)) evals outside contour, $p inside. all $neigs returned evals inside, but possibly inaccurate. try increasing N, decreasing tol, or changing radius"
-            else
-                @warn "found $(sum(.!inside_bool)) evals outside contour, $p inside. last $(neigs-sum(inside_bool)) returned evals outside contour. try increasing N, decreasing tol, or changing radius"
-            end
-        end
         inside_perm = sortperm(.!inside_bool)
         return (λ[sorted_index[inside_perm]],V[:,sorted_index[inside_perm]])
     end
