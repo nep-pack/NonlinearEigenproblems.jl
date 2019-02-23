@@ -69,6 +69,7 @@ function contour_beyn(::Type{T},
     
     if (k>n)
         error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn() k=",k," n=",n);
+
     end
     if (k<=0)
         error("k must be positive, k=",k,
