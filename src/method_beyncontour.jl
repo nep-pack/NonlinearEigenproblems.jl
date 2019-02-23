@@ -137,14 +137,21 @@ function contour_beyn(::Type{T},
     # step 6 on page 3849 in the reference
     @ifd(println("Computing eigenvalues "))
     λ,VB=eigen(B)
-    λ[:] = λ .+ σ
-
+    # check that eigenvalues are inside contour
+    inside_bool = abs2(λ) .≤ hypot.(radius[1]*real(λ),radius[2]*imag(λ))
+    if any(.!inside_bool)
+        @warn "$(sum(.!inside_bool)) eigenvalues outside the contour. try increasing N, decreasing tol or changing radius"
+    end
+    inside_perm = sortperm(.!inside_bool)
+    λ[:] = λ[inside_perm] .+ σ
+    
     @ifd(println("Computing eigenvectors "))
-    V = V0 * VB;
+    V = V0 * VB[:,inside_perm];
     for i = 1:k
         normalize!(V[:,i]);
     end
-
+    
+    
     if (!sanity_check)
         sorted_index = sortperm(map(x->abs(σ-x), λ));
         return (λ[sorted_index],V[:,sorted_index])
