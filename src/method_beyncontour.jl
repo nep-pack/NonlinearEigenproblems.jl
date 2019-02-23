@@ -11,10 +11,11 @@ export contour_beyn
     λv,V=contour_beyn([eltype],nep;[tol,][displaylevel,][σ,],[linsolvercreator,][k,][radius,][quad_method,][N,][neigs,])
 
 The function computes eigenvalues using Beyn's contour integral approach,
-using a circle centered at `σ` with radius `radius`. The quadrature method
-is specified in `quad_method` (`:ptrapz`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
+using an ellipse centered at `σ` with radii given in `radius`, or if ond `radius` is given,
+the contour is a circle. The quadrature method is specified in `quad_method`
+(`:ptrapz`,`ptrapz_parallel`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
 specifies the number of computed eigenvalues. `N` corresponds to the
-number of quadrature points. Circles are the only supported contours. The
+number of quadrature points. Ellipses are the only supported contours. The
 `linsolvercreator` must create a linsolver that can handle (rectangular) matrices
 as right-hand sides, not only vectors.
 
@@ -46,7 +47,7 @@ function contour_beyn(::Type{T},
                          linsolvercreator::Function=backslash_linsolvercreator,
                          neigs::Integer=2, # Number of wanted eigvals
                          k::Integer=neigs+1, # Columns in matrix to integrate
-                         radius::Real=1, # integration radius
+                         radius::Union{Real,Tuple,Array}=1, # integration radius
                          quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                          N::Integer=1000,  # Nof quadrature nodes
                          errmeasure::Function =
@@ -55,14 +56,14 @@ function contour_beyn(::Type{T},
                         )where{T<:Number}
 
     # Geometry
-    g=t -> radius*exp(1im*t)
-    gp=t -> 1im*radius*exp(1im*t) # Derivative
+    length(radius)==1 ? radius=(radius,radius) : nothing
+    g(t) = complex(radius[1]*cos(t),radius[2]*sin(t)) # ellipse
+    gp(t) = complex(-radius[1]*sin(t),radius[2]*cos(t)) # derivative
 
     n=size(nep,1);
 
     if (k>n)
         error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn() k=",k," n=",n);
-
     end
     if (k<=0)
         error("k must be positive, k=",k,
@@ -74,8 +75,6 @@ function contour_beyn(::Type{T},
     Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
 
 
-
-
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
         @ifd(print("."))
         local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
@@ -85,19 +84,15 @@ function contour_beyn(::Type{T},
     end
 
     # Constructing integrands
-    Tv0= λ ->  local_linsolve(T(λ),Vh)
-    Tv1= λ -> λ*Tv0(λ)
-    f1= t-> Tv0(g(t))*gp(t)
-    f2= t -> Tv1(g(t))*gp(t)
+    Tv(λ) = local_linsolve(T(λ),Vh)
+    f(t) = Tv(g(t))*gp(t)
     @ifd(print("Computing integrals"))
 
-    # Naive version, where we compute two separate integrals
 
     local A0,A1
     if (quad_method == :quadg_parallel)
         @ifd(print(" using quadg_parallel"))
-        A0=quadg_parallel(f1,0,2*pi,N);
-        A1=quadg_parallel(f2,0,2*pi,N);
+        (A0,A1)=quadg_parallel(f,g,0,2*pi,N);
     elseif (quad_method == :quadg)
         #@ifd(print(" using quadg"))
         #A0=quadg(f1,0,2*pi,N);
@@ -105,8 +100,10 @@ function contour_beyn(::Type{T},
         error("disabled");
     elseif (quad_method == :ptrapz)
         @ifd(print(" using ptrapz"))
-        A0=ptrapz(f1,0,2*pi,N);
-        A1=ptrapz(f2,0,2*pi,N);
+        (A0,A1)=ptrapz(f,g,0,2*pi,N);
+    elseif (quad_method == :ptrapz_parallel)
+        @ifd(print(" using ptrapz_parallel"))
+        (A0,A1)=ptrapz_parallel(f,g,0,2*pi,N);
     elseif (quad_method == :quadgk)
         #@ifd(print(" using quadgk"))
         #A0,tmp=quadgk(f1,0,2*pi,reltol=tol);
@@ -144,7 +141,8 @@ function contour_beyn(::Type{T},
     end
 
     if (!sanity_check)
-        return (λ,V)
+        sorted_index = sortperm(map(x->abs(σ-x), λ));
+        return (λ[sorted_index],V[:,sorted_index])
     end
 
     # Compute all the errors
@@ -171,7 +169,6 @@ function contour_beyn(::Type{T},
         λgood=λ[sorted_good_index];
     end
 
-
     if (p==k)
        @warn "Rank-drop not detected, your eigvals may be correct, but the algorithm cannot verify. Try to increase k." S
     end
@@ -185,40 +182,55 @@ end
 
 #  Carries out Gauss quadrature (with N) discretization points
 #  by call to @parallel
-function quadg_parallel(f,a,b,N)
+function quadg_parallel(f,g,a,b,N)
     x,w=gauss(N);
     # Rescale
     w=w*(b-a)/2;
     t=a+((x+1)/2)*(b-a);
     # Sum it all together f(t[1])*w[1]+f(t[2])*w[2]...
-    S=@distributed (+) for i = 1:N
-        f(t[i])*w[i]
+    S = @distributed (+) for i = 1:N
+        temp = f(t[i])*w[i]
+        [temp,temp*g(t[i])]
     end
-    return S;
+    return S[1], S[2];
 end
 
-
-function quadg(f,a,b,N)
+function quadg(f,g,a,b,N)
     x,w=gauss(N);
     # Rescale
     w=w*(b-a)/2;
     t=a+((x+1)/2)*(b-a);
-    S=zeros(size(f(t[1])))
+    S0 = zero(f(t[1])); S1 = zero(S0)
     # Sum it all together f(t[1])*w[1]+f(t[2])*w[2]...
     for i = 1:N
-        S+= f(t[i])*w[i]
+        temp = f(t[i])*w[i]
+        S0 += temp
+        S1 += temp*g(t[i])
     end
-    return S;
+    return S0, S1;
 end
 
 
 # Trapezoidal rule for a periodic function f
-function ptrapz(f,a,b,N)
+function ptrapz(f,g,a,b,N)
     h = (b-a)/N
     t = range(a, stop = b-h, length = N)
-    S = zero(f(t[1]))
-    for i=1:N
-        S+=f(t[i])
+    S0 = zero(f(t[1])); S1 = zero(S0)
+    for i = 1:N
+        temp = f(t[i])
+        S0 += temp
+        S1 += temp*g(t[i])
     end
-    return h*S;
+    return h*S0, h*S1;
+end
+
+
+function ptrapz_parallel(f,g,a,b,N)
+    h = (b-a)/N
+    t = range(a, stop = b-h, length = N)
+    S = @distributed (+) for i = 1:N
+        temp = f(t[i])
+        [temp,temp*g(t[i])]
+    end
+    return h*S[1], h*S[2];
 end
