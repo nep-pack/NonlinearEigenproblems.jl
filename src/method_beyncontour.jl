@@ -19,7 +19,7 @@ number of quadrature points. Circles are the only supported contours. The
 as right-hand sides, not only vectors.
 
 The kwargs `neigs` specifies the number of wanted eigvals, and `k` is the number
-of columns in the subspace (default `k=neigs+1`). The kwarg `sanity_check`
+of columns in the subspace (default `k=neigs+1`). If you give the `k` parameter and set `neigs=typemax(Int)` all found eigenvalues will be returned. The kwarg `sanity_check`
 decides if checking of eigpars should be done. If disabled, the method
 returns `k` (potentially inaccurate) eigpairs. The parameters `errmeasure` and
 `tol` are used for the sanity check.
@@ -59,13 +59,22 @@ function contour_beyn(::Type{T},
     gp=t -> 1im*radius*exp(1im*t) # Derivative
 
     n=size(nep,1);
-    Random.seed!(10); # Reproducability
-    Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
 
     if (k>n)
         error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn() k=",k," n=",n);
 
     end
+    if (k<=0)
+        error("k must be positive, k=",k,
+              neigs==typemax(Int) ? ". The kwarg k must be set if you use neigs=typemax" : ".")
+    end
+
+
+    Random.seed!(10); # Reproducability
+    Vh=Array{T,2}(randn(real(T),n,k)) # randn only works for real
+
+
+
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
         @ifd(print("."))
@@ -111,7 +120,7 @@ function contour_beyn(::Type{T},
     A0[:,:] = A0 ./(2im*pi);
     A1[:,:] = A1 ./(2im*pi);
 
-    @ifd(println("Computing SVD prepare for eigenvalue extraction "))
+    @ifd(print("Computing SVD prepare for eigenvalue extraction "))
     V,S,W = svd(A0)
     V0 = V[:,1:k]
     W0 = W[:,1:k]
@@ -119,6 +128,8 @@ function contour_beyn(::Type{T},
 
     rank_drop_tol=tol;
     p = count( S/S[1] .> rank_drop_tol);
+
+    @ifd(println(" p=",p));
 
     # Extract eigenval and eigvec approximations according to
     # step 6 on page 3849 in the reference
@@ -142,17 +153,31 @@ function contour_beyn(::Type{T},
         errmeasures[i]=errmeasure(λ[i],V[:,i]);
     end
 
-    good_index=(errmeasures .< tol);
+    good_index=findall(errmeasures .< tol);
 
-    Vgood=V[:,good_index];
-    λgood=λ[good_index];
+    # Index vector for sorted to distance from σ
+    sorted_good_index=
+       good_index[sortperm(map(x->abs(σ-x), λ[good_index]))];
 
-    if (size(λgood,1)<neigs)
-        if (p==k)
-            @warn "Rank-drop not detected and insufficient number of eigenvalues. Try increasing k." S
-        else
-            @warn "Rank-drop detected and insufficient number of eigenvalues. Try increasing `tol`, the number of discretization points `N`, or the radius r." S errmeasures
-        end
+    # Remove all eigpairs not sufficiently accurate
+    # and potentially eigenvalues we do not want.
+    local Vgood,λgood
+    if( size(sorted_good_index,1) > neigs)
+        @ifd(println("Removing unwanted eigvals: neigs=",neigs,"<",size(sorted_good_index,1),"=found_eigvals"))
+        Vgood=V[:,sorted_good_index[1:neigs]];
+        λgood=λ[sorted_good_index[1:neigs]];
+    else
+        Vgood=V[:,sorted_good_index];
+        λgood=λ[sorted_good_index];
+    end
+
+
+    if (p==k)
+       @warn "Rank-drop not detected, your eigvals may be correct, but the algorithm cannot verify. Try to increase k." S
+    end
+
+    if (size(λgood,1)<neigs  && neigs < typemax(Int))
+       @warn "We found less eigvals than requested. Try increasing domain, or decreasing `tol`." S
     end
 
     return (λgood,Vgood)
