@@ -66,7 +66,7 @@ function contour_beyn(::Type{T},
 
     n=size(nep,1);
 
-    
+
     if (k>n)
         error("Cannot compute more eigenvalues than the size of the NEP with contour_beyn() k=",k," n=",n);
 
@@ -137,24 +137,22 @@ function contour_beyn(::Type{T},
     # step 6 on page 3849 in the reference
     @ifd(println("Computing eigenvalues "))
     λ,VB=eigen(B)
-    # check that eigenvalues are inside contour
-    inside_bool = abs2(λ) .≤ hypot.(radius[1]*real(λ),radius[2]*imag(λ))
-    if any(.!inside_bool)
-        @warn "$(sum(.!inside_bool)) eigenvalues outside the contour. try increasing N, decreasing tol or changing radius"
-    end
-    inside_perm = sortperm(.!inside_bool)
-    λ[:] = λ[inside_perm] .+ σ
-    
+    λ[:] = λ .+ σ
     @ifd(println("Computing eigenvectors "))
-    V = V0 * VB[:,inside_perm];
+    V = V0 * VB;
     for i = 1:k
         normalize!(V[:,i]);
     end
-    
-    
+
+
     if (!sanity_check)
         sorted_index = sortperm(map(x->abs(σ-x), λ));
-        return (λ[sorted_index],V[:,sorted_index])
+        inside_bool = (real(λ[sorted_index].-σ)/radius[1]).^2 + (imag(λ[sorted_index].-σ)/radius[2]).^2 .≤ 1
+        if any(.!inside_bool)
+            @warn "$(sum(.!inside_bool)) eigenvalues outside the contour. try increasing N, decreasing tol or changing radius"
+        end
+        inside_perm = sortperm(.!inside_bool)
+        return (λ[inside_perm[sorted_index]],V[:,inside_perm[sorted_index]])
     end
 
     # Compute all the errors
@@ -169,16 +167,23 @@ function contour_beyn(::Type{T},
     sorted_good_index=
        good_index[sortperm(map(x->abs(σ-x), λ[good_index]))];
 
+    # check that eigenvalues are inside contour, move them to the end if they are outside
+   inside_bool = (real(λ[sorted_good_index].-σ)/radius[1]).^2 + (imag(λ[sorted_good_index].-σ)/radius[2]).^2 .≤ 1
+   if any(.!inside_bool)
+       @warn "$(sum(.!inside_bool)) eigenvalues outside the contour. try increasing N, decreasing tol or changing radius"
+   end
+   sorted_good_inside_perm = sortperm(.!inside_bool)
+
     # Remove all eigpairs not sufficiently accurate
     # and potentially remove eigenvalues if more than neigs.
     local Vgood,λgood
     if( size(sorted_good_index,1) > neigs)
         @ifd(println("Removing unwanted eigvals: neigs=",neigs,"<",size(sorted_good_index,1),"=found_eigvals"))
-        Vgood=V[:,sorted_good_index[1:neigs]];
-        λgood=λ[sorted_good_index[1:neigs]];
+        Vgood=V[:,sorted_good_index[sorted_good_inside_perm][1:neigs]];
+        λgood=λ[sorted_good_index[sorted_good_inside_perm][1:neigs]];
     else
-        Vgood=V[:,sorted_good_index];
-        λgood=λ[sorted_good_index];
+        Vgood=V[:,sorted_good_index[sorted_good_inside_perm]];
+        λgood=λ[sorted_good_index[sorted_good_inside_perm]];
     end
 
     if (p==k)
@@ -186,7 +191,7 @@ function contour_beyn(::Type{T},
     end
 
     if (size(λgood,1)<neigs  && neigs < typemax(Int))
-       @warn "We found less eigvals than requested. Try increasing domain, or decreasing `tol`. This warning can be disabled with `sanity_check=false`." S
+       @warn "We found fewer eigvals than requested. Try increasing domain, or decreasing `tol`. This warning can be disabled with `sanity_check=false`." S
     end
 
     return (λgood,Vgood)
