@@ -125,13 +125,12 @@ function contour_beyn(::Type{T},
 
     @ifd(print("Computing SVD prepare for eigenvalue extraction "))
     V,S,W = svd(A0)
-    V0 = V[:,1:k]
-    W0 = W[:,1:k]
-    B = (copy(V0')*A1*W0) * Diagonal(1 ./ S[1:k])
-
     p = count( S/S[1] .> rank_drop_tol);
-
     @ifd(println(" p=",p));
+
+    V0 = V[:,1:p]
+    W0 = W[:,1:p]
+    B = (copy(V0')*A1*W0) * Diagonal(1 ./ S[1:p])
 
     # Extract eigenval and eigvec approximations according to
     # step 6 on page 3849 in the reference
@@ -140,24 +139,27 @@ function contour_beyn(::Type{T},
     λ[:] = λ .+ σ
     @ifd(println("Computing eigenvectors "))
     V = V0 * VB;
-    for i = 1:k
+    for i = 1:p
         normalize!(V[:,i]);
     end
-
 
     if (!sanity_check)
         sorted_index = sortperm(map(x->abs(σ-x), λ));
         inside_bool = (real(λ[sorted_index].-σ)/radius[1]).^2 + (imag(λ[sorted_index].-σ)/radius[2]).^2 .≤ 1
         if any(.!inside_bool)
-            @warn "$(sum(.!inside_bool)) eigenvalues outside the contour. try increasing N, decreasing tol or changing radius"
+            if neigs ≤ sum(inside_bool)
+                @warn "found $(sum(.!inside_bool)) evals outside contour, $p inside. all $neigs returned evals inside, but possibly inaccurate. try increasing N, decreasing tol, or changing radius"
+            else
+                @warn "found $(sum(.!inside_bool)) evals outside contour, $p inside. last $(neigs-sum(inside_bool)) returned evals outside contour. try increasing N, decreasing tol, or changing radius"
+            end
         end
         inside_perm = sortperm(.!inside_bool)
-        return (λ[inside_perm[sorted_index]],V[:,inside_perm[sorted_index]])
+        return (λ[sorted_index[inside_perm]],V[:,sorted_index[inside_perm]])
     end
 
     # Compute all the errors
-    errmeasures=zeros(real(T),k);
-    for i = 1:k
+    errmeasures=zeros(real(T),p);
+    for i = 1:p
         errmeasures[i]=errmeasure(λ[i],V[:,i]);
     end
 
@@ -170,7 +172,11 @@ function contour_beyn(::Type{T},
     # check that eigenvalues are inside contour, move them to the end if they are outside
    inside_bool = (real(λ[sorted_good_index].-σ)/radius[1]).^2 + (imag(λ[sorted_good_index].-σ)/radius[2]).^2 .≤ 1
    if any(.!inside_bool)
-       @warn "$(sum(.!inside_bool)) eigenvalues outside the contour. try increasing N, decreasing tol or changing radius"
+       if neigs ≤ sum(inside_bool)
+           @warn "found $(sum(.!inside_bool)) evals outside contour, $p inside. all $neigs returned evals inside, but possibly inaccurate. try increasing N, decreasing tol, or changing radius"
+       else
+           @warn "found $(sum(.!inside_bool)) evals outside contour, $p inside. last $(neigs-sum(inside_bool)) returned evals outside contour. possible inaccuracy. try increasing N, decreasing tol, or changing radius"
+       end
    end
    sorted_good_inside_perm = sortperm(.!inside_bool)
 
