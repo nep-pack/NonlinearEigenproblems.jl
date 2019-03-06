@@ -1,4 +1,3 @@
-using BlockArray;
 export effenberger_deflation
 """
     effenberger_deflation(nep::NEP,S0,V0)
