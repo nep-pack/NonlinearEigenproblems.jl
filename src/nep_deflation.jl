@@ -47,7 +47,7 @@ struct DeflatedSPMF{T} <: AbstractSPMF{T}
 end
 
 
-DeflatedNEP=Union{DeflatedGenericNEP,DeflatedSPMF{T}};
+DeflatedNEP=Union{DeflatedGenericNEP,DeflatedSPMF{T} where T<:AbstractMatrix};
 
 function size(nep::DeflatedNEP,dim=-1)
     n=size(nep.orgnep,1)+size(nep.V0,2);
