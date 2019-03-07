@@ -41,9 +41,9 @@ struct DeflatedGenericNEP <: NEP
 end
 
 struct DeflatedSPMF{T} <: AbstractSPMF{T}
-    orgnep::NEP
-    V0::Matrix{T}
-    S0::Matrix{T}
+    orgnep::AbstractSPMF{T}
+    V0
+    S0
 end
 
 
