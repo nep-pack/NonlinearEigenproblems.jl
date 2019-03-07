@@ -93,7 +93,6 @@ function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
         Q[i+1]= QQ
     end
 
-
     Z=zeros(eltype(V),n0,k);
     for j=0:k-1
         z=zeros(eltype(V),n0);
@@ -280,6 +279,8 @@ function verify_deflate_mode(nep::DeflatedNEP,mode)
        return :SPMF
     elseif (nep isa DeflatedNEPMM && ((mode == :MM) || (mode == :Auto)) )
        return :MM
+    elseif (nep isa DeflatedGenericNEP && ((mode == :Generic) || (mode == :Auto)) )
+       return :Generic
     else
        error("Unknown mode / type");
     end
@@ -309,6 +310,7 @@ function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
 
     T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
 
+    n=size(nep.orgnep,1);
     p0=size(nep.V0,2);
     # fetch pair + expand with λ v
     V1=zeros(T,n,p0+1);
@@ -329,6 +331,9 @@ function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
         spmf=create_spmf_dnep(nep.orgnep,S1,V1);;
         newnep=DeflatedSPMF(nep.orgnep,spmf,S1,V1);
         return newnep;
+    elseif (mode==:Generic)
+        newnep=DeflatedGenericNEP(nep.orgnep,S1,V1);
+        return newnep;
     end
 end
 
@@ -342,6 +347,7 @@ end
 function get_deflated_eigpairs(nep::DeflatedNEP,λ,v)
    T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
    p0=size(nep.V0,2);
+   n=size(nep.orgnep,1);
    # fetch pair + expand with λ v
    V1=zeros(T,n,p0+1);
    S1=zeros(T,p0+1,p0+1);

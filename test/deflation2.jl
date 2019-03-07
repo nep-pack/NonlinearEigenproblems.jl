@@ -9,6 +9,49 @@ using SparseArrays;
 
 
 
+begin
+  nep=nep_gallery("dep0");
+  n=size(nep,1);
+  local λ,v;
+  (λ,v)=quasinewton(nep,v=ones(n),λ=0,tol=1e-11)
+  local dnep
+  dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
+  for k=1:4
+      (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=-1+0.1im,
+                      tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+
+      (λ2,V2)=get_deflated_eigpairs(dnep,λ,v)
+      @show norm(compute_Mlincomb(nep,λ2[end],V2[:,end]))
+      dnep=deflate_eigpair(dnep,λ,v);
+  end
+  (λ,V)=get_deflated_eigpairs(dnep)
+  @show norm(compute_Mlincomb(nep,λ[end],V[:,end]))
+  @show norm(compute_Mlincomb(nep,λ[1],V[:,1]))
+end
+
+@show "nlevp_native"
+begin
+
+  nep=nep_gallery("nlevp_native_gun");
+  n=size(nep,1);
+  local λ,v;
+  (λ,v)=augnewton(nep,v=ones(n),λ=200^2,tol=1e-11)
+  local dnep
+  dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
+  for k=1:4
+      (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=200^2,
+                      tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+
+      (λ2,V2)=get_deflated_eigpairs(dnep,λ,v)
+      @show norm(compute_Mlincomb(nep,λ2[end],V2[:,end]))
+      dnep=deflate_eigpair(dnep,λ,v);
+  end
+  (λ,V)=get_deflated_eigpairs(dnep)
+  @show norm(compute_Mlincomb(nep,λ[end],V[:,end]))
+  @show norm(compute_Mlincomb(nep,λ[1],V[:,1]))
+end
+
+
 asd()
 
 
