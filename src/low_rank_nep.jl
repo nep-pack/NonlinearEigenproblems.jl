@@ -32,7 +32,7 @@ end
 function LowRankFactorizedNEP(L::AbstractVector{S}, U::AbstractVector{S},
                               A::AbstractVector{S}, f) where {S<:AbstractMatrix}
     rank = mapreduce(u -> size(u, 2), +, U)
-    spmf=SPMF_NEP(A, f, align_sparsity_patterns=true);
+    spmf=SPMF_NEP(A, f, align_sparsity_patterns=true, check_consistency=false);
     return LowRankFactorizedNEP{S}(spmf, rank, L, U)
 end
 function LowRankFactorizedNEP(L::AbstractVector{S}, U::AbstractVector{S},

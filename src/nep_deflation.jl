@@ -40,8 +40,9 @@ struct DeflatedGenericNEP <: NEP
     S0
 end
 
-struct DeflatedSPMF{T} <: AbstractSPMF{T}
+struct DeflatedSPMF{T,NEP1<:AbstractSPMF,NEP2<:AbstractSPMF} <: AbstractSPMF{T}
     orgnep::AbstractSPMF{T}
+    spmf::SPMFSumNEP{NEP1,NEP2}
     V0
     S0
 end
