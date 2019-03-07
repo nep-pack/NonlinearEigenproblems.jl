@@ -111,6 +111,9 @@ function deflate_eigpair(nep::NEP,λ,v;mode=:Auto)
         spmf=create_spmf_dnep(nep,S0,V0);;
         newnep=DeflatedSPMF(nep,spmf,S0,V0);
         return newnep;
+    elseif (mode==:Generic)
+        newnep=DeflatedGenericNEP(nep,S0,V0);
+        return newnep;
     end
 end
 
@@ -166,12 +169,21 @@ function get_deflated_eigpairs(nep::DeflatedNEP,λ,v)
 end
 
 
+nep=nep_gallery("dep0");
+n=size(nep,1);
+local λ,v;
+(λ,v)=quasinewton(nep,v=ones(n),λ=0,tol=1e-11)
+dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
+dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
+
+asd()
+
 
 begin
   nep=nep_gallery("dep0");
   n=size(nep,1);
-  local λ,v; 
-  (λ,v)=quasinewton(nep,v=ones(n),λ=0,tol=1e-11)	
+  local λ,v;
+  (λ,v)=quasinewton(nep,v=ones(n),λ=0,tol=1e-11)
   local dnep
   dnep=deflate_eigpair(nep,λ,v,mode=:MM);
   for k=1:4
@@ -202,8 +214,9 @@ asd()
 #nep=nep_gallery("nlevp_native_gun");
 n=size(nep,1);
 (λ,v)=quasinewton(nep,v=ones(n),λ=150^2,tol=1e-11)
-dnep=deflate_eigpair(nep,λ,v);
+dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
 
+asd()
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
                 tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
 
@@ -291,7 +304,7 @@ begin
 
         normalize_schur_pair!(S1,V1);
 
-        
+
     end
     @show diag(S1)
     @show diag(V1'*V1)

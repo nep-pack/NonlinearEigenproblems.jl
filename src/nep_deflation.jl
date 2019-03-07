@@ -68,6 +68,48 @@ end
 
 function compute_Mder(nep::DeflatedGenericNEP,λ::Number,i::Integer=0)
 end
+function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
+                 V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))
+    # Do a factorization if c*(p*p*p+k*k*p*p) < k*k*p*p*p
+    X=nep.V0;
+    S=nep.S0;
+    T=promote_type(typeof(λ),eltype(X),eltype(S));
+    F=factorize(λ*I-S);
+    k=size(V,2);
+    Xhat=X/F;
+    n0=size(nep.orgnep,1);
+
+    p=size(S,1);
+    # precompute terms with inverses:
+    Q=Vector{Matrix}(undef,k)
+    for i=0:k-1;
+        QQ=zeros(T,p,k)
+        QQ[:,i+1]=V[(n0+1):end,i+1];
+        for j=(i-1):-1:0;
+          QQ[:,j+1]=F\QQ[:,j+2];
+          #QQ[:,j+1]=(λ*I-S)^(-(i-j))*V[(n0+1):end,i+1];
+        end
+        Q[i+1]= QQ
+    end
+
+
+    Z=zeros(eltype(V),n0,k);
+    for j=0:k-1
+        z=zeros(eltype(V),n0);
+        for i=j:k-1
+            #Vnew= (λ*I-S)^(-(i-j))*V[(n0+1):end,i+1]
+            Vnew = Q[i+1][:,j+1];
+            factor=((-1)^(i-j))*(a[i+1]*factorial(i)/factorial(j));
+            z+=factor*Xhat*Vnew;
+        end
+        Z[:,j+1]=z;
+    end
+    Vnew=V[1:n0,:]*Diagonal(a)+Z;
+    z_top=compute_Mlincomb(nep.orgnep,λ,Vnew);
+
+    z_bottom=X'*V[1:n0,1]*a[1];
+    return [z_top ; z_bottom];
+end
 
 
 
