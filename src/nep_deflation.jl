@@ -1,4 +1,7 @@
 export effenberger_deflation
+export DeflatedNEP
+export DeflatedGenericNEP
+export DeflatedSPMF
 """
     effenberger_deflation(nep::NEP,S0,V0)
 
@@ -36,15 +39,15 @@ end
 
 struct DeflatedGenericNEP <: NEP
     orgnep::NEP
-    V0
     S0
+    V0
 end
 
-struct DeflatedSPMF{T,NEP1<:AbstractSPMF,NEP2<:AbstractSPMF} <: AbstractSPMF{T}
+struct DeflatedSPMF{T,NEP1,NEP2} <: AbstractSPMF{T}
     orgnep::AbstractSPMF{T}
     spmf::SPMFSumNEP{NEP1,NEP2}
-    V0
     S0
+    V0
 end
 
 
@@ -59,7 +62,13 @@ function size(nep::DeflatedNEP,dim=-1)
     end
 end
 
-function compute_MM(nep::DeflatedNEP,S,V)
+
+
+compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))= compute_Mlincomb(nep.spmf,λ,V,a);
+compute_Mder(nep::DeflatedSPMF,λ::Number)=compute_Mder(nep.spmf,λ,0)
+compute_Mder(nep::DeflatedSPMF,λ::Number,der)=compute_Mder(nep.spmf,λ,der)
+
+function compute_MM(nep::DeflatedGenericNEP,S,V)
     orgnep=nep.orgnep;
     n0=size(orgnep,1);
     S0=nep.S0; V0=nep.V0
@@ -72,11 +81,11 @@ function compute_MM(nep::DeflatedNEP,S,V)
     return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
 end
 # Use the MM to compute Mlincomb for DeflatedNEP
-compute_Mlincomb(nep::DeflatedNEP,λ::Number,
+compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
                  V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
-function compute_Mder(nep::DeflatedNEP,λ::Number,i::Integer=0)
+function compute_Mder(nep::DeflatedGenericNEP,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
     return Matrix(compute_Mder_from_MM(nep,λ,i));
 end
