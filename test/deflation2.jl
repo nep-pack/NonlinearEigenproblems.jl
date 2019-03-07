@@ -5,10 +5,42 @@ using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 using SparseArrays;
+using BenchmarkTools;
 
 
 
 
+
+@show "nlevp_native"
+nep=nep_gallery("nlevp_native_gun");
+n=size(nep,1);
+(λ,v)=augnewton(nep,v=ones(n),λ=200^2,tol=1e-11)
+
+dnep1=deflate_eigpair(nep,λ,v,mode=:Generic);
+dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
+dnep3=deflate_eigpair(nep,λ,v,mode=:MM);
+
+@btime augnewton(dnep1,v=ones(size(dnep1,1)),λ=250^2,
+                      tol=1e-11,maxit=300,armijo_factor=0.5)
+@btime augnewton(dnep2,v=ones(size(dnep1,1)),λ=250^2,
+                      tol=1e-11,maxit=300,armijo_factor=0.5)
+@btime augnewton(dnep3,v=ones(size(dnep1,1)),λ=complex(250^2),
+                      tol=1e-11,maxit=300,armijo_factor=0.5)
+asd()
+
+nep=nep_gallery("dep0_sparse",100);
+n=size(nep,1);
+local λ,v;
+(λ,v)=quasinewton(nep,v=ones(n),λ=2,tol=1e-11,displaylevel=1,maxit=200)
+dnep1=deflate_eigpair(nep,λ,v,mode=:Generic);
+@btime mslp(dnep1,λ=1im,tol=1e-11)
+dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
+@btime mslp(dnep2,λ=1im,tol=1e-11)
+dnep3=deflate_eigpair(nep,λ,v,mode=:MM);
+@btime mslp(dnep3,λ=1im,tol=1e-11)
+
+
+asd()
 begin
   nep=nep_gallery("dep0");
   n=size(nep,1);
@@ -29,16 +61,14 @@ begin
   @show norm(compute_Mlincomb(nep,λ[1],V[:,1]))
 end
 
-@show "nlevp_native"
 begin
-
   nep=nep_gallery("nlevp_native_gun");
   n=size(nep,1);
   local λ,v;
   (λ,v)=augnewton(nep,v=ones(n),λ=200^2,tol=1e-11)
   local dnep
   dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
-  for k=1:4
+  for k=1:2
       (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=200^2,
                       tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
 

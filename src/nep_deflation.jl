@@ -31,9 +31,6 @@ julia> minimum(svdvals(compute_Mder(nep,λ2)))
 # References
 * C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne
 """
-function effenberger_deflation(nep::NEP,S0,V0)
-     return DeflatedNEPMM(nep,S0,V0)
-end
 
 
 struct DeflatedNEPMM <: NEP
@@ -211,7 +208,7 @@ function create_spmf_dnep(nep::AbstractSPMF,S0,V0)
             A1[k]=sparse(II,JJ,VV,n0+p,n0+p);
         else
             A1[k]=zeros(eltype(A0k),n0+p,n0+p)
-            A1[k][1:n,1:n]=A0k;
+            A1[k][1:n0,1:n0]=A0k;
         end
     end
     spmf1=SPMF_NEP(A1,fv_org,check_consistency=false)
