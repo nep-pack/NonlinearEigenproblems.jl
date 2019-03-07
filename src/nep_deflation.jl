@@ -29,12 +29,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ2)))
 * C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne
 """
 function effenberger_deflation(nep::NEP,S0,V0)
-    if (nep isa AbstractSPMF)
-        return DeflatedSPMF(nep,V0,S0)
-    else
-        return DeflatedNEPMM(nep,V0,S0)
-    end
-
+     return DeflatedNEPMM(nep,S0,V0)
 end
 
 
