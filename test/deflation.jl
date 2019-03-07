@@ -48,3 +48,18 @@ for i=1:size(λv,1)
 end
 
 end
+
+
+@bench @testset "Deflation modes (new)" begin
+
+    nep=nep_gallery("dep0_sparse",3);
+    n=size(nep,1);
+    local λ,v;
+    (λ,v)=augnewton(nep,v=ones(n),λ=1.65,tol=1e-11)
+    dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
+    dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
+    dnep3=deflate_eigpair(nep,λ,v,mode=:MM);
+    λ=2+2im;
+    @test compute_Mder(dnep,λ) ≈ compute_Mder(dnep2,λ)
+    @test compute_Mder(dnep,λ) ≈ compute_Mder(dnep3,λ)
+end

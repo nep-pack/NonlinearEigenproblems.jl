@@ -3,6 +3,9 @@ export DeflatedNEP
 export DeflatedNEPMM
 export DeflatedGenericNEP
 export DeflatedSPMF
+export deflate_eigpair
+export get_deflated_eigpairs
+
 """
     effenberger_deflation(nep::NEP,S0,V0)
 
@@ -66,8 +69,6 @@ end
 
 ## DeflatedGenericNEP optimized routines
 
-function compute_Mder(nep::DeflatedGenericNEP,λ::Number,i::Integer=0)
-end
 function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
                  V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))
     # Do a factorization if c*(p*p*p+k*k*p*p) < k*k*p*p*p
@@ -97,7 +98,7 @@ function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
     for j=0:k-1
         z=zeros(eltype(V),n0);
         for i=j:k-1
-            #Vnew= (λ*I-S)^(-(i-j))*V[(n0+1):end,i+1]
+            #Vnew= (λ*I-S)^(-(i-j))*V[(n0+1):end,i+1]w
             Vnew = Q[i+1][:,j+1];
             factor=((-1)^(i-j))*(a[i+1]*factorial(i)/factorial(j));
             z+=factor*Xhat*Vnew;
@@ -111,12 +112,57 @@ function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
     return [z_top ; z_bottom];
 end
 
+compute_Mder(nep::DeflatedGenericNEP,λ::Number)=compute_Mder(nep,λ,0)
+function compute_Mder(nep::DeflatedGenericNEP,λ::Number,der::Integer)
+    X=nep.V0;
+    S=nep.S0;
+    T=promote_type(typeof(λ),eltype(X),eltype(S));
 
+    M0=compute_Mder(nep.orgnep,λ,der);
+    n0=size(nep.orgnep,1);
+    p=size(S,1);
+
+    Q=zeros(T,n0,p);
+    for i=0:der
+        Vnew= X*(λ*I-S)^(-(der-i+1))
+        factor=((-1)^(der-i))*(factorial(der)/factorial(i));
+        Mi=compute_Mder(nep.orgnep,λ,i);
+        Q+=Mi*(Vnew*factor);
+    end
+
+    if (M0 isa SparseMatrixCSC)
+        # return a sparse matrix
+        (II,JJ,VV)=findnz(M0);
+        (II2,JJ2,VV2)=findnz(sparse(Q))
+        JJ2=JJ2 .+  n0;
+        II_merged=[II;II2];
+        JJ_merged=[JJ;JJ2];
+        VV_merged=[VV;VV2];
+
+        # If zero'th derivative add (2,1)-block
+        if (der==0)
+            (II3,JJ3,VV3)=findnz(sparse(Matrix(X')));
+            II_merged=[II_merged;II3 .+ n0];
+            JJ_merged=[JJ_merged;JJ3];
+            VV_merged=[VV_merged;VV3];
+        end
+        return sparse(II_merged,JJ_merged,VV_merged,n0+p,n0+p);
+    else
+        # Return a dense matrix
+        if (der==0)
+            return [M0 Q ; X'  zeros(p,p)];
+        else
+            return [M0 Q ; zeros(T,p,n0)  zeros(p,p)];
+        end
+    end
+
+
+end
 
 ## The DeflatedSPMF just delegates to the nep.spmf
 compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))= compute_Mlincomb(nep.spmf,λ,V,a);
 compute_Mder(nep::DeflatedSPMF,λ::Number)=compute_Mder(nep.spmf,λ,0)
-compute_Mder(nep::DeflatedSPMF,λ::Number,der)=compute_Mder(nep.spmf,λ,der)
+compute_Mder(nep::DeflatedSPMF,λ::Number,der::Integer)=compute_Mder(nep.spmf,λ,der)
 
 ## The DeflatedNEPMM calls corresponding MM-functions
 function compute_MM(nep::DeflatedNEPMM,S,V)
@@ -139,4 +185,172 @@ compute_Mlincomb(nep::DeflatedNEPMM,λ::Number,
 function compute_Mder(nep::DeflatedNEPMM,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
     return Matrix(compute_Mder_from_MM(nep,λ,i));
+end
+
+
+
+
+
+
+
+function create_spmf_dnep(nep::AbstractSPMF,S0,V0)
+    Av_org=get_Av(nep);
+    fv_org=get_fv(nep);
+    m=size(fv_org,1);
+    p=size(V0,2);
+    n0=size(nep,1);
+
+    m1=m;     # size of "old" part
+    m2=m*p+1; # size of "deflation" part
+
+    # spmf1: Create the "old" part
+    A1=Vector{eltype(Av_org)}(undef,m1);
+    for k=1:m
+        A0k=Av_org[k];
+        if (eltype(A1) <:  SparseMatrixCSC)
+            (II,JJ,VV)=findnz(A0k)
+            A1[k]=sparse(II,JJ,VV,n0+p,n0+p);
+        else
+            A1[k]=zeros(eltype(A0k),n0+p,n0+p)
+            A1[k][1:n,1:n]=A0k;
+        end
+    end
+    spmf1=SPMF_NEP(A1,fv_org,check_consistency=false)
+    # spmf2: Create the additional deflation terms:
+
+    #    Promote rules for the eltype:
+    #    We may need to increase the eltype type size, since S0,V0 can be complex
+    T=promote_type(eltype(V0),eltype(S0),eltype(Av_org[1]));
+    local T_LowRankFactor;
+    if (eltype(Av_org) <: SparseMatrixCSC)
+        T_LowRankFactor=SparseMatrixCSC{T,Int64};
+    else
+        T_LowRankFactor=Matrix{T};
+    end
+    L2=Vector{T_LowRankFactor}(undef,m2);
+    U2=Vector{T_LowRankFactor}(undef,m2);
+    fv2=Vector{Function}(undef,m2);
+    (λtmp,X)=eigen(S0);
+    λ::Vector{T}=λtmp[:]; # Ensure type
+    count=0;
+    for i=1:p
+        y=(V0*(X[:,i]));
+        ei=zeros(p); ei[i]=1;
+        x=(ei'/X);
+        for r=1:m
+            count=count+1;
+            # This will automatically convert to sparse / full
+            L2[count] = reshape([(Av_org[r]*y) ;zeros(p)],n0+p,1);
+            U2[count] = reshape([zeros(n0);x'],n0+p,1);
+            fv2[count]=S-> (S-λ[i]*one(S))\fv_org[r](S);
+        end
+    end
+    # The constant term
+    L2[m*p+1]=[zeros(n0,p);Matrix{T}(I,p,p)]
+    U2[m*p+1]=[Matrix(V0);zeros(p,p)]
+    fv2[m*p+1]= S->one(S);
+    spmf2=LowRankFactorizedNEP(L2,U2,fv2);
+
+    return SumNEP(spmf1,spmf2);
+end
+
+function normalize_schur_pair!(S,V)
+    (QQ,RR)=qr(V);
+    V[:]=Matrix(QQ); # Use skinny QR-factorization
+    S[:]=(RR*S)/RR;
+end
+
+
+function verify_deflate_mode(nep::NEP,mode)
+    if (mode==:Auto)
+        if (nep isa AbstractSPMF)
+            mode=:SPMF
+        else
+            mode=:MM
+        end
+    end
+    if ((mode == :SPMF) || (mode == :SPMFPlain)) &&
+        !(nep isa AbstractSPMF)
+        error("SPMF-mode only possible for `AbstractSPMF`-NEPs")
+    end
+    return mode;
+end
+function verify_deflate_mode(nep::DeflatedNEP,mode)
+    if (nep isa DeflatedSPMF && ((mode == :SPMF) || (mode == :Auto)) )
+       return :SPMF
+    elseif (nep isa DeflatedNEPMM && ((mode == :MM) || (mode == :Auto)) )
+       return :MM
+    else
+       error("Unknown mode / type");
+    end
+end
+
+function deflate_eigpair(nep::NEP,λ,v;mode=:Auto)
+    mode=verify_deflate_mode(nep,mode);
+    n=size(nep,1);
+    S0=reshape([λ],1,1);
+    V0=reshape(v,n,1);
+    normalize_schur_pair!(S0,V0);
+    if (mode==:MM)
+        newnep=DeflatedNEPMM(nep,S0,V0);
+        return newnep;
+    elseif (mode==:SPMF)
+        spmf=create_spmf_dnep(nep,S0,V0);;
+        newnep=DeflatedSPMF(nep,spmf,S0,V0);
+        return newnep;
+    elseif (mode==:Generic)
+        newnep=DeflatedGenericNEP(nep,S0,V0);
+        return newnep;
+    end
+end
+
+function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
+    mode=verify_deflate_mode(nep,mode)
+
+    T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
+
+    p0=size(nep.V0,2);
+    # fetch pair + expand with λ v
+    V1=zeros(T,n,p0+1);
+    S1=zeros(T,p0+1,p0+1);
+    V1[1:n,1:end-1]=nep.V0
+    V1[1:n,end]=v[1:n];
+    S1[1:end-1,1:end-1]=nep.S0;
+    S1[1:end,end]=[v[n+1:end];λ];
+
+    # normalize schur pair
+    normalize_schur_pair!(S1,V1);
+
+    # create new DeflatedNEP
+    if (mode==:MM)
+        newnep=DeflatedNEPMM(nep.orgnep,S1,V1);
+        return newnep;
+    elseif (mode==:SPMF)
+        spmf=create_spmf_dnep(nep.orgnep,S1,V1);;
+        newnep=DeflatedSPMF(nep.orgnep,spmf,S1,V1);
+        return newnep;
+    end
+end
+
+function get_deflated_eigpairs(nep::DeflatedNEP)
+   V=nep.V0;
+   S=nep.S0;
+   (D,X)=eigen(S);
+   return D,V[1:size(nep.orgnep,1),:]*X;
+end
+
+function get_deflated_eigpairs(nep::DeflatedNEP,λ,v)
+   T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
+   p0=size(nep.V0,2);
+   # fetch pair + expand with λ v
+   V1=zeros(T,n,p0+1);
+   S1=zeros(T,p0+1,p0+1);
+   V1[1:n,1:end-1]=nep.V0
+   V1[1:n,end]=v[1:n];
+   S1[1:end-1,1:end-1]=nep.S0;
+   S1[1:end,end]=[v[n+1:end];λ];
+   V=V1
+   S=S1;
+   (D,X)=eigen(S);
+   return D,V[1:size(nep.orgnep,1),:]*X;
 end
