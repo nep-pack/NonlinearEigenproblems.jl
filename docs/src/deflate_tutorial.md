@@ -49,7 +49,7 @@ It is implemented in the method [effenberger_deflation](transformations.md#Nonli
 julia> # first compute a solution
 julia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)))
 julia> # Construct a deflated NEP where we remove (λ1,v1)
-julia> dnep=effenberger_deflation(nep,λ1,v1)
+julia> dnep=deflate_eigpair(nep,λ1,v1)
 julia> # The dnep is a new NEP but with dimension increased by one
 julia> size(nep)
 (5, 5)
@@ -76,36 +76,23 @@ julia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)
 
 ## Repeated deflation
 
-The above procedure can be repeated by calling `effenberger_deflation` on
-the deflated NEP. The procedure can be carried out in such a way many eigenvalues
-are obtained. We now illustrate a somewhat more robust variant of that
-approach by constructing a deflated NEP from the original NEP.
-This requires slightly more manipulations/understanding of invariant pairs which
-need to be extracted for every computed solution.
+The above procedure can be repeated by calling `deflate_eigpair` on
+the deflated NEP. This effectively deflates another eigenpair
+(but without creating a recursive deflated nep structure).
 
 
 ```julia
 function multiple_deflation(nep,λ0,p)
    n=size(nep,1);
    dnep=nep;
-   S0=zeros(ComplexF64,p,p);
-   V0=zeros(ComplexF64,size(nep,1),p);
-   S=view(S0,1:0,1:0);
-   V=view(V0,1:n,1:0);
    for k=1:p
       # Compute one solution of the deflated problem
       (λ2,v2)=quasinewton(dnep,λ=λ0,v=ones(size(dnep,1)),maxit=1000);
       # expand the invariant pair
-      S0[1:k-1,k]=v2[(n+1):end];
-      S0[k,k]=λ2;
-      S=view(S0,1:k,1:k)
-      V0[1:n,k]=v2[1:n];
-      V=view(V0,1:n,1:k);
-      @show S
-      # Construct the deflated problem
-      dnep=effenberger_deflation(nep,S,V)
+      dnep=deflate_eigpair(dnep,λ2,v2)
    end
-   return (S,V)
+   return get_deflated_eigpairs(dnep);
+
 end
 ```
 
@@ -114,29 +101,8 @@ Note that we use the same starting eigenvalue for all eigenvalues: `0.5im`. It h
 to be complex in this case, since if it was real, we would not find complex solution and this problem only has two real eigenvalues.
 ```julia
 julia> nep=nep_gallery("dep0");
-julia> (S,V)=multiple_deflation(nep,0.5im,3)
-S = Complex{Float64}[-0.358719+1.33901e-14im]
-S = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im; 0.0+0.0im 0.834735+1.25838e-14im]
-S = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im -0.735867-0.43166im; 0.0+0.0im 0.834735+1.25838e-14im 0.570725-0.153773im; 0.0+0.0im 0.0+0.0im -0.0409352+1.48601im]
-```
-
-The matrix pair `(S,V)` is a partial Schur factorization of the NEP. This can be
-seen from the fact [compute_MM](types.md#NonlinearEigenproblems.NEPCore.compute_MM) vanishes
-for for `(S,V)`:
-```julia
-julia> norm(compute_MM(nep,S,V))
-4.341002168663845e-13
-```
-The eigenvalues of `S` are eigenvalues of the original NEP, and we can find the eigenpairs by
-diagonalizing `S`:
-```julia
-julia> (Λ,P)=eigen(S);
-julia> VV=V*P;  # Construct the eigenvector matrix
-julia> Λ # The computed eigenvalues
-3-element Array{Complex{Float64},1}:
-  -0.3587189459686267 + 1.339010598765711e-14im
-   0.8347353572199371 + 1.2583846244197297e-14im
- -0.04093521177096655 + 1.4860115309416284im
+julia> (Λ,VV)=multiple_deflation(nep,0.5im,3)
+(Complex{Float64}[-0.358719+1.33901e-14im, 0.834735+7.05729e-15im, -0.0409352+1.48601im], Complex{Float64}[-0.0148325-0.316707im -0.670282+0.268543im -0.41261+0.229832im; 0.00746549+0.159405im -0.0881321+0.0353094im 0.360381-0.0796982im; … ; 0.0260924+0.557131im -0.298976+0.119782im -0.201138+0.0524051im; 0.0319648+0.68252im -0.528234+0.211633im -0.668441+0.121828im])
 ```
 The values in `Λ` and `VV` are eigenpairs:
 ```julia
@@ -147,6 +113,5 @@ julia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))
 julia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))
 1.883394132275381e-13
 ```
-
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_DEFLATION)
