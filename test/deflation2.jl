@@ -90,12 +90,17 @@ function verify_deflate_mode(nep::NEP,mode)
     return mode;
 end
 function verify_deflate_mode(nep::DeflatedNEP,mode)
-    return mode;
+    if (nep isa DeflatedSPMF && ((mode == :SPMF) || (mode == :Auto)) )
+       return :SPMF
+    elseif (nep isa DeflatedGenericNEP && ((mode == :Generic) || (mode == :Auto)) )
+       return :Generic
+    else
+       error("Unknown mode / type");
+    end
 end
 
 function deflate_eigpair(nep::NEP,λ,v;mode=:Auto)
     mode=verify_deflate_mode(nep,mode);
-
     S0=reshape([λ],1,1);
     V0=reshape(v,n,1);
     normalize_schur_pair!(S0,V0);
@@ -112,7 +117,6 @@ end
 function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
     mode=verify_deflate_mode(nep,mode)
 
-
     T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
 
     p0=size(nep.V0,2);
@@ -127,52 +131,109 @@ function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
     # normalize schur pair
     normalize_schur_pair!(S1,V1);
 
-
     # create new DeflatedNEP
-    if (nep isa DeflatedSPMF)
+    if (mode==:Generic)
+        newnep=DeflatedGenericNEP(nep.orgnep,S1,V1);
+        return newnep;
+    elseif (mode==:SPMF)
         spmf=create_spmf_dnep(nep.orgnep,S1,V1);;
         newnep=DeflatedSPMF(nep.orgnep,spmf,S1,V1);
         return newnep;
-    else
-        error("Not implemented");
     end
-
-
-
 end
 
-nep=nep_gallery("nlevp_native_gun");
+function get_deflated_eigpairs(nep::DeflatedNEP)
+   V=nep.V0;
+   S=nep.S0;
+   (D,X)=eigen(S);
+   return D,V[1:size(nep.orgnep,1),:]*X;
+end
+
+function get_deflated_eigpairs(nep::DeflatedNEP,λ,v)
+   T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
+   p0=size(nep.V0,2);
+   # fetch pair + expand with λ v
+   V1=zeros(T,n,p0+1);
+   S1=zeros(T,p0+1,p0+1);
+   V1[1:n,1:end-1]=nep.V0
+   V1[1:n,end]=v[1:n];
+   S1[1:end-1,1:end-1]=nep.S0;
+   S1[1:end,end]=[v[n+1:end];λ];
+   V=V1
+   S=S1;
+   (D,X)=eigen(S);
+   return D,V[1:size(nep.orgnep,1),:]*X;
+end
+
+
+
+begin
+  nep=nep_gallery("dep0");
+  n=size(nep,1);
+  local λ,v; 
+  (λ,v)=quasinewton(nep,v=ones(n),λ=0,tol=1e-11)	
+  local dnep
+  dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
+  for k=1:4
+      (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=-1+0.1im,
+                      tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+
+      (λ2,V2)=get_deflated_eigpairs(dnep,λ,v)
+      @show norm(compute_Mlincomb(nep,λ2[end],V2[:,end]))
+      dnep=deflate_eigpair(dnep,λ,v);
+  end
+  (λ,V)=get_deflated_eigpairs(dnep)
+  @show norm(compute_Mlincomb(nep,λ[end],V[:,end]))
+  @show norm(compute_Mlincomb(nep,λ[1],V[:,1]))
+end
+
+#(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=0,
+#                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+#dnep=deflate_eigpair(dnep,λ,v);
+#(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=0.1im	,
+#                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+#dnep=deflate_eigpair(dnep,λ,v);
+#(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=0.1im	,
+#                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+#dnep=deflate_eigpair(dnep,λ,v);
+
+asd()
+
+#nep=nep_gallery("nlevp_native_gun");
 n=size(nep,1);
 (λ,v)=quasinewton(nep,v=ones(n),λ=150^2,tol=1e-11)
 dnep=deflate_eigpair(nep,λ,v);
-S1=reshape([λ],1,1);
-V1=reshape(v,n,1);
-spmf=create_spmf_dnep(nep,S1,V1)
+
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
                 tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
 
 dnep=deflate_eigpair(dnep,λ,v);
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
                 tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+dnep=deflate_eigpair(dnep,λ,v);
+(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
+                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+
+(λ,V)=get_deflated_eigpairs(dnep)
 
 asd()
 
-#nep=nep_gallery("nlevp_native_gun");
-#n=size(nep,1);
-#(λ,v)=quasinewton(nep,v=ones(n),λ=150^2,tol=1e-11)
-#
-#dnep=deflate(nep,λ,v)
-#
-#(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-#                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
-#
-#
-#(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-#                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
-#
-#
-#
-#asd()
+nep=nep_gallery("nlevp_native_gun");
+n=size(nep,1);
+(λ,v)=quasinewton(nep,v=ones(n),λ=150^2,tol=1e-11)
+
+dnep=deflate(dnep,λ,v)
+
+(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
+                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+dnep=deflate(dnep,λ,v)
+
+(λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
+                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+
+
+
+asd()
 
 # Wanted usage:
 # (λ,v)=quasinewton(nep)
@@ -205,13 +266,17 @@ v=v/norm(v);
 S0=reshape([λ],1,1);
 V0=reshape(v,n,1);
 begin
+
     local S1=reshape([λ],1,1);
     local V1=reshape(v,n,1);
 
-    for k=1:20
+    @show 1
+    for k=1:3
         normalize_schur_pair!(S1,V1);
         @show norm(compute_MM(nep,S1,V1))
         dnep=create_spmf_dnep(nep,S1,V1)
+        #λ,V=get_deflated_eigpairs(dnep);
+        @show norm(compute_Mlincomb(nep,λ[end],V[:,end]))
         (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
                         tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
 
@@ -226,6 +291,7 @@ begin
 
         normalize_schur_pair!(S1,V1);
 
+        
     end
     @show diag(S1)
     @show diag(V1'*V1)
