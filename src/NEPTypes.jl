@@ -1177,7 +1177,7 @@ See also: [`SPMFSumNEP`](@ref), [`GenericSumNEP`](@ref)
         (compute_Mlincomb(nep.nep1, λ, V)+compute_Mlincomb(nep.nep2,λ,V))
     compute_Mder(nep::AnySumNEP, λ::Number,i::Int = 0) =
         (compute_Mder(nep.nep1,λ,i)+compute_Mder(nep.nep2,λ,i))
-    compute_MM(nep::AnySumNEP, S::Matrix,V::Matrix) =
+    compute_MM(nep::AnySumNEP, S::AbstractMatrix,V::AbstractMatrix) =
         (compute_MM(nep.nep1,S,V)+compute_MM(nep.nep2,S,V))
 
     # For SPMFSumNEP, also delegate the get_Av() and get_fv()

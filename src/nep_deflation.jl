@@ -183,7 +183,7 @@ compute_Mlincomb(nep::DeflatedNEPMM,λ::Number,
 
 function compute_Mder(nep::DeflatedNEPMM,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
-    return Matrix(compute_Mder_from_MM(nep,λ,i));
+    return compute_Mder_from_MM(nep,λ,i);
 end
 
 
