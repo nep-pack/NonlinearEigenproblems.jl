@@ -159,6 +159,9 @@ end
 compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))= compute_Mlincomb(nep.spmf,λ,V,a);
 compute_Mder(nep::DeflatedSPMF,λ::Number)=compute_Mder(nep.spmf,λ,0)
 compute_Mder(nep::DeflatedSPMF,λ::Number,der::Integer)=compute_Mder(nep.spmf,λ,der)
+get_Av(nep::DeflatedSPMF)=get_Av(nep.spmf)
+get_fv(nep::DeflatedSPMF)=get_fv(nep.spmf)
+
 
 ## The DeflatedNEPMM calls corresponding MM-functions
 function compute_MM(nep::DeflatedNEPMM,S,V)
