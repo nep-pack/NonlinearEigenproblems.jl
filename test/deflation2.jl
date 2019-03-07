@@ -80,7 +80,7 @@ function verify_deflate_mode(nep::NEP,mode)
         if (nep isa AbstractSPMF)
             mode=:SPMF
         else
-            mode=:Generic
+            mode=:MM
         end
     end
     if ((mode == :SPMF) || (mode == :SPMFPlain)) &&
@@ -92,8 +92,8 @@ end
 function verify_deflate_mode(nep::DeflatedNEP,mode)
     if (nep isa DeflatedSPMF && ((mode == :SPMF) || (mode == :Auto)) )
        return :SPMF
-    elseif (nep isa DeflatedGenericNEP && ((mode == :Generic) || (mode == :Auto)) )
-       return :Generic
+    elseif (nep isa DeflatedNEPMM && ((mode == :MM) || (mode == :Auto)) )
+       return :MM
     else
        error("Unknown mode / type");
     end
@@ -104,8 +104,8 @@ function deflate_eigpair(nep::NEP,λ,v;mode=:Auto)
     S0=reshape([λ],1,1);
     V0=reshape(v,n,1);
     normalize_schur_pair!(S0,V0);
-    if (mode==:Generic)
-        newnep=DeflatedGenericNEP(nep,S0,V0);
+    if (mode==:MM)
+        newnep=DeflatedNEPMM(nep,S0,V0);
         return newnep;
     elseif (mode==:SPMF)
         spmf=create_spmf_dnep(nep,S0,V0);;
@@ -132,8 +132,8 @@ function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
     normalize_schur_pair!(S1,V1);
 
     # create new DeflatedNEP
-    if (mode==:Generic)
-        newnep=DeflatedGenericNEP(nep.orgnep,S1,V1);
+    if (mode==:MM)
+        newnep=DeflatedNEPMM(nep.orgnep,S1,V1);
         return newnep;
     elseif (mode==:SPMF)
         spmf=create_spmf_dnep(nep.orgnep,S1,V1);;
@@ -173,7 +173,7 @@ begin
   local λ,v; 
   (λ,v)=quasinewton(nep,v=ones(n),λ=0,tol=1e-11)	
   local dnep
-  dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
+  dnep=deflate_eigpair(nep,λ,v,mode=:MM);
   for k=1:4
       (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=-1+0.1im,
                       tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)

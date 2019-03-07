@@ -1,5 +1,6 @@
 export effenberger_deflation
 export DeflatedNEP
+export DeflatedNEPMM
 export DeflatedGenericNEP
 export DeflatedSPMF
 """
@@ -31,13 +32,13 @@ function effenberger_deflation(nep::NEP,S0,V0)
     if (nep isa AbstractSPMF)
         return DeflatedSPMF(nep,V0,S0)
     else
-        return DeflatedGenericNEP(nep,V0,S0)
+        return DeflatedNEPMM(nep,V0,S0)
     end
 
 end
 
 
-struct DeflatedGenericNEP <: NEP
+struct DeflatedNEPMM <: NEP
     orgnep::NEP
     S0
     V0
@@ -50,8 +51,14 @@ struct DeflatedSPMF{T,NEP1,NEP2} <: AbstractSPMF{T}
     V0
 end
 
+struct DeflatedGenericNEP <: NEP
+    orgnep::NEP
+    S0
+    V0
+end
 
-DeflatedNEP=Union{DeflatedGenericNEP,DeflatedSPMF{T} where T<:AbstractMatrix};
+
+DeflatedNEP=Union{DeflatedNEPMM,DeflatedGenericNEP,DeflatedSPMF{T} where T<:AbstractMatrix};
 
 function size(nep::DeflatedNEP,dim=-1)
     n=size(nep.orgnep,1)+size(nep.V0,2);
@@ -62,13 +69,20 @@ function size(nep::DeflatedNEP,dim=-1)
     end
 end
 
+## DeflatedGenericNEP optimized routines
+
+function compute_Mder(nep::DeflatedGenericNEP,λ::Number,i::Integer=0)
+end
 
 
+
+## The DeflatedSPMF just delegates to the nep.spmf
 compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))= compute_Mlincomb(nep.spmf,λ,V,a);
 compute_Mder(nep::DeflatedSPMF,λ::Number)=compute_Mder(nep.spmf,λ,0)
 compute_Mder(nep::DeflatedSPMF,λ::Number,der)=compute_Mder(nep.spmf,λ,der)
 
-function compute_MM(nep::DeflatedGenericNEP,S,V)
+## The DeflatedNEPMM calls corresponding MM-functions
+function compute_MM(nep::DeflatedNEPMM,S,V)
     orgnep=nep.orgnep;
     n0=size(orgnep,1);
     S0=nep.S0; V0=nep.V0
@@ -80,12 +94,12 @@ function compute_MM(nep::DeflatedGenericNEP,S,V)
     R=compute_MM(orgnep, Stilde,Vtilde);
     return vcat(R[1:n0,(size(nep.S0,1)+1):end],V0'*V1);
 end
-# Use the MM to compute Mlincomb for DeflatedNEP
-compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
+# Use the MM to compute Mlincomb for DeflatedNEPMM
+compute_Mlincomb(nep::DeflatedNEPMM,λ::Number,
                  V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))=
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
-function compute_Mder(nep::DeflatedGenericNEP,λ::Number,i::Integer=0)
+function compute_Mder(nep::DeflatedNEPMM,λ::Number,i::Integer=0)
     # Use full to make it work with MSLP. This will not work for large and sparse.
     return Matrix(compute_Mder_from_MM(nep,λ,i));
 end
