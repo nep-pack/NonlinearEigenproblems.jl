@@ -259,7 +259,7 @@ function jd_effenberger(::Type{T},
     conveig += 1
     Λ[1,1] = λ
     X[:,1] = u
-    deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
+    deflated_nep = DeflatedGenericNEP(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
 
 
     while true # Can only escape the loop on convergence (return) or too many iterations (error)
@@ -286,7 +286,7 @@ function jd_effenberger(::Type{T},
         Λ[conveig,conveig] = λ
         X[:,conveig] = u[1:n]
 
-        deflated_nep = effenberger_deflation(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
+        deflated_nep = DeflatedGenericNEP(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
     end
 end
 

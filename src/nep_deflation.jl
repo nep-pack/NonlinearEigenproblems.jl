@@ -163,8 +163,8 @@ get_Av(nep::DeflatedSPMF)=get_Av(nep.spmf)
 get_fv(nep::DeflatedSPMF)=get_fv(nep.spmf)
 
 
-## The DeflatedNEPMM calls corresponding MM-functions
-function compute_MM(nep::DeflatedNEPMM,S,V)
+## The DeflatedNEPMM & DeflatedGenericNEP calls corresponding MM-functions
+function compute_MM(nep::Union{DeflatedNEPMM,DeflatedGenericNEP},S,V)
     orgnep=nep.orgnep;
     n0=size(orgnep,1);
     S0=nep.S0; V0=nep.V0
