@@ -436,14 +436,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
 
-#                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
-#                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-#
-#                if (j>0)
-#                    @ifd(@printf(" Armijo scaling=%f\n",scaling));
-#                else
+                (Δλ,Δv,j,scaling)=armijo_rule_new(nep,ermdata,err,
+                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+
+                if (j>0)
+                    @ifd(@printf(" Armijo scaling=%f\n",scaling));
+                else
                     @ifd(@printf("\n"));
-#                end
+                end
 
                 # Update eigenpair
                 λ += Δλ
@@ -643,6 +643,21 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         if (armijo_factor<1)
             # take smaller and smaller steps until errmeasure is decreasing
             while (errmeasure(λ+Δλ,v+Δv)>err0 && j<armijo_max)
+                j=j+1;
+                Δv=Δv*armijo_factor;
+                Δλ=Δλ*armijo_factor;
+            end
+        end
+        return  (Δλ,Δv,j,armijo_factor^j)
+    end
+
+
+    # Armijo rule implementation
+    function armijo_rule_new(nep,ermdata,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
+        j=0
+        if (armijo_factor<1)
+            # take smaller and smaller steps until errmeasure is decreasing
+            while (estimate_error(ermdata,λ+Δλ,v+Δv)>err0 && j<armijo_max)
                 j=j+1;
                 Δv=Δv*armijo_factor;
                 Δλ=Δλ*armijo_factor;
