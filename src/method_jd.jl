@@ -118,7 +118,7 @@ function jd_betcke(::Type{T},
         s = view(s_memory,1:k)
 
         # Project and find the eigenvalue projected NEP
-        set_projectmatrices!(proj_nep, W, V)
+        expand_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             j = conveig+1, # For SG-iter
                             λv = λ .* ones(T,conveig+1),
@@ -341,7 +341,7 @@ function jd_effenberger_inner!(::Type{T},
         s = view(s_memory,1:k)
 
         # Project and solve the projected NEP
-        set_projectmatrices!(proj_nep, W, V)
+        expand_projectmatrices!(proj_nep, W, V)
         λv,sv = inner_solve(inner_solver_method, T, proj_nep,
                             tol = tol/10,
                             λv = λ .* ones(T,2),
