@@ -9,6 +9,9 @@ using GalleryWaveguide
 
 import GalleryWaveguide.SchurMatVec
 
+struct WEPErrmeasure <: Errmeasure; nep::NEP; end
+import NonlinearEigenproblems.estimate_error;
+
 @bench @testset "WEP" begin
 
 nx = 11
@@ -35,6 +38,10 @@ n=size(nep,1);
     λ0=-3-3.5im
     v0=ones(n); v0=v0/norm(v0);
 
+    function NonlinearEigenproblems.estimate_error(e::WEPErrmeasure,λ,v)
+        return abs(λ-λstar);
+    end
+
     myerrmeasure=(λ,v) -> abs(λ-λstar) # Use eigenvalue error as errmeasure
 
    λ,v = resinv(ComplexF64,nep,displaylevel=displaylevel,λ=λ0,v=v0,
@@ -48,7 +55,7 @@ n=size(nep,1);
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
     λ,v = quasinewton(ComplexF64,nep,displaylevel=displaylevel,λ=λ0,v=v0,
-                    errmeasure=myerrmeasure,tol=1e-12)
+                    errmeasure=WEPErrmeasure,tol=1e-12)
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
