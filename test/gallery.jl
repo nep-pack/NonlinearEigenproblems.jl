@@ -107,10 +107,10 @@ using Test
     @info "Testing sine"
     nep=nep_gallery("sine")
     tol=1e-10
-    λ,v=quasinewton(Float64,nep,λ=-4.2,v=ones(size(nep,1)),tol=tol,
+    λ,v=quasinewton(Float64,nep,λ=-1.4,v=ones(size(nep,1)),tol=tol,
                     displaylevel=displaylevel,armijo_factor=0.5,armijo_max=20)
     normalize!(v)
-    @test norm(compute_Mlincomb(nep,λ,v))<tol*100
+    @test norm(compute_Mlincomb(nep,λ,v))<sqrt(tol)
     @test isa(nep,SPMFSumNEP)
     @test_throws MethodError nep_gallery("sine", 15)
     @test_throws ErrorException nep_gallery("sine", t=15)
