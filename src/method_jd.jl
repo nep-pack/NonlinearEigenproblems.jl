@@ -330,7 +330,8 @@ function jd_effenberger_inner!(::Type{T},
     newton_step::Vector{T} = Vector{T}(rand(n+m))
     pk::Vector{T} = zeros(T,n+m)
     s_memory::Vector{T} = zeros(T,maxit+1-nrof_its)
-    proj_nep = jd_create_proj_NEP(target_nep,maxit+1-nrof_its,T)
+    proj_nep = create_proj_NEP(target_nep,maxit+1-nrof_its,T)
+
     dummy_vector::Vector{T} = zeros(T,maxit+1-nrof_its)
 
     V_memory[:,1] = u
@@ -506,67 +507,4 @@ end
 function jd_inner_effenberger_linear_solver!(v, nep::NEP, λ::T, linsolver, pk::Vector{T}, tol) where{T}
     v[:] = lin_solve(linsolver, pk, tol=tol)
     return v
-end
-
-
-
-mutable struct JD_Inner_Effenberger_Projected_NEP <: Proj_NEP
-    orgnep #This is the deflated nep. Called "orgnep" for inheritance purpouses
-    org_proj_nep
-    X
-    Λ
-    V1
-    V2
-    W1
-    W2
-    function JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP,maxsize,T)
-        org_proj_nep = create_proj_NEP(deflated_nep.orgnep,maxsize,T)
-        this = new(deflated_nep, org_proj_nep, deflated_nep.V0, deflated_nep.S0)
-        return this
-    end
-end
-jd_create_proj_NEP(deflated_nep::DeflatedNEP,maxsize,T) = JD_Inner_Effenberger_Projected_NEP(deflated_nep::DeflatedNEP,maxsize,T)
-jd_create_proj_NEP(nep::ProjectableNEP,maxsize,T) = create_proj_NEP(nep,maxsize,T)
-
-function set_projectmatrices!(nep::JD_Inner_Effenberger_Projected_NEP, W, V)
-    n = size(nep.X,1)
-    m = size(nep.Λ,1)
-    nep.V1 = V[1:n, :]
-    nep.V2 = V[(n+1):(n+m), :]
-    nep.W1 = W[1:n, :]
-    nep.W2 = W[(n+1):(n+m), :]
-    set_projectmatrices!(nep.org_proj_nep, nep.W1, nep.V1)
-end
-
-
-function size(nep::JD_Inner_Effenberger_Projected_NEP,dim)
-    n = size(nep.W1, 2);
-    return n
-end
-function size(nep::JD_Inner_Effenberger_Projected_NEP)
-    n = size(nep.W1, 2);
-    return (n,n)
-end
-
-
-compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number) = compute_Mder(nep,λ,0)
-function compute_Mder(nep::JD_Inner_Effenberger_Projected_NEP,λ::Number,i::Integer)
-    W1T_M_V1 = compute_Mder(nep.org_proj_nep,λ,i)
-    W1T_U_V2 = nep.W1' * compute_U(nep.orgnep.orgnep, λ, nep.X, nep.Λ, i) * nep.V2
-    W2T_A_V1 = nep.W2' * nep.X' * nep.V1 #OBS: Here we assume minimality index = 1
-    if i >= 1
-        W2T_A_V1 = zero(W2T_A_V1) # Lazy way out. If a derivative this part disappears since not depending on mu. Obs: Assuming minimality index = 1.
-    end
-    return  W1T_M_V1 + W1T_U_V2 + W2T_A_V1
-end
-
-compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::AbstractVecOrMat) = compute_Mlincomb(nep, λ, V, ones(eltype(V),size(V,2)))
-function compute_Mlincomb(nep::JD_Inner_Effenberger_Projected_NEP, λ::Number, V::AbstractVecOrMat, a::Vector)
-    t = compute_Mlincomb(nep.org_proj_nep, λ, V, a)
-    t[:] = t + a[1] * (nep.W2' * (nep.X' * (nep.V1 * V[:,1])))
-    for i = 1:size(V,2)
-        t[:] = t + a[i] * nep.W1'*compute_Uv(nep.orgnep.orgnep, λ, nep.X, nep.Λ, nep.V2*V[:,i], i-1)
-    end
-    return t # The below seems, somehow, to require less allocations(?)
-    # return compute_Mlincomb_from_Mder(nep, λ ,V, a)
 end
