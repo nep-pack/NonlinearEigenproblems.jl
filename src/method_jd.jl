@@ -7,11 +7,6 @@ using LinearAlgebra
 using Random
 using ..NEPTypes:DeflatedNEP
 
-import ..NEPTypes.set_projectmatrices!
-import Base.size
-import ..NEPCore.compute_Mder
-import ..NEPCore.compute_Mlincomb
-
 
 
 """
