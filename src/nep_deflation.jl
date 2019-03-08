@@ -7,13 +7,28 @@ export deflate_eigpair
 export get_deflated_eigpairs
 
 
+"""
+    struct DeflatedNEPMM <: NEP
 
+Represents a deflated NEP where the compute functions
+are carried out via `compute_MM`. See further
+documentation [`deflate_eigpair`](@ref).
+
+"""
 struct DeflatedNEPMM <: NEP
     orgnep::NEP
     S0
     V0
 end
 
+
+"""
+    struct DeflatedSPMF <: AbstractSPMF
+
+Represents a deflated NEP based on transforming
+the deflated NEP to SPMF-form. See further
+documentation [`deflate_eigpair`](@ref).
+"""
 struct DeflatedSPMF{T,NEP1,NEP2} <: AbstractSPMF{T}
     orgnep::AbstractSPMF{T}
     spmf::SPMFSumNEP{NEP1,NEP2}
@@ -21,6 +36,14 @@ struct DeflatedSPMF{T,NEP1,NEP2} <: AbstractSPMF{T}
     V0
 end
 
+"""
+    struct DeflatedGenericNEP <: NEP
+
+Represents a deflated NEP based on transforming
+carrying out compute functions of derivatives by
+binomial expansions. See further
+documentation [`deflate_eigpair`](@ref).
+"""
 struct DeflatedGenericNEP <: NEP
     orgnep::NEP
     S0
@@ -39,8 +62,7 @@ function size(nep::DeflatedNEP,dim=-1)
     end
 end
 
-## DeflatedGenericNEP optimized routines
-
+## DeflatedGenericNEP optimized routines based on binomial expansion for derivative
 function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
                  V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))
     # Do a factorization if c*(p*p*p+k*k*p*p) < k*k*p*p*p
@@ -157,7 +179,6 @@ compute_Mlincomb(nep::DeflatedNEPMM,λ::Number,
              compute_Mlincomb_from_MM(nep,λ,V,a)
 
 function compute_Mder(nep::DeflatedNEPMM,λ::Number,i::Integer=0)
-    # Use full to make it work with MSLP. This will not work for large and sparse.
     return compute_Mder_from_MM(nep,λ,i);
 end
 
@@ -166,7 +187,7 @@ end
 
 
 
-
+# Creates and SPMF with deflated `S0` and `V0`.
 function create_spmf_dnep(nep::AbstractSPMF,S0,V0)
     Av_org=get_Av(nep);
     fv_org=get_fv(nep);
@@ -228,19 +249,30 @@ function create_spmf_dnep(nep::AbstractSPMF,S0,V0)
     return SumNEP(spmf1,spmf2);
 end
 
+"""
+    normalize_schur_pair!(S,V)
+
+Makes the Schur pair ``(S,V)`` in the sense that `V'*V` is the
+identity matrix. This will not work if `size(V,2)>size(V,1)`.
+
+"""
 function normalize_schur_pair!(S,V)
-    (QQ,RR)=qr(V);
-    V[:]=Matrix(QQ); # Use skinny QR-factorization
-    S[:]=(RR*S)/RR;
+    if (size(V,2)>size(V,1))
+        @warn "Cannot normalize short and skinny V-matrices."
+    else
+        (QQ,RR)=qr(V);
+        V[:]=Matrix(QQ); # Use skinny QR-factorization
+        S[:]=(RR*S)/RR;
+    end
 end
 
-
+# Determine and verify that the deflate mode is correct.
 function verify_deflate_mode(nep::NEP,mode)
     if (mode==:Auto)
         if (nep isa AbstractSPMF)
             mode=:SPMF
         else
-            mode=:MM
+            mode=:Generic
         end
     end
     if ((mode == :SPMF) || (mode == :SPMFPlain)) &&
@@ -270,15 +302,23 @@ the function will return `dnep::NEP` which has the same
 solutions as orgnep, except those corresponding to ``(λ,v)``.
 Deflation is typically used to avoid reconvergence.
 
+If `orgnep` is a `DeflatedNEP`, the `orgnep` the
+deflation in `orgnep` will be updated.
+
 The `mode` kwarg can be `:Auto`, `:Generic`, `:SPMF`,
 `:MM`. This specifies how the deflated NEP should be represented.
+Which mode is the most efficient depends on
+many problem properties.
 If the original NEP is an `AbstractSPMF` with only
-a few terms, `:SPMF` can be efficient. When `mode=:MM`
+a few terms, `mode=:SPMF` may be efficient. The SPMF-mode
+is based on a diagonalization of the deflated invariant
+pair and is not necessarily robust when you deflate eigenvalues
+near to each other. When `mode=:MM`
 is used, all compute functions are implemented via calls
 to the `compute_MM`. This can work well for small dense
-problems. The `:Generic` is base on an explicit derivation
+problems. The `:Generic` is based on an explicit derivation
 of the problem (via binomial expansion) which can be
-efficient of low order derivates are needed. If
+efficient if low order derivates are needed. If
 `:Auto` is selected, NEP-PACK tries to determine which
 one is the most efficient based on the `orgnep`.
 
