@@ -178,7 +178,7 @@ extensively used in:
 
 """
     function compute_MM(nep::NEP,S,V)
-        error("No procedure to compute MM")
+        error("No procedure to compute MM (typeof(nep)=",typeof(nep),")")
     end
 
 

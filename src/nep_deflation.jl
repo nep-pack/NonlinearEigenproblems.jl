@@ -159,6 +159,7 @@ compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector)= co
 compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat)= compute_Mlincomb(nep.spmf,λ,V);
 compute_Mder(nep::DeflatedSPMF,λ::Number)=compute_Mder(nep.spmf,λ,0)
 compute_Mder(nep::DeflatedSPMF,λ::Number,der::Integer)=compute_Mder(nep.spmf,λ,der)
+compute_MM(nep::DeflatedSPMF,par...)=compute_MM(nep.spmf,par...)
 get_Av(nep::DeflatedSPMF)=get_Av(nep.spmf)
 get_fv(nep::DeflatedSPMF)=get_fv(nep.spmf)
 

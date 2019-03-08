@@ -59,4 +59,9 @@ end
     @test compute_Mlincomb(dnep,λ,X) ≈ compute_Mlincomb(dnep3,λ,X)
     @test compute_Mlincomb(dnep,λ,X) ≈ compute_Mlincomb(dnep2,λ,X)
 
+    S=[2 4 ; 5 6.0]
+
+    @test compute_MM(dnep,S,X) ≈ compute_MM(dnep3,S,X)
+    @test compute_MM(dnep,S,X) ≈ compute_MM(dnep2,S,X)
+
 end
