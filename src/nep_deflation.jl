@@ -6,31 +6,6 @@ export DeflatedSPMF
 export deflate_eigpair
 export get_deflated_eigpairs
 
-"""
-    effenberger_deflation(nep::NEP,S0,V0)
-
-This function creates a deflated NEP based on (S0,V0), which
-are assumed to an invariant pair of `nep`. Effectively,
-the function should return a NEP which has the same
-solutions as orgnep, except those corresponding to (S0,V0).
-
-
-# Example:
-```julia-repl
-julia> nep=nep_gallery("dep0");
-julia> (λ,v)=newton(nep);
-julia> n=size(nep,1);
-julia> S0=reshape([λ],1,1);
-julia> V0=reshape(v,n,1);
-julia> dnep=effenberger_deflation(nep,S0,V0)
-julia> (λ2,v2)=augnewton(dnep);  # this converges to different eigval
-julia> minimum(svdvals(compute_Mder(nep,λ2)))
-9.323003321058995e-17
-```
-
-# References
-* C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne
-"""
 
 
 struct DeflatedNEPMM <: NEP
@@ -286,6 +261,53 @@ function verify_deflate_mode(nep::DeflatedNEP,mode)
     end
 end
 
+"""
+    dnep=deflate_eigpair(orgnep::NEP,λ,v,[mode=:Auto])
+
+This function creates a deflated NEP based on ``(λ,v)``, which
+are assumed to an eigenpair of `nep`. Effectively,
+the function will return `dnep::NEP` which has the same
+solutions as orgnep, except those corresponding to ``(λ,v)``.
+Deflation is typically used to avoid reconvergence.
+
+The `mode` kwarg can be `:Auto`, `:Generic`, `:SPMF`,
+`:MM`. This specifies how the deflated NEP should be represented.
+If the original NEP is an `AbstractSPMF` with only
+a few terms, `:SPMF` can be efficient. When `mode=:MM`
+is used, all compute functions are implemented via calls
+to the `compute_MM`. This can work well for small dense
+problems. The `:Generic` is base on an explicit derivation
+of the problem (via binomial expansion) which can be
+efficient of low order derivates are needed. If
+`:Auto` is selected, NEP-PACK tries to determine which
+one is the most efficient based on the `orgnep`.
+
+# Example:
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> (λ,v)=newton(nep);
+julia> n=size(nep,1);
+julia> dnep=deflate_eigpair(nep,λ,v)
+julia> (λ2,v2)=augnewton(dnep);  # this converges to different eigval
+julia> using LinearAlgebra;
+julia> minimum(svdvals(compute_Mder(nep,λ2)))
+9.323003321058995e-17
+```
+The function [`get_deflated_eigpairs()`](@ref) extracts the eigenpairs that
+have been deflated. The returned pairs are eigenpairs of
+the original NEP:
+```
+julia> dnep=deflate_eigpair(dnep,λ2,v2)
+julia> (D,V)=get_deflated_eigpairs(dnep)
+julia> norm(compute_Mlincomb(nep,D[1],V[:,1]))
+6.164690797405912e-16
+julia> norm(compute_Mlincomb(nep,D[2],V[:,2]))
+5.20740757162067e-16
+```
+
+# References
+* C. Effenberger, Robust solution methods for nonlinear eigenvalue problems, PhD thesis, 2013, EPF Lausanne
+"""
 function deflate_eigpair(nep::NEP,λ,v;mode=:Auto)
     mode=verify_deflate_mode(nep,mode);
     n=size(nep,1);
@@ -337,6 +359,21 @@ function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
     end
 end
 
+"""
+    (D,V)=get_deflated_eigpairs(dnep::DeflatedNEP [λ,v])
+
+Returns a vector of eigenvalues `D` and a matrix with corresponding
+eigenvectors `V`. The eigenpairs correspond to the
+original problem, underlying the `DeflatedNEP`.
+The optional parameters `λ,v` allows the inclusion
+of an additional eigpair. Essentially, the optional parameters
+are the expanding the deflation and the running `get_deflated_eigpairs`
+ with kwarg, i.e.,
+```julia
+(D,V)=get_deflated_eigpairs(deflate_eigpair(dnep,λ,v))`
+```
+See example in [`deflate_eigpair`](@ref).
+"""
 function get_deflated_eigpairs(nep::DeflatedNEP)
    V=nep.V0;
    S=nep.S0;
