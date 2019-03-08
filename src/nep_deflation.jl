@@ -65,10 +65,12 @@ end
 ## DeflatedGenericNEP optimized routines based on binomial expansion for derivative
 function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
                  V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))
-    # Do a factorization if c*(p*p*p+k*k*p*p) < k*k*p*p*p
+
     X=nep.V0;
     S=nep.S0;
-    T=promote_type(typeof(λ),eltype(X),eltype(S));
+    T=promote_type(typeof(λ),eltype(X),eltype(S),eltype(a),eltype(V));
+    # It probably only makes sense to do a factorization
+    # if c*(p*p*p+k*k*p*p) < k*k*p*p*p
     F=factorize(λ*I-S);
     k=size(V,2);
     Xhat=X/F;
@@ -76,7 +78,7 @@ function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
 
     p=size(S,1);
     # precompute terms with inverses:
-    Q=Vector{Matrix}(undef,k)
+    Q=Vector{Matrix{T}}(undef,k)
     for i=0:k-1;
         QQ=zeros(T,p,k)
         QQ[:,i+1]=V[(n0+1):end,i+1];
@@ -87,9 +89,9 @@ function compute_Mlincomb(nep::DeflatedGenericNEP,λ::Number,
         Q[i+1]= QQ
     end
 
-    Z=zeros(eltype(V),n0,k);
+    Z=zeros(T,n0,k);
     for j=0:k-1
-        z=zeros(eltype(V),n0);
+        z=zeros(T,n0);
         for i=j:k-1
             #Vnew= (λ*I-S)^(-(i-j))*V[(n0+1):end,i+1]w
             Vnew = Q[i+1][:,j+1];
@@ -153,7 +155,8 @@ function compute_Mder(nep::DeflatedGenericNEP,λ::Number,der::Integer)
 end
 
 ## The DeflatedSPMF just delegates to the nep.spmf
-compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector=ones(eltype(V),size(V,2)))= compute_Mlincomb(nep.spmf,λ,V,a);
+compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat,a::Vector)= compute_Mlincomb(nep.spmf,λ,V,a);
+compute_Mlincomb(nep::DeflatedSPMF,λ::Number,V::AbstractVecOrMat)= compute_Mlincomb(nep.spmf,λ,V);
 compute_Mder(nep::DeflatedSPMF,λ::Number)=compute_Mder(nep.spmf,λ,0)
 compute_Mder(nep::DeflatedSPMF,λ::Number,der::Integer)=compute_Mder(nep.spmf,λ,der)
 get_Av(nep::DeflatedSPMF)=get_Av(nep.spmf)

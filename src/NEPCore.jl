@@ -116,7 +116,7 @@ compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector), compute_Ml
     # Recommend to make a copy of V and call compute_Mlincomb! if function not available
     function compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat)
         @warn "It seems you have not implemented compute_Mlincomb(nep,λ,V) for this NEPType. If you have implemented compute_Mlincomb! you need to add \ncompute_Mlincomb(nep::$(typeof(nep)),λ::Number,V::AbstractVecOrMat)=compute_Mlincomb!(nep,λ,copy(V))"
-        error("No compute_Mlincomb(nep,λ,V) implemented")
+        error("No compute_Mlincomb(nep,λ,V) implemented (typeof(nep)=",typeof(nep),")")
     end
     compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector)=
            compute_Mlincomb!(nep,λ,copy(V), a)

@@ -53,4 +53,10 @@ end
     λ=2+2im;
     @test compute_Mder(dnep,λ) ≈ compute_Mder(dnep2,λ)
     @test compute_Mder(dnep,λ) ≈ compute_Mder(dnep3,λ)
+
+    X=[1 2; 3 4 ; 5 5.0; -1 -1];
+
+    @test compute_Mlincomb(dnep,λ,X) ≈ compute_Mlincomb(dnep3,λ,X)
+    @test compute_Mlincomb(dnep,λ,X) ≈ compute_Mlincomb(dnep2,λ,X)
+
 end

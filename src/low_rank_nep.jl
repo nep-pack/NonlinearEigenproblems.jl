@@ -49,7 +49,7 @@ LowRankFactorizedNEP(::Type{T}, n) where T<:Number =
 compute_Mder(nep::LowRankFactorizedNEP, λ::T, i::Int = 0) where T<:Number =
     compute_Mder(nep.spmf, λ, i)
 
-compute_Mlincomb(nep::LowRankFactorizedNEP, λ::T, V::Union{Vector{T}, Matrix{T}}, a::Vector = ones(T, size(V, 2))) where T<:Number =
+compute_Mlincomb(nep::LowRankFactorizedNEP, λ::Number, V::AbstractVecOrMat, a::Vector = ones(eltype(V), size(V, 2)))  =
     compute_Mlincomb(nep.spmf, λ, V, a)
 
 compute_MM(nep::LowRankFactorizedNEP, par...)  =
