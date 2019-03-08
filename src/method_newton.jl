@@ -384,7 +384,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
-                         errmeasure::Function = default_errmeasure(nep::NEP),
+                         errmeasure::Type{<:Errmeasure} = DefaultErrmeasure,
                          tol::Real=eps(real(T))*100,
                          maxit::Int=100,
                          λ::Number=zero(T),
@@ -409,9 +409,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         @ifd(@printf("Precomputing linsolver\n"))
         linsolver = linsolvercreator(nep,λ)
 
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
+
         try
             for k=1:maxit
-                err=errmeasure(λ,v)
+                err=estimate_error(ermdata,λ,v)
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
                 @ifd(print(", λ=",λ))
 
@@ -433,14 +436,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
 
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
-                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-
-                if (j>0)
-                    @ifd(@printf(" Armijo scaling=%f\n",scaling));
-                else
+#                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+#                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+#
+#                if (j>0)
+#                    @ifd(@printf(" Armijo scaling=%f\n",scaling));
+#                else
                     @ifd(@printf("\n"));
-                end
+#                end
 
                 # Update eigenpair
                 λ += Δλ
