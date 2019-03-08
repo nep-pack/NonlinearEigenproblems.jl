@@ -10,23 +10,23 @@ using BenchmarkTools;
 
 
 
-
-@show "nlevp_native"
-nep=nep_gallery("nlevp_native_gun");
-n=size(nep,1);
-(λ,v)=augnewton(nep,v=ones(n),λ=200^2,tol=1e-11)
-
-dnep1=deflate_eigpair(nep,λ,v,mode=:Generic);
-dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
-dnep3=deflate_eigpair(nep,λ,v,mode=:MM);
-
-@btime augnewton(dnep1,v=ones(size(dnep1,1)),λ=250^2,
-                      tol=1e-11,maxit=300,armijo_factor=0.5)
-@btime augnewton(dnep2,v=ones(size(dnep1,1)),λ=250^2,
-                      tol=1e-11,maxit=300,armijo_factor=0.5)
-@btime augnewton(dnep3,v=ones(size(dnep1,1)),λ=complex(250^2),
-                      tol=1e-11,maxit=300,armijo_factor=0.5)
-asd()
+#
+#@show "nlevp_native"
+#nep=nep_gallery("nlevp_native_gun");
+#n=size(nep,1);
+#(λ,v)=augnewton(nep,v=ones(n),λ=200^2,tol=1e-11)
+#
+#dnep1=deflate_eigpair(nep,λ,v,mode=:Generic);
+#dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
+#dnep3=deflate_eigpair(nep,λ,v,mode=:MM);
+#
+#@btime augnewton(dnep1,v=ones(size(dnep1,1)),λ=250^2,
+#                      tol=1e-11,maxit=300,armijo_factor=0.5)
+#@btime augnewton(dnep2,v=ones(size(dnep1,1)),λ=250^2,
+#                      tol=1e-11,maxit=300,armijo_factor=0.5)
+#@btime augnewton(dnep3,v=ones(size(dnep1,1)),λ=complex(250^2),
+#                      tol=1e-11,maxit=300,armijo_factor=0.5)
+#asd()
 
 nep=nep_gallery("dep0_sparse",100);
 n=size(nep,1);

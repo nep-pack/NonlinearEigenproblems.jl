@@ -358,17 +358,8 @@ function deflate_eigpair(nep::NEP,λ,v;mode=:Auto)
     S0=reshape([λ],1,1);
     V0=reshape(v,n,1);
     normalize_schur_pair!(S0,V0);
-    if (mode==:MM)
-        newnep=DeflatedNEPMM(nep,S0,V0);
-        return newnep;
-    elseif (mode==:SPMF)
-        spmf=create_spmf_dnep(nep,S0,V0);;
-        newnep=DeflatedSPMF(nep,spmf,S0,V0);
-        return newnep;
-    elseif (mode==:Generic)
-        newnep=DeflatedGenericNEP(nep,S0,V0);
-        return newnep;
-    end
+    # Create it based on nep
+    return internal_create_deflated_nep(nep,S0,V0,mode);
 end
 
 function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
@@ -388,20 +379,26 @@ function deflate_eigpair(nep::DeflatedNEP,λ,v;mode=:Auto)
 
     # normalize schur pair
     normalize_schur_pair!(S1,V1);
+    # Create it based on nep.orgnep
+    return internal_create_deflated_nep(nep.orgnep,S1,V1,mode);
+end
 
+# Internal helper function to create a nep based on mode
+function internal_create_deflated_nep(nep,S1,V1,mode)
     # create new DeflatedNEP
     if (mode==:MM)
-        newnep=DeflatedNEPMM(nep.orgnep,S1,V1);
+        newnep=DeflatedNEPMM(nep,S1,V1);
         return newnep;
     elseif (mode==:SPMF)
-        spmf=create_spmf_dnep(nep.orgnep,S1,V1);;
-        newnep=DeflatedSPMF(nep.orgnep,spmf,S1,V1);
+        spmf=create_spmf_dnep(nep,S1,V1);;
+        newnep=DeflatedSPMF(nep,spmf,S1,V1);
         return newnep;
     elseif (mode==:Generic)
-        newnep=DeflatedGenericNEP(nep.orgnep,S1,V1);
+        newnep=DeflatedGenericNEP(nep,S1,V1);
         return newnep;
     end
 end
+
 
 """
     (D,V)=get_deflated_eigpairs(dnep::DeflatedNEP [λ,v])
