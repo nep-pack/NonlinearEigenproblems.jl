@@ -68,9 +68,9 @@ nep = nep_gallery("pep0",250)
 verify_lambdas(5, nep, λ, u, TOL)
 
 TOL = 1e-10
-nep = nep_gallery("dep0",100)
-λ, u = jd_effenberger(nep, Neig=4, displaylevel=displaylevel, tol=TOL, maxit=50, λ=0.6+0im, v=ones(ComplexF64,size(nep,1)))#, inner_solver_method = IARChebInnerSolver)
-verify_lambdas(4, nep, λ, u, TOL)
+nep = nep_gallery("dep0",60)
+λ, u = jd_effenberger(nep, Neig=3, displaylevel=displaylevel, tol=TOL, maxit=55, λ=0.6+0im, v=ones(ComplexF64,size(nep,1)))#, inner_solver_method = IARChebInnerSolver)
+verify_lambdas(3, nep, λ, u, TOL)
 
 @info "Testing convergence before starting"
 λ,u=jd_effenberger(nep, Neig=1, displaylevel=displaylevel, tol=TOL, maxit=55, λ=λ[1], v=vec(u[:,1]))
