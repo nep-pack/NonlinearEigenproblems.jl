@@ -41,7 +41,7 @@ using Random
     #Test residual and distance from reference eigenvalue
     @test norm(compute_Mlincomb(nep, λ_orig, v)) < TOL*100
     @test norm(compute_Mder(nep, λ_orig) * v) < TOL*100
-    @test norm(λ_ref - λ_orig) < TOL*100
+    @test norm(λ_ref - λ_orig) < TOL*1000
     ###########################################################################################################3
 
     #Testing PEP
