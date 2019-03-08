@@ -235,8 +235,6 @@ function jd_effenberger(::Type{T},
     tol::real(T) = real(T)(tol)
     conveig = 0
     tot_nrof_its = 0
-    Λ::Matrix{T} = zeros(T,Neig,Neig)
-    X::Matrix{T} = zeros(T,n,Neig)
     V_memory_base::Matrix{T} = zeros(T, n+Neig, maxit+1)
     W_memory_base::Matrix{T} = zeros(T, n+Neig, maxit+1)
 
@@ -257,18 +255,13 @@ function jd_effenberger(::Type{T},
     end
 
     conveig += 1
-    Λ[1,1] = λ
-    X[:,1] = u
-    deflated_nep = DeflatedGenericNEP(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
+    deflated_nep = deflate_eigpair(nep, λ, u)
 
 
     while true # Can only escape the loop on convergence (return) or too many iterations (error)
         # Check for fulfillment. If so, compute the eigenpairs and return
         if (conveig == Neig)
-            F = eigen(Λ)
-            λ_vec = F.values
-            uv = F.vectors
-            u_vec = X * uv
+            (λ_vec, u_vec,) = get_deflated_eigpairs(deflated_nep)
             return λ_vec, u_vec
         end
 
@@ -281,12 +274,7 @@ function jd_effenberger(::Type{T},
                                                           Neig, u_init, λ_init)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
-        # Expand the partial Schur factorization with the computed solution
-        Λ[1:(conveig-1),conveig] = u[(n+1):(n+conveig-1)]
-        Λ[conveig,conveig] = λ
-        X[:,conveig] = u[1:n]
-
-        deflated_nep = DeflatedGenericNEP(nep, Λ[1:conveig,1:conveig], X[:,1:conveig])
+        deflated_nep = deflate_eigpair(deflated_nep, λ, u)
     end
 end
 
