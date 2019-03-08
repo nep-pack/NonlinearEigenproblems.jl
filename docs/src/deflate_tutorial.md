@@ -116,19 +116,19 @@ julia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))
 
 ## The theory in the background
 
-The deflation is based on a theory for NEP stating essentially stating that
+The deflation is based on a theory for NEP essentially stating that
 if ``(s,x)`` is an eigenpair, then the extended nonlinear eigenvalue problem
 ```math
 T(λ):=\begin{bmatrix}M(λ)&M(λ)x(s-λ)^{-1}\\ x^T & 0\end{bmatrix}
 ```
 has the same eigenvalues as the original problem (under certain conditions
 quite general conditions which are assumed to be satisfied). More
-eigenpairs can be deflated with the theory of partial Schur
-factorizations. When we create
+eigenpairs can be deflated with techniques of partial Schur
+factorizations (which the user does not need to use). When we create
 a deflated NEP, we create the NEP `T`.
 
-There are several ways to represent the ``T``, which is why deflation has several modes.
-If you run
+There are several ways to represent the ``T``, which is why deflation has several
+modes. If you run
 ```julia
 julia> dnep=deflate_eigpair(nep,λ1,v1,mode=:SPMF)
 ```
