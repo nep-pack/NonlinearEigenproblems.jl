@@ -35,7 +35,7 @@ using LinearAlgebra
         λ,v= quasinewton(pep0,λ=1+1im);
         norm(compute_Mlincomb(pep0, λ, v))
         λv,V=polyeig(pep1);
-        @test minimum(abs.(λv .- (λ-σ)/α)) < eps()*100
+        @test minimum(abs.(λv .- (λ-σ)/α)) < eps()*1000
 
         # Check that real PEP with real transformation is still real
         σ=3;
@@ -49,7 +49,7 @@ using LinearAlgebra
         σ=-3+0.3im
         α=0.9;
         nep3_transf=shift_and_scale(nep3,shift=σ,scale=α);
-        @test norm(compute_Mlincomb(nep3_transf,(λ-σ)/α,v))<sqrt(eps());
+        @test norm(compute_Mlincomb(nep3_transf,(λ-σ)/α,v))<sqrt(eps())*10;
         λ,V=iar(nep3_transf,σ=0,Neig=2,maxit=60)
         @test norm(compute_Mlincomb(nep3,α*λ[1]+σ,V[:,1]))<sqrt(eps())
         @test norm(compute_Mlincomb(nep3,α*λ[2]+σ,V[:,2]))<sqrt(eps())
@@ -84,7 +84,7 @@ using LinearAlgebra
         @test isa(nep4_transf,SPMF_NEP)  # Möbius transformed SPMF-NEP is still a SPMF
         λ,v= quasinewton(nep4_transf,λ=1-0.3im,v=ones(size(nep4,1)));
         λorg=(a*λ+b)/(c*λ+d)
-        @test norm(compute_Mlincomb(nep4,λorg,v))<sqrt(eps());
+        @test norm(compute_Mlincomb(nep4,λorg,v))<sqrt(eps())*10;
 
 
         n=size(nep4,1);
