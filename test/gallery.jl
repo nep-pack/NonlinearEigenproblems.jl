@@ -107,8 +107,11 @@ using Test
     @info "Testing sine"
     nep=nep_gallery("sine")
     tol=1e-10
-    λ,v=quasinewton(Float64,nep,λ=-1.4,v=ones(size(nep,1)),tol=tol,
-                    displaylevel=displaylevel,armijo_factor=0.5,armijo_max=20)
+    λ0=λ=-1.4;
+    v0=normalize!(compute_Mder(nep,λ0)\ones(size(nep,1)))
+    λ,v=quasinewton(Float64,nep,λ=-1.4566,v=v0,tol=tol,
+                    errmeasure=ResidualErrmeasure,
+                    displaylevel=displaylevel,armijo_factor=0.5,armijo_max=3)
     normalize!(v)
     @test norm(compute_Mlincomb(nep,λ,v))<sqrt(tol)
     @test isa(nep,SPMFSumNEP)
