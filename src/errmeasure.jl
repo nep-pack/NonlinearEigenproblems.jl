@@ -19,7 +19,8 @@ julia> quasinewton(nep,errmeasure=ResidualErrmeasure)
 User-specified ways of measuring error can be given by
 creating a new subtype of `Errmeasure` and using it as a
 `errmeasure` keyword. You need to specify the way to
-measure the error in the method `estimate_error`.
+measure the error in the method `estimate_error` and (optionally)
+`init_errmeasure`.
 
 # Example
 This shows how to compute a reference solution and
