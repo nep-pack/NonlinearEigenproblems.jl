@@ -105,7 +105,7 @@ end
 """
     struct BackwardErrmeasure <: Errmeasure
 
-This `Errmeasure` gives a way to compute the backward error.
+This `Errmeasure` provides a way to compute the backward error.
 The backward error estimate are only given for NEPs which are
 subtypes of  `AbstractSPMF`.
 
@@ -135,6 +135,18 @@ function estimate_error(errdata::BackwardErrmeasure, λ,v)
     denom=mapreduce(i->errdata.coeffs[i]*abs(fv[i](λ)), +, 1:size(Av,1));
     return norm(compute_Mlincomb(errdata.nep,λ,v))/(norm(v)*denom);
 end
+
+
+"""
+    struct DefaultErrmeasure <: Errmeasure
+
+When you specify this `Errmeasure`, NEP-PACK tries to determine
+a suitable `Errmeasure` based on the type of the `NEP`.
+Note that this behavior may change in future versions.
+
+See also: [`Errmeasure`](@ref)
+
+"""
 
 # Default behavior: If AbstractSPMF -> do backward error. Otherwise residual norm.
 abstract type DefaultErrmeasure <: Errmeasure; end
