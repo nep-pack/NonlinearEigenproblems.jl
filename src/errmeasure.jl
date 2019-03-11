@@ -27,7 +27,7 @@ measure the error in the method `estimate_error` and (optionally)
 This shows how to compute a reference solution and
 then use this as a reference solution. The error
 in the second run will be effectively the
-eigenvalue error.
+eigenvalue error. 
 ```julia
 julia> nep=nep_gallery("qdep0");
 julia> (λref,vref)=quasinewton(nep,λ=-1);
@@ -48,6 +48,14 @@ Iteration:  8 errmeasure:1.726871190488310503e-07, λ=-1.0024668159003483 + 0.0i
 Iteration:  9 errmeasure:4.819693533164581822e-09, λ=-1.0024669934071608 + 0.0im
 Iteration: 10 errmeasure:5.234268574128009277e-10, λ=-1.0024669880640404 + 0.0im
 Iteration: 11 errmeasure:3.762568034915148019e-11, λ=-1.002466988625093 + 0.0im
+Iteration: 12 errmeasure:3.205657961302676995e-12, λ=-1.0024669885842616 + 0.0im
+Iteration: 13 errmeasure:3.352873534367972752e-14, λ=-1.0024669885874338 + 0.0im
+```
+Note that this can also be achieved by providing a function handle:
+```julia
+julia> myerrmeasure= (λ,v) -> abs(λref-λ);
+julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,displaylevel=1,tol=5e-13)
+...
 Iteration: 12 errmeasure:3.205657961302676995e-12, λ=-1.0024669885842616 + 0.0im
 Iteration: 13 errmeasure:3.352873534367972752e-14, λ=-1.0024669885874338 + 0.0im
 ```
