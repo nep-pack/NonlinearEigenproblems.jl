@@ -11,6 +11,7 @@ makedocs(
         "NEP Methods" => "methods.md",
         "NEP Types" => "types.md",
         "LinSolver" => "linsolvers.md",
+        "Error measure" => "errmeasure.md",
         "NEP Transformations" => "transformations.md",
         "NEP Gallery" => "gallery.md",
         "Tutorial 1 (ABC)" => "movebc_tutorial.md",
