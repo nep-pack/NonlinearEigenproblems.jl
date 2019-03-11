@@ -56,11 +56,11 @@ which takes two parameters as input `(λ,v)` and returns
 the error (or estimate thereof).
 
 The most common situation is that you want to report the
-error (as a function of iteration) with a reference solutions. 
+error (as a function of iteration) with a reference solutions.
 If we want to get
-a very accurate approximation of the true error, we can run the 
+a very accurate approximation of the true error, we can run the
 algorithm twice, and the second time we run the algorithm
-we use the result of the first run as a reference. 
+we use the result of the first run as a reference.
 
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
@@ -68,25 +68,25 @@ julia> v0=ones(size(nep,1));
 julia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,displaylevel=1);
 julia> myerrmeasure = (λ,v) -> abs(λ-λref)/abs(λ);
 julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,displaylevel=1,tol=1e-10,errmeasure=myerrmeasure);
-Iteration:  1 errmeasure:1.274091618457501296e-01 
-Iteration:  2 errmeasure:9.535794095609478882e-01 
+Iteration:  1 errmeasure:1.274091618457501296e-01
+Iteration:  2 errmeasure:9.535794095609478882e-01
 ...
-Iteration: 49 errmeasure:1.269396691930517923e-10 
-Iteration: 50 errmeasure:7.608430406801784718e-11 
+Iteration: 49 errmeasure:1.269396691930517923e-10
+Iteration: 50 errmeasure:7.608430406801784718e-11
 ```
 
 ### User defined error 2: A user defined type
 
 Due to the multiple dispatch and handling of types in Julia, code
-can be faster when if use types instead of function handles. It is 
-possible to provide carry out the same simulation as above with a user defined
-type. 
+may run faster if one uses types instead of function handles. It is
+possible to do the same simulation as above with a user defined
+type.
 
 You first need to define a new type
 ```julia-repl
 julia> struct RefErrmeasure <: Errmeasure; nep::NEP; end
 ```
-The error measure should then provided in the function 
+The error measure should then provided in the function
 `estimate_error`:
 ```julia-repl
 julia> v0=ones(size(nep,1));
@@ -95,10 +95,10 @@ julia> function NonlinearEigenproblems.estimate_error(e::RefErrmeasure,λ,v)
          return abs(λ-λref)/abs(λ);
        end
 julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,displaylevel=1,tol=1e-10,errmeasure=RefErrmeasure);
-Iteration:  1 errmeasure:1.274091618457501296e-01 
+Iteration:  1 errmeasure:1.274091618457501296e-01
 ...
-Iteration: 49 errmeasure:1.269396691930517923e-10 
-Iteration: 50 errmeasure:7.608430406801784718e-11 
+Iteration: 49 errmeasure:1.269396691930517923e-10
+Iteration: 50 errmeasure:7.608430406801784718e-11
 ```
 
 
@@ -112,8 +112,8 @@ function mysolver(nep::NEP;errmeasure::ErrmeasureType=DefaultErrmeasure)
 ```
 
 Before the main iteration, you need to initialize the error measure
-computation. The precomptued data 
-is stored in a variable typically called `ermdata`: 
+computation. The precomptued data
+is stored in a variable typically called `ermdata`:
 ```julia
    ermdata=init_errmeasure(errmeasure,nep);
 ```
@@ -125,10 +125,10 @@ for k=1:maxit
     err=estimate_error(ermdata,λ,v)
     if (err < 1e-10)
        return (λ,v)
-    end 
+    end
     ....
 
-end 
+end
 ```
 
 ## Methods and types
@@ -142,6 +142,3 @@ estimate_error
 ```@docs
 init_errmeasure
 ```
-
- 
-
