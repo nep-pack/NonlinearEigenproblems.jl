@@ -216,27 +216,22 @@ resulting in
 
 For this application, the matrix ``M(λ)`` has very large elements if $n$ is large.
 This makes the default way to measure the error a bit misleading. We now
-show how to specify a user-defined way to measure the error.
+show how to specify a better way to measure the error.
 
 The following function provides an estimate of the backward error
 ```math
-e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|+|λ|
-+|g(λ)|+|f(λ)|\|F\|)}
+e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|_F+|λ|
++|g(λ)|\|I\|_F+|f(λ)|\|F\|_F)}
 ```
-which we define as a function
-```julia
-myerrmeasure=(λ,v) ->
-    norm(compute_Mlincomb(nep,λ,v))/
-       (norm(v)*(norm(A)*abs(f1(λ))+norm(In)*abs(f2(λ))+norm(G)*abs(g(λ))+norm(F)*abs(f(λ))))
-
-```
-Note that unlike many other languages, Julia's `norm`-function for matrices, returns the Frobenius norm by default.
-
+This way to measure the error is used if you specify `errmeasure=BackwardErrmeasure`. See [errmeasure.md] for further details, and how you can
+specify a user defined error measurement function.
 The  `quasinewton` simulations above terminate in less iterations when this
-error measure is used. It also allows us to also use other methods, e.g., infinite Arnoldi method.
+error measure is used. With this use of measuring the error other
+methods, e.g., infinite Arnoldi method terminate in a reasonable
+number of iterations:
 ```julia-repl
 julia> (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
-                 errmeasure=myerrmeasure,Neig=5,maxit=100);
+                 errmeasure=BackwardErrmeasure,Neig=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
 Iteration:3 conveig:0
