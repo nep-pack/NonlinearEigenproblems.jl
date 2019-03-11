@@ -41,7 +41,7 @@ function iar(
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
     Neig=6,
-    errmeasure::Type{<:Errmeasure} = DefaultErrmeasure,
+    errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),

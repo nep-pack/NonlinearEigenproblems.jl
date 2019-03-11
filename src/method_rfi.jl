@@ -30,7 +30,7 @@ rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
 function rfi(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::Function=default_errmeasure(nep::NEP),
+            errmeasure::ErrmeasureType = DefaultErrmeasure,
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -45,10 +45,13 @@ function rfi(::Type{T},
         normalize!(v)
         normalize!(u)
 
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
+
 
         try
             for k=1:maxit
-                err = errmeasure(λ,u)
+                err = estimate_error(ermdata,λ,u)
 
                 if(err < tol)
                     return λ,u,v
@@ -73,7 +76,7 @@ function rfi(::Type{T},
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,u)>tol)
+            if (estimate_error(ermdata,λ,u)>tol)
                 u[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
                 normalize!(u)
                 v[:] = compute_eigvec_from_eigval_lu(nept, λ, default_linsolvercreator)
@@ -112,7 +115,7 @@ rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi_b(ComplexF64,nep, nept,;kwargs...)
 function rfi_b(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::Function=default_errmeasure(nep::NEP),
+            errmeasure::ErrmeasureType = DefaultErrmeasure,
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -126,9 +129,12 @@ function rfi_b(::Type{T},
         normalize!(v)
         normalize!(u)
 
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
+
         try
             for k=1:maxit
-                err = errmeasure(λ,u)
+                err = estimate_error(ermdata,λ,u)
 
                 if(err < tol)
                     return λ,u,v
@@ -155,7 +161,7 @@ function rfi_b(::Type{T},
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,u)>tol)
+            if (estimate_error(ermdata,λ,u)>tol)
                 u[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
                 normalize!(u)
                 v[:] = compute_eigvec_from_eigval_lu(nept, λ, default_linsolvercreator)
