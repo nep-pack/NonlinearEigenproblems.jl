@@ -28,8 +28,6 @@ module NEPCore
 
     export compute_Mlincomb_from_MM!
 
-    export default_errmeasure
-
     import Base.size  # Overload for nonlinear eigenvalue problems
     import SparseArrays.issparse  # Overload for nonlinear eigenvalue problems
 
@@ -360,16 +358,6 @@ Exeption thrown in case an iterative method does not converge\\
         Z = T(λ) * Matrix{T}(I, n, n) + diagm(1 => ones(T, n-1))
     end
 
-    """
-    default_errmeasure(nep::NEP)
-The default way of measuring error.
-Returns a function computing the relative residual norm.
-
-See also: [`compute_resnorm`](@ref),
-"""
-    function default_errmeasure(nep::NEP)
-        return (λ,v) -> compute_resnorm(nep,λ,v)/norm(v)
-    end
 
     """
     struct LostOrthogonalityException

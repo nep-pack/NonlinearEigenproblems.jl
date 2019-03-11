@@ -31,11 +31,11 @@ end
 
 
 """
-    iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1,][compute_y0_method=ComputeY0ChebAuto])
+    iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1,][compute_y0_method=ComputeY0ChebAuto])
 
 Run the infinite Arnoldi method (Chebyshev version) on the nonlinear eigenvalue problem stored in `nep`.
 
-The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
+The target `σ` is the center around which eiganvalues are computed. A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
 `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
 is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. The `linsolvercreator` is a function which specifies how the linear system is created and solved. The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See [`compute_y0_cheb`](@ref) in the module NEPSolver with the command `?NEPSolver.compute_y0_cheb`.
 
@@ -66,7 +66,7 @@ function iar_chebyshev(
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
     Neig=6,
-    errmeasure::Function=default_errmeasure(nep::NEP),
+    errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -126,6 +126,9 @@ function iar_chebyshev(
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
+
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
@@ -154,7 +157,7 @@ function iar_chebyshev(
             λ=σ .+ γ ./ D
             conv_eig=0;
             for s=1:k
-                err[k,s]=errmeasure(λ[s],Q[:,s]);
+                err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
                 if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
             idx=sortperm(err[k,1:k]); # sort the error

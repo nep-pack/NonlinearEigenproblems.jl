@@ -6,7 +6,7 @@ using Random
 using Statistics
 
 """
-    iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+    iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
 
 Run the infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`.
 
@@ -41,7 +41,7 @@ function ilan_benchmark(
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
     Neig=6,
-    errmeasure::Function = default_errmeasure(nep::NEP),
+    errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),

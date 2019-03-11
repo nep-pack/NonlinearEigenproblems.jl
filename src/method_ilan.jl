@@ -26,7 +26,7 @@ mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
 end
 
 """
-    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=30,][orthmethod=DGKS])
+    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=30,][orthmethod=DGKS])
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
@@ -61,7 +61,7 @@ function ilan(
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
     Neig=6,
-    errmeasure::Function = default_errmeasure(nep::NEP),
+    errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -121,6 +121,9 @@ function ilan(
     k=1; conv_eig=0;
     Av=get_Av(nep)
 
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
+
     while (k <= m) && (conv_eig<Neig)
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
@@ -166,7 +169,7 @@ function ilan(
             mm=size(VV,2)
             pnep=create_proj_NEP(nep,mm); # maxsize=mm
             set_projectmatrices!(pnep,VV,VV);
-            err_lifted=(λ,z)->errmeasure(λ,VV*z);
+            err_lifted=(λ,z)->estimate_error(ermdata,λ,VV*z);
 
             # solve the projected NEP
             if displaylevel>0

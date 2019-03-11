@@ -35,7 +35,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           u::Vector=randn(real(T),size(nep,1)),
                           tol::Real=1e-12,
                           Neig::Integer=5,
-                          errmeasure::Function = default_errmeasure(nep::NEP),
+                          errmeasure::ErrmeasureType = DefaultErrmeasure,
                           σ::Number=0.0,
                           γ::Number=1,
                           displaylevel::Integer=0,
@@ -85,6 +85,10 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
 
         @ifd(@printf("%e %e\n",norm(q), norm(qt)));
+
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
+
 
         k=1;
 
@@ -176,7 +180,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 conv_eig=0;
                 err=zeros(real(T),k);
                 for s=1:k
-                    err[s]=errmeasure(λ[s],Q[:,s]);
+                    err[s]=estimate_error(ermdata,λ[s],Q[:,s]);
                     if err[s]<tol; conv_eig=conv_eig+1; end
                 end
                 #println(conv_eig)

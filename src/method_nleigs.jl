@@ -66,7 +66,7 @@ function nleigs(
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
         v::Vector{CT} = CT.(randn(T, size(nep, 1))),
-        errmeasure::Function = default_errmeasure(nep::NEP),
+        errmeasure::ErrmeasureType = DefaultErrmeasure,
         isfunm::Bool = true,
         static::Bool = false,
         leja::Int = 1,
@@ -90,6 +90,9 @@ function nleigs(
     b = blksize
 
     lin_solver_cache = LinSolverCache(CT, nep, linsolvercreator)
+
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
 
     # Initialization
     if static
@@ -316,7 +319,7 @@ function nleigs(
             end
 
             # compute residuals & check for convergence
-            res = map(i -> errmeasure(lam[i], X[:,i]), 1:length(lam))
+            res = map(i -> estimate_error(ermdata,lam[i], X[:,i]), 1:length(lam))
             conv = abs.(res) .< tol
             if all
                 resall = fill(T(NaN), l, 1)
