@@ -39,9 +39,9 @@ using Random
     λ_orig = shift+scale*λ_shifted;
 
     #Test residual and distance from reference eigenvalue
-    @test norm(compute_Mlincomb(nep, λ_orig, v)) < TOL*100
-    @test norm(compute_Mder(nep, λ_orig) * v) < TOL*100
-    @test norm(λ_ref - λ_orig) < TOL*1000
+    @test norm(compute_Mlincomb(nep, λ_orig, v)) < sqrt(TOL)*10
+    @test norm(compute_Mder(nep, λ_orig) * v) < sqrt(TOL)*10
+    @test norm(λ_ref - λ_orig) < sqrt(TOL)*100
     ###########################################################################################################3
 
     #Testing PEP
@@ -53,7 +53,7 @@ using Random
 
     λ,u = nlar(pepnep, tol=TOL, maxit=60, neigs=3, R=0.001, displaylevel=displaylevel,
         λ=Dc[4]+1e-2, v=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,
-        inner_solver_method=IARInnerSolver, qrfact_orth=false)
+        inner_solver_method=IARInnerSolver, qrfact_orth=false, errmeasure=ResidualErrmeasure)
 
     verify_lambdas(3, pepnep, λ, u, TOL)
 
