@@ -66,7 +66,7 @@ function nleigs(
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
         v::Vector{CT} = CT.(randn(T, size(nep, 1))),
-        errmeasure::ErrmeasureType = DefaultErrmeasure,
+        errmeasure::ErrmeasureType = ResidualErrmeasure,
         isfunm::Bool = true,
         static::Bool = false,
         leja::Int = 1,
