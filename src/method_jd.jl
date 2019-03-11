@@ -181,7 +181,7 @@ The projected problems are solved using a solver spcified through the type `inne
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
-The `target` is the center around which eiganvalues are computed.
+The `target` is the center around which eiganvalues are computed. For further specifications on the `deflation_mode`, see the function `deflate_eigpair`.
 
 # Example
 ```julia-repl
@@ -209,6 +209,7 @@ function jd_effenberger(::Type{T},
                         λ::Number = rand(T),
                         v::Vector = rand(T,size(nep,1)),
                         target::Number = zero(T),
+                        deflation_mode = :Auto,
                         displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
     # Initial logical checks
     n = size(nep,1)
@@ -250,7 +251,7 @@ function jd_effenberger(::Type{T},
     end
 
     conveig += 1
-    deflated_nep = deflate_eigpair(nep, λ, u)
+    deflated_nep = deflate_eigpair(nep, λ, u, mode=deflation_mode)
 
 
     while true # Can only escape the loop on convergence (return) or too many iterations (error)
