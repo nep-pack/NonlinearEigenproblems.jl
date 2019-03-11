@@ -19,7 +19,7 @@ import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 import Base.size
 nep_types_test_pep = PEP([nep_types_test_B; nep_types_test_C])
 compute_Mder(::CustomNLEIGSNEP, λ::Number) = compute_Mder(nep_types_test_pep, λ)
-compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::Matrix) = compute_Mlincomb(nep_types_test_pep, λ, x)
+compute_Mlincomb(::CustomNLEIGSNEP, λ::Number, x::AbstractVecOrMat) = compute_Mlincomb(nep_types_test_pep, λ, x)
 size(::CustomNLEIGSNEP, _) = nep_types_test_n
 
 function nleigs_nep_types()
