@@ -4,6 +4,7 @@ export Errmeasure
 export BackwardErrmeasure
 export ResidualErrmeasure
 export DefaultErrmeasure
+export ErrmeasureType
 
 
 """
@@ -55,6 +56,8 @@ See also: [`DefaultErrmeasure`](@ref), [`ResidualErrmeasure`](@ref), [`BackwardE
 
 """
 abstract type Errmeasure; end
+
+ErrmeasureType = Union{Type{<:Errmeasure}, Function}
 
 """
     function init_errmeasure(E::Errmeasure,nep)
@@ -147,8 +150,21 @@ Note that this behavior may change in future versions.
 See also: [`Errmeasure`](@ref)
 
 """
+abstract type DefaultErrmeasure <: Errmeasure; end # Default behavior: If AbstractSPMF -> do backward error. Otherwise residual norm.
 
-# Default behavior: If AbstractSPMF -> do backward error. Otherwise residual norm.
-abstract type DefaultErrmeasure <: Errmeasure; end
 init_errmeasure(E::Type{DefaultErrmeasure},nep::AbstractSPMF)=init_errmeasure(BackwardErrmeasure,nep)
 init_errmeasure(E::Type{DefaultErrmeasure},nep::NEP)=init_errmeasure(ResidualErrmeasure,nep)
+
+
+
+struct UserDefinedErrmeasure <: Errmeasure 
+   nep::NEP
+   errmeasure_fun::Function
+end
+
+function init_errmeasure(f::Function, nep::NEP)
+    return UserDefinedErrmeasure(nep,f);
+end
+function estimate_error(e::UserDefinedErrmeasure, λ,v)
+    return e.errmeasure_fun(λ,v)
+end

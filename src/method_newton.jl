@@ -49,8 +49,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
     newton(nep::NEP;params...)=newton(ComplexF64,nep;params...)
     function newton(::Type{T},
                     nep::NEP;
-                    errmeasure::Function =
-                      default_errmeasure(nep::NEP),
+                    errmeasure::ErrmeasureType = DefaultErrmeasure,
                     tol::Real=eps(real(T))*100,
                     maxit::Int=10,
                     λ::Number=zero(T),
@@ -68,9 +67,12 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         err=Inf;
         v[:] = v/dot(c,v);
 
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
+
         try
             for k=1:maxit
-                err=errmeasure(λ,v)
+                err=estimate_error(ermdata,λ,v)
 
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
                 if (err< tol)
@@ -92,7 +94,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                 Δv=Vector{T}(delta[1:size(nep,1)]);
                 Δλ=T(delta[size(nep,1)+1]);
 
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                (Δλ,Δv,j,scaling)=armijo_rule_new(nep,ermdata,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
                 if (j>0)
                     @ifd(@printf(" Armijo scaling=%f\n",scaling))
@@ -110,7 +112,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tol) # Temporarily disabled for type stability
+            if (estimate_error(ermdata,λ,v)>tol) # Temporarily disabled for type stability
             #    # We need to compute an eigvec somehow
             #    v[:] = compute_eigvec_from_eigval(nep,λ, default_linsolvercreator);
             #    v[:] = v/dot(c,v)
@@ -279,7 +281,7 @@ julia> λ1-λ2
     augnewton(nep::NEP;kwargs...)=augnewton(ComplexF64,nep::NEP;kwargs...)
     function augnewton(::Type{T},
                        nep::NEP;
-                       errmeasure::Function = default_errmeasure(nep::NEP),
+                       errmeasure::ErrmeasureType = DefaultErrmeasure,
                        tol::Real=eps(real(T))*100,
                        maxit::Int=30,
                        λ::Number=zero(T),
@@ -304,9 +306,13 @@ julia> λ1-λ2
         v[:] = v/dot(c,v);
         local linsolver::LinSolver
         local tempvec = Vector{T}(undef, size(nep,1))
+
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
+
         try
             for k=1:maxit
-                err=errmeasure(λ,v)
+                err=estimate_error(ermdata,λ,v)
                 @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
                 @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
                 if (err< tol)
@@ -329,7 +335,7 @@ julia> λ1-λ2
                 Δλ=-α
                 Δv=α*tempvec-v;
 
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
                 if (j>0)
@@ -348,7 +354,7 @@ julia> λ1-λ2
             # This should not cast an error since it means that λ is
             # already an eigenvalue.
             @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tol)
+            if (estimate_error(ermdata,λ,v)>tol)
                 # We need to compute an eigvec
                 #v[:] = compute_eigvec_from_eigval(nep,λ, linsolvercreator)
                 #v[:] = v/dot(c,v)
