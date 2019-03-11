@@ -68,55 +68,42 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         err=Inf;
         v[:] = v/dot(c,v);
 
-        try
-            for k=1:maxit
-                err=errmeasure(λ,v)
+        for k=1:maxit
+            err=errmeasure(λ,v)
 
-                @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-                if (err< tol)
-                    @ifd(print("\n"));
-                    return (λ,v)
-                end
-
-                # Compute NEP matrix and derivative
-                M = compute_Mder(nep,λ)
-                Md = compute_Mder(nep,λ,1)
-
-                # Create jacobian
-                J = [M Md*v; c' 0];
-                F = [M*v; c'*v-1];
-
-                # Compute update
-                delta=-J\F;  # Hardcoded backslash
-
-                Δv=Vector{T}(delta[1:size(nep,1)]);
-                Δλ=T(delta[size(nep,1)+1]);
-
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
-                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-                if (j>0)
-                    @ifd(@printf(" Armijo scaling=%f\n",scaling))
-                else
-                    @ifd(@printf("\n"))
-                end
-
-
-                # Update eigenvalue and eigvec
-                v[:] += Δv
-                λ = λ+Δλ
+            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+            if (err< tol)
+                @ifd(print("\n"));
+                return (λ,v)
             end
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tol) # Temporarily disabled for type stability
-            #    # We need to compute an eigvec somehow
-            #    v[:] = compute_eigvec_from_eigval(nep,λ, default_linsolvercreator);
-            #    v[:] = v/dot(c,v)
+
+            # Compute NEP matrix and derivative
+            M = compute_Mder(nep,λ)
+            Md = compute_Mder(nep,λ,1)
+
+            # Create jacobian
+            J = [M Md*v; c' 0];
+            F = [M*v; c'*v-1];
+
+            # Compute update
+            delta=-J\F;  # Hardcoded backslash
+
+            Δv=Vector{T}(delta[1:size(nep,1)]);
+            Δλ=T(delta[size(nep,1)+1]);
+
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                          λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+            if (j>0)
+                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+            else
+                @ifd(@printf("\n"))
             end
-            return (λ,v)
+
+            # Update eigenvalue and eigvec
+            v[:] += Δv
+            λ = λ+Δλ
         end
+
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,v,err,msg))
     end
@@ -187,65 +174,46 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         σ::T=λ;
         err=Inf;
 
-        try
-            for k=1:maxit
-                # Normalize
-                v[:] = v/norm(v);
+        for k=1:maxit
+            # Normalize
+            v[:] = v/norm(v);
 
-                err=errmeasure(λ,v)
+            err=errmeasure(λ,v)
 
-                if (use_v_as_rf_vector)
-                    c[:]=v;
-                end
-
-                @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-                @ifd(if (use_v_as_rf_vector); print(" v_as_rf_vector=",use_v_as_rf_vector); end)
-
-                if (err< tol)
-                    @ifd(print("\n"));
-                    return (λ,v)
-                end
-
-                # Compute eigenvalue update
-                λ_vec = compute_rf(T, nep, v, y=c, λ0=λ, target=σ)
-                local λ1::T = closest_to(λ_vec,  λ)
-                Δλ=λ1-λ
-
-
-                # Compute eigenvector update
-                Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
-
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
-                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-                if (j>0 )
-                    @ifd(@printf(" Armijo scaling=%f\n",scaling))
-                else
-                    @ifd(@printf("\n"))
-                end
-
-                # Update the eigenpair
-                λ+=Δλ
-                v[:] += Δv;
-
+            if (use_v_as_rf_vector)
+                c[:]=v;
             end
 
-        catch e
+            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+            @ifd(if (use_v_as_rf_vector); print(" v_as_rf_vector=",use_v_as_rf_vector); end)
 
-            if (!isa(e, SingularException) && !isa(e, LAPACKException))
-                rethrow(e);
+            if (err< tol)
+                @ifd(print("\n"));
+                return (λ,v)
             end
 
-            #isa(e, SingularException) || ) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tol)
-                # We need to compute an eigvec somehow
-                v[:] = compute_eigvec_from_eigval_lu(nep,λ, (nep, σ) -> linsolver)
-                v[:] = v/dot(c,v)
+            # Compute eigenvalue update
+            λ_vec = compute_rf(T, nep, v, y=c, λ0=λ, target=σ)
+            local λ1::T = closest_to(λ_vec,  λ)
+            Δλ=λ1-λ
+
+            # Compute eigenvector update
+            Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
+
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                          λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+            if (j>0 )
+                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+            else
+                @ifd(@printf("\n"))
             end
-            return (λ,v)
+
+            # Update the eigenpair
+            λ+=Δλ
+            v[:] += Δv;
+
         end
+
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,v,err,msg))
     end
@@ -304,56 +272,43 @@ julia> λ1-λ2
         v[:] = v/dot(c,v);
         local linsolver::LinSolver
         local tempvec = Vector{T}(undef, size(nep,1))
-        try
-            for k=1:maxit
-                err=errmeasure(λ,v)
-                @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-                @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
-                if (err< tol)
-                    @ifd(print("\n"))
-                    return (λ,v)
-                end
-                # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
-                # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
 
-                z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
+        for k=1:maxit
+            err=errmeasure(λ,v)
+            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+            @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
+            if (err< tol)
+                @ifd(print("\n"))
+                return (λ,v)
+            end
+            # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
+            # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
 
-                linsolver = linsolvercreator(nep,λ)
-                tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
+            z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-                if (use_v_as_normalization_vector)
-                    c[:] = v /norm(v)^2
-                end
-                α = T(1)/ dot(c,tempvec);
+            linsolver = linsolvercreator(nep,λ)
+            tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
-                Δλ=-α
-                Δv=α*tempvec-v;
+            if (use_v_as_normalization_vector)
+                c[:] = v /norm(v)^2
+            end
+            α = T(1)/ dot(c,tempvec);
 
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
-                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+            Δλ=-α
+            Δv=α*tempvec-v;
 
-                if (j>0)
-                    @ifd(@printf(" Armijo scaling=%f\n",scaling))
-                else
-                    @ifd(@printf("\n"))
-                end
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                          λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
-                λ+=Δλ
-                v[:]+=Δv
-
+            if (j>0)
+                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+            else
+                @ifd(@printf("\n"))
             end
 
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,v)>tol)
-                # We need to compute an eigvec
-                #v[:] = compute_eigvec_from_eigval(nep,λ, linsolvercreator)
-                #v[:] = v/dot(c,v)
-            end
-            return (λ,v)
+            λ+=Δλ
+            v[:]+=Δv
+
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
@@ -409,57 +364,42 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         @ifd(@printf("Precomputing linsolver\n"))
         linsolver = linsolvercreator(nep,λ)
 
-        try
-            for k=1:maxit
-                err=errmeasure(λ,v)
-                @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
-                @ifd(print(", λ=",λ))
+        for k=1:maxit
+            err=errmeasure(λ,v)
+            @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
+            @ifd(print(", λ=",λ))
 
-                if (err< tol)
-                    @ifd(@printf("\n"));
-                    return (λ,v)
-                end
-
-
-                # Compute u=M(λ)v and w=M'(λ)v
-                u[:] = compute_Mlincomb(nep,λ,v,[T(1)],0);
-                w[:] = compute_Mlincomb(nep,λ,v,[T(1)],1);
-                @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
-
-                # Intermediate quantities
-                Δλ=-dot(ws,u)/dot(ws,w);
-                z=Δλ*w+u;
-                Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
-
-                @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
-
-                (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
-                                              λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-
-                if (j>0)
-                    @ifd(@printf(" Armijo scaling=%f\n",scaling));
-                else
-                    @ifd(@printf("\n"));
-                end
-
-                # Update eigenpair
-                λ += Δλ
-                v[:] += Δv; # eigvec update
-
+            if (err< tol)
+                @ifd(@printf("\n"));
+                return (λ,v)
             end
 
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
 
-            if (errmeasure(λ,v)>tol)
-                # We need to compute an eigvec
-                v[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator) #OBS: Use default to get a new factorization in the eigenvalue
-                normalize!(v)
+            # Compute u=M(λ)v and w=M'(λ)v
+            u[:] = compute_Mlincomb(nep,λ,v,[T(1)],0);
+            w[:] = compute_Mlincomb(nep,λ,v,[T(1)],1);
+            @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
+
+            # Intermediate quantities
+            Δλ=-dot(ws,u)/dot(ws,w);
+            z=Δλ*w+u;
+            Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
+
+            @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
+
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
+                                          λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
+
+            if (j>0)
+                @ifd(@printf(" Armijo scaling=%f\n",scaling));
+            else
+                @ifd(@printf("\n"));
             end
-            return (λ,v)
+
+            # Update eigenpair
+            λ += Δλ
+            v[:] += Δv; # eigvec update
+
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
@@ -511,43 +451,30 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         en = zeros(n);
         en[n] = 1;
-        try
-            for k=1:maxit
-                A = compute_Mder(nep,λ);
-                Q,R,PI = qr(A, Val(true)) #QR factorization with pivoting.
-                Q = Matrix(Q)
+        for k=1:maxit
+            A = compute_Mder(nep,λ);
+            Q,R,PI = qr(A, Val(true)) #QR factorization with pivoting.
+            Q = Matrix(Q)
 
-                P = Matrix{T}(I, n, n)[:,PI] #The permutation matrix corresponding to the pivoted QR.
+            P = Matrix{T}(I, n, n)[:,PI] #The permutation matrix corresponding to the pivoted QR.
 
-                p = R[1:n-1,1:n-1]\R[1:n-1,n];
-                v = P*[-p;T(1)];#Right eigenvector
-                w = Q*en;#Left eigenvector
+            p = R[1:n-1,1:n-1]\R[1:n-1,n];
+            v = P*[-p;T(1)];#Right eigenvector
+            w = Q*en;#Left eigenvector
 
-                #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
-                err=errmeasure(λ,v);
-                @ifd(println("Iteration: ",k," errmeasure: ", err))
-                if(err < tol)
-                    return λ,v,w;
-                end
-
-
-                d = dot(Q[:,n],compute_Mlincomb(nep,λ,reshape(v,n,1),[T(1)],1));
-                #d = dot(Q[:,n],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
-                λ = λ - R[n,n]/d;
+            #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
+            err=errmeasure(λ,v);
+            @ifd(println("Iteration: ",k," errmeasure: ", err))
+            if(err < tol)
+                return λ,v,w;
             end
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
 
-            if (errmeasure(λ,v)>tol)
-                # We need to compute an eigvec
-                v[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
-                v[:] = v/dot(c,v)
-            end
-            return (λ,v,w)
+
+            d = dot(Q[:,n],compute_Mlincomb(nep,λ,reshape(v,n,1),[T(1)],1));
+            #d = dot(Q[:,n],compute_Mder(nep,λ,1)*P*[-p;T(1.0)]);
+            λ = λ - R[n,n]/d;
         end
+
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,v,err,msg))
     end
@@ -596,38 +523,24 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         local err
 
-        try
-            for k=1:maxit
+        for k=1:maxit
 
-                A = compute_Mder(nep,λ);
-                AA = [A b;c' 0];#The matrix G(λ)
+            A = compute_Mder(nep,λ);
+            AA = [A b;c' 0];#The matrix G(λ)
 
-                F = lu(AA);
+            F = lu(AA);
 
-                v[:] = F\([zeros(T,n);T(1)]);
-                vp[:] = F\([-1*compute_Mder(nep,λ,1)*v[1:n];0]);
+            v[:] = F\([zeros(T,n);T(1)]);
+            vp[:] = F\([-1*compute_Mder(nep,λ,1)*v[1:n];0]);
 
-                #err = errmeasure(λ,v[1:n]);
-                err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
-                @ifd(println("Iteration: ",k," errmeasure: ", err))
-                if(err < tol)
-                    return λ,v[1:n];
-                end
-
-                λ = λ - v[n+1]/vp[n+1];#Newton update for the equation det(M(λ))/det(G(λ)) = 0
+            #err = errmeasure(λ,v[1:n]);
+            err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
+            @ifd(println("Iteration: ",k," errmeasure: ", err))
+            if(err < tol)
+                return λ,v[1:n];
             end
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
 
-            if (err > tol)
-                # We need to compute an eigvec
-                v[1:n] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
-                v[1:n] = v[1:n]/dot(c,v[1:n])
-            end
-            return (λ,v[1:n])
+            λ = λ - v[n+1]/vp[n+1];#Newton update for the equation det(M(λ))/det(G(λ)) = 0
         end
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
