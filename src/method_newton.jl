@@ -94,7 +94,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                 Δv=Vector{T}(delta[1:size(nep,1)]);
                 Δλ=T(delta[size(nep,1)+1]);
 
-                (Δλ,Δv,j,scaling)=armijo_rule_new(nep,ermdata,err,
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
                 if (j>0)
                     @ifd(@printf(" Armijo scaling=%f\n",scaling))
@@ -219,7 +219,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 # Compute eigenvector update
                 Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
 
-                (Δλ,Δv,j,scaling)=armijo_rule_new(nep,ermdata,err,
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
                 if (j>0 )
                     @ifd(@printf(" Armijo scaling=%f\n",scaling))
@@ -337,7 +337,7 @@ julia> λ1-λ2
                 Δλ=-α
                 Δv=α*tempvec-v;
 
-                (Δλ,Δv,j,scaling)=armijo_rule_new(nep,ermdata,err,
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
                 if (j>0)
@@ -444,7 +444,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
                 @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
 
-                (Δλ,Δv,j,scaling)=armijo_rule_new(nep,ermdata,err,
+                (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                               λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
                 if (j>0)
@@ -650,23 +650,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         throw(NoConvergenceException(λ,v,NaN,msg))
     end
 
-    # Armijo rule implementation
-    function armijo_rule(nep,errmeasure,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
-        j=0
-        if (armijo_factor<1)
-            # take smaller and smaller steps until errmeasure is decreasing
-            while (errmeasure(λ+Δλ,v+Δv)>err0 && j<armijo_max)
-                j=j+1;
-                Δv=Δv*armijo_factor;
-                Δλ=Δλ*armijo_factor;
-            end
-        end
-        return  (Δλ,Δv,j,armijo_factor^j)
-    end
-
 
     # Armijo rule implementation
-    function armijo_rule_new(nep,ermdata,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
+    function armijo_rule(nep,ermdata,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
         j=0
         if (armijo_factor<1)
             # take smaller and smaller steps until errmeasure is decreasing
