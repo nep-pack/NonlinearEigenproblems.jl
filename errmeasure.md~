@@ -1,0 +1,37 @@
+## Measuring the error
+
+All iterative algorithms need some form of termination
+criteria. In NEP-PACK, all NEP-solvers provide
+the possibility to specify the desired tolerance,
+as well as how the error is measured or estimated.
+The tolerance is specified in the kwarg  `tol` (which is a real number)
+and the way to measure the error is given in `errmeasure`.
+
+# Standard usage
+
+NEP-PACK comes with several ways to measure errors for many NEP-types.
+
+* `errmeasure=ResidualErrmeasure`: The error is estimated by the use
+of the residual norm:
+```math
+{\mathrm err}=\frac{\|M(λ)v\|}{\|v\|}.
+```
+* `errmeasure=BackwardErrmeasure`: The error is estimated by using the backward error bounds. This error measure will not work for all NEPs. Default implementation is provided for any `AbstractSPMF`. If your NEP is an `AbstractSPMF` with terms:
+```math
+M(λ)=A_1f_1(λ)+\cdots+A_mf_m(λ)
+```
+the error will be estimated by
+```math
+{\mathrm err}=\frac{\|M(λ)v\|}{\|v\|}
+\frac{1}{\|A_1\|_F|f_1(λ)|+\cdots+\|A_m\|_F|f_m(λ)|}.
+```
+In other words, the `BackwardErrmeasure` is a weighting of the `ResidualErrmeasure`.
+* `errmeasure=DefaultErrmeasure`: When this `errmeasure` is specified, NEP-PACK tries to determine a error measure for you. In general, `BackwardErrmeasure` will be preferred if possible.
+
+Example:
+
+Most NEP-solvers take the `errmeasure` as an kwarg.
+```julia-repl
+julia> nep=
+julia> newtonqr(nep,
+```

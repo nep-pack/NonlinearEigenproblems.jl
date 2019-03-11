@@ -689,6 +689,62 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "errmeasure/#",
+    "page": "Error measure",
+    "title": "Error measure",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "errmeasure/#Measuring-the-error-1",
+    "page": "Error measure",
+    "title": "Measuring the error",
+    "category": "section",
+    "text": "** This only works on NEP-PACK version 0.2.6 and onwards **All iterative algorithms need some form of termination criteria. In NEP-PACK, all NEP-solvers provide the possibility to specify the desired tolerance, as well as how the error is measured or estimated. The tolerance is specified in the kwarg  tol (which is a real number) and the way to measure the error is given in errmeasure."
+},
+
+{
+    "location": "errmeasure/#Standard-usage-1",
+    "page": "Error measure",
+    "title": "Standard usage",
+    "category": "section",
+    "text": "NEP-PACK comes with several ways to measure errors for many NEP-types.errmeasure=ResidualErrmeasure: The error is estimated by the useof the residual norm:mathrm err=fracM(λ)vverrmeasure=BackwardErrmeasure: The error is estimated by using the backward error bounds. This error measure will not work for all NEPs. Default implementation is provided for any AbstractSPMF. If your NEP is an AbstractSPMF with terms:M(λ)=A_1f_1(λ)+cdots+A_mf_m(λ)the error will be estimated bymathrm err=fracM(λ)vv\nfrac1A_1_Ff_1(λ)+cdots+A_m_Ff_m(λ)In other words, the BackwardErrmeasure is a weighting of the ResidualErrmeasure.errmeasure=DefaultErrmeasure: When this errmeasure is specified, NEP-PACK tries to determine a error measure for you. In general, BackwardErrmeasure will be preferred if possible.Example:Most NEP-solvers take the errmeasure as an kwarg.julia> nep=nep_gallery(\"qdep0\");\njulia> # Solve the problem to residual norm 1e-8\njulia> (λ,v)=mslp(nep,errmeasure=ResidualErrmeasure,tol=1e-8)\njulia> norm(compute_Mlincomb(nep,λ,v))/norm(v) # It\'s smaller than tol?\n3.503700819937386e-9\njulia> nep isa AbstractSPMF # Is it an AbstractSPMF so we can use BackwardErrmeasure?\ntrue\njulia> (λ,v)=mslp(nep,errmeasure=BackwardErrmeasure,tol=1e-10)\njulia> factor=abs(fv[1](λ))*norm(Av[1])+\n     abs(fv[2](λ))*norm(Av[2])+abs(fv[3](λ))*norm(Av[3]);\njulia> norm(compute_Mlincomb(nep,λ,v))/(norm(v)*factor)\n1.659169482386331e-11"
+},
+
+{
+    "location": "errmeasure/#User-defined-error-measure-1",
+    "page": "Error measure",
+    "title": "User defined error measure",
+    "category": "section",
+    "text": "There are two ways that a user can specify how to measure the error."
+},
+
+{
+    "location": "errmeasure/#Function-handle-1",
+    "page": "Error measure",
+    "title": "Function handle",
+    "category": "section",
+    "text": "The easiest is that the user gives a function handle which is called to obtain the error. The errmeasure can be a function, which takes two parameters as input (λ,v) and returns the error The most common situation is that you want to report the error (as a function of iteration) with a reference solutions.  If we want to get a very accurate approximation of the true error, we can run the  algorithm twice, and the second time we run the algorithm we use the result of the first run as a reference. julia> nep=nep_gallery(\"qdep0\");\njulia> v0=ones(size(nep,1));\njulia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,displaylevel=1);\njulia> myerrmeasure = (λ,v) -> abs(λ-λref)/abs(λ);\njulia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,displaylevel=1,tol=1e-10,errmeasure=myerrmeasure);\nIteration:  1 errmeasure:1.274091618457501296e-01 \nIteration:  2 errmeasure:9.535794095609478882e-01 \n...\nIteration: 49 errmeasure:1.269396691930517923e-10 \nIteration: 50 errmeasure:7.608430406801784718e-11 "
+},
+
+{
+    "location": "errmeasure/#A-user-defined-type-1",
+    "page": "Error measure",
+    "title": "A user defined type",
+    "category": "section",
+    "text": "Julia can be faster when we use types instead of function handles. It is  possible to provide carry out the same simulation as above with a user defined type. You first need to define a new typejulia> struct RefErrmeasure <: Errmeasure; nep::NEP; endThe error measure should then provided in the function  estimate_error:julia> v0=ones(size(nep,1));\njulia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,displaylevel=1);\njulia> function NonlinearEigenproblems.estimate_error(e::RefErrmeasure,λ,v)\n         return abs(λ-λref)/abs(λ);\n       end\njulia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,displaylevel=1,tol=1e-10,errmeasure=RefErrmeasure);\nIteration:  1 errmeasure:1.274091618457501296e-01 \n...\nIteration: 49 errmeasure:1.269396691930517923e-10 \nIteration: 50 errmeasure:7.608430406801784718e-11 "
+},
+
+{
+    "location": "errmeasure/#As-a-NEP-solver-developer-1",
+    "page": "Error measure",
+    "title": "As a NEP-solver developer",
+    "category": "section",
+    "text": "NEP-solvers should use the Errmeasure as follows. The NEP-solver should take as input a ErrmeasureType (which corresponds to either a function or a type, but this you will not have to worry about).function mysolver(nep::NEP;errmeasure::ErrmeasureType=DefaultErrmeasure)Before the main iteration, you need to initialize the error measure computation. The precomptued data  is stored in a variable typically called ermdata:    ermdata=init_errmeasure(errmeasure,nep);In the main for loop you want to call the estimate_error function:for k=1:maxit\n    err=estimate_error(ermdata,λ,v)\n    if (err < 1e-10)\n       return (λ,v)\n    end \n    ....\n\nend "
+},
+
+{
     "location": "transformations/#",
     "page": "NEP Transformations",
     "title": "NEP Transformations",
@@ -973,7 +1029,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial 3 (Deflation)",
     "title": "Deflation in NEP-PACK",
     "category": "section",
-    "text": "The term deflation is referring to making something smaller (in the sense of opposite of inflating a balloon). In this case we can make the solution set smaller. We compute a solution and subsequently construct a deflated problem, which has the same solutions as the original problem except of the solution we have already computed.A general solver independent deflation technique is available in NEP-PACK based on increasing the problem size. (There are also NEP-solver deflation techniques incoprorated in, e.g., in the nonlinear Arnoldi method and the Jacobi-Davidson method.) The solver independent technique is inspired by what is described in the PhD thesis of Cedric Effenberger. It is implemented in the method effenberger_deflation.julia> # first compute a solution\njulia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)))\njulia> # Construct a deflated NEP where we remove (λ1,v1)\njulia> dnep=effenberger_deflation(nep,λ1,v1)\njulia> # The dnep is a new NEP but with dimension increased by one\njulia> size(nep)\n(5, 5)\njulia> size(dnep)\n(6, 6)We now illustrate that we can avoid reconvergence:julia> (λ4,v4)=quasinewton(dnep,λ=-1,v=ones(size(dnep,1)),maxit=1000)\n(0.8347353572199264 + 0.0im, Complex{Float64}[10.6614+0.0im, 0.351814+0.0im, -0.940539+0.0im, 1.10798+0.0im, 3.53392+0.0im, -0.447213+0.0im])Note: In contrast to the initial example, starting value λ=-1 does not lead to converge to the eigenvalue we obtained from starting value λ=0.The computed solution is indeed a solution to the original NEP since M(λ4) is singular:julia> minimum(svdvals(compute_Mder(nep,λ4)))\n1.2941045763733582e-14In fact, you can even start with the first starting value λ=0, and get a new solutionjulia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)\n(0.8347353572199577 + 0.0im, Complex{Float64}[9.28596+0.0im, 0.306425+0.0im, -0.819196+0.0im, 0.965031+0.0im, 3.07799+0.0im, -0.389516+0.0im])"
+    "text": "The term deflation is referring to making something smaller (in the sense of opposite of inflating a balloon). In this case we can make the solution set smaller. We compute a solution and subsequently construct a deflated problem, which has the same solutions as the original problem except of the solution we have already computed.A general solver independent deflation technique is available in NEP-PACK based on increasing the problem size. (There are also NEP-solver deflation techniques incoprorated in, e.g., in the nonlinear Arnoldi method and the Jacobi-Davidson method.) The solver independent technique is inspired by what is described in the PhD thesis of Cedric Effenberger. It is implemented in the method effenberger_deflation.julia> # first compute a solution\njulia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)))\njulia> # Construct a deflated NEP where we remove (λ1,v1)\njulia> dnep=deflate_eigpair(nep,λ1,v1)\njulia> # The dnep is a new NEP but with dimension increased by one\njulia> size(nep)\n(5, 5)\njulia> size(dnep)\n(6, 6)We now illustrate that we can avoid reconvergence:julia> (λ4,v4)=quasinewton(dnep,λ=-1,v=ones(size(dnep,1)),maxit=1000)\n(0.8347353572199264 + 0.0im, Complex{Float64}[10.6614+0.0im, 0.351814+0.0im, -0.940539+0.0im, 1.10798+0.0im, 3.53392+0.0im, -0.447213+0.0im])Note: In contrast to the initial example, starting value λ=-1 does not lead to converge to the eigenvalue we obtained from starting value λ=0.The computed solution is indeed a solution to the original NEP since M(λ4) is singular:julia> minimum(svdvals(compute_Mder(nep,λ4)))\n1.2941045763733582e-14In fact, you can even start with the first starting value λ=0, and get a new solutionjulia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)\n(0.8347353572199577 + 0.0im, Complex{Float64}[9.28596+0.0im, 0.306425+0.0im, -0.819196+0.0im, 0.965031+0.0im, 3.07799+0.0im, -0.389516+0.0im])"
 },
 
 {
@@ -981,7 +1037,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial 3 (Deflation)",
     "title": "Repeated deflation",
     "category": "section",
-    "text": "The above procedure can be repeated by calling effenberger_deflation on the deflated NEP. The procedure can be carried out in such a way many eigenvalues are obtained. We now illustrate a somewhat more robust variant of that approach by constructing a deflated NEP from the original NEP. This requires slightly more manipulations/understanding of invariant pairs which need to be extracted for every computed solution.function multiple_deflation(nep,λ0,p)\n   n=size(nep,1);\n   dnep=nep;\n   S0=zeros(ComplexF64,p,p);\n   V0=zeros(ComplexF64,size(nep,1),p);\n   S=view(S0,1:0,1:0);\n   V=view(V0,1:n,1:0);\n   for k=1:p\n      # Compute one solution of the deflated problem\n      (λ2,v2)=quasinewton(dnep,λ=λ0,v=ones(size(dnep,1)),maxit=1000);\n      # expand the invariant pair\n      S0[1:k-1,k]=v2[(n+1):end];\n      S0[k,k]=λ2;\n      S=view(S0,1:k,1:k)\n      V0[1:n,k]=v2[1:n];\n      V=view(V0,1:n,1:k);\n      @show S\n      # Construct the deflated problem\n      dnep=effenberger_deflation(nep,S,V)\n   end\n   return (S,V)\nendWe can now compute several solutions by calling multiple_deflation. Note that we use the same starting eigenvalue for all eigenvalues: 0.5im. It has to be complex in this case, since if it was real, we would not find complex solution and this problem only has two real eigenvalues.julia> nep=nep_gallery(\"dep0\");\njulia> (S,V)=multiple_deflation(nep,0.5im,3)\nS = Complex{Float64}[-0.358719+1.33901e-14im]\nS = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im; 0.0+0.0im 0.834735+1.25838e-14im]\nS = Complex{Float64}[-0.358719+1.33901e-14im -0.769266-0.728303im -0.735867-0.43166im; 0.0+0.0im 0.834735+1.25838e-14im 0.570725-0.153773im; 0.0+0.0im 0.0+0.0im -0.0409352+1.48601im]The matrix pair (S,V) is a partial Schur factorization of the NEP. This can be seen from the fact compute_MM vanishes for for (S,V):julia> norm(compute_MM(nep,S,V))\n4.341002168663845e-13The eigenvalues of S are eigenvalues of the original NEP, and we can find the eigenpairs by diagonalizing S:julia> (Λ,P)=eigen(S);\njulia> VV=V*P;  # Construct the eigenvector matrix\njulia> Λ # The computed eigenvalues\n3-element Array{Complex{Float64},1}:\n  -0.3587189459686267 + 1.339010598765711e-14im\n   0.8347353572199371 + 1.2583846244197297e-14im\n -0.04093521177096655 + 1.4860115309416284imThe values in Λ and VV are eigenpairs:julia> norm(compute_Mlincomb(nep,Λ[1],VV[:,1]))\n2.0521012310648373e-13\njulia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))\n2.8707903010898464e-13\njulia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))\n1.883394132275381e-13(Image: To the top)"
+    "text": "The above procedure can be repeated by calling deflate_eigpair on the deflated NEP. This effectively deflates another eigenpair (but without creating a recursive deflated nep structure).function multiple_deflation(nep,λ0,p)\n   n=size(nep,1);\n   dnep=nep;\n   for k=1:p\n      # Compute one solution of the deflated problem\n      (λ2,v2)=quasinewton(dnep,λ=λ0,v=ones(size(dnep,1)),maxit=1000);\n      # expand the invariant pair\n      dnep=deflate_eigpair(dnep,λ2,v2)\n   end\n   return get_deflated_eigpairs(dnep);\n\nendWe can now compute several solutions by calling multiple_deflation. Note that we use the same starting eigenvalue for all eigenvalues: 0.5im. It has to be complex in this case, since if it was real, we would not find complex solution and this problem only has two real eigenvalues.julia> nep=nep_gallery(\"dep0\");\njulia> (Λ,VV)=multiple_deflation(nep,0.5im,3)\n(Complex{Float64}[-0.358719+1.33901e-14im, 0.834735+7.05729e-15im, -0.0409352+1.48601im], Complex{Float64}[-0.0148325-0.316707im -0.670282+0.268543im -0.41261+0.229832im; 0.00746549+0.159405im -0.0881321+0.0353094im 0.360381-0.0796982im; … ; 0.0260924+0.557131im -0.298976+0.119782im -0.201138+0.0524051im; 0.0319648+0.68252im -0.528234+0.211633im -0.668441+0.121828im])The values in Λ and VV are eigenpairs:julia> norm(compute_Mlincomb(nep,Λ[1],VV[:,1]))\n2.0521012310648373e-13\njulia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))\n2.8707903010898464e-13\njulia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))\n1.883394132275381e-13"
+},
+
+{
+    "location": "deflate_tutorial/#The-theory-in-the-background-1",
+    "page": "Tutorial 3 (Deflation)",
+    "title": "The theory in the background",
+    "category": "section",
+    "text": "The deflation is based on a theory for NEP essentially stating that if (sx) is an eigenpair, then the extended nonlinear eigenvalue problemT(λ)=beginbmatrixM(λ)M(λ)x(s-λ)^-1 x^T  0endbmatrixhas the same eigenvalues as the original problem (under certain conditions quite general conditions which are assumed to be satisfied). More eigenpairs can be deflated with techniques of partial Schur factorizations (which the user does not need to use). When we create a deflated NEP, we create the NEP T.There are several ways to represent the T, which is why deflation has several modes. If you runjulia> dnep=deflate_eigpair(nep,λ1,v1,mode=:SPMF)the dnep will be of the type AbstractSPMF. More precisely, ifM(λ)=A_1f_1(λ)+cdots+A_mf_m(λ)the deflated NEP will beT(λ)=\nbeginbmatrixA_100  0endbmatrixf_1(λ)+cdots+\nbeginbmatrixA_m00  0endbmatrixf_m(λ)+\nbeginbmatrix0A_1x0  0endbmatrixfracf_1(λ)s-λ+cdots+\nbeginbmatrix0A_mx0  0endbmatrixfracf_m(λ)s-λ+\nbeginbmatrix00x^T  0endbmatrixClearly, the deflated NEP will have more SPMF-terms, and the mode=:SPMF, is not recommended if you have many SPMF-terms. (Some additional exploitation is however implemented, since we can use the fact that the introduced terms are of low rank, and therefore naturally represented as a LowRankFactorizedNEP.)If you select mode=:Generic, the compute functions are implemented without the use of SPMF, and can be more efficient if the NEP has many SPMF-terms. When mode=:MM the compute-functions are all implemented by calls to compute_MM. This will not be efficient if compute_Mder(nep,λ,der) where  der>0 is needed.(Image: To the top)"
 },
 
 {
