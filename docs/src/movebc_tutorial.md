@@ -223,7 +223,7 @@ The following function provides an estimate of the backward error
 e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|_F+|λ|
 +|g(λ)|\|I\|_F+|f(λ)|\|F\|_F)}
 ```
-This way to measure the error is used if you specify `errmeasure=BackwardErrmeasure`. See [errmeasure.md] for further details, and how you can
+This way to measure the error is used if you specify `errmeasure=BackwardErrmeasure`. See section [Error measure](errmeasure.md) for further details, and how you can
 specify a user defined error measurement function.
 The  `quasinewton` simulations above terminate in less iterations when this
 error measure is used. With this use of measuring the error other
