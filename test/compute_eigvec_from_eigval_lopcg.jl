@@ -15,8 +15,8 @@ import NonlinearEigenproblems.NEPCore.compute_Mlincomb
         nept = DEP([copy(nep.A[1]'), copy(nep.A[2]')], nep.tauv);
         λ,Q,err = iar(nep,maxit=100,Neig=2,σ=1.0,γ=1,displaylevel=0,check_error_every=1,v=v0);
         v=compute_eigvec_from_eigval_lopcg(nep,nept,λ[1],x=v1);
-        errormeasure=default_errmeasure(nep);
-        @test errormeasure(λ[1],v)<1e-5;
+        ermdata=init_errmeasure(ResidualErrmeasure,nep);
+        @test estimate_error(ermdata,λ[1],v)<1e-5;
     end
 
     @bench @testset "pep0" begin
@@ -24,8 +24,8 @@ import NonlinearEigenproblems.NEPCore.compute_Mlincomb
         nept = PEP([copy(nep.A[1]'), copy(nep.A[2]'), copy(nep.A[3]')])
         λ,Q,err = iar(nep,maxit=100,Neig=2,σ=1.0,γ=1,displaylevel=0,check_error_every=1,v=v0);
         v=compute_eigvec_from_eigval_lopcg(nep,nept,λ[1],x=v1);
-        errormeasure=default_errmeasure(nep);
-        @test errormeasure(λ[1],v)<1e-5;
+        ermdata=init_errmeasure(ResidualErrmeasure,nep);
+        @test estimate_error(ermdata,λ[1],v)<1e-5;
     end
 
 end
