@@ -109,23 +109,12 @@ end
 
 compute_Mder(nep::DeflatedGenericNEP,λ::Number)=compute_Mder(nep,λ,0)
 function compute_Mder(nep::DeflatedGenericNEP,λ::Number,der::Integer)
-    X=nep.V0;
-    S=nep.S0;
-    T=promote_type(typeof(λ),eltype(X),eltype(S));
+    T=promote_type(typeof(λ),eltype(nep.V0),eltype(nep.S0));
 
     n0=size(nep.orgnep,1);
     p=size(S,1);
 
-    Q=zeros(T,n0,p);
-    F=factorize(λ*I-S);
-    Vnew = X;
-    for i=der:-1:0
-        Vnew = Vnew/F
-        factor=((-1)^(der-i))*(factorial(der)/factorial(i));
-        for j = 1:p
-            Q[:,j] = Q[:,j] + compute_Mlincomb(nep.orgnep, λ, Vnew[:,j], [factor], i)
-        end
-    end
+    Q = compute_Q(nep,λ,der)
 
     M0=compute_Mder(nep.orgnep,λ,der);
     if (M0 isa SparseMatrixCSC)
@@ -148,13 +137,33 @@ function compute_Mder(nep::DeflatedGenericNEP,λ::Number,der::Integer)
     else
         # Return a dense matrix
         if (der==0)
-            return [M0 Q ; X'  zeros(p,p)];
+            return [M0 Q ; X'  zeros(T,p,p)];
         else
-            return [M0 Q ; zeros(T,p,n0)  zeros(p,p)];
+            return [M0 Q ; zeros(T,p,n0)  zeros(T,p,p)];
         end
     end
+end
 
 
+function compute_Q(nep::DeflatedNEP,λ::Number,der::Integer)
+    X=nep.V0
+    S=nep.S0
+    T=promote_type(typeof(λ),eltype(X),eltype(S))
+
+    n0=size(nep.orgnep,1)
+    p=size(S,1)
+
+    Q=zeros(T,n0,p)
+    F=factorize(λ*I-S)
+    Vnew = X
+    for i=der:-1:0
+        Vnew = Vnew/F
+        factor=((-1)^(der-i))*(factorial(der)/factorial(i))
+        for j = 1:p
+            Q[:,j] = Q[:,j] + compute_Mlincomb(nep.orgnep, λ, Vnew[:,j], [factor], i)
+        end
+    end
+    return Q
 end
 
 ## The DeflatedSPMF just delegates to the nep.spmf

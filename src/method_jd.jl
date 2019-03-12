@@ -6,6 +6,8 @@ using IterativeSolvers
 using LinearAlgebra
 using Random
 using ..NEPTypes:DeflatedNEP
+using ..NEPTypes:compute_Q
+
 
 
 
@@ -410,65 +412,10 @@ function jd_effenberger_inner!(::Type{T},
 end
 
 
-
-function compute_U(orgnep::NEP, μ, X, Λ, i=0)
-    n = size(orgnep,1)
-    m = size(X,2)
-    T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
-
-    Uiμ = zeros(T_arit,n,m)
-    fact = one(T_arit)
-    the_inv = one(Λ)
-    LUmat = lu(Λ-μ*I)
-    for k = i:-1:1
-        fact *= k
-        the_inv[:,:] = LUmat\the_inv
-        for kk = 1:m
-            Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], k) * transpose(the_inv[kk,:])
-        end
-    end
-    #Case k=0
-    the_inv[:,:] = LUmat\the_inv
-    for kk = 1:m
-        Uiμ[:,:] = Uiμ[:,:] - compute_Mlincomb(orgnep, μ, vec(X[:,kk]), [fact], 0) * transpose(the_inv[kk,:])
-    end
-    Uiμ[:,:] = Uiμ[:,:] + fact * compute_TXΛ(orgnep, Λ, X) * the_inv
-    return Uiμ
-end
-
-function compute_Uv(orgnep::NEP, μ, X, Λ, v, i=0)
-    n = size(orgnep,1)
-    m = size(X,2)
-    T_arit = promote_type(typeof(μ), eltype(X), eltype(Λ))
-
-    v_out = zeros(T_arit,n)
-    fact = one(T_arit)
-    the_inv = copy(v)
-    LUmat = lu(Λ-μ*I)
-    for k = i:-1:1
-        fact *= k
-        the_inv[:] = LUmat\the_inv
-        v_out[:] = v_out[:] - compute_Mlincomb(orgnep, μ, X*the_inv, [fact], k)
-    end
-    #Case k=0
-    the_inv[:] = LUmat\the_inv
-    v_out[:] = v_out[:] - compute_Mlincomb(orgnep, μ, X*the_inv, [fact], 0)
-    v_out[:] = v_out[:] + fact * compute_TXΛ(orgnep, Λ, X) * the_inv
-    return v_out
-end
-
-
-compute_TXΛ(deflated_nep::DeflatedNEP, Λ, X) = compute_TXΛ(deflated_nep.orgnep, Λ, X)
-function compute_TXΛ(orgnep::NEP, Λ, X)
-    return zero(X) # If X and Λ is an ivariant pair, then this block is zero. OBS: Assumed also in the derivation of the algorithm, see Effenberger Lemma 3.1
-    # return compute_MM(orgnep, Λ, X)
-end
-
-
 function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol) where{T}
     # If it is a deflated NEP we solve with a Schur complement strategy such that
     # the user specified solve of M can be used.
-    # (M, U; X^T, 0)(v1;v2) = (y1;y2)
+    # (M, U; X^T, 0)(v1;v2) = (pk1;pk2)
     # OBS: Assume minimality index = 1
     # OBS: Forms the Schur complement. Assume that only a few eigenvalues are deflated
 
@@ -482,7 +429,7 @@ function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T
     v2 = view(v, (n+1):(n+m))
     pk1 = pk[1:n]
     pk2 = pk[(n+1):(n+m)]
-    U = compute_U(orgnep, λ, X, Λ)
+    U = compute_Q(deflated_nep, λ, 0)
 
     # Precompute some reused entities
     pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
@@ -494,9 +441,6 @@ function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T
     v2[:] = S\(pk2 - X'*pk1tilde)
     v1[:] = pk1tilde - Z*v2
 
-    # M = compute_Mder(deflated_nep,λ,0)
-    # vv = M\pk
-    # println(norm(v-vv))
     return v
 end
 
