@@ -13,7 +13,6 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "dtn_dimer.jl", #  Needs additional files
     "NonlinearEigenproblemsTest.jl", # utilities used by other tests
     "deflation2.jl", # under development
-    "ilan.jl",
 ]))
 
 function run_all_tests(test_name_regex = "")
