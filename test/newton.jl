@@ -24,7 +24,7 @@ using LinearAlgebra
     @bench @testset "QuasiNewton" begin
     @info "QuasiNewton  test"
 
-        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=1e-11)
+        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=1e-12)
         @test compute_resnorm(nep,λ,x) < 1e-11*100
     end
 

@@ -34,8 +34,7 @@ julia> compute_Mlincomb(nep,λ,v)
 mslp(nep::NEP;params...)=mslp(ComplexF64,nep;params...)
 function mslp(::Type{T},
                  nep::NEP;
-                 errmeasure::Function =
-                 default_errmeasure(nep::NEP),
+                 errmeasure::ErrmeasureType = DefaultErrmeasure,
                  tol::Real=eps(real(T))*100,
                  maxit::Integer=100,
                  λ::Number=zero(T),
@@ -51,6 +50,9 @@ function mslp(::Type{T},
 
 
     err=Inf;
+
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
 
     # Main loop
     for k=1:maxit
@@ -68,7 +70,7 @@ function mslp(::Type{T},
         normalize!(v)
 
         # Checck for convergence
-        err=errmeasure(λ,v)
+        err=estimate_error(ermdata,λ,v)
         @ifd(println("Iteration:",k," errmeasure:",err, " λ=",λ))
 
         if (err< tol)
