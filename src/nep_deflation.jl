@@ -109,7 +109,9 @@ end
 
 compute_Mder(nep::DeflatedGenericNEP,λ::Number)=compute_Mder(nep,λ,0)
 function compute_Mder(nep::DeflatedGenericNEP,λ::Number,der::Integer)
-    T=promote_type(typeof(λ),eltype(nep.V0),eltype(nep.S0));
+    X=nep.V0;
+    S=nep.S0;
+    T=promote_type(typeof(λ),eltype(X),eltype(S))
 
     n0=size(nep.orgnep,1);
     p=size(S,1);
