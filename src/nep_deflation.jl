@@ -113,18 +113,21 @@ function compute_Mder(nep::DeflatedGenericNEP,λ::Number,der::Integer)
     S=nep.S0;
     T=promote_type(typeof(λ),eltype(X),eltype(S));
 
-    M0=compute_Mder(nep.orgnep,λ,der);
     n0=size(nep.orgnep,1);
     p=size(S,1);
 
     Q=zeros(T,n0,p);
-    for i=0:der
-        Vnew= X*(λ*I-S)^(-(der-i+1))
+    F=factorize(λ*I-S);
+    Vnew = X;
+    for i=der:-1:0
+        Vnew = Vnew/F
         factor=((-1)^(der-i))*(factorial(der)/factorial(i));
-        Mi=compute_Mder(nep.orgnep,λ,i);
-        Q+=Mi*(Vnew*factor);
+        for j = 1:p
+            Q[:,j] = Q[:,j] + compute_Mlincomb(nep.orgnep, λ, Vnew[:,j], [factor], i)
+        end
     end
 
+    M0=compute_Mder(nep.orgnep,λ,der);
     if (M0 isa SparseMatrixCSC)
         # return a sparse matrix
         (II,JJ,VV)=findnz(M0);
