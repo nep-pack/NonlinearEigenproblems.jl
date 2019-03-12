@@ -63,9 +63,9 @@ end
 @info "Test: Effenberger"
 
 TOL = 1e-10
-nep = nep_gallery("pep0",60)
-λ, u = jd_effenberger(nep, Neig=3, displaylevel=displaylevel, tol=TOL, maxit=55, λ=0.82+0.9im, v=ones(ComplexF64,size(nep,1)))
-verify_lambdas(3, nep, λ, u, TOL)
+nep = nep_gallery("pep0",250)
+λ, u = jd_effenberger(nep, Neig=5, displaylevel=displaylevel, tol=TOL, maxit=80, λ=0.82+0.9im, v=ones(ComplexF64,size(nep,1)))
+verify_lambdas(5, nep, λ, u, TOL)
 
 TOL = 1e-10
 nep = nep_gallery("dep0",60)

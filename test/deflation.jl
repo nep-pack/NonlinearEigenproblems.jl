@@ -64,4 +64,21 @@ end
     @test compute_MM(dnep,S,X) ≈ compute_MM(dnep3,S,X)
     @test compute_MM(dnep,S,X) ≈ compute_MM(dnep2,S,X)
 
+
+
+    nep=nep_gallery("dep0_sparse",10);
+    n = size(nep,1)
+    dnep = nep; dnep2 = nep; dnep3 = nep;
+    for i = 0:3
+        (λ,v)=augnewton(dnep,v=ones(n+i),λ=1.65,tol=1e-11)
+        dnep=deflate_eigpair(dnep,λ,v,mode=:Generic);
+        dnep2=deflate_eigpair(dnep2,λ,v,mode=:SPMF);
+        dnep3=deflate_eigpair(dnep3,λ,v,mode=:MM);
+        λ=2+2im;
+        for der = 0:4
+            @test compute_Mder(dnep,λ,der) ≈ compute_Mder(dnep2,λ,der)
+            @test compute_Mder(dnep,λ,der) ≈ compute_Mder(dnep3,λ,der)
+        end
+    end
+
 end
