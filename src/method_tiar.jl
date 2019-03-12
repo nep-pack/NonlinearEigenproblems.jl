@@ -5,7 +5,7 @@ using LinearAlgebra
 using Random
 
 """
-    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure=default_errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
+    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS])
 
 Run the tensor infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`.
 
@@ -41,7 +41,7 @@ function tiar(
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
     Neig=6,
-    errmeasure::Function = default_errmeasure(nep::NEP),
+    errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -89,6 +89,9 @@ function tiar(
     if (proj_solve)
         pnep=create_proj_NEP(nep,maxit,T);
     end
+
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
 
     k=1; conv_eig=0;
     while (k <= m)&(conv_eig<Neig)
@@ -189,7 +192,7 @@ function tiar(
 
             conv_eig=0;
             for s=1:min(size(λ,1),size(err,2))
-                err[k,s]=errmeasure(λ[s],Q[:,s]);
+                err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
                 if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
             idx=sortperm(err[k,1:k]); # sort the error

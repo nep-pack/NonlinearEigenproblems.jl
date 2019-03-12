@@ -14,10 +14,10 @@ using LinearAlgebra
 
         v1 = v1 / norm(v1)
 
-        @test norm(compute_Mlincomb(nep, λ1, v1)) < tol*100
-        @test norm(compute_Mder(nep, λ1) * v1) < tol*100
+        @test norm(compute_Mlincomb(nep, λ1, v1)) < sqrt(tol)
+        @test norm(compute_Mder(nep, λ1) * v1) < sqrt(tol)
 
-        @test norm(λ1 - ref_eigenvalue) < tol*100
+        @test norm(λ1 - ref_eigenvalue) < sqrt(tol)*100
     end
 
     @bench @testset "Compute derivatives" begin

@@ -35,7 +35,7 @@ function sgiter(::Type{T},
                    λ_min::Real = NaN,
                    λ_max::Real = NaN,
                    λ::Number = zero(real(T)),
-                   errmeasure::Function = default_errmeasure(nep),
+                   errmeasure::ErrmeasureType = DefaultErrmeasure,
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
                    displaylevel::Integer = 0,
@@ -63,6 +63,9 @@ function sgiter(::Type{T},
     v::Array{T,1} = zeros(T,n)
     err = 0
 
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
+
     for k = 1:maxit
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
        v[:] = compute_jth_eigenvector(eig_solver, nep, λ, j)
@@ -70,7 +73,7 @@ function sgiter(::Type{T},
        @ifd(println("compute_rf: ", λ_vec))
        λ = choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
        @ifd(println(" λ = ", λ))
-       err = errmeasure(λ, v)
+       err = estimate_error(ermdata,λ, v)
        @ifd(print("Iteration:", k, " errmeasure:", err, "\n"))
        if (err < tol)
            return (λ, v)

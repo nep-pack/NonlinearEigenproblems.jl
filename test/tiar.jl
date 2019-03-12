@@ -22,7 +22,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     dep=nep_gallery("dep0",n);
 
     @bench @testset "accuracy eigenpairs" begin
-        (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
+        (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
         verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
@@ -30,7 +30,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100);
+        (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
         @test opnorm(Z'*Z - I) < 1e-6
      end
 

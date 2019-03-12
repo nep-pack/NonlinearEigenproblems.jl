@@ -53,8 +53,7 @@ function contour_beyn(::Type{T},
                       radius::Union{Real,Tuple,Array}=1, # integration radius
                       quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                       N::Integer=1000,  # Nof quadrature nodes
-                      errmeasure::Function =
-                      default_errmeasure(nep::NEP),
+                      errmeasure::ErrmeasureType = DefaultErrmeasure,
                       sanity_check=true,
                       rank_drop_tol=tol # Used in sanity checking
                       )where{T<:Number}
@@ -75,6 +74,9 @@ function contour_beyn(::Type{T},
         error("k must be positive, k=",k,
               neigs==typemax(Int) ? ". The kwarg k must be set if you use neigs=typemax" : ".")
     end
+
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
 
 
     Random.seed!(10); # Reproducability
@@ -153,7 +155,7 @@ function contour_beyn(::Type{T},
     # Compute all the errors
     errmeasures=zeros(real(T),p);
     for i = 1:p
-        errmeasures[i]=errmeasure(λ[i],V[:,i]);
+        errmeasures[i]=estimate_error(ermdata,λ[i],V[:,i]);
     end
 
     good_index=findall(errmeasures .< tol);

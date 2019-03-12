@@ -13,7 +13,7 @@ using LinearAlgebra
     m=40;
     λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=displaylevel,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
-                         tol=1e-7);
+                         tol=1e-7, errmeasure=ResidualErrmeasure);
 
     # Produced with a different implementation
     Tstar=[  -1.665117675679600   5.780562035399026                   0                   0

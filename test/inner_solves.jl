@@ -29,7 +29,7 @@ using LinearAlgebra
     #verify_lambdas(2, pnep, λv, V, eps()*500)
 
     λv,V = inner_solve(IARChebInnerSolver, ComplexF64, pnep; λv=[0,1,2,3] .+ 0.0im)
-    verify_lambdas(10, pnep, λv, V, eps()*500)
+    verify_lambdas(10, pnep, λv, V, sqrt(eps()))
 
     # TODO: this test results in a "Rank drop" warning, and a third eigenvalue that's not converged
     λv,V = inner_solve(ContourBeynInnerSolver, ComplexF64, pnep; λv=[0,1] .+ 0.0im, Neig=3)

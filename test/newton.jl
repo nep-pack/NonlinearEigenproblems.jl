@@ -5,6 +5,23 @@ using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 
+struct SingularErrmeasure <: Errmeasure; nep::NEP; end
+function NonlinearEigenproblems.estimate_error(e::SingularErrmeasure, λ,v)
+    err = compute_resnorm(e.nep,λ,v)/norm(v)
+    if (err < 1e-8)
+        if has_thrown_singexcep
+            err = 1
+            global has_thrown_singexcep = false
+        else
+            global has_thrown_singexcep = true
+            throw(SingularException(-1))
+        end
+    else
+        global has_thrown_singexcep = false
+    end
+    return err
+end
+
 @testset "Newton iterations" begin
     nep=nep_gallery("dep0")
 
@@ -39,8 +56,8 @@ using LinearAlgebra
         @test compute_resnorm(nep,λ2,x2) < eps()*100
 
         @info "   eigenvector extraction"
-        λ1,x1 = newton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure)
-        λ2,x2 = augnewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure)
+        λ1,x1 = newton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=SingularErrmeasure)
+        λ2,x2 = augnewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=SingularErrmeasure)
         @test compute_resnorm(nep,λ1,x1) < 1e-8*100
         @test compute_resnorm(nep,λ2,x2) < 1e-8*100
     end
@@ -48,11 +65,11 @@ using LinearAlgebra
     @bench @testset "QuasiNewton" begin
     @info "QuasiNewton  test"
 
-        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=1e-11)
+        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=1e-12)
         @test compute_resnorm(nep,λ,x) < 1e-11*100
 
         @info "   eigenvector extraction"
-        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,errmeasure=singexcep_errmeasure)
+        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0)
         @test compute_resnorm(nep,λ,x) < 1e-8*100
 
     end
