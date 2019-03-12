@@ -5,26 +5,9 @@ using NonlinearEigenproblems
 using Test
 using LinearAlgebra
 
+
 @testset "Newton iterations" begin
     nep=nep_gallery("dep0")
-
-    # Construction to test the eigenvector extraction in the methods
-    has_thrown_singexcep::Bool = false
-    singexcep_errmeasure = function(λ,v)
-        err = compute_resnorm(nep,λ,v)/norm(v)
-        if (err < 1e-8)
-            if has_thrown_singexcep
-                err = 1
-                global has_thrown_singexcep = false
-            else
-                global has_thrown_singexcep = true
-                throw(SingularException(-1))
-            end
-        else
-            global has_thrown_singexcep = false
-        end
-        return err
-    end
 
     @bench @testset "Newton and AugNewton" begin
         @info "Newton and AugNewton test"
@@ -38,22 +21,13 @@ using LinearAlgebra
         @test compute_resnorm(nep,λ1,x1) < eps()*100
         @test compute_resnorm(nep,λ2,x2) < eps()*100
 
-        @info "   eigenvector extraction"
-        λ1,x1 = newton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure)
-        λ2,x2 = augnewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=eps()*10, errmeasure=singexcep_errmeasure)
-        @test compute_resnorm(nep,λ1,x1) < 1e-8*100
-        @test compute_resnorm(nep,λ2,x2) < 1e-8*100
     end
 
     @bench @testset "QuasiNewton" begin
     @info "QuasiNewton  test"
 
-        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=1e-11)
+        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,tol=1e-12)
         @test compute_resnorm(nep,λ,x) < 1e-11*100
-
-        @info "   eigenvector extraction"
-        λ,x = quasinewton(nep,displaylevel=displaylevel,v=ones(size(nep,1)),λ=0,errmeasure=singexcep_errmeasure)
-        @test compute_resnorm(nep,λ,x) < 1e-8*100
 
     end
 
@@ -63,10 +37,6 @@ using LinearAlgebra
         #Run derivative test for left and right eigenvectors returned by newtonqr
         λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=displaylevel,tol=eps()*10)
         @test compute_resnorm(nep,λ3,x3) < eps()*100
-
-        @info "   eigenvector extraction"
-        λ3,x3,y3 =  newtonqr(nep, λ=0, v=ones(size(nep,1)), displaylevel=displaylevel,tol=eps()*10, errmeasure=singexcep_errmeasure)
-        @test compute_resnorm(nep,λ3,x3) < 1e-8*100
 
         @info "  Testing formula for derivative"
         tau = 1
@@ -109,22 +79,12 @@ using LinearAlgebra
         @test compute_resnorm(nep,λ,x) < eps()*100
         @test compute_resnorm(nept,λ,y) < eps()*100
 
-        @info "   eigenvector extraction"
-        λ,x,y =rfi(nep, nept, displaylevel=displaylevel, v=ones(n), u=ones(n), tol=1e-15, errmeasure=singexcep_errmeasure)
-        @test compute_resnorm(nep,λ,x) < 1e-8*100
-        @test compute_resnorm(nept,λ,y) < 1e-8*100
-
 
         # Test RFIb
 
         @info "rfi_b"
         λb,xb,yb =rfi_b(nep, nept, displaylevel=displaylevel, v=v0, u=u0, λ=λ+0.01, tol=1e-15)
         @test λ ≈ λb
-
-        @info "   eigenvector extraction"
-        λb,xb,yb =rfi_b(nep, nept,displaylevel=displaylevel, v=v0, u=u0, λ=λ+0.01, tol=1e-15, errmeasure=singexcep_errmeasure)
-        @test compute_resnorm(nep,λb,xb) < 1e-8*100
-        @test compute_resnorm(nept,λb,yb) < 1e-8*100
 
 
         @info "  Testing formula for derivative (with left and right eigvecs)"

@@ -22,14 +22,13 @@ end
 
 
 """
-    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure=default_errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvlues are computed.
-`errmeasure` is a function handle which can be used to specify how the error is measured.
 By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence ``W^H T(λ) V`` is the projection considered. By specifying  `projtype` to be `:Galerkin` then `W=V`.
 
 
@@ -55,7 +54,7 @@ function jd_betcke(::Type{T},
                    projtype::Symbol = :PetrovGalerkin,
                    inner_solver_method::Type = DefaultInnerSolver,
                    orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
-                   errmeasure::Function = default_errmeasure(nep::NEP),
+                   errmeasure::ErrmeasureType = DefaultErrmeasure,
                    linsolvercreator::Function = default_linsolvercreator,
                    tol::Number = eps(real(T))*100,
                    λ::Number = zero(T),
@@ -84,8 +83,11 @@ function jd_betcke(::Type{T},
     normalize!(u)
     conveig = 0
 
+    # Init errmeasure
+    ermdata=init_errmeasure(errmeasure,nep);
+
     # Initial check for convergence
-    err = errmeasure(λ,u)
+    err = estimate_error(ermdata,λ,u)
     @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
@@ -133,7 +135,7 @@ function jd_betcke(::Type{T},
         u[:] = V*s
 
         # Check for convergence
-        err = errmeasure(λ,u)
+        err = estimate_error(ermdata,λ,u)
         @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", k, conveig, err))
         if (err < tol) && (conveig == 0 ||
                 all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )

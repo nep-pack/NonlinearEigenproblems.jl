@@ -5,7 +5,7 @@ export rfi
 export rfi_b
 
 """
-    rfi(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+    rfi(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
 
 
 This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
@@ -30,7 +30,7 @@ rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
 function rfi(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::Function=default_errmeasure(nep::NEP),
+            errmeasure::ErrmeasureType = DefaultErrmeasure,
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -45,48 +45,37 @@ function rfi(::Type{T},
         normalize!(v)
         normalize!(u)
 
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
 
-        try
-            for k=1:maxit
-                err = errmeasure(λ,u)
+        for k=1:maxit
+            err = estimate_error(ermdata,λ,u)
 
-                if(err < tol)
-                    return λ,u,v
-                end
-
-                @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
-
-                local linsolver::LinSolver = linsolvercreator(nep,λ)
-                local linsolver_t::LinSolver = linsolvercreator(nept,λ)
-
-                x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[T(1)],1),tol = tol)
-                u[:] = normalize(x)
-
-                y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
-                v[:] = normalize(y)
-
-                λ_vec = compute_rf(nep, u, y=v)
-                λ = closest_to(λ_vec,  λ)
+            if(err < tol)
+                return λ,u,v
             end
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,u)>tol)
-                u[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
-                normalize!(u)
-                v[:] = compute_eigvec_from_eigval_lu(nept, λ, default_linsolvercreator)
-                normalize!(v)
-            end
-            return (λ,u,v)
+
+            @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
+
+            local linsolver::LinSolver = linsolvercreator(nep,λ)
+            local linsolver_t::LinSolver = linsolvercreator(nept,λ)
+
+            x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[T(1)],1),tol = tol)
+            u[:] = normalize(x)
+
+            y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
+            v[:] = normalize(y)
+
+            λ_vec = compute_rf(nep, u, y=v)
+            λ = closest_to(λ_vec,  λ)
         end
+
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,u,err,msg))
 end
 
 """
-    rfi_b(nep,nept,[λ=0,][errmeasure=default_errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=1,][linsolvecreator=default_linsolvecreator,])
+    rfi_b(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=1,][linsolvecreator=default_linsolvecreator,])
 
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
@@ -112,7 +101,7 @@ rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi_b(ComplexF64,nep, nept,;kwargs...)
 function rfi_b(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::Function=default_errmeasure(nep::NEP),
+            errmeasure::ErrmeasureType = DefaultErrmeasure,
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -126,43 +115,33 @@ function rfi_b(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        try
-            for k=1:maxit
-                err = errmeasure(λ,u)
+        # Init errmeasure
+        ermdata=init_errmeasure(errmeasure,nep);
 
-                if(err < tol)
-                    return λ,u,v
-                end
+        for k=1:maxit
+            err = estimate_error(ermdata,λ,u)
 
-                @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
-
-                #Construct C_k
-                C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[T(1)],1);v'*compute_Mder(nep,λ,1) T(0.0)]
-
-                l1 = C\-[compute_Mlincomb(nep,λ,u,[T(1)],0);0]
-                s = l1[1:end-1]
-                u[:] = normalize(u+s)
-
-                l2 = C\-[compute_Mlincomb(nept,λ,v,[T(1)],0);0]
-                t = l2[1:end-1]
-                v[:] = normalize(v+t)
-
-                λ_vec = compute_rf(nep, u, y=v)
-                λ = closest_to(λ_vec,  λ)
+            if(err < tol)
+                return λ,u,v
             end
-        catch e
-            isa(e, SingularException) || rethrow(e)
-            # This should not cast an error since it means that λ is
-            # already an eigenvalue.
-            @ifd(println("We have an exact eigenvalue."))
-            if (errmeasure(λ,u)>tol)
-                u[:] = compute_eigvec_from_eigval_lu(nep, λ, default_linsolvercreator)
-                normalize!(u)
-                v[:] = compute_eigvec_from_eigval_lu(nept, λ, default_linsolvercreator)
-                normalize!(v)
-            end
-            return (λ,u,v)
+
+            @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
+
+            #Construct C_k
+            C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[T(1)],1);v'*compute_Mder(nep,λ,1) T(0.0)]
+
+            l1 = C\-[compute_Mlincomb(nep,λ,u,[T(1)],0);0]
+            s = l1[1:end-1]
+            u[:] = normalize(u+s)
+
+            l2 = C\-[compute_Mlincomb(nept,λ,v,[T(1)],0);0]
+            t = l2[1:end-1]
+            v[:] = normalize(v+t)
+
+            λ_vec = compute_rf(nep, u, y=v)
+            λ = closest_to(λ_vec,  λ)
         end
+
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,u,err,msg))
 end
