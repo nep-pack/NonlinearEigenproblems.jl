@@ -6,7 +6,7 @@ using IterativeSolvers
 using LinearAlgebra
 using Random
 using ..NEPTypes:DeflatedNEP
-using ..NEPTypes:compute_Q
+using ..NEPTypes:deflated_nep_compute_Q
 
 
 
@@ -431,7 +431,7 @@ function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T
     v2 = view(v, (n+1):(n+m))
     pk1 = pk[1:n]
     pk2 = pk[(n+1):(n+m)]
-    U = compute_Q(deflated_nep, λ, 0)
+    U = deflated_nep_compute_Q(deflated_nep, λ, 0)
 
     # Precompute some reused entities
     pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
