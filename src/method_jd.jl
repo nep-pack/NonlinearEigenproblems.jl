@@ -31,6 +31,8 @@ The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolv
 The `target` is the center around which eiganvlues are computed.
 By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence ``W^H T(λ) V`` is the projection considered. By specifying  `projtype` to be `:Galerkin` then `W=V`.
 
+See [`newton`](@ref) for other parameters.
+
 
 # Example
 ```julia-repl

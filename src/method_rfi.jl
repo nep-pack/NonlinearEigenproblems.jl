@@ -11,7 +11,7 @@ export rfi_b
 This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
-A `NoConvergenceException` is thrown if an eigentriplet is not found in `maxit` iterations.
+See [`newton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -80,7 +80,7 @@ end
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
-A `NoConvergenceException` is thrown if an eigentriplet is not found in `maxit` iterations.
+See [`newton`](@ref) for other parameters.
 
 # Example
 ```julia-repl

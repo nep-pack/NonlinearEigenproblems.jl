@@ -13,14 +13,13 @@ Run the infinite Arnoldi method on the nonlinear eigenvalue problem stored in `n
 The target `σ` is the center around which eiganvalues are computed. The value `γ` corresponds
 to scaling and specifying a shift and scaling is effectively the same as the transformation `λ=γs+σ` where `s`
 is now the eigenvalue parameter. If you want eigenvalues in a disk centered, select `σ` as the center
-of the disk and `γ` as the radius. 
-The vector `v` is the starting vector for constructing the Krylov space. The orthogonalization 
+of the disk and `γ` as the radius.
+The vector `v` is the starting vector for constructing the Krylov space. The orthogonalization
 method, used in contructing the orthogonal basis of the Krylov space, is specified by
 `orthmethod`, see the package `IterativeSolvers.jl`. The iteration is continued until `Neig` Ritz pairs have
-converged. 
+converged.
 
-The kwargs `errmeasure`, `maxit`, `linsolvercreator`, `tol` is the same for most NEP-solvers and is
-described in  `newton()`. 
+See [`newton`](@ref) for other parameters.
 
 # Example
 ```julia-repl

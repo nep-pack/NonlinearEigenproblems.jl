@@ -527,6 +527,9 @@ matrix/vectors.
 The method computes an invariant pair and can therefore find several eigenvalues. The
 retured value is (S,V) is an invariant pair and the eigenvalues are on the diagonal of S.
 
+See [`newton`](@ref) for other parameters.
+
+
 # Example
 
 ```julia-repl

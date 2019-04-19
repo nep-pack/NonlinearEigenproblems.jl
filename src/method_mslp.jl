@@ -9,7 +9,9 @@ export mslp
 
 Runs the method of successive linear problems. The  method requires the solution of a
 generalized eigenvalue problem in every iteration. The method used for the eigenvalue
-computation is specified in eigsolvertype. See `newton` for other parameters.
+computation is specified in eigsolvertype.
+See [`newton`](@ref) for other parameters.
+
 
 # Example
 Create a rational NEP with SPMFs.

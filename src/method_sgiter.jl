@@ -8,8 +8,9 @@ according to min-max theory. The method only works for Hermitian problems, and t
 are assumed to be real. If an interval [`λ_min`,`λ_max`] is given, then the Rayleigh functional
 is assumed to be unique on the interval. If no interval is given, then the minimum solution is
 always taken. The method requires the computation of (all) eigenvalues of a matrix. The `eigsolvertype`
-is a `Type` that specifies which eigevalue solver is used inside the algorithm. See `newton` for
-the meaning of other kwargs.
+is a `Type` that specifies which eigevalue solver is used inside the algorithm.
+
+See [`newton`](@ref) for other parameters.
 
 
 # Example
