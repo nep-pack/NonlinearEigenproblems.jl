@@ -47,8 +47,8 @@ creator functions, which are passed as parameters.
 # Example
 
 The most common usecase is that you want to pass a `linsolvercreator`-function
-as parameter to the NEP-algorithm.
-This example shows how you can solvers based on backslash or `factorize()`.
+as a parameter to the NEP-algorithm.
+This example shows how you can use solvers based on backslash or `factorize()`.
 In the example, `BackslashLinSolver` does not exploit that the system matrix
 remains the same throughout the algorithm and is therefore slower.
 ```julia-repl
