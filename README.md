@@ -10,7 +10,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 # How to use it?
 
-On Julia 1.0.X and Julia 0.7, install it as a registered package by typing `] add ...` at the REPL-prompt:
+On Julia 1.X and Julia 0.7, install it as a registered package by typing `] add ...` at the REPL-prompt:
 ```
 julia> ]
 (v1.0) pkg> add NonlinearEigenproblems
@@ -51,6 +51,7 @@ These solvers are currently available (see https://nep-pack.github.io/NonlinearE
     * Nonlinear Arnoldi method
 * Contour integral 
     * Beyn's contour integral method
+    * Higher momement contour integral method (a.k.a the Asakura&Sakurai method)
 * Deflation
     * Effenberger style deflation
     
