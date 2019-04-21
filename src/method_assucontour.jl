@@ -12,7 +12,7 @@ Higher order moments for contour integration (Asakura and Sakurai).
 
 ```julia-repl
 julia> nep=SPMF_NEP([[0 1 ; 1 1.0], [1 0 ; 0 0]], [s->one(s),s->exp(1im*s^2)]);
-julia> λ,V=countour_assu(ComplexF64,nep,radius=3,neigs=6)
+julia> λ,V=countour_assu(nep,radius=3,neigs=6)
 julia> @show λ
 6-element Array{Complex{Float64},1}:
   4.496403249731884e-15 + 2.506628274630998im
@@ -23,7 +23,14 @@ julia> @show λ
    2.381427350935646e-7 + 7.748467479992284e-8im
 ```
 
+# References
+
+* Asakura, Sakurai, Tadano, Ikegami, Kimura, A numerical method for nonlinear eigenvalue problems using contour integrals, JSIAM Letters, 2009 Volume 1 Pages 52-55
+* Algorithm 2: Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
+* Figure 5.3: Tisseur, Güttel. Nonlinear eigenvalue problems, 2017, vol 26
+* Van Beeumen,  Meerbergen, Michiels. Connections between contour integration and rational Krylov methods for eigenvalue problems, 2016, TW673, https://lirias.kuleuven.be/retrieve/415487/
 """
+contour_assu(nep::NEP;params...)=contour_assu(ComplexF64,nep;params...)
 function countour_assu(
     ::Type{T},
     nep::NEP;
@@ -49,8 +56,8 @@ function countour_assu(
     r = k;
 
     Random.seed!(10); # Reproducability
-    L = rand(ComplexF64,n,ell);
-    R = rand(ComplexF64,n,r);
+    L = rand(T,n,ell);
+    R = rand(T,n,r);
 
 
     @show radius
@@ -69,7 +76,7 @@ function countour_assu(
 
     # Precompute all the integrals (last index is p)
     # (Use a tensor for precomputation as in Tisseur &  Guettel Figure 5.3)
-    A =zeros(ComplexF64,ell,r,2*neigs);
+    A =zeros(T,ell,r,2*neigs);
     for k = 1:N
         Fz=L'*local_linsolve(z[k],R);
         for j = 0:2*neigs-1
@@ -80,7 +87,7 @@ function countour_assu(
     @show size(A)
     @show neigs
     # Compute block matrices: B0 and B1:
-    B0 = zeros(ComplexF64,neigs*ell,neigs*r); B1 = copy(B0);
+    B0 = zeros(T,neigs*ell,neigs*r); B1 = copy(B0);
     for row = 0:neigs-1
         for col = 0:neigs-1
             B0[row*ell  .+ (1:ell),  col*r .+ (1:r)]=A[:,:,row+col+1]
