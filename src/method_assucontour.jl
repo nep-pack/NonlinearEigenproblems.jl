@@ -12,7 +12,7 @@ Higher order moments for contour integration (Asakura and Sakurai).
 
 ```julia-repl
 julia> nep=SPMF_NEP([[0 1 ; 1 1.0], [1 0 ; 0 0]], [s->one(s),s->exp(1im*s^2)]);
-julia> λ,V=countour_assu(nep,radius=3,neigs=6)
+julia> λ,V=contour_assu(nep,radius=3,neigs=6)
 julia> @show λ
 6-element Array{Complex{Float64},1}:
   4.496403249731884e-15 + 2.506628274630998im
@@ -30,8 +30,8 @@ julia> @show λ
 * Figure 5.3: Tisseur, Güttel. Nonlinear eigenvalue problems, 2017, vol 26
 * Van Beeumen,  Meerbergen, Michiels. Connections between contour integration and rational Krylov methods for eigenvalue problems, 2016, TW673, https://lirias.kuleuven.be/retrieve/415487/
 """
-contour_assu(nep::NEP;params...)=contour_assu(ComplexF64,nep;params...)
-function countour_assu(
+contour_assu(nep::NEP;params...)=contour_assu(ComplexF64,nep;params...);
+function contour_assu(
     ::Type{T},
     nep::NEP;
     tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
@@ -75,15 +75,21 @@ function countour_assu(
     z = σ .+ radius*w;
 
     # Precompute all the integrals (last index is p)
-    # (Use a tensor for precomputation as in Tisseur &  Guettel Figure 5.3)
-    A =zeros(T,ell,r,2*neigs);
+    A0 =zeros(T,n,r,2*neigs);
     for k = 1:N
-        Fz=L'*local_linsolve(z[k],R);
+        Fz=local_linsolve(z[k],R);
         for j = 0:2*neigs-1
-            A[:,:,j+1] += (w[k]^j*radius*w[k]/N)*Fz;
+            A0[:,:,j+1] += (w[k]^j*radius*w[k]/N)*Fz;
         end
     end
 
+    # The tensor A[:,:,j]=L'*A[:,:,j]
+    A =zeros(T,ell,r,2*neigs);
+    for j = 0:2*neigs-1
+        A[:,:,j+1]=L'*A0[:,:,j+1];
+    end
+
+    @show size(A0)
     @show size(A)
     @show neigs
     # Compute block matrices: B0 and B1:
@@ -97,10 +103,7 @@ function countour_assu(
     # Use B0 for eigenvalue extraction
     (V,S,W) = svd(B0);
 
-    @show neigs
-    @show size(V)
     # Extract active subspace
-
     p = count( S/S[1] .> rank_drop_tol);
 
     V0 = V[:,1:p];
