@@ -17,6 +17,11 @@ function [evps,VV,H,V,iterdata]=tds_arnoldi_pub(tds,varargin)
 %    shouldbezero=min(svd(M))
 % 
 %  Author: Elias Jarlebring 2010
+%  Please cite:
+%     * E. Jarlebring, M. Bennedich, G. Mele, E. Ringh, P. Upadhyaya, NEP-PACK: A Julia package for nonlinear eigenproblems, arxiv preprint, 2018
+%  and
+%     * E. Jarlebring, K. Meerbergen and W. Michiels, A Krylov method for the delay eigenvalue problem, SIAM J. Sci. Comput., 32(6):3278-3300, 2010
+%
 %
     
 
