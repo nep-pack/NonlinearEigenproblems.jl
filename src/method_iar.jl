@@ -132,13 +132,9 @@ function iar(
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
-                if Neig != Inf
-                    λ=λ[idx[1:min(length(λ),Neig)]]
-                    Q=Q[:,idx[1:length(λ)]]
-                else
-                    λ=λ[idx[1:min(length(λ))]]
-                    Q=Q[:,idx[1:length(λ)]]
-                end
+                nrof_eigs = Int(min(length(λ),Neig))
+                λ=λ[idx[1:nrof_eigs]]
+                Q=Q[:,idx[1:length(λ)]]
             end
         end
 
