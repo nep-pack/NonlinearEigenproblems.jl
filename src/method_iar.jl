@@ -136,7 +136,7 @@ function iar(
             if (k==m)||(conv_eig>=Neig)
                 nrof_eigs = Int(min(length(λ),Neig))
                 λ=λ[idx[1:nrof_eigs]]
-                Q=Q[:,idx[1:length(λ)]]
+                Q=Q[:,idx[1:nrof_eigs]]
             end
         end
 
