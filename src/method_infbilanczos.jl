@@ -35,7 +35,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           v::Vector=randn(real(T),size(nep,1)),
                           u::Vector=randn(real(T),size(nep,1)),
                           tol::Real=1e-12,
-                          Neig::Integer=5,
+                          Neig=5,
                           errmeasure::ErrmeasureType = DefaultErrmeasure,
                           σ::Number=0.0,
                           γ::Number=1,
@@ -64,25 +64,28 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
         Q0=zeros(T,n,m);                  # represents Q_{k-1}
         Qt0=zeros(T,n,m);                 # represents \til{Q}_{k-1}
-        R1=zeros(T,n,m); R1[:,1]=q;       # represents R_{k}
-        Rt1=zeros(T,n,m); Rt1[:,1]=qt;    # represents \tild{R}_{k}
+        R1=zeros(T,n,m+1); R1[:,1]=q;       # represents R_{k}
+        Rt1=zeros(T,n,m+1); Rt1[:,1]=qt;    # represents \tild{R}_{k}
         Z2=zeros(T,n,m);
         Zt2=zeros(T,n,m);
-        Q_basis=zeros(T,n,m);
+        Q_basis=zeros(T,n,m+1);
         Qt_basis=zeros(T,n,m);
 
 
-        R2=zeros(T,n,m); # Needed?
-        Rt2=zeros(T,n,m); # Needed?
+        R2=zeros(T,n,m+1); # Needed?
+        Rt2=zeros(T,n,m+1); # Needed?
 
         Q1=zeros(T,n,m); # Needed?
         Qt1=zeros(T,n,m); # Needed?
 
 
         # Vectors storing the diagonals
-        alpha=zeros(T,m);
-        beta=zeros(T,m);
-        gamma=zeros(T,m);
+        alpha=zeros(T,m+1);
+        beta=zeros(T,m+1);
+        gamma=zeros(T,m+1);
+
+        err = zero(T);
+        λ=zeros(T,m+1); Q=zeros(T,n,m+1); TT=zeros(T,m+1,m+1);
 
 
         @ifd(@printf("%e %e\n",norm(q), norm(qt)));
@@ -189,21 +192,24 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 idx=sortperm(err[1:k]); # sort the error
                 err=err[idx];
 
-                if (conv_eig>=Neig)
-                    λ=λ[idx[1:min(length(λ),Neig)]]
-                    Q=Q[:,idx[1:length(λ)]]
-                    for i=1:size(Q,2)
+                if (conv_eig>=Neig) || (k==m)
+                    nrof_eigs = Int(min(length(λ),Neig,conv_eig))
+                    λ=λ[idx[1:nrof_eigs]]
+                    Q=Q[:,idx[1:nrof_eigs]]
+                    for i=1:nrof_eigs
                         normalize!(view(Q,1:n,i))
                     end
-                    @ifd(@printf("done \n"));
-                    return λ,Q,TT
+                    if (conv_eig>=Neig) || (Neig==Inf)
+                        @ifd(@printf("done \n"));
+                        return λ,Q,TT
+                    end
                 end
             end
         end
 
 
         msg="Number of iterations exceeded. maxit=$(maxit)."
-        throw(NoConvergenceException(λ,v,err,msg))
+        throw(NoConvergenceException(λ,Q,err,msg))
     end
 
     function left_right_scalar_prod(::Type{T}, nep,nept,At,B,ma,mb,σ) where {T}
