@@ -166,15 +166,16 @@ function iar_chebyshev(
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
-                λ=λ[idx[1:min(length(λ),Neig)]]
+                nrof_eigs = Int(min(length(λ),Neig))
+                λ=λ[idx[1:nrof_eigs]]
                 Q=Q[:,idx[1:length(λ)]]
             end
         end
         k=k+1;
     end
-
+    k=k-1
     # NoConvergenceException
-    if conv_eig<Neig
+    if conv_eig<Neig && Neig != Inf
         err=err[end,1:Neig];
         idx=sortperm(err); # sort the error
         λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
@@ -193,7 +194,9 @@ function iar_chebyshev(
         # ignore
     end
 
-    k=k-1
+    # extract the converged Ritzpairs
+    λ=λ[1:min(length(λ),conv_eig)];
+    Q=Q[:,1:min(size(Q,2),conv_eig)];
     return λ,Q,err[1:k,:],V[:,1:k],H[1:k,1:k]
 end
 
