@@ -58,10 +58,10 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     end
 
     @testset "Errors thrown" begin
-        np=1000;
-        depp=nep_gallery("dep0",np);
-        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar(dep,σ=3,Neig=6,v=ones(n),
-                  displaylevel=1,maxit=7,tol=eps()*100);
+        np=100;
+        dep=nep_gallery("dep0",np);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar(dep,σ=3,Neig=6,v=ones(np),
+                  displaylevel=0,maxit=7,tol=eps()*100);
     end
 
 end
