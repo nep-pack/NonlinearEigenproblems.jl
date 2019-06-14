@@ -19,10 +19,10 @@ select `σ` as the center
 of the disk and `γ` as the radius.
 The vector `v` is the starting vector for constructing the Krylov space. The orthogonalization
 method, used in contructing the orthogonal basis of the Krylov space, is specified by
-`orthmethod`, see the package `IterativeSolvers.jl`. The iteration is continued until `Neig` Ritz pairs have
-converged.
-Normally an error is thrown if  `Neig` Ritz pairs have not converged in `maxit` iterations.
-However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations as done without an error being thrown.
+`orthmethod`, see the package `IterativeSolvers.jl`.
+The iteration is continued until `Neig` Ritz pairs have converged.
+This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`newton`](@ref) for other parameters.
 
