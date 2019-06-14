@@ -19,8 +19,10 @@ select `σ` as the center
 of the disk and `γ` as the radius.
 The vector `v` is the starting vector for constructing the Krylov space. The orthogonalization
 method, used in contructing the orthogonal basis of the Krylov space, is specified by
-`orthmethod`, see the package `IterativeSolvers.jl`. The iteration is continued until `Neig` Ritz pairs have
-converged.
+`orthmethod`, see the package `IterativeSolvers.jl`.
+The iteration is continued until `Neig` Ritz pairs have converged.
+This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`newton`](@ref) for other parameters.
 
@@ -212,25 +214,26 @@ function tiar(
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
-                λ=λ[idx[1:min(length(λ),Neig)]]
+                nrof_eigs = Int(min(length(λ),Neig))
+                λ=λ[idx[1:nrof_eigs]]
                 Q=Q[:,idx[1:length(λ)]]
             end
             conv_eig_hist[k]=conv_eig
         end
         k=k+1;
     end
-
+    k=k-1
     # NoConvergenceException
-    # if conv_eig<Neig
-    #    err=err[end,1:Neig];
-    #    idx=sortperm(err); # sort the error
-    #    λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
-    #     msg="Number of iterations exceeded. maxit=$(maxit)."
-    #     if conv_eig<3
-    #         msg=string(msg, " Check that σ is not an eigenvalue.")
-    #     end
-    #     throw(NoConvergenceException(λ,Q,err,msg))
-    # end
+    if conv_eig<Neig && Neig != Inf
+       err=err[end,1:Neig];
+       idx=sortperm(err); # sort the error
+       λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        if conv_eig<3
+            msg=string(msg, " Check that σ is not an eigenvalue.")
+        end
+        throw(NoConvergenceException(λ,Q,err,msg))
+    end
 
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];

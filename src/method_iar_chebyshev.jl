@@ -37,7 +37,9 @@ Run the infinite Arnoldi method (Chebyshev version) on the nonlinear eigenvalue 
 
 The target `σ` is the center around which eiganvalues are computed. A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
 `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
-is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See [`compute_y0_cheb`](@ref) in the module NEPSolver with the command `?NEPSolver.compute_y0_cheb`.
+is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See [`compute_y0_cheb`](@ref) in the module NEPSolver with the command `?NEPSolver.compute_y0_cheb`.
 
 See [`newton`](@ref) for other parameters.
 
@@ -166,15 +168,16 @@ function iar_chebyshev(
             err[1:k,k]=err[idx,k];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
-                λ=λ[idx[1:min(length(λ),Neig)]]
+                nrof_eigs = Int(min(length(λ),Neig))
+                λ=λ[idx[1:nrof_eigs]]
                 Q=Q[:,idx[1:length(λ)]]
             end
         end
         k=k+1;
     end
-
+    k=k-1
     # NoConvergenceException
-    if conv_eig<Neig
+    if conv_eig<Neig && Neig != Inf
         err=err[end,1:Neig];
         idx=sortperm(err); # sort the error
         λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
@@ -193,7 +196,9 @@ function iar_chebyshev(
         # ignore
     end
 
-    k=k-1
+    # extract the converged Ritzpairs
+    λ=λ[1:min(length(λ),conv_eig)];
+    Q=Q[:,1:min(size(Q,2),conv_eig)];
     return λ,Q,err[1:k,:],V[:,1:k],H[1:k,1:k]
 end
 

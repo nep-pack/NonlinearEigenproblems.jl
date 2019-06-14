@@ -26,6 +26,11 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
         verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
+    @testset "Compute as many eigenpairs as possible (Neig=Inf)" begin
+        (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=Inf,v=ones(n),displaylevel=0,maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        verify_lambdas(4, dep, λ, Q, eps()*100)
+    end
+
     @testset "orthogonalization" begin
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
@@ -73,5 +78,10 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
         @test errmeasure(λ[1],Q[:,1])<sqrt(eps())*10
     end
 
+    @testset "Errors thrown" begin
+        np=100;
+        dep=nep_gallery("dep0",np);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(np),displaylevel=0,maxit=5,tol=eps()*100,errmeasure=ResidualErrmeasure);
+    end
 
 end

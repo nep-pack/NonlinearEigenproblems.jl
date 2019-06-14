@@ -90,6 +90,13 @@ end
         verify_lambdas(5, dep, λ, Q, n*sqrt(eps()))
     end
 
+    @testset "Compute as many eigenpairs as possible (Neig=Inf)" begin
+        (λ,Q)=iar_chebyshev(dep,σ=0,Neig=Inf,displaylevel=0,maxit=30,tol=eps()*100);
+        verify_lambdas(8, dep, λ, Q, n*sqrt(eps()))
+    end
+
+
+
     @testset "orthogonalization" begin
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
@@ -224,5 +231,11 @@ end
 
             @test opnorm(V[:,1:10]-V2[:,1:10])+opnorm(H[1:10,1:10]-H2[1:10,1:10])<1e-10;
         end
+    end
+
+    @testset "Errors thrown" begin
+        np=100;
+        dep=nep_gallery("dep0",np);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar_chebyshev(dep,σ=0,Neig=8,displaylevel=0,maxit=10,tol=eps()*100);
     end
 end
