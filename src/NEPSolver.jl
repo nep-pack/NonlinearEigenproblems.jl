@@ -16,6 +16,11 @@ Executes z if displaylevel>0.
         return esc(:( if (displaylevel > 0); $z; end ))
     end
 
+    #
+    macro debug_log(z)
+        return esc(:( push!(logger,z) ))
+    end
+
     export @ifdd
 
     """
@@ -25,6 +30,9 @@ Executes z if displaylevel>1.
     macro ifdd(z)
         return esc(:( if (displaylevel > 1); $z; end ))
     end
+
+
+    include("logger.jl");
 
     ## NEP-Methods
 

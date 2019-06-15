@@ -67,9 +67,13 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                     λ::Number=zero(T),
                     v::Vector=randn(size(nep,1)),
                     c::Vector=v,
-                    displaylevel::Int=0,
+                    logger=0,
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where {T<:Number}
+
+        if (isa(logger,Number))
+            logger=PrintLogger(logger)
+        end
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -85,9 +89,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
             if (err< tol)
-                @ifd(print("\n"));
                 return (λ,v)
             end
 
@@ -108,9 +111,9 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
-                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+                push_info!(logger," Armijo scaling=$scaling",false)
             else
-                @ifd(@printf("\n"))
+                push_info!(logger,"")
             end
 
 
@@ -164,10 +167,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                     λ::Number=zero(T),
                     v::Vector=randn(real(T),size(nep,1)),
                     c::Vector=v,
-                    displaylevel::Int=0,
+                    logger=0,
                     linsolvercreator::Function=default_linsolvercreator,
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where T
+
+        if (isa(logger,Number))
+            logger=PrintLogger(logger)
+        end
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
@@ -175,6 +182,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         c=Vector{T}(c)
         n=size(v,1);
 
+        push_info!(logger,"Precomputing linsolver")
         local linsolver::LinSolver=linsolvercreator(nep,λ)
 
         # If c is zero vector we take eigvec approx as left vector in
@@ -184,6 +192,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             use_v_as_rf_vector=true;
         end
 
+
+        push_info!(logger,2,
+                   "use_v_as_rf_vector=$use_v_as_rf_vector");
 
         σ::T=λ;
         err=Inf;
@@ -201,11 +212,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 c[:]=v;
             end
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-            @ifd(if (use_v_as_rf_vector); print(" v_as_rf_vector=",use_v_as_rf_vector); end)
+
+            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
 
             if (err< tol)
-                @ifd(print("\n"));
+                push_info!(logger,"")
                 return (λ,v)
             end
 
@@ -220,10 +231,10 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-            if (j>0 )
-                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+            if (j>0)
+                push_info!(logger," Armijo scaling=$scaling")
             else
-                @ifd(@printf("\n"))
+                push_info!(logger,"")
             end
 
             # Update the eigenpair
@@ -271,10 +282,15 @@ julia> λ1-λ2
                        λ::Number=zero(T),
                        v::Vector=randn(real(T),size(nep,1)),
                        c::Vector=v,
-                       displaylevel::Int=0,
+                       logger=0,
                        linsolvercreator::Function=backslash_linsolvercreator,
                        armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
+
+        if (isa(logger,Number))
+            logger=PrintLogger(logger)
+        end
+
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
@@ -291,15 +307,16 @@ julia> λ1-λ2
         local linsolver::LinSolver
         local tempvec = Vector{T}(undef, size(nep,1))
 
+        push_info!(logger,2,
+                   "use_v_as_normalization_vector=$use_v_as_normalization_vector");
         # Init errmeasure
         ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-            @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
+            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
             if (err< tol)
-                @ifd(print("\n"))
+                push_info!(logger,"")
                 return (λ,v)
             end
             # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
@@ -322,9 +339,9 @@ julia> λ1-λ2
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
-                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+                push_info!(logger," Armijo scaling=$scaling")
             else
-                @ifd(@printf("\n"))
+                push_info!(logger,"")
             end
 
             λ+=Δλ
@@ -368,10 +385,15 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          λ::Number=zero(T),
                          v::Vector=randn(real(T),size(nep,1)),
                          ws::Vector=v,
-                         displaylevel::Int=0,
+                         logger=0,
                          linsolvercreator::Function=default_linsolvercreator,
                          armijo_factor::Real=1,
                          armijo_max::Int=5) where T
+
+        if (isa(logger,Number))
+            logger=PrintLogger(logger)
+        end
+
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
@@ -384,7 +406,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         err=Inf;
 
         local linsolver::LinSolver;
-        @ifd(@printf("Precomputing linsolver\n"))
+        push_info!(logger,"Precomputing linsolver")
         linsolver = linsolvercreator(nep,λ)
 
         # Init errmeasure
@@ -392,11 +414,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
-            @ifd(print(", λ=",λ))
-
+            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
             if (err< tol)
-                @ifd(@printf("\n"));
+                push_info!(logger,"")
                 return (λ,v)
             end
 
@@ -404,22 +424,22 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             # Compute u=M(λ)v and w=M'(λ)v
             u[:] = compute_Mlincomb(nep,λ,v,[T(1)],0);
             w[:] = compute_Mlincomb(nep,λ,v,[T(1)],1);
-            @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
 
             # Intermediate quantities
             Δλ=-dot(ws,u)/dot(ws,w);
             z=Δλ*w+u;
             Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
 
-            @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
+            normΔv=norm(Δv);
+            push_info!(logger,2," norm(Δv)=$normΔv",true)
 
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
-                @ifd(@printf(" Armijo scaling=%f\n",scaling));
+                push_info!(logger," Armijo scaling=%f")
             else
-                @ifd(@printf("\n"));
+                push_info!(logger,"");
             end
 
             # Update eigenpair
@@ -463,8 +483,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                       λ::Number=zero(T),
                       v::Vector=randn(real(T),size(nep,1)),
                       c::Vector=v,
-                      displaylevel::Int=0) where T
+                      logger=0) where T
 
+        if (isa(logger,Number))
+            logger=PrintLogger(logger)
+        end
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -494,7 +517,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
             #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
             err=estimate_error(ermdata,λ,v);
-            @ifd(println("Iteration: ",k," errmeasure: ", err))
+
+
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v);
             if(err < tol)
                 return λ,v,w;
             end
@@ -541,8 +566,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          λ=zero(T),
                          v=randn(real(T),size(nep,1)),
                          c=v,
-                         displaylevel=0) where T
+                         logger=0) where T
 
+        if (isa(logger,Number))
+            logger=PrintLogger(logger)
+        end
 
         n = size(nep,1);
         v = Vector{T}(vcat(v,one(T)))
@@ -568,7 +596,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
             #err = estimate_error(ermdata,λ,v[1:n]);
             err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
-            @ifd(println("Iteration: ",k," errmeasure: ", err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v);
             if(err < tol)
                 return λ,v[1:n];
             end
