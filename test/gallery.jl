@@ -111,7 +111,7 @@ using Test
     v0=normalize!(compute_Mder(nep,λ0)\ones(size(nep,1)))
     λ,v=quasinewton(Float64,nep,λ=-1.4566,v=v0,tol=tol,
                     errmeasure=ResidualErrmeasure,
-                    displaylevel=displaylevel,armijo_factor=0.5,armijo_max=3)
+                    logger=displaylevel,armijo_factor=0.5,armijo_max=3)
     normalize!(v)
     @test norm(compute_Mlincomb(nep,λ,v))<sqrt(tol)
     @test isa(nep,SPMFSumNEP)
