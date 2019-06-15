@@ -16,10 +16,6 @@ Executes z if displaylevel>0.
         return esc(:( if (displaylevel > 0); $z; end ))
     end
 
-    #
-    macro debug_log(z)
-        return esc(:( push!(logger,z) ))
-    end
 
     export @ifdd
 
