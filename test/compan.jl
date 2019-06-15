@@ -15,7 +15,7 @@ deg = size(get_fv(pep),1) -1;
 n = size(pep,1);
 tolerance = 1e-14;
 
-λa,xa = newton(pep, maxit=30, displaylevel=0, tol = tolerance);
+λa,xa = newton(pep, maxit=30, logger=0, tol = tolerance);
 Dc,Vc = polyeig(pep, DefaultEigSolver);
 
 ind = 1;
@@ -36,7 +36,7 @@ deg = size(get_fv(pep),1) -1;
 n = size(pep,1);
 tolerance = 1e-14;
 
-λa,xa =newton(pep, maxit=30, λ=-0.75, v=ones(n), displaylevel=0, tol = tolerance);
+λa,xa =newton(pep, maxit=30, λ=-0.75, v=ones(n), logger=0, tol = tolerance);
 Dc,Vc = polyeig(pep,DefaultEigSolver);
 
 ind = 1;

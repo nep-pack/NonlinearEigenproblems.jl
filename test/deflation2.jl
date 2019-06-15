@@ -31,7 +31,7 @@ using BenchmarkTools;
 nep=nep_gallery("dep0_sparse",100);
 n=size(nep,1);
 local λ,v;
-(λ,v)=quasinewton(nep,v=ones(n),λ=2,tol=1e-11,displaylevel=1,maxit=200)
+(λ,v)=quasinewton(nep,v=ones(n),λ=2,tol=1e-11,logger=1,maxit=200)
 dnep1=deflate_eigpair(nep,λ,v,mode=:Generic);
 @btime mslp(dnep1,λ=1im,tol=1e-11)
 dnep2=deflate_eigpair(nep,λ,v,mode=:SPMF);
@@ -50,7 +50,7 @@ begin
   dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
   for k=1:4
       (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=-1+0.1im,
-                      tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                      tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
       (λ2,V2)=get_deflated_eigpairs(dnep,λ,v)
       @show norm(compute_Mlincomb(nep,λ2[end],V2[:,end]))
@@ -70,7 +70,7 @@ begin
   dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
   for k=1:2
       (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=200^2,
-                      tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                      tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
       (λ2,V2)=get_deflated_eigpairs(dnep,λ,v)
       @show norm(compute_Mlincomb(nep,λ2[end],V2[:,end]))
@@ -94,7 +94,7 @@ begin
   dnep=deflate_eigpair(nep,λ,v,mode=:MM);
   for k=1:4
       (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=-1+0.1im,
-                      tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                      tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
       (λ2,V2)=get_deflated_eigpairs(dnep,λ,v)
       @show norm(compute_Mlincomb(nep,λ2[end],V2[:,end]))
@@ -124,14 +124,14 @@ dnep=deflate_eigpair(nep,λ,v,mode=:Generic);
 
 asd()
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
 dnep=deflate_eigpair(dnep,λ,v);
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 dnep=deflate_eigpair(dnep,λ,v);
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
 (λ,V)=get_deflated_eigpairs(dnep)
 
@@ -144,11 +144,11 @@ n=size(nep,1);
 dnep=deflate(dnep,λ,v)
 
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 dnep=deflate(dnep,λ,v)
 
 (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-                tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
 
 
@@ -197,7 +197,7 @@ begin
         #λ,V=get_deflated_eigpairs(dnep);
         @show norm(compute_Mlincomb(nep,λ[end],V[:,end]))
         (λ,v)=augnewton(dnep,v=ones(size(dnep,1)),λ=300^2,
-                        tol=1e-11,displaylevel=1,maxit=300,armijo_factor=0.5)
+                        tol=1e-11,logger=1,maxit=300,armijo_factor=0.5)
 
         V=V1;
         S=S1;
@@ -259,7 +259,7 @@ dnep2_new=create_spmf_dnep(nep,S1,V1)
 #compute_MM(dnep3b,Z,X)-compute_MM(dnep3,Z,X)
 
 (λ3,v3)=quasinewton(dnep2_new,λ=300^2,armijo_factor=0.9,
-                    displaylevel=1,maxit=100,v=ones(n+2),tol=1e-12)
+                    logger=1,maxit=100,v=ones(n+2),tol=1e-12)
 
 V=V1;
 S=S1;
@@ -282,7 +282,7 @@ dnep3_new=create_spmf_dnep(nep,S1,V1)
 #compute_MM(dnep3b,Z,X)-compute_MM(dnep3,Z,X)
 
 (λ4,v4)=quasinewton(dnep3_new,λ=295^2,armijo_factor=0.9,
-                    displaylevel=1,maxit=200,v=ones(n+3),tol=1e-12)
+                    logger=1,maxit=200,v=ones(n+3),tol=1e-12)
 
 normalize!(v4)
 
@@ -307,7 +307,7 @@ normalize_schur_pair!(S1,V1);
 dnep4_new=create_spmf_dnep(nep,S1,V1)
 
 (λ5,v5)=quasinewton(dnep4_new,λ=295^2,armijo_factor=0.9,
-                    displaylevel=1,maxit=200,v=ones(n+4),tol=1e-12)
+                    logger=1,maxit=200,v=ones(n+4),tol=1e-12)
 
 V=V1;
 S=S1;

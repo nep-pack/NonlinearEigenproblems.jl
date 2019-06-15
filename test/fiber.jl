@@ -37,7 +37,7 @@ using GalleryNLEVP
 
 
         @info "Running Newton"
-        (λstar,v)=newton(Float64,nep_org,λ=7e-7,v=ones(n),displaylevel=displaylevel,
+        (λstar,v)=newton(Float64,nep_org,λ=7e-7,v=ones(n),logger=displaylevel,
                          tol=1e-14)
 
         @test abs(sol_val-λstar)/abs(λ) < 1e-10
@@ -52,7 +52,7 @@ using GalleryNLEVP
 
         tol=1e-11
         (λ,v)=quasinewton(nep_org,λ=7.1e-7,v=ones(n),
-                          displaylevel=displaylevel,errmeasure=myerrmeasure,
+                          logger=displaylevel,errmeasure=myerrmeasure,
                           tol=tol,armijo_factor=0.5,armijo_max=10)
 
         @test abs(sol_val-λ)/abs(λ) < tol
