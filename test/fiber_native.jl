@@ -19,7 +19,7 @@ using LinearAlgebra
     # check that we "maintain" real arithmetic
     vv=real(v/v[1]);
     (λ1,v)=resinv(Float64,nep,λ=7.14e-7,v=vv,
-                      displaylevel=displaylevel)
+                      logger=displaylevel)
     @test abs(λ-sol_val)<1e-10;
 
     @test eltype(v)==Float64
