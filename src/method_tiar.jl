@@ -216,7 +216,7 @@ function tiar(
             if (k==m)||(conv_eig>=Neig)
                 nrof_eigs = Int(min(length(λ),Neig))
                 λ=λ[idx[1:nrof_eigs]]
-                Q=Q[:,idx[1:length(λ)]]
+                Q=Q[:,idx[1:nrof_eigs]]
             end
             conv_eig_hist[k]=conv_eig
         end
