@@ -30,9 +30,14 @@ end
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
-The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
-`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
-is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used
+to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged
+a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
+`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the
+ Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
+The iteration is continued until `Neig` Ritz pairs have converged.
+This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`newton`](@ref) for other parameters.
 

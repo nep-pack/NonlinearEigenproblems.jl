@@ -74,7 +74,7 @@ using SparseArrays
         A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
         nep=DEP([A1,A2,A3],[0,1,0.8])
         v0=rand(n)
-        @test_throws NEPCore.NoConvergenceException _,_,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;Neig=2,displaylevel=0,maxit=3,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure)
+        @test_throws NEPCore.NoConvergenceException λ,W,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;Neig=2,displaylevel=0,maxit=3,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure)
     end
 
 end
