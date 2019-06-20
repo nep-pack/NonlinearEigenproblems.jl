@@ -89,7 +89,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
 
-            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 return (λ,v)
             end
@@ -111,7 +111,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
-                push_info!(logger," Armijo scaling=$scaling",false)
+                push_info!(logger," Armijo scaling=$scaling")
             else
                 push_info!(logger,"")
             end
@@ -213,7 +213,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             end
 
 
-            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
 
             if (err< tol)
                 push_info!(logger,"")
@@ -314,7 +314,7 @@ julia> λ1-λ2
 
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
-            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 push_info!(logger,"")
                 return (λ,v)
@@ -414,7 +414,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
-            push_iteration_info!(logger,k,true,err=err,λ=λ,v=v);
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 push_info!(logger,"")
                 return (λ,v)
@@ -431,7 +431,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
 
             normΔv=norm(Δv);
-            push_info!(logger,2," norm(Δv)=$normΔv",true)
+            push_info!(logger,2," norm(Δv)=$normΔv",continues=true)
 
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)

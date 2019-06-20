@@ -53,10 +53,14 @@ function iar(
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
-    displaylevel=0,
+    logger=0,
     check_error_every=1,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    if (isa(logger,Number))
+        logger=PrintLogger(logger)
+    end
 
     # Ensure types σ and v are of type T
     σ=T(σ)
@@ -86,9 +90,11 @@ function iar(
     ermdata=init_errmeasure(errmeasure,nep);
 
     while (k <= m) && (conv_eig<Neig)
-        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
-            println("Iteration:",k, " conveig:",conv_eig)
-        end
+
+
+#        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
+#            println("Iteration:",k, " conveig:",conv_eig)
+#        end
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
@@ -124,20 +130,23 @@ function iar(
                 Q=QQ*Qproj;
                 λ=λproj;
              end
-
             conv_eig=0;
             for s=1:size(λ,1)
                 err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
                 if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
+            push_iteration_info!(logger,k,err=err[k,1:size(λ,1)],continues=true);
+            push_info!(logger,"  conv_eig=$conv_eig");
             idx=sortperm(err[k,1:k]); # sort the error
             err[k,1:k]=err[k,idx];
+
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
                 nrof_eigs = Int(min(length(λ),Neig))
                 λ=λ[idx[1:nrof_eigs]]
-                Q=Q[:,idx[1:nrof_eigs]]
+                Q=Q[:,idx[1:length(λ)]]
             end
+
         end
 
         k=k+1;
