@@ -63,7 +63,7 @@ using GalleryNLEVP
         @info "Running resinv"
         tol=1e-8
         (λ,v)=resinv(nep_org,λ=7e-7,v=ones(n),
-                     displaylevel=displaylevel,errmeasure=myerrmeasure,
+                     logger=displaylevel,errmeasure=myerrmeasure,
                      tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if imag(λ) != 0

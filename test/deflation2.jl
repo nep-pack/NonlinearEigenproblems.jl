@@ -227,7 +227,7 @@ dnep1_new=create_spmf_dnep(nep,S0,V0)
 #Z=randn(3,3);
 #@show norm(compute_MM(dnep,Z,W)-compute_MM(dnep2,Z,W))
 
-(λ2,v2)=resinv(dnep1_new,λ=290^2,armijo_factor=0.9,displaylevel=1,maxit=100,v=ones(n+1),tol=1e-12)
+(λ2,v2)=resinv(dnep1_new,λ=290^2,armijo_factor=0.9,logger=1,maxit=100,v=ones(n+1),tol=1e-12)
 v2=v2/norm(v2);
 
 
