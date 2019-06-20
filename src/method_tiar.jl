@@ -60,11 +60,18 @@ function tiar(
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
-    displaylevel=0,
+    logger=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver
-    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_solver_method=DefaultInnerSolver,
+    inner_logger=0    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    if (isa(logger,Number))
+        logger=PrintLogger(logger)
+    end
+    if (isa(inner_logger,Number))
+        inner_logger=PrintLogger(inner_logger)
+    end
 
     # Ensure types σ and v are of type T
     σ=T(σ)
@@ -110,9 +117,6 @@ function tiar(
 
     k=1; conv_eig=0;
     while (k <= m)&(conv_eig<Neig)
-        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
-            println("Iteration:",k, " conveig:",conv_eig)
-        end
 
         # computation of y[:,2], ..., y[:,k+1]
         y[:,2:k+1]=Z[:,1:k]*transpose(a[1:k,k,1:k])
@@ -195,7 +199,8 @@ function tiar(
                                         λv=copy(λ),
                                         Neig=size(λ,1)+3,
                                         σ=σ,
-                                        tol=tol/10,displaylevel=displaylevel);
+                                        tol=tol/10,
+                                        logger=inner_logger);
 
 
                 II=sortperm(abs.(λproj .- σ));
@@ -206,10 +211,23 @@ function tiar(
 
 
             conv_eig=0;
-            for s=1:min(size(λ,1),size(err,2))
-                err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
-                if err[k,s]<tol; conv_eig=conv_eig+1; end
+            err[k,1:size(λ,1)]=
+              map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+            # Log them and compute the converged
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)],
+                                 continues=true);
+            for s=1:size(λ,1)
+                if err[k,s]<tol;
+                    conv_eig=conv_eig+1;
+                    push_info!(logger,"+", continues=true);
+                elseif err[k,s]<tol*10
+                    push_info!(logger,"=", continues=true);
+                else
+                    push_info!(logger,"-", continues=true);
+                end
             end
+            push_info!(logger,"");
+
             idx=sortperm(err[k,1:k]); # sort the error
             err[k,1:k]=err[k,idx];
             # extract the converged Ritzpairs
@@ -238,5 +256,5 @@ function tiar(
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];
     Q=Q[:,1:min(size(Q,2),conv_eig)];
-    return λ,Q,err[1:k,:],Z[:,1:k],conv_eig_hist
+    return λ,Q,Z[:,1:k],conv_eig_hist
 end
