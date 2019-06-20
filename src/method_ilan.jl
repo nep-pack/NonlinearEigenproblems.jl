@@ -182,7 +182,7 @@ function ilan(
             if displaylevel>0
                 println("Solving the projected problem")
             end
-            λ,ZZ=iar(pnep;Neig=Inf,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            λ,ZZ=iar(pnep;Neig=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
             W=VV*ZZ;
 
             conv_eig=length(λ)
