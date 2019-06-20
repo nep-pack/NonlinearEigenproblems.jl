@@ -62,7 +62,7 @@ n=size(nep,1);
 
 
     nev=3
-    λ,v = iar(ComplexF64,nep,σ=λ0, displaylevel=displaylevel,Neig=nev,maxit=100,v=v0,
+    λ,v = iar(ComplexF64,nep,σ=λ0, logger=displaylevel,Neig=nev,maxit=100,v=v0,
                   tol=1e-8);
 
     @test minimum(abs.(λstar .- λ)) < 1e-10

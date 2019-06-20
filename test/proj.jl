@@ -76,7 +76,7 @@ using Random
         @test norm(x/x[1]-x1)<1e-8
 
         @info "Running IAR for projected problem ($nepstr)"
-        λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=0,
+        λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),
                  Neig=3,maxit=100, v=ones(size(pnep,1)))
 
         mydiff = minimum(abs.(λv .- λ_exact))

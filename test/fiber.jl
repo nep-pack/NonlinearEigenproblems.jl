@@ -90,7 +90,7 @@ using GalleryNLEVP
         @info "Interpolating: $intpoints"
         pep=interpolate(nep_org,intpoints);
         @info "Running IAR"
-        λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=displaylevel,Neig=2)
+        λ,v=iar(pep,σ=7e-7,maxit=100,logger=displaylevel,Neig=2)
         minerr1=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
         @info "Error: $minerr1"
         @test minerr1<1e-4
@@ -102,7 +102,7 @@ using GalleryNLEVP
         @info "Interpolating: $intpoints"
         pep=interpolate(nep_org,intpoints);
         @info "Running IAR"
-        λ,v=iar(pep,σ=7e-7,maxit=100,displaylevel=displaylevel,Neig=2)
+        λ,v=iar(pep,σ=7e-7,maxit=100,logger=displaylevel,Neig=2)
         minerr2=minimum(abs.(sol_val.-λ)) ./ abs(sol_val)
         @info "Error: $minerr2"
         @test minerr2<minerr1
