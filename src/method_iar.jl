@@ -131,10 +131,12 @@ function iar(
                 λ=λproj;
              end
             conv_eig=0;
+            # compute the errors
             err[k,1:size(λ,1)]=
               map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
-            push_iteration_info!(logger,k,err=err[k,1:size(λ,1)],
-                                 continues=true, level=2);
+            # Log them and compute the converged
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)],
+                                 continues=true);
             for s=1:size(λ,1)
                 if err[k,s]<tol;
                     conv_eig=conv_eig+1;
