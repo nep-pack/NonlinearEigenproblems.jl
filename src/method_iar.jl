@@ -108,7 +108,7 @@ function iar(
         H[k+1,k] = orthogonalize_and_normalize!(VV, vv, view(H,1:k,k), orthmethod)
 
         # compute Ritz pairs (every check_error_every iterations)
-        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
+        if ((rem(k,check_error_every)==0)||(k==m))
             # Extract eigenvalues from Hessenberg matrix
             D,Z = eigen(H[1:k,1:k])
 
@@ -131,12 +131,21 @@ function iar(
                 λ=λproj;
              end
             conv_eig=0;
+            err[k,1:size(λ,1)]=
+              map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+            push_iteration_info!(logger,k,err=err[k,1:size(λ,1)],
+                                 continues=true, level=2);
             for s=1:size(λ,1)
-                err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
-                if err[k,s]<tol; conv_eig=conv_eig+1; end
+                if err[k,s]<tol;
+                    conv_eig=conv_eig+1;
+                    push_info!(logger,"+", continues=true);
+                elseif err[k,s]<tol*10
+                    push_info!(logger,"=", continues=true);
+                else
+                    push_info!(logger,"-", continues=true);
+                end
             end
-            push_iteration_info!(logger,k,err=err[k,1:size(λ,1)],continues=true);
-            push_info!(logger,"  conv_eig=$conv_eig");
+            push_info!(logger,"");
             idx=sortperm(err[k,1:k]); # sort the error
             err[k,1:k]=err[k,idx];
 
