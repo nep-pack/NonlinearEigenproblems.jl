@@ -180,21 +180,28 @@ function ilan(
             λ,ZZ=iar(pnep;Neig=Inf,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
             W=VV*ZZ;
 
-            # eigenvectors computation
             conv_eig=length(λ)
-            if conv_eig>Neig
-                λ=λ[1:Neig]; W=W[:,1:Neig]
+            # extract the converged Ritzpairs
+            if (k==m)||(conv_eig>=Neig)
+                nrof_eigs = Int(min(length(λ),Neig))
+                λ=λ[1:nrof_eigs]
+                W=W[:,1:nrof_eigs]
             end
-
         end
 
         k=k+1;
         # shift the vectors
         Qp=Q;   Q=Qn;
         Qn=zero(Qn);
-
     end
+
     k=k-1
+    if conv_eig<Neig && Neig != Inf
+        err=Missing; # TODO: Should an error be computed and added?
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        throw(NoConvergenceException(λ,W,err,msg))
+    end
+
     return λ,W,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
 
