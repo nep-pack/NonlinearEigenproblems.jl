@@ -30,9 +30,14 @@ end
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
-The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
-`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
-is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used
+to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged
+a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
+`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the
+ Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
+The iteration is continued until `Neig` Ritz pairs have converged.
+This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`newton`](@ref) for other parameters.
 
@@ -180,21 +185,28 @@ function ilan(
             λ,ZZ=iar(pnep;Neig=Inf,displaylevel=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
             W=VV*ZZ;
 
-            # eigenvectors computation
             conv_eig=length(λ)
-            if conv_eig>Neig
-                λ=λ[1:Neig]; W=W[:,1:Neig]
+            # extract the converged Ritzpairs
+            if (k==m)||(conv_eig>=Neig)
+                nrof_eigs = Int(min(length(λ),Neig))
+                λ=λ[1:nrof_eigs]
+                W=W[:,1:nrof_eigs]
             end
-
         end
 
         k=k+1;
         # shift the vectors
         Qp=Q;   Q=Qn;
         Qn=zero(Qn);
-
     end
+
     k=k-1
+    if conv_eig<Neig && Neig != Inf
+        err=Missing; # TODO: Should an error be computed and added?
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        throw(NoConvergenceException(λ,W,err,msg))
+    end
+
     return λ,W,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
 
