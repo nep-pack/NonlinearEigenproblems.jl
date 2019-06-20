@@ -225,9 +225,9 @@ function tiar(
     k=k-1
     # NoConvergenceException
     if conv_eig<Neig && Neig != Inf
-       err=err[end,1:Neig];
-       idx=sortperm(err); # sort the error
-       λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+        err=err[end,1:Neig];
+        idx=sortperm(err); # sort the error
+        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
         msg="Number of iterations exceeded. maxit=$(maxit)."
         if conv_eig<3
             msg=string(msg, " Check that σ is not an eigenvalue.")
