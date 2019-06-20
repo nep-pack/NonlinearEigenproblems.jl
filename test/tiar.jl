@@ -35,22 +35,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
         @test opnorm(Z'*Z - I) < 1e-6
      end
 
      @bench @testset "User provided doubleGS" begin
-         (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
+         (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
          @test opnorm(Z'*Z - I) < 1e-6
       end
 
       @bench @testset "ModifiedGramSchmidt" begin
-          (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
+          (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
           @test opnorm(Z'*Z - I) < 1e-6
       end
 
        @bench @testset "ClassicalGramSchmidt" begin
-           (λ,Q,err,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
+           (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
            @test opnorm(Z'*Z - I) < 1e-6
        end
     end

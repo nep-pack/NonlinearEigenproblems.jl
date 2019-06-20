@@ -37,22 +37,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
         # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
 
         @bench @testset "DGKS" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=DGKS,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=DGKS,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "User provided doubleGS" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=DoubleGS,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=DoubleGS,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "ModifiedGramSchmidt" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "ClassicalGramSchmidt" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,Neig=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
     end
