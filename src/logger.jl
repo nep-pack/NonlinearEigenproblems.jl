@@ -7,7 +7,7 @@ using Printf
 abstract type Logger ; end
 
 function push_info!(logger::Logger,v::String; continues::Bool=false)
-    push_info!(logger,1,v,continues);
+    push_info!(logger,1,v;continues=continues);
 end
 
 
@@ -26,8 +26,10 @@ function push_info!(logger::PrintLogger,level,v::String;continues::Bool=false)
 end
 
 function push_iteration_info!(logger::PrintLogger,iter;
-                              err=Inf,λ=NaN,v=NaN,continues::Bool=false)
-    if (logger.displaylevel>=1)
+                              err=Inf,λ=NaN,v=NaN,
+                              continues::Bool=false,
+                              level=1)
+    if (logger.displaylevel>=level)
         print("iter ",iter, " err:",err, " λ=",λ);
         if (!continues)
             println()
