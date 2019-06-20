@@ -59,12 +59,8 @@ function iar(
     inner_solver_method=DefaultInnerSolver,
     inner_logger=0)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
-    if (isa(logger,Number))
-        logger=PrintLogger(logger)
-    end
-    if (isa(inner_logger,Number))
-        inner_logger=PrintLogger(inner_logger)
-    end
+    @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
 
     # Ensure types σ and v are of type T
     σ=T(σ)
@@ -96,9 +92,6 @@ function iar(
     while (k <= m) && (conv_eig<Neig)
 
 
-#        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
-#            println("Iteration:",k, " conveig:",conv_eig)
-#        end
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 

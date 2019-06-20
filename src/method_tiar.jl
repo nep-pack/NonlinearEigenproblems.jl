@@ -66,12 +66,9 @@ function tiar(
     inner_solver_method=DefaultInnerSolver,
     inner_logger=0    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
-    if (isa(logger,Number))
-        logger=PrintLogger(logger)
-    end
-    if (isa(inner_logger,Number))
-        inner_logger=PrintLogger(inner_logger)
-    end
+    @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
+
 
     # Ensure types σ and v are of type T
     σ=T(σ)

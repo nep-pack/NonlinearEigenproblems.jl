@@ -28,6 +28,9 @@ Executes z if displaylevel>1.
     end
 
 
+    macro parse_logger_param!(l)
+       return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
+    end
     include("logger.jl");
 
     ## NEP-Methods

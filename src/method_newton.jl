@@ -71,9 +71,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where {T<:Number}
 
-        if (isa(logger,Number))
-            logger=PrintLogger(logger)
-        end
+        @parse_logger_param!(logger)
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -172,9 +170,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where T
 
-        if (isa(logger,Number))
-            logger=PrintLogger(logger)
-        end
+        @parse_logger_param!(logger)
+
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
@@ -287,9 +284,8 @@ julia> λ1-λ2
                        armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
 
-        if (isa(logger,Number))
-            logger=PrintLogger(logger)
-        end
+        @parse_logger_param!(logger)
+
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -390,9 +386,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          armijo_factor::Real=1,
                          armijo_max::Int=5) where T
 
-        if (isa(logger,Number))
-            logger=PrintLogger(logger)
-        end
+        @parse_logger_param!(logger)
+
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -485,9 +480,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                       c::Vector=v,
                       logger=0) where T
 
-        if (isa(logger,Number))
-            logger=PrintLogger(logger)
-        end
+        @parse_logger_param!(logger)
+
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -568,9 +562,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          c=v,
                          logger=0) where T
 
-        if (isa(logger,Number))
-            logger=PrintLogger(logger)
-        end
+        @parse_logger_param!(logger)
 
         n = size(nep,1);
         v = Vector{T}(vcat(v,one(T)))
