@@ -158,7 +158,7 @@ function inner_solve(TT::Type{NewtonInnerSolver},T_arit::Type,nep::NEPTypes.Proj
             v0=V[:,k]; # Starting vector for projected problem
             projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
             # Compute a solution to projected problem with Newton's method
-            λ1,vproj=augnewton(T_arit,nep,displaylevel=0,λ=λv[k],
+            λ1,vproj=augnewton(T_arit,nep,logger=0,λ=λv[k],
                                v=v0,maxit=50,tol=tol/10,
                                errmeasure=projerrmeasure);
             V[:,k]=vproj;

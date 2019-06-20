@@ -56,10 +56,14 @@ function iar(
     logger=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_solver_method=DefaultInnerSolver,
+    inner_logger=0)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     if (isa(logger,Number))
         logger=PrintLogger(logger)
+    end
+    if (isa(inner_logger,Number))
+        inner_logger=PrintLogger(inner_logger)
     end
 
     # Ensure types σ and v are of type T
@@ -125,7 +129,8 @@ function iar(
                                         V=RR*Z,λv=copy(λ),
                                         Neig=size(λ,1)+3,
                                         σ=mean(λ),
-                                        tol=tol,displaylevel=displaylevel);
+                                        tol=tol,
+                                        logger=inner_logger);
 
                 Q=QQ*Qproj;
                 λ=λproj;
@@ -148,6 +153,7 @@ function iar(
                 end
             end
             push_info!(logger,"");
+            # Sort the errors
             idx=sortperm(err[k,1:k]); # sort the error
             err[k,1:k]=err[k,idx];
 
@@ -178,5 +184,5 @@ function iar(
     # extract the converged Ritzpairs
     λ=λ[1:min(length(λ),conv_eig)];
     Q=Q[:,1:min(size(Q,2),conv_eig)];
-    return λ,Q,err[1:k,:],V[:,1:k]
+    return λ,Q,V[:,1:k]
 end

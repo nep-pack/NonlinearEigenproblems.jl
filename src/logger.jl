@@ -1,6 +1,6 @@
 # Logging functionality
 
-export PrintLogger, Logger, ErrorLogger
+export Logger, PrintLogger, ErrorLogger
 export push_info!, push_iteration_info!
 import Base.push!
 using Printf
@@ -65,7 +65,12 @@ function push_iteration_info!(logger::ErrorLogger,level,iter;
                               continues::Bool=false)
     if (iter<=size(logger.errs,1))
         if (size(err,1)<=size(logger.errs,2))
-            logger.errs[iter,1:size(err,1)]=err;
+            err_vec=err;
+            # Make sure err_vec is a vector
+            if (err_vec isa Number)
+                err_vec=[err_vec]
+            end
+            logger.errs[iter,1:size(err,1)]=err_vec;
         else
             if (logger.printlogger.displaylevel>1)
                 println("Warning: Insufficient space in logger matrix");
