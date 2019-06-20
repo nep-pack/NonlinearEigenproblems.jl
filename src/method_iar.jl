@@ -131,7 +131,7 @@ function iar(
                 if err[k,s]<tol; conv_eig=conv_eig+1; end
             end
             idx=sortperm(err[k,1:k]); # sort the error
-            err[1:k,k]=err[idx,k];
+            err[k,1:k]=err[k,idx];
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
                 nrof_eigs = Int(min(length(λ),Neig))
