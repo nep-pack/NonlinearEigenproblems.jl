@@ -73,7 +73,7 @@ function sgiter(::Type{T},
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
        v[:] = compute_jth_eigenvector(eig_solver, nep, λ, j)
        λ_vec = compute_rf(real_T, nep, v, TOL = tol/10)
-       push_info!(logger,2,"compute_rf: ", λ_vec)
+       push_info!(logger,2,"compute_rf: $λ_vec")
        λ = choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
        err = estimate_error(ermdata,λ, v)
        push_iteration_info!(logger,k,err=err,λ=λ);

@@ -62,7 +62,10 @@ function jd_betcke(::Type{T},
                    λ::Number = zero(T),
                    v::Vector = randn(size(nep,1)),
                    target::Number = zero(T),
-                   displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                   logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    @parse_logger_param!(logger)
+
     # Initial logical checks
     n = size(nep,1)
     if (maxit > n)
@@ -90,7 +93,6 @@ function jd_betcke(::Type{T},
 
     # Initial check for convergence
     err = estimate_error(ermdata,λ,u)
-    @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
         λ_vec[conveig] = λ
@@ -138,7 +140,9 @@ function jd_betcke(::Type{T},
 
         # Check for convergence
         err = estimate_error(ermdata,λ,u)
-        @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", k, conveig, err))
+        push_iteration_info!(logger,k,err=err,continues=true)
+        push_info!(logger," conveig=$conveig");
+
         if (err < tol) && (conveig == 0 ||
                 all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
             conveig += 1
@@ -216,7 +220,10 @@ function jd_effenberger(::Type{T},
                         v::Vector = rand(T,size(nep,1)),
                         target::Number = zero(T),
                         deflation_mode = :Auto,
-                        displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                        logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    @parse_logger_param!(logger)
+
     # Initial logical checks
     n = size(nep,1)
     if (maxit > n)
@@ -242,7 +249,6 @@ function jd_effenberger(::Type{T},
 
     # Initial check for convergence
     err = norm(compute_Mlincomb(nep,λ,u))
-    @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) # Check if initial guess is good enough, otherwise compute initial invariant pair
         λ_init = T(rand())
         u_init = rand(n+1)
@@ -252,7 +258,7 @@ function jd_effenberger(::Type{T},
         λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
-                                                          linsolvercreator, tol, target, displaylevel,
+                                                          linsolvercreator, tol, target, logger,
                                                           Neig, u_init, λ_init)
     end
 
@@ -272,7 +278,7 @@ function jd_effenberger(::Type{T},
         λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           deflated_nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
-                                                          linsolvercreator, tol, target, displaylevel,
+                                                          linsolvercreator, tol, target, logger,
                                                           Neig, u_init, λ_init)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
@@ -318,7 +324,7 @@ function jd_effenberger_inner!(::Type{T},
                               linsolvercreator::Function,
                               tol::Number,
                               target::Number,
-                              displaylevel::Int,
+                              logger,
                               Neig::Int,
                               u::Vector{T},
                               λ::T) where {T<:Number}
@@ -370,9 +376,12 @@ function jd_effenberger_inner!(::Type{T},
         # Compute residual and check for convergence
         rk = compute_Mlincomb(target_nep, λ, u)
         err = norm(rk) #Error measure, see (9)/(3.2) in Effenberger # TODO: Can we use another error measure?
-        @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %3d\n", loop_counter, conveig, err, k))
+        push_iteration_info!(logger,loop_counter,err=err,continues=true);
+        push_info!(logger," conveig=$conveig, subspace dim=$k");
+
         if (err < tol) #Frist check, no other eiganvalues can be converged
-            @ifd(print("One eigenvalue converged. Deflating and restarting.\n"))
+            push_info!(logger,
+                       "One eigenvalue converged. Deflating and restarting.")
 
             # TODO: Here one can implement a continuation with the same basis as in Effenberger section 4.2.5
             # What is here is only a light kind adapted to an "unknown" inner solver
