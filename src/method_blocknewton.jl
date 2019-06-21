@@ -51,9 +51,12 @@ function blocknewton(nep::AbstractSPMF;
                      errmeasure::Function =  default_block_errmeasure(nep::NEP),
                      tol::Real=eps(real(eltype(S)))*100,
                      maxit::Integer=10,
-                     displaylevel::Integer=0,
+                     logger=0,
                      armijo_factor::Real=1,
                      armijo_max::Integer=5)
+
+    @parse_logger_param!(logger)
+
     T=complex(eltype(S))
     # This implementation is for complex arithmetic only
     # since the original paper is based on the Schur form (not real Schur form)
@@ -77,9 +80,9 @@ function blocknewton(nep::AbstractSPMF;
     # Main loop
     for k=1:maxit
         err0=errmeasure(S,X)
-        @ifd(@printf("Iteration %d: Error: %e",k,err0))
+        push_iteration_info!(logger,k,err=err0,continues=true);
         if (err0<tol)
-            @ifd(println())
+            push_iteration_info!(logger,"");
             return S,X
         end
 
@@ -93,7 +96,7 @@ function blocknewton(nep::AbstractSPMF;
                                     WW,  # Orthogonalization matrix
                                     Res*QQ, # RT
                                     zeros(T,p,p),  #RV=0
-                                    displaylevel);
+                                    logger);
         dX=dXt*QQ';
         dS=QQ*dSt*QQ';
 
@@ -116,9 +119,9 @@ function blocknewton(nep::AbstractSPMF;
 
         end
         if (j>0)
-            @ifd(@printf(" Armijo scaling=%f\n",scaling))
+            push_info!(logger," Armijo scaling=$scaling")
         else
-            @ifd(@printf("\n"))
+            push_info!(logger,"");
         end
 
 
@@ -141,7 +144,7 @@ end
 # (S,X) Schur pair approx
 # W tensor with orthogonalization coeffs
 # RT,RV the right-hand side of linear system
-function newtonstep_linsys(::Type{T},nep::AbstractSPMF,S, X, W, RT, RV, displaylevel) where {T}
+function newtonstep_linsys(::Type{T},nep::AbstractSPMF,S, X, W, RT, RV, logger) where {T}
 
     n = size(nep,1);
     p = size(X,2); l = size(W,3);
