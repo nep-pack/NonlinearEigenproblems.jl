@@ -43,16 +43,16 @@ end
    struct PrintLogger <: Logger ;
 
 When you use this logger, you will obtain printouts in stdout,
-no other logging. The logger parameter specified,
+no other logging. The displaylevel parameter specified,
 how much should be printed.
 """
 struct PrintLogger <: Logger ;
-    logger::Int
+    displaylevel::Int
 end
 
 
 function push_info!(logger::PrintLogger,level,v::String;continues::Bool=false)
-    if (logger.logger>=level)
+    if (logger.displaylevel>=level)
         print(v);
         if (!continues)
             println();
@@ -63,7 +63,7 @@ end
 function push_iteration_info!(logger::PrintLogger,level,iter;
                               err=Inf,λ=NaN,v=NaN,
                               continues::Bool=false)
-    if (logger.logger>=level)
+    if (logger.displaylevel>=level)
         print("iter ",iter, " err:",err, " λ=",λ);
         if (!continues)
             println()
@@ -86,10 +86,10 @@ struct ErrorLogger{T} <: Logger  where {T};
 end
 
 
-function ErrorLogger(nof_eigvals=100,nof_iters=100,logger=1)
+function ErrorLogger(nof_eigvals=100,nof_iters=100,displaylevel=1)
     s=Matrix{Float64}(undef,nof_iters,nof_eigvals)
     s[:] .= NaN;
-    printlogger=PrintLogger(logger)
+    printlogger=PrintLogger(displaylevel)
     return ErrorLogger{eltype(s)}(s,printlogger);
 end
 
@@ -107,7 +107,7 @@ function push_iteration_info!(logger::ErrorLogger,level,iter;
             end
             logger.errs[iter,1:size(err,1)]=err_vec;
         else
-            if (logger.printlogger.logger>1)
+            if (logger.printlogger.displaylevel>1)
                 println("Warning: Insufficient space in logger matrix");
             end
         end
