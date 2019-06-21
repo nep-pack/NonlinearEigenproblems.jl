@@ -5,18 +5,47 @@ export push_info!, push_iteration_info!
 import Base.push!
 using Printf
 
+    """
+    abstract type Logger ; end
+
+The type represents a way to log information throughout the algorithms,
+as well as a storage. The most common `Logger`s are `PrintLogger` and
+`ErrorLogger`.
+
+As a method developer you want to use `push_info!` and
+`push_iteration_info!`.
+"""
 abstract type Logger ; end
 
+   """
+    function push_info!(logger, [level,] v; continues::Bool=false)
+
+Pushes a string v to the logger. If continues=true, the next
+`push_info!` (or `push_iteration_info!`) is connected to this,
+e.g. line-feed will be omitted.
+"""
 function push_info!(logger::Logger,v::String; continues::Bool=false)
     push_info!(logger,1,v;continues=continues);
 end
+   """
+    function push_iteration_info!(logger, [level,] iter; kwargs)
+
+Pushes information about a specific iteration `iter`. The supported
+keyword arguments include `λ`, `err` and `v`.
+
+"""
 function push_iteration_info!(logger::Logger,iter; kwargs...)
     push_iteration_info!(logger,1,iter;kwargs...);
 end
 
 
+   """
+   struct PrintLogger <: Logger ;
 
-# PrintLogger: printouts only
+When you use this logger, you will obtain printouts in stdout,
+no other logging. The displaylevel parameter specified,
+how much should be printed.
+"""
 struct PrintLogger <: Logger ;
     displaylevel::Int
 end
@@ -43,8 +72,14 @@ function push_iteration_info!(logger::PrintLogger,level,iter;
 end
 
 
+    """
+    struct ErrorLogger <: Logger
 
-# PrintLogger: printouts only
+When you use this logger, the error of `push_iteration_info!`-calls
+will be stored in `logger.errs`. It can also print to stdout,
+if `displaylevel` is set to a value greater than zero.
+
+"""
 struct ErrorLogger{T} <: Logger  where {T};
     errs::Matrix{T}
     printlogger::Logger

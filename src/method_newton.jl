@@ -30,7 +30,7 @@ orthogonalization vector.  If `c=0` the current approximation will be used for t
 
 The following keyword arguments are in common for many NEP-solvers:
 
-* `displaylevel` specifies how much iteration info should be printed. `displaylevel=0` will not give any printouts.
+* `logger` is eiter a `Logger` object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
 
 * `errmeasure` determines how error is measured. It is either a function handle or a type inheriting from `Errmeasure`. See [`Errmeasure`](@ref) for further description. If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error).
 
