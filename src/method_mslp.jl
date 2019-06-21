@@ -40,8 +40,10 @@ function mslp(::Type{T},
                  tol::Real=eps(real(T))*100,
                  maxit::Integer=100,
                  λ::Number=zero(T),
-                 displaylevel::Integer=0,
+                 logger=0,
                  eigsolvertype::Type=DefaultEigSolver) where {T<:Number}
+
+    @parse_logger_param!(logger)
 
     # Ensure types λ is of type T
     λ::T = T(λ)
@@ -73,7 +75,7 @@ function mslp(::Type{T},
 
         # Checck for convergence
         err=estimate_error(ermdata,λ,v)
-        @ifd(println("Iteration:",k," errmeasure:",err, " λ=",λ))
+        push_iteration_info!(logger,k,err=err,λ=λ);
 
         if (err< tol)
             return (λ,v)

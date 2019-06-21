@@ -73,7 +73,7 @@ using GalleryNLEVP
         @info "Running MSLP"
 
         (λ,v)=mslp(Float64,nep_org,λ=7e-7,
-                   displaylevel=displaylevel,errmeasure=myerrmeasure,
+                   logger=displaylevel,errmeasure=myerrmeasure,
                    tol=tol)
         @test abs(sol_val-λ)/abs(λ) < tol
         if imag(λ) != 0
