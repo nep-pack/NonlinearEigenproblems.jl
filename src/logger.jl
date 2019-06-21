@@ -77,7 +77,7 @@ end
 
 When you use this logger, the error of `push_iteration_info!`-calls
 will be stored in `logger.errs`. It can also print to stdout,
-if `logger` is set to a value greater than zero.
+if `displaylevel` is set to a value greater than zero.
 
 """
 struct ErrorLogger{T} <: Logger  where {T};
