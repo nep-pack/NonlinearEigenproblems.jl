@@ -8,7 +8,7 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype,] nep;[tol,][displaylevel,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
+    λv,V=contour_beyn([eltype,] nep;[tol,][logger,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using an ellipse centered at `σ` with radii given in `radius`, or if only one `radius` is given,

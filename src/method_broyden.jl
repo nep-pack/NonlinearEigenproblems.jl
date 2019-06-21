@@ -551,7 +551,7 @@ julia> λ=S[3,3]
 0.8347353572199486 + 1.5032076225139986e-14im
 julia> minimum(svdvals(compute_Mder(nep,λ)))
 1.296144276122994e-14
-julia> broyden(nep,displaylevel=2,check_error_every=1);  % Prints out a lot more convergence info
+julia> broyden(nep,logger=2,check_error_every=1);  % Prints out a lot more convergence info
 ```
 
 # References

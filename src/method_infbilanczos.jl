@@ -3,7 +3,7 @@ using Random
 
 export infbilanczos
 """
-    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
+    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][logger,][maxit,][check_error_every])
 
 Executes the Infinite Bi-Lanczos method on the problem defined by `nep::NEP`
 and `nept::NEP`. `nep:NEP` is the original nonlinear eigenvalue problem and

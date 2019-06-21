@@ -15,7 +15,7 @@ export implicitdet
 
 #############################################################################
 """
-    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
+    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger,][armijo_factor=1,][armijo_max])
 
 Applies Newton-Raphsons method on the system of
 nonlinear equations with `n+1` unknowns:
@@ -126,7 +126,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
     ############################################################################
 """
-    λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
+    λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger,][armijo_factor=1,][armijo_max,][linsolvecreator])
 
 Applies residual inverse iteration method for nonlinear eigenvalue problems.
 The kwarg `linsolvecreator`
@@ -250,7 +250,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
     # New augnewton
 """
-    augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][linsolvercreator,][armijo_factor,][armijo_max])
+    augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][logger,][linsolvercreator,][armijo_factor,][armijo_max])
 
 Run the augmented Newton method. The method is equivalent to `newton()`
 in exact arithmetic,  but works only with operations on vectors of
@@ -351,7 +351,7 @@ julia> λ1-λ2
 
 
 """
-    quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
+    quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][logger][linsolvercreator,][armijo_factor,][armijo_max])
 
 An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference.
 The method involves one linear system solve per iteration corresponding with the
@@ -449,7 +449,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
 """
-    λ,v = newtonqr([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel])
+    λ,v = newtonqr([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger])
 
 This function implements the Newton-QR method as formulated in the reference. The method ivolves the computation of a rank-revealing QR factorization
 of ``M(λ)``, with the idea that on convergence the the last diagonal element ``R[n,n]`` of the upper-triangular matrix ``R`` becomes zero as a result of ``M(λ)``
@@ -530,7 +530,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
 """
-    λ,v = implicitdet([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel])
+    λ,v = implicitdet([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger])
 
 This function implements the Implicit determinant method as formulated Algorithm 4.3 in the reference. The method applies Newton-Raphson to the equation
 ``det(M(λ))/det(G(λ)) = 0``, where ``G(λ)`` is a saddle point matrix with ``M(λ)``

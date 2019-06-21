@@ -1,7 +1,7 @@
 export sgiter
 
 """
-    λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][displaylevel,][eigsolvertype::Type,])
+    λ,v = sgiter([eltype],nep::NEP,j::Integer;[λ_min,][λ_max,][λ,][errmeasure,][tol,][maxit,][logger,][eigsolvertype::Type,])
 
 Finds the `j`-th eigenvalue of the NEP using safeguarded iteration, with eigenvalue numbering
 according to min-max theory. The method only works for Hermitian problems, and the eigenvalues

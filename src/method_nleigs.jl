@@ -13,7 +13,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
 - `nep`: An instance of a nonlinear eigenvalue problem.
 - `Σ`: A vector containing the points of a polygonal target set in the complex plane.
 - `Ξ`: A vector containing a discretization of the singularity set.
-- `displaylevel`: Level of display (0, 1, 2).
+- `logger`: Level of display (0, 1, 2).
 - `maxdgr`: Max degree of approximation.
 - `minit`: Min number of iterations after linearization is converged.
 - `maxit`: Max number of total iterations.
