@@ -193,10 +193,10 @@ a NEP-solver:
 ```julia
 using NonlinearEigenproblems
 nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
-(λ1,v1)=quasinewton(Float64,nep,displaylevel=1,λ=-5,v=ones(n),tol=1e-9);
-(λ2,v2)=quasinewton(nep,displaylevel=1,λ=-11,v=ones(n),tol=1e-9)
-(λ3,v3)=quasinewton(nep,displaylevel=1,λ=-20,v=ones(n),tol=1e-9)
-(λ4,v4)=quasinewton(nep,displaylevel=1,λ=-35,v=ones(n),tol=1e-9)
+(λ1,v1)=quasinewton(Float64,nep,logger=1,λ=-5,v=ones(n),tol=1e-9);
+(λ2,v2)=quasinewton(nep,logger=1,λ=-11,v=ones(n),tol=1e-9)
+(λ3,v3)=quasinewton(nep,logger=1,λ=-20,v=ones(n),tol=1e-9)
+(λ4,v4)=quasinewton(nep,logger=1,λ=-35,v=ones(n),tol=1e-9)
 ```
 We can easily do a sanity check of the solution by visualizing it in this way
 ```julia
@@ -230,7 +230,7 @@ error measure is used. With this use of measuring the error other
 methods, e.g., infinite Arnoldi method terminate in a reasonable
 number of iterations:
 ```julia-repl
-julia> (λ,v)=iar(nep,displaylevel=1,σ=-36,v=ones(n),tol=1e-9,
+julia> (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,
                  errmeasure=BackwardErrmeasure,Neig=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
