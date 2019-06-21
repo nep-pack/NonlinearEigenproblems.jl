@@ -58,7 +58,7 @@ function nleigs(
         nep::NEP,
         Σ::AbstractVector{CT}=Vector{CT}([-1.0-1im,-1+1im,+1+1im,1-1im]);
         Ξ::Vector{T} = [T(Inf)],
-        displaylevel::Int = 0,
+        logger = 0,
         maxdgr::Int = 100,
         minit::Int = 20,
         maxit::Int = 200,
@@ -75,6 +75,8 @@ function nleigs(
         blksize::Int = 20,
         return_details::Bool = false,
         check_error_every::Int = 5) where {T<:Real, CT<:Complex{T}}
+
+    @parse_logger_param!(logger)
 
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{CT}}()
@@ -253,9 +255,10 @@ function nleigs(
                         V = resize_matrix(V, kn, b+1)
                     end
                     N -= 1
-                    if displaylevel > 0
-                        println("Linearization converged after $kconv iterations")
-                        println(" --> freeze linearization")
+                    push_info!(logger,
+                               "Linearization converged after $kconv iterations")
+                    push_info!(logger,
+                               "--> freeze linearization")
                     end
                 elseif k == maxdgr+1
                     kconv = k
@@ -271,9 +274,8 @@ function nleigs(
                     end
                     N -= 1
                     @warn "NLEIGS: Linearization not converged after $maxdgr iterations"
-                    if displaylevel > 0
-                        println(" --> freeze linearization")
-                    end
+                    push_info!(logger,
+                               "--> freeze linearization")
                 end
             end
         end
@@ -332,10 +334,10 @@ function nleigs(
             end
 
             nbconv = isempty(conv) ? 0 : sum(conv)
-            if displaylevel > 0
-                iteration = static ? k - N : k
-                println("  iteration $iteration: $nbconv of $nblamin < $tol")
-            end
+
+            iteration = static ? k - N : k
+            push_info!(logger,
+                       "  iteration $iteration: $nbconv of $nblamin < $tol")
         end
 
         # Ritz pairs

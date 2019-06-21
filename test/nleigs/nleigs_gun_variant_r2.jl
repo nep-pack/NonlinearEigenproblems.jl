@@ -12,7 +12,7 @@ include(joinpath("..", "rk_helper", "gun_test_utils.jl"))
     nep, Σ, Ξ, v, nodes, funres = gun_init()
 
     # solve nlep
-    lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, displaylevel=verbose > 0 ? 1 : 0, minit=60, maxit=100, v=v, nodes=nodes, errmeasure=funres, return_details=verbose > 1)
+    lambda, X, res, solution_info = nleigs(nep, Σ, Ξ=Ξ, logger=verbose > 0 ? 1 : 0, minit=60, maxit=100, v=v, nodes=nodes, errmeasure=funres, return_details=verbose > 1)
 
     verify_lambdas(21, nep, lambda, X)
 
