@@ -74,12 +74,14 @@ function iar_chebyshev(
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
-    displaylevel=0,
+    logger=0,
     check_error_every=1,
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
     a = isa(nep,DEP) ? -maximum(nep.tauv) : -1.0,
     b = isa(nep,DEP) ? 0.0 : 1.0
     )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:ComputeY0Cheb}
+
+    @parse_logger_param!(logger)
 
     if (compute_y0_method == ComputeY0ChebAuto)
         if (isa(nep,DEP))
@@ -102,7 +104,7 @@ function iar_chebyshev(
             σ_orig=σ; γ_orig=γ
             σ=zero(T); γ=one(T)
     end
-    @ifd(println("IAR Chebyshev with interval [",a,",",b,"]"));
+    push_info!(logger,"IAR Chebyshev with interval [$a,$b]");
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
@@ -134,9 +136,7 @@ function iar_chebyshev(
     ermdata=init_errmeasure(errmeasure,nep);
 
     while (k <= m) && (conv_eig<Neig)
-        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
-            println("Iteration:",k, " conveig:",conv_eig)
-        end
+
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
@@ -160,12 +160,27 @@ function iar_chebyshev(
             Q=VV*Z
             λ=σ .+ γ ./ D
             conv_eig=0;
-            for s=1:k
-                err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
-                if err[k,s]<tol; conv_eig=conv_eig+1; end
+            # compute the errors
+            err[k,1:size(λ,1)]=
+              map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+            # Log them and compute the converged
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)],
+                                 continues=true);
+            for s=1:size(λ,1)
+                if err[k,s]<tol;
+                    conv_eig=conv_eig+1;
+                    push_info!(logger,"+", continues=true);
+                elseif err[k,s]<tol*10
+                    push_info!(logger,"=", continues=true);
+                else
+                    push_info!(logger,"-", continues=true);
+                end
             end
+            push_info!(logger,"");
+            # Sort the errors
             idx=sortperm(err[k,1:k]); # sort the error
-            err[1:k,k]=err[idx,k];
+            err[k,1:k]=err[k,idx];
+
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=Neig)
                 nrof_eigs = Int(min(length(λ),Neig))
