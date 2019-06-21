@@ -75,7 +75,7 @@ using LinearAlgebra
         v0=ones(n)
 
 
-        λ,x,y =rfi(nep, nept, displaylevel=displaylevel, v=ones(n), u=ones(n), tol=1e-15)
+        λ,x,y =rfi(nep, nept, logger=displaylevel, v=ones(n), u=ones(n), tol=1e-15)
         @test compute_resnorm(nep,λ,x) < eps()*100
         @test compute_resnorm(nept,λ,y) < eps()*100
 
@@ -83,7 +83,7 @@ using LinearAlgebra
         # Test RFIb
 
         @info "rfi_b"
-        λb,xb,yb =rfi_b(nep, nept, displaylevel=displaylevel, v=v0, u=u0, λ=λ+0.01, tol=1e-15)
+        λb,xb,yb =rfi_b(nep, nept, logger=displaylevel, v=v0, u=u0, λ=λ+0.01, tol=1e-15)
         @test λ ≈ λb
 
 
@@ -100,7 +100,7 @@ using LinearAlgebra
         nepp.tauv[2] = nep.tauv[2]+δ
         neptp = deepcopy(nept)
         neptp.tauv[2] = nept.tauv[2]+δ
-        λδ,x,y = rfi(nepp,neptp,displaylevel=displaylevel, v=ones(n), u=ones(n))
+        λδ,x,y = rfi(nepp,neptp,logger=displaylevel, v=ones(n), u=ones(n))
         λp_approx=(λδ-λ)/δ
         @test abs(λp-λp_approx)< (δ*10)
     end

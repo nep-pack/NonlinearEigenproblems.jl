@@ -37,7 +37,9 @@ function rfi(::Type{T},
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=0) where {T <: Number}
+            logger=0) where {T <: Number}
+
+        @parse_logger_param!(logger)
 
         err = Inf
 
@@ -55,7 +57,8 @@ function rfi(::Type{T},
                 return λ,u,v
             end
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v, continues=true);
+            push_info!(logger," u=$u");
 
             local linsolver::LinSolver = linsolvercreator(nep,λ)
             local linsolver_t::LinSolver = linsolvercreator(nept,λ)
@@ -108,7 +111,9 @@ function rfi_b(::Type{T},
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=1) where {T <: Number}
+            logger=0) where {T <: Number}
+
+        @parse_logger_param!(logger)
 
         err = Inf
         #Normalize v and u
@@ -125,7 +130,8 @@ function rfi_b(::Type{T},
                 return λ,u,v
             end
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v, continues=true);
+            push_info!(logger," u=$u");
 
             #Construct C_k
             C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[T(1)],1);v'*compute_Mder(nep,λ,1) T(0.0)]
