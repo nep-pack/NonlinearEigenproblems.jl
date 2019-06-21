@@ -72,11 +72,13 @@ function ilan(
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
-    displaylevel=0,
+    logger=0,
     check_error_every=30,
     inner_solver_method=DefaultInnerSolver,
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
+
+    @parse_logger_param!(logger)
 
     # Ensure types σ and v are of type T
     σ=T(σ)
@@ -132,9 +134,6 @@ function ilan(
     ermdata=init_errmeasure(errmeasure,nep);
 
     while (k <= m) && (conv_eig<Neig)
-        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
-            println("Iteration:",k, " conveig:",conv_eig)
-        end
 
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
@@ -179,11 +178,13 @@ function ilan(
             err_lifted=(λ,z)->estimate_error(ermdata,λ,VV*z);
 
             # solve the projected NEP
-            if displaylevel>0
-                println("Solving the projected problem")
-            end
+            push_info!(logger,2,"Solving the projected problem",continues=true);
             λ,ZZ=iar(pnep;Neig=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            push_info!(logger,2,".");
             W=VV*ZZ;
+
+            push_iteration_info!(logger,2,k,λ=λ);
+            push_info!(logger,"$k:conv_eig=$conv_eig");
 
             conv_eig=length(λ)
             # extract the converged Ritzpairs
