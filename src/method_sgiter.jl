@@ -39,9 +39,11 @@ function sgiter(::Type{T},
                    errmeasure::ErrmeasureType = DefaultErrmeasure,
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
-                   displaylevel::Integer = 0,
+                   logger::Integer = 0,
                    eigsolvertype::Type = DefaultEigSolver
                    ) where {T<:Number}
+
+    @parse_logger_param!(logger)
 
     n = size(nep,1)
     if (j > n) || (j <= 0)
@@ -71,11 +73,10 @@ function sgiter(::Type{T},
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
        v[:] = compute_jth_eigenvector(eig_solver, nep, λ, j)
        λ_vec = compute_rf(real_T, nep, v, TOL = tol/10)
-       @ifd(println("compute_rf: ", λ_vec))
+       push_info!(logger,2,"compute_rf: ", λ_vec)
        λ = choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
-       @ifd(println(" λ = ", λ))
        err = estimate_error(ermdata,λ, v)
-       @ifd(print("Iteration:", k, " errmeasure:", err, "\n"))
+       push_iteration_info!(logger,k,err=err,λ=λ);
        if (err < tol)
            return (λ, v)
        end
