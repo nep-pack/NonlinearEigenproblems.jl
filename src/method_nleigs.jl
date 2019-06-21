@@ -259,7 +259,6 @@ function nleigs(
                                "Linearization converged after $kconv iterations")
                     push_info!(logger,
                                "--> freeze linearization")
-                    end
                 elseif k == maxdgr+1
                     kconv = k
                     expand = false
