@@ -109,9 +109,9 @@ function nlar(::Type{T},
             expand_projectmatrices!(proj_nep,Vk,Vk);
 
             #Use inner_solve() to solve the smaller projected problem
-            push_info!(logger, "Solving inner problem")
+            push_info!(logger, 2, "Solving inner problem",continues=true)
             dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=neigs,σ=σ);
-
+            push_info!(logger, 2, ". Done.")
             # Sort the eigenvalues of the projected problem
             nuv,yv = eigval_sorter(nep,dd,vv,σ,D,R,Vk);
             nu = nuv[1]; y=yv[:,1];
