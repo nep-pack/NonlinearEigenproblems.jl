@@ -42,10 +42,11 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           errmeasure::ErrmeasureType = DefaultErrmeasure,
                           σ::Number=0.0,
                           γ::Number=1,
-                          displaylevel::Integer=0,
+                          logger=0,
                           check_error_every::Integer=1
                           ) where {T<:Number}
 
+        @parse_logger_param!(logger)
 
         n=size(nep,1);
         σ=T(σ);
@@ -91,7 +92,8 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
         λ=zeros(T,m+1); Q=zeros(T,n,m+1); TT=zeros(T,m+1,m+1);
 
 
-        @ifd(@printf("%e %e\n",norm(q), norm(qt)));
+        normq=norm(q); normqt=norm(qt);
+        push_info!(logger,2,"norm(q)=$normq  norm(qt)=$normqt");
 
         # Init errmeasure
         ermdata=init_errmeasure(errmeasure,nep);
@@ -99,9 +101,8 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
         k=1;
 
-        @ifd(@printf("Iteration:"));
         for k=1:m
-            @ifd(@printf("%d ", k));
+
             # Note: conjugate required since we compute s'*r not r'*s
             omega = conj(left_right_scalar_prod(T,nep,nept,Rt1,R1,k,k,σ));
 
@@ -185,13 +186,25 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 #@ifd(println("size(TT)=",size(TT)))
                 Q=Q_basis[:,1:(k+1)]*Z
                 conv_eig=0;
-                err=zeros(real(T),k);
-                for s=1:k
-                    err[s]=estimate_error(ermdata,λ[s],Q[:,s]);
-                    if err[s]<tol; conv_eig=conv_eig+1; end
+                # compute the errors
+
+                err=
+                  map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+                # Log them and compute the converged
+                push_iteration_info!(logger,2, k,err=err,λ=λ,v=
+                                     continues=true);
+                for s=1:size(λ,1)
+                    if err[s]<tol;
+                        conv_eig=conv_eig+1;
+                        push_info!(logger,"+", continues=true);
+                    elseif err[s]<tol*10
+                        push_info!(logger,"=", continues=true);
+                    else
+                        push_info!(logger,"-", continues=true);
+                    end
                 end
-                #println(conv_eig)
-                @ifd(@printf("(%d) ",conv_eig))
+                push_info!(logger,"");
+
                 idx=sortperm(err[1:k]); # sort the error
                 err=err[idx];
 
@@ -203,7 +216,6 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                         normalize!(view(Q,1:n,i))
                     end
                     if (conv_eig>=Neig) || (Neig==Inf)
-                        @ifd(@printf("done \n"));
                         return λ,Q,TT
                     end
                 end
