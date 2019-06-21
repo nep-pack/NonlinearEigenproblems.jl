@@ -128,8 +128,10 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
                          threshold=0.4,
                          time0=time_ns(),
                          errmeasure::Function=broyden_default_errmeasure,
-                         displaylevel=0
+                         logger=0
                          ) where {TT<:Number}
+
+    @parse_logger_param!(logger)
 
     n=size(nep.orgnep,1);
     p=size(nep,1)-n;
@@ -202,7 +204,6 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
                 d = opnorm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
-                @ifd(println(j," Normrk=",opnorm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
 
             #println(j," Normf=",opnorm(F), " λ=",xp[n+p+1]);
@@ -214,7 +215,7 @@ function broyden_naive_H(::Type{TT},nep::NEPBroydenDeflated;
 
     end
 
-    @ifd(println("Too many iterations:",x[n+1])); #" resnorm=",opnorm(rk));
+    push_info!(logger,"Too many iterations"); #" resnorm=",opnorm(rk));
     #error("Too many iterations")
     return (x[n+p+1],x[1:n],x[(n+1):(n+p)],H,H[1:n,(n+1):end],maxit,errhist[1:end])
 
@@ -233,8 +234,10 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
                          threshold=0.4,
                          time0=time_ns(),
                          errmeasure::Function=broyden_default_errmeasure,
-                         displaylevel=0
+                         logger=0
                          ) where {TT<:Number}
+
+    @parse_logger_param!(logger)
 
     n=size(nep.orgnep,1);
     p=size(nep,1)-n;
@@ -314,7 +317,6 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
             timehist[j]=Float64((time_ns()-time0)*1e-9);
             if (mod(j,print_error_every)==0)
                 d = opnorm(CH*x[1:n] - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
-                @ifd(println(j," Normrk=",opnorm(F), " λ=",xp[n+p+1], " structure deviation=",d));
             end
             #println(j," Normf=",opnorm(F), " λ=",xp[n+p+1]);
             if (errhist[j]<tol)
@@ -325,7 +327,7 @@ function broyden_naive_J(::Type{TT},nep::NEPBroydenDeflated;
 
     end
 
-    @ifd(println("Too many iterations:",x[n+1]));#" resnorm=",opnorm(rk));
+    push_info!(logger,"Too many iterations"); #" resnorm=",opnorm(rk));
     #error("Too many iterations")
     return (x[n+p+1],x[1:n],x[(n+1):(n+p)],J[1:n,1:n],J[1:n,(n+1):end],maxit,errhist[1:end])
 
@@ -372,7 +374,10 @@ function broyden_T(::Type{TT},nep::NEP;
                    threshold=0.4,
                    time0=time_ns(),
                    errmeasure::Function=broyden_default_errmeasure,
-                   displaylevel=0) where {TT<:Number}
+                   logger=0) where {TT<:Number}
+
+    @parse_logger_param!(logger)
+
     # Check types are consistent
 
     v=Array{TT,1}(v1);
@@ -491,7 +496,6 @@ function broyden_T(::Type{TT},nep::NEP;
             #errhist[j]=opnorm(rk)/opnorm(v+(X/(λ*II-S))*u);
             if (mod(j,print_error_every)==0)
                 d = opnorm(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
-                @ifd(println(j," err[j]=",errhist[j], " λ=",λ, " structure deviation=",d));
             end
 
             #if (d>1e-10)
@@ -499,15 +503,15 @@ function broyden_T(::Type{TT},nep::NEP;
             #end
 
 
+            push_iteration_info!(logger,j,err=errhist[j]);
             if (errhist[j]<tol)
-                @ifd(println(errmeasure));
                 return (λ,v,u,T,W,j,errhist[1:j],timehist[1:j])
             end
         end
 
     end
 
-    @ifd(println("Too many iterations:",λ));# " resnorm=",opnorm(rk));
+    push_info!(logger,"Too many iterations"); #" resnorm=",opnorm(rk));
     #error("Too many iterations")
     #return (λ,[v;u],zeros(n+1,n+1),j,errhist[1:j])
     return (λ,v,u,T,W,maxit,errhist,timehist)
@@ -570,8 +574,12 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                  add_nans::Bool=false,
                  include_restart_timing::Bool=true,
                  eigmethod::Symbol=:eig,
-                 displaylevel::Integer=0
+                 logger =0,
+                 inner_logger = 0
                  ) where {TT<:Number}
+
+    @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
 
     time0=time_ns();
     n=size(nep,1);
@@ -617,7 +625,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
 
         # Step 6
         MM::Matrix{TT}=[M1 U1; X' zeros(TT,k-1,k-1)];
-        @ifd(println("running eig"));
+        push_info!(logger,"running eig",continues=true);
 
         local d,V;
         if (eigmethod==:eig)
@@ -630,8 +638,8 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
             error("Unknown eig method",eignmethod)
         end
 
+        push_info!(logger,"");
 
-        @ifd(println("."));
         x=V[:,argmin(abs.(d))];
 
 
@@ -661,16 +669,16 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
 
         # Step 7
         d=sqrt(eps(real(TT)));
-        @ifd(@printf("Computing initial matrix"))
+        push_info!(logger,"Computing initial matrix",continues=true);
         f1a=(compute_Mlincomb(nep,σ+d,v0)-compute_Mlincomb(nep,σ-d,v0))/2d;
         f1b = -U1 * ((σ * Matrix{TT}(I, k-1, k-1) - S) \ u0)
-        @ifd(println("."));
+        push_info!(logger,".");
         f1=f1a+f1b;
         W1=[U1 f1];
 
 
         if (broyden_variant == :T)
-            @ifd(println("Running T variant *********************************** n=",n));
+            push_info!(logger,"Running T variant *********************************** n=$n")
             T=copy(T1);
 
             (λm,vm,um,Tm,Wm,iter,errhist,timehist)=
@@ -685,9 +693,9 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                       tol=tol,
                       errmeasure=errmeasure,
                       time0=time0,
-                      displaylevel=displaylevel-1)
+                      logger=inner_logger)
         elseif (broyden_variant == :J)
-            @ifd(println("Running J variant *********************************** n=",n));
+            push_info!(logger,"Running J variant *********************************** n=$n")
             dnep=NEPBroydenDeflatedEll1(nep,S,X);
 
             (λm,vm,um,Tm,Wm,iter,errhist,timehist)=
@@ -701,9 +709,9 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                             threshold=threshold,
                             tol=tol,
                             time0=time0,
-                            displaylevel=displaylevel-1)
+                            logger=inner_logger)
         elseif (broyden_variant == :H)
-            @ifd(println("Running H variant *********************************** n=",n));
+            push_info!(logger,"Running H variant *********************************** n=$n")
             dnep=NEPBroydenDeflatedEll1(nep,S,X);
 
             (λm,vm,um,Tm,Wm,iter,errhist,timehist)=
@@ -717,7 +725,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
                             threshold=threshold,
                             tol=tol,
                             time0=time0,
-                            displaylevel=displaylevel-1)
+                            logger=inner_logger)
         else
             error("Unknown broyden method");
         end
@@ -741,7 +749,8 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         sumiter=sumiter+iter;
         um=um/norm(vm[1:n])
         vm=vm/norm(vm[1:n]) # Normalize
-        @ifd(println("Found an eigval ",k,":",λm));
+
+        push_info!(logger,"Found an eigval $k:$λm");
         #println("Quality of eigval guess:", abs(λ0-λ1)/abs(λ1))
         #I=argmin(abs.(λv-λ1))
         #println("Best guess distance:", abs(λv[I]-λ1)/abs(λ1))
@@ -764,8 +773,7 @@ if (abs(imag(λm))>tol*10 && addconj)
     λ1=conj(λm);
 
     rnorm=norm(compute_Mlincomb(nep,λ1,v1))
-    @ifd(println("Adding conjugate ",k,
-                 " norm(res)=",rnorm));
+    push_info!(logger,"Adding conjugate $k")
     if (rnorm>tol*10)
         @warn "Trying to add a conjugate pair which does not have a very small residual."
     end
@@ -789,7 +797,7 @@ if (abs(imag(λm))>tol*10 && addconj)
 end
 k=k+1;
 end
-@ifd(println("Iterations:",sumiter))
+push_info!(logger,"Iterations:$sumiter")
 return S,X,T1,all_errhist,all_timehist,all_iterhist;
 
 end
@@ -893,7 +901,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
                                                                    print_error_every=print_error_every,                                              threshold=threshold,
                                                                    tol=tol,
                                                                    time0=time0,
-                                                                   displaylevel=displaylevel-1)
+                                                                   logger=inner_logger)
 
         elseif (broyden_variant == :H)
             println("Running H variant *********************************** n=",n);
@@ -909,7 +917,7 @@ function deflated_broyden_ell2(::Type{TT},nep::NEP,approxnep::NEP;σ=0,
                                                                    print_error_every=print_error_every,                                              threshold=threshold,
                                                                    tol=tol,
                                                                    time0=time0,
-                                                                   displaylevel=displaylevel-1)
+                                                                   logger=inner_logger)
 
         else
             error("Unknown broyden method");
