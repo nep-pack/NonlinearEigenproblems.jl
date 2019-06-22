@@ -133,7 +133,7 @@ function iar(
             err[k,1:size(λ,1)]=
               map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
             # Log them and compute the converged
-            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)],
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);
             for s=1:size(λ,1)
                 if err[k,s]<tol;
