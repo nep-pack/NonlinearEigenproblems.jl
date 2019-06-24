@@ -197,7 +197,7 @@ function tiar(
                                         Neig=size(λ,1)+3,
                                         σ=σ,
                                         tol=tol/10,
-                                        logger=inner_logger);
+                                        innerlogger=inner_logger);
 
 
                 II=sortperm(abs.(λproj .- σ));

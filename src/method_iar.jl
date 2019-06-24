@@ -123,7 +123,7 @@ function iar(
                                         Neig=size(λ,1)+3,
                                         σ=mean(λ),
                                         tol=tol,
-                                        logger=inner_logger);
+                                        inner_logger=inner_logger);
 
                 Q=QQ*Qproj;
                 λ=λproj;
