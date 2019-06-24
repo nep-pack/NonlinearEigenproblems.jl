@@ -198,6 +198,9 @@ The function tries to compute `Neig` number of eigenvalues, and throws a `NoConv
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvalues are computed. For further specifications on the `deflation_mode`, see the function `deflate_eigpair`.
 
+See [`newton`](@ref) for other parameters.
+
+
 # Example
 ```julia-repl
 julia> nep=nep_gallery("dep0",100);
