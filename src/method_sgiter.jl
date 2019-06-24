@@ -39,7 +39,7 @@ function sgiter(::Type{T},
                    errmeasure::ErrmeasureType = DefaultErrmeasure,
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
-                   logger::Integer = 0,
+                   logger = 0,
                    eigsolvertype::Type = DefaultEigSolver
                    ) where {T<:Number}
 
