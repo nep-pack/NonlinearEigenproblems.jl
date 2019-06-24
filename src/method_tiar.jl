@@ -5,7 +5,9 @@ using LinearAlgebra
 using Random
 
 """
-    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS])
+    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,]
+[v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS,]
+[proj_solve=false,][inner_solver_method=DefaultInnerSolver,][inner_logger=0])
 
 Run the tensor infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`. This is equivalent to `iar`, but handles orthogonalization with
 a tensor representation.
@@ -23,6 +25,9 @@ method, used in contructing the orthogonal basis of the Krylov space, is specifi
 The iteration is continued until `Neig` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
 However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+The parameter `proj_solve` determines if the Ritz paris are extracted using the Hessenberg matrix (false),
+or as the solution to a projected problem (true). If true, the method is descided by `inner_solver_method`, and the
+logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 
 See [`newton`](@ref) for other parameters.
 
@@ -64,7 +69,7 @@ function tiar(
     check_error_every=1,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver,
-    inner_logger=0    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_logger=0)where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
