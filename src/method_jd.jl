@@ -192,6 +192,7 @@ end
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
+The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
