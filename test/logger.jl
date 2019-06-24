@@ -12,6 +12,8 @@ using Test
     EE=E[(!isnan).(E)];
     # Check "essentially" quad convergence
     @test abs(log10(EE[end-1]^2)-log10(EE[end]))<2
+    @test length(EE) > 5 #Has done more than 5 iterations
+    @test EE[end] < eps()*10 # Error measure fulfills stopping criteria
 
 
 end

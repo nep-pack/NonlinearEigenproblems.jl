@@ -19,11 +19,19 @@ using LinearAlgebra
     Q = Matrix(Q)
     set_projectmatrices!(pnep,Q,Q)
 
-    λv,V = inner_solve(DefaultInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, Neig=3, V=ones(k, 2), tol=eps()*100)
+    logger=ErrorLogger(1,100,0);
+    λv,V = inner_solve(DefaultInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, Neig=3, V=ones(k, 2), tol=eps()*100, inner_logger=logger)
     verify_lambdas(2, pnep, λv, V, eps()*500)
+    E=logger.errs[:,1]; E=E[(!isnan).(E)];
+    @test length(E) > 5 #Has done more than 5 iterations
+    @test E[end] < eps()*100 # Error measure fulfills stopping criteria
 
-    λv,V = inner_solve(NewtonInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, V=ones(k, 2), tol=eps()*100)
+    logger=ErrorLogger(1,100,0);
+    λv,V = inner_solve(NewtonInnerSolver, ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, V=ones(k, 2), tol=eps()*100, inner_logger=logger)
     verify_lambdas(2, pnep, λv, V, eps()*500)
+    E=logger.errs[:,1]; E=E[(!isnan).(E)];
+    @test length(E) > 5 #Has done more than 5 iterations
+    @test E[end] < eps()*100 # Error measure fulfills stopping criteria
 
     #λv,V=inner_solve(SGIterInnerSolver,pnep,λv=[0.0],j=1);
     #verify_lambdas(2, pnep, λv, V, eps()*500)
