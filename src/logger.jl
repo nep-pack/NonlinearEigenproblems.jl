@@ -14,6 +14,8 @@ as well as a storage. The most common `Logger`s are `PrintLogger` and
 
 As a method developer you want to use `push_info!` and
 `push_iteration_info!`.
+
+ See also: [`PrintLogger`](@ref) and [`ErrorLogger`](@ref).
 """
 abstract type Logger ; end
 
