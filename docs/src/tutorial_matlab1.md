@@ -66,7 +66,7 @@ Now you can instantiate the NEP and use your favorite NEP-solver,
 in this case we use [`newtonqr`](methods.md#NonlinearEigenproblems.NEPSolver.newtonqr).
 ```julia
 julia> nep=MATLABNEP();
-julia> (λ,v)=newtonqr(nep,λ=-3,displaylevel=1,maxit=30,v=ones(10))
+julia> (λ,v)=newtonqr(nep,λ=-3,logger=1,maxit=30,v=ones(10))
 Iteration: 1 errmeasure: 1.0335933094121779
 Iteration: 2 errmeasure: 0.305924622401145
 Iteration: 3 errmeasure: 0.6000405833925101

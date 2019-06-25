@@ -12,14 +12,14 @@ using LinearAlgebra
     sol_val= 7.139494306065948e-07;
 
     (λ,v)=quasinewton(nep,λ=7.14e-7,v=ones(n),
-                      displaylevel=displaylevel, armijo_factor=0.5,armijo_max=10)
+                      logger=displaylevel, armijo_factor=0.5,armijo_max=10)
 
     @test abs(λ-sol_val)<1e-10;
 
     # check that we "maintain" real arithmetic
     vv=real(v/v[1]);
     (λ1,v)=resinv(Float64,nep,λ=7.14e-7,v=vv,
-                      displaylevel=displaylevel)
+                      logger=displaylevel)
     @test abs(λ-sol_val)<1e-10;
 
     @test eltype(v)==Float64

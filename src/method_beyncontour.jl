@@ -8,7 +8,7 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype,] nep;[tol,][displaylevel,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
+    λv,V=contour_beyn([eltype,] nep;[tol,][logger,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using an ellipse centered at `σ` with radii given in `radius`, or if only one `radius` is given,
@@ -46,7 +46,7 @@ function contour_beyn(::Type{T},
                       nep::NEP;
                       tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
                       σ::Number=zero(complex(T)),
-                      displaylevel::Integer=0,
+                      logger=0,
                       linsolvercreator::Function=backslash_linsolvercreator,
                       neigs::Integer=2, # Number of wanted eigvals
                       k::Integer=neigs+1, # Columns in matrix to integrate
@@ -57,6 +57,8 @@ function contour_beyn(::Type{T},
                       sanity_check=true,
                       rank_drop_tol=tol # Used in sanity checking
                       )where{T<:Number}
+
+    @parse_logger_param!(logger)
 
     # Geometry
     length(radius)==1 ? radius=(radius,radius) : nothing
@@ -84,7 +86,7 @@ function contour_beyn(::Type{T},
 
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
-        @ifd(print("."))
+        push_info!(logger,".",continues=true);
         local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
         # This requires that lin_solve can handle rectangular
         # matrices as the RHS
@@ -94,12 +96,12 @@ function contour_beyn(::Type{T},
     # Constructing integrands
     Tv(λ) = local_linsolve(T(λ),Vh)
     f(t) = Tv(g(t))*gp(t)
-    @ifd(print("Computing integrals"))
+    push_info!(logger,"Computing integrals",continues=true)
 
 
     local A0,A1
     if (quad_method == :quadg_parallel)
-        @ifd(print(" using quadg_parallel"))
+        push_info!(logger," using quadg_parallel")
         (A0,A1)=quadg_parallel(f,g,0,2*pi,N);
     elseif (quad_method == :quadg)
         #@ifd(print(" using quadg"))
@@ -107,10 +109,10 @@ function contour_beyn(::Type{T},
         #A1=quadg(f2,0,2*pi,N);
         error("disabled");
     elseif (quad_method == :ptrapz)
-        @ifd(print(" using ptrapz"))
+        push_info!(logger," using ptrapz")
         (A0,A1)=ptrapz(f,g,0,2*pi,N);
     elseif (quad_method == :ptrapz_parallel)
-        @ifd(print(" using ptrapz_parallel"))
+        push_info!(logger," using ptrapz_parallel")
         (A0,A1)=ptrapz_parallel(f,g,0,2*pi,N);
     elseif (quad_method == :quadgk)
         #@ifd(print(" using quadgk"))
@@ -120,15 +122,15 @@ function contour_beyn(::Type{T},
     else
         error("Unknown quadrature method:"*String(quad_method));
     end
-    @ifd(println("."));
+    push_info!(logger,"");
     # Don't forget scaling
     A0[:,:] = A0 ./(2im*pi);
     A1[:,:] = A1 ./(2im*pi);
 
-    @ifd(print("Computing SVD prepare for eigenvalue extraction "))
+    push_info!(logger,"Computing SVD prepare for eigenvalue extraction ",continues=true)
     V,S,W = svd(A0)
     p = count( S/S[1] .> rank_drop_tol);
-    @ifd(println(" p=",p));
+    push_info!(logger," p=$p");
 
     V0 = V[:,1:p]
     W0 = W[:,1:p]
@@ -136,10 +138,10 @@ function contour_beyn(::Type{T},
 
     # Extract eigenval and eigvec approximations according to
     # step 6 on page 3849 in the reference
-    @ifd(println("Computing eigenvalues "))
+    push_info!(logger,"Computing eigenvalues ")
     λ,VB=eigen(B)
     λ[:] = λ .+ σ
-    @ifd(println("Computing eigenvectors "))
+    push_info!(logger,"Computing eigenvectors ")
     V = V0 * VB;
     for i = 1:p
         normalize!(V[:,i]);
@@ -179,7 +181,8 @@ function contour_beyn(::Type{T},
     # and potentially remove eigenvalues if more than neigs.
     local Vgood,λgood
     if( size(sorted_good_index,1) > neigs)
-        @ifd(println("Removing unwanted eigvals: neigs=",neigs,"<",size(sorted_good_index,1),"=found_eigvals"))
+        found_evals=size(sorted_good_index,1);
+        push_info!(logger,"Removing unwanted eigvals: neigs=$neigs<$found_evals=found_eigvals")
         Vgood=V[:,sorted_good_index[sorted_good_inside_perm][1:neigs]];
         λgood=λ[sorted_good_index[sorted_good_inside_perm][1:neigs]];
     else

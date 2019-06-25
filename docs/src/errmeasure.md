@@ -65,9 +65,9 @@ we use the result of the first run as a reference.
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
 julia> v0=ones(size(nep,1));
-julia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,displaylevel=1);
+julia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,logger=1);
 julia> myerrmeasure = (λ,v) -> abs(λ-λref)/abs(λ);
-julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,displaylevel=1,tol=1e-10,errmeasure=myerrmeasure);
+julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,logger=1,tol=1e-10,errmeasure=myerrmeasure);
 Iteration:  1 errmeasure:1.274091618457501296e-01
 Iteration:  2 errmeasure:9.535794095609478882e-01
 ...
@@ -90,11 +90,11 @@ The error measure should then provided in the function
 `estimate_error`:
 ```julia-repl
 julia> v0=ones(size(nep,1));
-julia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,displaylevel=1);
+julia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,logger=1);
 julia> function NonlinearEigenproblems.estimate_error(e::RefErrmeasure,λ,v)
          return abs(λ-λref)/abs(λ);
        end
-julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,displaylevel=1,tol=1e-10,errmeasure=RefErrmeasure);
+julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,logger=1,tol=1e-10,errmeasure=RefErrmeasure);
 Iteration:  1 errmeasure:1.274091618457501296e-01
 ...
 Iteration: 49 errmeasure:1.269396691930517923e-10

@@ -66,7 +66,7 @@ using Random
         Q = Matrix(Q)
         set_projectmatrices!(pnep,Q,Q);
         @info "Running Newton on projected problem with very good start value ($nepstr)"
-        λ1,z1=newton(pnep,λ=(λ_exact+0.00001),displaylevel=0,v=ones(size(pnep,1)))
+        λ1,z1=newton(pnep,λ=(λ_exact+0.00001),logger=0,v=ones(size(pnep,1)))
 
         x1=Q*z1; x1=x1/x1[1];
 
@@ -76,7 +76,7 @@ using Random
         @test norm(x/x[1]-x1)<1e-8
 
         @info "Running IAR for projected problem ($nepstr)"
-        λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),displaylevel=0,
+        λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),
                  Neig=3,maxit=100, v=ones(size(pnep,1)))
 
         mydiff = minimum(abs.(λv .- λ_exact))
@@ -89,7 +89,7 @@ using Random
         Vnew=[Q ones(n)];
         Wnew=[Q ones(n)];
         expand_projectmatrices!(pnep,Wnew,Vnew);
-        λ1,zz1=newton(pnep,λ=(λ_exact+0.00001),displaylevel=0,
+        λ1,zz1=newton(pnep,λ=(λ_exact+0.00001),logger=0,
                       v=ones(4),maxit=20)
 
         xx1=Vnew*zz1; xx1=xx1/xx1[1]

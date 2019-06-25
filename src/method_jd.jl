@@ -22,9 +22,10 @@ end
 
 
 """
-    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [displaylevel=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+    jd_betcke([eltype]], nep::ProjectableNEP; [Neig=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
+The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
@@ -62,7 +63,12 @@ function jd_betcke(::Type{T},
                    λ::Number = zero(T),
                    v::Vector = randn(size(nep,1)),
                    target::Number = zero(T),
-                   displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                   logger = 0,
+                   inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
+
     # Initial logical checks
     n = size(nep,1)
     if (maxit > n)
@@ -90,7 +96,6 @@ function jd_betcke(::Type{T},
 
     # Initial check for convergence
     err = estimate_error(ermdata,λ,u)
-    @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
         λ_vec[conveig] = λ
@@ -129,7 +134,8 @@ function jd_betcke(::Type{T},
                             j = conveig+1, # For SG-iter
                             λv = λ .* ones(T,conveig+1),
                             σ = target,
-                            Neig=conveig+1)
+                            Neig = conveig+1,
+                            inner_logger = inner_logger)
         λ,s = jd_eig_sorter(λv, sv, conveig+1, target)
         normalize!(s)
 
@@ -138,7 +144,9 @@ function jd_betcke(::Type{T},
 
         # Check for convergence
         err = estimate_error(ermdata,λ,u)
-        @ifd(@printf("Iteration: %2d  converged eigenvalues: %2d  errmeasure: %.18e\n", k, conveig, err))
+        push_iteration_info!(logger,k,λ=λ,err=err,continues=true)
+        push_info!(logger," conveig=$conveig");
+
         if (err < tol) && (conveig == 0 ||
                 all( abs.(λ .- λ_vec[1:conveig])./abs.(λ_vec[1:conveig]) .> sqrt(sqrt(eps(real(T)))) ) )
             conveig += 1
@@ -180,14 +188,18 @@ end
 
 
 """
-    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [displaylevel=0])
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [Neig=1], [inner_solver_method=DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
+The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 For numerical stability the basis is kept orthogonal, and the method for orthogonalization is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
 The function tries to compute `Neig` number of eigenvalues, and throws a `NoConvergenceException` if it cannot.
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvalues are computed. For further specifications on the `deflation_mode`, see the function `deflate_eigpair`.
+
+See [`newton`](@ref) for other parameters.
+
 
 # Example
 ```julia-repl
@@ -216,7 +228,12 @@ function jd_effenberger(::Type{T},
                         v::Vector = rand(T,size(nep,1)),
                         target::Number = zero(T),
                         deflation_mode = :Auto,
-                        displaylevel::Int = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                        logger = 0,
+                        inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+    @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
+
     # Initial logical checks
     n = size(nep,1)
     if (maxit > n)
@@ -242,7 +259,6 @@ function jd_effenberger(::Type{T},
 
     # Initial check for convergence
     err = norm(compute_Mlincomb(nep,λ,u))
-    @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e\n", 0, 0, err))
     if (err < tol) # Check if initial guess is good enough, otherwise compute initial invariant pair
         λ_init = T(rand())
         u_init = rand(n+1)
@@ -252,8 +268,8 @@ function jd_effenberger(::Type{T},
         λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
-                                                          linsolvercreator, tol, target, displaylevel,
-                                                          Neig, u_init, λ_init)
+                                                          linsolvercreator, tol, target, logger,
+                                                          Neig, u_init, λ_init, inner_logger)
     end
 
     conveig += 1
@@ -272,8 +288,8 @@ function jd_effenberger(::Type{T},
         λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           deflated_nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
-                                                          linsolvercreator, tol, target, displaylevel,
-                                                          Neig, u_init, λ_init)
+                                                          linsolvercreator, tol, target, logger,
+                                                          Neig, u_init, λ_init, inner_logger)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
         deflated_nep = deflate_eigpair(deflated_nep, λ, u)
@@ -318,10 +334,11 @@ function jd_effenberger_inner!(::Type{T},
                               linsolvercreator::Function,
                               tol::Number,
                               target::Number,
-                              displaylevel::Int,
+                              logger::Logger,
                               Neig::Int,
                               u::Vector{T},
-                              λ::T) where {T<:Number}
+                              λ::T,
+                              inner_logger::Logger) where {T<:Number}
     # Allocations and preparations
     n = size(orgnep,1) # Size of original problem
     m = size(Λ,1) # Size of deflated subspace
@@ -353,7 +370,8 @@ function jd_effenberger_inner!(::Type{T},
                             tol = tol/10,
                             λv = λ .* ones(T,2),
                             σ = target,
-                            Neig = 2)
+                            Neig = 2,
+                            inner_logger = inner_logger)
         λ_temp,s = jd_eig_sorter(λv, sv, 1, target) #Always closest to target, since deflated
         normalize!(s)
 
@@ -370,9 +388,12 @@ function jd_effenberger_inner!(::Type{T},
         # Compute residual and check for convergence
         rk = compute_Mlincomb(target_nep, λ, u)
         err = norm(rk) #Error measure, see (9)/(3.2) in Effenberger # TODO: Can we use another error measure?
-        @ifd(@printf("Iteration: %3d  converged eigenvalues: %2d  errmeasure: %.18e  space dimension: %3d\n", loop_counter, conveig, err, k))
+        push_iteration_info!(logger,loop_counter,λ=λ,err=err,continues=true);
+        push_info!(logger," conveig=$conveig, subspace dim=$k");
+
         if (err < tol) #Frist check, no other eiganvalues can be converged
-            @ifd(print("One eigenvalue converged. Deflating and restarting.\n"))
+            push_info!(logger,
+                       "One eigenvalue converged. Deflating and restarting.")
 
             # TODO: Here one can implement a continuation with the same basis as in Effenberger section 4.2.5
             # What is here is only a light kind adapted to an "unknown" inner solver

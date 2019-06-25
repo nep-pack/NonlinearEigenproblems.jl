@@ -111,7 +111,7 @@ using Test
     v0=normalize!(compute_Mder(nep,λ0)\ones(size(nep,1)))
     λ,v=quasinewton(Float64,nep,λ=-1.4566,v=v0,tol=tol,
                     errmeasure=ResidualErrmeasure,
-                    displaylevel=displaylevel,armijo_factor=0.5,armijo_max=3)
+                    logger=displaylevel,armijo_factor=0.5,armijo_max=3)
     normalize!(v)
     @test norm(compute_Mlincomb(nep,λ,v))<sqrt(tol)
     @test isa(nep,SPMFSumNEP)
@@ -184,7 +184,7 @@ using Test
     @test rank(M)<size(M,1)
     @onlybench @testset "bem_fichera + IAR" begin
        v=ones(size(nep,1));
-       (λ,vv)=iar(nep,σ=9,v=v,displaylevel=displaylevel,Neig=4,maxit=50,tol=1e-6) # normally takes 30 iterations
+       (λ,vv)=iar(nep,σ=9,v=v,logger=displaylevel,Neig=4,maxit=50,tol=1e-6) # normally takes 30 iterations
        @test norm(compute_Mlincomb(nep,λ[1],vv[:,1]))<sqrt(eps());
     end
     @info "non-existing example"

@@ -23,7 +23,7 @@ we can access them with the GalleryNLEVP
 ```julia-repl
 julia> using GalleryNLEVP
 julia> nep=nep_gallery(NLEVP_NEP,"hadeler")
-julia> λ,v=quasinewton(nep,λ=0.2,displaylevel=1,maxit=20,tol=1e-10);
+julia> λ,v=quasinewton(nep,λ=0.2,logger=1,maxit=20,tol=1e-10);
 julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 9.698206079849311e-11
 ```

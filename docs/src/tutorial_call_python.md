@@ -126,7 +126,7 @@ we can now use many NEP-solvers to solve this problem.
 Here we use IAR:
 ```julia-repl
 
-julia> (λv,vv)=iar(pnep,v=[1;1],σ=1,displaylevel=1,Neig=3);
+julia> (λv,vv)=iar(pnep,v=[1;1],σ=1,logger=1,Neig=3);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
 Iteration:3 conveig:0

@@ -15,7 +15,7 @@ using GalleryNLEVP
     n=size(nep1,1);
     tol=1e-11;
     @bench @testset "Running alg" begin
-        λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),displaylevel=displaylevel,tol=tol,maxit=500);
+        λ1,v1=quasinewton(nep1,λ=150^2+1im,v=ones(n),logger=displaylevel,tol=tol,maxit=500);
         λ1 = λ1[1]
         v1 = vec(v1)
         normalize!(v1)
@@ -47,7 +47,7 @@ using GalleryNLEVP
         # Check that two steps of quasinewton always gives the same result
         λ_org=0
         try
-            quasinewton(nep_org,maxit=2,λ=150^2+1im,v=ones(n),displaylevel=displaylevel)
+            quasinewton(nep_org,maxit=2,λ=150^2+1im,v=ones(n),logger=displaylevel)
         catch e
             λ_org=e.λ
         end
@@ -55,7 +55,7 @@ using GalleryNLEVP
 
         λ1=0
         try
-            quasinewton(nep1,maxit=2,λ=150^2+1im,v=ones(n),displaylevel=displaylevel)
+            quasinewton(nep1,maxit=2,λ=150^2+1im,v=ones(n),logger=displaylevel)
         catch e
             λ1=e.λ
         end
