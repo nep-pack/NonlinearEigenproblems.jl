@@ -1,6 +1,6 @@
 name = "NonlinearEigenproblems"
 uuid = "067cfa3b-fa88-53b2-a873-5b23b3a16e31"
-version = "0.2.6"
+version = "0.2.7"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
