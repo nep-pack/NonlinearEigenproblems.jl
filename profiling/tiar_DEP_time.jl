@@ -12,20 +12,20 @@ nep=nep_gallery("dep0_tridiag",500)
 v0=ones(size(nep,1))
 
 
-tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
-@time tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+tiar(nep,neigs=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@time tiar(nep,neigs=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 
 
 
 
-tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
-@time tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+tiar(nep,neigs=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@time tiar(nep,neigs=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 
 # debug
 nep=nep_gallery("dep0",100);
 
-(λ,Q)=tiar(nep,σ=2.0,γ=3,Neig=4,v=ones(100),displaylevel=1,maxit=50,tol=eps()*100);
+(λ,Q)=tiar(nep,σ=2.0,γ=3,neigs=4,v=ones(100),displaylevel=1,maxit=50,tol=eps()*100);
 1
 
-#@profile tiar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+#@profile tiar(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 #Profile.print(format=:flat,sortedby=:count)

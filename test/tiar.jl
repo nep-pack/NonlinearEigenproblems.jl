@@ -22,12 +22,12 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     dep=nep_gallery("dep0",n);
 
     @bench @testset "accuracy eigenpairs" begin
-        (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
         verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
-    @testset "Compute as many eigenpairs as possible (Neig=Inf)" begin
-        (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=Inf,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+    @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
+        (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=Inf,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
         verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
@@ -35,22 +35,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
         @test opnorm(Z'*Z - I) < 1e-6
      end
 
      @bench @testset "User provided doubleGS" begin
-         (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
+         (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
          @test opnorm(Z'*Z - I) < 1e-6
       end
 
       @bench @testset "ModifiedGramSchmidt" begin
-          (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
+          (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
           @test opnorm(Z'*Z - I) < 1e-6
       end
 
        @bench @testset "ClassicalGramSchmidt" begin
-           (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(n),maxit=50,tol=eps()*100);
+           (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
            @test opnorm(Z'*Z - I) < 1e-6
        end
     end
@@ -58,8 +58,8 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     # iar and tiar ara mathematically equivalent it maxit<<nep
     # verify the equivalence numerically
     @bench @testset "equivalance with IAR" begin
-        (λ_tiar,Q_tiar)=tiar(dep,σ=2.0,γ=3,Neig=2,v=ones(n),maxit=50,tol=eps()*100);
-        (λ_iar,Q_iar)=iar(dep,σ=2.0,γ=3,Neig=2,v=ones(n),maxit=50,tol=eps()*100);
+        (λ_tiar,Q_tiar)=tiar(dep,σ=2.0,γ=3,neigs=2,v=ones(n),maxit=50,tol=eps()*100);
+        (λ_iar,Q_iar)=iar(dep,σ=2.0,γ=3,neigs=2,v=ones(n),maxit=50,tol=eps()*100);
         @test norm(λ_tiar-λ_iar)<1e-6
         @test norm(Q_tiar-Q_iar)<1e-6
     end
@@ -70,7 +70,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
         nn=opnorm(compute_Mder(depp,0));
         errmeasure= (λ,v) -> norm(compute_Mlincomb(depp,λ,v))/nn;
 
-        λ,Q = tiar(depp, σ=0, γ=3, Neig=3, v=ones(np), maxit=50,
+        λ,Q = tiar(depp, σ=0, γ=3, neigs=3, v=ones(np), maxit=50,
                    tol=sqrt(eps()), check_error_every=3,
                    proj_solve=true, inner_solver_method=IARInnerSolver,
                    errmeasure=errmeasure);
@@ -81,7 +81,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     @testset "Errors thrown" begin
         np=100;
         dep=nep_gallery("dep0",np);
-        @test_throws NEPCore.NoConvergenceException (λ,Q)=tiar(dep,σ=2.0,γ=3,Neig=4,v=ones(np),maxit=5,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(np),maxit=5,tol=eps()*100,errmeasure=ResidualErrmeasure);
     end
 
 end

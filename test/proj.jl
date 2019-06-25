@@ -77,7 +77,7 @@ using Random
 
         @info "Running IAR for projected problem ($nepstr)"
         λv,X=iar(pnep,σ=complex(round(λ_exact*10)/10),
-                 Neig=3,maxit=100, v=ones(size(pnep,1)))
+                 neigs=3,maxit=100, v=ones(size(pnep,1)))
 
         mydiff = minimum(abs.(λv .- λ_exact))
         @info "Difference of solution from projected problem ($nepstr): $mydiff"

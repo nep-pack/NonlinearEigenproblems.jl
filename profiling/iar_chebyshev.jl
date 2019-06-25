@@ -7,6 +7,6 @@ import NEPSolver.inner_solve; include("../src/inner_solver.jl");import NEPSolver
 Profile.clear()
 nep=nep_gallery("dep0_tridiag",5000)
 Profile.init(n = 10^7, delay = 0.01)
-@profile iar_chebyshev(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@profile iar_chebyshev(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 #Profile.print()
 Profile.print(format=:flat,sortedby=:count)

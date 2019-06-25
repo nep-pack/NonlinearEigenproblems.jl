@@ -17,9 +17,9 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 σ=0
 Dnep=DerSPMF(nep,σ,200)
 function time_ilan()
-@btime begin ilan(Dnep;Neig=10,displaylevel=0,maxit=200,tol=eps()*100,check_error_every=1) end
-@btime begin ilan(nep;Neig=10,displaylevel=0,maxit=200,tol=eps()*100,check_error_every=1) end
-@btime begin tiar(nep;Neig=10,displaylevel=0,maxit=200,tol=eps()*100,check_error_every=200) end
+@btime begin ilan(Dnep;neigs=10,displaylevel=0,maxit=200,tol=eps()*100,check_error_every=1) end
+@btime begin ilan(nep;neigs=10,displaylevel=0,maxit=200,tol=eps()*100,check_error_every=1) end
+@btime begin tiar(nep;neigs=10,displaylevel=0,maxit=200,tol=eps()*100,check_error_every=200) end
 end
 
 time_ilan()

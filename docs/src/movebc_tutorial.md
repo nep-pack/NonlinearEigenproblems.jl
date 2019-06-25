@@ -231,7 +231,7 @@ methods, e.g., infinite Arnoldi method terminate in a reasonable
 number of iterations:
 ```julia-repl
 julia> (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,
-                 errmeasure=BackwardErrmeasure,Neig=5,maxit=100);
+                 errmeasure=BackwardErrmeasure,neigs=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
 Iteration:3 conveig:0

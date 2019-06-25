@@ -21,12 +21,12 @@ function compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))
 	return z-λ*view(V,:,1:1)
 end
 
-iar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
-@time iar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+iar(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@time iar(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 
-iar_chebyshev(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
-@time iar_chebyshev(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+iar_chebyshev(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@time iar_chebyshev(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 
-tiar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
-@time tiar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+tiar(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@time tiar(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 1
