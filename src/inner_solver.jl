@@ -115,7 +115,7 @@ abstract type ContourBeynInnerSolver <: InnerSolver end;
 
 
 """
-  inner_solve(T,T_arit,nep;kwargs...)
+    inner_solve(T,T_arit,nep;kwargs...)
 
 Solves the projected linear problem with solver specied with T. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
@@ -126,13 +126,13 @@ The type `T_arit` defines the arithmetics used in the outer iteration and should
 also be used in the inner iteration.
 
 Different inner_solve methods take different kwargs. The meaning of
-the kwargs are the following:\\
-`neigs`: Number of wanted eigenvalues (but less or more may be returned)\\
-`σ`: target specifying where eigenvalues\\
-`λv`, `V`: Vector/matrix of guesses to be used as starting values\\
-`j`: the jth eigenvalue in a min-max characterization\\
-`tol`: Termination tolarance for inner solver\\
-`inner_logger`: Determines how the inner solves are logged. See [`Logger`](@ref) for further references
+the kwargs are the following:
+- `neigs`: Number of wanted eigenvalues (but less or more may be returned)
+- `σ`: target specifying where eigenvalues
+- `λv`, `V`: Vector/matrix of guesses to be used as starting values
+- `j`: the jth eigenvalue in a min-max characterization
+- `tol`: Termination tolarance for inner solver
+- `inner_logger`: Determines how the inner solves are logged. See [`Logger`](@ref) for further references
 """
 function inner_solve(TT::Type{DefaultInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
