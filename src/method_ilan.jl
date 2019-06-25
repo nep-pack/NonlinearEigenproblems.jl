@@ -26,7 +26,7 @@ mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
 end
 
 """
-    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
+    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
@@ -35,9 +35,9 @@ to specify how the error is measured to be used in termination (default is absol
 a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
 `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the
  Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
-The iteration is continued until `Neig` Ritz pairs have converged.
+The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
-However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`newton`](@ref) for other parameters.
 
@@ -47,7 +47,7 @@ See [`newton`](@ref) for other parameters.
 julia> using NonlinearEigenproblems, LinearAlgebra
 julia> nep=nep_gallery("dep_symm_double",10);
 julia> v0=ones(size(nep,1));
-julia> λ,v=ilan(nep;v=v0,tol=1e-5,Neig=3);
+julia> λ,v=ilan(nep;v=v0,tol=1e-5,neigs=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
@@ -67,7 +67,7 @@ function ilan(
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
-    Neig=6,
+    neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
@@ -133,7 +133,7 @@ function ilan(
     # Init errmeasure
     ermdata=init_errmeasure(errmeasure,nep);
 
-    while (k <= m) && (conv_eig<Neig)
+    while (k <= m) && (conv_eig<neigs)
 
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
@@ -179,7 +179,7 @@ function ilan(
 
             # solve the projected NEP
             push_info!(logger,2,"Solving the projected problem",continues=true);
-            λ,ZZ=iar(pnep;Neig=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
             push_info!(logger,2,".");
             W=VV*ZZ;
 
@@ -188,8 +188,8 @@ function ilan(
 
             conv_eig=length(λ)
             # extract the converged Ritzpairs
-            if (k==m)||(conv_eig>=Neig)
-                nrof_eigs = Int(min(length(λ),Neig))
+            if (k==m)||(conv_eig>=neigs)
+                nrof_eigs = Int(min(length(λ),neigs))
                 λ=λ[1:nrof_eigs]
                 W=W[:,1:nrof_eigs]
             end
@@ -202,7 +202,7 @@ function ilan(
     end
 
     k=k-1
-    if conv_eig<Neig && Neig != Inf
+    if conv_eig<neigs && neigs != Inf
         err=Missing; # TODO: Should an error be computed and added?
         msg="Number of iterations exceeded. maxit=$(maxit)."
         throw(NoConvergenceException(λ,W,err,msg))

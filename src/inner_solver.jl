@@ -127,7 +127,7 @@ also be used in the inner iteration.
 
 Different inner_solve methods take different kwargs. The meaning of
 the kwargs are the following:\\
-`Neig`: Number of wanted eigenvalues (but less or more may be returned)\\
+`neigs`: Number of wanted eigenvalues (but less or more may be returned)\\
 `σ`: target specifying where eigenvalues\\
 `λv`, `V`: Vector/matrix of guesses to be used as starting values\\
 `j`: the jth eigenvalue in a min-max characterization\\
@@ -189,10 +189,10 @@ end
 
 
 
-function inner_solve(TT::Type{IARInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{IARInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     try
-        λ,V=iar(T_arit,nep,σ=σ,Neig=Neig,tol=1e-13,maxit=50,logger=inner_logger);
+        λ,V=iar(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
         return λ,V
     catch e
         if (isa(e, NoConvergenceException))
@@ -207,7 +207,7 @@ end
 
 
 
-function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
@@ -223,7 +223,7 @@ function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Pro
     end
 
     try
-        λ,V=iar_chebyshev(T_arit,nep,σ=σ,Neig=Neig,tol=1e-13,maxit=50,logger=inner_logger);
+        λ,V=iar_chebyshev(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
         return λ,V
     catch e
         if (isa(e, NoConvergenceException))
@@ -246,11 +246,11 @@ end
 
 
 
-function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],Neig=10,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     # Radius  computed as the largest distance σ and λv and a litte more
     radius = maximum(abs.(σ .- λv))*1.5
-    Neig = min(Neig,size(nep,1))
-    λ,V = contour_beyn(T_arit,nep,neigs=Neig,σ=σ,radius=radius,logger=inner_logger)
+    neigs = min(neigs,size(nep,1))
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,logger=inner_logger)
     return λ,V
 end

@@ -9,14 +9,14 @@ nep=nep_gallery("dep0_tridiag",1000)
 
 v0=ones(size(nep,1))
 
-tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
-@time tiar(nep,Neig=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+tiar(nep,neigs=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@time tiar(nep,neigs=10,v=v0,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 
 
 import NEPCore.compute_Mlincomb
 compute_Mlincomb_from_MMcompute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=
 compute_Mlincomb_from_MM(nep,λ,V,a)
 
-@profile tiar(nep,Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@profile tiar(nep,neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 Profile.print(format=:flat,sortedby=:count)
 1

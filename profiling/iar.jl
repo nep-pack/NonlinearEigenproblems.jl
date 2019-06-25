@@ -10,6 +10,6 @@ include("../src/method_iar.jl");
 Profile.clear()
 nep=nep_gallery("dep0_tridiag",100)
 Profile.init(n = 10^7, delay = 0.01)
-@profile iar(nep,σ=-1,γ=2;Neig=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
+@profile iar(nep,σ=-1,γ=2;neigs=10,displaylevel=0,maxit=100,tol=eps()*100,check_error_every=100)
 #Profile.print()
 Profile.print(format=:flat,sortedby=:count)

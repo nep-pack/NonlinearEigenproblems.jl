@@ -3,16 +3,16 @@ using Random
 
 export infbilanczos
 """
-    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][logger,][maxit,][check_error_every])
+    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][neigs,][errmeasure,][logger,][maxit,][check_error_every])
 
 Executes the Infinite Bi-Lanczos method on the problem defined by `nep::NEP`
 and `nept::NEP`. `nep:NEP` is the original nonlinear eigenvalue problem and
 `nept::NEP` is its (hermitian) transpose: ``M(λ^*)^H``.
  `v` and `u` are starting vectors,
 `σ` is the shift and `γ` the scaling.
-The iteration is continued until `Neig` Ritz pairs have converged.
+The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
-However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 See [`newton`](@ref) for other parameters.
 
 # Example:
@@ -21,7 +21,7 @@ julia> nep=nep_gallery("dep0");
 julia> A=get_Av(nep); fv=get_fv(nep);
 julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')]
 julia> nept=SPMF_NEP(At,fv); # Create the transposed NEP
-julia> λv,V=infbilanczos(nep,nept,Neig=3)
+julia> λv,V=infbilanczos(nep,nept,neigs=3)
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 ```
 
@@ -38,7 +38,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           v::Vector=randn(real(T),size(nep,1)),
                           u::Vector=randn(real(T),size(nep,1)),
                           tol::Real=1e-12,
-                          Neig=5,
+                          neigs=5,
                           errmeasure::ErrmeasureType = DefaultErrmeasure,
                           σ::Number=0.0,
                           γ::Number=1,
@@ -208,14 +208,14 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 idx=sortperm(err[1:k]); # sort the error
                 err=err[idx];
 
-                if (conv_eig>=Neig) || (k==m)
-                    nrof_eigs = Int(min(length(λ),Neig,conv_eig))
+                if (conv_eig>=neigs) || (k==m)
+                    nrof_eigs = Int(min(length(λ),neigs,conv_eig))
                     λ=λ[idx[1:nrof_eigs]]
                     Q=Q[:,idx[1:nrof_eigs]]
                     for i=1:nrof_eigs
                         normalize!(view(Q,1:n,i))
                     end
-                    if (conv_eig>=Neig) || (Neig==Inf)
+                    if (conv_eig>=neigs) || (neigs==Inf)
                         return λ,Q,TT
                     end
                 end

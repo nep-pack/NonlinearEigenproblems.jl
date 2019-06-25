@@ -15,7 +15,7 @@ using LinearAlgebra
 @info "Testing a PEP"
 nep = nep_gallery("pep0",60)
 TOL = 1e-11;
-λ,u = jd_betcke(nep, tol=TOL, maxit=55, Neig = 3, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure)
+λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 3, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure)
 @info " Smallest eigenvalue found: $λ"
 Dc,Vc = polyeig(nep,DefaultEigSolver)
 c = sortperm(abs.(Dc))
@@ -40,7 +40,7 @@ verify_lambdas(1, nep, λ, u, TOL)
 v0 = vec(u)
 
 @info "Testing convergence before starting"
-λ,u=jd_betcke(nep, tol=TOL, maxit=25, Neig=1, logger=displaylevel, λ=λ0, v=v0)
+λ,u=jd_betcke(nep, tol=TOL, maxit=25, neigs=1, logger=displaylevel, λ=λ0, v=v0)
 verify_lambdas(1, nep, λ, u, TOL)
 
 
@@ -53,7 +53,7 @@ nep = nep_gallery("pep0",4)
 # An undefined projection type
 @test_throws ErrorException λ,u=jd_betcke(nep, tol=TOL, maxit=4, projtype = :MYNOTDEFINED, v=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ,u=jd_betcke(nep, tol=TOL, maxit=4, Neig=1000, v=ones(size(nep,1)))
+@test_throws NEPCore.NoConvergenceException λ,u=jd_betcke(nep, tol=TOL, maxit=4, neigs=1000, v=ones(size(nep,1)))
 
 end
 
@@ -64,16 +64,16 @@ end
 
 TOL = 1e-10
 nep = nep_gallery("pep0",250)
-λ, u = jd_effenberger(nep, Neig=5, logger=displaylevel, tol=TOL, maxit=80, λ=0.82+0.9im, v=ones(ComplexF64,size(nep,1)))
+λ, u = jd_effenberger(nep, neigs=5, logger=displaylevel, tol=TOL, maxit=80, λ=0.82+0.9im, v=ones(ComplexF64,size(nep,1)))
 verify_lambdas(5, nep, λ, u, TOL)
 
 TOL = 1e-10
 nep = nep_gallery("dep0",60)
-λ, u = jd_effenberger(nep, Neig=3, logger=displaylevel, tol=TOL, maxit=55, λ=0.6+0im, v=ones(ComplexF64,size(nep,1)))#, inner_solver_method = IARChebInnerSolver)
+λ, u = jd_effenberger(nep, neigs=3, logger=displaylevel, tol=TOL, maxit=55, λ=0.6+0im, v=ones(ComplexF64,size(nep,1)))#, inner_solver_method = IARChebInnerSolver)
 verify_lambdas(3, nep, λ, u, TOL)
 
 @info "Testing convergence before starting"
-λ,u=jd_effenberger(nep, Neig=1, logger=displaylevel, tol=TOL, maxit=55, λ=λ[1], v=vec(u[:,1]))
+λ,u=jd_effenberger(nep, neigs=1, logger=displaylevel, tol=TOL, maxit=55, λ=λ[1], v=vec(u[:,1]))
 verify_lambdas(1, nep, λ, u, TOL)
 
 
@@ -84,7 +84,7 @@ nep = nep_gallery("pep0",50)
 # SG not possible with Effenberger
 @test_throws ErrorException λ, u = jd_effenberger(nep, tol=TOL, maxit=40, inner_solver_method = SGIterInnerSolver, v=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, Neig=1000, tol=TOL, maxit=20, v=ones(size(nep,1)))
+@test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, neigs=1000, tol=TOL, maxit=20, v=ones(size(nep,1)))
 
 end
 

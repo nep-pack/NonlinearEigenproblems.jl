@@ -116,7 +116,7 @@ function nlar(::Type{T},
 
             #Use inner_solve() to solve the smaller projected problem
             push_info!(logger, 2, "Solving inner problem",continues=true)
-            dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=neigs,σ=σ,inner_logger=inner_logger);
+            dd,vv = inner_solve(inner_solver_method,T,proj_nep,neigs=neigs,σ=σ,inner_logger=inner_logger);
             push_info!(logger, 2, ". Done.")
             # Sort the eigenvalues of the projected problem
             nuv,yv = eigval_sorter(nep,dd,vv,σ,D,R,Vk);

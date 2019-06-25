@@ -9,4 +9,4 @@ A0 = sparse(K, J, rand(3*n-2));
 A1 = sparse(K, J, rand(3*n-2));
 
 nep=DEP([A0,A1],[0,1])
-λ,v=iar(nep;tol=1e-12,Neig=10);
+λ,v=iar(nep;tol=1e-12,neigs=10);
