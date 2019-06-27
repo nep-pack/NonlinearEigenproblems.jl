@@ -20,6 +20,7 @@ makedocs(
         "Tutorial 4 (Python NEP)" => "tutorial_call_python.md",
         "Tutorial 5 (MATLAB 1)" => "tutorial_matlab1.md",
         "Tutorial 6 (FORTRAN 1)" => "tutorial_fortran1.md",
+        "Tutorial 7 (Hydrodynamic stability PEP)" => "hydrotutorial.md"
     ]
 )
 
