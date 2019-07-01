@@ -1,7 +1,0 @@
-
-using PyPlot;
-phiv=range(0,stop=2*pi,length=10)
-sx=sin.(phiv);
-sy=cos.(phiv);
-sz=phiv;
-plot3D(sx,sy,sz,"*")

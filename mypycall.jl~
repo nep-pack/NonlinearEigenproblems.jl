@@ -1,6 +1,0 @@
-using PyCall
-pushfirst!(PyVector(pyimport("sys")["path"]), "")
-mynep.compute_M(3)
-
-
-mynep.compute_M(3)
