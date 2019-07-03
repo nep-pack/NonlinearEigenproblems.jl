@@ -30,10 +30,18 @@ Here $$\{y_i\}_{i=1,\ldots,n}$$ denotes the y-coordinates of the $$n$$ grid poin
 ```math
 \left[-\frac{I}{Re}\alpha^4-iU_0\alpha^3+\left(\frac{2D^2}{Re}+\left(i\omega-
 \frac{2\beta^2}{Re}\right)I\right)\alpha^2+\left(iU_0(D^2-\beta^2I)-U_2\right)\alpha +\Big(\frac{2\beta^2D^2}{Re}-\frac{D^4}{Re}-\frac{\beta^4I}{Re}+i\omega(\beta^2I-D^2)\Big)\right]\tilde{v} = 0\\
-i\beta U_1\tilde{v}+\left[\frac{I}{Re}\alpha^2 + iU_0 \alpha +\left(\left(\frac{\beta^2}{Re}-i\omega\right)I-\frac{D^2}{Re}\right)\right]\tilde{\eta}
+i\beta U_1\tilde{v}+\left[\frac{I}{Re}\alpha^2 + iU_0 \alpha +\left(\left(\frac{\beta^2}{Re}-i\omega\right)I-\frac{D^2}{Re}\right)\right]\tilde{\eta} = 0
 ```
 
 
 ## Implementation in NEP-PACK
-
+The discretized problem can be seen as a polynomial eigenvalue problem where $$M(\lambda) = A_0+A_1\lambda+A_2\lambda^2+A_3\lambda^3+A_4\lambda^4$$. The matrices are
+```math
+A_0 = \begin{pmatrix}\frac{2\beta^2D^2}{Re}-\frac{D^4}{Re}-\frac{\beta^4I}{Re}+i\omega(\beta^2I-D^2)& 0\\ i\beta U_1&\left(\frac{\beta^2}{Re}-i\omega\right)I-\frac{D^2}{Re}\end{pmatrix}\\
+A_1 = \begin{pmatrix}-iU_0& 0\\0& 0\end{pmatrix}\\
+A_2 = \begin{pmatrix}\frac{2D^2}{Re}+\left(i\omega-
+\frac{2\beta^2}{Re}\right)I& 0\\0& \frac{I}{Re}\end{pmatrix}\\
+A_3 = \begin{pmatrix}iU_0(D^2-\beta^2I)-U_2& 0\\0& iU_0\end{pmatrix}\\
+A_4 = \begin{pmatrix}-\frac{I}{Re}& 0\\0& 0\end{pmatrix}
+```
 
