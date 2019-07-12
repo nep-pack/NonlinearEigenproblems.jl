@@ -142,3 +142,12 @@ estimate_error
 ```@docs
 init_errmeasure
 ```
+```@docs
+ DefaultErrmeasure
+```
+```@docs
+ResidualErrmeasure
+```
+```@docs
+BackwardErrmeasure
+```
