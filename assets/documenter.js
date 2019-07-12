@@ -3,11 +3,6 @@
  *     https://github.com/JuliaDocs/Documenter.jl
  *
  * License: MIT
- *
- * Should be dropped into docs/src/assets/ and it will replace Documenter's own documenter.js.
- *
- * Assumes Documenter 0.21.4 -- make sure that Documenter is pinned to that version, just in case.
- * Changes to Documenter in future versions may break this.
  */
 
 requirejs.config({
@@ -19,7 +14,6 @@ requirejs.config({
         'highlight': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min',
         'highlight-julia': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/julia.min',
         'highlight-julia-repl': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/julia-repl.min',
-        'highlight-fortran': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/fortran.min',
     },
     shim: {
         'mathjax' : {
@@ -27,7 +21,6 @@ requirejs.config({
         },
         'highlight-julia': ['highlight'],
         'highlight-julia-repl': ['highlight'],
-        'highlight-fortran': ['highlight'],
     }
 });
 
@@ -60,7 +53,7 @@ require(['mathjax'], function(MathJax) {
     });
 })
 
-require(['jquery', 'highlight', 'highlight-julia', 'highlight-julia-repl', 'highlight-fortran'], function($, hljs) {
+require(['jquery', 'highlight', 'highlight-julia', 'highlight-julia-repl'], function($, hljs) {
     $(document).ready(function() {
         hljs.initHighlighting();
     })

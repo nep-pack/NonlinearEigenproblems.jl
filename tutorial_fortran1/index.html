@@ -85,7 +85,7 @@ julia&gt; function my_Mder(λ::Float64,der::Int=0)
   return sparse(I,J,F);
 end
 julia&gt; nep=Mder_NEP(n,my_Mder)
-julia&gt; quasinewton(Float64,nep,λ=-1.8,v=ones(n), displaylevel=1)
+julia&gt; quasinewton(Float64,nep,λ=-1.8,v=ones(n), logger=1)
 Precomputing linsolver
 Iteration:  1 errmeasure:4.903565024143569095e-01, λ=-1.8
 Iteration:  2 errmeasure:8.776860766232853772e-02, λ=-1.3816406142423465
@@ -122,7 +122,7 @@ julia&gt; function my_Mder_FD(λ::Float64,der::Int=0)
      return sparse(I,J,Fder);
   end
 end</code></pre><p>Create the <code>NEP</code> and call a solver, in this case <a href="../methods/#NonlinearEigenproblems.NEPSolver.mslp"><code>MSLP</code></a>.</p><pre><code class="language-julia">julia&gt; nep=Mder_NEP(n,my_Mder_FD)
-julia&gt; mslp(Float64,nep,λ=-1.8, displaylevel=1)
+julia&gt; mslp(Float64,nep,λ=-1.8, logger=1)
 Iteration:1 errmeasure:5.145479494934554e-6 λ=-1.7941228234498503
 Iteration:2 errmeasure:6.604789080027513e-10 λ=-1.7940561772509709
 Iteration:3 errmeasure:4.3096620402514632e-16 λ=-1.794056168678654
@@ -149,7 +149,7 @@ end subroutine matvec</code></pre><p>After recompilation of the library file <co
       λ, n, v, x)
    return x;
 end
-julia&gt; nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);</code></pre><p>The last line creates a <code>NEP</code> defined from both matrix derivative computations as well as matrix vector products (or more generally linear combinations of derivatives). The <code>1</code> and <code>0</code> specify the highest derivative available for the two functions. We can now solve it with many methods, e.g. <a href="../methods/#NonlinearEigenproblems.NEPSolver.resinv"><code>resinv</code></a>.</p><pre><code class="language-julia">julia&gt; resinv(Float64,nep2,λ=-1.8,v=ones(n),displaylevel=1)
+julia&gt; nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);</code></pre><p>The last line creates a <code>NEP</code> defined from both matrix derivative computations as well as matrix vector products (or more generally linear combinations of derivatives). The <code>1</code> and <code>0</code> specify the highest derivative available for the two functions. We can now solve it with many methods, e.g. <a href="../methods/#NonlinearEigenproblems.NEPSolver.resinv"><code>resinv</code></a>.</p><pre><code class="language-julia">julia&gt; resinv(Float64,nep2,λ=-1.8,v=ones(n),logger=1)
 Iteration:  1 errmeasure:4.903565024143570761e-01
 Iteration:  2 errmeasure:1.145360525649362360e-01
 ...

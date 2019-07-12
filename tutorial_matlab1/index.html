@@ -23,7 +23,7 @@ julia&gt; import NonlinearEigenproblems.compute_Mlincomb_from_Mder;</code></pre>
 end
 compute_Mlincomb(nep::MATLABNEP,λ::Number,V::AbstractVecOrMat, a::Vector) = compute_Mlincomb_from_Mder(nep,λ,V,a)
 compute_Mlincomb(nep::MATLABNEP,λ::Number,V::AbstractVecOrMat) = compute_Mlincomb(nep,λ,V, ones(eltype(V),size(V,2)))</code></pre><p>Now you can instantiate the NEP and use your favorite NEP-solver, in this case we use <a href="../methods/#NonlinearEigenproblems.NEPSolver.newtonqr"><code>newtonqr</code></a>.</p><pre><code class="language-julia">julia&gt; nep=MATLABNEP();
-julia&gt; (λ,v)=newtonqr(nep,λ=-3,displaylevel=1,maxit=30,v=ones(10))
+julia&gt; (λ,v)=newtonqr(nep,λ=-3,logger=1,maxit=30,v=ones(10))
 Iteration: 1 errmeasure: 1.0335933094121779
 Iteration: 2 errmeasure: 0.305924622401145
 Iteration: 3 errmeasure: 0.6000405833925101
