@@ -9,7 +9,7 @@ use the NEP-solvers of this package. Below is a description
 of two ways to solve nonlinear eigenvalue
 problems defined in MATLAB. There is a cost
 in terms of efficiency to define your problem in MATLAB,
-due to overhead associated with communication with the
+due to overhead associated with communication between the
 MATLAB and Julia processes.
 Very large scale problems are recommended to be defined
 directly in Julia.
@@ -18,6 +18,8 @@ Suppose you have the following NEP in MATLAB
 ```math
 M(\lambda)=A_0+\lambda A_1+\exp(\lambda A_2).
 ```
+where \(A_1,A_2,A_3\) are martices and \(\exp\),
+the matrix exponential.
 The problem can be defined in MATLAB as follows.
 This is the contents of the file `compute_derivative_k.m`
 which computes derivative `k` evaluted in the point `s`
@@ -64,11 +66,12 @@ The first argument of the `Mder_NEP` instantiation
 is the size of the NEP.
 The instantiation of the `Mder_NEP` creates a NEP-object
 only defined by its matrix derivative functions,
-given in call-back function in the second argument.
-In this case, the call-back communicates with the
+given in the call-back function specified by
+the second argument.
+In this case, the the function calls a 
 MATLAB process (running in the background completely hidden
-from the Julia user) and requests a call to 
-`compute_derivate_k`. After executing the
+from the Julia user) and requests a execution of 
+`compute_derivate_k` with the given arguments. After executing the
 MATLAB-call, the MATLAB-process sends the matrix back to Julia.
 In other words, we have coupled the derivative
 computation of the NEP with a call to MATLAB.
