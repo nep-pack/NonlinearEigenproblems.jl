@@ -45,7 +45,7 @@ function contour_block_SS(
     quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
     N::Integer=1000,  # Nof quadrature nodes
     K::Integer=3, # Nof moments
-    L::Integer=3,
+    L::Integer=3, # Size of the probe-matrices
     errmeasure::ErrmeasureType = DefaultErrmeasure,
     sanity_check=true,
     rank_drop_tol=tol # Used in sanity checking
@@ -74,11 +74,13 @@ function contour_block_SS(
 
     # The step-references refer to the JSIAM-paper
 
-    push_info!(logger,"Computing integrals",continues=true)
+    push_info!(logger,"Computing integrals")
     # Quadrature points: So far only circle supported
     w = exp.(2im*pi*(0.5 .+ (0:(N-1)))/N);
     omega = σ .+ radius*w;
 
+    push_info!(logger," Forming all linear systems F(s)^{-1}V:",
+               continues=true)
     # Step 2: Precompute all the linear systems
     FinvV =zeros(T,n,L,N);
     for k = 1:N
@@ -89,7 +91,7 @@ function contour_block_SS(
 
     # Step 3-4: Compute all the integrals and store in Shat (
 
-    push_info!(logger,"Computing Mhat and Shat")
+    push_info!(logger," Forming Mhat and Shat")
     Shat = zeros(T,n,L,2*K)
     Mhat = zeros(T,L,L,2*K)
     for k=0:(2*K-1)
@@ -151,6 +153,7 @@ function contour_block_SS(
     end
     V=S*VV_H1*X;
 
+    # Reverse the shift
     λ=σ .+ radius*xi
 
     return λ,V
