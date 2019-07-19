@@ -39,7 +39,7 @@ function contour_block_SS(
     σ::Number=zero(complex(T)),
     logger=0,
     linsolvercreator::Function=backslash_linsolvercreator,
-    neigs::Integer=2, # Number of wanted eigvals (currently unused)
+    neigs=Inf, # Number of wanted eigvals (currently unused)
     k::Integer=2, # Columns in matrix to integrate
     radius::Union{Real,Tuple,Array}=1, # integration radius
     quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
@@ -51,7 +51,7 @@ function contour_block_SS(
     rank_drop_tol=tol # Used in sanity checking
 )where{T<:Number}
 
-#    @parse_logger_param!(logger)
+    @parse_logger_param!(logger)
 
 
     n = size(nep,1);
@@ -65,8 +65,8 @@ function contour_block_SS(
     V = rand(T,n,L);
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
-        print(".")
-        local M0inv::LinSolver = linsolvercreator(nep,λ);
+        push_info!(logger,".",continues=true);
+        local M0inv::LinSolver = linsolvercreator(nep,λ + σ);
         # This requires that lin_solve can handle rectangular
         # matrices as the RHS
         return lin_solve(M0inv,V);
@@ -74,6 +74,7 @@ function contour_block_SS(
 
     # The step-references refer to the JSIAM-paper
 
+    push_info!(logger,"Computing integrals",continues=true)
     # Quadrature points: So far only circle supported
     w = exp.(2im*pi*(0.5 .+ (0:(N-1)))/N);
     omega = σ .+ radius*w;
@@ -81,11 +82,14 @@ function contour_block_SS(
     # Step 2: Precompute all the linear systems
     FinvV =zeros(T,n,L,N);
     for k = 1:N
-        FinvV[:,:,k]=local_linsolve(omega[k],V);
+        FinvV[:,:,k]=local_linsolve(omega[k] .- σ,V);
     end
+    push_info!(logger,"");
+
 
     # Step 3-4: Compute all the integrals and store in Shat (
 
+    push_info!(logger,"Computing Mhat and Shat")
     Shat = zeros(T,n,L,2*K)
     Mhat = zeros(T,L,L,2*K)
     for k=0:(2*K-1)
@@ -98,6 +102,7 @@ function contour_block_SS(
 
 
     # Construct H-matrices:
+    push_info!(logger,"Computing Hhat and Hhat^{<}")
     m=K*L;
     Hhat=zeros(T,m,m)   # Hhat
     Hhat2=zeros(T,m,m)  # Hhat^{<}
@@ -111,7 +116,7 @@ function contour_block_SS(
 
     # Extraction more similar to Algorithm 1
     # in https://arxiv.org/pdf/1510.02572.pdf
-
+    push_info!(logger,"Computing SVD prepare for eigenvalue extraction ",continues=true)
     F=svd(Hhat)
     UU=F.U;
     SS=F.S;
@@ -121,6 +126,7 @@ function contour_block_SS(
     pp =   count( SS/SS[1] .> rank_drop_tol);
     mprime=pp; # To make closer to notation in paper
 
+    push_info!(logger," mprime=$mprime");
 
 
     # Pick relevant eigvecs
