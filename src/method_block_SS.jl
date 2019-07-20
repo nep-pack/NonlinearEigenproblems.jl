@@ -110,11 +110,8 @@ function contour_block_SS(
 
         # This deviates from the JSIAM-paper description, since
         # we do not precompute linear systems, but instead
-        # computes linear system in combination with the quadrature
-        gv=Vector{Function}(undef,2*K)
-        for k=0:(2*K-1)
-            gv[k+1]= s -> exp(1im*s*k)
-        end
+        # compute linear system in combination with the quadrature.
+        # This version is more extendable.
 
         radius1=[radius, radius]; # Hard-code circle. Ellipse not yet supported
         # length(radius)==1 ? radius=(radius,radius) : nothing
@@ -122,6 +119,11 @@ function contour_block_SS(
         gp(t) = complex(-radius1[1]*sin(t),radius1[2]*cos(t)) # derivative
         Tv(λ) = local_linsolve(T(λ),V)
         f(t) = Tv(g(t))*gp(t)/(2im*pi*radius)
+
+        gv=Vector{Function}(undef,2*K)
+        for k=0:(2*K-1)
+            gv[k+1]= s -> (g(s)/radius)^k;
+        end
 
         Shat=integrate_interval(MIntegrator, ComplexF64,
                                 f,gv,0,2*pi,N,logger )
