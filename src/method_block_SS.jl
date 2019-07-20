@@ -77,17 +77,25 @@ function contour_block_SS(
     # The step-references refer to the JSIAM-paper
 
     push_info!(logger,"Computing integrals")
-    # Quadrature points: So far only circle supported
-    w = exp.(2im*pi*(0.5 .+ (0:(N-1)))/N);
-    omega = radius*w;
 
     local Shat
     push_info!(logger,"Forming Mhat and Shat")
     Shat = zeros(T,n,L,2*K)
     Mhat = zeros(T,L,L,2*K)
 
+    length(radius)==1 ? radius1=(radius,radius) : radius1=radius
+
+
     if (Shat_mode==:JSIAM)
         # This is the way the JSIAM-paper proposes to compute Shat
+        if (length(radius)>1)
+            error("JSIAM Shat_mode does not support ellipses");
+        end
+
+        # Quadrature points: Only circle supported
+        w = exp.(2im*pi*(0.5 .+ (0:(N-1)))/N);
+        omega = radius*w;
+
         push_info!(logger,"Forming all linear systems F(s)^{-1}V:",
                    continues=true)
         # Step 2: Precompute all the linear systems
@@ -111,20 +119,20 @@ function contour_block_SS(
         # This deviates from the JSIAM-paper description, since
         # we do not precompute linear systems, but instead
         # compute linear system in combination with the quadrature.
-        # This version is more extendable.
+        # It handles the scaling differently.
+        # This version is also more extendable.
 
-        radius1=[radius, radius]; # Hard-code circle. Ellipse not yet supported
-        # length(radius)==1 ? radius=(radius,radius) : nothing
         g(t) = complex(radius1[1]*cos(t),radius1[2]*sin(t)) # ellipse
         gp(t) = complex(-radius1[1]*sin(t),radius1[2]*cos(t)) # derivative
         Tv(λ) = local_linsolve(T(λ),V)
-        f(t) = Tv(g(t))*gp(t)/(2im*pi*radius)
+        f(t) = Tv(g(t))*gp(t)/(2im*pi)
 
         gv=Vector{Function}(undef,2*K)
         for k=0:(2*K-1)
-            gv[k+1]= s -> (g(s)/radius)^k;
+            gv[k+1]= s -> g(s)^k;
         end
 
+        # Call the integrator
         Shat=integrate_interval(MIntegrator, ComplexF64,
                                 f,gv,0,2*pi,N,logger )
 
@@ -188,7 +196,9 @@ function contour_block_SS(
     V=S*VV_H1*X;
 
     # Reverse the shift
-    λ=σ .+ radius*xi
+
+    Shat_mode == :JSIAM  ? factor=radius : factor=1
+    λ=σ .+ factor*xi
 
     return λ,V
 end
