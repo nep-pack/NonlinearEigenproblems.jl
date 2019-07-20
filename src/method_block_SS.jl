@@ -32,9 +32,11 @@ julia> @show λ
 * Van Beeumen,  Meerbergen, Michiels. Connections between contour integration and rational Krylov methods for eigenvalue problems, 2016, TW673, https://lirias.kuleuven.be/retrieve/415487/
 """
 contour_block_SS(nep::NEP;params...)=contour_block_SS(ComplexF64,nep;params...);
+contour_block_SS(nep::NEP,MIntegrator;params...)=contour_block_SS(ComplexF64,nep,MIntegrator;params...);
 function contour_block_SS(
     ::Type{T},
-    nep::NEP;
+    nep::NEP,
+    ::Type{MIntegrator}=MatrixTrapezoidal;
     tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
     σ::Number=zero(complex(T)),
     logger=0,
@@ -42,22 +44,19 @@ function contour_block_SS(
     neigs=Inf, # Number of wanted eigvals (currently unused)
     k::Integer=3, # Columns in matrix to integrate
     radius::Union{Real,Tuple,Array}=1, # integration radius
-    quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
     N::Integer=1000,  # Nof quadrature nodes
     K::Integer=3, # Nof moments
     errmeasure::ErrmeasureType = DefaultErrmeasure,
     sanity_check=true,
+    Shat_mode=:native, # native or JSIAM-mode
     rank_drop_tol=tol # Used in sanity checking
-)where{T<:Number}
+)where{T<:Number, MIntegrator<:MatrixIntegrator}
 
     @parse_logger_param!(logger)
 
 
     n = size(nep,1);
 
-    if (quad_method != :ptrapz)
-        error("Only quad_method=:ptrapz currently supported")
-    end
 
     # Notation: L in JSIAM-paper corresponds to k in Beyn's paper.
     # Input params the same as contourbeyn, but
@@ -69,7 +68,6 @@ function contour_block_SS(
     V = rand(T,n,L);
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
-        push_info!(logger,".",continues=true);
         local M0inv::LinSolver = linsolvercreator(nep,λ + σ);
         # This requires that lin_solve can handle rectangular
         # matrices as the RHS
@@ -83,26 +81,56 @@ function contour_block_SS(
     w = exp.(2im*pi*(0.5 .+ (0:(N-1)))/N);
     omega = radius*w;
 
-    push_info!(logger," Forming all linear systems F(s)^{-1}V:",
-               continues=true)
-    # Step 2: Precompute all the linear systems
-    FinvV =zeros(T,n,L,N);
-    for k = 1:N
-        FinvV[:,:,k]=local_linsolve(omega[k],V);
-    end
-    push_info!(logger,"");
-
-
-    # Step 3-4: Compute all the integrals and store in Shat (
-
-    push_info!(logger," Forming Mhat and Shat")
+    local Shat
+    push_info!(logger,"Forming Mhat and Shat")
     Shat = zeros(T,n,L,2*K)
     Mhat = zeros(T,L,L,2*K)
-    for k=0:(2*K-1)
-        for j=0:N-1
-            d=((omega[j+1])/radius)^(k+1)
-            Shat[:,:,k+1] += d*FinvV[:,:,j+1]/N;
+
+    if (Shat_mode==:JSIAM)
+        # This is the way the JSIAM-paper proposes to compute Shat
+        push_info!(logger,"Forming all linear systems F(s)^{-1}V:",
+                   continues=true)
+        # Step 2: Precompute all the linear systems
+        FinvV =zeros(T,n,L,N);
+        for k = 1:N
+            FinvV[:,:,k]=local_linsolve(omega[k],V);
         end
+        push_info!(logger,"");
+
+        # Step 3-4: Compute all the integrals and store in Shat (
+
+        for k=0:(2*K-1)
+            for j=0:N-1
+                d=((omega[j+1])/radius)^(k+1)
+                Shat[:,:,k+1] += d*FinvV[:,:,j+1]/N;
+            end
+        end
+
+    elseif (Shat_mode==:native)
+
+        # This deviates from the JSIAM-paper description, since
+        # we do not precompute linear systems, but instead
+        # computes linear system in combination with the quadrature
+        gv=Vector{Function}(undef,2*K)
+        for k=0:(2*K-1)
+            gv[k+1]= s -> exp(1im*s*k)
+        end
+
+        radius1=[radius, radius]; # Hard-code circle. Ellipse not yet supported
+        # length(radius)==1 ? radius=(radius,radius) : nothing
+        g(t) = complex(radius1[1]*cos(t),radius1[2]*sin(t)) # ellipse
+        gp(t) = complex(-radius1[1]*sin(t),radius1[2]*cos(t)) # derivative
+        Tv(λ) = local_linsolve(T(λ),V)
+        f(t) = Tv(g(t))*gp(t)/(2im*pi*radius)
+
+        Shat=integrate_interval(MIntegrator, ComplexF64,
+                                f,gv,0,2*pi,N,logger )
+
+    else
+        error("Unknown Shat_mode: $Shat_mode")
+    end
+
+    for k=0:(2*K-1)
         Mhat[:,:,k+1]=U'*Shat[:,:,k+1] # Step 4: Mhat=U'*Shat
     end
 

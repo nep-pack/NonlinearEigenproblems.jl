@@ -17,12 +17,16 @@ function integrate_interval(ST::Type{MatrixTrapezoidal},::Type{T},f,gv,a,b,N,log
     m=size(gv,1);
     S = zeros(T,size(f1)...,m)
 
+    push_info!(logger,string(ST)*": computing G",continues=true)
     # Matrix of gv evaluations
     G = zeros(T,N,m);
     for i=1:m
-        gg=gv[i].(t);
+        push_info!(logger,".",continues=true);
+        push_info!(logger,2,"t=$t",continues=true);
+        gg=gv[i].(Vector(t));
         G[:,i] = gg
     end
+    push_info!(logger,".",continues=false);
 
     # Do the sum
     push_info!(logger,string(ST)*": summing terms",continues=true);
