@@ -4,9 +4,22 @@ using Random;
 export contour_block_SS
 
 """
-    contour_block_SS
+    contour_block_SS([eltype,] nep [,mintegrator];[tol,][logger,][σ,][radius,][linsolvercreator,][N,][neigs,][k,][L])
 
-Higher order moments for contour integration (Asakura and Sakurai).
+This is an implementation of the block_SS contour integral method which is
+based on the computation of higher order moments.
+The contour is an ellipse centered at `σ` with radii given in `radius`, or if only one `radius` is given, the contour is a circle. The numerical quadrature method is specified in `mintegrator`,
+which is a type inheriting from `MatrixIntegrator`, by default
+`MatrixTrapezoidal`. For a parallell implementation of the
+integrator use `MatrixTrapezoidalParallel`.
+ The integer `k`
+specifies size of the probe subspace. `N` corresponds to the
+number of quadrature points. The integer L specifies the number of moments.
+Ellipses are the only supported contours. The
+`linsolvercreator` must create a linsolver that can handle (rectangular) matrices
+as right-hand sides, not only vectors. We integrate in complex arithmetic so
+`eltype` must be complex type.
+
 
 
 # Example
@@ -27,8 +40,6 @@ julia> @show λ
 # References
 
 * Asakura, Sakurai, Tadano, Ikegami, Kimura, A numerical method for nonlinear eigenvalue problems using contour integrals, JSIAM Letters, 2009 Volume 1 Pages 52-55
-* Algorithm 2: Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
-* Figure 5.3: Tisseur, Güttel. Nonlinear eigenvalue problems, 2017, vol 26
 * Van Beeumen,  Meerbergen, Michiels. Connections between contour integration and rational Krylov methods for eigenvalue problems, 2016, TW673, https://lirias.kuleuven.be/retrieve/415487/
 """
 contour_block_SS(nep::NEP;params...)=contour_block_SS(ComplexF64,nep;params...);

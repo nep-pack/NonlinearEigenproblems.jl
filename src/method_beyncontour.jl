@@ -13,7 +13,7 @@ export contour_beyn
 The function computes eigenvalues using Beyn's contour integral approach,
 using an ellipse centered at `σ` with radii given in `radius`, or if only one `radius` is given,
 the contour is a circle. The numerical quadrature method is specified in `mintegrator`,
-which is a type of inheriting from `MatrixIntegrator`, by default
+which is a type inheriting from `MatrixIntegrator`, by default
 `MatrixTrapezoidal`. For a parallell implementation of the
 integrator use `MatrixTrapezoidalParallel`.
  The integer `k`
