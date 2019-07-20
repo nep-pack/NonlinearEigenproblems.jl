@@ -62,7 +62,7 @@ function contour_block_SS(
     # Notation: L in JSIAM-paper corresponds to k in Beyn's paper.
     # Input params the same as contourbeyn, but
     # the code is like JSIAM-paper
-    L=k,
+    L=k
 
     Random.seed!(10); # Reproducability (not really)
     U = rand(T,n,L);
@@ -81,14 +81,14 @@ function contour_block_SS(
     push_info!(logger,"Computing integrals")
     # Quadrature points: So far only circle supported
     w = exp.(2im*pi*(0.5 .+ (0:(N-1)))/N);
-    omega = σ .+ radius*w;
+    omega = radius*w;
 
     push_info!(logger," Forming all linear systems F(s)^{-1}V:",
                continues=true)
     # Step 2: Precompute all the linear systems
     FinvV =zeros(T,n,L,N);
     for k = 1:N
-        FinvV[:,:,k]=local_linsolve(omega[k] .- σ,V);
+        FinvV[:,:,k]=local_linsolve(omega[k],V);
     end
     push_info!(logger,"");
 
@@ -100,7 +100,7 @@ function contour_block_SS(
     Mhat = zeros(T,L,L,2*K)
     for k=0:(2*K-1)
         for j=0:N-1
-            d=((omega[j+1]-σ)/radius)^(k+1)
+            d=((omega[j+1])/radius)^(k+1)
             Shat[:,:,k+1] += d*FinvV[:,:,j+1]/N;
         end
         Mhat[:,:,k+1]=U'*Shat[:,:,k+1] # Step 4: Mhat=U'*Shat

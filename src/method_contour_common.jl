@@ -2,6 +2,14 @@
 using Distributed, LinearAlgebra, Random
 
 
+# The following integration methods have input and output:
+
+# Returns (S0,S1) where S0 and S1 are certain integrals
+# S0 approx int_a^b f(t) dt
+# S1 approx int_a^b f(t)*g(t) dt
+# Typically f(t) would return a vector or a matrix
+
+
 #  Carries out Gauss quadrature (with N) discretization points
 #  by call to @parallel
 function quadg_parallel(f,g,a,b,N)
