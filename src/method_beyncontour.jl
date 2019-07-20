@@ -8,13 +8,16 @@ using Random
 export contour_beyn
 
 """
-    λv,V=contour_beyn([eltype,] nep;[tol,][logger,][σ,][radius,][linsolvercreator,][quad_method,][N,][neigs,][k])
+    λv,V=contour_beyn([eltype,] nep [,mintegrator];[tol,][logger,][σ,][radius,][linsolvercreator,][N,][neigs,][k])
 
 The function computes eigenvalues using Beyn's contour integral approach,
 using an ellipse centered at `σ` with radii given in `radius`, or if only one `radius` is given,
-the contour is a circle. The quadrature method is specified in `quad_method`
-(`:ptrapz`,`ptrapz_parallel`, `:quadg`,`:quadg_parallel`,`:quadgk`). `k`
-specifies the number of computed eigenvalues. `N` corresponds to the
+the contour is a circle. The numerical quadrature method is specified in `mintegrator`,
+which is a type of inheriting from `MatrixIntegrator`, by default
+`MatrixTrapezoidal`. For a parallell implementation of the
+integrator use `MatrixTrapezoidalParallel`.
+ The integer `k`
+specifies size of the probe subspace. `N` corresponds to the
 number of quadrature points. Ellipses are the only supported contours. The
 `linsolvercreator` must create a linsolver that can handle (rectangular) matrices
 as right-hand sides, not only vectors. We integrate in complex arithmetic so
@@ -32,7 +35,7 @@ to extract accurate eigenvalues.
 julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
 julia> # Look for two eigvals in unit disk
-julia> λv,V=contour_beyn(nep,radius=1,neigs=2,quad_method=:ptrapz);
+julia> λv,V=contour_beyn(nep,radius=1,neigs=2);
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1])) # Eigenpair 1
 5.778617503485546e-15
 julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
@@ -42,8 +45,10 @@ julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
 * Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863
 """
 contour_beyn(nep::NEP;params...)=contour_beyn(ComplexF64,nep;params...)
+contour_beyn(nep::NEP,MIntegrator;params...)=contour_beyn(ComplexF64,nep,MIntegrator;params...)
 function contour_beyn(::Type{T},
-                      nep::NEP;
+                      nep::NEP,
+                      ::Type{MIntegrator}=MatrixTrapezoidal;
                       tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
                       σ::Number=zero(complex(T)),
                       logger=0,
@@ -51,12 +56,11 @@ function contour_beyn(::Type{T},
                       neigs::Integer=2, # Number of wanted eigvals
                       k::Integer=neigs+1, # Columns in matrix to integrate
                       radius::Union{Real,Tuple,Array}=1, # integration radius
-                      quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
                       N::Integer=1000,  # Nof quadrature nodes
                       errmeasure::ErrmeasureType = DefaultErrmeasure,
                       sanity_check=true,
                       rank_drop_tol=tol # Used in sanity checking
-                      )where{T<:Number}
+                      )where{T<:Number, MIntegrator<:MatrixIntegrator}
 
     @parse_logger_param!(logger)
 
@@ -86,7 +90,6 @@ function contour_beyn(::Type{T},
 
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
-        push_info!(logger,".",continues=true);
         local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
         # This requires that lin_solve can handle rectangular
         # matrices as the RHS
@@ -96,33 +99,16 @@ function contour_beyn(::Type{T},
     # Constructing integrands
     Tv(λ) = local_linsolve(T(λ),Vh)
     f(t) = Tv(g(t))*gp(t)
-    push_info!(logger,"Computing integrals",continues=true)
+    push_info!(logger,"Computing integrals")
 
 
     local A0,A1
-    if (quad_method == :quadg_parallel)
-        push_info!(logger," using quadg_parallel")
-        (A0,A1)=quadg_parallel(f,g,0,2*pi,N);
-    elseif (quad_method == :quadg)
-        #@ifd(print(" using quadg"))
-        #A0=quadg(f1,0,2*pi,N);
-        #A1=quadg(f2,0,2*pi,N);
-        error("disabled");
-    elseif (quad_method == :ptrapz)
-        push_info!(logger," using ptrapz")
-        (A0,A1)=ptrapz(f,g,0,2*pi,N);
-    elseif (quad_method == :ptrapz_parallel)
-        push_info!(logger," using ptrapz_parallel")
-        (A0,A1)=ptrapz_parallel(f,g,0,2*pi,N);
-    elseif (quad_method == :quadgk)
-        #@ifd(print(" using quadgk"))
-        #A0,tmp=quadgk(f1,0,2*pi,reltol=tol);
-        #A1,tmp=quadgk(f2,0,2*pi,reltol=tol);
-        error("disabled");
-    else
-        error("Unknown quadrature method:"*String(quad_method));
-    end
-    push_info!(logger,"");
+    AA=integrate_interval(MIntegrator, ComplexF64, f,
+                        [ s-> one(s), g],0,2*pi,N,logger )
+    A0=AA[:,:,1];
+    A1=AA[:,:,2];
+
+
     # Don't forget scaling
     A0[:,:] = A0 ./(2im*pi);
     A1[:,:] = A1 ./(2im*pi);

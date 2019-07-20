@@ -2,6 +2,47 @@
 using Distributed, LinearAlgebra, Random
 
 
+export MatrixIntegrator, MatrixTrapezoidal;
+
+abstract type MatrixIntegrator ; end
+
+abstract type MatrixTrapezoidal <: MatrixIntegrator; end
+
+
+
+function integrate_interval(ST::Type{MatrixTrapezoidal},::Type{T},f,gv,a,b,N,logger) where {T<:Number}
+    h = (b-a)/N
+    t = range(a, stop = b-h, length = N)
+    f1=f(t[1]);
+    m=size(gv,1);
+    S = zeros(T,size(f1)...,m)
+
+    # Matrix of gv evaluations
+    G = zeros(T,N,m);
+    for i=1:m
+        gg=gv[i].(t);
+        G[:,i] = gg
+    end
+
+    # Do the sum
+    push_info!(logger,string(ST)*": summing terms",continues=true);
+    for i = 1:N
+        push_info!(logger,".",continues=true);
+        if (i==1) # Already computed
+            temp = f1;
+        else
+            temp = f(t[i])
+        end
+        for j=1:m
+            S[:,:,j] += temp*G[i,j];
+        end
+    end
+    push_info!(logger,"")
+    return S * h
+end
+
+
+
 # The following integration methods have input and output:
 
 # Returns (S0,S1) where S0 and S1 are certain integrals
