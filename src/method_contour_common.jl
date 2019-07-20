@@ -47,7 +47,10 @@ end
 
 
 
-# The following integration methods have input and output:
+
+
+# The following routines are unused and shall be removed
+# once we have corresponding functionality in the code or examples.
 
 # Returns (S0,S1) where S0 and S1 are certain integrals
 # S0 approx int_a^b f(t) dt
