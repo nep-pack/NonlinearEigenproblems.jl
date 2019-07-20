@@ -40,12 +40,11 @@ function contour_block_SS(
     logger=0,
     linsolvercreator::Function=backslash_linsolvercreator,
     neigs=Inf, # Number of wanted eigvals (currently unused)
-    k::Integer=2, # Columns in matrix to integrate
+    k::Integer=3, # Columns in matrix to integrate
     radius::Union{Real,Tuple,Array}=1, # integration radius
     quad_method::Symbol=:ptrapz, # which method to run. :quadg, :quadg_parallel, :quadgk, :ptrapz
     N::Integer=1000,  # Nof quadrature nodes
     K::Integer=3, # Nof moments
-    L::Integer=3, # Size of the probe-matrices
     errmeasure::ErrmeasureType = DefaultErrmeasure,
     sanity_check=true,
     rank_drop_tol=tol # Used in sanity checking
@@ -59,6 +58,11 @@ function contour_block_SS(
     if (quad_method != :ptrapz)
         error("Only quad_method=:ptrapz currently supported")
     end
+
+    # Notation: L in JSIAM-paper corresponds to k in Beyn's paper.
+    # Input params the same as contourbeyn, but
+    # the code is like JSIAM-paper
+    L=k,
 
     Random.seed!(10); # Reproducability (not really)
     U = rand(T,n,L);
