@@ -124,16 +124,18 @@ julia> function integrate_interval(ST::Type{GaussIntegrator},::Type{T},f,gv,a,b,
     # create the tensor and compute all quadratures
     S = zeros(T,size(f(t[1]))...,m)
     for i = 1:N
+        ## Extra code goes here 1
         temp = f(t[i]) # Only computed once for all g-functions
         for j=1:m
             S[:,:,j] += temp*(gv[j](t[i])*w[i]);
         end
     end
+    ## Extra code goes here 2
     return S
 end
 ```
-To specify this solver, you need to add it (the type you just created)
-as a parameter in the call:
+To specify this solver, you need to add the type you just created
+as a parameter in the call after the `nep`:
 ```julia
 julia> (λ,v)= contour_block_SS(nep,GaussIntegrator,radius=0.5, k=10);
 julia> λ
@@ -143,6 +145,30 @@ julia> λ
   -0.3635139038679633 - 0.33597403312059543im
   -0.2584032183498066 - 0.4144591339245837im
 ```
+Let's make it print some pretty decoration
+during the progress of the method.
+In the code where it currently says
+`## Extra code goes here` we will now insert
+```julia
+if (mod(i,round(N/50))==1)
+   print(".")
+end
+``
+and `println()` in the second code insertion.
+This way, we will print a progress bar, which
+prints in total (approximately) 50 dots.
+You will see dots gradually appearing:
+```julia
+julia> (λ,v)= contour_beyn(nep,GaussIntegrator,radius=0.5,k=10);
+..................................................
+```
 
 
 ## Parallellized integration method
+
+The main computational effort of the contour
+integral methods lies in solving many linear systems.
+This is done in the call to `f` in
+the `integrate_interval`-function. Since they are completely
+independent operation in the for-loop, they can
+be easily parallelized.
