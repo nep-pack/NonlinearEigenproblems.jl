@@ -49,9 +49,9 @@ These solvers are currently available (see https://nep-pack.github.io/NonlinearE
 * Projection methods
     * Jacobi-Davidson (two versions)
     * Nonlinear Arnoldi method
-* Contour integral 
+* Contour integral methods
     * Beyn's contour integral method
-    * Higher momement contour integral method (a.k.a the Asakura&Sakurai method)
+    * Block SS (Higher moments) contour integral method of Asakura & Sakurai
 * Deflation
     * Effenberger style deflation
     
