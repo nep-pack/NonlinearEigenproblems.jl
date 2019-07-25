@@ -1,11 +1,12 @@
 # Contour integral tutorial
 
 
-NEP-PACK contains several implementations of different
-contour integral methods.
+NEP-PACK contains several implementations of methods
+in the family of approaches based on
+contour integration.
 Although they have been worked out and
-presented independently (in different research articles
-by different research groups),
+presented independently
+(in different research articles by different research groups),
 we have implemented them in a unified
 and extendible way.
 
@@ -17,11 +18,10 @@ the final example below.
 
 ## Basic usage
 
-We illustrate both how to make
-call to contour Beyn's contour
+The most popular methods contour
+integral methods are Beyn's contour
 integral method and the block SS method
-of Asakura and Sakurai.
-
+of Asakura and Sakurai. We illustrate both of them.
 First set up a large and sparse problem:
 ```julia-repl
 julia> using SparseArrays;
@@ -83,12 +83,13 @@ probe matrix has.
 In general, we do not obtain more `k` eigenvalues.
 
 It seems that in this case `contour_block_SS` is better
-since it finds two eigenvalues  which
+since it finds eigenvalues  which
 `contour_beyn` misses. However, a closer look reveals
 that the additional eigenvalues
 are outside the requested disc, and the
 call to  `contour_block_SS` also requires
-more computation time.
+more computation time, making the comparison
+unfair.
 
 ## Your own quadrature method
 
@@ -144,7 +145,8 @@ julia> function integrate_interval(ST::Type{GaussIntegrator},::Type{T},f,gv,a,b,
 end
 ```
 To specify this solver, you need to add the type you just created
-as a parameter in the call after the parameter `nep`:
+as a parameter in the call. This is an argument (not a keyword argument)
+after the argument `nep`:
 ```julia-repl
 julia> (λ,v)= contour_block_SS(nep,GaussIntegrator,radius=0.5, k=10);
 julia> λ
@@ -168,7 +170,8 @@ end
 and `println()` in the second code insertion.
 This way, we will print a progress bar, which
 prints in total (approximately) 50 dots.
-You will see dots gradually appearing:
+You will see dots gradually appearing as a progress
+bar:
 ```julia-repl
 julia> (λ,v)= contour_beyn(nep,GaussIntegrator,radius=0.5,k=10);
 ..................................................
@@ -216,7 +219,7 @@ end
 ```
 To use the parallelization you may need to start
 julia with command-line arguments to specify the number
-of parallel process to be used, e.g., `-p 4`.
+of parallel processes to be used, e.g., `-p 4`.
 The `@btime` macro provides a way to measure how much faster
 the parallel implementation is.
 ```julia-repl
@@ -225,3 +228,4 @@ julia> @btime (λ,v)= contour_block_SS(nep,ParallelIntegrator,radius=0.5, k=10);
 julia> @btime (λ,v)= contour_block_SS(nep,radius=0.5, k=10);
   2.990 s (321362 allocations: 5.84 GiB)
 ```
+This is a speed up of 3.4, with `p=4` processes.
