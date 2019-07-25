@@ -8,7 +8,7 @@ presented independently (in different articles),
 we have implemented them in a way where the
 common componentsare the same.
 
-Contour integral methods are have one property
+Contour integral methods have one property
 which makes them attractive from the perspective of
 parallelization, which we will illustrate in
 the final example below.
@@ -22,49 +22,52 @@ integral method and the block SS method
 of Asakura and Sakurai.
 
 First set up a large and sparse problem:
-```julia
+```julia-repl
 julia> using SparseArrays;
-julia> n=100;
+julia> n=1000;
 julia> A0=spdiagm(0 => ones(n))
-julia> A1=spdiagm(-2 => ones(n-2), 1 => (1:n-1)/n)
-julia> A2=spdiagm(-1 => ones(n-1), 0 => (1:n)/n, 1 => sin.(range(0,10,length=n-1)))
-julia> nep=SPMF_NEP([A0,A1,A2],[s->one(s), s->s^2, s->sin(s)])
+julia> A1=spdiagm(-2 => ones(n-2), 0 => 30*(n:-1:1)/n,  1 => 3*ones(n-1))/3
+julia> A2=spdiagm(-1 => ones(n-1), 0 => (1:n)/n, 1 => sin.(range(0,5,length=n-1)))/10
+julia> nep=SPMF_NEP([A0,A1,A2],[s->one(s), s->s, s->exp(-s)])
 ```
 and call the two integral solution methods:
 ```julia
 julia> (λ,v)= contour_beyn(nep,radius=0.5,k=10);
 ```
-and we can verify that we found some good solutions
+We can verify that we found some good solutions
 ```julia
 julia> λ
 2-element Array{Complex{Float64},1}:
-  -0.2584032183498001 + 0.41445913392459055im
- -0.25840321834980007 - 0.4144591339245906im
+ -0.4938003805961036 + 0.03369433628038132im
+ -0.4984653501095431 - 0.013414744968396205im
 julia> norm(compute_Mlincomb(nep,λ[1],normalize(v[:,1])))
-2.207347574532086e-15
+2.8693125572899838e-6
 julia> norm(compute_Mlincomb(nep,λ[2],normalize(v[:,2])))
-2.052254464542942e-15
+3.0028543096707394e-6
 ```
-For later comparison we also use `contour_block_SS`
+For comparison we also use `contour_block_SS`
 ```julia
 julia> (λ,v)= contour_block_SS(nep,radius=0.5,k=10);
-julia> λ
-4-element Array{Complex{Float64},1}:
-  -0.2584032183498005 + 0.4144591339245909im
-  -0.3635139038679691 + 0.33597403312059815im
- -0.36351390386796917 - 0.335974033120598im
- -0.25840321834980057 - 0.4144591339245917im
+julia> julia> λ
+7-element Array{Complex{Float64},1}:
+ -0.49789562317811836 + 0.029382625854591973im
+  -0.5020899933123398 - 0.027308288264250524im
+  -0.5006296180796399 + 0.011976675667372098im
+  -0.5000287784310599 - 0.010301420892154335im
+  -0.5044451294089868 - 0.0074606034247795975im
+  -0.5001550771105308 - 0.00026147429323077303im
+ -0.49957316937095864 + 0.003511006328045692im
 ```
 and the corresponding residual norms
 ```julia
-julia> norm(compute_Mlincomb(nep,λ[1],normalize(v[:,1])))
-2.9727040010325543e-15
-julia> norm(compute_Mlincomb(nep,λ[2],normalize(v[:,2])))
-2.5579929787574954e-15
-julia> norm(compute_Mlincomb(nep,λ[3],normalize(v[:,3])))
-2.360173099697166e-15
-julia> norm(compute_Mlincomb(nep,λ[4],normalize(v[:,4])))
-3.920633762821404e-15
+julia> julia> for j=1:7; @show norm(compute_Mlincomb(nep,λ[j],normalize(v[:,j]))); end
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 2.8693125572899838e-6
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 3.0028543096707394e-6
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 1.1514402700870265e-7
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 4.123810796391466e-8
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 6.261761794674978e-8
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 1.7269388863226059e-9
+norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 2.994085882385125e-9
 ```
 The functions `contour_beyn` and `contour_block_SS`
 have compatible keyword argumengs. The value `radius=0.5`,
@@ -77,12 +80,14 @@ The value `k=5` specifies how many columns the search subspace has.
 In general, we do not obtain more `k` eigenvalues.
 
 It seems that in this case `contour_block_SS` is better
-since it finds two eigenvalues inside the disk which
+since it finds two eigenvalues  which
 `contour_beyn` misses. However, a closer look reveals
-that the call to  `contour_block_SS` also requires
+that the additional eigenvalues
+are outside the requested disc, and the
+call to  `contour_block_SS` also requires
 more computation time.
 
-## Your own integration method
+## Your own quadrature method
 
 The contour integral methods are based on numerical quadrature.
 There are many different ways to carry out quadrature,
@@ -139,11 +144,13 @@ as a parameter in the call after the `nep`:
 ```julia
 julia> (λ,v)= contour_block_SS(nep,GaussIntegrator,radius=0.5, k=10);
 julia> λ
-4-element Array{Complex{Float64},1}:
- -0.25840321834980035 + 0.414459133924587im
-    -0.36351390386797 + 0.3359740331206035im
-  -0.3635139038679633 - 0.33597403312059543im
-  -0.2584032183498066 - 0.4144591339245837im
+6-element Array{Complex{Float64},1}:
+  -0.5030050924478993 + 0.025867789190345332im
+  -0.4998917126923037 - 0.014647029189145597im
+ -0.49991828738335686 - 0.007092586236661307im
+  -0.5000067107140442 - 0.0026614262456865663im
+ -0.49903549969757116 + 0.0075397370638041255im
+   -0.501620024772268 + 0.00393810326235837im
 ```
 Let's make it print some pretty decoration
 during the progress of the method.
@@ -153,7 +160,7 @@ In the code where it currently says
 if (mod(i,round(N/50))==1)
    print(".")
 end
-``
+```
 and `println()` in the second code insertion.
 This way, we will print a progress bar, which
 prints in total (approximately) 50 dots.
@@ -164,7 +171,7 @@ julia> (λ,v)= contour_beyn(nep,GaussIntegrator,radius=0.5,k=10);
 ```
 
 
-## Parallellized integration method
+## Parallellized quadrature method
 
 The main computational effort of the contour
 integral methods lies in solving many linear systems.
@@ -172,3 +179,45 @@ This is done in the call to `f` in
 the `integrate_interval`-function. Since they are completely
 independent operation in the for-loop, they can
 be easily parallelized.
+
+Install the package `Distributed` and `BenchmarkTools` and include
+with
+```julia
+julia> using Distributed,BenchmarkTools
+```
+Similar to the previous example we make a new
+type corresponding to our integrator and
+explicitly import that
+```julia
+julia> abstract type ParallelIntegrator <: MatrixIntegrator; end
+julia> import  NonlinearEigenproblems.NEPSolver.integrate_interval
+```
+and define a function which computes the main for-loop in parallel using
+the `@distributed` macro:
+```julia
+julia> function integrate_interval(ST::Type{ParallelIntegrator},::Type{T},f,gv,a,b,N,logger) where {T<:Number}
+    h = (b-a)/N
+    t = range(a, stop = b-h, length = N)
+    m = size(gv,1);
+    S = @distributed (+) for i = 1:N
+        temp = f(t [i])
+        Z=zeros(T,size(temp,1),size(temp,2),m);
+        for j=1:m
+            Z[:,:,j]=temp*gv[j](t [i]);
+        end
+        Z
+    end
+    return S
+end
+```
+To use the parallelization you may need to start
+julia with command-line arguments to specify the number
+of parallel process to be used, e.g., `-p 4`.
+The `@btime` macro provides a way to measure how much faster
+the parallel implementation is.
+```julia
+julia> @btime (λ,v)= contour_block_SS(nep,ParallelIntegrator,radius=0.5, k=10);
+  863.420 ms (1385 allocations: 10.46 MiB)
+julia> @btime (λ,v)= contour_block_SS(nep,radius=0.5, k=10);
+  2.990 s (321362 allocations: 5.84 GiB)
+```
