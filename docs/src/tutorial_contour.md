@@ -31,11 +31,11 @@ julia> A2=spdiagm(-1 => ones(n-1), 0 => (1:n)/n, 1 => sin.(range(0,5,length=n-1)
 julia> nep=SPMF_NEP([A0,A1,A2],[s->one(s), s->s, s->exp(-s)])
 ```
 and call the two integral solution methods:
-```julia
+```julia-repl
 julia> (λ,v)= contour_beyn(nep,radius=0.5,k=10);
 ```
 We can verify that we found some good solutions
-```julia
+```julia-repl
 julia> λ
 2-element Array{Complex{Float64},1}:
  -0.4938003805961036 + 0.03369433628038132im
@@ -46,7 +46,7 @@ julia> norm(compute_Mlincomb(nep,λ[2],normalize(v[:,2])))
 3.0028543096707394e-6
 ```
 For comparison we also use `contour_block_SS`
-```julia
+```julia-repl
 julia> (λ,v)= contour_block_SS(nep,radius=0.5,k=10);
 julia> julia> λ
 7-element Array{Complex{Float64},1}:
@@ -59,8 +59,8 @@ julia> julia> λ
  -0.49957316937095864 + 0.003511006328045692im
 ```
 and the corresponding residual norms
-```julia
-julia> julia> for j=1:7; @show norm(compute_Mlincomb(nep,λ[j],normalize(v[:,j]))); end
+```julia-repl
+julia> for j=1:7; @show norm(compute_Mlincomb(nep,λ[j],normalize(v[:,j]))); end
 norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 2.8693125572899838e-6
 norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 3.0028543096707394e-6
 norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 1.1514402700870265e-7
@@ -99,7 +99,7 @@ and the trapezoidal rule works particularly well.
 It is however not the only option for quadrature and
 we can for instance implement a gauss quadrature,
 in this case by using the functionality in the package `QuadGK`:
-```julia
+```julia-repl
 julia> using Pkg
 julia> Pkg.add("QuadGK");
 julia> using QuadGK
@@ -118,7 +118,7 @@ Let us now combine the `gauss`-method in an implementation
 of a numerical quadrature to be used in the quadrature
 methods.
 
-```julia
+```julia-repl
 julia> abstract type GaussIntegrator <: MatrixIntegrator; end
 julia> import  NonlinearEigenproblems.NEPSolver.integrate_interval
 julia> function integrate_interval(ST::Type{GaussIntegrator},::Type{T},f,gv,a,b,N,logger) where {T<:Number}
@@ -141,7 +141,7 @@ end
 ```
 To specify this solver, you need to add the type you just created
 as a parameter in the call after the `nep`:
-```julia
+```julia-repl
 julia> (λ,v)= contour_block_SS(nep,GaussIntegrator,radius=0.5, k=10);
 julia> λ
 6-element Array{Complex{Float64},1}:
@@ -156,7 +156,7 @@ Let's make it print some pretty decoration
 during the progress of the method.
 In the code where it currently says
 `## Extra code goes here` we will now insert
-```julia
+```julia-repl
 if (mod(i,round(N/50))==1)
    print(".")
 end
@@ -165,7 +165,7 @@ and `println()` in the second code insertion.
 This way, we will print a progress bar, which
 prints in total (approximately) 50 dots.
 You will see dots gradually appearing:
-```julia
+```julia-repl
 julia> (λ,v)= contour_beyn(nep,GaussIntegrator,radius=0.5,k=10);
 ..................................................
 ```
@@ -182,19 +182,19 @@ be easily parallelized.
 
 Install the package `Distributed` and `BenchmarkTools` and include
 with
-```julia
+```julia-repl
 julia> using Distributed,BenchmarkTools
 ```
 Similar to the previous example we make a new
 type corresponding to our integrator and
 explicitly import that
-```julia
+```julia-repl
 julia> abstract type ParallelIntegrator <: MatrixIntegrator; end
 julia> import  NonlinearEigenproblems.NEPSolver.integrate_interval
 ```
 and define a function which computes the main for-loop in parallel using
 the `@distributed` macro:
-```julia
+```julia-repl
 julia> function integrate_interval(ST::Type{ParallelIntegrator},::Type{T},f,gv,a,b,N,logger) where {T<:Number}
     h = (b-a)/N
     t = range(a, stop = b-h, length = N)
@@ -215,7 +215,7 @@ julia with command-line arguments to specify the number
 of parallel process to be used, e.g., `-p 4`.
 The `@btime` macro provides a way to measure how much faster
 the parallel implementation is.
-```julia
+```julia-repl
 julia> @btime (λ,v)= contour_block_SS(nep,ParallelIntegrator,radius=0.5, k=10);
   863.420 ms (1385 allocations: 10.46 MiB)
 julia> @btime (λ,v)= contour_block_SS(nep,radius=0.5, k=10);
