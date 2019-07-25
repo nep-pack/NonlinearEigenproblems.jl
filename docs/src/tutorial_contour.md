@@ -4,9 +4,10 @@
 NEP-PACK contains several implementations of different
 contour integral methods.
 Although they have been worked out and
-presented independently (in different articles),
-we have implemented them in a way where the
-common componentsare the same.
+presented independently (in different research articles
+by different research groups),
+we have implemented them in a unified
+and extendible way.
 
 Contour integral methods have one property
 which makes them attractive from the perspective of
@@ -70,13 +71,15 @@ norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 1.7269388863226059e-9
 norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 2.994085882385125e-9
 ```
 The functions `contour_beyn` and `contour_block_SS`
-have compatible keyword argumengs. The value `radius=0.5`,
-means that we numerically integrate  a circle of radius `0.5`,
-centered at `σ=0`. We should expect the method to find
+have compatible keyword argumengs. The kwarg `radius=0.5`,
+means that we numerically integrate  a circle of radius `0.5`.
+The center of the circle is given by the `σ`, argument and
+by default `σ=0`. We should expect the method to find
 eigenvalues (hopefully all eigenvalues) within that disk.
 (Our implementation also supports ellipses, by specifying
 `radius` as a length two vector with the two radii of the ellipse.)
-The value `k=5` specifies how many columns the search subspace has.
+The value `k=10` specifies how many columns the rectangular
+probe matrix has.
 In general, we do not obtain more `k` eigenvalues.
 
 It seems that in this case `contour_block_SS` is better
@@ -93,7 +96,8 @@ The contour integral methods are based on numerical quadrature.
 There are many different ways to carry out quadrature,
 and NEP-PACK provides a way to use user-defined
 quadrature methods.
-The default is to use the trapezoidal rule. When we parameterize
+The default behaviour is to use the trapezoidal rule.
+When we parameterize
 a circle (or ellipse) with a phase, the integrand is periodic
 and the trapezoidal rule works particularly well.
 It is however not the only option for quadrature and
@@ -140,7 +144,7 @@ julia> function integrate_interval(ST::Type{GaussIntegrator},::Type{T},f,gv,a,b,
 end
 ```
 To specify this solver, you need to add the type you just created
-as a parameter in the call after the `nep`:
+as a parameter in the call after the parameter `nep`:
 ```julia-repl
 julia> (λ,v)= contour_block_SS(nep,GaussIntegrator,radius=0.5, k=10);
 julia> λ
@@ -177,7 +181,7 @@ The main computational effort of the contour
 integral methods lies in solving many linear systems.
 This is done in the call to `f` in
 the `integrate_interval`-function. Since they are completely
-independent operation in the for-loop, they can
+independent operations in the for-loop, they can
 be easily parallelized.
 
 Install the package `Distributed` and `BenchmarkTools` and include
