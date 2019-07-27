@@ -209,48 +209,4 @@ end
 # TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
 
 
-type ChebPEPFull <: AbstractSPMF
-    n::Int # size
-    a,b # Chebyshev polys are scaled to the interval
-    Fk::Array   # function values in Chebyshev nodes
-    spmf::SPMF_NEP; # The cheb-coefficents are stored directly in the SPMF
-end
-
-
-type ChebPEPEco <: AbstractSPMF
-    n::Int # size
-    a,b # Chebyshev polys are scaled to the interval
-    Fk::Array   # function values in Chebyshev nodes
-end
-
-ChebPEPCommon = Union{ChebPEPFull,ChebPEPEco};
-
-
-function get_chebyshev_nodes(a,b,k)
-end
-
-function chebyshev_eval(a,b,F)
-    # Evaluate F in the chebyshev nodes
-    return Fk
-end
-function chebyshev_compute_coefficients(a,b,Fk)
-    # Return coefficient
-    return Ck
-end
-
-# Evaluate a ChebPEP in a point: <=> Interpolate
-# Compute coefficients:
-# http://inis.jinr.ru/sl/M_Mathematics/MRef_References/Mason,%20Hanscomb.%20Chebyshev%20polynomials%20(2003)/C0355-Ch06.pdf
-
-
-function ChebPEP()
-
-end
-
-
-
-function polyeig(pep::ChebPEP)
-
-end
-
-# Compute Mlincomb?
+#include("types_cheb_pep.jl");
