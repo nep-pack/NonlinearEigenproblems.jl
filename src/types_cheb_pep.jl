@@ -1,21 +1,6 @@
 
-struct ChebPEPFull <: AbstractSPMF{AbstractMatrix}
-    n::Int # size
-    a; b # Chebyshev polys are scaled to the interval
-    Fk::Array   # function values in Chebyshev nodes
-    spmf::SPMF_NEP; # The cheb-coefficents are stored directly in the SPMF
-end
 
 
-
-#type ChebPEPEco <: AbstractSPMF
-#    n::Int # size
-#    a,b # Chebyshev polys are scaled to the interval
-#    Fk::Array   # function values in Chebyshev nodes
-#end
-#
-#ChebPEP = Union{ChebPEPFull}
-#ChebPEP = ChebPEPFull;
 
 # Returns the chebyshev nodes scaled to interval [a,b]
 # computed with type T
@@ -78,14 +63,14 @@ function chebyshev_compute_coefficients_naive(a,b,Fk,k)
 
 end
 
-function chebyshev_compute_coefficients(a,b,Fk,k)
+# Compute the chebyshev coefficients of the coefficients
+# stored in Fk. xk should be the chebyshev points
+function chebyshev_compute_coefficients(a,b,Fk,xk)
     # Return coefficient
-    xk=get_chebyshev_nodes(Float64,a,b,k)
-    if (size(xk) != size(Fk))
-        error("Incompatible sizes");
-    end
+    k=size(Fk,1);
     Tmat=zeros(k,k);
     for i=1:k
+        # for each chebyshev polynomial, compute the k coefficients
         Tmat[i,:]= map(x->cheb_f(a,b,x,i-1)*2/k,xk)
     end
     Tmat[1,:] *= 0.5; # Fix the prime in the sum
@@ -102,6 +87,72 @@ function chebyshev_compute_coefficients(a,b,Fk,k)
     return Ck
 end
 
+
+
+
+
+
+
+
+struct ChebPEP <: AbstractSPMF{AbstractMatrix}
+    n::Int # size
+    a; b # Chebyshev polys are scaled to the interval
+    Fk::Array   # function values in Chebyshev nodes
+    spmf::SPMF_NEP; # The cheb-coefficents are stored directly in the SPMF
+end
+
+# Make ChebPEP delegate all operations:
+#   compute_mlincomb, compute_Mder, compute_MM,
+#   get_Av, get_fv
+#
+
+import NonlinearEigenproblems.NEPCore.compute_Mder
+import NonlinearEigenproblems.NEPCore.compute_Mlincomb
+import NonlinearEigenproblems.NEPCore.compute_MM
+import NonlinearEigenproblems.NEPTypes.get_Av
+import NonlinearEigenproblems.NEPTypes.get_fv
+import Base.size
+using LinearAlgebra
+
+
+function size(nep::ChebPEP)
+    return (nep.n,nep.n)
+end
+function size(nep::ChebPEP,dim)
+    return nep.n
+end
+
+compute_Mlincomb(nep::ChebPEP,λ::Number,V::AbstractVecOrMat,a::Vector)= compute_Mlincomb(nep.spmf,λ,V,a);
+compute_Mlincomb(nep::ChebPEP,λ::Number,V::AbstractVecOrMat)= compute_Mlincomb(nep.spmf,λ,V);
+compute_Mder(nep::ChebPEP,λ::Number)=compute_Mder(nep.spmf,λ,0)
+compute_Mder(nep::ChebPEP,λ::Number,der::Integer)=compute_Mder(nep.spmf,λ,der)
+compute_MM(nep::ChebPEP,par...)=compute_MM(nep.spmf,par...)
+get_Av(nep::ChebPEP)=get_Av(nep.spmf)
+get_fv(nep::ChebPEP)=get_fv(nep.spmf)
+
+
+
+"""
+
+Interpolates the orgspmf in the interval [a,b] with
+k chebyshev nodes and gives a representation
+in terms of a Chebyshev basis.
+"""
+function ChebPEP(orgspmf,a,b,k)
+    F=s-> compute_Mder(orgspmf,s);
+    (Fk,xk)=chebyshev_eval(a,b,k,F);
+    Ck=chebyshev_compute_coefficients(a,b,Fk,xk);
+
+    fv=Array{Function}(undef,0);
+    for j=1:k
+        push!(fv, S-> cheb_f(a,b,S,j-1))
+    end
+    cheb_spmf=SPMF_NEP(Ck,fv,check_consistency=false);
+
+    n=size(Fk[1],1);
+    return ChebPEP(n,a,b,Fk,cheb_spmf);
+end
+
 # Evaluate a ChebPEP in a point: <=> Interpolate
 # Compute coefficients:
 # http://inis.jinr.ru/sl/M_Mathematics/MRef_References/Mason,%20Hanscomb.%20Chebyshev%20polynomials%20(2003)/C0355-Ch06.pdf
@@ -115,10 +166,10 @@ a=-1;b=4;
 
 (Fk,xk)=chebyshev_eval(a,b,k,f);
 
-Ck0=chebyshev_compute_coefficients(a,b,Fk,k);
+Ck0=chebyshev_compute_coefficients(a,b,Fk,xk);
 #Ck1=chebyshev_compute_coefficients_naive(a,b,Fk,k);
 
-Ck=Ck1;
+#Ck=Ck1;
 xk=get_chebyshev_nodes(Float64,a,b,k)
 xx=xk[1];
 ff0=mapreduce(i->Ck0[i]*cheb_f(a,b,xx,i-1), +, 1:k)
@@ -130,43 +181,8 @@ ff0=mapreduce(i->Ck0[i]*cheb_f(a,b,xx,i-1), +, 1:k)
 
 
 
-function ChebPEP()
-
-end
-
-
-#function polyeig(pep::ChebPEP)
-#
-#end
-
-# Compute Mlincomb?
-
-
-"""
-
-Interpolates the orgspmf in the interval [a,b] with
-k chebyshev nodes and gives a representation
-in terms of a Chebyshev basis.
-"""
-function ChebPEPFull(orgspmf,a,b,k)
-    F=s-> compute_Mder(orgspmf,s);
-    (Fk,xk)=chebyshev_eval(a,b,k,F);
-    @show Fk
-    @show xk
-    Ck=chebyshev_compute_coefficients(a,b,Fk,k);
-
-    fv=Array{Function}(undef,0);
-    for j=1:k
-        push!(fv, S-> cheb_f(a,b,S,j-1))
-    end
-    cheb_spmf=SPMF_NEP(Ck,fv);
-
-    n=size(Fk[1],1);
-    return ChebPEPFull(n,a,b,Fk,cheb_spmf);
-end
-
 nep=nep_gallery("dep0");
-nep2=ChebPEPFull(nep,-2,3,23);
+nep2=ChebPEP(nep,-2,3,23);
 nep3=nep2.spmf;
 
 s=0;
@@ -174,7 +190,16 @@ s=0;
 compute_Mder(nep,s)-compute_Mder(nep3,s)
 
 λ1=iar(nep,neigs=2,logger=1)[1]
-λ3=iar(nep3,neigs=2,logger=1)[1]
+λ2=iar(nep2,neigs=2,logger=1,errmeasure=ResidualErrmeasure)[1]
+λ3=iar(nep3,neigs=2,logger=1,errmeasure=ResidualErrmeasure)[1]
 
 
 @show norm(λ1-λ3)
+
+
+
+
+# Implement linearization technique
+#function polyeig(pep::ChebPEP)
+#
+#end
