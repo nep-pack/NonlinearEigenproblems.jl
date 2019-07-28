@@ -1,5 +1,5 @@
 
-
+export ChebPEP
 
 
 # Returns the chebyshev nodes scaled to interval [a,b]
@@ -93,27 +93,27 @@ end
 
 
 
-
-struct ChebPEP <: AbstractSPMF{AbstractMatrix}
+struct ChebPEP{T<:AbstractMatrix,Ftype} <: AbstractSPMF{T}
     n::Int # size
-    a; b # Chebyshev polys are scaled to the interval
-    Fk::Array   # function values in Chebyshev nodes
-    spmf::SPMF_NEP; # The cheb-coefficents are stored directly in the SPMF
+    # Chebyshev polys are scaled to the interval [a,b]
+    a::Ftype
+    b::Ftype
+    k::Int; # Number of Chebyshev polys
+    spmf::SPMF_NEP{T,Ftype}; # The cheb-coefficents are stored directly in the SPMF
 end
 
-# Make ChebPEP delegate all operations:
-#   compute_mlincomb, compute_Mder, compute_MM,
-#   get_Av, get_fv
+
+
+# Delegate compute functions
+#import NonlinearEigenproblems.NEPCore.compute_Mder
+#import NonlinearEigenproblems.NEPCore.compute_Mlincomb
+#import NonlinearEigenproblems.NEPCore.compute_MM
+#import NonlinearEigenproblems.NEPTypes.get_Av
+#import NonlinearEigenproblems.NEPTypes.get_fv
+#import NonlinearEigenproblems.NEPSolver.polyeig
+#import Base.size
+#using LinearAlgebra
 #
-
-import NonlinearEigenproblems.NEPCore.compute_Mder
-import NonlinearEigenproblems.NEPCore.compute_Mlincomb
-import NonlinearEigenproblems.NEPCore.compute_MM
-import NonlinearEigenproblems.NEPTypes.get_Av
-import NonlinearEigenproblems.NEPTypes.get_fv
-import Base.size
-using LinearAlgebra
-
 
 function size(nep::ChebPEP)
     return (nep.n,nep.n)
@@ -138,7 +138,7 @@ Interpolates the orgspmf in the interval [a,b] with
 k chebyshev nodes and gives a representation
 in terms of a Chebyshev basis.
 """
-function ChebPEP(orgspmf,a,b,k)
+function ChebPEP(orgspmf,k,a=-1,b=1)
     F=s-> compute_Mder(orgspmf,s);
     (Fk,xk)=chebyshev_eval(a,b,k,F);
     Ck=chebyshev_compute_coefficients(a,b,Fk,xk);
@@ -147,59 +147,57 @@ function ChebPEP(orgspmf,a,b,k)
     for j=1:k
         push!(fv, S-> cheb_f(a,b,S,j-1))
     end
-    cheb_spmf=SPMF_NEP(Ck,fv,check_consistency=false);
+
+    # Determine the types (based on Ck[1])
+    MatType=typeof(Ck[1]);
+    T=eltype(Ck[1]);
+
+    # Create an SPMF with the correct type
+    cheb_spmf=SPMF_NEP(Ck,fv,check_consistency=false,Ftype=T);
 
     n=size(Fk[1],1);
-    return ChebPEP(n,a,b,Fk,cheb_spmf);
+    # Instantiate the type
+    return ChebPEP{MatType,T}(n,a,b,k,cheb_spmf);
 end
 
-# Evaluate a ChebPEP in a point: <=> Interpolate
-# Compute coefficients:
-# http://inis.jinr.ru/sl/M_Mathematics/MRef_References/Mason,%20Hanscomb.%20Chebyshev%20polynomials%20(2003)/C0355-Ch06.pdf
 
+# TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
+function polyeig(pep::ChebPEP{T,Ftype}) where {T,Ftype}
+    k=pep.k
+    Fk=get_Av(pep);
+    @show k
+    n=size(pep,1);
+    L0=zeros(Ftype,n*(k-1),n*(k-1));
+    L1=zeros(Ftype,n*(k-1),n*(k-1));
+    II=Matrix{Ftype}(I,n,n);
+    @show L0
+    for j=1:(k-2)
+        L0[((j-1)*n) .+ (1:n), j*n .+ (1:n)]=II
+        L0[j*n .+ (1:n), ((j-1)*n) .+ (1:n)]=II
+    end
 
-f=s-> ones(3)-(1:3)*sin(s);
-#f=s-> 1-1/(s+6);
-#f=s-> 1+s;
-k=3;
-a=-1;b=4;
+    for j=1:k-1
+        L0[((k-2)*n) .+ (1:n), (n*(j-1)).+ (1:n)]=-Fk[j];
+    end
 
-(Fk,xk)=chebyshev_eval(a,b,k,f);
+    @show L0
+    L0[((k-2)*n) .+ (1:n), (n*(k-3)) .+ (1:n)] += Fk[k];
 
-Ck0=chebyshev_compute_coefficients(a,b,Fk,xk);
-#Ck1=chebyshev_compute_coefficients_naive(a,b,Fk,k);
+    @show L0
+    for j=1:k-2
+        factor=2;
+        if (j==1)
+            factor=1
+        end
+        L1[((j-1)*n) .+ (1:n), ((j-1)*n) .+ (1:n)]=factor*II
+    end
+    L1[((k-2)*n) .+ (1:n),
+       ((k-2)*n) .+ (1:n)]=2*Fk[k]
 
-#Ck=Ck1;
-xk=get_chebyshev_nodes(Float64,a,b,k)
-xx=xk[1];
-ff0=mapreduce(i->Ck0[i]*cheb_f(a,b,xx,i-1), +, 1:k)
-#ff1=mapreduce(i->Ck1[i]*cheb_f(a,b,xx,i-1), +, 1:k)
+    LL=eigen(L0,L1);
 
-@show norm(ff0-f(xx))
-#@show ff1-f(xx)
+    @show L1
+    return (LL.values,
+            hcat(map(i -> normalize(LL.vectors[1:n,i]), 1:(n*(k-1)))...))
 
-
-
-
-nep=nep_gallery("dep0");
-nep2=ChebPEP(nep,-2,3,23);
-nep3=nep2.spmf;
-
-s=0;
-
-compute_Mder(nep,s)-compute_Mder(nep3,s)
-
-λ1=iar(nep,neigs=2,logger=1)[1]
-λ2=iar(nep2,neigs=2,logger=1,errmeasure=ResidualErrmeasure)[1]
-λ3=iar(nep3,neigs=2,logger=1,errmeasure=ResidualErrmeasure)[1]
-
-
-@show norm(λ1-λ3)
-
-
-
-
-# Implement linearization technique
-#function polyeig(pep::ChebPEP)
-#
-#end
+end

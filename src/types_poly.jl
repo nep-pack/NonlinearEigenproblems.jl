@@ -206,7 +206,6 @@ function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}
 
     return PEP(AA)
 end
-# TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
 
 
-#include("types_cheb_pep.jl");
+include("types_cheb_pep.jl");
