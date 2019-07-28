@@ -135,10 +135,32 @@ get_fv(nep::ChebPEP)=get_fv(nep.spmf)
 
 
 """
+    ChebPEP(orgnep::NEP,k,[a=-1,[b=1]])
 
-Interpolates the orgspmf in the interval [a,b] with
-k chebyshev nodes and gives a representation
-in terms of a Chebyshev basis.
+The type `ChebPEP<:AbstractSPMF` represents a polynomial function
+where the
+function is stored using a Chebyshev basis scaled to the
+interval `[a,b]`. The creator `ChebPEP` takes `nep::NEP` as an input
+and interpolates this NEP in `k` Chebyshev nodes, resulting
+in a polynomial of degree `k-1`.
+Interpolation in Chebyshev nodes is known to have
+attractive approximation properties, as well
+as robustness with respect to round-off errors.
+
+# Example:
+
+```julia
+julia> nep=nep_gallery("dep0");
+julia> chebpep=ChebPEP(nep,9);
+julia> using LinearAlgebra;
+julia> norm(compute_Mder(nep,0.3)-compute_Mder(chebpep,0.3))
+1.6920305863798614e-8
+julia> chebpep=ChebPEP(nep,19); # Better interpolation
+julia> norm(compute_Mder(nep,0.3)-compute_Mder(chebpep,0.3))
+2.2782119183158333e-15
+```
+
+See also: `polyeig`
 """
 function ChebPEP(orgspmf,k,a=-1,b=1)
     F=s-> compute_Mder(orgspmf,s);

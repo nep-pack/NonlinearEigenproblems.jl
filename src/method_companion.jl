@@ -100,14 +100,26 @@ julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
 
 
 
-    # TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
-    function polyeig(pep::ChebPEP{T,Ftype}) where {T,Ftype}
+"""
+    λ,v = polyeig([eltype],nep::ChebPEP)
+
+Computes a companion linearization for the NEP represented
+in a Chebyshev basis, and returns eigenpairs.
+
+# References:
+
+* Amiraslani, A., Corless, R. M. & Lancaster, P. "Linearization of matrix polynomials expressed in poly-nomial bases" IMA J. Numer. Anal.,29 (2009): 141–157.
+* Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
+
+"""
+polyeig(pep::ChebPEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
+function polyeig(::Type{T}, pep::ChebPEP{TT,Ftype}) where {T,Ftype,TT}
         k=pep.k
         Fk=get_Av(pep);
         @show k
         n=size(pep,1);
-        L0=zeros(Ftype,n*(k-1),n*(k-1));
-        L1=zeros(Ftype,n*(k-1),n*(k-1));
+        L0=zeros(T,n*(k-1),n*(k-1));
+        L1=zeros(T,n*(k-1),n*(k-1));
         II=Matrix{Ftype}(I,n,n);
         @show L0
         for j=1:(k-2)
