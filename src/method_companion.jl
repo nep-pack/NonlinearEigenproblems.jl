@@ -97,3 +97,46 @@ julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
 
         return D,V[1:size(pep,1),:]
     end
+
+
+
+    # TODO: Implement interpolation similar to Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951.
+    function polyeig(pep::ChebPEP{T,Ftype}) where {T,Ftype}
+        k=pep.k
+        Fk=get_Av(pep);
+        @show k
+        n=size(pep,1);
+        L0=zeros(Ftype,n*(k-1),n*(k-1));
+        L1=zeros(Ftype,n*(k-1),n*(k-1));
+        II=Matrix{Ftype}(I,n,n);
+        @show L0
+        for j=1:(k-2)
+            L0[((j-1)*n) .+ (1:n), j*n .+ (1:n)]=II
+            L0[j*n .+ (1:n), ((j-1)*n) .+ (1:n)]=II
+        end
+
+        for j=1:k-1
+            L0[((k-2)*n) .+ (1:n), (n*(j-1)).+ (1:n)]=-Fk[j];
+        end
+
+        @show L0
+        L0[((k-2)*n) .+ (1:n), (n*(k-3)) .+ (1:n)] += Fk[k];
+
+        @show L0
+        for j=1:k-2
+            factor=2;
+            if (j==1)
+                factor=1
+            end
+            L1[((j-1)*n) .+ (1:n), ((j-1)*n) .+ (1:n)]=factor*II
+        end
+        L1[((k-2)*n) .+ (1:n),
+           ((k-2)*n) .+ (1:n)]=2*Fk[k]
+
+        LL=eigen(L0,L1);
+
+        @show L1
+        return (LL.values,
+                hcat(map(i -> normalize(LL.vectors[1:n,i]), 1:(n*(k-1)))...))
+
+    end
