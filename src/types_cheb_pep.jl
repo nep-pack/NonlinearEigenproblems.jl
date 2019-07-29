@@ -8,8 +8,23 @@ function get_chebyshev_nodes(::Type{T},a,b,k) where {T<:Real}
     mypi=T(pi);
     return (T(a)+T(b))/2 .+ (T(b)-T(a))*(cos.((2*Vector(1:k).-1)*mypi/(2*k)))/2
 end
+import Base.acos
+function acos(S::LowerTriangular)
+    # Specialized acos-function for a lower triangular matrix
+    # Some extra allocations, but preserves realness.
+    #
+    # This is a work-around julia issue:
+    #    https://github.com/JuliaLang/julia/issues/32721
+    F=acos(Matrix(S));
+    if (all(isreal.(acos.(diag(S)))))
+        F .= real(F);
+    end
+end
 function cheb_f_cosine_formula(a,b,x,k)
     x1=2*(x-a*one(x))/(b-a)-one(x);
+    if (istril(x1) && (x1 isa AbstractMatrix))
+        x1=LowerTriangular(x1);
+    end
     return cos(k*acos(x1));
 end
 function cheb_f_poly(a,b,x,k)
