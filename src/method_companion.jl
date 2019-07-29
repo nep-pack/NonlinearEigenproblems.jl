@@ -116,12 +116,12 @@ polyeig(pep::ChebPEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
 function polyeig(::Type{T}, pep::ChebPEP{TT,Ftype}) where {T,Ftype,TT}
         k=pep.k
         Fk=get_Av(pep);
-        @show k
+
         n=size(pep,1);
         L0=zeros(T,n*(k-1),n*(k-1));
         L1=zeros(T,n*(k-1),n*(k-1));
         II=Matrix{Ftype}(I,n,n);
-        @show L0
+
         for j=1:(k-2)
             L0[((j-1)*n) .+ (1:n), j*n .+ (1:n)]=II
             L0[j*n .+ (1:n), ((j-1)*n) .+ (1:n)]=II
@@ -131,10 +131,8 @@ function polyeig(::Type{T}, pep::ChebPEP{TT,Ftype}) where {T,Ftype,TT}
             L0[((k-2)*n) .+ (1:n), (n*(j-1)).+ (1:n)]=-Fk[j];
         end
 
-        @show L0
         L0[((k-2)*n) .+ (1:n), (n*(k-3)) .+ (1:n)] += Fk[k];
 
-        @show L0
         for j=1:k-2
             factor=2;
             if (j==1)
@@ -147,8 +145,8 @@ function polyeig(::Type{T}, pep::ChebPEP{TT,Ftype}) where {T,Ftype,TT}
 
         LL=eigen(L0,L1);
 
-        @show L1
-        return (LL.values,
+        a=pep.a; b=pep.b;
+        return ((b-a)*(LL.values .+ 1)/2 .+ a,
                 hcat(map(i -> normalize(LL.vectors[1:n,i]), 1:(n*(k-1)))...))
 
     end

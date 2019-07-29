@@ -19,7 +19,8 @@ using SparseArrays
     (λ2,V2)=iar(chebpep,neigs=2,errmeasure=ResidualErrmeasure,v=v0)
     @test norm(compute_Mlincomb(nep,λ2[1],V2[:,1])) < eps()*5000
 
-    # polyeig with chebyshev basis
+    # polyeig with chebyshev basis (non-standard interval)
+    chebpep=ChebPEP(nep,16,-0.9,1.5);
     (λ,V)=polyeig(chebpep)
     j=argmin(abs.(λ));
     # Verify against the original problem
