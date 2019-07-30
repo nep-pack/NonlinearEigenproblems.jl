@@ -112,7 +112,7 @@ julia> norm(compute_Mlincomb(nep,λ,x))
 In the following we illustrate a more advanced
 usage of the NEP-PACK method development:
 NEP-PACKs logging facility  and error estimation.
-See `Logger` and `Errmeasure`. This gives access
+See [`Logger`](logger.md) and [`Errmeasure`](errmeasure.md). This gives access
 to other ways to measure error as well as a logging
 which is the same for all solvers and simplifies
 comparisons.
