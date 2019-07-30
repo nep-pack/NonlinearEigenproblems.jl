@@ -7,6 +7,7 @@ module NEPSolver
     using Random
 
 
+    export @parse_logger_param!
     """
     @parse_logger_param!(l)
 
