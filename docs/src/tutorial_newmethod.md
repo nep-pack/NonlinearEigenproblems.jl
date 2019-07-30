@@ -3,18 +3,20 @@
 Although we try to provide state-of-the-art algorithms
 in NEP-PACK, you may want to implement a solver
 which is not available in NEP-PACK.
-If you do this using the NEP-PACK data types and structures
-you will have access to many applications
-and have to possibility to combine your
-approach with other methods
-or compare with other solvers.
+By using the NEP-PACK data types and structures
+you can make your life easier in several ways.
+You do not need to know the internals of NEP-PACK.
+Correct usage, will give you access to many applications,
+helper functionality to combine with,
+and you will have to possibility to compare your method
+with other solvers.
 We now illustrate how to implement your
-own method.
+own solver.
 
 ## Halley's method
 
-[Halley's method for root-finding of nonlinear equations](https://en.wikipedia.org/wiki/Halley%27s_method)
-has faster local convergence
+[Halley's method for root-finding of nonlinear scalar equations](https://en.wikipedia.org/wiki/Halley%27s_method)
+has fast local convergence - even faster
 than Newton's method in terms of iterations.
 A NEP can be formulated as a
 root-finding problem since a solution will always
@@ -22,7 +24,7 @@ satisfy
 ```math
 f(λ)=\det(M(λ))=0
 ```
-The application of Halley's method to this nonlinear scalar equation,
+The application of Halley's method to this nonlinear scalar equation
 will serve as an example solver and does to our
 knowledge not lead to a competive algorithm.
 Halley's method for the root-finding problem is
@@ -86,8 +88,8 @@ julia> λ=halley(nep)
 Clearly, the algorithm terminates after 8 iterations.
 We can verify that this is actually
 a solution easily if we also
-have the eigenvector. The eigenvector
-we can be computed by essentially one step of inverse iteration,
+have an approximate eigenvector. An eigenvector
+can be computed by essentially one step of inverse iteration,
 on the matrix `M(λ)`:
 ```julia
 julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
@@ -98,7 +100,8 @@ julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
   0.5577415634513512
   0.6832678503094953
 ```
-The residual norm  `|M(λ)x|` does indeed become almost zero:
+The residual norm  `|M(λ)x|` does indeed become almost zero
+so it seems we have a solution:
 ```julia
 julia> norm(compute_Mlincomb(nep,λ,x))
 6.735017818475343e-16
@@ -106,7 +109,8 @@ julia> norm(compute_Mlincomb(nep,λ,x))
 
 ## Implementation in NEP-PACK (full version)
 
-We also illustrate how to use
+In the following we illustrate a more advanced
+usage of the NEP-PACK method development:
 NEP-PACKs logging facility  and error estimation.
 See `Logger` and `Errmeasure`. This gives access
 to other ways to measure error as well as a logging
@@ -136,8 +140,8 @@ function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
         # Compute an eigenvector. This will not work if the
         # eigenvector is orthogonal to ones(n)
         x=normalize(compute_Mder(nep,λ)\ones(n));
-        err=estimate_error(ermdata,λ,x)  # This computes an error estimate
-        push_iteration_info!(logger,i; λ=λ,err=err)
+        err=estimate_error(ermdata,λ,x)  # Estimate the error
+        push_iteration_info!(logger,i; λ=λ,err=err) # Put it into the log
         if (err<tol)
             return (λ,x)
         end
@@ -167,3 +171,19 @@ julia> mylogger=ErrorLogger()
 julia> (λ,x)=halley(nep,logger=mylogger);
 julia> plot(mylogger.errs[1:10,1],yaxis=:log)
 ```
+We clearly observe the superlinear convergence:
+```@example
+using PyPlot # hide
+z=[ 0.08492602120772309   # hide
+        0.07450867012944977 # hide
+        0.032639292900081246 # hide
+        0.00281602165251169 # hide
+        1.1025990567599428e-5 # hide
+        1.0638098128402615e-10 # hide
+        4.942402279980973e-17 # hide
+       ]; # hide
+semilogy(z) # hide
+grid() # hide
+savefig("newmethod_convergence.svg"); nothing # hide
+```
+![](newmethod_convergence.svg)
