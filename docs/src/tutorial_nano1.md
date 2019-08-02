@@ -1,6 +1,8 @@
 # Tutorial: Problem from nanophotonics
 
-One of the key challanges within nanophotonics
+One of the key challanges within
+the
+[field of nanophotonics](https://en.wikipedia.org/wiki/Nanophotonics)
 is the need to be able to compute the modes of
 frequency-despersive structures in
 a reliable and efficient way.
@@ -11,12 +13,14 @@ leads to nonlinear eigenvalue problems.
 
 This tutorial is based on a
 [research preprint](https://arxiv.org/pdf/1802.02363.pdf)
-with an associated
-[repository of code](https://gitlab.onelab.info/doc/models/tree/master/NonLinearEVP) which should be used in
-combination with [gmsh](http://gmsh.info) and [onelab]().
-Credit for the discretization and applciation should go
-to the authors of the paper and Guillaume Demesy
-for providing the model files online.
+where a model is set up and solved with SLEPc.
+An associated
+[repository of code](https://gitlab.onelab.info/doc/models/tree/master/NonLinearEVP) is available
+which should be used in
+combination with [gmsh](http://gmsh.info) and [onelab](http://onelab.info/).
+Credit for the discretization and application should go
+to the authors of the paper, in particular
+Guillaume Demesy for providing the model files online.
 
 We will use the code and reproduce
 results using NEP-PACK to illustrate
@@ -152,9 +156,10 @@ julia> λ
   0.01578630143214552 + 0.49172628247971106im
 ```
 Each row in the logger printout of `tiar` corresponds
-to an iteration, the sign `-` means that there is
+to an iteration. The sign `-` corresponds to
 an unconverged eigenvalue, `+` corresponds to a converged
 eigenvalue and `=` corresponds to an eigenvalue which
-is almost converged.
+is almost converged (interpreted as a factor 10 from
+the convergence criteria).
 The eigenvalue  `0.007774845736605659 + 0.25923501436468327im`
 is reported by the default setting in the gmsh tool.
