@@ -106,6 +106,22 @@ julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
 Computes a companion linearization for the NEP represented
 in a Chebyshev basis, and returns eigenpairs.
 
+# Example
+```julia
+julia> using LinearAlgebra
+julia> nep=nep_gallery("dep0");
+julia> chebpep=ChebPEP(nep,9,-3,1,cosine_formula_cutoff=5);
+julia> (λv,V)=polyeig(chebpep);
+julia> ii=argmin(abs.(λv));
+julia> λ=λv[ii];
+julia> v=V[:,ii];
+julia> norm(compute_Mlincomb(chebpep,λ,v))
+1.3543968603949142e-14
+julia> # Actually, it's not a bad approx to the original NEP either
+julia> norm(compute_Mlincomb(nep,λ,v))
+4.326355966047557e-6
+```
+
 # References:
 
 * Amiraslani, A., Corless, R. M. & Lancaster, P. "Linearization of matrix polynomials expressed in poly-nomial bases" IMA J. Numer. Anal.,29 (2009): 141–157.
@@ -114,39 +130,39 @@ in a Chebyshev basis, and returns eigenpairs.
 """
 polyeig(pep::ChebPEP,vargs...)=polyeig(ComplexF64,pep,vargs...)
 function polyeig(::Type{T}, pep::ChebPEP{TT,Ftype}) where {T,Ftype,TT}
-        k=pep.k
-        Fk=get_Av(pep);
+    k=pep.k
+    Fk=get_Av(pep);
 
-        n=size(pep,1);
-        L0=zeros(T,n*(k-1),n*(k-1));
-        L1=zeros(T,n*(k-1),n*(k-1));
-        II=Matrix{Ftype}(I,n,n);
+    n=size(pep,1);
+    L0=zeros(T,n*(k-1),n*(k-1));
+    L1=zeros(T,n*(k-1),n*(k-1));
+    II=Matrix{Ftype}(I,n,n);
 
-        for j=1:(k-2)
-            L0[((j-1)*n) .+ (1:n), j*n .+ (1:n)]=II
-            L0[j*n .+ (1:n), ((j-1)*n) .+ (1:n)]=II
-        end
-
-        for j=1:k-1
-            L0[((k-2)*n) .+ (1:n), (n*(j-1)).+ (1:n)]=-Fk[j];
-        end
-
-        L0[((k-2)*n) .+ (1:n), (n*(k-3)) .+ (1:n)] += Fk[k];
-
-        for j=1:k-2
-            factor=2;
-            if (j==1)
-                factor=1
-            end
-            L1[((j-1)*n) .+ (1:n), ((j-1)*n) .+ (1:n)]=factor*II
-        end
-        L1[((k-2)*n) .+ (1:n),
-           ((k-2)*n) .+ (1:n)]=2*Fk[k]
-
-        LL=eigen(L0,L1);
-
-        a=pep.a; b=pep.b;
-        return ((b-a)*(LL.values .+ 1)/2 .+ a,
-                hcat(map(i -> normalize(LL.vectors[1:n,i]), 1:(n*(k-1)))...))
-
+    for j=1:(k-2)
+        L0[((j-1)*n) .+ (1:n), j*n .+ (1:n)]=II
+        L0[j*n .+ (1:n), ((j-1)*n) .+ (1:n)]=II
     end
+
+    for j=1:k-1
+        L0[((k-2)*n) .+ (1:n), (n*(j-1)).+ (1:n)]=-Fk[j];
+    end
+
+    L0[((k-2)*n) .+ (1:n), (n*(k-3)) .+ (1:n)] += Fk[k];
+
+    for j=1:k-2
+        factor=2;
+        if (j==1)
+            factor=1
+        end
+        L1[((j-1)*n) .+ (1:n), ((j-1)*n) .+ (1:n)]=factor*II
+    end
+    L1[((k-2)*n) .+ (1:n),
+       ((k-2)*n) .+ (1:n)]=2*Fk[k]
+
+    LL=eigen(L0,L1);
+
+    a=pep.a; b=pep.b;
+    return ((b-a)*(LL.values .+ 1)/2 .+ a,
+            hcat(map(i -> normalize(LL.vectors[1:n,i]), 1:(n*(k-1)))...))
+
+end
