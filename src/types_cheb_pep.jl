@@ -147,7 +147,13 @@ get_fv(nep::ChebPEP)=get_fv(nep.spmf)
 The type `ChebPEP<:AbstractSPMF` represents a polynomial function
 where the
 function is stored using a Chebyshev basis scaled to the
-interval `[a,b]`. The creator `ChebPEP` takes `nep::NEP` as an input
+interval `[a,b]`, i.e.,
+```math
+M(λ)= B_0T_0(λ)+⋯+B_{k-1}T_{k-1}(λ)
+```
+where `T_i` are the scaled and shifted Chebyshev polynomials.
+
+The creator `ChebPEP` takes `nep::NEP` as an input
 and interpolates this NEP in `k` Chebyshev nodes, resulting
 in a polynomial of degree `k-1`, represented by its
 coefficients in the Chebyshev basis.
