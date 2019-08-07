@@ -1,5 +1,5 @@
 using LinearAlgebra
-using Arpack
+#using Arpack # disabled. Use ArnoldMethod instead
 using ..NEPCore, ..NEPTypes
 import ..NEPCore.compute_Mder;
 import ..NEPCore.compute_Mlincomb;
