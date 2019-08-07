@@ -41,6 +41,12 @@ function cheb_f_poly(a,b,x,k)
         return 8*x1^4-8*x1^2+one(x1)
     elseif k==5
         return 16*x1^5 - 20*x1^3 + 5*x1;
+    elseif k==6
+        return 32*x1^6-48*x1^4+18*x1^2-one(x1);
+    elseif k==7
+        return 64*x1^7-112*x1^5+56*x1^3-7*x1;
+    elseif k==8
+        return 128*x1^8-256*x1^6+160*x1^4-32*x1^2+one(x1);
     else
         error("Not implemented")
     end
