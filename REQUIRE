@@ -1,8 +1,8 @@
 julia 0.7
-Arpack
 FFTW
 IterativeSolvers
 LinearMaps
+ArnoldiMethod
 Polynomials
 Reexport
 SpecialFunctions
