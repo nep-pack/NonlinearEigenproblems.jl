@@ -33,16 +33,6 @@ julia> ]
 
 These solvers are currently available (see https://nep-pack.github.io/NonlinearEigenproblems.jl/methods/):
 
-* Newton & Rayleigh type:
-    * Classical Newton-Raphson
-    * Augmented Newton
-    * Residual inverse iteration
-    * Quasi-Newton
-    * Block Newton
-    * Rayleigh functional iteration (RFI a, b)
-    * Newton-QR
-    * Implicit determinant method
-    * Broyden's method 
 * Arnoldi/Krylov type
     * NLEIGS
     * Infinite Arnoldi method: (iar)
@@ -56,13 +46,21 @@ These solvers are currently available (see https://nep-pack.github.io/NonlinearE
 * Contour integral methods
     * Beyn's contour integral method
     * Block SS (Higher moments) contour integral method of Asakura & Sakurai
+* Newton & Rayleigh type:
+    * Classical Newton-Raphson
+    * Augmented Newton
+    * Residual inverse iteration
+    * Quasi-Newton
+    * Block Newton
+    * Rayleigh functional iteration (RFI a, b)
+    * Newton-QR
+    * Implicit determinant method
+    * Broyden's method 
 * Deflation
     * Effenberger style deflation
     
 
 # Development
-
-The main work of NEP-PACK has been done in a closed repository at KTH, but as of May 2018 the development is carried out in a public github repo.
 
 Core developers (alphabetical): Max Bennedich, Elias Jarlebring (www.math.kth.se/~eliasj), Giampaolo Mele (www.math.kth.se/~gmele), Emil Ringh (www.math.kth.se/~eringh), Parikshit Upadhyaya (https://www.kth.se/profile/pup/). Thanks to A Koskela for involvement in initial version of the software.
 
