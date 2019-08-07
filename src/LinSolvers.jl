@@ -382,12 +382,18 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
     end
 
     function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
+        if (T_B <: Missing)
+            C=target*I-solver.A;
+            Cfact=factorize(C);
+            Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\x,
+                                   size(solver.A,1),size(solver.A,1));
+        else
 
-        C=target*solver.B-solver.A;
-        Cfact=factorize(C);
-        Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
-                               size(solver.A,1),size(solver.A,1));
-
+            C=target*solver.B-solver.A;
+            Cfact=factorize(C);
+            Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
+                                   size(solver.A,1),size(solver.A,1));
+        end
         # Call restarted Arnoldi
         decomp, history = partialschur(Atransformed, nev=nev, tol=1e-10, which=LM());
         D0, V = partialeigen(decomp)
@@ -396,9 +402,6 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
         # And reverse transformation
         D = target .- inv.(D0) # Reverse transformation
         return D[IJ[1:nev]],V[:,IJ[1:nev]]
-    end
-    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B<:Missing}
-        D,V = eigs(solver.A; nev=nev, sigma=target)
     end
 
 
