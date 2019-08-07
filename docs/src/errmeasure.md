@@ -1,7 +1,5 @@
 # Measuring the error
 
-**This only works on NEP-PACK version 0.2.6 and onwards**
-
 All iterative algorithms need some form of termination
 criteria. In NEP-PACK, all NEP-solvers provide
 the possibility to specify the desired tolerance,
