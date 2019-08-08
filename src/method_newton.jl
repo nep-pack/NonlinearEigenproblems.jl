@@ -432,7 +432,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
-                push_info!(logger," Armijo scaling=%f")
+                push_info!(logger," Armijo scaling=$scaling")
             else
                 push_info!(logger,"");
             end
