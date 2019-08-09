@@ -56,7 +56,7 @@ NEP-PACK. You can use a monomial basis with
 PEP(AA::Array)
 ```
 ```@docs
-ChebPEP(AA::Array)
+ChebPEP
 ```
 
 
