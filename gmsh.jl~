@@ -1,0 +1,11 @@
+a=1;
+c=299792458;
+eta=2*pi*c/a;
+
+eps_oo_1=1;
+gam_1=0.005*eta;
+om_d_1=1.1*eta;
+
+f1=s->one(s)
+f2=s->(s-gam_1)\(-eps_oo_1*s^3+gam_1*eps_oo_1*s^2-om_d_1^2*s)
+f3=s-> -s^2
