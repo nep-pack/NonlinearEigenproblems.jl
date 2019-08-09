@@ -10,14 +10,18 @@ export threshold_eigval_sorter
 
 
 """
-    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[displaylevel=0],[linsolvercreator=default_linsolvercreator],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver])
+    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[logger=0],[linsolvercreator=default_linsolvercreator],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver,][inner_logger=0])
 
 The function implements the Nonlinear Arnoldi method, which finds `neigs` eigenpairs(or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm.
 The basis is orthogonalized either by using the QR method if `qrfact_orth` is `true` or else by an orthogonalization method `orthmethod`).
 This entails solving a smaller projected problem using a method specified by `inner_solver_method`.
+The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 (`λ0`,`v0`) is the initial guess for the eigenpair. `linsolvercreator` specifies how the linear system is created and solved.
 `R` is a parameter used by the function specified by `eigval_sorter` to reject those ritz values that are within a distance `R` from any of the converged eigenvalues, so that repeated convergence to the same eigenpair can be avoided.
 `max_subspace` is the maximum allowable size of the basis befor the algorithm restarts using a basis made of `num_restart_ritz_vecs` ritz vectors and the eigenvectors that the algorithm has converged to.
+
+See [`newton`](@ref) for other parameters.
+
 
 # Example
 ```julia-repl
@@ -41,14 +45,18 @@ function nlar(::Type{T},
             maxit::Int = 100,
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
-            displaylevel::Int = 0,
+            logger = 0,
             linsolvercreator::Function = default_linsolvercreator,
             R = 0.01,
             eigval_sorter::Function = residual_eigval_sorter, #Function to sort eigenvalues of the projected NEP
             qrfact_orth::Bool = false,
             max_subspace::Int = 100,                           #Maximum subspace size before we implement restarting
             num_restart_ritz_vecs::Int=8,
-            inner_solver_method = DefaultInnerSolver) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+            inner_solver_method = DefaultInnerSolver,
+            inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+
+        @parse_logger_param!(logger)
+        @parse_logger_param!(inner_logger)
 
         #Check if maxit is larger than problem size
         if (maxit > size(nep,1))
@@ -58,7 +66,7 @@ function nlar(::Type{T},
 
         #Check if number of ritz vectors for restating is greater than neigs
         if(num_restart_ritz_vecs > neigs)
-            @warn "Nubmer of ritz vectors for restarting num_restart_ritz_vecs=$num_restart_ritz_vecs larger than neigs=$neigs. Reducing num_restart_ritz_vecs."
+            @warn "Number of ritz vectors for restarting num_restart_ritz_vecs=$num_restart_ritz_vecs larger than neigs=$neigs. Reducing num_restart_ritz_vecs."
             num_restart_ritz_vecs = neigs;
         end
 
@@ -99,7 +107,7 @@ function nlar(::Type{T},
         ermdata=init_errmeasure(errmeasure,nep);
 
 
-        @ifd(println("##### Using inner solver: ",inner_solver_method," #####"))
+        push_info!(logger, "Using inner solver $inner_solver_method");
 
         while ((m < neigs) && (k < maxit))
             Vk = view(V,:,1:cbs)
@@ -107,9 +115,9 @@ function nlar(::Type{T},
             expand_projectmatrices!(proj_nep,Vk,Vk);
 
             #Use inner_solve() to solve the smaller projected problem
-            @ifdd(println("solving inner problem"))
-            dd,vv = inner_solve(inner_solver_method,T,proj_nep,Neig=neigs,σ=σ);
-
+            push_info!(logger, 2, "Solving inner problem",continues=true)
+            dd,vv = inner_solve(inner_solver_method,T,proj_nep,neigs=neigs,σ=σ,inner_logger=inner_logger);
+            push_info!(logger, 2, ". Done.")
             # Sort the eigenvalues of the projected problem
             nuv,yv = eigval_sorter(nep,dd,vv,σ,D,R,Vk);
             nu = nuv[1]; y=yv[:,1];
@@ -130,14 +138,13 @@ function nlar(::Type{T},
             #Check for convergence of one of the eigenvalues
             err = estimate_error(ermdata,nu,u);
 
-            if(displaylevel == 1)
-                println(k," Error:",err," Eigval :",nu)
-            end
+
+            push_iteration_info!(logger,k,λ=nu,v=u,err=err);
             err_hist[k,m+1]=err;
             if(err < tol)
-                if(displaylevel == 1)
-                    println("****** ",m+1,"th converged to eigenvalue: ",nu," errmeasure:",err,"  ******")
-                end
+                mplusone=m+1;
+                push_info!(logger,
+                           "****** $mplusone converged to eigenvalue: $nu errmeasure:$err");
 
                 #Add to the set of converged eigenvalues and eigenvectors
                 D[m+1] = nu;

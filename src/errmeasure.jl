@@ -35,7 +35,7 @@ julia> struct EigvalError <: Errmeasure; nep::NEP; end
 julia> function NonlinearEigenproblems.estimate_error(E::EigvalError,λ,v)
 return abs(λref-λ);
 end
-julia> (λ,v)=quasinewton(nep,errmeasure=EigvalError,λ=-1.0 ,displaylevel=1,tol=5e-13)
+julia> (λ,v)=quasinewton(nep,errmeasure=EigvalError,λ=-1.0 ,logger=1,tol=5e-13)
 Precomputing linsolver
 Iteration:  1 errmeasure:2.466988587467300320e-03, λ=-1.0 + 0.0im
 Iteration:  2 errmeasure:4.625160667012763183e-01, λ=-0.539950921886191 + 0.0im
@@ -54,7 +54,7 @@ Iteration: 13 errmeasure:3.352873534367972752e-14, λ=-1.0024669885874338 + 0.0i
 Note that this can also be achieved by providing a function handle:
 ```julia
 julia> myerrmeasure= (λ,v) -> abs(λref-λ);
-julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,displaylevel=1,tol=5e-13)
+julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13)
 ...
 Iteration: 12 errmeasure:3.205657961302676995e-12, λ=-1.0024669885842616 + 0.0im
 Iteration: 13 errmeasure:3.352873534367972752e-14, λ=-1.0024669885874338 + 0.0im

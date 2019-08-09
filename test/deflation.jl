@@ -22,7 +22,7 @@ using LinearAlgebra
 
         (λ2,v2)=mslp(dnep,maxit=1000,
                      λ=λ0,
-                     displaylevel=0
+                     logger=0
                      );
         @info "Computing eigenvalue k=$k"
         v2=v2/norm(v2);

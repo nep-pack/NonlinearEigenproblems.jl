@@ -158,7 +158,7 @@ gallery.
 julia> nep=nep_gallery("nlevp_native_gun");
 julia> n=size(nep,1)
 julia> S=150^2*[1.0 0; 0 1]; V=[[1 0; 0 1]; zeros(n-2,2)];
-julia> (Z,X)=blocknewton(nep,S=S,X=V,displaylevel=1,armijo_factor=0.5,maxit=20)
+julia> (Z,X)=blocknewton(nep,S=S,X=V,logger=1,armijo_factor=0.5,maxit=20)
 Iteration 1: Error: 6.081316e+03
 Iteration 2: Error: 1.701970e-02 Armijo scaling=0.031250
 Iteration 3: Error: 1.814887e-02 Armijo scaling=0.250000

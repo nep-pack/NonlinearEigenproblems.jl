@@ -15,7 +15,7 @@ export implicitdet
 
 #############################################################################
 """
-    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max])
+    λ,v = newton([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger,][armijo_factor=1,][armijo_max])
 
 Applies Newton-Raphsons method on the system of
 nonlinear equations with `n+1` unknowns:
@@ -30,7 +30,7 @@ orthogonalization vector.  If `c=0` the current approximation will be used for t
 
 The following keyword arguments are in common for many NEP-solvers:
 
-* `displaylevel` specifies how much iteration info should be printed. `displaylevel=0` will not give any printouts.
+* `logger` is eiter a `Logger` object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
 
 * `errmeasure` determines how error is measured. It is either a function handle or a type inheriting from `Errmeasure`. See [`Errmeasure`](@ref) for further description. If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error).
 
@@ -67,9 +67,11 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
                     λ::Number=zero(T),
                     v::Vector=randn(size(nep,1)),
                     c::Vector=v,
-                    displaylevel::Int=0,
+                    logger=0,
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where {T<:Number}
+
+        @parse_logger_param!(logger)
 
         # Ensure types λ and v are of type T
         λ=T(λ)
@@ -85,9 +87,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
-                @ifd(print("\n"));
                 return (λ,v)
             end
 
@@ -108,9 +109,9 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
-                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+                push_info!(logger," Armijo scaling=$scaling")
             else
-                @ifd(@printf("\n"))
+                push_info!(logger,"")
             end
 
 
@@ -125,7 +126,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
     ############################################################################
 """
-    λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][armijo_factor=1,][armijo_max,][linsolvecreator])
+    λ,v = resinv([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger,][armijo_factor=1,][armijo_max,][linsolvecreator])
 
 Applies residual inverse iteration method for nonlinear eigenvalue problems.
 The kwarg `linsolvecreator`
@@ -164,10 +165,13 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                     λ::Number=zero(T),
                     v::Vector=randn(real(T),size(nep,1)),
                     c::Vector=v,
-                    displaylevel::Int=0,
+                    logger=0,
                     linsolvercreator::Function=default_linsolvercreator,
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where T
+
+        @parse_logger_param!(logger)
+
 
         # Ensure types λ and v are of type T
         λ::T=T(λ)
@@ -175,6 +179,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         c=Vector{T}(c)
         n=size(v,1);
 
+        push_info!(logger,"Precomputing linsolver")
         local linsolver::LinSolver=linsolvercreator(nep,λ)
 
         # If c is zero vector we take eigvec approx as left vector in
@@ -184,6 +189,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             use_v_as_rf_vector=true;
         end
 
+
+        push_info!(logger,2,
+                   "use_v_as_rf_vector=$use_v_as_rf_vector");
 
         σ::T=λ;
         err=Inf;
@@ -201,11 +209,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                 c[:]=v;
             end
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-            @ifd(if (use_v_as_rf_vector); print(" v_as_rf_vector=",use_v_as_rf_vector); end)
+
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
 
             if (err< tol)
-                @ifd(print("\n"));
+                push_info!(logger,"")
                 return (λ,v)
             end
 
@@ -220,10 +228,10 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
-            if (j>0 )
-                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+            if (j>0)
+                push_info!(logger," Armijo scaling=$scaling")
             else
-                @ifd(@printf("\n"))
+                push_info!(logger,"")
             end
 
             # Update the eigenpair
@@ -242,7 +250,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
     # New augnewton
 """
-    augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel,][linsolvercreator,][armijo_factor,][armijo_max])
+    augnewton([eltype], nep::NEP; [errmeasure,][tol,][maxit,][λ,][v,][c,][logger,][linsolvercreator,][armijo_factor,][armijo_max])
 
 Run the augmented Newton method. The method is equivalent to `newton()`
 in exact arithmetic,  but works only with operations on vectors of
@@ -271,10 +279,14 @@ julia> λ1-λ2
                        λ::Number=zero(T),
                        v::Vector=randn(real(T),size(nep,1)),
                        c::Vector=v,
-                       displaylevel::Int=0,
+                       logger=0,
                        linsolvercreator::Function=backslash_linsolvercreator,
                        armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
+
+        @parse_logger_param!(logger)
+
+
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
@@ -291,15 +303,16 @@ julia> λ1-λ2
         local linsolver::LinSolver
         local tempvec = Vector{T}(undef, size(nep,1))
 
+        push_info!(logger,2,
+                   "use_v_as_normalization_vector=$use_v_as_normalization_vector");
         # Init errmeasure
         ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e ",k, err))
-            @ifd(if (use_v_as_normalization_vector); print(" v_as_normalization_vector=",use_v_as_normalization_vector); end)
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
-                @ifd(print("\n"))
+                push_info!(logger,"")
                 return (λ,v)
             end
             # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
@@ -322,9 +335,9 @@ julia> λ1-λ2
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
-                @ifd(@printf(" Armijo scaling=%f\n",scaling))
+                push_info!(logger," Armijo scaling=$scaling")
             else
-                @ifd(@printf("\n"))
+                push_info!(logger,"")
             end
 
             λ+=Δλ
@@ -338,7 +351,7 @@ julia> λ1-λ2
 
 
 """
-    quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][displaylevel][linsolvercreator,][armijo_factor,][armijo_max])
+    quasinewton([T=ComplexF64],nep,[errmeasure,][tol,][maxit,][λ,][v][ws][logger][linsolvercreator,][armijo_factor,][armijo_max])
 
 An implementation of the quasi-Newton approach referred to as quasi-Newton 2 in the reference.
 The method involves one linear system solve per iteration corresponding with the
@@ -368,10 +381,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          λ::Number=zero(T),
                          v::Vector=randn(real(T),size(nep,1)),
                          ws::Vector=v,
-                         displaylevel::Int=0,
+                         logger=0,
                          linsolvercreator::Function=default_linsolvercreator,
                          armijo_factor::Real=1,
                          armijo_max::Int=5) where T
+
+        @parse_logger_param!(logger)
+
+
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
@@ -384,7 +401,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         err=Inf;
 
         local linsolver::LinSolver;
-        @ifd(@printf("Precomputing linsolver\n"))
+        push_info!(logger,"Precomputing linsolver")
         linsolver = linsolvercreator(nep,λ)
 
         # Init errmeasure
@@ -392,11 +409,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         for k=1:maxit
             err=estimate_error(ermdata,λ,v)
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e",k, err))
-            @ifd(print(", λ=",λ))
-
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
-                @ifd(@printf("\n"));
+                push_info!(logger,"")
                 return (λ,v)
             end
 
@@ -404,22 +419,22 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             # Compute u=M(λ)v and w=M'(λ)v
             u[:] = compute_Mlincomb(nep,λ,v,[T(1)],0);
             w[:] = compute_Mlincomb(nep,λ,v,[T(1)],1);
-            @ifdd(@printf(" norm(u,1)=%f, norm(w,1)=%f",norm(u,1),norm(w,1)))
 
             # Intermediate quantities
             Δλ=-dot(ws,u)/dot(ws,w);
             z=Δλ*w+u;
             Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
 
-            @ifdd(@printf(" norm(Δv)=%f norm(Δv,1)=%f ",norm(Δv),norm(Δv,1)))
+            normΔv=norm(Δv);
+            push_info!(logger,2," norm(Δv)=$normΔv",continues=true)
 
             (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
-                @ifd(@printf(" Armijo scaling=%f\n",scaling));
+                push_info!(logger," Armijo scaling=$scaling")
             else
-                @ifd(@printf("\n"));
+                push_info!(logger,"");
             end
 
             # Update eigenpair
@@ -434,7 +449,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
 """
-    λ,v = newtonqr([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel])
+    λ,v = newtonqr([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger])
 
 This function implements the Newton-QR method as formulated in the reference. The method ivolves the computation of a rank-revealing QR factorization
 of ``M(λ)``, with the idea that on convergence the the last diagonal element ``R[n,n]`` of the upper-triangular matrix ``R`` becomes zero as a result of ``M(λ)``
@@ -463,7 +478,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                       λ::Number=zero(T),
                       v::Vector=randn(real(T),size(nep,1)),
                       c::Vector=v,
-                      displaylevel::Int=0) where T
+                      logger=0) where T
+
+        @parse_logger_param!(logger)
 
 
         # Ensure types λ and v are of type T
@@ -494,7 +511,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
             #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
             err=estimate_error(ermdata,λ,v);
-            @ifd(println("Iteration: ",k," errmeasure: ", err))
+
+
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v);
             if(err < tol)
                 return λ,v,w;
             end
@@ -511,7 +530,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
 """
-    λ,v = implicitdet([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][displaylevel])
+    λ,v = implicitdet([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger])
 
 This function implements the Implicit determinant method as formulated Algorithm 4.3 in the reference. The method applies Newton-Raphson to the equation
 ``det(M(λ))/det(G(λ)) = 0``, where ``G(λ)`` is a saddle point matrix with ``M(λ)``
@@ -541,8 +560,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          λ=zero(T),
                          v=randn(real(T),size(nep,1)),
                          c=v,
-                         displaylevel=0) where T
+                         logger=0) where T
 
+        @parse_logger_param!(logger)
 
         n = size(nep,1);
         v = Vector{T}(vcat(v,one(T)))
@@ -568,7 +588,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
             #err = estimate_error(ermdata,λ,v[1:n]);
             err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
-            @ifd(println("Iteration: ",k," errmeasure: ", err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v);
             if(err < tol)
                 return λ,v[1:n];
             end

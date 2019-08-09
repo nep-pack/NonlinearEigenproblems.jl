@@ -44,20 +44,19 @@ get_fv
 
 
 ## PEP
-The Polynomial Eigenvalue Problem is described by
+A PEP is a matrix polynomial in `λ`:
 ```math
 M(λ) = \sum_{i} A_i λ^i.
 ```
-
-```@docs
-PEP
-```
-
-In order to construct a `PEP`, we only need to provide
-the matrices.
+There are two types to represent PEPs natively in
+NEP-PACK. You can use a monomial basis with
+`PEP` or a Chebyshev basis with `ChebPEP`.
 
 ```@docs
 PEP(AA::Array)
+```
+```@docs
+ChebPEP(AA::Array)
 ```
 
 

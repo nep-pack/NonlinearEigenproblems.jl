@@ -21,6 +21,6 @@ f4= S -> sqrt(one(S)-2*S)
 
 v0=rand(n)
 nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
-V,H,ω,HH=ilan_benchmark(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=40,tol=eps()*100,check_error_every=1,v=v0)
+V,H,ω,HH=ilan_benchmark(nep,σ=0,γ=1;neigs=10,displaylevel=1,maxit=40,tol=eps()*100,check_error_every=1,v=v0)
 
-V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;Neig=10,displaylevel=1,maxit=40,tol=eps()*100,check_error_every=1,v=v0)
+V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=10,displaylevel=1,maxit=40,tol=eps()*100,check_error_every=1,v=v0)

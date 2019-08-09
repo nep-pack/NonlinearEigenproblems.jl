@@ -115,7 +115,7 @@ abstract type ContourBeynInnerSolver <: InnerSolver end;
 
 
 """
-  inner_solve(T,T_arit,nep;kwargs...)
+    inner_solve(T,T_arit,nep;kwargs...)
 
 Solves the projected linear problem with solver specied with T. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
@@ -126,12 +126,13 @@ The type `T_arit` defines the arithmetics used in the outer iteration and should
 also be used in the inner iteration.
 
 Different inner_solve methods take different kwargs. The meaning of
-the kwargs are the following:\\
-`Neig`: Number of wanted eigenvalues (but less or more may be returned)\\
-`σ`: target specifying where eigenvalues\\
-`λv`, `V`: Vector/matrix of guesses to be used as starting values\\
-`j`: the jth eigenvalue in a min-max characterization\\
-`tol`: Termination tolarance for inner solver
+the kwargs are the following:
+- `neigs`: Number of wanted eigenvalues (but less or more may be returned)
+- `σ`: target specifying where eigenvalues
+- `λv`, `V`: Vector/matrix of guesses to be used as starting values
+- `j`: the jth eigenvalue in a min-max characterization
+- `tol`: Termination tolarance for inner solver
+- `inner_logger`: Determines how the inner solves are logged. See [`Logger`](@ref) for further references
 """
 function inner_solve(TT::Type{DefaultInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
@@ -152,13 +153,15 @@ function inner_solve(TT::Type{NewtonInnerSolver},T_arit::Type,nep::NEPTypes.Proj
                      λv=zeros(T_arit,1),
                      V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
                      tol=sqrt(eps(real(T_arit))),
+                     inner_logger=0,
                      kwargs...)
+    @parse_logger_param!(inner_logger)
     for k=1:size(λv,1)
         try
             v0=V[:,k]; # Starting vector for projected problem
             projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
             # Compute a solution to projected problem with Newton's method
-            λ1,vproj=augnewton(T_arit,nep,displaylevel=0,λ=λv[k],
+            λ1,vproj=augnewton(T_arit,nep,logger=inner_logger,λ=λv[k],
                                v=v0,maxit=50,tol=tol/10,
                                errmeasure=projerrmeasure);
             V[:,k]=vproj;
@@ -186,9 +189,10 @@ end
 
 
 
-function inner_solve(TT::Type{IARInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
+function inner_solve(TT::Type{IARInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
+    @parse_logger_param!(inner_logger)
     try
-        λ,V=iar(T_arit,nep,σ=σ,Neig=Neig,tol=1e-13,maxit=50);
+        λ,V=iar(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
         return λ,V
     catch e
         if (isa(e, NoConvergenceException))
@@ -203,7 +207,8 @@ end
 
 
 
-function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,Neig=10,kwargs...)
+function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
+    @parse_logger_param!(inner_logger)
     if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
         TT = eltype(AA);
@@ -218,7 +223,7 @@ function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Pro
     end
 
     try
-        λ,V=iar_chebyshev(T_arit,nep,σ=σ,Neig=Neig,tol=1e-13,maxit=50);
+        λ,V=iar_chebyshev(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
         return λ,V
     catch e
         if (isa(e, NoConvergenceException))
@@ -233,17 +238,19 @@ end
 
 
 
-function inner_solve(TT::Type{SGIterInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,kwargs...)
-    λ,V=sgiter(T_arit,nep,j)
+function inner_solve(TT::Type{SGIterInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,inner_logger=0,kwargs...)
+    @parse_logger_param!(inner_logger)
+    λ,V=sgiter(T_arit,nep,j,logger=inner_logger)
     return [λ],reshape(V,size(V,1),1);
 end
 
 
 
-function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],Neig=10,kwargs...)
+function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
+    @parse_logger_param!(inner_logger)
     # Radius  computed as the largest distance σ and λv and a litte more
     radius = maximum(abs.(σ .- λv))*1.5
-    Neig = min(Neig,size(nep,1))
-    λ,V = contour_beyn(T_arit,nep,neigs=Neig,σ=σ,radius=radius)
+    neigs = min(neigs,size(nep,1))
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,logger=inner_logger)
     return λ,V
 end

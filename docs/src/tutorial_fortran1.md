@@ -153,7 +153,7 @@ julia> function my_Mder(λ::Float64,der::Int=0)
   return sparse(I,J,F);
 end
 julia> nep=Mder_NEP(n,my_Mder)
-julia> quasinewton(Float64,nep,λ=-1.8,v=ones(n), displaylevel=1)
+julia> quasinewton(Float64,nep,λ=-1.8,v=ones(n), logger=1)
 Precomputing linsolver
 Iteration:  1 errmeasure:4.903565024143569095e-01, λ=-1.8
 Iteration:  2 errmeasure:8.776860766232853772e-02, λ=-1.3816406142423465
@@ -225,7 +225,7 @@ end
 Create the `NEP` and call a solver, in this case [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
 ```julia
 julia> nep=Mder_NEP(n,my_Mder_FD)
-julia> mslp(Float64,nep,λ=-1.8, displaylevel=1)
+julia> mslp(Float64,nep,λ=-1.8, logger=1)
 Iteration:1 errmeasure:5.145479494934554e-6 λ=-1.7941228234498503
 Iteration:2 errmeasure:6.604789080027513e-10 λ=-1.7940561772509709
 Iteration:3 errmeasure:4.3096620402514632e-16 λ=-1.794056168678654
@@ -287,7 +287,7 @@ specify the highest derivative available for the two functions.
 We can now solve it with many methods, e.g.
 [`resinv`](methods.md#NonlinearEigenproblems.NEPSolver.resinv).
 ```julia
-julia> resinv(Float64,nep2,λ=-1.8,v=ones(n),displaylevel=1)
+julia> resinv(Float64,nep2,λ=-1.8,v=ones(n),logger=1)
 Iteration:  1 errmeasure:4.903565024143570761e-01
 Iteration:  2 errmeasure:1.145360525649362360e-01
 ...

@@ -22,14 +22,20 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     n=size(dep,1);
 
     @bench @testset "accuracy eigenpairs" begin
-        (λ,Q)=iar(dep,σ=3,Neig=5,v=ones(n),
-                  displaylevel=0,maxit=100,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q)=iar(dep,σ=3,neigs=5,v=ones(n),
+                  maxit=100,tol=eps()*100,errmeasure=ResidualErrmeasure);
         verify_lambdas(5, dep, λ, Q, eps()*100)
     end
 
-    @testset "Compute as many eigenpairs as possible (Neig=Inf)" begin
-        (λ,Q)=iar(dep,σ=3,Neig=Inf,v=ones(n),
-                  displaylevel=0,maxit=38,tol=eps()*100);
+    @bench @testset "Solve by projection" begin
+        (λ,Q)=iar(dep,σ=3,neigs=5,v=ones(n),
+                  maxit=100,tol=eps()*100,errmeasure=ResidualErrmeasure, proj_solve=true);
+        verify_lambdas(5, dep, λ, Q, eps()*100)
+    end
+
+    @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
+        (λ,Q)=iar(dep,σ=3,neigs=Inf,v=ones(n),
+                  maxit=38,tol=eps()*100);
         verify_lambdas(3, dep, λ, Q, eps()*100)
     end
 
@@ -37,22 +43,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
         # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
 
         @bench @testset "DGKS" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=DGKS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=DGKS,σ=3,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "User provided doubleGS" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=DoubleGS,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=DoubleGS,σ=3,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "ModifiedGramSchmidt" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=3,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "ClassicalGramSchmidt" begin
-            (λ,Q,err,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,Neig=5,v=ones(n),displaylevel=0,maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=3,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
     end
@@ -60,8 +66,8 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     @testset "Errors thrown" begin
         np=100;
         dep=nep_gallery("dep0",np);
-        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar(dep,σ=3,Neig=6,v=ones(np),
-                  displaylevel=0,maxit=7,tol=eps()*100);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar(dep,σ=3,neigs=6,v=ones(np),
+                  maxit=7,tol=eps()*100);
     end
 
 end

@@ -18,8 +18,8 @@ using Test
 
 
     # Solve it:
-    (λs,vs)=quasinewton(nep,λ=1.099+1.006im,v=ones(n),displaylevel=displaylevel,tol=1e-5)
-    (λss,vss)=quasinewton(nep,λ=λs,v=vs,displaylevel=displaylevel)
+    (λs,vs)=quasinewton(nep,λ=1.099+1.006im,v=ones(n),logger=displaylevel,tol=1e-5)
+    (λss,vss)=quasinewton(nep,λ=λs,v=vs,logger=displaylevel)
 
     @test minimum(abs.(λss.-λv))<1e-10 # gives 1.4512316607747323e-12
 

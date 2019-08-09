@@ -21,7 +21,7 @@ using Random
     scale = 330^2-220^2;
 
     #Run Quasi-Newton for initial guess obtained from the knowledge of the eigenvalue distribution
-    λ_ref,v_ref = quasinewton(nep, λ = shift+scale*(-0.131403+0.00759532im), v = ones(n), displaylevel = displaylevel, tol = TOL/50, maxit = 500)
+    λ_ref,v_ref = quasinewton(nep, λ = shift+scale*(-0.131403+0.00759532im), v = ones(n), logger = displaylevel, tol = TOL/50, maxit = 500)
     @info "Eigenvalue computed by quasi newton: $λ_ref"
 
     #Shift and scale the NEP(mainly to avoid round-off errors because of the large entries in the coefficient matrices)
@@ -29,7 +29,7 @@ using Random
     nep1 = shift_and_scale(nep1_spmf,shift=shift,scale=scale);
 
     #Run NLAR on the shifted and scaled NEP (neigs set to 1 to save time. Method works for the case of finding multiple eigenvalues as well)
-    λ,u = nlar(nep1, tol=TOL, λ=0, maxit=100, neigs=2, R=0.01, displaylevel=displaylevel, v=ones(n),
+    λ,u = nlar(nep1, tol=TOL, λ=0, maxit=100, neigs=2, R=0.01, logger=displaylevel, v=ones(n),
         eigval_sorter=residual_eigval_sorter, inner_solver_method=IARInnerSolver,
         qrfact_orth=false, num_restart_ritz_vecs=8, max_subspace=150)
 
@@ -51,7 +51,7 @@ using Random
     c = sortperm(abs.(Dc))
     @info " 6 smallest eigenvalues found by polyeig() according to the absolute values: $(Dc[c[1:6]])"
 
-    λ,u = nlar(pepnep, tol=TOL, maxit=60, neigs=3, R=0.001, displaylevel=displaylevel,
+    λ,u = nlar(pepnep, tol=TOL, maxit=60, neigs=3, R=0.001, logger=displaylevel,
         λ=Dc[4]+1e-2, v=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,
         inner_solver_method=IARInnerSolver, qrfact_orth=false, errmeasure=ResidualErrmeasure)
 

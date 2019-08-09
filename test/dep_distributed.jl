@@ -47,8 +47,8 @@ end
 
 
 
-    (λ,V)=iar(dep,σ=3,Neig=5,errmeasure=MyErrmeasure, v=ones(n),
-              displaylevel=displaylevel,maxit=100,tol=eps()*100)
+    (λ,V)=iar(dep,σ=3,neigs=5,errmeasure=MyErrmeasure, v=ones(n),
+              logger=displaylevel,maxit=100,tol=eps()*100)
 
     @info λ
 

@@ -5,7 +5,7 @@ module LinSolvers
     using SuiteSparse
     using IterativeSolvers
     using LinearMaps
-    using Arpack
+    using ArnoldiMethod
 
     # Linear system of equation solvers
     export LinSolver
@@ -382,24 +382,26 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
     end
 
     function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
-        # Julia's eigs(A,B) is currently broken for
-        # indefinite B
-        # https://github.com/JuliaLang/julia/issues/24668
-        # This is what we want to do:
-        # D,V = eigs(solver.A,solver.B;nev=nev,sigma=target)
-        # We do a work-around by computing
-        # largest eigenvalue of (target B -A)\B
-        C=target*solver.B-solver.A;
-        Cfact=factorize(C);
-        Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
-                               size(solver.A,1),size(solver.A,1));
-        D0,V = eigs(Atransformed; nev=nev, which=:LM)
+        if (T_B <: Missing)
+            C=target*I-solver.A;
+            Cfact=factorize(C);
+            Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\x,
+                                   size(solver.A,1),size(solver.A,1));
+        else
+
+            C=target*solver.B-solver.A;
+            Cfact=factorize(C);
+            Atransformed=LinearMap{eltype(Cfact)}(x->Cfact\(solver.B*x),
+                                   size(solver.A,1),size(solver.A,1));
+        end
+        # Call restarted Arnoldi
+        decomp, history = partialschur(Atransformed, nev=nev, tol=1e-10, which=LM());
+        D0, V = partialeigen(decomp)
+        # Sort. So we don't depend on partialschur to do be sorted already
+        IJ=sortperm(-abs.(D0))
         # And reverse transformation
         D = target .- inv.(D0) # Reverse transformation
-        return D,V
-    end
-    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B<:Missing}
-        D,V = eigs(solver.A; nev=nev, sigma=target)
+        return D[IJ[1:nev]],V[:,IJ[1:nev]]
     end
 
 

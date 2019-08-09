@@ -83,7 +83,7 @@ nep=BEM_NEP(mesh,gauss_order);
 After creating the NEP, you can try to solve the problem with methods in the package, e.g.,
 [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp) works quite well for this problem:
 ```julia-repl
-julia> (λ,v)=mslp(nep,λ=8,displaylevel=1)
+julia> (λ,v)=mslp(nep,λ=8,logger=1)
 Iteration:1 errmeasure:4.122635537095636e-6 λ=8.128272919317748 + 0.007584851218214716im
 Iteration:2 errmeasure:1.787963303973586e-8 λ=8.132181234599427 - 1.952792817964521e-5im
 Iteration:3 errmeasure:3.2884958163572594e-13 λ=8.132145310156643 - 1.2648247028455485e-5im
@@ -101,7 +101,7 @@ The plotting was done with the following code (by using internals of the BEM-imp
 ```julia
 using NonlinearEigenproblems, PyPlot
 nep=nep_gallery("bem_fichera")
-(λ,v)=mslp(nep,λ=8.1,displaylevel=1)
+(λ,v)=mslp(nep,λ=8.1,logger=1)
 v=v./maximum(abs.(v));
 for k=1:size(nep.mesh,1);
     tri=nep.mesh[k];

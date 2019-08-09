@@ -6,25 +6,18 @@ module NEPSolver
     using SparseArrays
     using Random
 
-    export @ifd
 
+    export @parse_logger_param!
     """
-    @ifd(z)
-Executes z if displaylevel>0.
+    @parse_logger_param!(l)
+
+If l is a number it canges l to a PrintLogger(l).
 """
-    macro ifd(z)
-        return esc(:( if (displaylevel > 0); $z; end ))
+    macro parse_logger_param!(l)
+       return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
     end
 
-    export @ifdd
-
-    """
-    @ifd(z)
-Executes z if displaylevel>1.
-"""
-    macro ifdd(z)
-        return esc(:( if (displaylevel > 1); $z; end ))
-    end
+    include("logger.jl");
 
     ## NEP-Methods
 
@@ -39,7 +32,9 @@ Executes z if displaylevel>1.
     include("method_sgiter.jl")
     include("method_rfi.jl")
     include("method_jd.jl")
+    include("method_contour_common.jl")
     include("method_beyncontour.jl")
+    include("method_block_SS.jl")
     include("method_blocknewton.jl")
     include("method_broyden.jl")
     include("method_ilan.jl")

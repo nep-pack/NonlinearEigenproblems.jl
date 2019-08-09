@@ -65,6 +65,14 @@ nlar
 jd_betcke
 jd_effenberger
 ```
+
+## Contour integral methods
+
+```@docs
+contour_beyn
+contour_block_SS
+```
+
 ## Arnoldi and Krylov based methods
 
 

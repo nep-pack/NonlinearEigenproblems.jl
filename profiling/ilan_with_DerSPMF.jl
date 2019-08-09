@@ -17,7 +17,7 @@ nep=SPMF_NEP([A1,A2,A3,A4],[f1,f2,f3,f4])
 σ=0
 Dnep=DerSPMF(nep,σ,200)
 
-V,H,ω,HH=ilan(Dnep;Neig=10,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
+V,H,ω,HH=ilan(Dnep;neigs=10,displaylevel=1,maxit=200,tol=eps()*100,check_error_every=1)
 Q=V;
 
 # project (hardcoded for now)
@@ -29,7 +29,7 @@ AA4=Q'*(A4*Q);
 err_lifted=(λ,z)->compute_resnorm(nep,λ,Q*z)/n;
 
 pnep=SPMF_NEP([AA1,AA2,AA3,AA4],[f1,f2,f3,f4])
-λ,_,err=iar(pnep;Neig=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,errmeasure=err_lifted)
+λ,_,err=iar(pnep;neigs=100,displaylevel=1,maxit=100,tol=eps()*100,check_error_every=1,errmeasure=err_lifted)
 
 m,p=size(err);
 

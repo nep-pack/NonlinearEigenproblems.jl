@@ -31,14 +31,14 @@ end
 
 
 """
-    iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][Neig=6,][errmeasure,][v=rand(size(nep,1),1),][displaylevel=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1,][compute_y0_method=ComputeY0ChebAuto])
+    iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1,][compute_y0_method=ComputeY0ChebAuto])
 
 Run the infinite Arnoldi method (Chebyshev version) on the nonlinear eigenvalue problem stored in `nep`.
 
 The target `σ` is the center around which eiganvalues are computed. A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
 `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration
-is continued until `Neig` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
-However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+is continued until `neigs` Ritz pairs converge. This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
+However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See [`compute_y0_cheb`](@ref) in the module NEPSolver with the command `?NEPSolver.compute_y0_cheb`.
 
 See [`newton`](@ref) for other parameters.
@@ -49,7 +49,7 @@ See [`newton`](@ref) for other parameters.
 julia> using NonlinearEigenproblems, LinearAlgebra
 julia> nep=nep_gallery("dep0",100);
 julia> v0=ones(size(nep,1));
-julia> λ,v=iar_chebyshev(nep;v=v0,tol=1e-5,Neig=3);
+julia> λ,v=iar_chebyshev(nep;v=v0,tol=1e-5,neigs=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
@@ -69,17 +69,19 @@ function iar_chebyshev(
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
-    Neig=6,
+    neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
-    displaylevel=0,
+    logger=0,
     check_error_every=1,
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
     a = isa(nep,DEP) ? -maximum(nep.tauv) : -1.0,
     b = isa(nep,DEP) ? 0.0 : 1.0
     )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:ComputeY0Cheb}
+
+    @parse_logger_param!(logger)
 
     if (compute_y0_method == ComputeY0ChebAuto)
         if (isa(nep,DEP))
@@ -102,7 +104,7 @@ function iar_chebyshev(
             σ_orig=σ; γ_orig=γ
             σ=zero(T); γ=one(T)
     end
-    @ifd(println("IAR Chebyshev with interval [",a,",",b,"]"));
+    push_info!(logger,"IAR Chebyshev with interval [$a,$b]");
 
     cc=(a+b)/(a-b);   kk=2/(b-a); # scale and shift parameters for the Chebyshev basis
 
@@ -133,10 +135,8 @@ function iar_chebyshev(
     # Init errmeasure
     ermdata=init_errmeasure(errmeasure,nep);
 
-    while (k <= m) && (conv_eig<Neig)
-        if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
-            println("Iteration:",k, " conveig:",conv_eig)
-        end
+    while (k <= m) && (conv_eig<neigs)
+
         VV=view(V,1:1:n*(k+1),1:k); # extact subarrays, memory-CPU efficient
         vv=view(V,1:1:n*(k+1),k+1); # next vector V[:,k+1]
 
@@ -160,15 +160,30 @@ function iar_chebyshev(
             Q=VV*Z
             λ=σ .+ γ ./ D
             conv_eig=0;
-            for s=1:k
-                err[k,s]=estimate_error(ermdata,λ[s],Q[:,s]);
-                if err[k,s]<tol; conv_eig=conv_eig+1; end
+            # compute the errors
+            err[k,1:size(λ,1)]=
+              map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+            # Log them and compute the converged
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)],
+                                 continues=true);
+            for s=1:size(λ,1)
+                if err[k,s]<tol;
+                    conv_eig=conv_eig+1;
+                    push_info!(logger,"+", continues=true);
+                elseif err[k,s]<tol*10
+                    push_info!(logger,"=", continues=true);
+                else
+                    push_info!(logger,"-", continues=true);
+                end
             end
+            push_info!(logger,"");
+            # Sort the errors
             idx=sortperm(err[k,1:k]); # sort the error
-            err[1:k,k]=err[idx,k];
+            err[k,1:k]=err[k,idx];
+
             # extract the converged Ritzpairs
-            if (k==m)||(conv_eig>=Neig)
-                nrof_eigs = Int(min(length(λ),Neig))
+            if (k==m)||(conv_eig>=neigs)
+                nrof_eigs = Int(min(length(λ),neigs))
                 λ=λ[idx[1:nrof_eigs]]
                 Q=Q[:,idx[1:nrof_eigs]]
             end
@@ -177,8 +192,8 @@ function iar_chebyshev(
     end
     k=k-1
     # NoConvergenceException
-    if conv_eig<Neig && Neig != Inf
-        err=err[end,1:Neig];
+    if conv_eig<neigs && neigs != Inf
+        err=err[end,1:neigs];
         idx=sortperm(err); # sort the error
         λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
         msg="Number of iterations exceeded. maxit=$(maxit)."

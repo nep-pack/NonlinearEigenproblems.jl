@@ -11,7 +11,7 @@ using LinearAlgebra
     n=size(nep,1);
 
     m=40;
-    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=3,σ=0,displaylevel=displaylevel,
+    λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,neigs=3,σ=0,logger=displaylevel,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
                          tol=1e-7, errmeasure=ResidualErrmeasure);
 
@@ -30,9 +30,9 @@ using LinearAlgebra
     @test length(findall(thiserr .< 1e-7)) == 3
 
 
-    @testset "Compute as many eigenpairs as possible (Neig=Inf)" begin
+    @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
         m=30;
-        λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,Neig=Inf,σ=0,displaylevel=displaylevel,
+        λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,neigs=Inf,σ=0,logger=displaylevel,
                              v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
                              tol=1e-7, errmeasure=ResidualErrmeasure);
         verify_lambdas(3, nep, λ, V, 1e-6)
@@ -40,7 +40,7 @@ using LinearAlgebra
 
 
     @testset "Errors thrown" begin
-        @test_throws NEPCore.NoConvergenceException λ,V,T = infbilanczos(Float64,nep,nept,maxit=9,Neig=8,σ=0,displaylevel=displaylevel,
+        @test_throws NEPCore.NoConvergenceException λ,V,T = infbilanczos(Float64,nep,nept,maxit=9,neigs=8,σ=0,logger=displaylevel,
                              v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
                              tol=1e-7, errmeasure=ResidualErrmeasure);
     end
@@ -49,7 +49,7 @@ end
 # Disabled to improve unit test performance
 #@testset "Infbilanczos σ=$x" for x in (1.0, 1.0+0.1im)
 #    m=30;
-#    λ,V,T = infbilanczos(nep,nept,maxit=m,Neig=2,σ=x,tol=1e-7,
+#    λ,V,T = infbilanczos(nep,nept,maxit=m,neigs=2,σ=x,tol=1e-7,
 #                         v=ones(n),u=ones(n));
 #    thiserr=ones(m)*NaN
 #    for i=1:length(λ)

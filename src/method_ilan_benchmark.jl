@@ -16,7 +16,7 @@ function ilan_benchmark(
     maxit=30,
     linsolvercreator::Function=default_linsolvercreator,
     tol=eps(real(T))*10000,
-    Neig=6,
+    neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
     σ=zero(T),
     γ=one(T),
@@ -81,7 +81,7 @@ function ilan_benchmark(
         pnep=create_proj_NEP(nep);
     end
 
-    while (k <= m) && (conv_eig<Neig)
+    while (k <= m) && (conv_eig<neigs)
         if (displaylevel>0) && ((rem(k,check_error_every)==0) || (k==m))
             println("Iteration:",k, " conveig:",conv_eig)
         end

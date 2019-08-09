@@ -5,7 +5,7 @@ export rfi
 export rfi_b
 
 """
-    rfi(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=0,][linsolvecreator=default_linsolvecreator,])
+    rfi(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][logger=0,][linsolvecreator=default_linsolvecreator,])
 
 
 This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
@@ -37,7 +37,9 @@ function rfi(::Type{T},
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=0) where {T <: Number}
+            logger=0) where {T <: Number}
+
+        @parse_logger_param!(logger)
 
         err = Inf
 
@@ -55,7 +57,8 @@ function rfi(::Type{T},
                 return λ,u,v
             end
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v, continues=true);
+            push_info!(logger," u=$u");
 
             local linsolver::LinSolver = linsolvercreator(nep,λ)
             local linsolver_t::LinSolver = linsolvercreator(nept,λ)
@@ -75,7 +78,7 @@ function rfi(::Type{T},
 end
 
 """
-    rfi_b(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][displaylevel=1,][linsolvecreator=default_linsolvecreator,])
+    rfi_b(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][logger=0,][linsolvecreator=default_linsolvecreator,])
 
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
@@ -108,7 +111,9 @@ function rfi_b(::Type{T},
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator::Function=default_linsolvercreator,
-            displaylevel=1) where {T <: Number}
+            logger=0) where {T <: Number}
+
+        @parse_logger_param!(logger)
 
         err = Inf
         #Normalize v and u
@@ -125,7 +130,8 @@ function rfi_b(::Type{T},
                 return λ,u,v
             end
 
-            @ifd(@printf("Iteration: %2d errmeasure:%.18e \n",k, err))
+            push_iteration_info!(logger,k,err=err,λ=λ,v=v, continues=true);
+            push_info!(logger," u=$u");
 
             #Construct C_k
             C = [compute_Mder(nep,λ,0) compute_Mlincomb(nep,λ,u,[T(1)],1);v'*compute_Mder(nep,λ,1) T(0.0)]

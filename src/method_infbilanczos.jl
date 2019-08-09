@@ -3,16 +3,16 @@ using Random
 
 export infbilanczos
 """
-    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][Neig,][errmeasure,][displaylevel,][maxit,][check_error_every])
+    λv,V,U=infbilanczos([eltype],nep, nept,[linsolvecreator,][linsolvertcreator,][v,][u,][σ,][γ,][tol,][neigs,][errmeasure,][logger,][maxit,][check_error_every])
 
 Executes the Infinite Bi-Lanczos method on the problem defined by `nep::NEP`
 and `nept::NEP`. `nep:NEP` is the original nonlinear eigenvalue problem and
 `nept::NEP` is its (hermitian) transpose: ``M(λ^*)^H``.
  `v` and `u` are starting vectors,
 `σ` is the shift and `γ` the scaling.
-The iteration is continued until `Neig` Ritz pairs have converged.
+The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
-However, if `Neig` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 See [`newton`](@ref) for other parameters.
 
 # Example:
@@ -21,7 +21,7 @@ julia> nep=nep_gallery("dep0");
 julia> A=get_Av(nep); fv=get_fv(nep);
 julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')]
 julia> nept=SPMF_NEP(At,fv); # Create the transposed NEP
-julia> λv,V=infbilanczos(nep,nept,Neig=3)
+julia> λv,V=infbilanczos(nep,nept,neigs=3)
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 ```
 
@@ -38,14 +38,15 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           v::Vector=randn(real(T),size(nep,1)),
                           u::Vector=randn(real(T),size(nep,1)),
                           tol::Real=1e-12,
-                          Neig=5,
+                          neigs=5,
                           errmeasure::ErrmeasureType = DefaultErrmeasure,
                           σ::Number=0.0,
                           γ::Number=1,
-                          displaylevel::Integer=0,
+                          logger=0,
                           check_error_every::Integer=1
                           ) where {T<:Number}
 
+        @parse_logger_param!(logger)
 
         n=size(nep,1);
         σ=T(σ);
@@ -91,7 +92,8 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
         λ=zeros(T,m+1); Q=zeros(T,n,m+1); TT=zeros(T,m+1,m+1);
 
 
-        @ifd(@printf("%e %e\n",norm(q), norm(qt)));
+        normq=norm(q); normqt=norm(qt);
+        push_info!(logger,2,"norm(q)=$normq  norm(qt)=$normqt");
 
         # Init errmeasure
         ermdata=init_errmeasure(errmeasure,nep);
@@ -99,9 +101,8 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
         k=1;
 
-        @ifd(@printf("Iteration:"));
         for k=1:m
-            @ifd(@printf("%d ", k));
+
             # Note: conjugate required since we compute s'*r not r'*s
             omega = conj(left_right_scalar_prod(T,nep,nept,Rt1,R1,k,k,σ));
 
@@ -185,25 +186,36 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 #@ifd(println("size(TT)=",size(TT)))
                 Q=Q_basis[:,1:(k+1)]*Z
                 conv_eig=0;
-                err=zeros(real(T),k);
-                for s=1:k
-                    err[s]=estimate_error(ermdata,λ[s],Q[:,s]);
-                    if err[s]<tol; conv_eig=conv_eig+1; end
+                # compute the errors
+
+                err=
+                  map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+                # Log them and compute the converged
+                push_iteration_info!(logger,2, k,err=err,λ=λ,v=
+                                     continues=true);
+                for s=1:size(λ,1)
+                    if err[s]<tol;
+                        conv_eig=conv_eig+1;
+                        push_info!(logger,"+", continues=true);
+                    elseif err[s]<tol*10
+                        push_info!(logger,"=", continues=true);
+                    else
+                        push_info!(logger,"-", continues=true);
+                    end
                 end
-                #println(conv_eig)
-                @ifd(@printf("(%d) ",conv_eig))
+                push_info!(logger,"");
+
                 idx=sortperm(err[1:k]); # sort the error
                 err=err[idx];
 
-                if (conv_eig>=Neig) || (k==m)
-                    nrof_eigs = Int(min(length(λ),Neig,conv_eig))
+                if (conv_eig>=neigs) || (k==m)
+                    nrof_eigs = Int(min(length(λ),neigs,conv_eig))
                     λ=λ[idx[1:nrof_eigs]]
                     Q=Q[:,idx[1:nrof_eigs]]
                     for i=1:nrof_eigs
                         normalize!(view(Q,1:n,i))
                     end
-                    if (conv_eig>=Neig) || (Neig==Inf)
-                        @ifd(@printf("done \n"));
+                    if (conv_eig>=neigs) || (neigs==Inf)
                         return λ,Q,TT
                     end
                 end
