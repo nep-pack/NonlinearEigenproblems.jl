@@ -457,4 +457,6 @@ way of solving linear eigenvalue problems. See [`EigSolver`](@ref) for examples.
         return eig_solve(solver.subsolver,nev=nev,target=target)
     end
 
+    include("NewLinSolvers.jl");
+
 end

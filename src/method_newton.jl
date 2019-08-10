@@ -280,7 +280,8 @@ julia> λ1-λ2
                        v::Vector=randn(real(T),size(nep,1)),
                        c::Vector=v,
                        logger=0,
-                       linsolvercreator::Function=backslash_linsolvercreator,
+                       #linsolvercreator::Function=backslash_linsolvercreator,
+                       linsolvercreator,
                        armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
 
@@ -320,7 +321,8 @@ julia> λ1-λ2
 
             z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-            linsolver = linsolvercreator(nep,λ)
+            #linsolver = linsolvercreator(nep,λ)
+            linsolver = create_linsolver(linsolvercreator,nep,λ)
             tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
             if (use_v_as_normalization_vector)
