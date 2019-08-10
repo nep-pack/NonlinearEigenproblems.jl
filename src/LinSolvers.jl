@@ -9,7 +9,7 @@ module LinSolvers
 
     # Linear system of equation solvers
     export LinSolver
-    export DefaultLinSolver
+    export FactorizeLinSolver
     export BackslashLinSolver
     export GMRESLinSolver
     export lin_solve
@@ -38,7 +38,7 @@ module LinSolvers
 
 Structs inheriting from this type are able to solve linear systems associated with
 a NEP, for a specific `λ`-value. The most common are direct solvers such as
-[`DefaultLinSolver`](@ref), [`BackslashLinSolver`](@ref) and iterative solvers
+[`FactorizeLinSolver`](@ref), [`BackslashLinSolver`](@ref) and iterative solvers
 such as [`GMRESLinSolver`](@ref).
 
 The LinSolver objects are usually created by the NEP-algorithms through
@@ -91,7 +91,7 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`DefaultLinSolver`](@ref), [`default_linsolvercreator`](@ref),
+[`FactorizeLinSolver`](@ref), [`default_linsolvercreator`](@ref),
 [`BackslashLinSolver`](@ref), [`backslash_linsolvercreator`](@ref),
 [`GMRESLinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 
@@ -100,17 +100,17 @@ See also: [`lin_solve`](@ref),
 
 ##############################################################################
 """
-    struct DefaultLinSolver <: LinSolver
+    struct FactorizeLinSolver <: LinSolver
 
 This represents the linear solver associated with julia `factorize()`.
 See [`LinSolver`](@ref) and [`default_linsolvercreator`](@ref) for examples.
 """
-    struct DefaultLinSolver{T} <: LinSolver
+    struct FactorizeLinSolver{T} <: LinSolver
         Afact::T
         umfpack_refinements::Int
     end
 
-    function DefaultLinSolver(nep::NEP, λ, umfpack_refinements)
+    function FactorizeLinSolver(nep::NEP, λ, umfpack_refinements)
         A=compute_Mder(nep,λ)
         if isposdef(A)
             Afact=factorize(A)
@@ -118,7 +118,7 @@ See [`LinSolver`](@ref) and [`default_linsolvercreator`](@ref) for examples.
             Afact=lu(A)
         end
         Afact=lu(A)
-        return DefaultLinSolver(Afact, umfpack_refinements)
+        return FactorizeLinSolver(Afact, umfpack_refinements)
     end
 
 """
@@ -132,7 +132,7 @@ time a linear system associated with `M(λ)` needs to be solved.
 This function must be overloaded if a user wants to define their own
 way of solving linear systems. See [`LinSolver`](@ref) for examples.
 """
-    function lin_solve(solver::DefaultLinSolver, x::Array; tol = 0)
+    function lin_solve(solver::FactorizeLinSolver, x::Array; tol = 0)
         with_umfpack_refinements(solver.umfpack_refinements) do
             solver.Afact \ x
         end
@@ -151,7 +151,7 @@ way of solving linear systems. See [`LinSolver`](@ref) for examples.
 """
     default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
 
-Create a linear solver of type `DefaultLinSolver` for the NEP evaluated in point `λ`.
+Create a linear solver of type `FactorizeLinSolver` for the NEP evaluated in point `λ`.
 For sparse matrices (the underlying solver is usually UMFPACK) the maximum number
 of iterative refinements can be changed to trade accuracy for performance
 with the parameter `umfpack_refinements`. UMFPACK defaults to a
@@ -159,10 +159,10 @@ maximum of 2 iterative refinements.
 
 For examples see [`LinSolver`](@ref).
 
-See also: [`DefaultLinSolver`](@ref).
+See also: [`FactorizeLinSolver`](@ref).
 """
     function default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
-        return DefaultLinSolver(nep, λ, umfpack_refinements)
+        return FactorizeLinSolver(nep, λ, umfpack_refinements)
     end
 
 
