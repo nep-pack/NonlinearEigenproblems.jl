@@ -321,7 +321,6 @@ julia> λ1-λ2
 
             z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-            #linsolver = linsolvercreator(nep,λ)
             linsolver = create_linsolver(linsolvercreator,nep,λ)
             tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
@@ -384,7 +383,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          v::Vector=randn(real(T),size(nep,1)),
                          ws::Vector=v,
                          logger=0,
-                         linsolvercreator::Function=default_linsolvercreator,
+                         linsolvercreator=DefaultLinSolverCreator(),
                          armijo_factor::Real=1,
                          armijo_max::Int=5) where T
 
@@ -404,7 +403,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         local linsolver::LinSolver;
         push_info!(logger,"Precomputing linsolver")
-        linsolver = linsolvercreator(nep,λ)
+        linsolver = create_linsolver(linsolvercreator,nep,λ)
 
         # Init errmeasure
         ermdata=init_errmeasure(errmeasure,nep);

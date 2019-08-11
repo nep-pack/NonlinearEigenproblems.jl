@@ -2,7 +2,10 @@
 
 export LinSolverCreator, BackslashLinSolverCreator;
 export FactorizeLinSolverCreator, DefaultLinSolverCreator;
+export GMRESLinSolverCreator;
+
 export create_linsolver;
+
 abstract type LinSolverCreator ; end
 
 struct BackslashLinSolverCreator <: LinSolverCreator
@@ -23,7 +26,18 @@ function FactorizeLinSolverCreator(umfpack_refinements=1)
     return FactorizeLinSolverCreator(umfpack_refinements)
 end
 
-
 function create_linsolver(creator::FactorizeLinSolverCreator,nep,λ)
-    return DefaultLinSolver(nep,λ,creator.umfpack_refinements);
+    return FactorizeLinSolver(nep,λ,creator.umfpack_refinements);
+end
+
+struct GMRESLinSolverCreator{T} <: LinSolverCreator where {T}
+    kwargs::T
+end
+function GMRESLinSolverCreator(;kwargs...)
+    return GMRESLinSolverCreator{typeof(kwargs)}(kwargs)
+end
+
+
+function create_linsolver(creator::GMRESLinSolverCreator,nep::NEP, λ)
+    return GMRESLinSolver{typeof(λ)}(nep, λ, creator.kwargs)
 end
