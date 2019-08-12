@@ -5,6 +5,7 @@ module NEPSolver
     using LinearAlgebra
     using SparseArrays
     using Random
+    using Suppressor
 
 
     export @parse_logger_param!
@@ -16,6 +17,19 @@ If l is a number it canges l to a PrintLogger(l).
     macro parse_logger_param!(l)
        return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
     end
+
+
+    macro wrap_logger(logger,is_continued, level, block)
+        quote
+            local retval
+            output= @capture_out begin
+                retval=$(esc(block))
+            end
+            push_info!($(esc(logger)),$(esc(level)),output);
+            retval
+        end
+    end
+
 
     include("logger.jl");
 

@@ -1,22 +1,25 @@
-using SparseArrays;
+using SparseArrays,LinearAlgebra;
 
 
 
-n=5;
-α=0.1;
+n=100;
+α=0.01;
 A=spdiagm(0=>ones(n),1=>α*ones(n-1),-1=>α*ones(n-1));
 B=spdiagm(0=>ones(n));
 C=spdiagm(0=>(1:n)/n);
 
 nep= SPMF_NEP([A,B,C],[s->one(s),s->s,s->exp(s)])
 
-quasinewton(nep,λ=-1.0,v=ones(n),logger=1);
+λ0=-1.002
+quasinewton(nep,λ=λ0,v=ones(n),logger=1);
 
 
+#quasinewton(nep,λ=λ0,v=ones(n),logger=1,linsolvercreator=BackslashLinSolverCreator());
 
-quasinewton(nep,λ=-1,v=ones(n),logger=1,linsolvercreator=BackslashLinSolverCreator());
 
-
-creator=GMRESLinSolverCreator(log = true,verbose=true)
-quasinewton(nep,λ=-1,v=ones(n),logger=1,
-            linsolvercreator=creator);
+D0=(Diagonal(compute_Mder(nep,λ0)));
+creator=GMRESLinSolverCreator(Pl=D0, tol=1e-1, log=true)
+(λ,x)=quasinewton(nep,λ=λ0,v=ones(n),logger=1,
+                  linsolvercreator=creator,tol=1e-16,maxit=100);
+normalize!(x)
+norm(compute_Mlincomb(nep,λ,x))

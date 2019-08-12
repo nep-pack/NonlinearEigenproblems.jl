@@ -424,7 +424,10 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             # Intermediate quantities
             Δλ=-dot(ws,u)/dot(ws,w);
             z=Δλ*w+u;
-            Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
+            # Throws an error if lin_solve returns incorrect type.
+            local Δv::Vector{T}=@wrap_logger logger true 2 begin
+                -lin_solve(linsolver, z, tol=tol)
+            end
 
             normΔv=norm(Δv);
             push_info!(logger,2," norm(Δv)=$normΔv",continues=true)
