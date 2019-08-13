@@ -16,10 +16,34 @@ function create_linsolver(creator::BackslashLinSolverCreator,nep,λ)
 end
 
 
-struct FactorizeLinSolverCreator <: LinSolverCreator
-    umfpack_refinements::Int
-    function FactorizeLinSolverCreator(umfpack_refinements::Int=1)
-       return new(umfpack_refinements)
+struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
+    umfpack_refinements::Int;
+    recycled_factorizations::Dict{T_values,T_factor};
+    recycle_factorizations::Bool;
+    function FactorizeLinSolverCreator(;umfpack_refinements::Int=1,
+                                       recycle_factorizations=false,
+                                       nep=nothing,
+                                       precomp_values=[]
+                                       )
+
+        if (size(precomp_values,1)>0 && nep==nothing)
+            error("When you want to precompute factorizations you need to supply the keyword argument `nep`");
+        end
+
+        # Compute all the factorizations
+        precomp_factorizations=map(s-> factorize(compute_Mder(nep,s)), precomp_values);
+
+
+        # Put them in a dict
+        T_from=eltype(precomp_values);
+        T_to=eltype(precomp_factorizations);
+        dict=Dict{T_from,T_to}();
+        for i=1:size(precomp_values,1)
+            dict[precomp_values[i]]=precomp_factorizations[i];
+        end
+
+        return new{T_from,T_to}(umfpack_refinements,dict,recycle_factorizations)
+
     end
 end
 # For the moment, Factorize is the default behaviour
@@ -27,7 +51,13 @@ DefaultLinSolverCreator = FactorizeLinSolverCreator
 
 
 function create_linsolver(creator::FactorizeLinSolverCreator,nep,λ)
-    return FactorizeLinSolver(nep,λ,creator.umfpack_refinements);
+    if (λ in keys(creator.recycled_factorizations))
+        Afact=creator.recycled_factorizations[λ];
+        return FactorizeLinSolver(Afact,creator.umfpack_refinements);
+    else
+        return FactorizeLinSolver(nep,λ,creator.umfpack_refinements);
+    end
+
 end
 
 struct GMRESLinSolverCreator{T} <: LinSolverCreator where {T}
