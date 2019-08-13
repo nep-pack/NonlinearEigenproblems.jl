@@ -18,13 +18,13 @@ end
 
 struct FactorizeLinSolverCreator <: LinSolverCreator
     umfpack_refinements::Int
+    function FactorizeLinSolverCreator(umfpack_refinements::Int=1)
+       return new(umfpack_refinements)
+    end
 end
 # For the moment, Factorize is the default behaviour
 DefaultLinSolverCreator = FactorizeLinSolverCreator
 
-function FactorizeLinSolverCreator(umfpack_refinements=1)
-    return FactorizeLinSolverCreator(umfpack_refinements)
-end
 
 function create_linsolver(creator::FactorizeLinSolverCreator,nep,λ)
     return FactorizeLinSolver(nep,λ,creator.umfpack_refinements);
