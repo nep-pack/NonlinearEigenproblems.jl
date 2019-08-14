@@ -280,8 +280,7 @@ julia> λ1-λ2
                        v::Vector=randn(real(T),size(nep,1)),
                        c::Vector=v,
                        logger=0,
-                       #linsolvercreator::Function=backslash_linsolvercreator,
-                       linsolvercreator,
+                       linsolvercreator=DefaultLinSolverCreator(),
                        armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
 
@@ -425,9 +424,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             Δλ=-dot(ws,u)/dot(ws,w);
             z=Δλ*w+u;
             # Throws an error if lin_solve returns incorrect type.
-            local Δv::Vector{T}=@wrap_logger logger true 2 begin
-                -lin_solve(linsolver, z, tol=tol)
-            end
+            local Δv::Vector{T}= -lin_solve(linsolver, z, tol=tol)
 
             normΔv=norm(Δv);
             push_info!(logger,2," norm(Δv)=$normΔv",continues=true)

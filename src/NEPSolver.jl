@@ -19,16 +19,6 @@ If l is a number it canges l to a PrintLogger(l).
     end
 
 
-    macro wrap_logger(logger,is_continued, level, block)
-        quote
-            local retval
-            output= @capture_out begin
-                retval=$(esc(block))
-            end
-            push_info!($(esc(logger)),$(esc(level)),output);
-            retval
-        end
-    end
 
 
     include("logger.jl");

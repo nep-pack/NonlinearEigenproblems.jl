@@ -223,9 +223,6 @@ See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
     function lin_solve(solver::GMRESLinSolver{T_num,T_kwargs}, b::Vector{T_num}; tol=eps(real(T_num))) where {T_num,T_kwargs}
         v = zero(b)
         retval=gmres!(v, solver.A, b; tol=tol, solver.kwargs...)
-        if (size(retval,1)>1)
-            @show retval[end]
-        end
         return v
     end
 
