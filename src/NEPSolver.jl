@@ -5,7 +5,6 @@ module NEPSolver
     using LinearAlgebra
     using SparseArrays
     using Random
-    using Suppressor
 
 
     export @parse_logger_param!
