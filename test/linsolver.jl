@@ -8,6 +8,7 @@ using LinearAlgebra
 
 @testset "linsolvers" begin
     TOL = 1e-10;
+
     nep = nep_gallery("nlevp_native_gun")
 
     n = size(nep,1);
@@ -18,10 +19,10 @@ using LinearAlgebra
     M = compute_Mder(nep, λ)
 
     @bench @testset "basic functionality" begin
-        linsolver1=backslash_linsolvercreator(nep,λ);
+        linsolver1=create_linsolver(BackslashLinSolverCreator(),nep,λ);
         y1=lin_solve(linsolver1,x)
 
-        linsolver2=default_linsolvercreator(nep,λ);
+        linsolver2=create_linsolver(FactorizeLinSolverCreator(),nep,λ);
         y2=lin_solve(linsolver1,x)
 
         @test y1 ≈ y2
@@ -68,11 +69,17 @@ using LinearAlgebra
         @test norm(t-x)/M1norm < eps()
     end
 
+    @bench @testset "gmres" begin
+
+
+    end
+
+
     @bench @testset "umfpack iterative refinements" begin
         # Test using max 0 vs max 2 iterative refinements. There is little point in testing
         # max 1 refinement, since in practice only a single refinement is used anyway.
-        c0 = default_linsolvercreator(nep, λ; umfpack_refinements = 0)
-        c2 = default_linsolvercreator(nep, λ)
+        c0 = create_linsolver(FactorizeLinSolverCreator(umfpack_refinements=0),nep, λ)
+        c2 = create_linsolver(FactorizeLinSolverCreator(),nep, λ)
 
         # do a warmup-solve to force JIT compilation to get accurate memory measurements
         lin_solve(c0, x)

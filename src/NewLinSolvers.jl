@@ -50,7 +50,7 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
     umfpack_refinements::Int;
     recycled_factorizations::Dict{T_values,T_factor};
     max_factorizations::Int
-    function FactorizeLinSolverCreator(;umfpack_refinements::Int=1,
+    function FactorizeLinSolverCreator(;umfpack_refinements::Int=2,
                                        max_factorizations=0,
                                        nep=nothing,
                                        precomp_values=[]

@@ -51,7 +51,7 @@ n=size(nep,1);
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
     λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
-               errmeasure=myerrmeasure,tol=1e-12,linsolvercreator=backslash_linsolvercreator)
+               errmeasure=myerrmeasure,tol=1e-12,linsolvercreator=BackslasLinSolverCreator())
 
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
