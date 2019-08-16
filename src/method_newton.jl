@@ -166,7 +166,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                     v::Vector=randn(real(T),size(nep,1)),
                     c::Vector=v,
                     logger=0,
-                    linsolvercreator::Function=default_linsolvercreator,
+                    linsolvercreator=DefaultLinSolverCreator(),
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where T
 
@@ -180,7 +180,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         n=size(v,1);
 
         push_info!(logger,"Precomputing linsolver")
-        local linsolver::LinSolver=linsolvercreator(nep,λ)
+        local linsolver::LinSolver=create_linsolver(linsolvercreator,nep,λ)
 
         # If c is zero vector we take eigvec approx as left vector in
         # generalized Rayleigh functional
