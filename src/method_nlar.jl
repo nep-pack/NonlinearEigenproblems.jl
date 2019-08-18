@@ -46,7 +46,7 @@ function nlar(::Type{T},
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             logger = 0,
-            linsolvercreator::Function = default_linsolvercreator,
+            linsolvercreator=DefaultLinSolverCreator(),
             R = 0.01,
             eigval_sorter::Function = residual_eigval_sorter, #Function to sort eigenvalues of the projected NEP
             qrfact_orth::Bool = false,
@@ -99,7 +99,7 @@ function nlar(::Type{T},
 
         proj_nep = create_proj_NEP(nep,maxit,T);
 
-        local linsolver::LinSolver = linsolvercreator(nep,σ);
+        local linsolver::LinSolver=create_linsolver(linsolvercreator,nep,λ)
 
         err = Inf;
 

@@ -56,7 +56,7 @@ function tiar(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -98,7 +98,7 @@ function tiar(
     hh = zeros(T,m+1);
     y  = zeros(T,n,m+1);
     α=Array{T,1}(γ.^(0:m)); α[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver=create_linsolver(linsolvercreator,nep,σ)
     err = NaN*ones(m+1,m+1);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
     Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);

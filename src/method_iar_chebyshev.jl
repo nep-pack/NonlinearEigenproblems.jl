@@ -67,7 +67,7 @@ function iar_chebyshev(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -117,7 +117,7 @@ function iar_chebyshev(
     H = zeros(T,m+1,m);
     y = zeros(T,n,m+1);
     α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver=create_linsolver(linsolvercreator,nep,σ)
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 
