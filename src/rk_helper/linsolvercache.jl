@@ -18,9 +18,9 @@ function solve(cache, σ, y, add_to_cache)
     if add_to_cache
         solver = get!(() -> (
             @debug "Cache miss, creating lin solver for $σ";
-            cache.linsolvercreator(cache.nep, σ)), cache.solver, σ)
+            create_linsolver(cache.linsolvercreator, cache.nep, σ)), cache.solver, σ)
     else
-        solver = create_linsolver(linsolvercreator, cache.nep, σ)
+        solver = create_linsolver(cache.linsolvercreator, cache.nep, σ)
     end
     lin_solve(solver, y)
 end
