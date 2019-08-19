@@ -36,7 +36,7 @@ function rfi(::Type{T},
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
-            linsolvercreator::Function=default_linsolvercreator,
+            linsolvercreator=BackslashLinSolverCreator(), # Note: Not default. It's better to use backslash
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
@@ -60,8 +60,8 @@ function rfi(::Type{T},
             push_iteration_info!(logger,k,err=err,λ=λ,v=v, continues=true);
             push_info!(logger," u=$u");
 
-            local linsolver::LinSolver = linsolvercreator(nep,λ)
-            local linsolver_t::LinSolver = linsolvercreator(nept,λ)
+            local linsolver=create_linsolver(linsolvercreator,nep,λ)
+            local linsolver_t=create_linsolver(linsolvercreator,nept,λ)
 
             x = lin_solve(linsolver,compute_Mlincomb(nep,λ,u,[T(1)],1),tol = tol)
             u[:] = normalize(x)
@@ -110,7 +110,6 @@ function rfi_b(::Type{T},
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
-            linsolvercreator::Function=default_linsolvercreator,
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
