@@ -14,10 +14,6 @@ module LinSolvers
     export GMRESLinSolver
     export lin_solve
 
-    export default_linsolvercreator
-    export backslash_linsolvercreator
-    export gmres_linsolvercreator
-
     # Eigenvalue solvers
     export EigSolver
     export DefaultEigSolver
@@ -148,23 +144,6 @@ way of solving linear systems. See [`LinSolver`](@ref) for examples.
         end
     end
 
-"""
-    default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
-
-Create a linear solver of type `FactorizeLinSolver` for the NEP evaluated in point `λ`.
-For sparse matrices (the underlying solver is usually UMFPACK) the maximum number
-of iterative refinements can be changed to trade accuracy for performance
-with the parameter `umfpack_refinements`. UMFPACK defaults to a
-maximum of 2 iterative refinements.
-
-For examples see [`LinSolver`](@ref).
-
-See also: [`FactorizeLinSolver`](@ref).
-"""
-    function default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
-        return FactorizeLinSolver(nep, λ, umfpack_refinements)
-    end
-
 
 """
     struct BackslashLinSolver <: LinSolver
@@ -187,16 +166,6 @@ See also: [`LinSolver`](@ref) and [`backslash_linsolvercreator`](@ref)
         return solver.A\x
     end
 
-"""
-    backslash_linsolvercreator(nep::NEP, λ)
-
-Create a linear solver of type `BackslashLinSolver` evaluated in `λ`.
-
-See also: [`LinSolver`](@ref), [`BackslashLinSolver`](@ref)
-"""
-    function backslash_linsolvercreator(nep::NEP, λ)
-        return BackslashLinSolver(nep, λ)
-    end
 
 
 ##############################################################################
@@ -226,19 +195,6 @@ See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
         return v
     end
 
-
-"""
-    gmres_linsolvercreator(nep::NEP, λ, kwargs=())
-
-Create a linear solver of type `GMRESLinSolver`. The `kwargs` are
-passed as parameter to Julia-built-in-GMRES.
-
-See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
-
-"""
-    function gmres_linsolvercreator(nep::NEP, λ, kwargs=())
-        return GMRESLinSolver{typeof(λ)}(nep, λ, kwargs)
-    end
 
 
 
