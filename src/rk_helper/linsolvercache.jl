@@ -7,7 +7,7 @@ export LinSolverCache, solve
 struct LinSolverCache{T<:Number}
     solver::Dict{T,LinSolver}
     nep::NEP
-    linsolvercreator::Function
+    linsolvercreator::LinSolverCreator
 end
 
 LinSolverCache(::Type{T}, nep, linsolvercreator) where T<:Number =
@@ -18,9 +18,9 @@ function solve(cache, σ, y, add_to_cache)
     if add_to_cache
         solver = get!(() -> (
             @debug "Cache miss, creating lin solver for $σ";
-            cache.linsolvercreator(cache.nep, σ)), cache.solver, σ)
+            create_linsolver(cache.linsolvercreator, cache.nep, σ)), cache.solver, σ)
     else
-        solver = cache.linsolvercreator(cache.nep, σ)
+        solver = create_linsolver(cache.linsolvercreator, cache.nep, σ)
     end
     lin_solve(solver, y)
 end

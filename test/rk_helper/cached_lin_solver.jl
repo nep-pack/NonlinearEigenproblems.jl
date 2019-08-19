@@ -32,6 +32,6 @@ using Test
         solve_and_verify(2.5); test_size(1)
     end
 
-    run_tests(() -> LinSolverCache(Float64, dep, default_linsolvercreator))
-    run_tests(() -> LinSolverCache(Float64, dep, backslash_linsolvercreator))
+    run_tests(() -> LinSolverCache(Float64, dep, DefaultLinSolverCreator()))
+    run_tests(() -> LinSolverCache(Float64, dep, BackslashLinSolverCreator()))
 end

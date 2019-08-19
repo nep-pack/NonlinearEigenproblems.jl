@@ -17,6 +17,9 @@ If l is a number it canges l to a PrintLogger(l).
        return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
     end
 
+
+
+
     include("logger.jl");
 
     ## NEP-Methods

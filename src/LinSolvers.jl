@@ -9,14 +9,10 @@ module LinSolvers
 
     # Linear system of equation solvers
     export LinSolver
-    export DefaultLinSolver
+    export FactorizeLinSolver
     export BackslashLinSolver
     export GMRESLinSolver
     export lin_solve
-
-    export default_linsolvercreator
-    export backslash_linsolvercreator
-    export gmres_linsolvercreator
 
     # Eigenvalue solvers
     export EigSolver
@@ -38,7 +34,7 @@ module LinSolvers
 
 Structs inheriting from this type are able to solve linear systems associated with
 a NEP, for a specific `λ`-value. The most common are direct solvers such as
-[`DefaultLinSolver`](@ref), [`BackslashLinSolver`](@ref) and iterative solvers
+[`FactorizeLinSolver`](@ref), [`BackslashLinSolver`](@ref) and iterative solvers
 such as [`GMRESLinSolver`](@ref).
 
 The LinSolver objects are usually created by the NEP-algorithms through
@@ -55,9 +51,9 @@ remains the same throughout the algorithm and is therefore slower.
 julia> nep=nep_gallery("qdep0");
 julia> using BenchmarkTools
 julia> v0=ones(size(nep,1));
-julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=default_linsolvercreator);
+julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=DefaultLinSolverCreator());
   199.540 ms (4929 allocations: 59.83 MiB)
-julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=backslash_linsolvercreator);
+julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=BackslashLinSolverCreator());
   1.632 s (6137 allocations: 702.85 MiB)
 ```
 
@@ -91,26 +87,26 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`DefaultLinSolver`](@ref), [`default_linsolvercreator`](@ref),
-[`BackslashLinSolver`](@ref), [`backslash_linsolvercreator`](@ref),
-[`GMRESLinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
+[`FactorizeLinSolver`](@ref), [`DefaultLinSolverCreator`](@ref),
+[`BackslashLinSolver`](@ref), [`BackslashLinSolverCreator`](@ref),
+[`GMRESLinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 
 """
     abstract type LinSolver end
 
 ##############################################################################
 """
-    struct DefaultLinSolver <: LinSolver
+    struct FactorizeLinSolver <: LinSolver
 
 This represents the linear solver associated with julia `factorize()`.
-See [`LinSolver`](@ref) and [`default_linsolvercreator`](@ref) for examples.
+See [`LinSolver`](@ref) and [`FactorizeLinSolverCreator`](@ref) for examples.
 """
-    struct DefaultLinSolver{T} <: LinSolver
+    struct FactorizeLinSolver{T} <: LinSolver
         Afact::T
         umfpack_refinements::Int
     end
 
-    function DefaultLinSolver(nep::NEP, λ, umfpack_refinements)
+    function FactorizeLinSolver(nep::NEP, λ, umfpack_refinements)
         A=compute_Mder(nep,λ)
         if isposdef(A)
             Afact=factorize(A)
@@ -118,7 +114,7 @@ See [`LinSolver`](@ref) and [`default_linsolvercreator`](@ref) for examples.
             Afact=lu(A)
         end
         Afact=lu(A)
-        return DefaultLinSolver(Afact, umfpack_refinements)
+        return FactorizeLinSolver(Afact, umfpack_refinements)
     end
 
 """
@@ -132,7 +128,7 @@ time a linear system associated with `M(λ)` needs to be solved.
 This function must be overloaded if a user wants to define their own
 way of solving linear systems. See [`LinSolver`](@ref) for examples.
 """
-    function lin_solve(solver::DefaultLinSolver, x::Array; tol = 0)
+    function lin_solve(solver::FactorizeLinSolver, x::Array; tol = 0)
         with_umfpack_refinements(solver.umfpack_refinements) do
             solver.Afact \ x
         end
@@ -148,30 +144,13 @@ way of solving linear systems. See [`LinSolver`](@ref) for examples.
         end
     end
 
-"""
-    default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
-
-Create a linear solver of type `DefaultLinSolver` for the NEP evaluated in point `λ`.
-For sparse matrices (the underlying solver is usually UMFPACK) the maximum number
-of iterative refinements can be changed to trade accuracy for performance
-with the parameter `umfpack_refinements`. UMFPACK defaults to a
-maximum of 2 iterative refinements.
-
-For examples see [`LinSolver`](@ref).
-
-See also: [`DefaultLinSolver`](@ref).
-"""
-    function default_linsolvercreator(nep::NEP, λ; umfpack_refinements = 2)
-        return DefaultLinSolver(nep, λ, umfpack_refinements)
-    end
-
 
 """
     struct BackslashLinSolver <: LinSolver
 
 This represents a linear solver corresponding to the backslash operator (no pre-factorization).
 
-See also: [`LinSolver`](@ref) and [`backslash_linsolvercreator`](@ref)
+See also: [`LinSolver`](@ref) and [`BackslashLinSolverCreator`](@ref)
 """
     struct BackslashLinSolver{T_mat} <: LinSolver
         A::T_mat
@@ -187,16 +166,6 @@ See also: [`LinSolver`](@ref) and [`backslash_linsolvercreator`](@ref)
         return solver.A\x
     end
 
-"""
-    backslash_linsolvercreator(nep::NEP, λ)
-
-Create a linear solver of type `BackslashLinSolver` evaluated in `λ`.
-
-See also: [`LinSolver`](@ref), [`BackslashLinSolver`](@ref)
-"""
-    function backslash_linsolvercreator(nep::NEP, λ)
-        return BackslashLinSolver(nep, λ)
-    end
 
 
 ##############################################################################
@@ -205,7 +174,7 @@ See also: [`LinSolver`](@ref), [`BackslashLinSolver`](@ref)
 
 This represents a solver done with the julia GMRES implementation.
 
-See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
+See also: [`LinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 """
     struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
         A::LinearMap{T_num}
@@ -221,24 +190,11 @@ See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
 
 
     function lin_solve(solver::GMRESLinSolver{T_num,T_kwargs}, b::Vector{T_num}; tol=eps(real(T_num))) where {T_num,T_kwargs}
-        v = zero(x)
-        gmres!(v, solver.A, x; tol=tol, solver.kwargs...)
+        v = zero(b)
+        retval=gmres!(v, solver.A, b; tol=tol, solver.kwargs...)
         return v
     end
 
-
-"""
-    gmres_linsolvercreator(nep::NEP, λ, kwargs=())
-
-Create a linear solver of type `GMRESLinSolver`. The `kwargs` are
-passed as parameter to Julia-built-in-GMRES.
-
-See also: [`LinSolver`](@ref), [`GMRESLinSolver`](@ref)
-
-"""
-    function gmres_linsolvercreator(nep::NEP, λ, kwargs=())
-        return GMRESLinSolver{typeof(λ)}(nep, λ, kwargs)
-    end
 
 
 
@@ -456,5 +412,7 @@ way of solving linear eigenvalue problems. See [`EigSolver`](@ref) for examples.
     function eig_solve(solver::DefaultEigSolver;nev=size(solver.subsolver.A,1),target=0)
         return eig_solve(solver.subsolver,nev=nev,target=target)
     end
+
+    include("NewLinSolvers.jl");
 
 end

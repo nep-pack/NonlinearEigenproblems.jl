@@ -10,7 +10,7 @@ export threshold_eigval_sorter
 
 
 """
-    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[logger=0],[linsolvercreator=default_linsolvercreator],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver,][inner_logger=0])
+    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[logger=0],[linsolvercreator=DefaultLinSolverCreator()],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver,][inner_logger=0])
 
 The function implements the Nonlinear Arnoldi method, which finds `neigs` eigenpairs(or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm.
 The basis is orthogonalized either by using the QR method if `qrfact_orth` is `true` or else by an orthogonalization method `orthmethod`).
@@ -46,7 +46,7 @@ function nlar(::Type{T},
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             logger = 0,
-            linsolvercreator::Function = default_linsolvercreator,
+            linsolvercreator=DefaultLinSolverCreator(),
             R = 0.01,
             eigval_sorter::Function = residual_eigval_sorter, #Function to sort eigenvalues of the projected NEP
             qrfact_orth::Bool = false,
@@ -99,7 +99,7 @@ function nlar(::Type{T},
 
         proj_nep = create_proj_NEP(nep,maxit,T);
 
-        local linsolver::LinSolver = linsolvercreator(nep,σ);
+        local linsolver::LinSolver=create_linsolver(linsolvercreator,nep,λ)
 
         err = Inf;
 

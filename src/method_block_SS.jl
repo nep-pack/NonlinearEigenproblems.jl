@@ -51,7 +51,7 @@ function contour_block_SS(
     tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
     σ::Number=zero(complex(T)),
     logger=0,
-    linsolvercreator::Function=backslash_linsolvercreator,
+    linsolvercreator=BackslashLinSolverCreator(),
     neigs=Inf, # Number of wanted eigvals (currently unused)
     k::Integer=3, # Columns in matrix to integrate
     radius::Union{Real,Tuple,Array}=1, # integration radius
@@ -79,7 +79,7 @@ function contour_block_SS(
     V = rand(T,n,L);
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
-        local M0inv::LinSolver = linsolvercreator(nep,λ + σ);
+        local M0inv::LinSolver = create_linsolver(linsolvercreator, nep, λ+σ);
         # This requires that lin_solve can handle rectangular
         # matrices as the RHS
         return lin_solve(M0inv,V);
