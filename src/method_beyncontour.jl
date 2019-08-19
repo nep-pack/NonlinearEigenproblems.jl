@@ -52,7 +52,7 @@ function contour_beyn(::Type{T},
                       tol::Real=sqrt(eps(real(T))), # Note tol is quite high for this method
                       σ::Number=zero(complex(T)),
                       logger=0,
-                      linsolvercreator::Function=backslash_linsolvercreator,
+                      linsolvercreator=BackslashLinSolverCreator(),
                       neigs::Integer=2, # Number of wanted eigvals
                       k::Integer=neigs+1, # Columns in matrix to integrate
                       radius::Union{Real,Tuple,Array}=1, # integration radius
@@ -90,7 +90,7 @@ function contour_beyn(::Type{T},
 
 
     function local_linsolve(λ::TT,V::Matrix{TT}) where {TT<:Number}
-        local M0inv::LinSolver = linsolvercreator(nep,λ+σ);
+        local M0inv::LinSolver = create_linsolver(linsolvercreator, nep, λ+σ);
         # This requires that lin_solve can handle rectangular
         # matrices as the RHS
         return lin_solve(M0inv,V);
