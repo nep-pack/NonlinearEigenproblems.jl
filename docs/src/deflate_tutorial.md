@@ -29,7 +29,8 @@ Other solution methods do not suffer from this, e.g.,
 and
 [nleigs](methods.md#NonlinearEigenproblems.NEPSolver.nleigs)
 since they compute several solutions at once.
-Another remedy is the use of *deflation*.
+Another attempt to remedy reconvergence
+is to use the technique called *deflation*.
 
 ## Deflation in NEP-PACK
 
@@ -45,6 +46,8 @@ The solver independent technique is inspired by what is described in the [PhD th
 of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf).
 It is implemented in the method [effenberger_deflation](transformations.md#NonlinearEigenproblems.NEPTypes.effenberger_deflation).
 
+In NEP-PACK, this type of deflation is implemented in the function `deflate_eigpair`,
+which takes a NEP and an eigenpair as input and returns a new NEP.
 ```julia
 julia> # first compute a solution
 julia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)))
@@ -121,8 +124,8 @@ if ``(s,x)`` is an eigenpair, then the extended nonlinear eigenvalue problem
 ```math
 T(λ):=\begin{bmatrix}M(λ)&M(λ)x(s-λ)^{-1}\\ x^T & 0\end{bmatrix}
 ```
-has the same eigenvalues as the original problem (under certain conditions
-quite general conditions which are assumed to be satisfied). More
+has the same eigenvalues as the original problem (under certain quite general
+conditions which are assumed to be satisfied). More
 eigenpairs can be deflated with techniques of partial Schur
 factorizations (which the user does not need to use). When we create
 a deflated NEP, we create the NEP `T`.
