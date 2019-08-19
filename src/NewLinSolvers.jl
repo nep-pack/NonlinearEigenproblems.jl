@@ -56,6 +56,10 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
                                        precomp_values=[]
                                        )
 
+        if (precomp_values isa Number) # Helper: Allow values to be a scalar. Put in a vector
+            precomp_values=[precomp_values];
+        end
+
         if (size(precomp_values,1)>0 && nep==nothing)
             error("When you want to precompute factorizations you need to supply the keyword argument `nep`");
         end
