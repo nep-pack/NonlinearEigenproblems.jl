@@ -65,7 +65,7 @@ function ilan(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -110,7 +110,7 @@ function ilan(
     HH=zeros(T,m+1,m)
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
     err=ones(m,m);
     λ=zeros(T,m+1);
     W=zeros(T,n,m+1);
