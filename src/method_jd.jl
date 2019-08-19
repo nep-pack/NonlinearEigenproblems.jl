@@ -22,7 +22,7 @@ end
 
 
 """
-    jd_betcke([eltype]], nep::ProjectableNEP; [neigs=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+    jd_betcke([eltype]], nep::ProjectableNEP; [neigs=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=DefaultLinSolverCreator()], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
@@ -188,7 +188,7 @@ end
 
 
 """
-    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=DefaultLinSolverCreator()], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.

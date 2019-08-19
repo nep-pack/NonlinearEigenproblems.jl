@@ -5,7 +5,7 @@ export rfi
 export rfi_b
 
 """
-    rfi(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][logger=0,][linsolvecreator=default_linsolvecreator,])
+    rfi(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][logger=0,][linsolvecreator=DefaultLinSolverCreator(),])
 
 
 This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
@@ -78,7 +78,7 @@ function rfi(::Type{T},
 end
 
 """
-    rfi_b(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][logger=0,][linsolvecreator=default_linsolvecreator,])
+    rfi_b(nep,nept,[λ=0,][errmeasure,][tol=eps()*100,][maxit=100,][v=randn,][u=randn,][logger=0,][linsolvecreator=DefaultLinSolverCreator(),])
 
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.

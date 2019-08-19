@@ -26,7 +26,7 @@ mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
 end
 
 """
-    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
+    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
