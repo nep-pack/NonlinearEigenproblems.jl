@@ -1,5 +1,5 @@
 
-
+import ..create_linsolver
 ###########################################################
 # Waveguide eigenvalue problem (WEP)
 # Sum of products of matrices and functions (SPMF)
@@ -413,9 +413,6 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return q
     end
 
-    function wep_gmres_linsolvercreator(nep::WEP_FD, λ, kwargs=())
-        return WEPGMRESLinSolver(nep, λ, kwargs)
-    end
 
 
     # Direct Backslash solver
@@ -434,9 +431,39 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return solver.schur_comp \ rhs
     end
 
-    function wep_backslash_linsolvercreator(nep::WEP_FD, λ, kwargs=())
-        return WEPBackslashLinSolver(nep, λ, kwargs)
+"""
+    struct WEPLinSolverCreator <: LinSolverCreator
+    function WEPLinSolverCreator(;solver_type=:backslash,kwargs=())
+
+The a linsolver creator for the waveguide eigenvalue problem. The
+kwarg `solver_type` is one of `:backslash`, `:factorized`, `:gmres`.
+The `kwargs` keyword argument is passed to the solver.
+"""
+    struct WEPLinSolverCreator <: LinSolverCreator
+        solver_type::Symbol
+        kwargs;
+        function WEPLinSolverCreator(;solver_type=:backslash,kwargs=())
+            return new(solver_type,kwargs);
+        end
     end
+
+    function create_linsolver(creator::WEPLinSolverCreator,nep,λ)
+        if (!(nep isa WEP_FD))
+            t=typeof(nep)
+            error("WEPLinSolver can only be used in combination with WEPs: type(nep)=$t");
+        end
+        if (creator.solver_type==:backslash)
+            return WEPBackslashLinSolver(nep, λ, creator.kwargs)
+        elseif (creator.solver_type==:gmres)
+            return WEPGMRESLinSolver(nep, λ, creator.kwargs)
+        elseif (creator.solver_type==:factorized)
+            return WEPFactorizedLinSolver(nep, λ, creator.kwargs)
+        else
+            s=creator.solver_type
+            error("Unknown type of solver_type in linsolvercreator:$s");
+        end
+    end
+
 
 
     # Direct pre-factorized solver
@@ -455,9 +482,6 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return solver.schur_comp_fact \ rhs
     end
 
-    function wep_factorized_linsolvercreator(nep::WEP_FD, λ, kwargs=())
-        return WEPFactorizedLinSolver(nep, λ, kwargs)
-    end
 
 
     # Helper functions for WEP LinSolvers. To avoid code repetition.
