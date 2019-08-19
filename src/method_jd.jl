@@ -161,7 +161,7 @@ function jd_betcke(::Type{T},
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
         pk[:] = compute_Mlincomb(nep,λ,u,[one(T)],1)
-        linsolver::LinSolver=create_linsolver(linsolvercreator,orgnep,λ)
+        linsolver::LinSolver=create_linsolver(linsolvercreator,nep,λ)
         v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
 
