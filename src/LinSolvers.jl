@@ -51,9 +51,9 @@ remains the same throughout the algorithm and is therefore slower.
 julia> nep=nep_gallery("qdep0");
 julia> using BenchmarkTools
 julia> v0=ones(size(nep,1));
-julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=default_linsolvercreator);
+julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=DefaultLinSolverCreator());
   199.540 ms (4929 allocations: 59.83 MiB)
-julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=backslash_linsolvercreator);
+julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=BackslashLinSolverCreator());
   1.632 s (6137 allocations: 702.85 MiB)
 ```
 
@@ -87,9 +87,9 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`FactorizeLinSolver`](@ref), [`default_linsolvercreator`](@ref),
-[`BackslashLinSolver`](@ref), [`backslash_linsolvercreator`](@ref),
-[`GMRESLinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
+[`FactorizeLinSolver`](@ref), [`DefaultLinSolverCreator`](@ref),
+[`BackslashLinSolver`](@ref), [`BackslashLinSolverCreator`](@ref),
+[`GMRESLinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 
 """
     abstract type LinSolver end
@@ -99,7 +99,7 @@ See also: [`lin_solve`](@ref),
     struct FactorizeLinSolver <: LinSolver
 
 This represents the linear solver associated with julia `factorize()`.
-See [`LinSolver`](@ref) and [`default_linsolvercreator`](@ref) for examples.
+See [`LinSolver`](@ref) and [`FactorizeLinSolverCreator`](@ref) for examples.
 """
     struct FactorizeLinSolver{T} <: LinSolver
         Afact::T
@@ -150,7 +150,7 @@ way of solving linear systems. See [`LinSolver`](@ref) for examples.
 
 This represents a linear solver corresponding to the backslash operator (no pre-factorization).
 
-See also: [`LinSolver`](@ref) and [`backslash_linsolvercreator`](@ref)
+See also: [`LinSolver`](@ref) and [`BackslashLinSolverCreator`](@ref)
 """
     struct BackslashLinSolver{T_mat} <: LinSolver
         A::T_mat
@@ -174,7 +174,7 @@ See also: [`LinSolver`](@ref) and [`backslash_linsolvercreator`](@ref)
 
 This represents a solver done with the julia GMRES implementation.
 
-See also: [`LinSolver`](@ref), [`gmres_linsolvercreator`](@ref)
+See also: [`LinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 """
     struct GMRESLinSolver{T_num<:Number, T_kwargs} <: LinSolver
         A::LinearMap{T_num}

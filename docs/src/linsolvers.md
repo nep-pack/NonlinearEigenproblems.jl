@@ -10,10 +10,10 @@ LinSolver
 lin_solve
 ```
 ```@docs
-DefaultLinSolver
+FactorizeLinSolver
 ```
 ```@docs
-default_linsolvercreator
+FactorizeLinSolverCreator
 ```
 ```@docs
 BackslashLinSolver
@@ -25,7 +25,7 @@ backslash_linsolvercreator
 GMRESLinSolver
 ```
 ```@docs
-gmres_linsolvercreator
+GMRESLinSolverCreator
 ```
 
 

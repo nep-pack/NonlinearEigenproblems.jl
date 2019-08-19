@@ -8,8 +8,17 @@ export create_linsolver;
 
 abstract type LinSolverCreator ; end
 
+"""
+    struct BackslashLinSolverCreator <: LinSolverCreator
+
+Creator to for the `BackslashLinSolver`, i.e., usage of backslash to make linear solves.
+Specify objects of this type if you want the solver to use backslash.
+
+See also: [`BackslashLinSolver`](@ref), [`create_linsolver`](@ref)
+"""
 struct BackslashLinSolverCreator <: LinSolverCreator
 end
+
 """
     create_linsolver(creator::LinSovlerCreator,nep,λ)
 
@@ -41,9 +50,11 @@ to `FactorizeLinSolverCreator`:
 
 Further recycling is possible. If the variable `max_factorizations` is set
 to a positive value, the object will store that many factorizations
-for possible reuse. If at some point
+for possible reuse. Every `lin_solve`-call then computes a factorization,
+unless a `lin_solve`-call for that `λ` has been computed earlier.
+This procedure can at most store `max_factorization` (which can be set `Inf`).
 
-
+See also: [`FactorizeLinSolver`](@ref), [`create_linsolver`](@ref)
 
 """
 struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
@@ -111,6 +122,17 @@ end
 struct GMRESLinSolverCreator{T} <: LinSolverCreator where {T}
     kwargs::T
 end
+
+"""
+    GMRESLinSolverCreator(;kwargs...)
+
+This is the creator for the GMRES-method. Instantiate this
+object if you want to use GMRES as your linear system solver.
+The `kwargs` are stored and used as keyword arguments in the
+call to gmres. See list
+of keyword in the [IterativeSolvers.jl manual](https://juliamath.github.io/IterativeSolvers.jl/dev/linear_systems/gmres/).
+
+"""
 function GMRESLinSolverCreator(;kwargs...)
     return GMRESLinSolverCreator{typeof(kwargs)}(kwargs)
 end
