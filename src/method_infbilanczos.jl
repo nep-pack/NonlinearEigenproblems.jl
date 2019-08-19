@@ -58,7 +58,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
         # Shift σ \neq 0 not implemented
 
         local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ);
-        local M0Tinv::LinSolver = create_linsolver(linsolvertcreator,nep,σ);
+        local M0Tinv::LinSolver = create_linsolver(linsolvertcreator,nept,σ);
 
         #
         m=maxit;
