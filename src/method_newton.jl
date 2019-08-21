@@ -88,7 +88,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             err=estimate_error(ermdata,λ,v)
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
-            if (err< tol)
+            if (err< tol)                 
+                push_info!(logger,"")
                 return (λ,v)
             end
 
