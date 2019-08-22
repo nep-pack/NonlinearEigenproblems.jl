@@ -180,8 +180,10 @@ function ilan(
             # solve the projected NEP
             push_info!(logger,2,"Solving the projected problem",continues=true);
             λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=10000,radius=0.4,sanity_check=true,errmeasure=err_lifted);
+
             push_info!(logger,2,".");
-            W=VV*ZZ;
+            W=VV*ZZ;    # lift the eigenvectors
 
             push_iteration_info!(logger,2,k,λ=λ);
             push_info!(logger,"$k:conv_eig=$conv_eig");
@@ -202,11 +204,11 @@ function ilan(
     end
 
     k=k-1
-    if conv_eig<neigs && neigs != Inf
-        err=Missing; # TODO: Should an error be computed and added?
-        msg="Number of iterations exceeded. maxit=$(maxit)."
-        throw(NoConvergenceException(λ,W,err,msg))
-    end
+    # if conv_eig<neigs && neigs != Inf
+    #     err=Missing; # TODO: Should an error be computed and added?
+    #     msg="Number of iterations exceeded. maxit=$(maxit)."
+    #     throw(NoConvergenceException(λ,W,err,msg))
+    # end
 
     return λ,W,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
