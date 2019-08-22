@@ -236,6 +236,7 @@ a jordan block becomes derivatives
         return W[1:n,1:n]
     end
 
+
     """
     compute_resnorm(nep::NEP,λ,v)
 Computes the residual norm of the `nep`, in the point `λ`, with the vector

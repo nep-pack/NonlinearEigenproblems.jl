@@ -88,7 +88,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             err=estimate_error(ermdata,λ,v)
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
-            if (err< tol)                 
+            if (err< tol)
                 push_info!(logger,"")
                 return (λ,v)
             end
@@ -219,7 +219,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             end
 
             # Compute eigenvalue update
-            λ_vec = compute_rf(T, nep, v, y=c, λ0=λ, target=σ)
+            λ_vec = compute_rf_new(T, nep, v, NewtonInnerSolver, y=c, λ0=λ, target=σ)
             local λ1::T = closest_to(λ_vec,  λ)
             Δλ=λ1-λ
 

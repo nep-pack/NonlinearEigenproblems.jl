@@ -12,6 +12,8 @@ export IARChebInnerSolver
 export SGIterInnerSolver
 export ContourBeynInnerSolver
 
+export compute_rf_new
+
 """
     abstract type InnerSolver
 
@@ -254,3 +256,26 @@ function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes
     λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,logger=inner_logger)
     return λ,V
 end
+
+
+
+
+    compute_rf_new(nep::NEP,x,TT::Type{<:InnerSolver};params...) = compute_rf(ComplexF64,nep,x,TT;params...)
+    function compute_rf_new(T0::Type{T}, nep::NEP, x, TT::Type{NewtonInnerSolver};
+                        y=x, target=zero(T), λ0=target,
+                        TOL=eps(real(T))*1e3, max_iter=30,kwargs...) where T
+        # Newton's method
+        pnep=create_proj_NEP(nep);
+        n=size(nep,1);
+        set_projectmatrices!(pnep,reshape(y,n,1),reshape(x,n,1));
+        local λ
+        try
+            (λ,v)=newton(T0,pnep,λ=λ0,maxit=max_iter,tol=TOL);
+        catch e
+            # Even return the approximation upon failure
+            if (e isa NoConvergenceException)
+                λ=e.λ
+            end
+        end
+        return [λ];
+    end
