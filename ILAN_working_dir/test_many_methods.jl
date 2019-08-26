@@ -1,7 +1,7 @@
 using NonlinearEigenproblems, Random, SparseArrays, Revise, PyPlot
 
 #nep=nep_gallery("dep_symm_double",10)
-n=10
+n=20
 LL=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
 
 x = range(0, stop = pi, length = n)

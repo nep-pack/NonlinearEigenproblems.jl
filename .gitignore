@@ -4,3 +4,6 @@
 # Produced from /docs/src during build of documentation
 /docs/site
 /docs/build
+Project.toml
+Manifest.toml
+.gitignore

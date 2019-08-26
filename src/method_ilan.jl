@@ -167,6 +167,7 @@ function ilan(
 
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
+
         # extract eigenpair approximation
         if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
             VV=view(V,:,1:k+1)
@@ -179,8 +180,8 @@ function ilan(
 
             # solve the projected NEP
             push_info!(logger,2,"Solving the projected problem",continues=true);
-            λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
-            #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=10000,radius=0.4,sanity_check=true,errmeasure=err_lifted);
+            #λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=10000,radius=4,sanity_check=true,errmeasure=err_lifted);
 
             push_info!(logger,2,".");
             W=VV*ZZ;    # lift the eigenvectors
