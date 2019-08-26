@@ -44,74 +44,74 @@ abstract type InnerSolver end;
 
 
 """
-    abstract type DefaultInnerSolver <: InnerSolver
+    struct DefaultInnerSolver <: InnerSolver
 
 Dispatches a version of [`inner_solve`](@ref) based on the type of the NEP provided.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type DefaultInnerSolver <: InnerSolver end;
+struct DefaultInnerSolver <: InnerSolver end;
 
 
 """
-    abstract type NewtonInnerSolver <: InnerSolver
+    struct NewtonInnerSolver <: InnerSolver
 
 Uses [`augnewton`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type NewtonInnerSolver <: InnerSolver end;
+struct NewtonInnerSolver <: InnerSolver end;
 
 
 """
-    abstract type PolyeigInnerSolver <: InnerSolver
+    struct PolyeigInnerSolver <: InnerSolver
 
 For polynomial eigenvalue problems.
 Uses [`polyeig`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type PolyeigInnerSolver <: InnerSolver end;
+struct PolyeigInnerSolver <: InnerSolver end;
 
 
 """
-    abstract type IARInnerSolver <: InnerSolver
+    struct IARInnerSolver <: InnerSolver
 
 Uses [`iar`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type IARInnerSolver <: InnerSolver end;
+struct IARInnerSolver <: InnerSolver end;
 
 
 """
-    abstract type IARChebInnerSolver <: InnerSolver
+    struct IARChebInnerSolver <: InnerSolver
 
 Uses [`iar_chebyshev`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type IARChebInnerSolver <: InnerSolver end;
+struct IARChebInnerSolver <: InnerSolver end;
 
 
 """
-    abstract type SGIterInnerSolver <: InnerSolver
+    struct SGIterInnerSolver <: InnerSolver
 
 Uses [`sgiter`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type SGIterInnerSolver <: InnerSolver end;
+struct SGIterInnerSolver <: InnerSolver end;
 
 
 """
-    abstract type ContourBeynInnerSolver <: InnerSolver
+    struct ContourBeynInnerSolver <: InnerSolver
 
 Uses [`contour_beyn`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-abstract type ContourBeynInnerSolver <: InnerSolver end;
+struct ContourBeynInnerSolver <: InnerSolver end;
 
 
 """
@@ -122,7 +122,7 @@ as an inner solver in an inner-outer iteration. T specifies which method
 to use. The most common choice is [`DefaultInnersolver`](@ref). The function returns
 `(λv,V)` where `λv` is an array of eigenvalues and `V` a matrix with corresponding
 vectors.
-The type `T_arit` defines the arithmetics used in the outer iteration and should prefereably
+The struct `T_arit` defines the arithmetics used in the outer iteration and should prefereably
 also be used in the inner iteration.
 
 Different inner_solve methods take different kwargs. The meaning of
