@@ -74,7 +74,7 @@ function ilan(
     v=randn(real(T),size(nep,1)),
     logger=0,
     check_error_every=30,
-    inner_solver_method=DefaultInnerSolver,
+    inner_solver_method=DefaultInnerSolver(),
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
 
