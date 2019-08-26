@@ -1,117 +1,5 @@
-# Helper functions for methods based on inner-outer iterations
+# The old way to do inner solves
 
-using LinearAlgebra
-
-export inner_solve;
-export InnerSolver;
-export NewtonInnerSolver
-export PolyeigInnerSolver
-export DefaultInnerSolver
-export IARInnerSolver
-export IARChebInnerSolver
-export SGIterInnerSolver
-export ContourBeynInnerSolver
-
-"""
-    abstract type InnerSolver
-
-Structs inheriting from this type are used to solve inner problems
-in an inner-outer iteration.
-
-The `InnerSolver` objects are passed as types to the NEP-algorithms,
-which uses it to dispatch the correct version of the function [`inner_solve`](@ref).
-Utilizes existing implementations of NEP-solvers and [`inner_solve`](@ref) acts as a wrapper
-to these. Functionality can be extended in analogy with [`LinSolver`](@ref) and [`EigSolver`](@ref).
-
-# Example
-
-There is a [`DefaultInnerSolver`](@ref) that dispatches an inner solver based on the
-provided NEP.
-However, this example shows how you can force [`nlar`](@ref) to use the
-[`IARInnerSolver`](@ref) for a PEP.
-```julia-repl
-julia> nep=nep_gallery("pep0", 100);
-julia> λ,v = nlar(nep, inner_solver_method=NEPSolver.IARInnerSolver, neigs=1, num_restart_ritz_vecs=1, maxit=70, tol=1e-8);
-julia> norm(compute_Mlincomb(nep,λ[1],vec(v)))
-8.68118417430353e-9
-```
-
-See also: [`inner_solve`](@ref), [`DefaultInnerSolver`](@ref), [`NewtonInnerSolver`](@ref),
-[`PolyeigInnerSolver`](@ref), [`IARInnerSolver`](@ref), [`IARChebInnerSolver`](@ref),
-[`SGIterInnerSolver`](@ref), [`ContourBeynInnerSolver`](@ref)
-"""
-abstract type InnerSolver end;
-
-
-"""
-    abstract type DefaultInnerSolver <: InnerSolver
-
-Dispatches a version of [`inner_solve`](@ref) based on the type of the NEP provided.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type DefaultInnerSolver <: InnerSolver end;
-
-
-"""
-    abstract type NewtonInnerSolver <: InnerSolver
-
-Uses [`augnewton`](@ref) to solve the inner problem.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type NewtonInnerSolver <: InnerSolver end;
-
-
-"""
-    abstract type PolyeigInnerSolver <: InnerSolver
-
-For polynomial eigenvalue problems.
-Uses [`polyeig`](@ref) to solve the inner problem.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type PolyeigInnerSolver <: InnerSolver end;
-
-
-"""
-    abstract type IARInnerSolver <: InnerSolver
-
-Uses [`iar`](@ref) to solve the inner problem.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type IARInnerSolver <: InnerSolver end;
-
-
-"""
-    abstract type IARChebInnerSolver <: InnerSolver
-
-Uses [`iar_chebyshev`](@ref) to solve the inner problem.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type IARChebInnerSolver <: InnerSolver end;
-
-
-"""
-    abstract type SGIterInnerSolver <: InnerSolver
-
-Uses [`sgiter`](@ref) to solve the inner problem.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type SGIterInnerSolver <: InnerSolver end;
-
-
-"""
-    abstract type ContourBeynInnerSolver <: InnerSolver
-
-Uses [`contour_beyn`](@ref) to solve the inner problem.
-
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
-"""
-abstract type ContourBeynInnerSolver <: InnerSolver end;
 
 
 """
@@ -134,7 +22,7 @@ the kwargs are the following:
 - `tol`: Termination tolarance for inner solver
 - `inner_logger`: Determines how the inner solves are logged. See [`Logger`](@ref) for further references
 """
-function inner_solve(TT::DefaultInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
+function inner_solve(TT::Type{DefaultInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver,T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.DEP)
@@ -149,7 +37,7 @@ end
 
 
 
-function inner_solve(TT::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
+function inner_solve(TT::Type{NewtonInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;
                      λv=zeros(T_arit,1),
                      V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
                      tol=sqrt(eps(real(T_arit))),
@@ -179,7 +67,7 @@ function inner_solve(TT::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
 end
 
 
-function inner_solve(TT::PolyeigInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
+function inner_solve(TT::Type{PolyeigInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
         error("Wrong type");
     end
@@ -189,7 +77,7 @@ end
 
 
 
-function inner_solve(TT::IARInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{IARInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     try
         λ,V=iar(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
@@ -207,7 +95,7 @@ end
 
 
 
-function inner_solve(TT::IARChebInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{IARChebInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
@@ -238,7 +126,7 @@ end
 
 
 
-function inner_solve(TT::SGIterInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{SGIterInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     λ,V=sgiter(T_arit,nep,j,logger=inner_logger)
     return [λ],reshape(V,size(V,1),1);
@@ -246,7 +134,7 @@ end
 
 
 
-function inner_solve(TT::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
+function inner_solve(TT::Type{ContourBeynInnerSolver},T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     # Radius  computed as the largest distance σ and λv and a litte more
     radius = maximum(abs.(σ .- λv))*1.5
@@ -254,5 +142,3 @@ function inner_solve(TT::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,logger=inner_logger)
     return λ,V
 end
-
-include("inner_solver_old.jl")
