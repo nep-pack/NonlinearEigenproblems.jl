@@ -136,14 +136,14 @@ the kwargs are the following:
 """
 function inner_solve(TT::DefaultInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
-        return inner_solve(PolyeigInnerSolver,T_arit,nep;kwargs...);
+        return inner_solve(PolyeigInnerSolver(),T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.DEP)
         # Should be Cheb IAR
-        return inner_solve(IARChebInnerSolver,T_arit,nep;kwargs...);
+        return inner_solve(IARChebInnerSolver(),T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.SPMF_NEP) # Default to IAR for SPMF
-        return inner_solve(IARInnerSolver,T_arit,nep;kwargs...);
+        return inner_solve(IARInnerSolver(),T_arit,nep;kwargs...);
     else
-        return inner_solve(NewtonInnerSolver,T_arit,nep;kwargs...);
+        return inner_solve(NewtonInnerSolver(),T_arit,nep;kwargs...);
     end
 end
 
