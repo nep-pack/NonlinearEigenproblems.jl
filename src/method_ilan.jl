@@ -76,6 +76,7 @@ function ilan(
     check_error_every=30,
     inner_solver_method=DefaultInnerSolver,
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
+    inner_logger=0
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
 
     @parse_logger_param!(logger)
@@ -181,21 +182,47 @@ function ilan(
             # solve the projected NEP
             push_info!(logger,2,"Solving the projected problem",continues=true);
             #λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
-            λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=10000,radius=4,sanity_check=true,errmeasure=err_lifted);
+            #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=1000,radius=5,sanity_check=true,errmeasure=err_lifted);
 
-            push_info!(logger,2,".");
-            W=VV*ZZ;    # lift the eigenvectors
+            λproj,Zproj=inner_solve(ContourBeynInnerSolver,T,pnep,
+                                    neigs=k,
+                                    σ=0,
+                                    tol=1e-6,
+                                    λv=[0,1],
+                                    inner_logger=inner_logger);
 
-            push_iteration_info!(logger,2,k,λ=λ);
-            push_info!(logger,"$k:conv_eig=$conv_eig");
+            ZZ=VV*Zproj;
+            λ=λproj;
 
-            conv_eig=length(λ)
+            # compute the errors
+            err[k,1:size(λ,1)]=
+              map(s-> estimate_error(ermdata,λ[s],ZZ[:,s]), 1:size(λ,1))
+            # Log them and compute the converged
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
+                                 continues=true);
+            for s=1:size(λ,1)
+                if err[k,s]<tol;
+                    conv_eig=conv_eig+1;
+                    push_info!(logger,"+", continues=true);
+                elseif err[k,s]<tol*10
+                    push_info!(logger,"=", continues=true);
+                else
+                    push_info!(logger,"-", continues=true);
+                end
+            end
+            push_info!(logger,"");
+
+            # Sort the errors
+            idx=sortperm(err[k,1:k]); # sort the error
+            err[k,1:k]=err[k,idx];
+
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=neigs)
                 nrof_eigs = Int(min(length(λ),neigs))
-                λ=λ[1:nrof_eigs]
-                W=W[:,1:nrof_eigs]
+                λ=λ[idx[1:nrof_eigs]]
+                W=ZZ[:,idx[1:length(λ)]]
             end
+
         end
 
         k=k+1;
