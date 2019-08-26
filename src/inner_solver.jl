@@ -254,5 +254,3 @@ function inner_solve(TT::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,logger=inner_logger)
     return λ,V
 end
-
-include("inner_solver_old.jl")
