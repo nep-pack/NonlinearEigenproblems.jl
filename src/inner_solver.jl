@@ -11,6 +11,7 @@ export IARInnerSolver
 export IARChebInnerSolver
 export SGIterInnerSolver
 export ContourBeynInnerSolver
+export nleigsInnerSolver
 
 """
     abstract type InnerSolver
@@ -183,6 +184,24 @@ struct ContourBeynInnerSolver <: InnerSolver
     end
 end;
 
+"""
+    struct nleigsInnerSolver <: InnerSolver
+
+Uses [`contour_beyn`](@ref) to solve the inner problem, with radius and number
+of quadrature nodes, given by `radius` and `n`. If the variable `radius` is set
+to `:auto`, the integration radius will be automatically by using the eigenvalues
+approximations.
+
+See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+"""
+struct nleigsInnerSolver <: InnerSolver
+    Σ::Union{Vector,Symbol}
+    nodes::Union{Vector,Symbol} ;
+    function nleigsInnerSolver(;Σ= :auto,nodes =:auto )
+        return new(Σ,nodes);
+    end
+end;
+
 
 """
     inner_solve(is::InnerSolver,T_arit,nep;kwargs...)
@@ -325,6 +344,27 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     else
         radius = is.radius
     end
+    #neigs = min(neigs,size(nep,1))
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger)
+    return λ,V
+end
+
+function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
+    @parse_logger_param!(inner_logger)
+    # Radius  computed as the largest distance σ and λv and a litte more
+    if is.Σ == :auto
+        Σ = ???
+    else
+        Σ = is.Σ
+    end
+
+    if is.nodes == :auto
+        nodes = ???
+    else
+        nodes = is.nodes
+    end
+
+
     #neigs = min(neigs,size(nep,1))
     λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger)
     return λ,V
