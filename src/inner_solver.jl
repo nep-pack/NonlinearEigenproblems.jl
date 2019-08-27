@@ -56,11 +56,20 @@ struct DefaultInnerSolver <: InnerSolver end;
 """
     struct NewtonInnerSolver <: InnerSolver
 
-Uses [`augnewton`](@ref) to solve the inner problem.
+Uses a Newton method to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-struct NewtonInnerSolver <: InnerSolver end;
+struct NewtonInnerSolver <: InnerSolver
+    tol::Float64
+    maxit::Int
+    starting_vector::Symbol;
+    function NewtonInnerSolver(;tol=1e-13,maxit=80,starting_vector=:Vk)
+        # Default starting_vector = :ones since we would otherwise
+        # get a place with difficult reproducability and hidden.
+        return new(tol,maxit,starting_vector);
+    end
+end;
 
 
 """
@@ -171,11 +180,18 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
     @parse_logger_param!(inner_logger)
     for k=1:size(λv,1)
         try
-            v0=V[:,k]; # Starting vector for projected problem
+            if (is.starting_vector == :ones)
+                v0=ones(size(nep,1));
+            elseif (is.starting_vector == :randn)
+                v0=randn(size(nep,1));
+            elseif (is.starting_vector == :Vk)
+                v0=V[:,k]; # Starting vector for projected problem
+            end
+
             projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
             # Compute a solution to projected problem with Newton's method
             λ1,vproj=augnewton(T_arit,nep,logger=inner_logger,λ=λv[k],
-                               v=v0,maxit=50,tol=tol/10,
+                               v=v0,maxit=is.maxit,tol=is.tol,
                                errmeasure=projerrmeasure);
             V[:,k]=vproj;
             λv[k]=λ1;
@@ -194,7 +210,7 @@ end
 
 function inner_solve(is::PolyeigInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
-        error("Wrong type");
+        error("Wrong type. PolyeigInnerSolver only handles the PEP type.");
     end
     pep=NEPTypes.PEP(NEPTypes.get_Av(nep.nep_proj))
     return polyeig(T_arit,pep);
