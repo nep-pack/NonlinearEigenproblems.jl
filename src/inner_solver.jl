@@ -172,7 +172,13 @@ Uses [`contour_beyn`](@ref) to solve the inner problem.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-struct ContourBeynInnerSolver <: InnerSolver end;
+struct ContourBeynInnerSolver <: InnerSolver
+    radius::Union{Real,Tuple,Array} # integration radius
+    N::Integer;  # Nof quadrature nodes
+    function ContourBeynInnerSolver(;radius=1,N=1000)
+        return new(radius,N);
+    end
+end;
 
 
 """
@@ -311,8 +317,8 @@ end
 function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     # Radius  computed as the largest distance σ and λv and a litte more
-    radius = maximum(abs.(σ .- λv))*1.5
-    neigs = min(neigs,size(nep,1))
-    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,logger=inner_logger)
+    #radius = maximum(abs.(σ .- λv))*1.5
+    #neigs = min(neigs,size(nep,1))
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=is.radius,N=is.N,logger=inner_logger)
     return λ,V
 end
