@@ -184,12 +184,12 @@ function ilan(
             λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted); ZZ=VV*ZZ;
             #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=1000,radius=5,sanity_check=true,errmeasure=err_lifted);
 
+            # THIS CODE SHOULD BE USED ONCE 
             # λproj,Zproj=inner_solve(inner_solver_method,T,pnep,
             #                         neigs=k,
             #                         λv=[0,3],
             #                         tol=1e-1,
             #                         inner_logger=inner_logger);
-
             # ZZ=VV*Zproj;
             # λ=λproj;
 
