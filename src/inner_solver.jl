@@ -98,12 +98,20 @@ struct PolyeigInnerSolver <: InnerSolver end;
 
 """
     struct IARInnerSolver
-    IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones)
+    IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,normalize_DEPs=:auto)
 
 Uses [`iar`](@ref) to solve the inner problem, with tolerance,
 and maximum number of iterations given by
 `tol` and `maxit`. The starting vector can be `:ones` or
-`:randn`.
+`:randn`. `normalize_DEPs` determines if the we should carry out
+precomputation of DEPs (can speed up performance).
+It can take the value `true`, `false` or `:auto`. `:auto`
+sets it to true if we use the `iar_chebyshev` solver.
+
+The kwarg `iar_function`, specifies a `Function`
+which is called. Examples of functions are `iar`
+and `iar_chebyshev`. It can be any NEP-solver
+which takes the same keyword arguments as these methods.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -111,22 +119,40 @@ struct IARInnerSolver <: InnerSolver
     tol::Float64
     maxit::Int
     starting_vector::Symbol;
-    function IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones)
+    normalize_DEPs::Bool;
+    iar_function::Function;
+    function IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,
+                            normalize_DEPs=:auto,iar_function=iar)
         # Default starting_vector = :ones since we would otherwise
         # get a place with difficult reproducability and hidden.
-        return new(tol,maxit,starting_vector);
+
+        if (normalize_DEPs == :auto)
+            normalize_DEPs = (iar_function == iar_chebyshev)
+        end
+
+        return new(tol,maxit,starting_vector,normalize_DEPs,iar_function);
     end
 end;
 
 
 """
-    struct IARChebInnerSolver <: InnerSolver
+    function IARChebInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,
+                                normalize_DEPs=true)
 
 Uses [`iar_chebyshev`](@ref) to solve the inner problem.
+See [`IARInnerSolver`](@ref) for keyword argument documentation.
 
-See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
+
+See also: [`IARInnerSolver`](@ref), [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-struct IARChebInnerSolver <: InnerSolver end;
+#struct IARChebInnerSolver <: InnerSolver end;
+function IARChebInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,
+                            normalize_DEPs=true)
+    return IARInnerSolver(tol=tol,maxit=maxit,starting_vector=starting_vector,
+                          normalize_DEPs=normalize_DEPs,
+                          iar_function=iar_chebyshev)
+
+end
 
 
 """
@@ -150,9 +176,9 @@ struct ContourBeynInnerSolver <: InnerSolver end;
 
 
 """
-    inner_solve(T,T_arit,nep;kwargs...)
+    inner_solve(is::InnerSolver,T_arit,nep;kwargs...)
 
-Solves the projected linear problem with solver specied with T. This is to be used
+Solves the projected linear problem with solver specied with `is`. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
 to use. The most common choice is [`DefaultInnersolver`](@ref). The function returns
 `(λv,V)` where `λv` is an array of eigenvalues and `V` a matrix with corresponding
@@ -160,8 +186,8 @@ vectors.
 The struct `T_arit` defines the arithmetics used in the outer iteration and should prefereably
 also be used in the inner iteration.
 
-Different inner_solve methods take different kwargs. The meaning of
-the kwargs are the following:
+Different inner_solve methods take different kwargs.
+These are standardized kwargs:
 - `neigs`: Number of wanted eigenvalues (but less or more may be returned)
 - `σ`: target specifying where eigenvalues
 - `λv`, `V`: Vector/matrix of guesses to be used as starting values
@@ -235,13 +261,29 @@ end
 function inner_solve(is::IARInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     try
+        if (isa(nep.orgnep, NEPTypes.DEP) && is.normalize_DEPs)
+            # normalize DEPs: Make projected the λ-term in the DEP normalized
+            AA = get_Av(nep)
+            TT = eltype(AA);
+            if (TT  <: SubArray)
+                # If it's better to transform to store in Matrix instead
+                TT=Matrix{eltype(AA[1])};
+            end
+            BB = Vector{TT}(undef, size(AA,1)-1)
+            for i = 1:(size(AA,1)-1)
+                BB[i] = AA[1]\AA[1+i]
+            end
+            nep = DEP(BB,nep.orgnep.tauv)
+        end
+
         if (is.starting_vector == :ones)
             v0=ones(size(nep,1));
         else
             v0=randn(size(nep,1));
         end
-        λ,V=iar(T_arit,nep,σ=σ,neigs=neigs,tol=is.tol,
-                maxit=is.maxit,logger=inner_logger,v=v0);
+        λ,V=is.iar_function(
+            T_arit,nep,σ=σ,neigs=neigs,tol=is.tol,
+            maxit=is.maxit,logger=inner_logger,v=v0);
         return λ,V
     catch e
         if (isa(e, NoConvergenceException))
@@ -255,35 +297,6 @@ function inner_solve(is::IARInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0
 end
 
 
-
-function inner_solve(is::IARChebInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
-    @parse_logger_param!(inner_logger)
-    if isa(nep.orgnep, NEPTypes.DEP)
-        AA = get_Av(nep)
-        TT = eltype(AA);
-        if (TT  <: SubArray) # If it's better to transform to store in Matrix instead
-            TT=Matrix{eltype(AA[1])};
-        end
-        BB = Vector{TT}(undef, size(AA,1)-1)
-        for i = 1:(size(AA,1)-1)
-            BB[i] = AA[1]\AA[1+i]
-        end
-        nep = DEP(BB,nep.orgnep.tauv)
-    end
-
-    try
-        λ,V=iar_chebyshev(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
-        return λ,V
-    catch e
-        if (isa(e, NoConvergenceException))
-            # If we fail to find the wanted number of eigvals, we can still
-            # return the ones we found
-            return e.λ,e.v
-        else
-            rethrow(e)
-        end
-    end
-end
 
 
 
