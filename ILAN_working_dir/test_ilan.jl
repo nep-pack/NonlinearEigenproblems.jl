@@ -30,11 +30,11 @@ v0=rand(n^2)
 
 
 # COMPUTE REFERENCE EIGENVALUES WITH IAR
-λ,v=iar(nep;maxit=100,tol=1e-12,neigs=Inf,logger=1)
+λ,v=iar(nep;maxit=100,tol=1e-6,neigs=Inf,logger=1)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
 
 # COMPUTE EIGENVALUES WITH
-λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-12,check_error_every=5,v=v0,inner_solver_method=IARInnerSolver)
+λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-6,check_error_every=5,v=v0,inner_solver_method=IARInnerSolver)
 plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)
 
 # todo: fix too many unconv eigs displayed
