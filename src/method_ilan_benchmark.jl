@@ -24,7 +24,7 @@ function ilan_benchmark(
     displaylevel=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_solver_method=DefaultInnerSolver())where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     # Ensure types σ and v are of type T
     σ=T(σ)
