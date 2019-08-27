@@ -75,13 +75,26 @@ struct PolyeigInnerSolver <: InnerSolver end;
 
 
 """
-    struct IARInnerSolver <: InnerSolver
+    struct IARInnerSolver
+    IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones)
 
-Uses [`iar`](@ref) to solve the inner problem.
+Uses [`iar`](@ref) to solve the inner problem, with tolerance,
+and maximum number of iterations given by
+`tol` and `maxit`. The starting vector can be `:ones` or
+`:randn`.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-struct IARInnerSolver <: InnerSolver end;
+struct IARInnerSolver <: InnerSolver
+    tol::Float64
+    maxit::Int
+    starting_vector::Symbol;
+    function IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones)
+        # Default starting_vector = :ones since we would otherwise
+        # get a place with difficult reproducability and hidden.
+        return new(tol,maxit,starting_vector);
+    end
+end;
 
 
 """
@@ -134,7 +147,7 @@ the kwargs are the following:
 - `tol`: Termination tolarance for inner solver
 - `inner_logger`: Determines how the inner solves are logged. See [`Logger`](@ref) for further references
 """
-function inner_solve(TT::DefaultInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
+function inner_solve(is::DefaultInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver(),T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.DEP)
@@ -149,7 +162,7 @@ end
 
 
 
-function inner_solve(TT::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
+function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
                      λv=zeros(T_arit,1),
                      V=Matrix{T_arit}(rand(size(nep,1),size(λv,1))),
                      tol=sqrt(eps(real(T_arit))),
@@ -179,7 +192,7 @@ function inner_solve(TT::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
 end
 
 
-function inner_solve(TT::PolyeigInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
+function inner_solve(is::PolyeigInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)!=NEPTypes.PEP)
         error("Wrong type");
     end
@@ -189,10 +202,16 @@ end
 
 
 
-function inner_solve(TT::IARInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
+function inner_solve(is::IARInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     try
-        λ,V=iar(T_arit,nep,σ=σ,neigs=neigs,tol=1e-13,maxit=50,logger=inner_logger);
+        if (is.starting_vector == :ones)
+            v0=ones(size(nep,1));
+        else
+            v0=randn(size(nep,1));
+        end
+        λ,V=iar(T_arit,nep,σ=σ,neigs=neigs,tol=is.tol,
+                maxit=is.maxit,logger=inner_logger,v=v0);
         return λ,V
     catch e
         if (isa(e, NoConvergenceException))
@@ -207,7 +226,7 @@ end
 
 
 
-function inner_solve(TT::IARChebInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
+function inner_solve(is::IARChebInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     if isa(nep.orgnep, NEPTypes.DEP)
         AA = get_Av(nep)
@@ -238,7 +257,7 @@ end
 
 
 
-function inner_solve(TT::SGIterInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,inner_logger=0,kwargs...)
+function inner_solve(is::SGIterInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0],j=0,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     λ,V=sgiter(T_arit,nep,j,logger=inner_logger)
     return [λ],reshape(V,size(V,1),1);
@@ -246,7 +265,7 @@ end
 
 
 
-function inner_solve(TT::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
+function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
     # Radius  computed as the largest distance σ and λv and a litte more
     radius = maximum(abs.(σ .- λv))*1.5
