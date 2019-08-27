@@ -18,10 +18,10 @@ export ContourBeynInnerSolver
 Structs inheriting from this type are used to solve inner problems
 in an inner-outer iteration.
 
-The `InnerSolver` objects are passed as types to the NEP-algorithms,
+The `InnerSolver` objects are passed to the NEP-algorithms,
 which uses it to dispatch the correct version of the function [`inner_solve`](@ref).
 Utilizes existing implementations of NEP-solvers and [`inner_solve`](@ref) acts as a wrapper
-to these. Functionality can be extended in analogy with [`LinSolver`](@ref) and [`EigSolver`](@ref).
+to these.
 
 # Example
 
@@ -31,7 +31,7 @@ However, this example shows how you can force [`nlar`](@ref) to use the
 [`IARInnerSolver`](@ref) for a PEP.
 ```julia-repl
 julia> nep=nep_gallery("pep0", 100);
-julia> λ,v = nlar(nep, inner_solver_method=NEPSolver.IARInnerSolver, neigs=1, num_restart_ritz_vecs=1, maxit=70, tol=1e-8);
+julia> λ,v = nlar(nep, inner_solver_method=NEPSolver.IARInnerSolver(), neigs=1, num_restart_ritz_vecs=1, maxit=70, tol=1e-8);
 julia> norm(compute_Mlincomb(nep,λ[1],vec(v)))
 8.68118417430353e-9
 ```
@@ -54,9 +54,22 @@ struct DefaultInnerSolver <: InnerSolver end;
 
 
 """
-    struct NewtonInnerSolver <: InnerSolver
+    struct NewtonInnerSolver
+    function NewtonInnerSolver(;tol=1e-13,maxit=80,starting_vector=:Vk,
+                               newton_function=augnewton)
 
-Uses a Newton method to solve the inner problem.
+Uses a Newton-like method to solve the inner problem, with tolerance,
+and maximum number of iterations given by
+`tol` and `maxit`. The starting vector can be `:ones`,
+`:randn`, or `:Vk`. The value `:Vk` specifies the use
+of the super NEP-solver keyword argument (`Vk`).
+This is typically the previous iterate in the outer method.
+
+The kwarg `newton_function`, specifies a `Function`
+which is called. We support `augnewton`, `newton`, `resinv`
+`quasinewton`, `newtonqr`. In principle it can be any
+method which takes the same keyword arguments as these methods.
+
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -64,10 +77,10 @@ struct NewtonInnerSolver <: InnerSolver
     tol::Float64
     maxit::Int
     starting_vector::Symbol;
-    function NewtonInnerSolver(;tol=1e-13,maxit=80,starting_vector=:Vk)
-        # Default starting_vector = :ones since we would otherwise
-        # get a place with difficult reproducability and hidden.
-        return new(tol,maxit,starting_vector);
+    newton_function::Function;
+    function NewtonInnerSolver(;tol=1e-13,maxit=80,starting_vector=:Vk,
+                               newton_function=augnewton)
+        return new(tol,maxit,starting_vector,newton_function);
     end
 end;
 
@@ -190,9 +203,10 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
 
             projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
             # Compute a solution to projected problem with Newton's method
-            λ1,vproj=augnewton(T_arit,nep,logger=inner_logger,λ=λv[k],
-                               v=v0,maxit=is.maxit,tol=is.tol,
-                               errmeasure=projerrmeasure);
+            λ1,vproj=is.newton_function(
+                T_arit,nep,logger=inner_logger,λ=λv[k],
+                v=v0,maxit=is.maxit,tol=is.tol,
+                errmeasure=projerrmeasure);
             V[:,k]=vproj;
             λv[k]=λ1;
         catch e
