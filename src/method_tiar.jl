@@ -153,7 +153,7 @@ function tiar(
             mul!(Ah,a[1:k+1,1:k,l],h[1:k])
             f[1:k+1,l] .-= Ah;
         end
-
+        
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
         hh = zero(hh)
