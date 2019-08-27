@@ -181,25 +181,24 @@ function ilan(
 
             # solve the projected NEP
             push_info!(logger,2,"Solving the projected problem",continues=true);
-            #λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
+            λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted); ZZ=VV*ZZ;
             #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=1000,radius=5,sanity_check=true,errmeasure=err_lifted);
 
-            λproj,Zproj=inner_solve(ContourBeynInnerSolver,T,pnep,
-                                    neigs=k,
-                                    σ=0,
-                                    tol=1e-6,
-                                    λv=[0,1],
-                                    inner_logger=inner_logger);
+            # λproj,Zproj=inner_solve(inner_solver_method,T,pnep,
+            #                         neigs=k,
+            #                         λv=[0,3],
+            #                         tol=1e-1,
+            #                         inner_logger=inner_logger);
 
-            ZZ=VV*Zproj;
-            λ=λproj;
+            # ZZ=VV*Zproj;
+            # λ=λproj;
 
             # compute the errors
-            err[k,1:size(λ,1)]=
-              map(s-> estimate_error(ermdata,λ[s],ZZ[:,s]), 1:size(λ,1))
+            err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],ZZ[:,s]),1:size(λ,1))
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);
+            conv_eig=0
             for s=1:size(λ,1)
                 if err[k,s]<tol;
                     conv_eig=conv_eig+1;
@@ -218,7 +217,7 @@ function ilan(
 
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=neigs)
-                nrof_eigs = Int(min(length(λ),neigs))
+                nrof_eigs = Int(min(conv_eig,neigs))
                 λ=λ[idx[1:nrof_eigs]]
                 W=ZZ[:,idx[1:length(λ)]]
             end

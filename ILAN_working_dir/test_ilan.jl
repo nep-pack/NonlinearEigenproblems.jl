@@ -1,8 +1,12 @@
 using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise
 import ..NEPSolver.ilan;
 import ..NEPSolver.ilan_benchmark;
+import ..NEPSolver.inner_solver;
+
 include("../src/method_ilan.jl");
 include("../src/method_ilan_benchmark.jl");
+include("../src/inner_solver.jl");
+
 
 n=50
 LL=-sparse(1:n,1:n,2*ones(n))+sparse(2:n,1:n-1,ones(n-1),n,n)+sparse(1:n-1,2:n,ones(n-1),n,n)
@@ -13,7 +17,7 @@ LL=LL/(h^2)
 LL=-kron(LL,LL)
 A=LL
 
-b=broadcast((x,y)->sin(x+y),x,transpose(x))
+b=broadcast((x,y)->sin(x+y)+1,x,transpose(x))
 B=sparse(1:n^2,1:n^2,b[:])
 
 nep=DEP([A,B],[0,1.0])
@@ -29,6 +33,8 @@ v0=rand(n^2)
 λ,v=iar(nep;maxit=100,tol=1e-12,neigs=Inf,logger=1)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
 
+# COMPUTE EIGENVALUES WITH
+λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-12,check_error_every=5,v=v0,inner_solver_method=IARInnerSolver)
+plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)
 
-λ,v=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-6,check_error_every=5,v=v0)
-plot(real(λ),imag(λ),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)
+# todo: fix too many unconv eigs displayed
