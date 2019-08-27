@@ -88,7 +88,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             err=estimate_error(ermdata,λ,v)
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
-            if (err< tol)                 
+            if (err< tol)
                 push_info!(logger,"")
                 return (λ,v)
             end
@@ -376,7 +376,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
-                         errmeasure::Type{<:Errmeasure} = DefaultErrmeasure,
+                         errmeasure = DefaultErrmeasure,
                          tol::Real=eps(real(T))*100,
                          maxit::Int=100,
                          λ::Number=zero(T),
