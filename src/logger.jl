@@ -42,7 +42,7 @@ end
 
 
    """
-   struct PrintLogger <: Logger ;
+    struct PrintLogger <: Logger ;
 
 When you use this logger, you will obtain printouts in stdout,
 no other logging. The displaylevel parameter specified,
