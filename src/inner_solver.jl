@@ -146,7 +146,6 @@ See [`IARInnerSolver`](@ref) for keyword argument documentation.
 
 See also: [`IARInnerSolver`](@ref), [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-#struct IARChebInnerSolver <: InnerSolver end;
 function IARChebInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,
                             normalize_DEPs=true)
     return IARInnerSolver(tol=tol,maxit=maxit,starting_vector=starting_vector,
