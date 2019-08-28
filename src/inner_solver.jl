@@ -197,7 +197,7 @@ struct nleigsInnerSolver <: InnerSolver
     Σ::Union{Vector,Symbol}
     nodes::Union{Vector,Symbol}
     tol::Float64;
-    function nleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-12 )
+    function nleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-6 )
         return new(Σ,nodes,tol);
     end
 end;
@@ -338,7 +338,7 @@ end
 
 function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
-    # Radius  computed as the largest distance σ and λv and a litte more
+    # Radius computed as the largest distance σ and λv and a litte more
     if is.radius == :auto
         radius = maximum(abs.(σ .- λv))*1.5
     else
@@ -352,10 +352,11 @@ end
 function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0,1],inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
 
+    # Σ computed as tje smallest disk containing the estimated eigenvalues λv and a bit more
     if is.Σ == :auto
-        σ=sum(λv)/length(λv);
-        r=maximum(abs.(σ.-λv));
-        θ=range(0,stop=2π,length=1000);
+        σ=sum(λv)/length(λv)
+        r=maximum(abs.(σ.-λv))*1.5
+        θ=range(0,stop=2π,length=1000)
         Σ=σ.+r*cos.(θ) + 1im*r*sin.(θ)
     else
         Σ = is.Σ
