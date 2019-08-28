@@ -187,10 +187,9 @@ end;
 """
     struct nleigsInnerSolver <: InnerSolver
 
-Uses [`contour_beyn`](@ref) to solve the inner problem, with radius and number
-of quadrature nodes, given by `radius` and `n`. If the variable `radius` is set
-to `:auto`, the integration radius will be automatically by using the eigenvalues
-approximations.
+Uses [`nleigs`](@ref) to solve the inner problem, in the region `Σ` with shifts
+`nodes` and with tolerance `tol`. If the variable `Σ` is set to `:auto`, the
+region `Σ` will be set by using the eigenvalues approximations.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -350,12 +349,14 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     return λ,V
 end
 
-function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;inner_logger=0,kwargs...)
+function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0,1],inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
-    
+
     if is.Σ == :auto
-        θ=range(0,stop=2π,length=1000); r=2;
-        Σ=r*cos.(θ) + 1im*r*sin.(θ)
+        σ=sum(λv)/length(λv);
+        r=maximum(abs.(σ.-λv));
+        θ=range(0,stop=2π,length=1000);
+        Σ=σ.+r*cos.(θ) + 1im*r*sin.(θ)
     else
         Σ = is.Σ
     end
