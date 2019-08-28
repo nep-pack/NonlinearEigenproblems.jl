@@ -226,9 +226,13 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
 # What now?
 
 Now you are ready to try out
-[the tutorial on artificial boundary conditions](movebc_tutorial.md)
-or on
-[the boundary element method](bemtutorial.md)
+one of our tutorials
+[on artificial boundary conditions](movebc_tutorial.md),
+[boundary element method](bemtutorial.md),
+[contour integration](tutorial_contour.md),
+or
+[deflation](deflate_tutorial.md).
+See also the other tutorials (in the side-bar),
 or have a look at the examples
 in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
 
