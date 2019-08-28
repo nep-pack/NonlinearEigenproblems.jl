@@ -196,9 +196,10 @@ See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 struct nleigsInnerSolver <: InnerSolver
     Σ::Union{Vector,Symbol}
-    nodes::Union{Vector,Symbol} ;
-    function nleigsInnerSolver(;Σ= :auto,nodes =:auto )
-        return new(Σ,nodes);
+    nodes::Union{Vector,Symbol}
+    tol::Float64;
+    function nleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-12 )
+        return new(Σ,nodes,tol);
     end
 end;
 
@@ -360,13 +361,11 @@ function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;�
     end
 
     if is.nodes == :auto
-        nodes = [0.0+1im*0.0]
+        nodes = [zero(Complex)]
     else
         nodes = is.nodes
     end
-
-
-    #neigs = min(neigs,size(nep,1))
-    λ,V = nleigs(nep,Σ;nodes=nodes)
+    tol = is.tol
+    λ,V = nleigs(T_arit,nep,Σ;nodes=nodes,tol=tol)
     return λ,V
 end
