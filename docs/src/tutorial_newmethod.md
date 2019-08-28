@@ -174,6 +174,7 @@ julia> plot(mylogger.errs[1:10,1],yaxis=:log)
 We clearly observe the superlinear convergence:
 ```@example
 using PyPlot # hide
+clf(); # hide
 z=[ 0.08492602120772309   # hide
         0.07450867012944977 # hide
         0.032639292900081246 # hide
