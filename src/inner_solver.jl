@@ -350,9 +350,9 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     return λ,V
 end
 
-function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;σ=0,λv=[0,1],neigs=10,inner_logger=0,kwargs...)
+function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
-    # Radius  computed as the largest distance σ and λv and a litte more
+    
     if is.Σ == :auto
         θ=range(0,stop=2π,length=1000); r=2;
         Σ=r*cos.(θ) + 1im*r*sin.(θ)
@@ -361,11 +361,11 @@ function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;�
     end
 
     if is.nodes == :auto
-        nodes = [zero(Complex)]
+        nodes = [zero(Complex{Float64})]
     else
         nodes = is.nodes
     end
     tol = is.tol
-    λ,V = nleigs(T_arit,nep,Σ;nodes=nodes,tol=tol)
+    λ,V = nleigs(nep,Σ;nodes=nodes,tol=tol)
     return λ,V
 end
