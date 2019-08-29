@@ -7,7 +7,7 @@ M(λ)x=b.
 ```
 In some methods the linear system matrices are the same, i.e., `λ` does not
 change.
-You can specify which numerical methods should be used when you call a
+You can specify which numerical methods should be used to solve the linear system when you call a
 NEP-solver. This tutorial illustrates this functionality,
 and finally shows how you can specify your own method for linear systems.
 
@@ -16,9 +16,9 @@ and finally shows how you can specify your own method for linear systems.
 The linear solver is specified with the `linsolvercreator` keyword argument
 in most NEP-solvers.
 Let us contruct an example which we will solve with several methods.
-It is a sparse matrix with an exponential term:
+The matrix `M(λ)` is sparse, and the nonlinearity is an exponential term:
 ```julia
-julia> using SparseArrays,LinearAlgebra;
+julia> using NonlinearEigenproblems, SparseArrays, LinearAlgebra;
 julia> n=100;
 julia> α=0.01;
 julia> A=spdiagm(0=>ones(n),1=>α*ones(n-1),-3=>α*ones(n-3));
@@ -26,7 +26,7 @@ julia> B=spdiagm(0=>ones(n));
 julia> C=spdiagm(0=>(1:n)/n);
 julia> nep= SPMF_NEP([A,B,C],[s->one(s),s->s,s->exp(s)],align_sparsity_patterns=true);
 ```
-Let us first solve it with the  [`resinv`](@ref) method.
+Let us first solve it with the  [`resinv`](@ref) method, using the default solver for the linear system:
 ```julia
 julia> λ0=-1.2; # Starting guess
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),logger=1,tol=1e-16);
@@ -70,8 +70,7 @@ julia> creator=BackslashLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator);
   12.386 ms (39470 allocations: 20.29 MiB)
 ```
-This does not use a prefactorization using an LU-factorization
-and is therefore slower.
+This does not use a prefactorization and is therefore slower.
 
 
 The above approach corresponded to direct methods for linear systems.
@@ -85,7 +84,7 @@ julia> creator=GMRESLinSolverCreator(Pl=D0, tol=1e-10);
 ```
 All the keyword arguments in the call `GMRESLinSolverCreator`
 are passed to
-[`gmres!`](https://juliamath.github.io/IterativeSolvers.jl/dev/linear_systems/gmres/).
+[`gmres!`](https://juliamath.github.io/IterativeSolvers.jl/stable/linear_systems/gmres/).
 Hence, the `tol` here  specifies a termination criteria for the GMRES-method,
 and `Pl` specifies the left preconditioner, in this case just a diagonal matrix.
 ```julia
@@ -128,35 +127,11 @@ by using package such as [KrylovKit.jl](https://github.com/Jutho/KrylovKit.jl),
 or [KrylovMethods.jl](https://github.com/JuliaInv/KrylovMethods.jl).
 These are not natively supported by NEP-PACK,
 but due to the extendability of the `LinSolverCreator`-objects
-specified above, you can still use them. We illustrate
-the use of the implementation of BiCG in KrylovKit.
+specified above, you can still use them.
 
-
-Julia's efficiency stems partially from the extensive use of types.
-We need to defined new types to define our own
-linear solver.
-
-```julia
-julia> struct MyLinSolverCreator <: LinSolverCreator; end
-julia> struct MyLinSolver <: LinSolver;
-  λ
-end
-```
-NEP-solvers call the function `create_linsolver(linsolver,nep,λ)`,
-which should return a linear solver.
-This is to allow
-precomputation. In our case we don't need precomputation
-so we just return an instance of `MyLinSolver`.
-```julia
-julia> import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
-julia> function create_linsolver(::MyLinSolverCreator,nep,λ)
-   return MyLinSolver(λ);
-end
-create_linsolver (generic function with 4 methods)
-
-julia> nep=nep_gallery("dep0",50);
-```
-The implementation of the solver goes in the function `lin_solve`:
+We illustrate the extendability by creating a linear solver
+based on solving a Schur complement. The Schur complement
+solve can be implemented as follows. 
 ```julia
 julia> function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
@@ -171,7 +146,35 @@ julia> function schur_complement_lin_solve(AA,b,n0)
   x2=-S\(C*(Ainvb1))+Sinvb2;
   return [x1;x2];
 end
-julia> import NonlinearEigenproblems.LinSolvers.lin_solve
+```
+
+Julia's efficiency stems partially from the extensive use of types.
+We need to defined new types to define our own linear solver
+and integrate it with NEP-PACK.
+
+```julia
+julia> struct MyLinSolverCreator <: LinSolverCreator; end
+julia> struct MyLinSolver <: LinSolver;
+  λ
+end
+```
+NEP-solvers call the function `create_linsolver(creator,nep,λ)`,
+which should return a linear solver. We need to overload this function
+for our own creator-type.
+In general, this is to allow precomputation.
+In the example we could precompute the Schur complement `λ`, however, we choose
+not to and thus just return an instance of `MyLinSolver`.
+```julia
+julia> import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
+julia> function create_linsolver(::MyLinSolverCreator,nep,λ)
+   return MyLinSolver(λ);
+end
+create_linsolver (generic function with 4 methods)
+```
+The rest of the implementation of the solver goes in the function `lin_solve`, where we
+utilize our function `schur_complement_lin_solve` from above.
+```julia
+julia> import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
 julia> function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    n0=10;
    return schur_complement_lin_solve(compute_Mder(nep,solver.λ),b,n0)
@@ -180,13 +183,15 @@ end
 You can now solve the problem by handing `MyLinSolverCreator()` to a
 NEP-solver, e.g., `augnewton`:
 ```julia
-julia> augnewton(nep,v=ones(size(nep,1)),logger=1);
+julia> nep=nep_gallery("dep0",50);
+julia> creator=MyLinSolverCreator();
+julia> augnewton(nep,v=ones(size(nep,1)),logger=1,linsolvercreator=creator);
 iter 1 err:0.09618148118463332 λ=0.0 + 0.0im
-iter 2 err:0.041321766723793736 λ=0.8989908878138995 + 0.0im
-iter 3 err:0.026319557940841405 λ=1.444824857193296 + 0.0im
-iter 4 err:0.004493445102203272 λ=0.9306146373776659 + 0.0im
-iter 5 err:9.03013896973475e-5 λ=0.9176939995973298 + 0.0im
-iter 6 err:9.801547301144594e-7 λ=0.9205599293430559 + 0.0im
-iter 7 err:1.212523395823761e-10 λ=0.9205883567517947 + 0.0im
-iter 8 err:6.279907189232758e-17 λ=0.9205883602865768 + 0.0im
+iter 2 err:0.0413217667237937 λ=0.898990887813898 + 0.0im
+iter 3 err:0.02631955794084684 λ=1.4448248571934017 + 0.0im
+iter 4 err:0.00449344510220487 λ=0.9306146373776565 + 0.0im
+iter 5 err:9.030138969728166e-5 λ=0.9176939995973337 + 0.0im
+iter 6 err:9.801547301302623e-7 λ=0.9205599293430545 + 0.0im
+iter 7 err:1.2125237229048776e-10 λ=0.9205883567517953 + 0.0im
+iter 8 err:4.3151896277593487e-16 λ=0.9205883602865768 + 0.0im
 ```
