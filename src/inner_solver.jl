@@ -176,10 +176,11 @@ approximations.
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 struct ContourBeynInnerSolver <: InnerSolver
+    tol::Float64
     radius::Union{Real,Tuple,Array,Symbol} # integration radius
     N::Integer;  # Nof quadrature nodes
-    function ContourBeynInnerSolver(;radius= :auto,N=1000)
-        return new(radius,N);
+    function ContourBeynInnerSolver(;tol=sqrt(eps(real(T))),radius= :auto,N=1000)
+        return new(tol,radius,N);
     end
 end;
 
@@ -343,8 +344,8 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     else
         radius = is.radius
     end
-    #neigs = min(neigs,size(nep,1))
-    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger)
+    neigs = Int(min(neigs,size(nep,1)-1))
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger,tol=is.tol)
     return λ,V
 end
 

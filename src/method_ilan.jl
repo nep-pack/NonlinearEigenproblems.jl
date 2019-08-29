@@ -189,7 +189,8 @@ function ilan(
             # THIS CODE SHOULD BE USED ONCE
             λproj,Zproj=inner_solve(inner_solver_method,T,pnep;
                                     neigs=Inf,
-                                    inner_logger=inner_logger);
+                                    inner_logger=inner_logger,
+                                    λv=[-2 2] );
             ZZ=VV*Zproj;
             λ=λproj;
 
