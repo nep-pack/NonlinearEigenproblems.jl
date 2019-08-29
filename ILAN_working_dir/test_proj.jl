@@ -1,4 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise
+using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot
 
 dep=nep_gallery("dep0",200);
 n=size(dep,1);
