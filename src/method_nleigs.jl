@@ -7,7 +7,7 @@ export nleigs, NleigsSolutionDetails
 """
     nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
 
-Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem.
+Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using the `nleigs` algorithm. 
 
 # Arguments
 - `nep`: An instance of a nonlinear eigenvalue problem.
@@ -62,7 +62,7 @@ function nleigs(
         maxdgr::Int = 100,
         minit::Int = 20,
         maxit::Int = 200,
-        linsolvercreator::Function = default_linsolvercreator,
+        linsolvercreator=DefaultLinSolverCreator(),
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
         v::Vector{CT} = CT.(randn(T, size(nep, 1))),

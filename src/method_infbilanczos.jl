@@ -33,8 +33,8 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           nep::NEP,
                           nept::NEP;  # Transposed NEP
                           maxit::Integer=30,
-                          linsolvercreator::Function=default_linsolvercreator,
-                          linsolvertcreator::Function=linsolvercreator,
+                          linsolvercreator=DefaultLinSolverCreator(),
+                          linsolvertcreator=DefaultLinSolverCreator(),
                           v::Vector=randn(real(T),size(nep,1)),
                           u::Vector=randn(real(T),size(nep,1)),
                           tol::Real=1e-12,
@@ -57,8 +57,8 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
         # Shift σ \neq 0 not implemented
 
-        local M0inv::LinSolver = linsolvercreator(nep,σ);
-        local M0Tinv::LinSolver = linsolvertcreator(nept,conj(σ));
+        local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ);
+        local M0Tinv::LinSolver = create_linsolver(linsolvertcreator,nept,σ);
 
         #
         m=maxit;

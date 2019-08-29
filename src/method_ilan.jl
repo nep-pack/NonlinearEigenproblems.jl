@@ -26,7 +26,7 @@ mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
 end
 
 """
-    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
+    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
 
@@ -65,7 +65,7 @@ function ilan(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -74,7 +74,7 @@ function ilan(
     v=randn(real(T),size(nep,1)),
     logger=0,
     check_error_every=30,
-    inner_solver_method=DefaultInnerSolver,
+    inner_solver_method=DefaultInnerSolver(),
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
     inner_logger=0
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
@@ -111,7 +111,7 @@ function ilan(
     HH=zeros(T,m+1,m)
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
     err=ones(m,m);
     λ=zeros(T,m+1);
     W=zeros(T,n,m+1);

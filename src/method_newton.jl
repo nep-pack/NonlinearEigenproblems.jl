@@ -89,6 +89,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
+                push_info!(logger,"")
                 return (λ,v)
             end
 
@@ -166,7 +167,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                     v::Vector=randn(real(T),size(nep,1)),
                     c::Vector=v,
                     logger=0,
-                    linsolvercreator::Function=default_linsolvercreator,
+                    linsolvercreator=DefaultLinSolverCreator(),
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where T
 
@@ -180,7 +181,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         n=size(v,1);
 
         push_info!(logger,"Precomputing linsolver")
-        local linsolver::LinSolver=linsolvercreator(nep,λ)
+        local linsolver::LinSolver=create_linsolver(linsolvercreator,nep,λ)
 
         # If c is zero vector we take eigvec approx as left vector in
         # generalized Rayleigh functional
@@ -280,7 +281,7 @@ julia> λ1-λ2
                        v::Vector=randn(real(T),size(nep,1)),
                        c::Vector=v,
                        logger=0,
-                       linsolvercreator::Function=backslash_linsolvercreator,
+                       linsolvercreator=DefaultLinSolverCreator(),
                        armijo_factor::Real=one(real(T)),
                        armijo_max::Int=5) where {T<:Number}
 
@@ -320,7 +321,7 @@ julia> λ1-λ2
 
             z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
-            linsolver = linsolvercreator(nep,λ)
+            linsolver = create_linsolver(linsolvercreator,nep,λ)
             tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));
 
             if (use_v_as_normalization_vector)
@@ -375,14 +376,14 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
-                         errmeasure::Type{<:Errmeasure} = DefaultErrmeasure,
+                         errmeasure = DefaultErrmeasure,
                          tol::Real=eps(real(T))*100,
                          maxit::Int=100,
                          λ::Number=zero(T),
                          v::Vector=randn(real(T),size(nep,1)),
                          ws::Vector=v,
                          logger=0,
-                         linsolvercreator::Function=default_linsolvercreator,
+                         linsolvercreator=DefaultLinSolverCreator(),
                          armijo_factor::Real=1,
                          armijo_max::Int=5) where T
 
@@ -402,7 +403,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         local linsolver::LinSolver;
         push_info!(logger,"Precomputing linsolver")
-        linsolver = linsolvercreator(nep,λ)
+        linsolver = create_linsolver(linsolvercreator,nep,λ)
 
         # Init errmeasure
         ermdata=init_errmeasure(errmeasure,nep);
@@ -423,7 +424,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             # Intermediate quantities
             Δλ=-dot(ws,u)/dot(ws,w);
             z=Δλ*w+u;
-            Δv::Vector{T}=-lin_solve(linsolver, z, tol=tol); # Throws an error if lin_solve returns incorrect type
+            # Throws an error if lin_solve returns incorrect type.
+            local Δv::Vector{T}= -lin_solve(linsolver, z, tol=tol)
 
             normΔv=norm(Δv);
             push_info!(logger,2," norm(Δv)=$normΔv",continues=true)

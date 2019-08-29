@@ -6,7 +6,7 @@ using Random
 using Statistics
 
 """
-    iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tol=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS,][proj_solve=false,][inner_solver_method=DefaultInnerSolver,][inner_logger=0])
+    iar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tol=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS,][proj_solve=false,][inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
 
 Run the infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`.
 
@@ -49,7 +49,7 @@ function iar(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -59,7 +59,7 @@ function iar(
     logger=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver,
+    inner_solver_method=DefaultInnerSolver(),
     inner_logger=0)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     @parse_logger_param!(logger)
@@ -77,7 +77,8 @@ function iar(
     H = zeros(T,m+1,m);
     y = zeros(T,n,m+1);
     α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver=create_linsolver(linsolvercreator,nep,σ)
+
     err = NaN*ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 

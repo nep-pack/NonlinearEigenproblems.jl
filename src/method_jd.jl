@@ -22,7 +22,7 @@ end
 
 
 """
-    jd_betcke([eltype]], nep::ProjectableNEP; [neigs=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=default_linsolvercreator], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver], [projtype=:PetrovGalerkin], [target=zero(T)])
+    jd_betcke([eltype]], nep::ProjectableNEP; [neigs=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=DefaultLinSolverCreator()], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver()], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
@@ -55,10 +55,10 @@ function jd_betcke(::Type{T},
                    maxit::Int = 100,
                    neigs::Int = 1,
                    projtype::Symbol = :PetrovGalerkin,
-                   inner_solver_method::Type = DefaultInnerSolver,
+                   inner_solver_method = DefaultInnerSolver(),
                    orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
                    errmeasure::ErrmeasureType = DefaultErrmeasure,
-                   linsolvercreator::Function = default_linsolvercreator,
+                   linsolvercreator=DefaultLinSolverCreator(),
                    tol::Number = eps(real(T))*100,
                    λ::Number = zero(T),
                    v::Vector = randn(size(nep,1)),
@@ -77,7 +77,7 @@ function jd_betcke(::Type{T},
     if (projtype != :Galerkin) && projtype != :PetrovGalerkin
         error("Only accepted values of 'projtype' are :Galerkin and :PetrovGalerkin.")
     end
-    if (projtype != :Galerkin) && (inner_solver_method == SGIterInnerSolver)
+    if (projtype != :Galerkin) && (typeof(inner_solver_method) == SGIterInnerSolver)
         error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
 
@@ -161,7 +161,7 @@ function jd_betcke(::Type{T},
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
         pk[:] = compute_Mlincomb(nep,λ,u,[one(T)],1)
-        linsolver = linsolvercreator(nep,λ)
+        linsolver::LinSolver=create_linsolver(linsolvercreator,nep,λ)
         v[:] = lin_solve(linsolver, pk, tol=tol) # M(λ)\pk
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
 
@@ -188,7 +188,7 @@ end
 
 
 """
-    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver], [orthmethod=DGKS], [linsolvercreator=default_linsolvercreator], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver()], [orthmethod=DGKS], [linsolvercreator=DefaultLinSolverCreator()], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
@@ -220,9 +220,9 @@ function jd_effenberger(::Type{T},
                         nep::ProjectableNEP;
                         maxit::Int = 100,
                         neigs::Int = 1,
-                        inner_solver_method::Type = DefaultInnerSolver,
+                        inner_solver_method = DefaultInnerSolver(),
                         orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
-                        linsolvercreator::Function = default_linsolvercreator,
+                        linsolvercreator=DefaultLinSolverCreator(),
                         tol::Number = eps(real(T))*100,
                         λ::Number = rand(T),
                         v::Vector = rand(T,size(nep,1)),
@@ -239,7 +239,7 @@ function jd_effenberger(::Type{T},
     if (maxit > n)
         error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
     end
-    if (inner_solver_method == SGIterInnerSolver)
+    if (typeof(inner_solver_method) == SGIterInnerSolver)
         error("_Method SGITER not accepted as inner solver since deflated problem not min-max.")
     end
 
@@ -329,9 +329,9 @@ function jd_effenberger_inner!(::Type{T},
                               maxit::Int,
                               nrof_its::Int,
                               conveig::Int,
-                              inner_solver_method::Type,
+                              inner_solver_method,
                               orthmethod::Type,
-                              linsolvercreator::Function,
+                              linsolvercreator,
                               tol::Number,
                               target::Number,
                               logger::Logger,
@@ -415,7 +415,7 @@ function jd_effenberger_inner!(::Type{T},
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
         pk = compute_Mlincomb(target_nep, λ, u, [one(T)], 1)
-        linsolver = linsolvercreator(orgnep, λ)
+        linsolver::LinSolver=create_linsolver(linsolvercreator,orgnep,λ)
         jd_inner_effenberger_linear_solver!(v, target_nep, λ, linsolver, pk, tol)
         newton_step = copy(v)
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)

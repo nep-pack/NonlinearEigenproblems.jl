@@ -14,7 +14,7 @@ function ilan_benchmark(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -24,7 +24,7 @@ function ilan_benchmark(
     displaylevel=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_solver_method=DefaultInnerSolver())where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     # Ensure types σ and v are of type T
     σ=T(σ)
@@ -43,7 +43,7 @@ function ilan_benchmark(
     HH=zeros(T,m+1,m)
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:m)); a[1]=zero(T); # TODO
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
     err=ones(m,m);
     λ=zeros(T,m+1);
 

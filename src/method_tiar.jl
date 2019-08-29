@@ -5,7 +5,7 @@ using LinearAlgebra
 using Random
 
 """
-    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS,][proj_solve=false,][inner_solver_method=DefaultInnerSolver,][inner_logger=0])
+    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS,][proj_solve=false,][inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
 
 Run the tensor infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`. This is equivalent to `iar`, but handles orthogonalization with
 a tensor representation.
@@ -56,7 +56,7 @@ function tiar(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -66,7 +66,7 @@ function tiar(
     logger=0,
     check_error_every=1,
     proj_solve=false,
-    inner_solver_method=DefaultInnerSolver,
+    inner_solver_method=DefaultInnerSolver(),
     inner_logger=0)where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
 
     @parse_logger_param!(logger)
@@ -98,7 +98,7 @@ function tiar(
     hh = zeros(T,m+1);
     y  = zeros(T,n,m+1);
     α=Array{T,1}(γ.^(0:m)); α[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver=create_linsolver(linsolvercreator,nep,σ)
     err = NaN*ones(m+1,m+1);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
     Z[:,1]=v; Z[:,1]=Z[:,1]/norm(Z[:,1]);
@@ -153,7 +153,7 @@ function tiar(
             mul!(Ah,a[1:k+1,1:k,l],h[1:k])
             f[1:k+1,l] .-= Ah;
         end
-
+        
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
         hh = zero(hh)

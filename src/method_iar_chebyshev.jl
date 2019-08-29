@@ -31,7 +31,7 @@ end
 
 
 """
-    iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=default_linsolvecreator,][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1,][compute_y0_method=ComputeY0ChebAuto])
+    iar_chebyshev(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS][a=-1,][b=1,][compute_y0_method=ComputeY0ChebAuto])
 
 Run the infinite Arnoldi method (Chebyshev version) on the nonlinear eigenvalue problem stored in `nep`.
 
@@ -67,7 +67,7 @@ function iar_chebyshev(
     nep::NEP;
     orthmethod::Type{T_orth}=DGKS,
     maxit=30,
-    linsolvercreator::Function=default_linsolvercreator,
+    linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
     errmeasure::ErrmeasureType = DefaultErrmeasure,
@@ -117,7 +117,7 @@ function iar_chebyshev(
     H = zeros(T,m+1,m);
     y = zeros(T,n,m+1);
     α=Vector{T}(γ.^(0:m)); α[1]=zero(T);
-    local M0inv::LinSolver = linsolvercreator(nep,σ);
+    local M0inv::LinSolver=create_linsolver(linsolvercreator,nep,σ)
     err = ones(m,m);
     λ=zeros(T,m+1); Q=zeros(T,n,m+1);
 
