@@ -74,24 +74,24 @@ function compute_y0_cheb(T,nep::NEPTypes.NEP,::Type{ComputeY0Cheb_QDEP},x,y,M0in
 end
 
 @testset "IAR Chebyshev version" begin
-    Random.seed!(0)
     dep=nep_gallery("neuron0"); n=size(dep,1);
     @bench @testset "Scale Cheb's to different interval w DEP" begin
         a=-maximum(dep.tauv)
         b=0;
-        (λ,Q)=iar_chebyshev(dep,a=a,b=b,neigs=10,maxit=100)
+        (λ,Q)=iar_chebyshev(dep,a=a,b=b,neigs=10,maxit=100,v=ones(size(dep,1)))
         verify_lambdas(10, dep, λ, Q, n*sqrt(eps()))
     end
 
 
     dep=nep_gallery("dep0"); n=size(dep,1);
     @bench @testset "accuracy eigenpairs" begin
-        (λ,Q)=iar_chebyshev(dep,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100);
+        (λ,Q)=iar_chebyshev(dep,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)));
         verify_lambdas(5, dep, λ, Q, n*sqrt(eps()))
     end
 
     @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
-        (λ,Q)=iar_chebyshev(dep,σ=0,neigs=Inf,logger=0,maxit=30,tol=eps()*100);
+        (λ,Q)=iar_chebyshev(dep,σ=0,neigs=Inf,logger=0,maxit=30,
+                            tol=eps()*100,v=ones(size(dep,1)));
         verify_lambdas(8, dep, λ, Q, n*sqrt(eps()))
     end
 
@@ -101,22 +101,22 @@ end
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100)
+        (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
         @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
      end
 
      @bench @testset "User provided doubleGS" begin
-         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100)
+         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
          @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
       end
 
       @bench @testset "ModifiedGramSchmidt" begin
-          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100)
+          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
           @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
       end
 
        @bench @testset "ClassicalGramSchmidt" begin
-           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100)
+           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
            @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
        end
     end
@@ -130,7 +130,7 @@ end
                 A[j+1]=rand(n,n)
             end
             nep=PEP(A)
-            (λ,Q)=iar_chebyshev(nep,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100)
+            (λ,Q)=iar_chebyshev(nep,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end
@@ -141,7 +141,7 @@ end
             nep = SPMF_NEP([sparse(1.0I, n, n), A0, A1], [λ -> -λ, λ -> one(λ), λ -> exp(-λ)])
 
             compute_Mlincomb(nep::DEP,λ::Number,V;a=ones(size(V,2)))=compute_Mlincomb_from_MM!(nep,λ,V,a)
-            (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,neigs=7,logger=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2)
+            (λ,Q,err)=iar_chebyshev(nep,σ=0,γ=1,neigs=7,logger=0,maxit=100,tol=eps()*100,check_error_every=1,a=-1,b=2,v=ones(size(nep,1)))
 
             verify_lambdas(7, nep, λ, Q, n*sqrt(eps()))
         end
@@ -150,14 +150,14 @@ end
             n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
             tau1=0; tau2=1.1; tau3=.2;
             nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
-            (λ,Q)=iar_chebyshev(nep,σ=0,neigs=3,logger=0,maxit=90,tol=eps()*100)
+            (λ,Q)=iar_chebyshev(nep,σ=0,neigs=3,logger=0,maxit=90,tol=eps()*100,v=ones(size(nep,1)))
 
             verify_lambdas(3, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "DEP SHIFTED AND SCALED" begin
             nep=nep_gallery("dep0_tridiag",1000)
-            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end
 
@@ -168,7 +168,7 @@ end
                 A[j+1]=rand(n,n)
             end
             nep=PEP(A)
-            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end
@@ -176,17 +176,17 @@ end
         @bench @testset "compute_y0 AS INPUT FOR QEP (naive)" begin
             A0=rand(n,n); A1=rand(n,n); A2=rand(n,n);
             nep = SPMF_NEP([A0, A1, A2], [λ -> one(λ), λ -> λ, λ -> λ^2])
-            λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,neigs=10,σ=0.0,γ=1,logger=0,check_error_every=1);
+            λ,Q,err,V = iar_chebyshev(nep,compute_y0_method=ComputeY0Cheb_QEP,maxit=100,neigs=10,σ=0.0,γ=1,logger=0,check_error_every=1,v=ones(size(nep,1)));
 
             verify_lambdas(10, nep, λ, Q, n*sqrt(eps()))
         end
 
         @bench @testset "QDEP IN SPMF format" begin
             nep=nep_gallery("qdep1")
-            λ,Q,err,V = iar_chebyshev(nep,maxit=100,neigs=8,σ=0.0,γ=1,logger=0,check_error_every=1);
+            λ,Q,err,V = iar_chebyshev(nep,maxit=100,neigs=8,σ=0.0,γ=1,logger=0,check_error_every=1,v=ones(size(nep,1)));
             verify_lambdas(8, nep, λ, Q, n*sqrt(eps()))
             # with scaling
-            λ,Q,err,V = iar_chebyshev(nep,maxit=100,neigs=8,σ=0.0,γ=0.9,logger=0,check_error_every=1);
+            λ,Q,err,V = iar_chebyshev(nep,maxit=100,neigs=8,σ=0.0,γ=0.9,logger=0,check_error_every=1,v=ones(size(nep,1)));
             verify_lambdas(8, nep, λ, Q, n*sqrt(eps()))
         end
 
@@ -214,7 +214,7 @@ end
                 A[j+1]=rand(n,n)
             end
             nep=PEP(A)
-            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2,neigs=5,logger=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP)
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2,neigs=5,logger=0,maxit=100,tol=eps()*100,compute_y0_method=NEPSolver.ComputeY0ChebSPMF_NEP,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, 1e-10)
         end
@@ -236,6 +236,6 @@ end
     @testset "Errors thrown" begin
         np=100;
         dep=nep_gallery("dep0",np);
-        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar_chebyshev(dep,σ=0,neigs=8,logger=0,maxit=10,tol=eps()*100);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar_chebyshev(dep,σ=0,neigs=8,logger=0,maxit=10,tol=eps()*100,v=ones(size(nep,1)));
     end
 end
