@@ -87,7 +87,8 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`FactorizeLinSolver`](@ref), [`DefaultLinSolverCreator`](@ref),
+[`FactorizeLinSolver`](@ref), [`FactorizeLinSolver`](@ref),
+[`DefaultLinSolverCreator`](@ref),
 [`BackslashLinSolver`](@ref), [`BackslashLinSolverCreator`](@ref),
 [`GMRESLinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 
