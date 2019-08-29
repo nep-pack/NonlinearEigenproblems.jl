@@ -28,7 +28,7 @@ v0=rand(n^2)
 
 
 # COMPUTE REFERENCE EIGENVALUES WITH IAR
-#λ,v=iar(nep;maxit=100,tol=1e-6,neigs=Inf,logger=1)
+λ,v=iar(nep;maxit=100,tol=1e-6,neigs=Inf,logger=1)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
 
 # COMPUTE EIGENVALUES WITH

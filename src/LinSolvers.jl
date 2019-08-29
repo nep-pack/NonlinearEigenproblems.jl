@@ -112,12 +112,7 @@ See [`LinSolver`](@ref) and [`default_linsolvercreator`](@ref) for examples.
 
     function DefaultLinSolver(nep::NEP, λ, umfpack_refinements)
         A=compute_Mder(nep,λ)
-        if isposdef(A)
-            Afact=factorize(A)
-        else
-            Afact=lu(A)
-        end
-        Afact=lu(A)
+        Afact=factorize(A)
         return DefaultLinSolver(Afact, umfpack_refinements)
     end
 
