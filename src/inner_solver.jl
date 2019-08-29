@@ -179,11 +179,7 @@ struct ContourBeynInnerSolver <: InnerSolver
     tol::Float64
     radius::Union{Real,Tuple,Array,Symbol} # integration radius
     N::Integer;  # Nof quadrature nodes
-<<<<<<< HEAD
-    function ContourBeynInnerSolver(;tol=sqrt(eps(real(T))),radius= :auto,N=1000)
-=======
     function ContourBeynInnerSolver(;tol=sqrt(eps(real(Float64))),radius= :auto,N=1000)
->>>>>>> master
         return new(tol,radius,N);
     end
 end;
@@ -198,7 +194,7 @@ region `Σ` will be set by using the eigenvalues approximations.
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 struct NleigsInnerSolver <: InnerSolver
-    Σ::Union{Vector,Symbol}
+    Σ::Union{Vector,Symbol} #
     nodes::Union{Vector,Symbol}
     tol::Float64;
     function NleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-6 )
