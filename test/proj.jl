@@ -20,7 +20,7 @@ using Random
             n=5;
             Random.seed!(1)
             A0=(1:5)*(1:5)'
-            A1=(1:5)*(3:8)'+I;
+            A1=(1:5)*(3:7)'+I;
             t::Float64=3.0
 
             minusop= S-> -S
@@ -35,8 +35,8 @@ using Random
             n=8;
             Random.seed!(1)
             A0=(1:n)*(1:n)'/n
-            A1=(1:n)*(3:(n+3))'+I;
-            A2=(-1:(n-1))*(3:(n+3))'/8-I
+            A1=(1:n)*(3:(n+2))'+I;
+            A2=(-1:(n-1))*(3:(n+2))'/8-I
             t=3.0
 
             minusop= S-> -S
