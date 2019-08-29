@@ -236,6 +236,6 @@ end
     @testset "Errors thrown" begin
         np=100;
         dep=nep_gallery("dep0",np);
-        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar_chebyshev(dep,σ=0,neigs=8,logger=0,maxit=10,tol=eps()*100,v=ones(size(nep,1)));
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=iar_chebyshev(dep,σ=0,neigs=8,logger=0,maxit=10,tol=eps()*100,v=ones(size(dep,1)));
     end
 end
