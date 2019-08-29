@@ -44,6 +44,6 @@ using LinearAlgebra
     # @test minimum(svdvals(compute_Mder(pnep,λv[1]))) < eps()*100
     verify_lambdas(2, pnep, λv[1:2], V[:,1:2], sqrt(eps()))
 
-    λv,V = inner_solve(nleigsInnerSolver(), ComplexF64, pnep; λv=[0,1,2,3] .+ 0.0im)
+    λv,V = inner_solve(NleigsInnerSolver(), ComplexF64, pnep; λv=[0,1,2,3] .+ 0.0im)
     verify_lambdas(3, pnep, λv, V, sqrt(eps()))
 end

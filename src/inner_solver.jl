@@ -11,7 +11,7 @@ export IARInnerSolver
 export IARChebInnerSolver
 export SGIterInnerSolver
 export ContourBeynInnerSolver
-export nleigsInnerSolver
+export NleigsInnerSolver
 
 """
     abstract type InnerSolver
@@ -184,7 +184,7 @@ struct ContourBeynInnerSolver <: InnerSolver
 end;
 
 """
-    struct nleigsInnerSolver <: InnerSolver
+    struct NleigsInnerSolver <: InnerSolver
 
 Uses [`nleigs`](@ref) to solve the inner problem, in the region `Σ` with shifts
 `nodes` and with tolerance `tol`. If the variable `Σ` is set to `:auto`, the
@@ -192,11 +192,11 @@ region `Σ` will be set by using the eigenvalues approximations.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
-struct nleigsInnerSolver <: InnerSolver
+struct NleigsInnerSolver <: InnerSolver
     Σ::Union{Vector,Symbol}
     nodes::Union{Vector,Symbol}
     tol::Float64;
-    function nleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-6 )
+    function NleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-6 )
         return new(Σ,nodes,tol);
     end
 end;
@@ -348,7 +348,7 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
     return λ,V
 end
 
-function inner_solve(is::nleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0,1],inner_logger=0,kwargs...)
+function inner_solve(is::NleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;λv=[0,1],inner_logger=0,kwargs...)
     @parse_logger_param!(inner_logger)
 
     # Σ computed as tje smallest disk containing the estimated eigenvalues λv and a bit more
