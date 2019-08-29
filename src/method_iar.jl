@@ -140,7 +140,7 @@ function iar(
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);
             for s=1:size(λ,1)
-                if err[k,s]<tol;
+                if err[k,s]<tol
                     conv_eig=conv_eig+1;
                     push_info!(logger,"+", continues=true);
                 elseif err[k,s]<tol*10

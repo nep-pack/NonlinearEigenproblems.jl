@@ -183,17 +183,15 @@ function ilan(
             push_info!(logger,2,"Solving the projected problem",continues=true);
             #λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf); ZZ=VV*ZZ;
             #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=1000,radius=5,sanity_check=true,errmeasure=err_lifted);
-            θ=range(0,stop=2π,length=1000); r=7; Σ=r*cos.(θ) + 1im*r*sin.(θ)
-            λ,ZZ=nleigs(nep,Σ,logger=1,tol=1e-3,nodes=[0.0+0*im])
+            #θ=range(0,stop=2π,length=1000); r=7; Σ=r*cos.(θ) + 1im*r*sin.(θ)
+            #λ,ZZ=nleigs(nep,Σ,logger=1,tol=1e-3,nodes=[0.0+0*im])
 
             # THIS CODE SHOULD BE USED ONCE
-            # λproj,Zproj=inner_solve(inner_solver_method,T,pnep,
-            #                         neigs=k,
-            #                         λv=[0,3],
-            #                         tol=1e-1,
-            #                         inner_logger=inner_logger);
-            # ZZ=VV*Zproj;
-            # λ=λproj;
+            λproj,Zproj=inner_solve(inner_solver_method,T,pnep;
+                                    neigs=Inf,
+                                    inner_logger=inner_logger);
+            ZZ=VV*Zproj;
+            λ=λproj;
 
             # compute the errors
             err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],ZZ[:,s]),1:size(λ,1))

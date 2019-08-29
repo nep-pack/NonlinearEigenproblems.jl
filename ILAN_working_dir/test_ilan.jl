@@ -1,9 +1,12 @@
 using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise
 import ..NEPSolver.ilan;
 import ..NEPSolver.ilan_benchmark;
+import ..NEPSolver.iar;
+
 
 include("../src/method_ilan.jl");
 include("../src/method_ilan_benchmark.jl");
+include("../src/method_iar.jl");
 
 
 n=50
@@ -32,7 +35,7 @@ v0=rand(n^2)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
 
 # COMPUTE EIGENVALUES WITH
-λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-6,check_error_every=20,v=v0,inner_solver_method=IARInnerSolver)
+λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-6,check_error_every=20,v=v0,inner_solver_method=NEPSolver.IARInnerSolver(maxit=100,tol=1e-6))
 plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)
 
 # todo: fix too many unconv eigs displayed
