@@ -179,7 +179,7 @@ struct ContourBeynInnerSolver <: InnerSolver
     tol::Float64
     radius::Union{Real,Tuple,Array,Symbol} # integration radius
     N::Integer;  # Nof quadrature nodes
-    function ContourBeynInnerSolver(;tol=sqrt(eps(real(T))),radius= :auto,N=1000)
+    function ContourBeynInnerSolver(;tol=sqrt(eps(real(Float64))),radius= :auto,N=1000)
         return new(tol,radius,N);
     end
 end;
