@@ -17,7 +17,7 @@ The linear solver is specified with the `linsolvercreator` keyword argument
 in most NEP-solvers.
 Let us contruct an example which we will solve with several methods.
 The matrix `M(λ)` is sparse, and the nonlinearity is an exponential term:
-```julia
+```julia-repl
 julia> using NonlinearEigenproblems, SparseArrays, LinearAlgebra;
 julia> n=100;
 julia> α=0.01;
@@ -27,7 +27,7 @@ julia> C=spdiagm(0=>(1:n)/n);
 julia> nep= SPMF_NEP([A,B,C],[s->one(s),s->s,s->exp(s)],align_sparsity_patterns=true);
 ```
 Let us first solve it with the  [`resinv`](@ref) method, using the default solver for the linear system:
-```julia
+```julia-repl
 julia> λ0=-1.2; # Starting guess
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),logger=1,tol=1e-16);
 Precomputing linsolver
@@ -58,14 +58,14 @@ is useful. This is done with the `FactorizeLinSolveCreator`,
 which is actually the default behaviour, so we
 get no substantial difference when we specify
 a creator if the type `FactorizeLinSolverCreator`.
-```julia
+```julia-repl
 julia> creator=FactorizeLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator);
   6.026 ms (35879 allocations: 10.65 MiB)
 ```
 If we do not want to use a prefactorization, you can specify
 `BackslashLinSolverCreator` as your creator object.
-```julia
+```julia-repl
 julia> creator=BackslashLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator);
   12.386 ms (39470 allocations: 20.29 MiB)
@@ -78,7 +78,7 @@ You can also use iterative methods, e.g., the GMRES-method.
 The GMRES-method is available in the `GMRESLinSolverCreator`
 function. Iterative methods in general need preconditioners.
 We continue the example and use a diagonal preconditioner:
-```julia
+```julia-repl
 julia> D0=(Diagonal(compute_Mder(nep,λ0))); # Preconditioner
 julia> creator=GMRESLinSolverCreator(Pl=D0, tol=1e-10);
 ```
@@ -87,7 +87,7 @@ are passed to
 [`gmres!`](https://juliamath.github.io/IterativeSolvers.jl/stable/linear_systems/gmres/).
 Hence, the `tol` here  specifies a termination criteria for the GMRES-method,
 and `Pl` specifies the left preconditioner, in this case just a diagonal matrix.
-```julia
+```julia-repl
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16)
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
@@ -132,7 +132,7 @@ We illustrate the extendability by creating a linear solver
 based on solving a [Schur complement](https://en.wikipedia.org/wiki/Schur_complement).
 The following helper-function
 for the Schur complement solve will be used later. 
-```julia
+```julia-repl
 julia> using NonlinearEigenproblems
 function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
@@ -153,7 +153,7 @@ Julia's efficiency stems partially from the extensive use of types.
 We need to defined new types to define our own linear solver
 and integrate it with NEP-PACK.
 
-```julia
+```julia-repl
 julia> struct MyLinSolverCreator <: LinSolverCreator; end
 julia> struct MyLinSolver <: LinSolver;
   mynep
@@ -166,7 +166,7 @@ for our own creator-type.
 In general, this is to allow precomputation.
 However, in this example we do not have any precomputations and
 thus just return an instance of `MyLinSolver`.
-```julia
+```julia-repl
 julia> import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
 julia> function create_linsolver(::MyLinSolverCreator,nep,λ)
    return MyLinSolver(nep,λ);
@@ -175,7 +175,7 @@ create_linsolver (generic function with 4 methods)
 ```
 The rest of the implementation of the solver goes in the function `lin_solve`, where we
 utilize our function `schur_complement_lin_solve` from above.
-```julia
+```julia-repl
 julia> import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
 julia> function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    n0=10;
@@ -184,7 +184,7 @@ end
 ```
 You can now solve the problem by passing a creator object of type `MyLinSolverCreator()` to a
 NEP-solver, e.g., `augnewton`:
-```julia
+```julia-repl
 julia> dep=nep_gallery("dep0",50);
 julia> creator=MyLinSolverCreator();
 julia> augnewton(dep,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
