@@ -5,7 +5,6 @@ using Test
 # Add tests below if you wish that they are not run together with all tests
 const tests_not_to_run = Set{String}(map(uppercase, [
     "run_all_tests.jl", # this file
-    "beyn_parallel.jl", # currently disabled
     "fiber.jl", # needs MATLAB
     "gun.jl", # needs MATLAB
     "cd_player.jl", # needs MATLAB
