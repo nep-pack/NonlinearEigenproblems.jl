@@ -126,7 +126,6 @@ function iar(
                                         V=RR*Z,λv=copy(λ),
                                         neigs=size(λ,1)+3,
                                         σ=mean(λ),
-                                        tol=tol,
                                         inner_logger=inner_logger);
 
                 Q=QQ*Qproj;
