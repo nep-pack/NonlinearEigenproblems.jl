@@ -46,7 +46,7 @@ iter 78 err:2.324747046412835e-16 λ=-1.198989213795853 + 0.0im
 iter 79 err:1.7053137640282208e-16 λ=-1.1989892137958487 + 0.0im
 iter 80 err:5.364097787291277e-17 λ=-1.1989892137958522 + 0.0im</code></pre><p>The printout reveals that we need more iterations, than with a direct method. In terms of computation time, this approach can however still be competitive and faster than a direct approach:</p><pre><code class="language-julia-repl">julia&gt; creator=GMRESLinSolverCreator(Pl=D0, tol=1e-2);
 julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16)
-  8.680 ms (63237 allocations: 21.30 MiB)</code></pre><h2><a class="nav-anchor" id="Your-own-linear-solver-1" href="#Your-own-linear-solver-1">Your own linear solver</a></h2><p>There are many ways to solve linear systems in Julia, e.g., by using package such as <a href="https://github.com/Jutho/KrylovKit.jl">KrylovKit.jl</a>, <a href="https://github.com/JuliaSparse/Pardiso.jl">Pardiso.jl</a> or <a href="https://github.com/JuliaInv/KrylovMethods.jl">KrylovMethods.jl</a>. These are not natively supported by NEP-PACK, but due to the extendability of the <code>LinSolverCreator</code>-objects specified above, you can still use them.</p><p>We illustrate the extendability by creating a linear solver based on solving a Schur complement. The following helper-function for the Schur complement solvewill be used later. </p><pre><code class="language-julia">julia&gt; function schur_complement_lin_solve(AA,b,n0)
+  8.680 ms (63237 allocations: 21.30 MiB)</code></pre><h2><a class="nav-anchor" id="Your-own-linear-solver-1" href="#Your-own-linear-solver-1">Your own linear solver</a></h2><p>There are many ways to solve linear systems in Julia, e.g., by using package such as <a href="https://github.com/Jutho/KrylovKit.jl">KrylovKit.jl</a>, <a href="https://github.com/JuliaSparse/Pardiso.jl">Pardiso.jl</a> or <a href="https://github.com/JuliaInv/KrylovMethods.jl">KrylovMethods.jl</a>. These are not natively supported by NEP-PACK, but due to the extendability of the <code>LinSolverCreator</code>-objects specified above, you can still use them. We illustrate the extendability by creating a linear solver based on solving a Schur complement. The following helper-function for the Schur complement solve will be used later. </p><pre><code class="language-julia">julia&gt; function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
   B=AA[1:n0,(n0+1):end];
   C=AA[(n0+1):end,1:n0];
@@ -61,7 +61,7 @@ julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=c
 end</code></pre><p>Julia&#39;s efficiency stems partially from the extensive use of types. We need to defined new types to define our own linear solver and integrate it with NEP-PACK.</p><pre><code class="language-julia">julia&gt; struct MyLinSolverCreator &lt;: LinSolverCreator; end
 julia&gt; struct MyLinSolver &lt;: LinSolver;
   λ
-end</code></pre><p>NEP-solvers call the function <code>create_linsolver(creator,nep,λ)</code>, which should return a linear solver. We need to overload this function for our own creator-type. In general, this is to allow precomputation. In the example we could precompute the Schur complement <code>S</code>. However, we choose not to and thus just return an instance of <code>MyLinSolver</code>.</p><pre><code class="language-julia">julia&gt; import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
+end</code></pre><p>NEP-solvers call the function <code>create_linsolver(creator,nep,λ)</code>, which should return a linear solver. We need to overload this function for our own creator-type. In general, this is to allow precomputation. However, in this example we do not have any precomputations and thus just return an instance of <code>MyLinSolver</code>.</p><pre><code class="language-julia">julia&gt; import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
 julia&gt; function create_linsolver(::MyLinSolverCreator,nep,λ)
    return MyLinSolver(λ);
 end
@@ -69,7 +69,7 @@ create_linsolver (generic function with 4 methods)</code></pre><p>The rest of th
 julia&gt; function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    n0=10;
    return schur_complement_lin_solve(compute_Mder(nep,solver.λ),b,n0)
-end</code></pre><p>You can now solve the problem by handing <code>MyLinSolverCreator()</code> to a NEP-solver, e.g., <code>augnewton</code>:</p><pre><code class="language-julia">julia&gt; nep=nep_gallery(&quot;dep0&quot;,50);
+end</code></pre><p>You can now solve the problem by passing a creator object of type <code>MyLinSolverCreator()</code> to a NEP-solver, e.g., <code>augnewton</code>:</p><pre><code class="language-julia">julia&gt; nep=nep_gallery(&quot;dep0&quot;,50);
 julia&gt; creator=MyLinSolverCreator();
 julia&gt; augnewton(nep,v=ones(size(nep,1)),logger=1,linsolvercreator=creator);
 iter 1 err:0.09618148118463332 λ=0.0 + 0.0im
