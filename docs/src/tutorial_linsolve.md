@@ -129,10 +129,12 @@ These are not natively supported by NEP-PACK,
 but due to the extendability of the `LinSolverCreator`-objects
 specified above, you can still use them.
 We illustrate the extendability by creating a linear solver
-based on solving a Schur complement. The following helper-function
+based on solving a [Schur complement](https://en.wikipedia.org/wiki/Schur_complement).
+The following helper-function
 for the Schur complement solve will be used later. 
 ```julia
-julia> function schur_complement_lin_solve(AA,b,n0)
+julia> using NonlinearEigenproblems
+function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
   B=AA[1:n0,(n0+1):end];
   C=AA[(n0+1):end,1:n0];
@@ -154,7 +156,8 @@ and integrate it with NEP-PACK.
 ```julia
 julia> struct MyLinSolverCreator <: LinSolverCreator; end
 julia> struct MyLinSolver <: LinSolver;
-  λ
+  mynep
+  myλ
 end
 ```
 NEP-solvers call the function `create_linsolver(creator,nep,λ)`,
@@ -166,7 +169,7 @@ thus just return an instance of `MyLinSolver`.
 ```julia
 julia> import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
 julia> function create_linsolver(::MyLinSolverCreator,nep,λ)
-   return MyLinSolver(λ);
+   return MyLinSolver(nep,λ);
 end
 create_linsolver (generic function with 4 methods)
 ```
@@ -176,15 +179,15 @@ utilize our function `schur_complement_lin_solve` from above.
 julia> import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
 julia> function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    n0=10;
-   return schur_complement_lin_solve(compute_Mder(nep,solver.λ),b,n0)
+   return schur_complement_lin_solve(compute_Mder(solver.mynep,solver.myλ),b,n0)
 end
 ```
 You can now solve the problem by passing a creator object of type `MyLinSolverCreator()` to a
 NEP-solver, e.g., `augnewton`:
 ```julia
-julia> nep=nep_gallery("dep0",50);
+julia> dep=nep_gallery("dep0",50);
 julia> creator=MyLinSolverCreator();
-julia> augnewton(nep,v=ones(size(nep,1)),logger=1,linsolvercreator=creator);
+julia> augnewton(dep,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
 iter 1 err:0.09618148118463332 λ=0.0 + 0.0im
 iter 2 err:0.0413217667237937 λ=0.898990887813898 + 0.0im
 iter 3 err:0.02631955794084684 λ=1.4448248571934017 + 0.0im
