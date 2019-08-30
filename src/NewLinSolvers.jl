@@ -98,7 +98,19 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
 
     end
 end
+
 # For the moment, Factorize is the default behaviour
+"""
+    DefaultLinSolverCreator
+
+This is the default linear solver if no other is specified (for most methods).
+It is a `FactorizeLinSolverCreator`.
+
+    
+See also: [`LinSolver`](@ref), [`create_linsolver`](@ref),
+[`lin_solve`](@ref), [`FactorizeLinSolverCreator`](@ref), [`FactorizeLinSolver`](@ref)
+
+"""
 DefaultLinSolverCreator = FactorizeLinSolverCreator
 
 

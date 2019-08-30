@@ -19,8 +19,8 @@ using Random
 
             n=5;
             Random.seed!(1)
-            A0=randn(5,5);
-            A1=randn(5,5);
+            A0=(1:5)*(1:5)'
+            A1=(1:5)*(3:7)'+I;
             t::Float64=3.0
 
             minusop= S-> -S
@@ -34,9 +34,9 @@ using Random
 
             n=8;
             Random.seed!(1)
-            A0=randn(n,n);
-            A1=randn(n,n);
-            A2=randn(n,n)/10;
+            A1=I+(1:n)*(1:n)'/n
+            A0=(1:n)*(3:(n+2))'+2I;
+            A2=(-1:(n-2))*(3:(n+2))'/8-I
             t=3.0
 
             minusop= S-> -S
@@ -60,8 +60,7 @@ using Random
 
         # Create a projected NEP
         pnep=create_proj_NEP(nep,4); # maxsize=4
-        Random.seed!(1);
-        V=randn(size(nep,1),2)
+        V=(1:n)*(1:2)'/n; V[1,1]=pi;
         Q,R=qr(hcat(V,x)) # Make the eigenspace a part of the projection subspace
         Q = Matrix(Q)
         set_projectmatrices!(pnep,Q,Q);
@@ -89,8 +88,9 @@ using Random
         Vnew=[Q ones(n)];
         Wnew=[Q ones(n)];
         expand_projectmatrices!(pnep,Wnew,Vnew);
-        λ1,zz1=newton(pnep,λ=(λ_exact+0.00001),logger=0,
-                      v=ones(4),maxit=20)
+        println("λ_exact=",λ_exact)
+        λ1,zz1=newton(pnep,λ=(λ_exact+0.0000001),logger=0,
+                      v=Vnew'*x.+0.00001*ones(size(pnep,1)),maxit=30)
 
         xx1=Vnew*zz1; xx1=xx1/xx1[1]
 

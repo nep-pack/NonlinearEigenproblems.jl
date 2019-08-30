@@ -62,7 +62,7 @@ using SparseArrays
         nep=DEP([A1,A2,A3],[0,1,0.8])
         v0=rand(n)
         λ,W,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=30,tol=eps()*100,check_error_every=5,v=v0,errmeasure=ResidualErrmeasure)
-        verify_lambdas(2, nep, λ, W, eps()*100)
+        verify_lambdas(3, nep, λ, W, eps()*100)
     end
 
     @testset "Errors thrown" begin

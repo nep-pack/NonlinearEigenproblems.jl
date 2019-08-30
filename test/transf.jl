@@ -88,8 +88,8 @@ using LinearAlgebra
 
 
         n=size(nep4,1);
-        V=randn(n,5);
-        S=randn(5,5);
+        V=(1:n)*(1:5)'/n; # Arbitrary matrices
+        S=(1:5)*(1:5)'/5-3I;
         s = Matrix(3.0*I, 1, 1)
         W1 = compute_MM(nep4, (c*S + d*I) \ (a*S + b*I), V)
         W2=compute_MM(nep4_transf,S,V);

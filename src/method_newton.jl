@@ -376,7 +376,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
-                         errmeasure::Type{<:Errmeasure} = DefaultErrmeasure,
+                         errmeasure = DefaultErrmeasure,
                          tol::Real=eps(real(T))*100,
                          maxit::Int=100,
                          λ::Number=zero(T),

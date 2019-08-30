@@ -87,7 +87,8 @@ julia> λ,v=quasinewton(nep,λ=-1,v=[1;1],linsolvercreator=my_linsolvercreator);
 ```
 
 See also: [`lin_solve`](@ref),
-[`FactorizeLinSolver`](@ref), [`DefaultLinSolverCreator`](@ref),
+[`FactorizeLinSolver`](@ref), [`FactorizeLinSolver`](@ref),
+[`DefaultLinSolverCreator`](@ref),
 [`BackslashLinSolver`](@ref), [`BackslashLinSolverCreator`](@ref),
 [`GMRESLinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 
@@ -108,12 +109,7 @@ See [`LinSolver`](@ref) and [`FactorizeLinSolverCreator`](@ref) for examples.
 
     function FactorizeLinSolver(nep::NEP, λ, umfpack_refinements)
         A=compute_Mder(nep,λ)
-        if isposdef(A)
-            Afact=factorize(A)
-        else
-            Afact=lu(A)
-        end
-        Afact=lu(A)
+        Afact=factorize(A)
         return FactorizeLinSolver(Afact, umfpack_refinements)
     end
 

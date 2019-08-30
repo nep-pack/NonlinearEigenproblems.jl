@@ -51,6 +51,9 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 1.1502634749464687e-14
 ```
 
+!!! tip
+    MATLAB users: If you have a NEP defined in MATLAB, you can solve NEPs with this package.  See [the MATLAB tutorial](tutorial_matlab1.md). We also have some MATLAB implementations of the solvers in NEP-PACK in a [separate repository](https://github.com/nep-pack/NEP-PACK-matlab-reference).
+
 
 # Accessing more complicated applications
 
@@ -226,9 +229,13 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
 # What now?
 
 Now you are ready to try out
-[the tutorial on artificial boundary conditions](movebc_tutorial.md)
-or on
-[the boundary element method](bemtutorial.md)
+one of our tutorials
+[on artificial boundary conditions](movebc_tutorial.md),
+[boundary element method](bemtutorial.md),
+[contour integration](tutorial_contour.md),
+or
+[deflation](deflate_tutorial.md).
+See also the other tutorials (in the side-bar),
 or have a look at the examples
 in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
 

@@ -5,8 +5,6 @@ using LinearAlgebra
 using SparseArrays
 
 @testset "MSLP" begin
-    A=sprandn(100,100,0.1);
-    B=sprandn(100,100,0.1);
 
     target=0;
     nev=3;
