@@ -18,7 +18,7 @@ LL=LL/(h^2)
 LL=-kron(LL,LL)
 A=LL
 
-b=broadcast((x,y)->sin(x+y),x,transpose(x))
+b=broadcast((x,y)->sin(x)*sin(y),x,transpose(x))
 B=sparse(1:n^2,1:n^2,b[:])
 
 nep=DEP([A,B],[0,1.0])
@@ -30,12 +30,10 @@ rel_err=(λ,v)->compute_resnorm(nep,λ,v)/((abs(λ)+abs(exp(nep.tauv[1]))*nA1+ab
 v0=rand(n^2)
 
 # COMPUTE REFERENCE EIGENVALUES WITH IAR
-#λ,v=tiar(nep;maxit=250,tol=1e-12,neigs=Inf,logger=1)
+λ,v=tiar(nep;maxit=250,tol=1e-12,neigs=Inf,logger=1)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
 
-θ=range(0,stop=2π,length=1000)
-r=6
-Σ=r*cos.(θ) + 1im*r*sin.(θ)
+θ=range(0,stop=2π,length=1000); r=6; Σ=r*cos.(θ) + 1im*r*sin.(θ)
 
 # COMPUTE EIGENVALUES WITH
 λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-10,check_error_every=20,v=v0,
