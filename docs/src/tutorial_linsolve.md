@@ -128,10 +128,9 @@ or [KrylovMethods.jl](https://github.com/JuliaInv/KrylovMethods.jl).
 These are not natively supported by NEP-PACK,
 but due to the extendability of the `LinSolverCreator`-objects
 specified above, you can still use them.
-
 We illustrate the extendability by creating a linear solver
 based on solving a Schur complement. The following helper-function
-for the Schur complement solvewill be used later. 
+for the Schur complement solve will be used later. 
 ```julia
 julia> function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
@@ -162,8 +161,8 @@ NEP-solvers call the function `create_linsolver(creator,nep,λ)`,
 which should return a linear solver. We need to overload this function
 for our own creator-type.
 In general, this is to allow precomputation.
-In the example we could precompute the Schur complement `S`. However, we choose
-not to and thus just return an instance of `MyLinSolver`.
+However, in this example we do not have any precomputations and
+thus just return an instance of `MyLinSolver`.
 ```julia
 julia> import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
 julia> function create_linsolver(::MyLinSolverCreator,nep,λ)
@@ -180,7 +179,7 @@ julia> function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    return schur_complement_lin_solve(compute_Mder(nep,solver.λ),b,n0)
 end
 ```
-You can now solve the problem by handing `MyLinSolverCreator()` to a
+You can now solve the problem by passing a creator object of type `MyLinSolverCreator()` to a
 NEP-solver, e.g., `augnewton`:
 ```julia
 julia> nep=nep_gallery("dep0",50);
