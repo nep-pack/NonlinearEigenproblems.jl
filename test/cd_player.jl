@@ -14,9 +14,7 @@ using GalleryNLEVP
     n = size(nep_org,1)
 
     @bench @testset "compare to native" begin
-        for seed = [0, 45]
-            Random.seed!(seed) # reset the random seed
-            λ = rand(ComplexF64)
+        for λ = [0.8236475079774124 + 0.9103565379264364im, 0.28604423575660154 + 0.5273506342660073im]
             for d = [0,1,2,3,4]
                 M_org = compute_Mder(nep_org, λ, d)
                 M_nat = compute_Mder(nep_nat, λ, d)

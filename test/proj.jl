@@ -19,8 +19,8 @@ using Random
 
             n=5;
             Random.seed!(1)
-            A0=randn(5,5);
-            A1=randn(5,5);
+            A0=(1:5)*(1:5)'
+            A1=(1:5)*(3:7)'+I;
             t::Float64=3.0
 
             minusop= S-> -S
@@ -34,9 +34,9 @@ using Random
 
             n=8;
             Random.seed!(1)
-            A0=randn(n,n);
-            A1=randn(n,n);
-            A2=randn(n,n)/10;
+            A0=(1:n)*(1:n)'/n
+            A1=(1:n)*(3:(n+2))'+I;
+            A2=(-1:(n-1))*(3:(n+2))'/8-I
             t=3.0
 
             minusop= S-> -S
@@ -60,8 +60,7 @@ using Random
 
         # Create a projected NEP
         pnep=create_proj_NEP(nep,4); # maxsize=4
-        Random.seed!(1);
-        V=randn(size(nep,1),2)
+        V=(1:n)*(1:2)'/n; V[1,1]=pi;
         Q,R=qr(hcat(V,x)) # Make the eigenspace a part of the projection subspace
         Q = Matrix(Q)
         set_projectmatrices!(pnep,Q,Q);
