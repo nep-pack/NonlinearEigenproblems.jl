@@ -34,9 +34,9 @@ using Random
 
             n=8;
             Random.seed!(1)
-            A0=(1:n)*(1:n)'/n
-            A1=(1:n)*(3:(n+2))'+I;
-            A2=(-1:(n-1))*(3:(n+2))'/8-I
+            A1=I+(1:n)*(1:n)'/n
+            A0=(1:n)*(3:(n+2))'+2I;
+            A2=(-1:(n-2))*(3:(n+2))'/8-I
             t=3.0
 
             minusop= S-> -S
@@ -88,8 +88,9 @@ using Random
         Vnew=[Q ones(n)];
         Wnew=[Q ones(n)];
         expand_projectmatrices!(pnep,Wnew,Vnew);
-        λ1,zz1=newton(pnep,λ=(λ_exact+0.00001),logger=0,
-                      v=ones(4),maxit=20)
+        println("λ_exact=",λ_exact)
+        λ1,zz1=newton(pnep,λ=(λ_exact+0.0000001),logger=0,
+                      v=Vnew'*x.+0.00001*ones(size(pnep,1)),maxit=30)
 
         xx1=Vnew*zz1; xx1=xx1/xx1[1]
 
