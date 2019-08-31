@@ -379,7 +379,26 @@ end
 
 
 
-#    compute_rf_new(nep::NEP,x,TT::Type{<:InnerSolver};params...) = compute_rf(ComplexF64,nep,x,TT;params...)
+  """
+    compute_rf([eltype],nep::NEP,x; y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
+
+Computes the Rayleigh functional of nep, i.e., computes a vector ``Λ`` of values ``λ``
+such that ``y^TM(λ)x=0``. The default behaviour consists of a scalar valued
+Newton-iteration, and the returned vector has only one element.
+
+The given eltype<:Number is the type of the returned vector.
+
+# Example
+
+```julia-repl
+julia> nep=nep_gallery("dep0");
+julia> x=ones(size(nep,1));
+julia> s=compute_rf(Float64,nep,x)[1]; # Take just first element
+0.6812131933795569
+julia> x'*compute_Mlincomb(nep,s,x)
+-8.881784197001252e-16
+```
+"""
     function compute_rf_new(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;
                         y=x, target=zero(T), λ0=target,
                         TOL=eps(real(T))*1e3, max_iter=30,kwargs...) where T
@@ -389,21 +408,22 @@ end
         n=size(nep,1);
         set_projectmatrices!(pnep,reshape(y,n,1),reshape(x,n,1));
 
-        local λ
+        local λv
         try
             (λv,xv)=inner_solve(inner_solver,T0,pnep,σ=target,λv=[λ0]);
-            II=argmin(abs.(λv .- target));
-            λ=λv[II];
         catch e
             # Even return the approximation upon failure
             if (e isa NoConvergenceException)
-                λ=e.λ
+                λv=e.λ
             else
                 rethrow(e)
             end
-
         end
-        return [λ];
+        if (λv isa Vector)
+            return λv
+        else
+            return [λv];
+        end
     end
 
 
