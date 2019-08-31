@@ -258,11 +258,6 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
             end
 
             n=size(nep,1);
-            if n==1
-                projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))*norm(v);
-            else
-                projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
-            end
 
             projerrmeasure=ResidualErrmeasure;
             # Compute a solution to projected problem with Newton's method
