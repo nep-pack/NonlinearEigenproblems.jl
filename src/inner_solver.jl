@@ -257,7 +257,13 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
                 v0=V[:,k]; # Starting vector for projected problem
             end
 
-            projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
+            n=size(nep,1);
+            if n==1
+                projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))*norm(v);
+            else
+                projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
+            end
+
             # Compute a solution to projected problem with Newton's method
             λ1,vproj=is.newton_function(
                 T_arit,nep,logger=inner_logger,λ=λv[k],
@@ -377,22 +383,28 @@ end
 
 
 
-    compute_rf_new(nep::NEP,x,TT::Type{<:InnerSolver};params...) = compute_rf(ComplexF64,nep,x,TT;params...)
-    function compute_rf_new(T0::Type{T}, nep::NEP, x, TT::Type{NewtonInnerSolver};
+#    compute_rf_new(nep::NEP,x,TT::Type{<:InnerSolver};params...) = compute_rf(ComplexF64,nep,x,TT;params...)
+    function compute_rf_new(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;
                         y=x, target=zero(T), λ0=target,
                         TOL=eps(real(T))*1e3, max_iter=30,kwargs...) where T
         # Newton's method
         pnep=create_proj_NEP(nep);
         n=size(nep,1);
         set_projectmatrices!(pnep,reshape(y,n,1),reshape(x,n,1));
+
         local λ
         try
-            (λ,v)=newton(T0,pnep,λ=λ0,maxit=max_iter,tol=TOL);
+            (λv,xv)=inner_solve(inner_solver,T0,pnep,σ=target,λv=[λ0]);
+            II=argmin(abs.(λv .- target));
+            λ=λv[II];
         catch e
             # Even return the approximation upon failure
             if (e isa NoConvergenceException)
                 λ=e.λ
+            else
+                rethrow(e)
             end
+
         end
         return [λ];
     end
