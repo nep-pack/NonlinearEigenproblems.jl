@@ -132,8 +132,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 Applies residual inverse iteration method for nonlinear eigenvalue problems.
 The kwarg `linsolvecreator`
 is a function which specifies how the linear system is created.
-The function calls `compute_rf` for the computation
-of the Rayleigh functional.
+The function calls `compute_rf` for the computation of the Rayleigh functional.
 See [`newton`](@ref) for other parameters.
 
 # Example
@@ -167,7 +166,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
                     v::Vector=randn(real(T),size(nep,1)),
                     c::Vector=v,
                     logger=0,
-                    inner_solver=NewtonInnerSolver(),
+                    inner_solver=(nep isa PEP) ? PolyeigInnerSolver() : NewtonInnerSolver(),
                     linsolvercreator=DefaultLinSolverCreator(),
                     armijo_factor::Real=1,
                     armijo_max::Int=5) where T
