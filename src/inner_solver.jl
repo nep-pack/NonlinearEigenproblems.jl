@@ -417,7 +417,7 @@ function compute_rf_new(::Type{T},nep::NEP,x, inner_solver::PolyeigInnerSolver; 
         a[i]=dot(y,nep.A[i]*x);
     end
     m=size(nep.A,1);
-    # Build a bigfloat companion matrix
+    # Build a companion matrix (maybe bigfloat)
     A=zeros(T,m-1,m-1);
     for k=1:m-1
         if (k<m-1)
