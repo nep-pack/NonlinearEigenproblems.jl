@@ -46,7 +46,7 @@ estimate the derivatives, i.e.,
 
 Let us first define our solver function
 and introduce the function of which we wish to find the roots.
-The matrix `M(λ)` is obtained from the
+The matrix ``M(λ)`` is obtained from the
 `compute_Mder`-function.
 ```julia
 using NonlinearEigenproblems
@@ -91,7 +91,7 @@ We can verify that this is actually
 a solution easily if we also
 have an approximate eigenvector. An eigenvector
 can be computed by essentially one step of inverse iteration,
-on the matrix `M(λ)`:
+on the matrix ``M(λ)``:
 ```julia
 julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
 5-element Array{Float64,1}:
@@ -101,7 +101,7 @@ julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
   0.5577415634513512
   0.6832678503094953
 ```
-The residual norm  `|M(λ)x|` does indeed become almost zero
+The residual norm  ``|M(λ)x|`` does indeed become almost zero
 so it seems we have a solution:
 ```julia
 julia> norm(compute_Mlincomb(nep,λ,x))

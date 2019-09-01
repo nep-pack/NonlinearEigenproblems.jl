@@ -3,7 +3,7 @@
 Suppose you have a new type of NEP, which does not naturally fit
 into the standard types in NEP-PACK. This tutorial shows how
 you can define a NEP where the only way to access the NEP
-is a function to compute `M^{(k)}(λ)`. We first show the manual way
+is a function to compute ``M^{(k)}(λ)``. We first show the manual way
 to do it, as it illustrates some of the workings of NEP-PACK.
 However, the use case is common enough to have native support
 in NEP-PACK. Hence, we also show how to use a special NEP-type called `Mder_NEP`.
@@ -22,7 +22,7 @@ problem can be described by the matrix consisting of elements
 ```math
 [M(λ)]_{ij}=\frac{1}{4\pi}\int_{\Delta_i}\int_{\Delta_j}\frac{e^{\iota\lambda\|\xi-\eta\|}}{\|\xi-\eta\|}dS(\eta)dS(\xi)
 ```
-where $\Delta_i$, $i=1,\ldots,n$ are boundary elements.
+where ``\Delta_i``, ``i=1,\ldots,n`` are boundary elements.
 The boundary element approach is available through three functions: `gen_ficheramesh` to compute the mesh, `precompute_quad!` to precompute the quadrature coeeficients, and `assemble_BEM` to compute the matrix consisting of all the integrals corresponding to `λ`.
 These functions are based on the model (and inspired by some of the code) in
 ["A boundary element method for solving PDE eigenvalue problems", Steinlechner, bachelor thesis, ETH Zürich, 2010](http://sma.epfl.ch/~anchpcommon/students/steinlechner.pdf) and also
@@ -134,7 +134,7 @@ end
 ## Implementation in NEP-PACK using the Mder_NEP type
 
 Some of the manual implementation can be avoided by using the `Mder_NEP` type.
-We only need to pass the size of the NEP and a function to compute `M^{(k)}(λ)`, i.e.,
+We only need to pass the size of the NEP and a function to compute ``M^{(k)}(λ)``, i.e.,
 `(λf,derf) -> assemble_BEM(λf, mymesh, gauss_order, derf)[:,:,1]`, to the `Mder_NEP`.
 ```julia-repl
 julia> n = length(mymesh); # OBS: precompute_quad!(mymesh,gauss_order); is already done above

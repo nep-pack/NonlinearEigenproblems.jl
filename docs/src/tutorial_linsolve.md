@@ -5,7 +5,7 @@ the type
 ```math
 M(λ)x=b.
 ```
-In some methods the linear system matrices are the same, i.e., `λ` does not
+In some methods the linear system matrices are the same, i.e., ``λ`` does not
 change.
 You can specify which numerical methods should be used to solve the linear system when you call a
 NEP-solver. This tutorial illustrates this functionality,
@@ -16,7 +16,7 @@ and finally shows how you can specify your own method for linear systems.
 The linear solver is specified with the `linsolvercreator` keyword argument
 in most NEP-solvers.
 Let us contruct an example which we will solve with several methods.
-The matrix `M(λ)` is sparse, and the nonlinearity is an exponential term:
+The matrix ``M(λ)`` is sparse, and the nonlinearity is an exponential term:
 ```julia-repl
 julia> using NonlinearEigenproblems, SparseArrays, LinearAlgebra;
 julia> n=100;
