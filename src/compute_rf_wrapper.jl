@@ -30,7 +30,7 @@ function compute_rf_new(T0::Type{T}, nep::NEP, x, inner_solver::ScalarNewtonInne
 
     # Return type is a vector of correct type
     λ_star::Array{T,1} = Array{T,1}(undef, 1)
-    if (T <: Real) && (typeof(λ_iter) != T) && (imag(λ_iter)/real(λ_iter) < TOL)
+    if (T <: Real) && (typeof(λ_iter) != T) && (imag(λ_iter)/real(λ_iter) < inner_solver.tol)
         # Looking for a real quantity (AND) iterate is not real (AND) complex part is negligible
         λ_star[1] = real(λ_iter) # Truncate to real
     else
