@@ -37,7 +37,7 @@ function rfi(::Type{T},
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator=BackslashLinSolverCreator(), # Note: Not default. It's better to use backslash
-            inner_solver=(nep isa PEP) ? PolyeigInnerSolver() : NewtonInnerSolver(starting_vector=:ones),
+            inner_solver=@default_compute_rf_inner_solver(nep),
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
@@ -111,7 +111,7 @@ function rfi_b(::Type{T},
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
-            inner_solver=(nep isa PEP) ? PolyeigInnerSolver() : NewtonInnerSolver(starting_vector=:ones),
+            inner_solver=@default_compute_rf_inner_solver(nep),
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)

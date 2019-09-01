@@ -1,3 +1,10 @@
+export @default_compute_rf_inner_solver
+# Try to automatically determine an appropriate scalar compute_rf solver.
+macro default_compute_rf_inner_solver(nep)
+    return (nep isa PEP) ? PolyeigInnerSolver() : ScalarNewtonInnerSolver();
+end
+
+
 
 struct ScalarNewtonInnerSolver <: InnerSolver
     tol::Float64

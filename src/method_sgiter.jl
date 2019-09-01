@@ -39,7 +39,7 @@ function sgiter(::Type{T},
                    errmeasure::ErrmeasureType = DefaultErrmeasure,
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
-                   inner_solver=(nep isa PEP) ? PolyeigInnerSolver() : NewtonInnerSolver(starting_vector=:ones),
+                   inner_solver=@default_compute_rf_inner_solver(nep),
                    logger = 0,
                    eigsolvertype::Type = DefaultEigSolver
                    ) where {T<:Number}
