@@ -1,4 +1,46 @@
-  """
+
+struct ScalarNewtonInnerSolver <: InnerSolver
+    tol::Float64
+    maxit::Int
+    bad_solution_allowed::Bool
+    function ScalarNewtonInnerSolver(;tol=eps()*100,maxit=80,bad_solution_allowed=true)
+        return new(tol,maxit,bad_solution_allowed);
+    end
+end
+
+function compute_rf_new(T0::Type{T}, nep::NEP, x, inner_solver::ScalarNewtonInnerSolver;
+                        y=x, target=zero(T), λ0=target,
+                        kwargs...) where T
+    λ_iter = T(λ0);
+    Δλ = T(Inf)
+    count = 0
+    while (abs(Δλ)>inner_solver.tol) & (count<inner_solver.maxit)
+        count = count+1
+        # compute function value and derivative
+        z1 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1))
+        z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[T(1)],1)
+
+        Δλ = -dot(y,z1)/dot(y,z2);
+        λ_iter += Δλ
+    end
+
+    if ((count==inner_solver.maxit) && (! (inner_solver.bad_solution_allowed )))
+        throw(NoConvergenceException());
+    end
+
+    # Return type is a vector of correct type
+    λ_star::Array{T,1} = Array{T,1}(undef, 1)
+    if (T <: Real) && (typeof(λ_iter) != T) && (imag(λ_iter)/real(λ_iter) < TOL)
+        # Looking for a real quantity (AND) iterate is not real (AND) complex part is negligible
+        λ_star[1] = real(λ_iter) # Truncate to real
+    else
+        λ_star[1] = λ_iter
+    end
+    return λ_star
+end
+
+
+"""
     compute_rf([eltype],nep::NEP,x; y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
 
 Computes the Rayleigh functional of nep, i.e., computes a vector ``Λ`` of values ``λ``
@@ -44,6 +86,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
             return [λv];
         end
     end
+
 
 
 
