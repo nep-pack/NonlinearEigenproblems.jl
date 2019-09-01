@@ -5,7 +5,14 @@ macro default_compute_rf_inner_solver(nep)
 end
 
 
+"""
+    struct ScalarNewtonInnerSolver <: InnerSolver
+    function ScalarNewtonInnerSolver(;tol=eps()*100,maxit=80,bad_solution_allowed=true)
 
+This type can be used with  `compute_rf`. It solves the scalar nonlinear problem
+using a Rayleig functional. In contrast to the `NewtonInnerSolver`, this
+function does not require an SPMF (or precomputations associated with SPMFs).
+"""
 struct ScalarNewtonInnerSolver <: InnerSolver
     tol::Float64
     maxit::Int
@@ -48,23 +55,28 @@ end
 
 
 """
-    compute_rf([eltype],nep::NEP,x; y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
+    compute_rf(eltype::Type,nep::NEP,x,inner_solver::InnerSolver;
+               y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
 
-Computes the Rayleigh functional of nep, i.e., computes a vector ``Λ`` of values ``λ``
-such that ``y^TM(λ)x=0``. The default behaviour consists of a scalar valued
+Computes the Rayleigh functional of the `nep`, i.e., computes a vector
+``Λ`` of values ``λ``
+such that ``y^TM(λ)x=0``, using the procedure specified in `inner_solver`.
+The default behaviour consists of a scalar valued
 Newton-iteration, and the returned vector has only one element.
 
 The given eltype<:Number is the type of the returned vector.
 
 # Example
 
+This uses `iar` to solve the (scalar) nonlinear problem.
+
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> x=ones(size(nep,1));
-julia> s=compute_rf(Float64,nep,x)[1]; # Take just first element
-0.6812131933795569
+julia> s=compute_rf(ComplexF64,nep,x,IARInnerSolver())[1]; # Take just first element
+0.6812131933795565 + 0.0im
 julia> x'*compute_Mlincomb(nep,s,x)
--8.881784197001252e-16
+1.7763568394002505e-15 + 0.0im
 ```
 """
     function compute_rf(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;
