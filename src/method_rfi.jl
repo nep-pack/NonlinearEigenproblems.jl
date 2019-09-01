@@ -70,7 +70,7 @@ function rfi(::Type{T},
             y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
             v[:] = normalize(y)
 
-            λ_vec = compute_rf_new(T,nep, u, inner_solver, y=v)
+            λ_vec = compute_rf(T,nep, u, inner_solver, y=v)
             λ = closest_to(λ_vec,  λ)
         end
 
@@ -145,7 +145,7 @@ function rfi_b(::Type{T},
             t = l2[1:end-1]
             v[:] = normalize(v+t)
 
-            λ_vec = compute_rf_new(T,nep, u, inner_solver, y=v)
+            λ_vec = compute_rf(T,nep, u, inner_solver, y=v)
             λ = closest_to(λ_vec,  λ)
         end
 

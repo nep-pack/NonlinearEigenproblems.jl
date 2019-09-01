@@ -15,7 +15,7 @@ struct ScalarNewtonInnerSolver <: InnerSolver
     end
 end
 
-function compute_rf_new(T0::Type{T}, nep::NEP, x, inner_solver::ScalarNewtonInnerSolver;
+function compute_rf(T0::Type{T}, nep::NEP, x, inner_solver::ScalarNewtonInnerSolver;
                         y=x, target=zero(T), λ0=target,
                         kwargs...) where T
     λ_iter = T(λ0);
@@ -67,7 +67,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
 -8.881784197001252e-16
 ```
 """
-    function compute_rf_new(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;
+    function compute_rf(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;
                         y=x, target=zero(T), λ0=target,
                         TOL=eps(real(T))*1e3, max_iter=30,kwargs...) where T
 
@@ -97,7 +97,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
 
 
 
-function compute_rf_new(::Type{T},nep::NEP,x, inner_solver::PolyeigInnerSolver; y=x, target=zero(T), λ0=target,
+function compute_rf(::Type{T},nep::NEP,x, inner_solver::PolyeigInnerSolver; y=x, target=zero(T), λ0=target,
                     TOL=eps(real(T))*1e3,max_iter=10) where T
 
     @show λ0

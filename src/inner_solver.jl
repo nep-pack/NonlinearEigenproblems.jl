@@ -13,7 +13,7 @@ export SGIterInnerSolver
 export ContourBeynInnerSolver
 export NleigsInnerSolver
 
-export compute_rf_new
+export compute_rf
 
 """
     abstract type InnerSolver
