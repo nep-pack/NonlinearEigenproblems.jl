@@ -45,6 +45,7 @@ If l is a number it canges l to a PrintLogger(l).
     include("method_nleigs.jl")
 
     include("inner_solver.jl");
+    include("compute_rf_wrapper.jl");
 
 
     """
