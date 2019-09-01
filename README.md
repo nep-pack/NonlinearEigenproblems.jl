@@ -31,7 +31,7 @@ julia> ]
 ```
 ## NEP solvers
 
-These solvers are currently available (see https://nep-pack.github.io/NonlinearEigenproblems.jl/methods/):
+Features and solvers (see documentation https://nep-pack.github.io/NonlinearEigenproblems.jl/methods/ for further information and references): 
 
 * Arnoldi/Krylov type
     * NLEIGS
@@ -46,6 +46,7 @@ These solvers are currently available (see https://nep-pack.github.io/NonlinearE
 * Contour integral methods
     * Beyn's contour integral method
     * Block SS (Higher moments) contour integral method of Asakura & Sakurai
+    * Common quadrature interface for parallelization
 * Newton & Rayleigh type:
     * Classical Newton-Raphson
     * Augmented Newton
@@ -55,9 +56,16 @@ These solvers are currently available (see https://nep-pack.github.io/NonlinearE
     * Rayleigh functional iteration (RFI a, b)
     * Newton-QR
     * Implicit determinant method
-    * Broyden's method 
-* Deflation
-    * Effenberger style deflation
+    * Broyden's method
+* Companion matrices
+    * First companion form
+    * Companion form for Chebyshev polynomials
+* Other
+    * Chebyshev interpolation
+    * Transformations 
+    * Rayleigh-Ritz (`ProjNEP` and `inner_solve`)
+    * Problem gallery (including access to the NLEVP-gallery)
+    * Deflation (Effenberger style)
     
 
 # Development
