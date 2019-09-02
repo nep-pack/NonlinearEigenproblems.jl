@@ -30,7 +30,7 @@ rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
 function rfi(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -47,11 +47,9 @@ function rfi(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err = estimate_error(ermdata,λ,u)
+            err = estimate_error(errmeasure,λ,u)
 
             if(err < tol)
                 return λ,u,v
@@ -104,7 +102,7 @@ rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi_b(ComplexF64,nep, nept,;kwargs...)
 function rfi_b(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -119,11 +117,9 @@ function rfi_b(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err = estimate_error(ermdata,λ,u)
+            err = estimate_error(errmeasure,λ,u)
 
             if(err < tol)
                 return λ,u,v

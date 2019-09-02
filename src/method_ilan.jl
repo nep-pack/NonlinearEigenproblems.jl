@@ -68,7 +68,7 @@ function ilan(
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
-    errmeasure::ErrmeasureType = DefaultErrmeasure,
+    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -130,8 +130,7 @@ function ilan(
     k=1; conv_eig=0;
     Av=get_Av(nep)
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
+
 
     while (k <= m) && (conv_eig<neigs)
 
@@ -175,7 +174,7 @@ function ilan(
             mm=size(VV,2)
             pnep=create_proj_NEP(nep,mm); # maxsize=mm
             set_projectmatrices!(pnep,VV,VV);
-            err_lifted=(λ,z)->estimate_error(ermdata,λ,VV*z);
+            err_lifted=(λ,z)->estimate_error(errmeasure,λ,VV*z);
 
             # solve the projected NEP
             push_info!(logger,2,"Solving the projected problem",continues=true);

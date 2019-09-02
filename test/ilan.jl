@@ -19,8 +19,8 @@ using SparseArrays
 
         nep=DEP([A1,A2,A3],[0,1,0.8])
         v0=rand(n)
-        V,H,ω,HH=ilan_benchmark(nep,σ=0,γ=1;neigs=10,displaylevel=0,maxit=10,tol=eps()*100,check_error_every=1,v=v0,errmeasure=ResidualErrmeasure)
-        _,_,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=10,tol=eps()*100,check_error_every=1,v=v0,errmeasure=ResidualErrmeasure)
+        V,H,ω,HH=ilan_benchmark(nep,σ=0,γ=1;neigs=10,displaylevel=0,maxit=10,tol=eps()*100,check_error_every=1,v=v0,errmeasure=ResidualErrmeasure(nep))
+        _,_,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=10,tol=eps()*100,check_error_every=1,v=v0,errmeasure=ResidualErrmeasure(nep))
 
         # Disabled. This unit test requires rewriting (and ilan_benchmark can be removed)
         @test norm(V-V2)<sqrt(eps())
