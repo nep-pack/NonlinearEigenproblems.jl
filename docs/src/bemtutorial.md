@@ -8,8 +8,8 @@ to do it, as it illustrates some of the workings of NEP-PACK.
 However, the use case is common enough to have native support
 in NEP-PACK. Hence, we also show how to use a special NEP-type called `Mder_NEP`.
 
-For this example we use a 
-[boundary element method](https://en.wikipedia.org/wiki/Boundary_element_method) 
+For this example we use a
+[boundary element method](https://en.wikipedia.org/wiki/Boundary_element_method)
 approach for computation
 of resonances. The complete code is available in
 `gallery_extra/bem_hardcoded`. The example is also
@@ -137,7 +137,7 @@ Some of the manual implementation can be avoided by using the `Mder_NEP` type.
 We only need to pass the size of the NEP and a function to compute ``M^{(k)}(λ)``, i.e.,
 `(λf,derf) -> assemble_BEM(λf, mymesh, gauss_order, derf)[:,:,1]`, to the `Mder_NEP`.
 ```julia-repl
-julia> n = length(mymesh); # OBS: precompute_quad!(mymesh,gauss_order); is already done above
+julia> n = length(mymesh);
 julia> mdernep = Mder_NEP(n, (λf,derf) -> assemble_BEM(λf, mymesh, gauss_order, derf)[:,:,1]);
 julia> (mderλ,mderv)=mslp(mdernep,λ=8,logger=1);
 iter 1 err:4.122635537095191e-6 λ=8.128272919317748 + 0.007584851218213724im
@@ -147,5 +147,11 @@ iter 4 err:4.417989064002117e-18 λ=8.132145310195458 - 1.264891803723658e-5im
 julia> λ-mderλ
 0.0 + 0.0im
 ```
+!!! note
+    The above code executes under the assumption that the following code had been
+    run:
+    ```julia
+    precompute_quad!(mymesh,gauss_order);
+    ```
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_BEMTUTORIAL)
