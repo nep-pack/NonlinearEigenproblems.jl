@@ -39,7 +39,8 @@ abstract type Errmeasure; end
     ErrmeasureType = Union{Type{<:Errmeasure}, Function}
 
 The `ErrmeasureType` represents (essentially) what you can insert in the
-`errmeasure` keyword argument for most NEP-solvers.
+`errmeasure` keyword argument for most NEP-solvers. It can be
+a function or an  [`Errmeasure`](@ref) object.
 If it is a `Function` this function will be used to obtain
 error estimate.
 
@@ -70,6 +71,8 @@ iter 12 err:0.0 λ=-1.002466988585765 + 0.0im
 ```
 The eigenvalue error can be measured with the
 [`EigvalReferenceErrmeasure`](@ref).
+
+See also: [`Errmeasure`](@ref)
 """
 ErrmeasureType = Union{Errmeasure, Function}
 
