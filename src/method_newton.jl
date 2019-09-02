@@ -240,7 +240,7 @@ The following keyword arguments are in common for many NEP-solvers:
 
 * `logger` is eiter a `Logger` object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
 
-* `errmeasure` determines how error is measured. It is either a function handle or a type inheriting from `Errmeasure`. See [`Errmeasure`](@ref) for further description. If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error).
+* `errmeasure` determines how error is measured. It is either a function handle or an object of the type `Errmeasure`.  If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error). See [`Errmeasure`](@ref) and [`ErrmeasureType`](@ref) for further description.
 
 * `tol` is a scalar which determines termination. If `errmeasure` is less than `tol` the eigenpair is marked as converged.
 
@@ -248,9 +248,10 @@ The following keyword arguments are in common for many NEP-solvers:
 
 * `maxit` determines the maximum number of iterations. The error `NoConvergenceException` is thrown if this is exceeded.
 
+*  The `linsolvecreator` specifies how the linear system should be solved. See [`LinSolver`](@ref) for further information.
+
 * `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
 
-*  The `linsolvecreator` specifies how the linear system should be solved. See [`LinSolver`](@ref) for further information.
 
 
 
