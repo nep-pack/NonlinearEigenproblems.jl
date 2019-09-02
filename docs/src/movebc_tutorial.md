@@ -223,7 +223,7 @@ The following function provides an estimate of the backward error
 e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|_F+|λ|
 +|g(λ)|\|I\|_F+|f(λ)|\|F\|_F)}
 ```
-This way to measure the error is used if you specify `errmeasure=BackwardErrmeasure`. See section [Error measure](errmeasure.md) for further details, and how you can
+This way to measure the error is used if you specify `errmeasure=BackwardErrmeasure(nep)`. See section [Error measure](errmeasure.md) for further details, and how you can
 specify a user defined error measurement function.
 The  `quasinewton` simulations above terminate in less iterations when this
 error measure is used. With this use of measuring the error other
@@ -231,7 +231,7 @@ methods, e.g., infinite Arnoldi method terminate in a reasonable
 number of iterations:
 ```julia-repl
 julia> (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,
-                 errmeasure=BackwardErrmeasure,neigs=5,maxit=100);
+                 errmeasure=BackwardErrmeasure(nep),neigs=5,maxit=100);
 Iteration:1 conveig:0
 Iteration:2 conveig:0
 Iteration:3 conveig:0
