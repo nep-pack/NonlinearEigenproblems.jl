@@ -1,10 +1,11 @@
 # NEP Methods
 
 The NEP solver methods implemented in NEP-PACK, are accessed by
-the functions below. The functions all return ``λ,v,w`` where
+the functions below. The functions all return ``λ,v`` where
 ``λ`` is either a number (eigenvalue) a vector of eigenvalues
 ``v`` is either a vector containing an eigenvector
-or a matrix whose columns corresponding to the eigenvectors.
+or a matrix whose columns corresponding to the eigenvectors. 
+Two-sided methods may return ``λ,v,w`` where ``w`` are the left eigenvectors.
 
 The first parameter optional parameter in all NEP solver methods
 is a type. This type specifies which arithmetic should be used
