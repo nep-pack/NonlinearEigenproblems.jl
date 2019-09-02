@@ -44,7 +44,7 @@ using SparseArrays
 
         f1= S -> -S; f2= S -> one(S); f3= S -> exp(-S); f4= S -> exp(-0.8*S)
         nep=SPMF_NEP([one(A1),A1,A2,A3],[f1,f2,f3,f4])
-        _,_,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=10,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure)
+        _,_,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=10,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure(nep))
 
         @test norm(V-V2)<sqrt(eps())
         @test norm(H-H2)<sqrt(eps())
