@@ -70,7 +70,7 @@ function iar_chebyshev(
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
-    errmeasure::ErrmeasureType = DefaultErrmeasure,
+    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -132,8 +132,6 @@ function iar_chebyshev(
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,compute_y0_method,a,b,maxit,γ,σ)
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     while (k <= m) && (conv_eig<neigs)
 
@@ -162,7 +160,7 @@ function iar_chebyshev(
             conv_eig=0;
             # compute the errors
             err[k,1:size(λ,1)]=
-              map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+              map(s-> estimate_error(errmeasure,λ[s],Q[:,s]), 1:size(λ,1))
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)],
                                  continues=true);
