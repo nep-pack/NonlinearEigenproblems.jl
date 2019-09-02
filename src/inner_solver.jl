@@ -13,6 +13,8 @@ export SGIterInnerSolver
 export ContourBeynInnerSolver
 export NleigsInnerSolver
 
+export compute_rf
+
 """
     abstract type InnerSolver
 
@@ -255,7 +257,9 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
                 v0=V[:,k]; # Starting vector for projected problem
             end
 
-            projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
+            n=size(nep,1);
+
+            projerrmeasure=ResidualErrmeasure;
             # Compute a solution to projected problem with Newton's method
             λ1,vproj=is.newton_function(
                 T_arit,nep,logger=inner_logger,λ=λv[k],

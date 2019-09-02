@@ -12,6 +12,12 @@ fortran code scare you.
 The following tutorial illustrates interoperability
 in Julia and how to use it in NEP-PACK.
 
+!!! note
+    To work with NEPs defined in fortran you need to compile your fortran code.
+    This tutorial is written for Ubuntu Linux and
+    [GNU fortran](https://gcc.gnu.org/wiki/GFortran).
+    However, it is possible also under the Windows OS.
+
 We assume our NEP is defined in fortran code and
 defines the problem
 ```math
@@ -26,10 +32,13 @@ is given in the following subroutine which
 computes three vectors `I`, `J` and `F`, where `I` and `J`
 correspond to row and column pointers and `F` the value
 of the sparse matrix.
-The variable `s=λ` is the evaluation point.
+The variable `s` is ``λ``, i.e., the evaluation point.
 The input `der` determines which derivative
-of `M` should be computed. (If derivatives are not easily available
-in your application, see next section.)
+of ``M(λ)`` should be computed.
+
+!!! tip
+    Later in this tutorial we look at what can be done if the
+    [derivatives are not easily available](tutorial_fortran1.md#Implementation-in-NEP-PACK:-basic-usage,-no-derivatives-1).
 
 This is the implementation which we put in `myproblem.f95`:
 ```fortran
@@ -82,17 +91,16 @@ end subroutine mder
 ## Compile and call the code
 
 
-Compile the code to a shared object file. With ubuntu
-linux and GNU fortran, this is achieved with
+Compile the code to a shared object file with the command `gfortran`:
 ```bash
 $ gfortran -shared -fPIC -o myproblem.so myproblem.f95
 ```
-(Under the windows OS, you would want to compile the code to a dll-file.)
+(Under the Windows OS, you would want to compile the code to a dll-file.)
 In Julia, you can now call this routine using the `Libdl`
 package:
 ```julia
-using Libdl;
-mylib=Libdl.dlopen("./myproblem.so")
+using NonlinearEigenproblems, Libdl;
+mylib=Libdl.dlopen("./myproblem.so");
 λ=0.3;
 der=0;
 n=3; # Problem size
@@ -109,7 +117,7 @@ ccall(Libdl.dlsym(mylib,:mder_), Nothing,
 The above code sets vectors `I`, `J` and `F` such that they
 represent a sparse matrix. The sparse matrix can be
 constructed with the `sparse` command:
-```julia
+```julia-repl
 julia> using SparseArrays
 julia> A=sparse(I,J,F)
 3×3 SparseMatrixCSC{Float64,Int64} with 9 stored entries:
@@ -130,19 +138,15 @@ julia> Matrix(A)
 ```
 
 ## Implementation in NEP-PACK: basic usage
-
-(Note: The example below is based on `Mder_NEP` and `Mder_Mlincomb_NEP` which
-are available starting from NEP-PACK version 0.2.5.)
-
 We saw above how to compute a derivative matrix with a fortran call.
 This is sufficient to define a NEP-object in NEP-PACK using
 the `Mder_NEP` type.
 
 ```julia
-julia> n=100;
-julia> # A function which allocates vectors and calls fortran,
-julia> # and returns a sparse matrix
-julia> function my_Mder(λ::Float64,der::Int=0)
+n=100;
+# A function which allocates vectors and calls fortran,
+# and returns a sparse matrix
+function my_Mder(λ::Float64,der::Int=0)
   # Index vectors: Length 3*n since we have 3n nnz elements in matrix
   I=Vector{Int}(undef,3*n);
   J=Vector{Int}(undef,3*n);
@@ -152,8 +156,12 @@ julia> function my_Mder(λ::Float64,der::Int=0)
      λ, n, der, I, J, F)
   return sparse(I,J,F);
 end
-julia> nep=Mder_NEP(n,my_Mder)
-julia> quasinewton(Float64,nep,λ=-1.8,v=ones(n), logger=1)
+nep=Mder_NEP(n,my_Mder);
+```
+With the NEP defined, we can use, e.g.,
+[`quasinewton`](methods.md#NonlinearEigenproblems.NEPSolver.quasinewton), to solve it:
+```julia-repl
+julia> quasinewton(Float64,nep,λ=-1.8,v=ones(n), logger=1);
 Precomputing linsolver
 Iteration:  1 errmeasure:4.903565024143569095e-01, λ=-1.8
 Iteration:  2 errmeasure:8.776860766232853772e-02, λ=-1.3816406142423465
@@ -162,13 +170,12 @@ Iteration:  3 errmeasure:6.109070850428219984e-02, λ=-2.0060080798679913
 Iteration: 11 errmeasure:5.305001776886219717e-12, λ=-1.7940561686588974
 Iteration: 12 errmeasure:2.895637837297152945e-14, λ=-1.7940561686787597
 Iteration: 13 errmeasure:3.874312247075750238e-16, λ=-1.7940561686786516
-(-1.7940561686786516, [76.9596, 80.634, 84.3084, 87.9827, 91.6571, 95.3315, 99.0059, 102.68, 106.355, 110.029  …  407.653, 411.328, 415.002, 418.676, 422.351, 426.025, 429.699, 433.374, 437.048, 440.723])
 ```
 
 
 ## Implementation in NEP-PACK: basic usage, no derivatives
 
-In the above example, all the derivatives of `M` were
+In the above example, all the derivatives of ``M(λ)`` were
 easy to compute by hand and made available in the fortran subroutine.
 In many applications, the nonlinearity is not so simple,
 and its derivatives may require man-hours to analyze and implement,
@@ -193,8 +200,8 @@ any numerical differentiation procedure may be used.
 since all calls are done with `der=0`.)
 
 ```julia
-julia> n=100;
-julia> function my_Mder_FD(λ::Float64,der::Int=0)
+n=100;
+function my_Mder_FD(λ::Float64,der::Int=0)
   if (der>1)
    error("Higher derivatives not supported");
   end
@@ -222,14 +229,13 @@ julia> function my_Mder_FD(λ::Float64,der::Int=0)
   end
 end
 ```
-Create the `NEP` and call a solver, in this case [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
+Create the NEP and call a solver, in this case [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
 ```julia
-julia> nep=Mder_NEP(n,my_Mder_FD)
-julia> mslp(Float64,nep,λ=-1.8, logger=1)
-Iteration:1 errmeasure:5.145479494934554e-6 λ=-1.7941228234498503
-Iteration:2 errmeasure:6.604789080027513e-10 λ=-1.7940561772509709
-Iteration:3 errmeasure:4.3096620402514632e-16 λ=-1.794056168678654
-(-1.794056168678654, [0.0275122, 0.0288257, 0.0301393, 0.0314528, 0.0327664, 0.0340799, 0.0353935, 0.036707, 0.0380206, 0.0393341  …  0.145731, 0.147045, 0.148358, 0.149672, 0.150986, 0.152299, 0.153613, 0.154926, 0.15624, 0.157553])
+julia> nep=Mder_NEP(n,my_Mder_FD,maxder=1);
+julia> mslp(Float64,nep,λ=-1.8,logger=1);
+iter 1 err:5.14547949525844e-6 λ=-1.7941228234498503
+iter 2 err:6.60477516490422e-10 λ=-1.7940561772509709
+iter 3 err:5.617933513637005e-16 λ=-1.794056168678654
 ```
 
 
@@ -238,8 +244,8 @@ Iteration:3 errmeasure:4.3096620402514632e-16 λ=-1.794056168678654
 The above procedure requires that sparse matrices are created
 every time the NEP is accessed. This may be computationally
 demanding. A common call in NEP-PACK,
-is to compute the matrix vector product `M(λ)*v`.
-If the creation of the matrix `M(λ)` requires considerable
+is to compute the matrix vector product ``M(λ)*v``.
+If the creation of the matrix ``M(λ)`` requires considerable
 computation or storage, you may want to implement
 the function which directly computes the matrix vector product.
 This is made available to the NEP-PACK object
@@ -267,10 +273,10 @@ end subroutine matvec
 ```
 After recompilation of the library file
 `myproblem.so`,
-restarting Julia and loading again `myproblem.so`, we
+restarting Julia, and loading again `myproblem.so`, we
 can make a matvec function available.
 ```julia
-julia> function my_matvec(λ,v)
+function my_matvec(λ,v)
    v=vec(v);  # It has to be a vector
    x=copy(v); # Allocate a vector for storage of result
    ccall(Libdl.dlsym(mylib,:matvec_), Nothing,
@@ -278,22 +284,24 @@ julia> function my_matvec(λ,v)
       λ, n, v, x)
    return x;
 end
+```
+We can now create a `Mder_Mlincomb_NEP` which is defined from both
+matrix derivative computations as well as matrix vector products (or more
+generally linear combinations of derivatives).
+```julia-repl
 julia> nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);
 ```
-The last line creates a `NEP` defined from both matrix derivative
-computations as well as matrix vector products (or more
-generally linear combinations of derivatives). The `1` and `0`
-specify the highest derivative available for the two functions.
-We can now solve it with many methods, e.g.
+The `1` and `0` specify the highest derivative available for the two functions.
+We can now solve the NEP with many methods, e.g.
 [`resinv`](methods.md#NonlinearEigenproblems.NEPSolver.resinv).
-```julia
-julia> resinv(Float64,nep2,λ=-1.8,v=ones(n),logger=1)
-Iteration:  1 errmeasure:4.903565024143570761e-01
-Iteration:  2 errmeasure:1.145360525649362360e-01
+```julia-repl
+julia> resinv(Float64,nep2,λ=-1.8,v=ones(n),logger=1);
+Precomputing linsolver
+iter 1 err:0.4903565024143571 λ=-1.8
+iter 2 err:0.11453605256493624 λ=-1.1926857650225988
 ...
-Iteration:  7 errmeasure:5.834331567428062526e-13
-Iteration:  8 errmeasure:2.989922602862964175e-15
-(-1.794056168678641, [0.0275122, 0.0288257, 0.0301393, 0.0314528, 0.0327664, 0.0340799, 0.0353935, 0.036707, 0.0380206, 0.0393341  …  0.145731, 0.147045, 0.148358, 0.149672, 0.150986, 0.152299, 0.153613, 0.154926, 0.15624, 0.157553])
+iter 7 err:5.834331567428063e-13 λ=-1.7940561686808254
+iter 8 err:2.989922602862964e-15 λ=-1.794056168678641
 ```
 
 When using NEP-solvers requiring higher derivatives,

@@ -37,6 +37,7 @@ function rfi(::Type{T},
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator=BackslashLinSolverCreator(), # Note: Not default. It's better to use backslash
+            inner_solver=@default_compute_rf_inner_solver(nep),
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
@@ -67,7 +68,7 @@ function rfi(::Type{T},
             y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
             v[:] = normalize(y)
 
-            λ_vec = compute_rf(nep, u, y=v)
+            λ_vec = compute_rf(T,nep, u, inner_solver, y=v)
             λ = closest_to(λ_vec,  λ)
         end
 
@@ -108,6 +109,7 @@ function rfi_b(::Type{T},
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
+            inner_solver=@default_compute_rf_inner_solver(nep),
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
@@ -139,7 +141,7 @@ function rfi_b(::Type{T},
             t = l2[1:end-1]
             v[:] = normalize(v+t)
 
-            λ_vec = compute_rf(nep, u, y=v)
+            λ_vec = compute_rf(T,nep, u, inner_solver, y=v)
             λ = closest_to(λ_vec,  λ)
         end
 

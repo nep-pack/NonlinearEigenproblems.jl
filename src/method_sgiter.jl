@@ -39,6 +39,7 @@ function sgiter(::Type{T},
                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
+                   inner_solver=@default_compute_rf_inner_solver(nep),
                    logger = 0,
                    eigsolvertype::Type = DefaultEigSolver
                    ) where {T<:Number}
@@ -70,7 +71,7 @@ function sgiter(::Type{T},
     for k = 1:maxit
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
        v[:] = compute_jth_eigenvector(eig_solver, nep, λ, j)
-       λ_vec = compute_rf(real_T, nep, v, TOL = tol/10)
+       λ_vec = compute_rf(real_T, nep, v, inner_solver, TOL = tol/10)
        push_info!(logger,2,"compute_rf: $λ_vec")
        λ = choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
        err = estimate_error(errmeasure,λ, v)

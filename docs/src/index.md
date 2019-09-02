@@ -10,7 +10,7 @@ M(λ)v=0
 and ``v\neq 0``.
 
 
-# Getting started
+## Getting started
 
 Install it as a registered  package in Julia's REPL package mode by
 typing `] add Nonline...`:
@@ -55,7 +55,7 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
     MATLAB users: Do you have a NEP defined in MATLAB? You can solve MATLAB-defined NEPs with this package.  See [the MATLAB tutorial](tutorial_matlab1.md). We also have some MATLAB implementations of the solvers in NEP-PACK in a [separate repository](https://github.com/nep-pack/NEP-PACK-matlab-reference).
 
 
-# Accessing more complicated applications
+## Accessing more complicated applications
 
 We have made benchmark examples available through the function [`nep_gallery`](gallery.md#NonlinearEigenproblems.nep_gallery):
 
@@ -91,7 +91,7 @@ tolerance for iteration termination.
 
 
 
-# A model of a neuron
+## A model of a neuron
 
 The following (delay) differential equation models a neuron
 ```math
@@ -150,7 +150,7 @@ savefig("neuron_eigvals.svg"); nothing # hide
 !!! tip
     This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`. Most of the NEPs constructed in the tutorials are also available in corresponding gallery problems. See all gallery problems under [NEP Gallery](gallery.md). In particular, note that the problems in the Berlin-Manchester collection of problems NLEVP are also [directly available](gallery.md#Berlin-Manchester-collection-1).
 
-# The "gun" benchmark problem
+## The "gun" benchmark problem
 
 One of the most common benchmark problems for NEPs is the so-called "gun"-problem.
 It models an electromagnetic cavity, and it is directly available in the NEP-PACK
@@ -188,7 +188,7 @@ give the author of the algorithm credit by citiation. The
 recommended citation can be found in the function
 documentation, e.g., `?blocknewton`.
 
-# Your own NEP nonlinearity
+## Your own NEP nonlinearity
 
 As an application researcher, we recommend that you first try to
 express your problem in the following form since it
@@ -226,7 +226,7 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
   -8.815768150428286e-15 + 0.0im
 ```
 
-# What now?
+## What now?
 
 Now you are ready to try out
 one of our tutorials
