@@ -22,7 +22,7 @@ makedocs(
         "Tutorial 2 (Contour)" => "tutorial_contour.md",
         "Tutorial 3 (BEM)" => "bemtutorial.md",
         "Tutorial 4 (Deflation)" => "deflate_tutorial.md",
-        "Tutorial 5 (Python NEP)" => "tutorial_call_python.md",
+        "Tutorial 5 (Python)" => "tutorial_call_python.md",
         "Tutorial 6 (MATLAB)" => "tutorial_matlab1.md",
         "Tutorial 7 (FORTRAN)" => "tutorial_fortran1.md",
         "Tutorial 8 (gmsh + nanophotonics)" => "tutorial_nano1.md",
