@@ -930,7 +930,7 @@ i.e., if nep is created by SumNEP it is defined by
 ```math
 M(λ)=M_1(λ)+M_2(λ)
 ```
-where M_1 and M_2 are defined by `nep1` and `nep2`.
+where ``M_1`` and ``M_2`` are defined by `nep1` and `nep2`.
 
 # Example:
 ```julia-repl
