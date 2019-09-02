@@ -10,7 +10,7 @@ export mslp
 Runs the method of successive linear problems. The  method requires the solution of a
 generalized eigenvalue problem in every iteration. The method used for the eigenvalue
 computation is specified in eigsolvertype.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -37,7 +37,7 @@ julia> compute_Mlincomb(nep,λ,v)
 mslp(nep::NEP;params...)=mslp(ComplexF64,nep;params...)
 function mslp(::Type{T},
                  nep::NEP;
-                 errmeasure::ErrmeasureType = DefaultErrmeasure,
+                 errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                  tol::Real=eps(real(T))*100,
                  maxit::Integer=100,
                  λ::Number=zero(T),
@@ -56,8 +56,6 @@ function mslp(::Type{T},
 
     err=Inf;
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     # Main loop
     for k=1:maxit
@@ -75,7 +73,7 @@ function mslp(::Type{T},
         normalize!(v)
 
         # Checck for convergence
-        err=estimate_error(ermdata,λ,v)
+        err=estimate_error(errmeasure,λ,v)
         push_iteration_info!(logger,k,err=err,λ=λ);
 
         if (err< tol)

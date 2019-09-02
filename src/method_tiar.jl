@@ -27,7 +27,7 @@ The parameter `proj_solve` determines if the Ritz paris are extracted using the 
 or as the solution to a projected problem (true). If true, the method is descided by `inner_solver_method`, and the
 logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 
@@ -59,7 +59,7 @@ function tiar(
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
-    errmeasure::ErrmeasureType = DefaultErrmeasure,
+    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -112,8 +112,6 @@ function tiar(
         pnep=create_proj_NEP(nep,maxit,T);
     end
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     k=1; conv_eig=0;
     while (k <= m)&(conv_eig<neigs)
@@ -153,7 +151,7 @@ function tiar(
             mul!(Ah,a[1:k+1,1:k,l],h[1:k])
             f[1:k+1,l] .-= Ah;
         end
-        
+
         # re-orthogonalization
         # compute hh (re-orthogonalization with tensors factorization)
         hh = zero(hh)
@@ -212,7 +210,7 @@ function tiar(
 
             conv_eig=0;
             err[k,1:size(λ,1)]=
-              map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+              map(s-> estimate_error(errmeasure,λ[s],Q[:,s]), 1:size(λ,1))
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);

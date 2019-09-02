@@ -11,7 +11,7 @@ export rfi_b
 This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -30,7 +30,7 @@ rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
 function rfi(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -48,11 +48,9 @@ function rfi(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err = estimate_error(ermdata,λ,u)
+            err = estimate_error(errmeasure,λ,u)
 
             if(err < tol)
                 return λ,u,v
@@ -84,7 +82,7 @@ end
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -105,7 +103,7 @@ rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi_b(ComplexF64,nep, nept,;kwargs...)
 function rfi_b(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
@@ -121,11 +119,9 @@ function rfi_b(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err = estimate_error(ermdata,λ,u)
+            err = estimate_error(errmeasure,λ,u)
 
             if(err < tol)
                 return λ,u,v

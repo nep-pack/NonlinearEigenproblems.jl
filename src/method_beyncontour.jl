@@ -57,7 +57,7 @@ function contour_beyn(::Type{T},
                       k::Integer=neigs+1, # Columns in matrix to integrate
                       radius::Union{Real,Tuple,Array}=1, # integration radius
                       N::Integer=1000,  # Nof quadrature nodes
-                      errmeasure::ErrmeasureType = DefaultErrmeasure,
+                      errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                       sanity_check=true,
                       rank_drop_tol=tol # Used in sanity checking
                       )where{T<:Number, MIntegrator<:MatrixIntegrator}
@@ -80,9 +80,6 @@ function contour_beyn(::Type{T},
         error("k must be positive, k=",k,
               neigs==typemax(Int) ? ". The kwarg k must be set if you use neigs=typemax" : ".")
     end
-
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
 
     Random.seed!(10); # Reproducability
@@ -143,7 +140,7 @@ function contour_beyn(::Type{T},
     # Compute all the errors
     errmeasures=zeros(real(T),p);
     for i = 1:p
-        errmeasures[i]=estimate_error(ermdata,λ[i],V[:,i]);
+        errmeasures[i]=estimate_error(errmeasure,λ[i],V[:,i]);
     end
 
     good_index=findall(errmeasures .< tol);

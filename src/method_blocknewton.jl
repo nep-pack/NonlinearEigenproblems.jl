@@ -13,7 +13,7 @@ The variables `S`,`X`
 correspond to starting approximations.
 The function `errmeasure` shoule be defined for errmeasure(S,X)
 and meausures the error in the pair `(S,X)`.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example

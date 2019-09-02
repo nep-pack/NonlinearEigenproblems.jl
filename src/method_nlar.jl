@@ -12,7 +12,7 @@ export threshold_eigval_sorter
 """
     function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[λ0=0],[v0=randn(T,size(nep,1))],[logger=0],[linsolvercreator=DefaultLinSolverCreator()],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
 
-The function implements the Nonlinear Arnoldi method, which finds `neigs` eigenpairs(or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm.
+The function implements the Nonlinear Arnoldi method, which finds `neigs` eigenpairs (or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm.
 The basis is orthogonalized either by using the QR method if `qrfact_orth` is `true` or else by an orthogonalization method `orthmethod`).
 This entails solving a smaller projected problem using a method specified by `inner_solver_method`.
 The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
@@ -20,7 +20,7 @@ The logging of the inner solvers are descided by `inner_logger`, which works in 
 `R` is a parameter used by the function specified by `eigval_sorter` to reject those ritz values that are within a distance `R` from any of the converged eigenvalues, so that repeated convergence to the same eigenpair can be avoided.
 `max_subspace` is the maximum allowable size of the basis befor the algorithm restarts using a basis made of `num_restart_ritz_vecs` ritz vectors and the eigenvectors that the algorithm has converged to.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -40,7 +40,7 @@ function nlar(::Type{T},
             nep::ProjectableNEP;
             orthmethod::Type{T_orth} = ModifiedGramSchmidt,
             neigs::Int=10,                                     #Number of eigenvalues required
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*100,
             maxit::Int = 100,
             λ::Number = zero(T),
@@ -103,8 +103,6 @@ function nlar(::Type{T},
 
         err = Inf;
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
 
         push_info!(logger, "Using inner solver $inner_solver_method");
@@ -136,7 +134,7 @@ function nlar(::Type{T},
 
 
             #Check for convergence of one of the eigenvalues
-            err = estimate_error(ermdata,nu,u);
+            err = estimate_error(errmeasure,nu,u);
 
 
             push_iteration_info!(logger,k,λ=nu,v=u,err=err);
@@ -254,7 +252,7 @@ end
 # Residual-based Ritz value sorter:
 # First discard all Ritz values within a distance R of any of the converged eigenvalues(of the original problem).
 # Then select that Ritz value which gives the mm-th minimum product of (residual and distance from pole).
-function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::ErrmeasureType = DefaultErrmeasure)
+function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::ErrmeasureType = DefaultErrmeasure(nep))
 
     eig_res = zeros(size(dd,1));
     dd2=copy(dd);
@@ -262,12 +260,10 @@ function residual_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::ErrmeasureT
     #Discard ritz values within a distance R of the converged eigenvalues
     discard_ritz_values!(dd2,D,R)
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     #Compute residuals for each Ritz value
     for i=1:size(dd,1)
-        eig_res[i] = estimate_error(ermdata,dd[i],Vk*vv[:,i]);
+        eig_res[i] = estimate_error(errmeasure,dd[i],Vk*vv[:,i]);
     end
 
     #Sort according to methods
@@ -281,7 +277,7 @@ end
 
 # Threshold residual based Ritz value sorter:
 # Same as residual_eigval_sorter() except that errors above a certain threshold are set to the threshold.
-function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::ErrmeasureType = DefaultErrmeasure,threshold=0.1)
+function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::ErrmeasureType = DefaultErrmeasure(nep),threshold=0.1)
 
     eig_res = zeros(size(dd,1));
     dd2=copy(dd);
@@ -289,13 +285,10 @@ function threshold_eigval_sorter(nep::NEP,dd,vv,σ,D,R,Vk,errmeasure::Errmeasure
     #Discard ritz values within a distance R of the converged eigenvalues
     discard_ritz_values!(dd2,D,R)
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
-
     #Compute residuals for each Ritz value
     temp_res = 0;
     for i=1:size(dd,1)
-        temp_res = error_measure(ermdata,dd[i],Vk*vv[:,i]);
+        temp_res = error_measure(errmeasure,dd[i],Vk*vv[:,i]);
         if(temp_res > threshold)
             eig_res[i] = threshold;
         else

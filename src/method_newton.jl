@@ -26,24 +26,7 @@ M(λ)v=0
 c^Hv-1=0
 ```
 The vector `c` is the
-orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization.
-
-The following keyword arguments are in common for many NEP-solvers:
-
-* `logger` is eiter a `Logger` object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
-
-* `errmeasure` determines how error is measured. It is either a function handle or a type inheriting from `Errmeasure`. See [`Errmeasure`](@ref) for further description. If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error).
-
-* `tol` is a scalar which determines termination. If `errmeasure` is less than `tol` the eigenpair is marked as converged.
-
-* The scalar `λ` and the vector `v` are starting approximations.
-
-* `maxit` determines the maximum number of iterations. The error `NoConvergenceException` is thrown if this is exceeded.
-
-* `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
-
-*  The `linsolvecreator` specifies how the linear system should be solved. See [`LinSolver`](@ref) for further information.
-
+orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization. See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -61,7 +44,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
     newton(nep::NEP;params...)=newton(ComplexF64,nep;params...)
     function newton(::Type{T},
                     nep::NEP;
-                    errmeasure::ErrmeasureType = DefaultErrmeasure,
+                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                     tol::Real=eps(real(T))*100,
                     maxit::Int=10,
                     λ::Number=zero(T),
@@ -81,11 +64,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         err=Inf;
         v[:] = v/dot(c,v);
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
-
         for k=1:maxit
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
@@ -107,7 +87,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             Δv=Vector{T}(delta[1:size(nep,1)]);
             Δλ=T(delta[size(nep,1)+1]);
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
                 push_info!(logger," Armijo scaling=$scaling")
@@ -132,8 +112,9 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 Applies residual inverse iteration method for nonlinear eigenvalue problems.
 The kwarg `linsolvecreator`
 is a function which specifies how the linear system is created.
-The function calls `compute_rf` for the computation of the Rayleigh functional.
-See [`newton`](@ref) for other parameters.
+The function calls `compute_rf` for the computation
+of the Rayleigh functional.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 The example shows how to specify if the method should run in real
@@ -159,7 +140,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
     resinv(nep::NEP;params...)=resinv(ComplexF64,nep;params...)
     function resinv(::Type{T},
                     nep::NEP;
-                    errmeasure::ErrmeasureType = DefaultErrmeasure,
+                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                     tol::Real=eps(real(T))*100,
                     maxit::Int=100,
                     λ::Number=zero(T),
@@ -197,14 +178,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         σ::T=λ;
         err=Inf;
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
             # Normalize
             v[:] = v/norm(v);
 
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
 
             if (use_v_as_rf_vector)
                 c[:]=v;
@@ -227,7 +206,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             # Compute eigenvector update
             Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
                 push_info!(logger," Armijo scaling=$scaling")
@@ -255,7 +234,26 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 Run the augmented Newton method. The method is equivalent to `newton()`
 in exact arithmetic,  but works only with operations on vectors of
-length `n`. See [`newton`](@ref) for other parameters.
+length `n`.
+
+
+The following keyword arguments are in common for many NEP-solvers:
+
+* `logger` is either a [`Logger`](@ref) object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
+
+* `errmeasure` determines how error is measured. It is either a function handle or an object of the type `Errmeasure`.  If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error). See [`Errmeasure`](@ref) and [`ErrmeasureType`](@ref) for further description.
+
+* `tol` is a scalar which determines termination. If `errmeasure` is less than `tol` the eigenpair is marked as converged.
+
+* The scalar `λ` and the vector `v` are starting approximations.
+
+* `maxit` determines the maximum number of iterations. The error `NoConvergenceException` is thrown if this is exceeded.
+
+*  The `linsolvecreator` specifies how the linear system should be solved. See [`LinSolver`](@ref) for further information.
+
+* `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
+
+
 
 
 # Example
@@ -274,7 +272,7 @@ julia> λ1-λ2
     augnewton(nep::NEP;kwargs...)=augnewton(ComplexF64,nep::NEP;kwargs...)
     function augnewton(::Type{T},
                        nep::NEP;
-                       errmeasure::ErrmeasureType = DefaultErrmeasure,
+                       errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                        tol::Real=eps(real(T))*100,
                        maxit::Int=30,
                        λ::Number=zero(T),
@@ -306,11 +304,9 @@ julia> λ1-λ2
 
         push_info!(logger,2,
                    "use_v_as_normalization_vector=$use_v_as_normalization_vector");
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 push_info!(logger,"")
@@ -332,7 +328,7 @@ julia> λ1-λ2
             Δλ=-α
             Δv=α*tempvec-v;
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
@@ -359,7 +355,7 @@ The method involves one linear system solve per iteration corresponding with the
 matrix ``M(λ)``, where ``λ`` is constant.
 The vector `ws` is a representation of the normalization, in the sense that ``c^T=w_s^TM(λ)``,
 where all iterates satisfy ``c^Tx_i=1``.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -376,7 +372,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
-                         errmeasure = DefaultErrmeasure,
+                         errmeasure = DefaultErrmeasure(nep),
                          tol::Real=eps(real(T))*100,
                          maxit::Int=100,
                          λ::Number=zero(T),
@@ -405,11 +401,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         push_info!(logger,"Precomputing linsolver")
         linsolver = create_linsolver(linsolvercreator,nep,λ)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 push_info!(logger,"")
@@ -430,7 +424,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             normΔv=norm(Δv);
             push_info!(logger,2," norm(Δv)=$normΔv",continues=true)
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
@@ -457,7 +451,7 @@ This function implements the Newton-QR method as formulated in the reference. Th
 of ``M(λ)``, with the idea that on convergence the the last diagonal element ``R[n,n]`` of the upper-triangular matrix ``R`` becomes zero as a result of ``M(λ)``
 becoming singular. Since the computation of a QR factorization is expensive, it is advisable to use this method for problems of small size or problems with
 a certain structure that makes the QR computation less expensive.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -474,7 +468,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     newtonqr(nep::NEP;params...)=newtonqr(ComplexF64,nep;params...)
     function newtonqr(::Type{T},
                       nep::NEP;
-                      errmeasure::ErrmeasureType = DefaultErrmeasure,
+                      errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                       tol::Real=eps(real(T))*100,
                       maxit::Int=100,
                       λ::Number=zero(T),
@@ -497,8 +491,6 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         en = zeros(n);
         en[n] = 1;
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
             A = compute_Mder(nep,λ);
@@ -512,7 +504,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             w = Q*en;#Left eigenvector
 
             #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
-            err=estimate_error(ermdata,λ,v);
+            err=estimate_error(errmeasure,λ,v);
 
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v);
@@ -539,7 +531,7 @@ This function implements the Implicit determinant method as formulated Algorithm
 in the (1,1) block. The (2,1) and (1,2) blocks of ``G(λ)`` are set to
 ``c^H`` and ``c`` respectively. Note that ``G(λ) `` can be non-singular even when ``M(λ) ``
 is singular. See reference for more information.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -556,7 +548,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
     function implicitdet(::Type{T},
                          nep::NEP;
-                         errmeasure::ErrmeasureType = DefaultErrmeasure,
+                         errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                          tol=eps(real(T))*100,
                          maxit=100,
                          λ=zero(T),
@@ -575,8 +567,6 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         local err
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
 
@@ -588,7 +578,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             v[:] = F\([zeros(T,n);T(1)]);
             vp[:] = F\([-1*compute_Mder(nep,λ,1)*v[1:n];0]);
 
-            #err = estimate_error(ermdata,λ,v[1:n]);
+            #err = estimate_error(errmeasure,λ,v[1:n]);
             err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
             push_iteration_info!(logger,k,err=err,λ=λ,v=v);
             if(err < tol)
@@ -604,11 +594,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
     # Armijo rule implementation
-    function armijo_rule(nep,ermdata,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
+    function armijo_rule(nep,errmeasure,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
         j=0
         if (armijo_factor<1)
             # take smaller and smaller steps until errmeasure is decreasing
-            while (estimate_error(ermdata,λ+Δλ,v+Δv)>err0 && j<armijo_max)
+            while (estimate_error(errmeasure,λ+Δλ,v+Δv)>err0 && j<armijo_max)
                 j=j+1;
                 Δv=Δv*armijo_factor;
                 Δλ=Δλ*armijo_factor;

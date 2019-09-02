@@ -7,7 +7,7 @@ export nleigs, NleigsSolutionDetails
 """
     nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
 
-Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using the `nleigs` algorithm. 
+Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using the `nleigs` algorithm.
 
 # Arguments
 - `nep`: An instance of a nonlinear eigenvalue problem.
@@ -29,6 +29,9 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using
 - `blksize`: Block size for pre-allocation.
 - `return_details`: Whether to return solution details (see NleigsSolutionDetails).
 - `check_error_every`: Check for convergence / termination every this number of iterations.
+
+See [`augnewton`](@ref) for other parameters.
+
 
 # Return values
 - `λ`: Vector of eigenvalues of the nonlinear eigenvalue problem NLEP inside the target set Σ.
@@ -66,7 +69,7 @@ function nleigs(
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
         v::Vector{CT} = CT.(randn(T, size(nep, 1))),
-        errmeasure::ErrmeasureType = ResidualErrmeasure,
+        errmeasure::ErrmeasureType = ResidualErrmeasure(nep),
         isfunm::Bool = true,
         static::Bool = false,
         leja::Int = 1,
@@ -92,9 +95,6 @@ function nleigs(
     b = blksize
 
     lin_solver_cache = LinSolverCache(CT, nep, linsolvercreator)
-
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     # Initialization
     if static
@@ -320,7 +320,7 @@ function nleigs(
             end
 
             # compute residuals & check for convergence
-            res = map(i -> estimate_error(ermdata,lam[i], X[:,i]), 1:length(lam))
+            res = map(i -> estimate_error(errmeasure,lam[i], X[:,i]), 1:length(lam))
             conv = abs.(res) .< tol
             if all
                 resall = fill(T(NaN), l, 1)

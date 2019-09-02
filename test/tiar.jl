@@ -22,12 +22,12 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     dep=nep_gallery("dep0",n);
 
     @bench @testset "accuracy eigenpairs" begin
-        (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
         verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
     @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
-        (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=Inf,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=Inf,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
         verify_lambdas(4, dep, λ, Q, eps()*100)
     end
 
@@ -35,7 +35,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        (λ,Q,Z)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
         @test opnorm(Z'*Z - I) < 1e-6
      end
 
@@ -81,7 +81,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     @testset "Errors thrown" begin
         np=100;
         dep=nep_gallery("dep0",np);
-        @test_throws NEPCore.NoConvergenceException (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(np),maxit=5,tol=eps()*100,errmeasure=ResidualErrmeasure);
+        @test_throws NEPCore.NoConvergenceException (λ,Q)=tiar(dep,σ=2.0,γ=3,neigs=4,v=ones(np),maxit=5,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
     end
 
 end

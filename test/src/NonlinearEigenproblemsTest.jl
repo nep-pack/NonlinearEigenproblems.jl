@@ -75,9 +75,9 @@ matrix are below the given tolerance.
 function verify_lambdas(expected_nr_λ, nep::NEP, λ, V, tol = 1e-5)
     @test length(λ) == expected_nr_λ
     @info "Found $(length(λ)) lambdas:"
-    ermdata=init_errmeasure(ResidualErrmeasure,nep);
+    errmeasure=ResidualErrmeasure(nep);
     for i in eachindex(λ)
-        nrm = estimate_error(ermdata,λ[i], V[:, i])
+        nrm = estimate_error(errmeasure,λ[i], V[:, i])
         @test nrm < tol
         @info "λ[$i] = $(λ[i]) (norm = $(@sprintf("%.4g", nrm)))"
     end

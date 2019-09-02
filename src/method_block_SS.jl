@@ -57,7 +57,7 @@ function contour_block_SS(
     radius::Union{Real,Tuple,Array}=1, # integration radius
     N::Integer=1000,  # Nof quadrature nodes
     K::Integer=3, # Nof moments
-    errmeasure::ErrmeasureType = DefaultErrmeasure,
+    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
     sanity_check=true,
     Shat_mode=:native, # native or JSIAM-mode
     rank_drop_tol=tol # Used in sanity checking

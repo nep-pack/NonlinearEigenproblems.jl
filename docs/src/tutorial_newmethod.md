@@ -113,7 +113,8 @@ julia> norm(compute_Mlincomb(nep,λ,x))
 In the following we illustrate a more advanced
 usage of the NEP-PACK method development:
 NEP-PACKs logging facility  and error estimation.
-See [`Logger`](logger.md) and [`Errmeasure`](errmeasure.md). This gives access
+See [`Logger`](logger.md) and [`Errmeasure`](errmeasure.md). This
+gives access
 to other ways to measure error as well as a logging
 which is the same for all solvers and simplifies
 comparisons.
@@ -122,15 +123,13 @@ comparisons.
 using NonlinearEigenproblems, LinearAlgebra, Plots
 function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
                 tol=eps()*100,logger=0,
-                errmeasure = DefaultErrmeasure)
+                errmeasure = DefaultErrmeasure(nep))
     # Setup the logger.
     @parse_logger_param!(logger);
-    
+
     n=size(nep,1);
     f=s-> det(compute_Mder(nep,s)); # The objective function
 
-    # Init errmeasure. Precomputation for an error measure.
-    ermdata=init_errmeasure(errmeasure,nep);
 
     for i=1:maxit
         fλ=f(λ)

@@ -15,7 +15,7 @@ using LinearAlgebra
 @info "Testing a PEP"
 nep = nep_gallery("pep0",60)
 TOL = 1e-11;
-λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 3, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure)
+λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 3, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure(nep))
 @info " Smallest eigenvalue found: $λ"
 Dc,Vc = polyeig(nep,DefaultEigSolver)
 c = sortperm(abs.(Dc))

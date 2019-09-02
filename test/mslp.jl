@@ -26,7 +26,7 @@ using SparseArrays
     @bench @testset  "mslp + double" begin
         nep3 = nep_gallery("dep_double");
         @test_throws NoConvergenceException mslp(nep3, λ=9im, maxit=10)
-        λ,v = mslp(nep3, λ=9im, maxit=100,errmeasure=ResidualErrmeasure)
+        λ,v = mslp(nep3, λ=9im, maxit=100,errmeasure=ResidualErrmeasure(nep3))
         @test norm(compute_Mlincomb(nep3, λ, v)) < eps()*100
     end
 end

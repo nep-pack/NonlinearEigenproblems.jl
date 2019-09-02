@@ -10,7 +10,7 @@ is assumed to be unique on the interval. If no interval is given, then the minim
 always taken. The method requires the computation of (all) eigenvalues of a matrix. The `eigsolvertype`
 is a `Type` that specifies which eigevalue solver is used inside the algorithm.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -36,7 +36,7 @@ function sgiter(::Type{T},
                    λ_min::Real = NaN,
                    λ_max::Real = NaN,
                    λ::Number = zero(real(T)),
-                   errmeasure::ErrmeasureType = DefaultErrmeasure,
+                   errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                    tol::Real = eps(real(T)) * 100,
                    maxit::Integer = 100,
                    inner_solver=@default_compute_rf_inner_solver(nep),
@@ -67,8 +67,6 @@ function sgiter(::Type{T},
     v::Array{T,1} = zeros(T,n)
     err = 0
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     for k = 1:maxit
        eig_solver = eigsolvertype(compute_Mder(nep, λ, 0))
@@ -76,7 +74,7 @@ function sgiter(::Type{T},
        λ_vec = compute_rf(real_T, nep, v, inner_solver, TOL = tol/10)
        push_info!(logger,2,"compute_rf: $λ_vec")
        λ = choose_correct_eigenvalue_from_rf(λ_vec, λ_min, λ_max)
-       err = estimate_error(ermdata,λ, v)
+       err = estimate_error(errmeasure,λ, v)
        push_iteration_info!(logger,k,err=err,λ=λ);
        if (err < tol)
            return (λ, v)
