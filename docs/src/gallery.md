@@ -1,6 +1,9 @@
 
-# The Gallery function
-A large number of examples are provided in the `nep_gallery`.
+# Gallery 
+
+We have created a gallery of problems in order to make examples easily accessible and reproducible.
+They are available in the function `nep_gallery`. We also have an interface which allows you 
+to access problems for the [Berlin-Manchester problem collection](gallery.md#Berlin-Manchester-collection-1).
 
 ```julia-repl
 julia> using Gallery
