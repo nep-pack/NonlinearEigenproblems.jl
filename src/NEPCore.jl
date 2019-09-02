@@ -236,6 +236,7 @@ a jordan block becomes derivatives
         return W[1:n,1:n]
     end
 
+
     """
     compute_resnorm(nep::NEP,λ,v)
 Computes the residual norm of the `nep`, in the point `λ`, with the vector
@@ -243,53 +244,6 @@ Computes the residual norm of the `nep`, in the point `λ`, with the vector
 """
     function compute_resnorm(nep::NEP,λ,v)
         return norm(compute_Mlincomb(nep,λ,reshape(v,size(nep,1),1)))
-    end
-
-  """
-    compute_rf([eltype],nep::NEP,x; y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
-
-Computes the Rayleigh functional of nep, i.e., computes a vector ``Λ`` of values ``λ``
-such that ``y^TM(λ)x=0``. The default behaviour consists of a scalar valued
-Newton-iteration, and the returned vector has only one element.
-
-The given eltype<:Number is the type of the returned vector.
-
-# Example
-
-```julia-repl
-julia> nep=nep_gallery("dep0");
-julia> x=ones(size(nep,1));
-julia> s=compute_rf(Float64,nep,x)[1]; # Take just first element
-0.6812131933795569
-julia> x'*compute_Mlincomb(nep,s,x)
--8.881784197001252e-16
-```
-"""
-    compute_rf(nep::NEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
-    function compute_rf(::Type{T}, nep::NEP, x; y=x, target=zero(T), λ0=target,
-                        TOL=eps(real(T))*1e3, max_iter=10) where T
-        # Ten steps of scalar Newton's method
-        λ_iter = T(λ0);
-        Δλ = T(Inf)
-        count = 0
-        while (abs(Δλ)>TOL) & (count<max_iter)
-            count = count+1
-            z1 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1))
-            z2 = compute_Mlincomb(nep, λ_iter, reshape(x,size(nep,1),1),[T(1)],1)
-
-            Δλ =- dot(y,z1)/dot(y,z2);
-            λ_iter += Δλ
-        end
-
-        # Return type is a vector of correct type
-        λ_star::Array{T,1} = Array{T,1}(undef, 1)
-        if (T <: Real) && (typeof(λ_iter) != T) && (imag(λ_iter)/real(λ_iter) < TOL)
-            # Looking for a real quantity (AND) iterate is not real (AND) complex part is negligible
-            λ_star[1] = real(λ_iter) # Truncate to real
-        else
-            λ_star[1] = λ_iter
-        end
-        return λ_star
     end
 
 

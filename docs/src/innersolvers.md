@@ -110,3 +110,9 @@ InnerSolver
 ```@docs
 inner_solve
 ```
+
+## Rayleigh functional computation
+
+```@docs
+compute_rf
+```

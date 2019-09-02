@@ -25,6 +25,8 @@ module NEPTypes
     export set_projectmatrices!
     export expand_projectmatrices!
 
+    export compute_rf
+
 
     # We overload these
     import ..NEPCore.compute_Mder
@@ -32,7 +34,6 @@ module NEPTypes
     import ..NEPCore.compute_Mlincomb!
     import ..NEPCore.compute_MM
     import ..NEPCore.compute_resnorm
-    import ..NEPCore.compute_rf
     import Base.size
     import SparseArrays.issparse
 
