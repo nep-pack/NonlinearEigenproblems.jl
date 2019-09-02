@@ -76,6 +76,7 @@ function ilan(
     check_error_every=30,
     inner_solver_method=DefaultInnerSolver(),
     Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
+    proj_solve=true,
     inner_logger=0
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
 
@@ -171,30 +172,38 @@ function ilan(
 
         # extract eigenpair approximation
         if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
-            VV=view(V,:,1:k+1)
+            if !proj_solve
 
-            # create the projected NEP
-            mm=size(VV,2)
-            pnep=create_proj_NEP(nep,mm); # maxsize=mm
-            set_projectmatrices!(pnep,VV,VV);
-            err_lifted=(λ,z)->estimate_error(ermdata,λ,VV*z);
+                # Extract eigenvalues from Hessenberg matrix
+                D,Z_Ritz = eigen(H[1:k,1:k])
 
-            # solve the projected NEP
-            push_info!(logger,2,"Solving the projected problem",continues=true);
-            #λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf); ZZ=VV*ZZ;
-            #λ,ZZ=contour_beyn(pnep,tol=tol,neigs=k,logger=0,N=1000,radius=5,sanity_check=true,errmeasure=err_lifted);
-            #θ=range(0,stop=2π,length=1000); r=7; Σ=r*cos.(θ) + 1im*r*sin.(θ)
-            #λ,ZZ=nleigs(nep,Σ,logger=1,tol=1e-3,nodes=[0.0+0*im])
+                VV = view(V,1:1:n,1:k)
+                ZZ = VV*Z_Ritz
+                λ = σ .+ γ ./ D
+            else
+                VV=view(V,:,1:k+1)
+                # Projected solve to extract eigenvalues (otw hessenberg matrix)
 
-            # THIS CODE SHOULD BE USED ONCE
-            λproj,Zproj=inner_solve(inner_solver_method,T,pnep;
-                                    neigs=Inf,
-                                    inner_logger=inner_logger);
-            ZZ=VV*Zproj;
-            λ=λproj;
+                # create the projected NEP
+                mm=size(VV,2)
+                pnep=create_proj_NEP(nep,mm); # maxsize=mm
+                set_projectmatrices!(pnep,VV,VV);
+                err_lifted=(λ,z)->estimate_error(ermdata,λ,VV*z);
 
+                # solve the projected NEP
+                push_info!(logger,2,"Solving the projected problem",continues=true);
+
+                λproj,Zproj=inner_solve(inner_solver_method,T,pnep;
+                                        neigs=Inf,
+                                        inner_logger=inner_logger);
+                ZZ=VV*Zproj;
+                λ=λproj;
+
+
+            end
             # compute the errors
             err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],ZZ[:,s]),1:size(λ,1))
+            display(err)
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);
@@ -210,6 +219,7 @@ function ilan(
                 end
             end
             push_info!(logger,"");
+
 
             # Sort the errors
             idx=sortperm(err[k,1:k]); # sort the error
