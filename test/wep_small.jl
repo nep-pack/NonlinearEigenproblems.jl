@@ -13,7 +13,7 @@ struct WEPErrmeasure <: Errmeasure; nep::NEP; end
 import NonlinearEigenproblems.estimate_error;
 
 λstar=-2.690050173308845 - 3.1436003386330347im  # An exact eigenvalue
-function NonlinearEigenproblems.estimate_error(e::WEPErrmeasure,λ,v)
+function NonlinearEigenproblems.estimate_error(e::WEPErrmeasure(nep),λ,v)
     return abs(λ-λstar);
 end
 
@@ -57,7 +57,7 @@ n=size(nep,1);
     @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
     λ,v = quasinewton(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
-                      errmeasure=WEPErrmeasure,tol=1e-12,
+                      errmeasure=WEPErrmeasure(nep),tol=1e-12,
                       linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
                       )
 

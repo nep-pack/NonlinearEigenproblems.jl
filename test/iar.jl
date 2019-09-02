@@ -29,7 +29,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     @bench @testset "Solve by projection" begin
         (λ,Q)=iar(dep,σ=3,neigs=5,v=ones(n),
-                  maxit=100,tol=eps()*100,errmeasure=ResidualErrmeasure, proj_solve=true);
+                  maxit=100,tol=eps()*100,errmeasure=ResidualErrmeasure(nep), proj_solve=true);
         verify_lambdas(5, dep, λ, Q, eps()*100)
     end
 

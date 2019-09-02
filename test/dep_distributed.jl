@@ -17,16 +17,11 @@ dep_distributed_exact_eigvals = [
    -1.677320660400946 + 7.496870451838560im
    -1.677320660400946 - 7.496870451838560im]
 
-import NonlinearEigenproblems.estimate_error;
-struct MyErrmeasure <: Errmeasure;
-    nep::NEP;
-end
-function estimate_error(e::MyErrmeasure,λ,v)
-    return minimum(abs.(λ .- dep_distributed_exact_eigvals) ./ abs(λ))
-end
+myerrmeasure=(λ,v) -> minimum(abs.(λ .- dep_distributed_exact_eigvals) ./ abs(λ))
 
 @testset "gallery(dep_distributed" begin
     dep=nep_gallery("dep_distributed");
+
     n=size(dep,1);
 
     M1=compute_Mder(dep, dep_distributed_exact_eigvals[1]);
@@ -47,14 +42,13 @@ end
 
 
 
-    (λ,V)=iar(dep,σ=3,neigs=5,errmeasure=MyErrmeasure, v=ones(n),
+    (λ,V)=iar(dep,σ=3,neigs=5,errmeasure=myerrmeasure, v=ones(n),
               logger=displaylevel,maxit=100,tol=eps()*100)
 
     @info λ
 
-    ermdata=init_errmeasure(MyErrmeasure,dep);
     @testset "IAR eigval[$i]" for i in 1:length(λ)
-        @test estimate_error(ermdata,λ[i],V[:,i])<1e-10
+        @test estimate_error(myerrmeasure,λ[i],V[:,i])<1e-10
     end
 
     @bench @testset "Quasinewton eigval[$i]" for i in 1:length(dep_distributed_exact_eigvals[1:3])
@@ -62,7 +56,7 @@ end
         λ,v=quasinewton(ComplexF64,dep,v=ones(n),λ=λ0,
                         #displaylevel=displaylevel,
                         armijo_factor=0.5,maxit=200,
-                        errmeasure=MyErrmeasure,
+                        errmeasure=myerrmeasure,
                         tol=eps()*100)
         @test abs((dep_distributed_exact_eigvals[i]-λ)/λ)<eps()*100
     end
