@@ -41,11 +41,12 @@ julia> resinv(nep,v=[1;1],λ=8,
     errmeasure=EigvalReferenceErrmeasure(nep,λref),logger=logger);
 julia> errvec=logger.errs[1:17,1]; # This contains the iteration error
 ```
-Let us print it
+We use `Plots` for plotting:
 ```julia-repl
 julia> using Plots;
 julia> plot(errvec,yaxis=:log,marker=:star,xlabel="iteration",ylabel="eigval error")
 ```
+The theory predicts linear convergence, which we also observe.
 ```@raw html
 <br>
 <img src="https://nep-pack.github.io/NonlinearEigenproblems.jl/logger_resinv_conv.png" height=300>
