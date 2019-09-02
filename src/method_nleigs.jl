@@ -30,6 +30,9 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using
 - `return_details`: Whether to return solution details (see NleigsSolutionDetails).
 - `check_error_every`: Check for convergence / termination every this number of iterations.
 
+See [`augnewton`](@ref) for other parameters.
+
+
 # Return values
 - `λ`: Vector of eigenvalues of the nonlinear eigenvalue problem NLEP inside the target set Σ.
 - `X`: Corresponding matrix of eigenvectors.

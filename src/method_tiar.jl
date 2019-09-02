@@ -27,7 +27,7 @@ The parameter `proj_solve` determines if the Ritz paris are extracted using the 
 or as the solution to a projected problem (true). If true, the method is descided by `inner_solver_method`, and the
 logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 

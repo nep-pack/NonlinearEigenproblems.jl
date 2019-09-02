@@ -39,7 +39,7 @@ The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
 However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example

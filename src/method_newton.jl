@@ -26,24 +26,7 @@ M(λ)v=0
 c^Hv-1=0
 ```
 The vector `c` is the
-orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization.
-
-The following keyword arguments are in common for many NEP-solvers:
-
-* `logger` is eiter a `Logger` object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
-
-* `errmeasure` determines how error is measured. It is either a function handle or a type inheriting from `Errmeasure`. See [`Errmeasure`](@ref) for further description. If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error).
-
-* `tol` is a scalar which determines termination. If `errmeasure` is less than `tol` the eigenpair is marked as converged.
-
-* The scalar `λ` and the vector `v` are starting approximations.
-
-* `maxit` determines the maximum number of iterations. The error `NoConvergenceException` is thrown if this is exceeded.
-
-* `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
-
-*  The `linsolvecreator` specifies how the linear system should be solved. See [`LinSolver`](@ref) for further information.
-
+orthogonalization vector.  If `c=0` the current approximation will be used for the orthogonalization. See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -131,7 +114,7 @@ The kwarg `linsolvecreator`
 is a function which specifies how the linear system is created.
 The function calls `compute_rf` for the computation
 of the Rayleigh functional.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 The example shows how to specify if the method should run in real
@@ -250,7 +233,25 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 Run the augmented Newton method. The method is equivalent to `newton()`
 in exact arithmetic,  but works only with operations on vectors of
-length `n`. See [`newton`](@ref) for other parameters.
+length `n`.
+
+
+The following keyword arguments are in common for many NEP-solvers:
+
+* `logger` is eiter a `Logger` object or an `Int`. If it is an `Int`, a `PrintLogger(logger)` will be instantiated. `logger=0` prints nothing, `logger=1` prints more, etc.
+
+* `errmeasure` determines how error is measured. It is either a function handle or a type inheriting from `Errmeasure`. See [`Errmeasure`](@ref) for further description. If it is a function handle, it should take `(λ,v)` as input and return a real scalar (the error).
+
+* `tol` is a scalar which determines termination. If `errmeasure` is less than `tol` the eigenpair is marked as converged.
+
+* The scalar `λ` and the vector `v` are starting approximations.
+
+* `maxit` determines the maximum number of iterations. The error `NoConvergenceException` is thrown if this is exceeded.
+
+* `armijo_factor` specifies if an Armijo rule should be applied, and its value specifies the scaling factor of the step length (per reduction step). The variable `armijo_max` specifies the maximum number of step length reductions.
+
+*  The `linsolvecreator` specifies how the linear system should be solved. See [`LinSolver`](@ref) for further information.
+
 
 
 # Example
@@ -352,7 +353,7 @@ The method involves one linear system solve per iteration corresponding with the
 matrix ``M(λ)``, where ``λ`` is constant.
 The vector `ws` is a representation of the normalization, in the sense that ``c^T=w_s^TM(λ)``,
 where all iterates satisfy ``c^Tx_i=1``.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -448,7 +449,7 @@ This function implements the Newton-QR method as formulated in the reference. Th
 of ``M(λ)``, with the idea that on convergence the the last diagonal element ``R[n,n]`` of the upper-triangular matrix ``R`` becomes zero as a result of ``M(λ)``
 becoming singular. Since the computation of a QR factorization is expensive, it is advisable to use this method for problems of small size or problems with
 a certain structure that makes the QR computation less expensive.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -528,7 +529,7 @@ This function implements the Implicit determinant method as formulated Algorithm
 in the (1,1) block. The (2,1) and (1,2) blocks of ``G(λ)`` are set to
 ``c^H`` and ``c`` respectively. Note that ``G(λ) `` can be non-singular even when ``M(λ) ``
 is singular. See reference for more information.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl

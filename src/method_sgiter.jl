@@ -10,7 +10,7 @@ is assumed to be unique on the interval. If no interval is given, then the minim
 always taken. The method requires the computation of (all) eigenvalues of a matrix. The `eigsolvertype`
 is a `Type` that specifies which eigevalue solver is used inside the algorithm.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example

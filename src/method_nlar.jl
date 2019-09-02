@@ -20,7 +20,7 @@ The logging of the inner solvers are descided by `inner_logger`, which works in 
 `R` is a parameter used by the function specified by `eigval_sorter` to reject those ritz values that are within a distance `R` from any of the converged eigenvalues, so that repeated convergence to the same eigenpair can be avoided.
 `max_subspace` is the maximum allowable size of the basis befor the algorithm restarts using a basis made of `num_restart_ritz_vecs` ritz vectors and the eigenvectors that the algorithm has converged to.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example

@@ -41,7 +41,7 @@ is continued until `neigs` Ritz pairs converge. This function throws a `NoConver
 However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 The kwarg `compute_y0_method` specifying how the next vector of the Krylov space (in Chebyshev format) can be computed. See [`compute_y0_cheb`](@ref) in the module NEPSolver with the command `?NEPSolver.compute_y0_cheb`.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
