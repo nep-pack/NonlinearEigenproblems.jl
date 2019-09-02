@@ -16,7 +16,7 @@ using SparseArrays
 
     # Check that we get a valid solution if we solve chebpep
     v0=ones(n);
-    (λ2,V2)=iar(chebpep,neigs=2,errmeasure=ResidualErrmeasure(chebnep),v=v0)
+    (λ2,V2)=iar(chebpep,neigs=2,errmeasure=ResidualErrmeasure(chebpep),v=v0)
     @test norm(compute_Mlincomb(nep,λ2[1],V2[:,1])) < eps()*5000
 
     # polyeig with chebyshev basis (non-standard interval)
