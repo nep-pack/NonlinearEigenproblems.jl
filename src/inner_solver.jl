@@ -259,7 +259,7 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
 
             n=size(nep,1);
 
-            projerrmeasure=ResidualErrmeasure;
+            projerrmeasure=ResidualErrmeasure(nep);
             # Compute a solution to projected problem with Newton's method
             λ1,vproj=is.newton_function(
                 T_arit,nep,logger=inner_logger,λ=λv[k],
