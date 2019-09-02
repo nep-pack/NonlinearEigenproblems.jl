@@ -31,7 +31,7 @@ julia&gt; compute_Mder(nep,3)
 2×2 Array{Float64,2}:
  NaN  NaN
  NaN  NaN</code></pre></div></div></section><h2><a class="nav-anchor" id="SumNEP-1" href="#SumNEP-1">SumNEP</a></h2><p>It is also possible to consider NEPs that are summs of other NEPs. For such situations there are SumNEPs. Specifically <code>GenericSumNEP</code> and <code>SPMFSumNEP</code>. Both are constructed using the function <code>SumNEP</code>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.SumNEP" href="#NonlinearEigenproblems.NEPTypes.SumNEP"><code>NonlinearEigenproblems.NEPTypes.SumNEP</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">SumNEP{nep1::NEP,nep2::NEP}
-SumNEP{nep1::AbstractSPMF,nep2::AbstractSPMF}</code></pre><p>SumNEP is a function creating an object that corresponds to a sum of two NEPs, i.e., if nep is created by SumNEP it is defined by</p><div>\[M(λ)=M_1(λ)+M_2(λ)\]</div><p>where M<em>1 and M</em>2 are defined by <code>nep1</code> and <code>nep2</code>.</p><p><strong>Example:</strong></p><pre><code class="language-julia-repl">julia&gt; nep1=DEP([ones(3,3),randn(3,3)])
+SumNEP{nep1::AbstractSPMF,nep2::AbstractSPMF}</code></pre><p>SumNEP is a function creating an object that corresponds to a sum of two NEPs, i.e., if nep is created by SumNEP it is defined by</p><div>\[M(λ)=M_1(λ)+M_2(λ)\]</div><p>where <span>$M_1$</span> and <span>$M_2$</span> are defined by <code>nep1</code> and <code>nep2</code>.</p><p><strong>Example:</strong></p><pre><code class="language-julia-repl">julia&gt; nep1=DEP([ones(3,3),randn(3,3)])
 julia&gt; nep2=PEP([ones(3,3),randn(3,3),randn(3,3)])
 julia&gt; sumnep=SumNEP(nep1,nep2);
 julia&gt; s=3.0;
