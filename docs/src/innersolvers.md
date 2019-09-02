@@ -13,9 +13,10 @@ NEP-PACK provides a framework to handle projected problems.
 You can in principle use any of the NEP-solvers to
 solve a projected problem. As a user, this
 is specified in the `inner_solver_method`
-keyword argument.
+keyword argument in those NEP-solvers that use a direct projection. 
+By default [`DefaultInnerSolver`](@ref) is used. 
 
-If you wish to use the infinite Arnoldi method
+If you wish to use the infinite Arnoldi method 
 to handle the project solves in the nonlinear
 Arnoldi method, you can do the following:
 
@@ -91,6 +92,14 @@ PolyeigInnerSolver
 
 ```@docs
 SGIterInnerSolver
+```
+
+```@docs
+NleigsInnerSolver
+```
+
+```@docs
+DefaultInnerSolver
 ```
 
 
