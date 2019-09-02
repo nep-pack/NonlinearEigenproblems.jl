@@ -23,48 +23,41 @@ creating a new subtype of `Errmeasure` and using it as a
 measure the error in the method `estimate_error` and (optionally)
 `init_errmeasure`.
 
-# Example
-This shows how to compute a reference solution and
-then use this as a reference solution. The error
-in the second run will be effectively the
-eigenvalue error. 
-```julia
-julia> nep=nep_gallery("qdep0");
-julia> (λref,vref)=quasinewton(nep,λ=-1);
-julia> struct EigvalError <: Errmeasure; nep::NEP; end
-julia> function NonlinearEigenproblems.estimate_error(E::EigvalError,λ,v)
-return abs(λref-λ);
-end
-julia> (λ,v)=quasinewton(nep,errmeasure=EigvalError,λ=-1.0 ,logger=1,tol=5e-13)
-Precomputing linsolver
-Iteration:  1 errmeasure:2.466988587467300320e-03, λ=-1.0 + 0.0im
-Iteration:  2 errmeasure:4.625160667012763183e-01, λ=-0.539950921886191 + 0.0im
-Iteration:  3 errmeasure:2.799848726755167494e-01, λ=-1.282451861262984 + 0.0im
-Iteration:  4 errmeasure:3.422925625951256379e-02, λ=-1.0366962448469799 + 0.0im
-Iteration:  5 errmeasure:5.530128437585268841e-04, λ=-1.0019139757437088 + 0.0im
-Iteration:  6 errmeasure:1.159388768512403800e-04, λ=-1.002351049710616 + 0.0im
-Iteration:  7 errmeasure:2.658434455016234210e-06, λ=-1.0024643301530123 + 0.0im
-Iteration:  8 errmeasure:1.726871190488310503e-07, λ=-1.0024668159003483 + 0.0im
-Iteration:  9 errmeasure:4.819693533164581822e-09, λ=-1.0024669934071608 + 0.0im
-Iteration: 10 errmeasure:5.234268574128009277e-10, λ=-1.0024669880640404 + 0.0im
-Iteration: 11 errmeasure:3.762568034915148019e-11, λ=-1.002466988625093 + 0.0im
-Iteration: 12 errmeasure:3.205657961302676995e-12, λ=-1.0024669885842616 + 0.0im
-Iteration: 13 errmeasure:3.352873534367972752e-14, λ=-1.0024669885874338 + 0.0im
-```
-Note that this can also be achieved by providing a function handle:
-```julia
-julia> myerrmeasure= (λ,v) -> abs(λref-λ);
-julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13)
-...
-Iteration: 12 errmeasure:3.205657961302676995e-12, λ=-1.0024669885842616 + 0.0im
-Iteration: 13 errmeasure:3.352873534367972752e-14, λ=-1.0024669885874338 + 0.0im
-```
 
 See also: [`DefaultErrmeasure`](@ref), [`ResidualErrmeasure`](@ref), [`BackwardErrmeasure`](@ref), [`estimate_error`](@ref), [`init_errmeasure`](@ref).
 
 """
 abstract type Errmeasure; end
 
+"""
+    ErrmeasureType = Union{Type{<:Errmeasure}, Function}
+
+
+# Example
+This shows how to compute a reference solution and
+then use this as a reference solution. The error
+in the second run will be effectively the
+eigenvalue error.
+```julia
+julia> nep=nep_gallery("qdep0");
+julia> (λref,vref)=quasinewton(nep,λ=-1,v=ones(size(nep,1)));
+julia> myerrmeasure=(λ,v) -> abs(λref-λ)
+julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)))
+Precomputing linsolver
+iter 1 err:0.0024669885857651064 λ=-1.0 + 0.0im
+iter 2 err:0.2961339774298044 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.11050908031267426 λ=-0.8919579082730908 + 0.0im
+iter 4 err:0.007291415670313883 λ=-1.009758404256079 + 0.0im
+iter 5 err:8.460128136422718e-5 λ=-1.0023823873044009 + 0.0im
+iter 6 err:9.01533362851481e-7 λ=-1.0024660870524023 + 0.0im
+iter 7 err:8.006004341698514e-7 λ=-1.0024677891861993 + 0.0im
+iter 8 err:3.889644784038637e-8 λ=-1.0024669496893173 + 0.0im
+iter 9 err:3.2391431759037914e-9 λ=-1.0024669918249083 + 0.0im
+iter 10 err:2.418489852828998e-10 λ=-1.0024669883439161 + 0.0im
+iter 11 err:2.0229151687090052e-11 λ=-1.0024669886059943 + 0.0im
+iter 12 err:0.0 λ=-1.002466988585765 + 0.0im
+```
+"""
 ErrmeasureType = Union{Type{<:Errmeasure}, Function}
 
 """
@@ -165,7 +158,7 @@ init_errmeasure(E::Type{DefaultErrmeasure},nep::NEP)=init_errmeasure(ResidualErr
 
 
 
-struct UserDefinedErrmeasure <: Errmeasure 
+struct UserDefinedErrmeasure <: Errmeasure
    nep::NEP
    errmeasure_fun::Function
 end

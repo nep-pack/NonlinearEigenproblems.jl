@@ -61,7 +61,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
     newton(nep::NEP;params...)=newton(ComplexF64,nep;params...)
     function newton(::Type{T},
                     nep::NEP;
-                    errmeasure::ErrmeasureType = DefaultErrmeasure,
+                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                     tol::Real=eps(real(T))*100,
                     maxit::Int=10,
                     λ::Number=zero(T),
@@ -81,11 +81,8 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
         err=Inf;
         v[:] = v/dot(c,v);
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
-
         for k=1:maxit
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
@@ -107,7 +104,7 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
             Δv=Vector{T}(delta[1:size(nep,1)]);
             Δλ=T(delta[size(nep,1)+1]);
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
                 push_info!(logger," Armijo scaling=$scaling")
@@ -160,7 +157,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
     resinv(nep::NEP;params...)=resinv(ComplexF64,nep;params...)
     function resinv(::Type{T},
                     nep::NEP;
-                    errmeasure::ErrmeasureType = DefaultErrmeasure,
+                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                     tol::Real=eps(real(T))*100,
                     maxit::Int=100,
                     λ::Number=zero(T),
@@ -197,14 +194,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))
         σ::T=λ;
         err=Inf;
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
             # Normalize
             v[:] = v/norm(v);
 
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
 
             if (use_v_as_rf_vector)
                 c[:]=v;
@@ -227,7 +222,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             # Compute eigenvector update
             Δv = -lin_solve(linsolver,compute_Mlincomb(nep,λ1,reshape(v,n,1))) #M*v);
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
             if (j>0)
                 push_info!(logger," Armijo scaling=$scaling")
@@ -274,7 +269,7 @@ julia> λ1-λ2
     augnewton(nep::NEP;kwargs...)=augnewton(ComplexF64,nep::NEP;kwargs...)
     function augnewton(::Type{T},
                        nep::NEP;
-                       errmeasure::ErrmeasureType = DefaultErrmeasure,
+                       errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                        tol::Real=eps(real(T))*100,
                        maxit::Int=30,
                        λ::Number=zero(T),
@@ -306,11 +301,9 @@ julia> λ1-λ2
 
         push_info!(logger,2,
                    "use_v_as_normalization_vector=$use_v_as_normalization_vector");
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 push_info!(logger,"")
@@ -332,7 +325,7 @@ julia> λ1-λ2
             Δλ=-α
             Δv=α*tempvec-v;
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
@@ -376,7 +369,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     quasinewton(nep::NEP;params...)=quasinewton(ComplexF64,nep;params...)
     function quasinewton(::Type{T},
                          nep::NEP;
-                         errmeasure = DefaultErrmeasure,
+                         errmeasure = DefaultErrmeasure(nep),
                          tol::Real=eps(real(T))*100,
                          maxit::Int=100,
                          λ::Number=zero(T),
@@ -405,11 +398,9 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         push_info!(logger,"Precomputing linsolver")
         linsolver = create_linsolver(linsolvercreator,nep,λ)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err=estimate_error(ermdata,λ,v)
+            err=estimate_error(errmeasure,λ,v)
             push_iteration_info!(logger,k,err=err,λ=λ,v=v,continues=true);
             if (err< tol)
                 push_info!(logger,"")
@@ -430,7 +421,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             normΔv=norm(Δv);
             push_info!(logger,2," norm(Δv)=$normΔv",continues=true)
 
-            (Δλ,Δv,j,scaling)=armijo_rule(nep,ermdata,err,
+            (Δλ,Δv,j,scaling)=armijo_rule(nep,errmeasure,err,
                                           λ,v,Δλ,Δv,real(T(armijo_factor)),armijo_max)
 
             if (j>0)
@@ -474,7 +465,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     newtonqr(nep::NEP;params...)=newtonqr(ComplexF64,nep;params...)
     function newtonqr(::Type{T},
                       nep::NEP;
-                      errmeasure::ErrmeasureType = DefaultErrmeasure,
+                      errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                       tol::Real=eps(real(T))*100,
                       maxit::Int=100,
                       λ::Number=zero(T),
@@ -497,8 +488,6 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         en = zeros(n);
         en[n] = 1;
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
             A = compute_Mder(nep,λ);
@@ -512,7 +501,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             w = Q*en;#Left eigenvector
 
             #err = abs(R[n,n])/norm(compute_Mder(nep,λ),2); # Frobenius norm
-            err=estimate_error(ermdata,λ,v);
+            err=estimate_error(errmeasure,λ,v);
 
 
             push_iteration_info!(logger,k,err=err,λ=λ,v=v);
@@ -556,7 +545,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
     implicitdet(nep::NEP;params...)=implicitdet(ComplexF64,nep;params...)
     function implicitdet(::Type{T},
                          nep::NEP;
-                         errmeasure::ErrmeasureType = DefaultErrmeasure,
+                         errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                          tol=eps(real(T))*100,
                          maxit=100,
                          λ=zero(T),
@@ -575,8 +564,6 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
         local err
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
 
@@ -588,7 +575,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             v[:] = F\([zeros(T,n);T(1)]);
             vp[:] = F\([-1*compute_Mder(nep,λ,1)*v[1:n];0]);
 
-            #err = estimate_error(ermdata,λ,v[1:n]);
+            #err = estimate_error(errmeasure,λ,v[1:n]);
             err = abs(v[n+1])/norm(compute_Mder(nep,λ),2); # Frobenius norm based error
             push_iteration_info!(logger,k,err=err,λ=λ,v=v);
             if(err < tol)
@@ -604,11 +591,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 
 
     # Armijo rule implementation
-    function armijo_rule(nep,ermdata,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
+    function armijo_rule(nep,errmeasure,err0,λ,v,Δλ,Δv,armijo_factor,armijo_max)
         j=0
         if (armijo_factor<1)
             # take smaller and smaller steps until errmeasure is decreasing
-            while (estimate_error(ermdata,λ+Δλ,v+Δv)>err0 && j<armijo_max)
+            while (estimate_error(errmeasure,λ+Δλ,v+Δv)>err0 && j<armijo_max)
                 j=j+1;
                 Δv=Δv*armijo_factor;
                 Δλ=Δλ*armijo_factor;
