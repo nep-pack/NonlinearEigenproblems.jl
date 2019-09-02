@@ -79,7 +79,7 @@ IARInnerSolver
 ```
 
 ```@docs
-IARChebshevInnerSolver
+IARChebyshevInnerSolver
 ```
 
 ```@docs
