@@ -35,12 +35,12 @@ Example: Most NEP-solvers take the `errmeasure` as an kwarg.
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
 julia> # Solve the problem to residual norm 1e-8
-julia> (λ,v)=mslp(nep,errmeasure=ResidualErrmeasure,tol=1e-8)
+julia> (λ,v)=mslp(nep,errmeasure=ResidualErrmeasure(nep),tol=1e-8)
 julia> norm(compute_Mlincomb(nep,λ,v))/norm(v) # It's smaller than tol?
 3.503700819937386e-9
 julia> nep isa AbstractSPMF # Is it an AbstractSPMF so we can use BackwardErrmeasure?
 true
-julia> (λ,v)=mslp(nep,errmeasure=BackwardErrmeasure,tol=1e-10)
+julia> (λ,v)=mslp(nep,errmeasure=BackwardErrmeasure(nep),tol=1e-10)
 julia> factor=abs(fv[1](λ))*norm(Av[1])+
      abs(fv[2](λ))*norm(Av[2])+abs(fv[3](λ))*norm(Av[3]);
 julia> norm(compute_Mlincomb(nep,λ,v))/(norm(v)*factor)
