@@ -17,18 +17,18 @@ The linear solver is specified with the `linsolvercreator` keyword argument
 in most NEP-solvers.
 Let us contruct an example which we will solve with several methods.
 The matrix ``M(λ)`` is sparse, and the nonlinearity is an exponential term:
-```julia-repl
-julia> using NonlinearEigenproblems, SparseArrays, LinearAlgebra;
-julia> n=100;
-julia> α=0.01;
-julia> A=spdiagm(0=>ones(n),1=>α*ones(n-1),-3=>α*ones(n-3));
-julia> B=spdiagm(0=>ones(n));
-julia> C=spdiagm(0=>(1:n)/n);
-julia> nep= SPMF_NEP([A,B,C],[s->one(s),s->s,s->exp(s)],align_sparsity_patterns=true);
+```julia
+using NonlinearEigenproblems, SparseArrays, LinearAlgebra;
+n=100;
+α=0.01;
+A=spdiagm(0=>ones(n),1=>α*ones(n-1),-3=>α*ones(n-3));
+B=spdiagm(0=>ones(n));
+C=spdiagm(0=>(1:n)/n);
+nep= SPMF_NEP([A,B,C],[s->one(s),s->s,s->exp(s)],align_sparsity_patterns=true);
+λ0=-1.2; # Starting guess
 ```
 Let us first solve it with the  [`resinv`](@ref) method, using the default solver for the linear system:
 ```julia-repl
-julia> λ0=-1.2; # Starting guess
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),logger=1,tol=1e-16);
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
@@ -49,7 +49,7 @@ the NEP-solver:
 ```julia-repl
 julia> using BenchmarkTools
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),tol=1e-16);
-  6.151 ms (35888 allocations: 10.65 MiB)
+  8.373 ms (33714 allocations: 11.37 MiB)
 ```
 The linear system that has to be solved in every iteration
 in `resinv` has a constant system matrix, and
@@ -60,15 +60,15 @@ get no substantial difference when we specify
 a creator if the type `FactorizeLinSolverCreator`.
 ```julia-repl
 julia> creator=FactorizeLinSolverCreator();
-julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator);
-  6.026 ms (35879 allocations: 10.65 MiB)
+julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
+  8.332 ms (33704 allocations: 11.37 MiB)
 ```
 If we do not want to use a prefactorization, you can specify
 `BackslashLinSolverCreator` as your creator object.
 ```julia-repl
 julia> creator=BackslashLinSolverCreator();
-julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator);
-  12.386 ms (39470 allocations: 20.29 MiB)
+julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
+  20.640 ms (38251 allocations: 22.87 MiB)
 ```
 This does not use a prefactorization and is therefore slower.
 
@@ -88,7 +88,7 @@ are passed to
 Hence, the `tol` here  specifies a termination criteria for the GMRES-method,
 and `Pl` specifies the left preconditioner, in this case just a diagonal matrix.
 ```julia-repl
-julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16)
+julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16);
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
 iter 2 err:0.0012874946993129863 λ=-1.175478914232863 + 0.0im
@@ -111,12 +111,11 @@ iter 80 err:5.364097787291277e-17 λ=-1.1989892137958522 + 0.0im
 ```
 The printout reveals that we need more iterations, than with a
 direct method. In terms of computation
-time, this approach can however still be competitive
-and faster than a direct approach:
+time, this approach can however still be competitive:
 ```julia-repl
 julia> creator=GMRESLinSolverCreator(Pl=D0, tol=1e-2);
-julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16)
-  8.680 ms (63237 allocations: 21.30 MiB)
+julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
+  12.734 ms (59414 allocations: 21.14 MiB)
 ```
 
 ## Your own linear solver
@@ -131,9 +130,8 @@ specified above, you can still use them.
 We illustrate the extendability by creating a linear solver
 based on solving a [Schur complement](https://en.wikipedia.org/wiki/Schur_complement).
 The following helper-function
-for the Schur complement solve will be used later. 
-```julia-repl
-julia> using NonlinearEigenproblems
+for the Schur complement solve will be used later.
+```julia
 function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
   B=AA[1:n0,(n0+1):end];
@@ -153,9 +151,9 @@ Julia's efficiency stems partially from the extensive use of types.
 We need to defined new types to define our own linear solver
 and integrate it with NEP-PACK.
 
-```julia-repl
-julia> struct MyLinSolverCreator <: LinSolverCreator; end
-julia> struct MyLinSolver <: LinSolver;
+```julia
+struct MyLinSolverCreator <: LinSolverCreator; end
+struct MyLinSolver <: LinSolver;
   mynep
   myλ
 end
@@ -166,18 +164,17 @@ for our own creator-type.
 In general, this is to allow precomputation.
 However, in this example we do not have any precomputations and
 thus just return an instance of `MyLinSolver`.
-```julia-repl
-julia> import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
-julia> function create_linsolver(::MyLinSolverCreator,nep,λ)
+```julia
+import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
+function create_linsolver(::MyLinSolverCreator,nep,λ)
    return MyLinSolver(nep,λ);
 end
-create_linsolver (generic function with 4 methods)
 ```
 The rest of the implementation of the solver goes in the function `lin_solve`, where we
 utilize our function `schur_complement_lin_solve` from above.
-```julia-repl
-julia> import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
-julia> function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
+```julia
+import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
+function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    n0=10;
    return schur_complement_lin_solve(compute_Mder(solver.mynep,solver.myλ),b,n0)
 end
