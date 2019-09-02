@@ -34,15 +34,13 @@ julia&gt; λ=halley(nep)
 6.735017818475343e-16</code></pre><h2><a class="nav-anchor" id="Implementation-in-NEP-PACK-(full-version)-1" href="#Implementation-in-NEP-PACK-(full-version)-1">Implementation in NEP-PACK (full version)</a></h2><p>In the following we illustrate a more advanced usage of the NEP-PACK method development: NEP-PACKs logging facility  and error estimation. See <a href="../logger/"><code>Logger</code></a> and <a href="../errmeasure/"><code>Errmeasure</code></a>. This gives access to other ways to measure error as well as a logging which is the same for all solvers and simplifies comparisons.</p><pre><code class="language-julia">using NonlinearEigenproblems, LinearAlgebra, Plots
 function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
                 tol=eps()*100,logger=0,
-                errmeasure = DefaultErrmeasure)
+                errmeasure = DefaultErrmeasure(nep))
     # Setup the logger.
     @parse_logger_param!(logger);
-    
+
     n=size(nep,1);
     f=s-&gt; det(compute_Mder(nep,s)); # The objective function
 
-    # Init errmeasure. Precomputation for an error measure.
-    ermdata=init_errmeasure(errmeasure,nep);
 
     for i=1:maxit
         fλ=f(λ)
