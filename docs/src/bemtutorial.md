@@ -131,7 +131,7 @@ julia> for k=1:size(nep.mesh,1);
 end
 ```
 
-## Implementation in NEP-PACK using the Mder_NEP type
+## Implementation in NEP-PACK using the `Mder_NEP` type
 
 Some of the manual implementation can be avoided by using the `Mder_NEP` type.
 We only need to pass the size of the NEP and a function to compute ``M^{(k)}(λ)``, i.e.,
