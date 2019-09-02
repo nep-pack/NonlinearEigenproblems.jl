@@ -52,7 +52,7 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 ```
 
 !!! tip
-    MATLAB users: If you have a NEP defined in MATLAB, you can solve NEPs with this package.  See [the MATLAB tutorial](tutorial_matlab1.md). We also have some MATLAB implementations of the solvers in NEP-PACK in a [separate repository](https://github.com/nep-pack/NEP-PACK-matlab-reference).
+    MATLAB users: Do you have a NEP defined in MATLAB? You can solve MATLAB-defined NEPs with this package.  See [the MATLAB tutorial](tutorial_matlab1.md). We also have some MATLAB implementations of the solvers in NEP-PACK in a [separate repository](https://github.com/nep-pack/NEP-PACK-matlab-reference).
 
 
 # Accessing more complicated applications
