@@ -1,4 +1,4 @@
-# NEP Methods
+# NEP-Solvers
 
 The NEP solver methods implemented in NEP-PACK, are accessed by
 the functions below. The functions all return ``λ,v`` where
