@@ -68,14 +68,19 @@ we use the result of the first run as a reference.
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
 julia> v0=ones(size(nep,1));
-julia> (λref,v)=resinv(nep,v=v0,λ=230^2+1im,logger=1);
+julia> (λref,_)=resinv(nep,v=v0,λ=-0.1,logger=1);
 julia> myerrmeasure = (λ,v) -> abs(λ-λref)/abs(λ);
-julia> (λ,v)=resinv(nep,v=v0,λ=250^2+1im,logger=1,tol=1e-10,errmeasure=myerrmeasure);
-Iteration:  1 errmeasure:1.274091618457501296e-01
-Iteration:  2 errmeasure:9.535794095609478882e-01
-...
-Iteration: 49 errmeasure:1.269396691930517923e-10
-Iteration: 50 errmeasure:7.608430406801784718e-11
+julia> (λ,v)=resinv(nep,v=v0,λ=-0.1,logger=1,tol=1e-10,errmeasure=myerrmeasure);
+Precomputing linsolver
+iter 1 err:0.02854168838549373 λ=-0.1 + 0.0im
+iter 2 err:0.8397508140476416 λ=-0.6418389474323298 + 0.0im
+iter 3 err:0.17336372619725743 λ=-0.08765753239354723 + 0.0im
+iter 4 err:0.0005771170619943501 λ=-0.1029135620110966 + 0.0im
+iter 5 err:4.762006833879597e-7 λ=-0.10285411985934721 + 0.0im
+iter 6 err:4.074039107701665e-7 λ=-0.10285421074175707 + 0.0im
+iter 7 err:2.6448037288912206e-8 λ=-0.10285417155884034 + 0.0im
+iter 8 err:1.3926542408883378e-9 λ=-0.10285416898178967 + 0.0im
+iter 9 err:6.324560618281378e-11 λ=-0.10285416884505445 + 0.0im
 ```
 
 ### User defined error 2: A user defined type
