@@ -14,6 +14,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 4.718447854656915e-16
 ```
 
+# `nep_gallery`
 ```@docs
 nep_gallery
 ```
