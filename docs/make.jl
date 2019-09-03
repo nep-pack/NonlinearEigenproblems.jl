@@ -16,6 +16,7 @@ makedocs(
         "errmeasure.md",
         "logger.md",
         "transformations.md",
+        "deflation.md",
             "gallery.md"],
         "Tutorials" => [
         "Tutorial 1 (ABC)" => "movebc_tutorial.md",
