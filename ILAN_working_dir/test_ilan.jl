@@ -36,11 +36,11 @@ plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none
 #θ=range(0,stop=2π,length=1000); r=6; Σ=r*cos.(θ) + 1im*r*sin.(θ)
 
 # COMPUTE EIGENVALUES WITH
-#λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-1,check_error_every=20,v=v0,
-#inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=1e-2,radius=3,N=500000))
+λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-10,check_error_every=20,v=v0,
+inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=1e-10,radius=6,N=1000))
 #inner_solver_method=NEPSolver.IARInnerSolver(tol=1e-2))
 #inner_solver_method=NEPSolver.NleigsInnerSolver(Σ=Σ,tol=1e-2))
 
-λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-6,check_error_every=1,v=v0,proj_solve=false)
+#λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=1e-6,check_error_every=1,v=v0,proj_solve=false)
 
 plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)

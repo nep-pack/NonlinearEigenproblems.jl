@@ -114,10 +114,11 @@ function ilan(
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
     local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
     err=ones(m,m);
-    λ=zeros(T,m+1);
+    λ=zeros(T,5m+1);
     W=zeros(T,n,m+1);
 
-    # allocate extra memory for storing the ...
+    # allocate extra memory for storing the first blocks of the Arnoldi sequence
+    # only if the extraction of the eigenpairs is done with the Ritz pairs
     if !proj_solve QQ=zeros(T,n,m+1) end
 
 
@@ -185,33 +186,38 @@ function ilan(
             if !proj_solve
 
                 # Extract eigenvalues from Hessenberg matrix
-                D,Z_Ritz = eigen(H[1:k,1:k])
+                D,W_Ritz = eigen(H[1:k,1:k])
 
-                ZZ = view(QQ,:,1:k)*Z_Ritz
+                mul!(view(W,:,1:k),view(QQ,:,1:k),W_Ritz)
+                #ZZ = view(QQ,:,1:k)*Z_Ritz
                 λ = σ .+ γ ./ D
             else
                 VV=view(V,:,1:k+1)
                 # Projected solve to extract eigenvalues (otw hessenberg matrix)
+                println("err=",norm(VV'*VV-I))
 
                 # create the projected NEP
                 mm=size(VV,2)
                 pnep=create_proj_NEP(nep,mm); # maxsize=mm
                 set_projectmatrices!(pnep,VV,VV);
-                err_lifted=(λ,z)->estimate_error(ermdata,λ,VV*z);
 
                 # solve the projected NEP
                 push_info!(logger,2,"Solving the projected problem",continues=true);
 
-                λproj,Zproj=inner_solve(inner_solver_method,T,pnep;
+                λproj,Wproj=inner_solve(inner_solver_method,T,pnep;
                                         neigs=Inf,
                                         inner_logger=inner_logger);
-                ZZ=VV*Zproj;
-                λ=λproj;
+
+                q=length(λproj)
+                if q>k q=k end
+                mul!(view(W,:,1:q),VV,view(Wproj,:,1:q))
+                #ZZ=VV*Zproj[:,1:k];
+                λ=λproj[1:q];
 
 
             end
             # compute the errors
-            err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],ZZ[:,s]),1:size(λ,1))
+            err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],W[:,s]),1:size(λ,1))
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);
@@ -237,7 +243,7 @@ function ilan(
             if (k==m)||(conv_eig>=neigs)
                 nrof_eigs = Int(min(conv_eig,neigs))
                 λ=λ[idx[1:nrof_eigs]]
-                W=ZZ[:,idx[1:length(λ)]]
+                W=W[:,idx[1:length(λ)]]
             end
 
         end

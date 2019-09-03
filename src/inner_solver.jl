@@ -345,7 +345,7 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
         radius = is.radius
     end
     neigs = Int(min(neigs,size(nep,1)-1))
-    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger,tol=is.tol)
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger,tol=is.tol,sanity_check=false)
     return λ,V
 end
 
