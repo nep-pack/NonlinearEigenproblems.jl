@@ -8,17 +8,15 @@ If you have a NEP defined in MATLAB, you can quite easily
 use the NEP-solvers of this package. Below is a description
 of two ways to solve nonlinear eigenvalue
 problems defined in MATLAB.
+There is a cost in terms of efficiency to define your problem in MATLAB,
+due to overhead associated with communication between the
+MATLAB and Julia processes. Very large scale problems are recommended to be defined
+directly in Julia.
 
 !!! note
     To work with NEPs defined in MATLAB you need to have MATLAB installed on
     your computer. We use the [MATLAB interoperability package](https://github.com/JuliaInterop/MATLAB.jl)
-    to link Julia exacution with MATLAB execution.
-
-!!! tip
-    There is a cost in terms of efficiency to define your problem in MATLAB,
-    due to overhead associated with communication between the
-    MATLAB and Julia processes. Very large scale problems are recommended to be defined
-    directly in Julia.
+    to link Julia execution with MATLAB execution.
 
 Suppose you have the following NEP in MATLAB
 ```math
