@@ -30,7 +30,7 @@ rel_err=(λ,v)->compute_resnorm(nep,λ,v)/((abs(λ)+abs(exp(nep.tauv[1]))*nA1+ab
 v0=rand(n^2)
 
 # COMPUTE REFERENCE EIGENVALUES WITH IAR
-λ,v=tiar(nep;maxit=250,tol=1e-12,neigs=Inf,logger=1,check_error_every=Inf)
+#λ,v=tiar(nep;maxit=150,tol=1e-8,neigs=Inf,logger=1,check_error_every=Inf)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
 
 #θ=range(0,stop=2π,length=1000); r=6; Σ=r*cos.(θ) + 1im*r*sin.(θ)

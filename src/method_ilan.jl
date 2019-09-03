@@ -117,6 +117,10 @@ function ilan(
     λ=zeros(T,m+1);
     W=zeros(T,n,m+1);
 
+    # allocate extra memory for storing the ...
+    if !proj_solve QQ=zeros(T,n,m+1) end
+
+
     # temp var for plot
     conv_eig_hist=zeros(Int,m+1)
 
@@ -136,6 +140,12 @@ function ilan(
     ermdata=init_errmeasure(errmeasure,nep);
 
     while (k <= m) && (conv_eig<neigs)
+
+        # store all the (first blocks) vectors of the Arnoldi sequence. This is needed
+        # for the extraction of Ritz vectors.
+        if !proj_solve
+            QQ[:,k]=Q[1:n,1];
+        end
 
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
@@ -177,8 +187,7 @@ function ilan(
                 # Extract eigenvalues from Hessenberg matrix
                 D,Z_Ritz = eigen(H[1:k,1:k])
 
-                VV = view(V,1:1:n,1:k)
-                ZZ = VV*Z_Ritz
+                ZZ = view(QQ,:,1:k)*Z_Ritz
                 λ = σ .+ γ ./ D
             else
                 VV=view(V,:,1:k+1)
@@ -203,7 +212,6 @@ function ilan(
             end
             # compute the errors
             err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],ZZ[:,s]),1:size(λ,1))
-            display(err)
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
                                  continues=true);
