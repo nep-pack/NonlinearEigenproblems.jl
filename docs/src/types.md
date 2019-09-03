@@ -97,23 +97,3 @@ GenericSumNEP
 ```@docs
 SPMFSumNEP
 ```
-
-
-# Accessing the NEP
-
-The nonlinear eigenvalue problem is defined by the data
-stored in the NEP-class, and the NEP-solvers access
-the data mainly through three main functions, `compute_Mder`
-`compute_Mlincomb` and `compute_MM`.
-
-```@docs
-compute_Mder
-```
-
-```@docs
-compute_Mlincomb!
-```
-
-```@docs
-compute_MM
-```

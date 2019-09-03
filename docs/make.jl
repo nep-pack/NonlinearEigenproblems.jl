@@ -10,7 +10,8 @@ makedocs(
         "Home" => "index.md",
         "Manual" => [
         "methods.md",
-        "types.md",
+            "types.md",
+        "compute_functions.md",
         "linsolvers.md",
         "innersolvers.md",
         "errmeasure.md",
