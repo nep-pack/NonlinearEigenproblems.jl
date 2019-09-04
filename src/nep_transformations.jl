@@ -4,6 +4,8 @@ using SparseArrays
 export transform_to_pep
 export shift_and_scale
 export mobius_transform
+export CORK_pencil
+export build_CORK_pencil
 
 """
     struct ShiftScaledNEP <: NEP
@@ -20,7 +22,7 @@ struct ShiftScaledNEP <: NEP
     end
 end
 """
-    shift_and_scale(orgnep::NEP;shift=0,scale=1)
+    shift_and_scale(or9gnep::NEP;shift=0,scale=1)
 Transforms the orgnep by defining a new NEP from the relation
 T(λ)=M(scale * λ+shift) where M is the orgnep. This function tries
  to preserve the NEP type, e.g., a shift_and_scale operation on
@@ -198,4 +200,25 @@ function transform_to_pep(nep::NEP,d::Integer=2)
         A[i+1]=compute_Mder(nep,0,i)/factorial(i);
     end
     return PEP(A)
+end
+
+# representation of the structured linearizations used in the CORK framework
+struct CORK_pencil{T<:AbstractMatrix}
+    M::T
+    N::T
+    Av::Vector{T}   # Array of Array of matrices
+    Bv::Vector{T}   # Array of Array of matrices
+end
+
+# construct the linearization
+function build_CORK_pencil(cp::CORK_pencil)
+    n=size(cp.Av[1],1)
+    if issparse(cp.Av[1])
+        II=sparse(I, n, n)
+    else
+        II=Matrix(I, n, n)
+    end
+    AA=[hcat(cp.Av...); kron(cp.M,II)]
+    BB=[hcat(cp.Bv...); kron(cp.N,II)]
+    return AA, BB
 end
