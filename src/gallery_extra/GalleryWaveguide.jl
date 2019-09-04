@@ -12,9 +12,6 @@ using IterativeSolvers
 using LinearMaps
 
 export wep_generate_preconditioner
-export wep_gmres_linsolvercreator
-export wep_backslash_linsolvercreator
-export wep_factorized_linsolvercreator
 
 # Specializalized NEPs
 export WEP
@@ -24,9 +21,6 @@ export WEP_FD
 import NonlinearEigenproblems.Gallery.nep_gallery
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 import NonlinearEigenproblems.LinSolvers.lin_solve
-import NonlinearEigenproblems.LinSolvers.default_linsolvercreator
-import NonlinearEigenproblems.LinSolvers.DefaultLinSolver
-import NonlinearEigenproblems.LinSolvers.BackslashLinSolver
 
 import Base.size
 import SparseArrays.issparse

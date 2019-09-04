@@ -532,10 +532,6 @@ The `kwargs` keyword argument is passed to the solver.
 
     end
 
-    # Overloads Defalut and Backslash LinSolvers
-    DefaultLinSolver(nep::WEP_FD, λ, umfpack_refinements) = WEPFactorizedLinSolver(nep, λ)
-    BackslashLinSolver(nep::WEP_FD, λ) = WEPBackslashLinSolver(nep, λ)
-
 
 ###########################################################
 # Generate a function for mat-vecs with P^{-1}-matrix
