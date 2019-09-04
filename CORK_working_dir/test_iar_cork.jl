@@ -1,4 +1,4 @@
-using NonlinearEigenproblems, Random, LinearAlgebra, PyPlot
+using NonlinearEigenproblems, Random, LinearAlgebra, PyPlot, SparseArrays
 
 pygui(true)
 

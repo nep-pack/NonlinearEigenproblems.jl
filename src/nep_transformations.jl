@@ -223,7 +223,7 @@ struct IarCorkLinearization <: CorkLinearization
     function IarCorkLinearization(;d=10)
         return new(d);
     end
-end;
+end
 
 function compute_CORK_pencil(nep,is::IarCorkLinearization)
     M=diagm( 0 =>  ones(is.d) )[2:end,:]
