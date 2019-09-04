@@ -6,6 +6,10 @@ export shift_and_scale
 export mobius_transform
 export CORK_pencil
 export build_CORK_pencil
+export compute_CORK_pencil
+export CorkLinearization
+export DefaultCorkLinearization
+export IarCorkLinearization
 
 """
     struct ShiftScaledNEP <: NEP
@@ -210,15 +214,32 @@ struct CORK_pencil{T<:AbstractMatrix}
     Bv::Vector{T}   # Array of Array of matrices
 end
 
+abstract type CorkLinearization end;
+
+struct DefaultCorkLinearization <: CorkLinearization end;
+
+struct IarCorkLinearization <: CorkLinearization
+    d::Int
+    function IarCorkLinearization(;d=10)
+        return new(d);
+    end
+end;
+
+function compute_CORK_pencil(nep,is::IarCorkLinearization)
+    M=diagm( 0 =>  ones(is.d) )[2:end,:]
+    N=diagm( -1 =>  1 ./ (1:is.d-1) )[2:end,:]
+    Av=Array{AbstractMatrix,1}(undef, is.d)
+    Bv=Array{AbstractMatrix,1}(undef, is.d)
+    Av[1]=-compute_Mder(nep,0,0)
+    for j=2:is.d Av[j]=zero(Av[1])              end
+    for j=1:is.d Bv[j]=compute_Mder(nep,0,j)/j  end
+    return CORK_pencil(M,N,Av,Bv)
+end
+
 # construct the linearization
 function build_CORK_pencil(cp::CORK_pencil)
     n=size(cp.Av[1],1)
-    if issparse(cp.Av[1])
-        II=sparse(I, n, n)
-    else
-        II=Matrix(I, n, n)
-    end
-    AA=[hcat(cp.Av...); kron(cp.M,II)]
-    BB=[hcat(cp.Bv...); kron(cp.N,II)]
-    return AA, BB
+    if issparse(cp.Av[1])   II=sparse(I, n, n)
+    else                    II=Matrix(I, n, n)    end
+    return [hcat(cp.Av...); kron(cp.M,II)], [hcat(cp.Bv...); kron(cp.N,II)]
 end
