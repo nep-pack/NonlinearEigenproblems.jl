@@ -15,8 +15,8 @@ import GalleryWaveguide.SchurMatVec
 
 nx = 11
 nz = 7
-nep_spmf=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", discretization = "FD", neptype = "SPMF")
-nep=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", discretization = "FD", neptype = "WEP")
+nep_spmf=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "SPMF")
+nep=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "WEP")
 γ = -1.3-0.31im
 v1 = compute_Mlincomb(nep_spmf, γ, ones(size(nep_spmf,1)))
 v2 = compute_Mlincomb(nep     , γ, ones(size(nep     ,1)))
@@ -29,7 +29,7 @@ b2 = ldiv!(precond, (Schur_fun*b1))
 @test norm(b1-b2)/norm(b1) < 1e-14
 
 
-nep=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", discretization = "FD", neptype = "WEP")
+nep=nep_gallery(WEP, nx = 3*5*7, nz = 3*5*7, benchmark_problem = "JARLEBRING", neptype = "WEP")
 
 n=size(nep,1);
 
