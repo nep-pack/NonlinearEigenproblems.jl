@@ -1,4 +1,4 @@
-# Inner solvers
+# Projection
 
 Many NEP-solvers are based on a computation of a
  projected problem, i.e., if ``V,W\in\mathbb{R}^{n\times p}``
@@ -7,9 +7,10 @@ we need to solve the (smaller) NEP
 W^HM(λ)Vz=0
 ```
 This is sometimes called a nonlinear Rayleigh-Ritz procedure,
-or a direct projection.
+or a direct projection. These are *inner solvers* for many problems.
 
-NEP-PACK provides a framework to handle projected problems.
+NEP-PACK provides a framework to handle projected problems
+and inner solves.
 You can in principle use any of the NEP-solvers to
 solve a projected problem. As a user, this
 is specified in the `inner_solver_method`
@@ -124,4 +125,57 @@ inner_solve
 
 ```@docs
 compute_rf
+```
+
+
+## Projection types
+
+Several methods for NEPs are based on forming
+a smaller NEP, which we will refer to as a projection:
+```math
+N(λ)=W^HM(λ)V,
+```
+where $V,W\in\mathbb{C}^{n\times p}$
+and the corresponding projected problem
+```math
+N(λ)u=0.
+```
+
+## Types
+NEPs for which this projection can be computed
+inherit from `ProjectableNEP`.
+
+```@docs
+ProjectableNEP
+```
+
+The result of the
+projection is represented in a `Proj_NEP`.
+
+```@docs
+Proj_NEP
+```
+
+One explicit instance is the `Proj_SPMF_NEP`.
+
+```@docs
+Proj_SPMF_NEP
+```
+
+
+## Associated functions
+
+You can create a projected NEP with `create_proj_NEP`:
+
+```@docs
+create_proj_NEP
+```
+
+
+```@docs
+set_projectmatrices!
+```
+
+```@docs
+expand_projectmatrices!
 ```
