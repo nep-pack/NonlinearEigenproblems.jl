@@ -21,6 +21,7 @@ export WEP_FD
 import NonlinearEigenproblems.Gallery.nep_gallery
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 import NonlinearEigenproblems.LinSolvers.lin_solve
+import NonlinearEigenproblems.LinSolvers.create_linsolver
 
 import Base.size
 import SparseArrays.issparse

@@ -1,5 +1,4 @@
 
-import ..create_linsolver
 ###########################################################
 # Waveguide eigenvalue problem (WEP)
 # Sum of products of matrices and functions (SPMF)
