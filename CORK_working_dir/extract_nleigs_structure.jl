@@ -85,9 +85,7 @@ function nleigs_structure(
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{CT}}()
     conv = BitVector()
-    lam = Vector{CT}()
     X = Matrix{CT}(undef, 0, 0)
-    res = Vector{T}()
 
     P = get_rk_nep(T, nep)
     n = size(nep, 1)
@@ -97,25 +95,7 @@ function nleigs_structure(
 
     lin_solver_cache = LinSolverCache(CT, nep, linsolvercreator)
 
-    # Initialization
-    if static
-        V = zeros(CT, n, 1)
-    elseif !P.spmf
-        V = zeros(CT, (b+1)*n, b+1)
-    else
-        if !P.is_low_rank || b < P.p
-            V = zeros(CT, (b+1)*n, b+1)
-        else
-            V = zeros(CT, P.p*n+(b-P.p+1)*P.r, b+1)
-        end
-    end
-    H = zeros(CT, b+1, b)
-    K = zeros(CT, b+1, b)
     nrmD = Array{T}(undef, 1)
-    if return_details
-        Lam = zeros(CT, b, b)
-        Res = zeros(T, b, b)
-    end
 
     # Discretization of Σ --> Gamma & Leja-Bagby points
     if leja == 0 # use no leja nodes
@@ -164,8 +144,6 @@ function nleigs_structure(
     end
 
     # Rational Krylov
-    v = solve(lin_solver_cache, σ[1], v/norm(v), reusefact == 2)
-    V[1:n,1] .= v ./ norm(v)
     expand = true
     kconv = trunc(Int, typemax(Int)/2)
     kn = n   # length of vectors in V
@@ -179,7 +157,6 @@ function nleigs_structure(
         # resize matrices if we're starting a new block
         if l > 0 && (b == 1 || mod(l+1, b) == 1)
             nb = round(Int, 1 + l/b)
-            Vrows = size(V, 1)
             if !P.spmf
                 Vrows = kn+b*n
             else
@@ -192,13 +169,6 @@ function nleigs_structure(
                         Vrows = kn+b*P.r
                     end
                 end
-            end
-            V = resize_matrix(V, Vrows, nb*b+1)
-            H = resize_matrix(H, size(H, 1) + b, size(H, 2) + b)
-            K = resize_matrix(K, size(K, 1) + b, size(K, 2) + b)
-            if return_details
-                Lam = resize_matrix(Lam, size(Lam, 1) + b, size(Lam, 2) + b)
-                Res = resize_matrix(Res, size(Res, 1) + b, size(Res, 2) + b)
             end
         end
 
@@ -253,7 +223,6 @@ function nleigs_structure(
                         else
                             kn -= P.r
                         end
-                        V = resize_matrix(V, kn, b+1)
                     end
                     N -= 1
                     push_info!(logger,
@@ -269,9 +238,7 @@ function nleigs_structure(
                         end
                         σ[k+1:kmax+1] = nodes[1:kmax-k+1]
                     end
-                    if static
-                        V = resize_matrix(V, kn, b+1)
-                    end
+
                     N -= 1
                     @warn "NLEIGS: Linearization not converged after $maxdgr iterations"
                     push_info!(logger,
@@ -282,73 +249,6 @@ function nleigs_structure(
 
         l = static ? k - N : k
 
-        if !static || (static && !expand)
-            # shift-and-invert
-            t = [zeros(l-1); 1]    # continuation combination
-            wc = V[1:kn, l]        # continuation vector
-            w = backslash(wc, P, lin_solver_cache, reusefact, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
-
-            # orthogonalization
-            Vview = view(V, 1:kn, 1:l)
-            H[l+1,l] = orthogonalize_and_normalize!(Vview, w, view(H, 1:l,l), DGKS)
-            K[1:l,l] .= view(H, 1:l, l) .* σ[k+1] .+ t
-            K[l+1,l] = H[l+1,l] * σ[k+1]
-            V[1:kn,l+1] = w
-#            @printf("new vector V: size = %s, sum = %s\n", size(V[1:kn,l+1]), sum(sum(V[1:kn,l+1])))
-        end
-
-        function check_convergence(all)
-            lambda, S = eigen(K[1:l,1:l], H[1:l,1:l])
-
-            # select eigenvalues
-            if !all
-                lamin = in_Σ(lambda, Σ, tol)
-                ilam = [1:l;][lamin]
-                lam = lambda[ilam]
-            else
-                ilam = [1:l;][isfinite.(lambda)]
-                lam = lambda[ilam]
-                lamin = in_Σ(lam, Σ, tol)
-            end
-
-            nblamin = sum(lamin)
-            for i = ilam
-                S[:,i] /= norm(H[1:l+1,1:l] * S[:,i])
-            end
-            X = V[1:n,1:l+1] * (H[1:l+1,1:l] * S[:,ilam])
-            for i = 1:size(X,2)
-                X[:,i] /= norm(X[:,i])
-            end
-
-            # compute residuals & check for convergence
-            res = map(i -> estimate_error(errmeasure,lam[i], X[:,i]), 1:length(lam))
-            conv = abs.(res) .< tol
-            if all
-                resall = fill(T(NaN), l, 1)
-                resall[ilam] = res
-                # sort complex numbers by magnitude, then angle
-                si = sortperm(lambda, lt = (a,b) -> abs(a) < abs(b) || (abs(a) == abs(b) && angle(a) < angle(b)))
-                Res[1:l,l] = resall[si]
-                Lam[1:l,l] = lambda[si]
-                conv .&= lamin
-            end
-
-            nbconv = isempty(conv) ? 0 : sum(conv)
-
-            iteration = static ? k - N : k
-            push_info!(logger,
-                       "  iteration $iteration: $nbconv of $nblamin < $tol")
-        end
-
-        # Ritz pairs
-        if !return_details && (
-            (!expand && k >= N + minit && mod(k-(N+minit), check_error_every) == 0) ||
-            (k >= kconv + minit && mod(k-(kconv+minit), check_error_every) == 0) || k == kmax)
-            check_convergence(false)
-        elseif return_details && (!static || (static && !expand))
-            check_convergence(true)
-        end
-
         # stopping
         if ((!expand && k >= N + minit) || k >= kconv + minit) && nblamin == nbconv
             break
@@ -356,21 +256,6 @@ function nleigs_structure(
 
         # increment k
         k += 1
-    end
-
-    details = NleigsSolutionDetails{T,CT}()
-
-    if return_details
-        Lam = Lam[1:l,1:l]
-        Res = Res[1:l,1:l]
-        σ = σ[1:k]
-        if expand
-            ξ = ξ[1:k]
-            β = β[1:k]
-            nrmD = nrmD[1:k]
-            @warn "NLEIGS: Linearization not converged after $maxdgr iterations"
-        end
-        details = NleigsSolutionDetails(Lam, Res, σ, ξ, β, nrmD, kconv)
     end
 
     return D, β, ξ, σ
