@@ -27,7 +27,7 @@ AA,BB=build_CORK_pencil(ck)
 
 λ2=eigvals(Matrix(AA),Matrix(BB))
 
-λ,_=iar(nep,maxit=200,tol=1e-8,neigs=Inf)
+#λ,_=iar(nep,maxit=200,tol=1e-8,neigs=Inf)
 pygui(true)
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:red,linestyle=:none)
 plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:red,linestyle=:none)

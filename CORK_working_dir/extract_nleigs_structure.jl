@@ -64,28 +64,21 @@ function nleigs_structure(
         Ξ::Vector{T} = [T(Inf)],
         logger = 0,
         maxdgr::Int = 100,
-        minit::Int = 20,
         maxit::Int = 200,
-        linsolvercreator=DefaultLinSolverCreator(),
         tol::T = 1e-10,
         tollin::T = max(tol/10, 100*eps(T)),
-        v::Vector{CT} = CT.(randn(T, size(nep, 1))),
         errmeasure::ErrmeasureType = ResidualErrmeasure(nep),
         isfunm::Bool = true,
-        static::Bool = false,
         leja::Int = 1,
         nodes::Vector{CT} = Vector{CT}(),
-        reusefact::Int = 1,
         blksize::Int = 20,
-        return_details::Bool = false,
-        check_error_every::Int = 5) where {T<:Real, CT<:Complex{T}}
+        return_details::Bool = false
+        ) where {T<:Real, CT<:Complex{T}}
 
     @parse_logger_param!(logger)
 
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{CT}}()
-    conv = BitVector()
-    X = Matrix{CT}(undef, 0, 0)
 
     P = get_rk_nep(T, nep)
     n = size(nep, 1)
@@ -93,7 +86,6 @@ function nleigs_structure(
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
     b = blksize
 
-    lin_solver_cache = LinSolverCache(CT, nep, linsolvercreator)
 
     nrmD = Array{T}(undef, 1)
 
@@ -103,7 +95,7 @@ function nleigs_structure(
             error("Interpolation nodes must be provided via 'nodes' when no Leja-Bagby points ('leja' == 0) are used.")
         end
         gamma,_ = discretizepolygon(Σ)
-        max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
+        max_count = max(maxit,maxdgr)+2
         σ = repeat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
         _,ξ,β = lejabagby(σ[1:maxdgr+2], Ξ, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
@@ -116,7 +108,7 @@ function nleigs_structure(
         σ,ξ,β = lejabagby(gamma, Ξ, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
         gamma,_ = discretizepolygon(Σ)
-        max_count = static ? maxit+maxdgr+2 : max(maxit,maxdgr)+2
+        max_count =  max(maxit,maxdgr)+2
         σ,ξ,β = lejabagby(gamma, Ξ, gamma, max_count, false, P.p)
     end
     ξ[maxdgr+2] = NaN # not used
@@ -151,34 +143,11 @@ function nleigs_structure(
     N = 0    # degree of approximations
     nbconv = 0 # number of converged lambdas inside Σ
     nblamin = 0 # number of lambdas inside Σ, converged or not
-    kmax = static ? maxit + maxdgr : maxit
+    kmax =  maxit
     k = 1
     while k <= kmax
-        # resize matrices if we're starting a new block
-        if l > 0 && (b == 1 || mod(l+1, b) == 1)
-            nb = round(Int, 1 + l/b)
-            if !P.spmf
-                Vrows = kn+b*n
-            else
-                if expand
-                    if !P.is_low_rank || l + b < P.p
-                        Vrows = kn+b*n
-                    elseif l < P.p-1
-                        Vrows = P.p*n+(nb*b-P.p+1)*P.r
-                    else # l >= P.p-1
-                        Vrows = kn+b*P.r
-                    end
-                end
-            end
-        end
 
         if expand
-            # set length of vectors
-            if !P.is_low_rank || k < P.p
-                kn += n
-            else
-                kn += P.r
-            end
 
             # rational divided differences
             if P.spmf && computeD
@@ -200,9 +169,6 @@ function nleigs_structure(
             if n > 1 && k >= 5 && k < kconv
                 if sum(nrmD[k-3:k+1]) < 5*tollin
                     kconv = k - 1
-                    if static
-                        kmax = maxit + kconv
-                    end
                     expand = false
                     if leja == 1
                         # TODO: can we pre-allocate σ?
@@ -217,13 +183,7 @@ function nleigs_structure(
                     ξ = ξ[1:k]
                     β = β[1:k]
                     nrmD = nrmD[1:k]
-                    if static
-                        if !P.is_low_rank || k < P.p
-                            kn -= n
-                        else
-                            kn -= P.r
-                        end
-                    end
+
                     N -= 1
                     push_info!(logger,
                                "Linearization converged after $kconv iterations")
@@ -247,12 +207,8 @@ function nleigs_structure(
             end
         end
 
-        l = static ? k - N : k
+        l =  k
 
-        # stopping
-        if ((!expand && k >= N + minit) || k >= kconv + minit) && nblamin == nbconv
-            break
-        end
 
         # increment k
         k += 1
@@ -280,128 +236,6 @@ function constructD(nb, P, sgdd::AbstractMatrix{CT}) where CT<:Complex{<:Real}
     return D
 end
 
-"Backslash or left matrix divide for continuation vector `wc`."
-function backslash(wc, P, lin_solver_cache, reusefact, computeD, σ, k, D, β, N, ξ, expand, kconv, sgdd)
-    n = size(P.nep, 1)::Int
-    shift = σ[k+1]
-
-    # construction of B*wc
-    Bw = zeros(eltype(wc), size(wc))
-    # first block (if low rank)
-    if P.is_low_rank
-        i0b = (P.p-1)*n + 1
-        i0e = P.p*n
-        if !P.spmf || computeD
-            Bw[1:n] = -D[P.p+1] * wc[i0b:i0e] / β[P.p+1]
-        else
-            Bw[1:n] = -sum(reshape(P.BBCC * wc[i0b:i0e], n, :) .* transpose(sgdd[:,P.p+1]), dims = 2) / β[P.p+1];
-        end
-    end
-    # other blocks
-    i0b = 1
-    i0e = n
-    for ii = 1:N
-        # range of block i+1
-        i1b = i0e + 1
-        if !P.is_low_rank || ii < P.p
-            i1e = i0e + n
-        else
-            i1e = i0e + P.r
-        end
-        # compute block i+1
-        if !P.is_low_rank || ii != P.p
-            Bw[i1b:i1e] = wc[i0b:i0e] + β[ii+1]/ξ[ii]*wc[i1b:i1e]
-        else
-            Bw[i1b:i1e] = P.UU' * wc[i0b:i0e] + β[ii+1]/ξ[ii]*wc[i1b:i1e]
-        end
-        # range of next block i
-        i0b = i1b
-        i0e = i1e
-    end
-
-    # construction of z0
-    z = copy(Bw)
-    i1b = n + 1
-    if !P.is_low_rank || P.p > 1
-        i1e = 2*n
-    else
-        i1e = n + P.r
-    end
-    nu = β[2]*(1 - shift/ξ[1])
-    z[i1b:i1e] = 1/nu * z[i1b:i1e]
-    for ii = 1:N
-        # range of block i+2
-        i2b = i1e + 1
-        if !P.is_low_rank || ii < P.p-1
-            i2e = i1e + n
-        else
-            i2e = i1e + P.r
-        end
-        # add extra term to z0
-        if !P.spmf || computeD
-            if !P.is_low_rank || ii != P.p
-                z[1:n] -= D[ii+1] * z[i1b:i1e]
-            end
-        else
-            if !P.is_low_rank || ii < P.p
-                z[1:n] -= sum(reshape(P.BBCC * z[i1b:i1e], n, :) .* transpose(sgdd[:,ii+1]), dims = 2)
-            elseif ii > P.p
-                dd = sgdd[P.p+2:end,ii+1]
-                @inbounds for i = 1:length(P.iLr)
-                    for j = 1:length(P.LL[i].nzval)
-                        ind = P.LL[i].nzind[j]
-                        z[P.iLr[i]] -= P.LL[i].nzval[j] * z[i1b+ind-1] * dd[P.iL[ind]]
-                    end
-                end
-            end
-        end
-        # update block i+2
-        if ii < N
-            mu = shift - σ[ii+1]
-            nu = β[ii+2] * (1 - shift/ξ[ii+1])
-            if !P.is_low_rank || ii != P.p-1
-                z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * z[i1b:i1e]
-            else # i == p-1
-                z[i2b:i2e] = 1/nu * z[i2b:i2e] + mu/nu * P.UU'*z[i1b:i1e]
-            end
-        end
-        # range of next block i+1
-        i1b = i2b
-        i1e = i2e
-    end
-
-    # solving Alam x0 = z0
-    w = zeros(eltype(wc), size(wc))
-    add_to_cache = ((!expand || k > kconv) && reusefact == 1) || reusefact == 2
-    w[1:n] = solve(lin_solver_cache, shift, z[1:n]/β[1], add_to_cache)
-
-    # substitutions x[i+1] = mu/nu*x[i] + 1/nu*Bw[i+1]
-    i0b = 1
-    i0e = n
-    for ii = 1:N
-        # range of block i+1
-        i1b = i0e + 1
-        if !P.is_low_rank || ii < P.p
-            i1e = i0e + n
-        else
-            i1e = i0e + P.r
-        end
-        # compute block i+1
-        mu = shift - σ[ii]
-        nu = β[ii+1] * (1 - shift/ξ[ii])
-        if !P.is_low_rank || ii != P.p
-            w[i1b:i1e] = mu/nu * w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
-        else
-            w[i1b:i1e] = mu/nu * P.UU'*w[i0b:i0e] + 1/nu * Bw[i1b:i1e]
-        end
-        # range of next block i
-        i0b = i1b
-        i0e = i1e
-    end
-
-    return w
-end
-
 "True for complex points `z` inside polygonal set `Σ`."
 function in_Σ(z::AbstractVector{CT}, Σ::AbstractVector{CT}, tol::T) where {T<:Real, CT<:Complex{T}}
     if length(Σ) == 2 && isreal(Σ)
@@ -413,38 +247,3 @@ function in_Σ(z::AbstractVector{CT}, Σ::AbstractVector{CT}, tol::T) where {T<:
     end
     return map(p -> inpolygon(real(p), imag(p), realΣ, imagΣ), z)
 end
-
-function resize_matrix(A, rows, cols)
-    resized = zeros(eltype(A), rows, cols)
-    resized[1:size(A, 1), 1:size(A, 2)] = A
-    return resized
-end
-
-struct NleigsSolutionDetails{T<:Real, CT<:Complex{T}}
-    "matrix of Ritz values in each iteration"
-    Lam::AbstractMatrix{CT}
-
-    "matrix of residuals in each iteraion"
-    Res::AbstractMatrix{T}
-
-    "vector of interpolation nodes"
-    σ::AbstractVector{CT}
-
-    "vector of poles"
-    ξ::AbstractVector{T}
-
-    "vector of scaling parameters"
-    β::AbstractVector{T}
-
-    "vector of norms of generalized divided differences (in function handle
-    case) or maximum of absolute values of scalar divided differences in
-    each iteration (in matrix function case)"
-    nrmD::AbstractVector{T}
-
-    "number of iterations until linearization converged"
-    kconv::Int
-end
-
-NleigsSolutionDetails{T,CT}() where {T<:Real, CT<:Complex{T}} = NleigsSolutionDetails(
-    Matrix{CT}(undef, 0, 0), Matrix{T}(undef, 0, 0), Vector{CT}(),
-    Vector{T}(), Vector{T}(), Vector{T}(), 0)
