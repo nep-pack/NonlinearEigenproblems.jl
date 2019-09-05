@@ -70,4 +70,6 @@ iter 7 err:4.942402279980973e-17 λ=-0.35871894596862675
 julia&gt; norm(compute_Mlincomb(nep,λ,x))
 5.613646650354486e-16</code></pre><p>If you now want to plot the error history, you can use the <code>ErrorLogger</code>:</p><pre><code class="language-julia-repl">julia&gt; mylogger=ErrorLogger()
 julia&gt; (λ,x)=halley(nep,logger=mylogger);
-julia&gt; plot(mylogger.errs[1:10,1],yaxis=:log)</code></pre><p>We clearly observe the superlinear convergence:</p><p><img src="../newmethod_convergence.svg" alt/></p><footer><hr/><a class="previous" href="../tutorial_nano1/"><span class="direction">Previous</span><span class="title">Tutorial 8 (gmsh + nanophotonics)</span></a><a class="next" href="../tutorial_linsolve/"><span class="direction">Next</span><span class="title">Tutorial 10 (Linear solvers)</span></a></footer></article></body></html>
+julia&gt; plot(mylogger.errs[1:10,1],yaxis=:log)</code></pre><p>We clearly observe the superlinear convergence:</p><pre><code class="language-none">
+UndefVarError: nep not defined
+Stacktrace:</code></pre><p><img src="../newmethod_convergence.svg" alt/></p><footer><hr/><a class="previous" href="../tutorial_nano1/"><span class="direction">Previous</span><span class="title">Tutorial 8 (gmsh + nanophotonics)</span></a><a class="next" href="../tutorial_linsolve/"><span class="direction">Next</span><span class="title">Tutorial 10 (Linear solvers)</span></a></footer></article></body></html>
