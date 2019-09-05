@@ -76,27 +76,27 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
     cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
     cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
 
-    # Note: γ should be scalar or matrix (not vector)
-    betaM = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cM[j]*one(γ)
+    # Note: λ should be scalar or matrix (not vector)
+    betaM = function(λ, j::Integer)
+        return λ^2 + b[j]*λ + cM[j]*one(λ)
     end
-    betaP = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cP[j]*one(γ)
-    end
-
-    sM = function(γ, j::Integer)
-        return  1im*sqrt_schur_pos_imag(betaM(γ, j)) + d0*one(γ)
-    end
-    sP = function(γ, j::Integer)
-        return  1im*sqrt_schur_pos_imag(betaP(γ, j)) + d0*one(γ)
+    betaP = function(λ, j::Integer)
+        return λ^2 + b[j]*λ + cP[j]*one(λ)
     end
 
+    sM = function(λ, j::Integer)
+        return  1im*sqrt_schur_pos_imag(betaM(λ, j)) + d0*one(λ)
+    end
+    sP = function(λ, j::Integer)
+        return  1im*sqrt_schur_pos_imag(betaP(λ, j)) + d0*one(λ)
+    end
 
-    S = function(γ, j::Integer)
+
+    S = function(λ, j::Integer)
         if j <= nz
-            return sM(γ,j)
+            return sM(λ,j)
         elseif j <= 2*nz
-            return sP(γ,(j-nz))
+            return sP(λ,(j-nz))
         else
             error("The chosen j = ", j, "but the setup nz = ", nz, ". Hence j>2nz which is illegal.")
         end
@@ -169,21 +169,21 @@ end
         return ifft(nep.bbinv .* reverse(vec(X), dims = 1))
     end
 
-    function betaM(nep,γ)
-        return γ^2 .+ nep.b*γ + nep.cM
+    function betaM(nep,λ)
+        return λ^2 .+ nep.b*λ + nep.cM
     end
 
-    function betaP(nep,γ)
-        return γ^2 .+ nep.b*γ + nep.cP
+    function betaP(nep,λ)
+        return λ^2 .+ nep.b*λ + nep.cP
     end
 
-    function sM(nep,γ::Number)
-        bbeta = betaM(nep,γ)
+    function sM(nep,λ::Number)
+        bbeta = betaM(nep,λ)
         return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ nep.d0
     end
 
-    function sP(nep,γ::Number)
-        bbeta = betaP(nep,γ)
+    function sP(nep,λ::Number)
+        bbeta = betaP(nep,λ)
         return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ nep.d0
     end
 
@@ -268,26 +268,26 @@ Linear Algebra and its Applications''
 
     #Inverses of the boundary operators, Ringh - (2.8)
     #To be used in the Schur-complement- and SMW-context.
-    function P_inv_m(nep::WEP_FD, σ, v)
+    function P_inv_m(nep::WEP_FD, λ, v)
         nz = nep.nz
         coeffs = zeros(ComplexF64, nz)
             aa = 1.0
         for j = 1:nz
             bb = nep.b[j]
             cc = nep.cM[j]
-            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, λ) + nep.d0
         end
         return R(nep,Rinv(nep,v) ./ coeffs)
     end
 
-    function P_inv_p(nep::WEP_FD, σ, v)
+    function P_inv_p(nep::WEP_FD, λ, v)
         nz = nep.nz
         coeffs = zeros(ComplexF64, nz)
             aa = 1.0
         for j = 1:nz
             bb = nep.b[j]
             cc = nep.cP[j]
-            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, λ) + nep.d0
         end
         return R(nep,Rinv(nep,v) ./ coeffs)
     end
