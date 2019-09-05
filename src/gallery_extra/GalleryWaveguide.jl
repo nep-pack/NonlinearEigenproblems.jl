@@ -43,7 +43,7 @@ include("waveguide/waveguide_preconditioner.jl")
 """
     nep_gallery(WEP, kwargs...)
 
-Create the NEP associated with the **Waveguide Eigenvalue Problem (WEP)** found in both
+Create the NEP associated with finite difference discretization of the **Waveguide Eigenvalue Problem (WEP)** found in both
 * E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring, Sylvester-based preconditioning for the waveguide eigenvalue problem, Linear Algebra Appl., 2018
 * E. Jarlebring, and G. Mele, and O. Runborg, The waveguide eigenvalue problem and the tensor infinite Arnoldi method, SIAM J. Sci. Comput., 2017
 
