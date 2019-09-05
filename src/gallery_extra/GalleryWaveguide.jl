@@ -56,6 +56,8 @@ Create the NEP associated with finite difference discretization of the **Wavegui
 """
 function nep_gallery(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", neptype::String = "WEP",  delta::Number = 0.1) where T<:WEP
 
+    FFTW.set_num_threads(Sys.CPU_THREADS)
+
     waveguide = uppercase(benchmark_problem)
     neptype = uppercase(neptype)
     if !isodd(nz)
