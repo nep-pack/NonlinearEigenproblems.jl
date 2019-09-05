@@ -1,7 +1,7 @@
 # Logger
 
-NEP-PACK provides considerable functionality to control the printouts and information of the NEP-solvers. 
-All NEP-solvers take the keyword argument `logger` which specifies if things should be stored in 
+NEP-PACK provides considerable functionality to control the printouts and information of the NEP-solvers.
+All NEP-solvers take the keyword argument `logger` which specifies if things should be stored in
 a logger and/or printed. The main loggers are the [`PrintLogger`](@ref) which
 only provides printouts, and [`ErrorLogger`](@ref) which stores error information.
 
@@ -36,7 +36,7 @@ iter 18 err:1.0658141036401503e-14 λ=9.217148485301127 + 0.0im
 ```
 The displayed err are eigenvalue errors and we now wish to plot them:
 ```jula-repl
-julia> logger=ErrorLogger(); 
+julia> logger=ErrorLogger();
 julia> resinv(nep,v=[1;1],λ=8,
     errmeasure=EigvalReferenceErrmeasure(nep,λref),logger=logger);
 julia> errvec=logger.errs[1:17,1]; # This contains the iteration error
@@ -52,14 +52,14 @@ The theory predicts linear convergence, which we also observe.
 <img src="https://nep-pack.github.io/NonlinearEigenproblems.jl/logger_resinv_conv.png" height=300>
 ```
 
-# As a user
+## As a user
 ```@docs
 Logger
 PrintLogger
 ErrorLogger
 ```
 
-# As a solver developer
+## As a solver developer
 
 The logger is quite to easy to extend, if you wish to collect other information. You need
 to create a new type which implements the following methods.

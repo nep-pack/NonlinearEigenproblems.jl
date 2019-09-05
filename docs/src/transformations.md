@@ -1,4 +1,4 @@
-# Transformations.
+# Transformations
 
 There are various ways to transform NEPs into other NEPs.
 The simplest example is the function `shift_and_scale()`.
@@ -15,7 +15,7 @@ create new PEP by doing truncating a Taylor expansion.
 
 
 ```@docs
-mobios_transform
+mobius_transform
 ```
 
 ** TODO: This should be renamed, e.g. taylor_exp **
