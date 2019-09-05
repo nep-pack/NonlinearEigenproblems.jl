@@ -16,14 +16,14 @@ import GalleryWaveguide.SchurMatVec
         nz = 7
         nep_spmf=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "SPMF")
         nep=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "WEP")
-        γ = -1.3-0.31im
-        v1 = compute_Mlincomb(nep_spmf, γ, ones(size(nep_spmf,1)))
-        v2 = compute_Mlincomb(nep     , γ, ones(size(nep     ,1)))
+        λ = -1.3-0.31im
+        v1 = compute_Mlincomb(nep_spmf, λ, ones(size(nep_spmf,1)))
+        v2 = compute_Mlincomb(nep     , λ, ones(size(nep     ,1)))
         @test norm(v1-v2)/norm(v1) < 1e-14
 
-        precond = wep_generate_preconditioner(nep, nz, γ)
+        precond = wep_generate_preconditioner(nep, nz, λ)
         b1 = rand(ComplexF64, nx*nz)
-        Schur_fun = SchurMatVec(nep, γ)
+        Schur_fun = SchurMatVec(nep, λ)
         b2 = ldiv!(precond, (Schur_fun*b1))
         @test norm(b1-b2)/norm(b1) < 1e-14
     end
