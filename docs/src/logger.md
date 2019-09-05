@@ -1,5 +1,7 @@
 # Logger
 
+
+## Basic usage
 NEP-PACK provides considerable functionality to control the printouts and information of the NEP-solvers.
 All NEP-solvers take the keyword argument `logger` which specifies if things should be stored in
 a logger and/or printed. The main loggers are the [`PrintLogger`](@ref) which
@@ -52,17 +54,18 @@ The theory predicts linear convergence, which we also observe.
 <img src="https://nep-pack.github.io/NonlinearEigenproblems.jl/logger_resinv_conv.png" height=300>
 ```
 
-## As a user
+## Logger types
 ```@docs
 Logger
 PrintLogger
 ErrorLogger
 ```
 
-## As a solver developer
+## Advanced usage
 
-The logger is quite to easy to extend, if you wish to collect other information. You need
-to create a new type which implements the following methods.
+The logging functionality can be extended in case you want to collect
+(or throw away) some of the information.
+You need to create a new type which implements the following methods.
 
 ```@docs
 push_info!
