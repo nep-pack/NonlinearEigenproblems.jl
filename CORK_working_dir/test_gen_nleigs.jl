@@ -8,7 +8,7 @@ unit_square = float([1+1im, 1-1im, -1-1im,-1+1im])
 r=5
 θ=range(0,stop=2π,length=1000)
 Σ=r*cos.(θ) + 1im*r*sin.(θ)
-D, β, ξ, σ=nleigs_coefficients(nep,unit_square);
+D, β, ξ, σ=nleigs_coefficients(nep,Σ);
 
 d=19
 σ=σ[1:d+1]; β=β[1:d+1]; ξ=ξ[1:d+1]
