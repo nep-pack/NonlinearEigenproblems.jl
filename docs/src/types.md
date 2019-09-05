@@ -1,4 +1,4 @@
-# NEP Types
+# Types & Data structures
 
 ## The basic type
 The basic class is the abstract class `NEP` which represents
