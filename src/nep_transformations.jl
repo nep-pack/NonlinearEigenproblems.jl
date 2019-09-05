@@ -115,11 +115,14 @@ end
 
 """
     mobius_transform(orgnep::NEP,[,a=1][,b=0][,c=0][,d=1])
-Transforms a nep (orgnep) M(λ)v to a new nep T(λ)=M((a*λ+b)/(c*λ+d)).
-This function tries to preserve the type such that T
-and M are of the same NEP-type (see `shift_and_scale()`).
+
+Transforms a nep (orgnep) ``M(λ)v`` to a new nep ``T(λ)=M((aλ+b)/(cλ+d))``.
+This function tries to preserve the type such that `T`
+and `M` are of the same NEP-type (see `shift_and_scale()`).
 If it cannot be preserved it will return a `MobiusTransformedNEP`.
-The use of `MobiusTransformedNEP` can considerably slow down the algorithm.
+It is in general advised to try to preserve the type, and
+the use of `MobiusTransformedNEP` can
+considerably slow down NEP-access.
 
 # Example
 
@@ -192,7 +195,7 @@ end
 
 # consider renaming this function
 """
-   transform_to_pep(orgnep::NEP[,d=2])
+    transform_to_pep(orgnep::NEP[,d=2])
 
 Compute the truncated (with `d` terms) Taylor series of the NEP.
 The output is a [`PEP`](@ref).
