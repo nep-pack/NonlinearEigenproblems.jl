@@ -1,6 +1,9 @@
 # Transformations between types
 using SparseArrays
 
+include("nleigs_coefficients.jl")
+
+
 export transform_to_pep
 export shift_and_scale
 export mobius_transform
@@ -10,6 +13,8 @@ export compute_CORK_pencil
 export CorkLinearization
 export DefaultCorkLinearization
 export IarCorkLinearization
+export NleigsCorkLinearization
+
 
 """
     struct ShiftScaledNEP <: NEP
@@ -225,6 +230,16 @@ struct IarCorkLinearization <: CorkLinearization
     end
 end
 
+struct NleigsCorkLinearization <: CorkLinearization
+    Σ::Union{Vector,Symbol}
+    #Ξ::Union{Vector,Symbol} # add later
+    maxdgr::Int
+    tollin::Float64;
+    function NleigsCorkLinearization(;Σ=[-1.0-1im,-1+1im,+1+1im,1-1im], maxdgr=100 , tollin=1e-6 )
+        return new(Σ,maxdgr,tollin);
+    end
+end
+
 function compute_CORK_pencil(nep,is::IarCorkLinearization)
     M=diagm( 0 =>  ones(is.d) )[2:end,:]
     N=diagm( -1 =>  1 ./ (1:is.d-1) )[2:end,:]
@@ -233,6 +248,19 @@ function compute_CORK_pencil(nep,is::IarCorkLinearization)
     Av[1]=-compute_Mder(nep,0,0)
     for j=2:is.d Av[j]=zero(Av[1])              end
     for j=1:is.d Bv[j]=compute_Mder(nep,0,j)/j  end
+    return CORK_pencil(M,N,Av,Bv)
+end
+
+function compute_CORK_pencil(nep,is::NleigsCorkLinearization)
+    D,β,ξ,σ=nleigs_coefficients(nep,is.Σ,tollin=is.tollin)
+    d=length(β)-1
+    σ=σ[1:d+1]; β=β[1:d+1]; ξ=ξ[1:d+1]
+    M=diagm( -1 => σ[1:d], 0 =>  β[1:d] )[2:end-1,1:end-1]
+    N=diagm( -1 => ones(d), 0 =>  β[1:d]./ξ[1:d] )[2:end-1,1:end-1]
+    Av=Array{AbstractMatrix,1}(undef, d)
+    Av[1:d-1]=D[1:d-1]; Av[d]=D[d]-σ[d]/β[d+1]*D[d+1]
+    Bv=Array{AbstractMatrix,1}(undef, d)
+    Bv[1:d-1]=D[1:d-1]/ξ[d+1]; Bv[d]=D[d]/ξ[d+1]-D[d+1]/β[d+1]
     return CORK_pencil(M,N,Av,Bv)
 end
 

@@ -1,11 +1,10 @@
-using NonlinearEigenproblems.RKHelper
 using LinearAlgebra
 using Random
 using SparseArrays
 using IterativeSolvers
+using NonlinearEigenproblems
 
 export nleigs_coefficients
-
 
 """
     nleigs(nep::NEP, Σ::AbstractVector{Complex{T}})
@@ -62,7 +61,6 @@ function nleigs_coefficients(
         maxdgr::Int = 100,
         maxit::Int = 200,
         tollin::T = 100*eps(T),
-        errmeasure::ErrmeasureType = ResidualErrmeasure(nep),
         isfunm::Bool = true,
         leja::Int = 1,
         nodes::Vector{CT} = Vector{CT}(),
@@ -70,12 +68,12 @@ function nleigs_coefficients(
         return_details::Bool = false
         ) where {T<:Real, CT<:Complex{T}}
 
-    @parse_logger_param!(logger)
+#    @parse_logger_param!(logger)
 
     # The following variables are used when creating the return values, so put them in scope
     D = Vector{Matrix{CT}}()
 
-    P = get_rk_nep(T, nep)
+    P = NonlinearEigenproblems.RKHelper.get_rk_nep(T, nep)
     n = size(nep, 1)
     n == 1 && (maxdgr = maxit + 1)
     computeD = (n <= 400) # for small problems, explicitly use generalized divided differences
@@ -89,22 +87,22 @@ function nleigs_coefficients(
         if isempty(nodes)
             error("Interpolation nodes must be provided via 'nodes' when no Leja-Bagby points ('leja' == 0) are used.")
         end
-        gamma,_ = discretizepolygon(Σ)
+        gamma,_ = NonlinearEigenproblems.RKHelper.discretizepolygon(Σ)
         max_count = max(maxit,maxdgr)+2
         σ = repeat(reshape(nodes, :, 1), ceil(Int, max_count/length(nodes)), 1)
-        _,ξ,β = lejabagby(σ[1:maxdgr+2], Ξ, gamma, maxdgr+2, true, P.p)
+        _,ξ,β = NonlinearEigenproblems.RKHelper.lejabagby(σ[1:maxdgr+2], Ξ, gamma, maxdgr+2, true, P.p)
     elseif leja == 1 # use leja nodes in expansion phase
         if isempty(nodes)
-            gamma,nodes = discretizepolygon(Σ, true)
+            gamma,nodes = NonlinearEigenproblems.RKHelper.discretizepolygon(Σ, true)
         else
-            gamma,_ = discretizepolygon(Σ)
+            gamma,_ = NonlinearEigenproblems.RKHelper.discretizepolygon(Σ)
         end
         nodes = repeat(reshape(nodes, :, 1), ceil(Int, (maxit+1)/length(nodes)), 1)
-        σ,ξ,β = lejabagby(gamma, Ξ, gamma, maxdgr+2, false, P.p)
+        σ,ξ,β = NonlinearEigenproblems.RKHelper.lejabagby(gamma, Ξ, gamma, maxdgr+2, false, P.p)
     else # use leja nodes in both phases
-        gamma,_ = discretizepolygon(Σ)
+        gamma,_ = NonlinearEigenproblems.RKHelper.discretizepolygon(Σ)
         max_count =  max(maxit,maxdgr)+2
-        σ,ξ,β = lejabagby(gamma, Ξ, gamma, max_count, false, P.p)
+        σ,ξ,β = NonlinearEigenproblems.RKHelper.lejabagby(gamma, Ξ, gamma, max_count, false, P.p)
     end
     ξ[maxdgr+2] = NaN # not used
     if (!P.spmf || !isfunm) && length(σ) != length(unique(σ))
@@ -120,7 +118,7 @@ function nleigs_coefficients(
         sgdd = Matrix{CT}(undef, 0, 0)
     else
         # Compute scalar generalized divided differences
-        sgdd = scgendivdiffs(σ[range], ξ[range], β[range], maxdgr, isfunm, get_fv(nep))
+        sgdd = NonlinearEigenproblems.RKHelper.scgendivdiffs(σ[range], ξ[range], β[range], maxdgr, isfunm, get_fv(nep))
         # Construct first generalized divided difference
         computeD && push!(D, constructD(0, P, sgdd))
         # Norm of first generalized divided difference
@@ -180,10 +178,10 @@ function nleigs_coefficients(
                     nrmD = nrmD[1:k]
 
                     N -= 1
-                    push_info!(logger,
-                               "Linearization converged after $kconv iterations")
-                    push_info!(logger,
-                               "--> freeze linearization")
+                    #NonlinearEigenproblems.push_info!(logger,
+                    #           "Linearization converged after $kconv iterations")
+                    #NonlinearEigenproblems.push_info!(logger,
+                    #           "--> freeze linearization")
                 elseif k == maxdgr+1
                     kconv = k
                     expand = false
@@ -196,8 +194,8 @@ function nleigs_coefficients(
 
                     N -= 1
                     @warn "NLEIGS: Linearization not converged after $maxdgr iterations"
-                    push_info!(logger,
-                               "--> freeze linearization")
+                    #NonlinearEigenproblems.push_info!(logger,
+                    #           "--> freeze linearization")
                 end
             end
         end
