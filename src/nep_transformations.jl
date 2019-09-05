@@ -21,13 +21,14 @@ struct ShiftScaledNEP <: NEP
 end
 """
     shift_and_scale(orgnep::NEP;shift=0,scale=1)
+
 Transforms the orgnep by defining a new NEP from the relation
 T(λ)=M(scale * λ+shift) where M is the orgnep. This function tries
  to preserve the NEP type, e.g., a shift_and_scale operation on
 an SPMF-object, return an SPMF object. If it cannot preserve
 the type, it will return a nep of the struct `ShiftScaledNEP`.
 
-#    Example
+# Example
 ```julia-repl
 julia> nep0=nep_gallery("pep0")
 julia> σ=3; α=10;
@@ -121,12 +122,15 @@ If it cannot be preserved it will return a `MobiusTransformedNEP`.
 The use of `MobiusTransformedNEP` can considerably slow down the algorithm.
 
 # Example
+
+```julia-repl
 julia> nep0=nep_gallery("pep0")
 julia> a=1; b=3; c=4; d=5;
 julia> nep1=mobius_transform(nep0,a=a,b=b,c=c,d=d);
 julia> s=3;
 julia> opnorm(compute_Mder(nep0,(a*s+b)/(c*s+d))-compute_Mder(nep1,s))
 0.0
+```
 """
 function mobius_transform(orgnep::NEP;a=1,b=0,c=0,d=1)
     return MobiusTransformedNEP(orgnep;a=a,b=b,c=c,d=d)
@@ -190,7 +194,8 @@ end
 """
    transform_to_pep(orgnep::NEP[,d=2])
 
-Compute the truncated (with d term) Taylor series of a nep. The output is a PEP.
+Compute the truncated (with `d` terms) Taylor series of the NEP.
+The output is a [`PEP`](@ref).
 """
 function transform_to_pep(nep::NEP,d::Integer=2)
     A=Array{Array{Float64, 2}}(d+1)
