@@ -97,3 +97,9 @@ GenericSumNEP
 ```@docs
 SPMFSumNEP
 ```
+
+## Low-rank NEPs
+
+```@docs
+LowRankFactorizedNEP
+```
