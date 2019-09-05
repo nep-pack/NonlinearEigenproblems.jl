@@ -50,7 +50,7 @@ end
 # Generate R-matrix
 # Part of defining the P-matrix, see above, Jarlebring-(1.6) and Ringh-(2.8) and Remark 1
 # OBS: R' = nz * Rinv, as noted in Ringh between (2.8) and Remark 1
-function generate_R_matvecs(nz::Integer)
+function generate_R_matvecs(nz)
     # The scaled FFT-matrix R
     p = (nz-1)/2
     bb = exp.(-2im*pi*((1:nz).-1)*(-p)/nz)  # scaling to do after FFT
@@ -68,7 +68,7 @@ end
 ###########################################################
 # Generate S-function for matrix argument
 # Part of defining the P-matrix, see above, Jarlebring-(2.4) and Ringh-(2.8)(2.3)
-function generate_S_function(nz::Integer, hx, Km, Kp)
+function generate_S_function(nz, hx, Km, Kp)
     # Constants from the problem
     p = (nz-1)/2
     d0 = -3/(2*hx)
@@ -77,22 +77,22 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
     cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
 
     # Note: λ should be scalar or matrix (not vector)
-    betaM = function(λ, j::Integer)
+    betaM = function(λ, j)
         return λ^2 + b[j]*λ + cM[j]*one(λ)
     end
-    betaP = function(λ, j::Integer)
+    betaP = function(λ, j)
         return λ^2 + b[j]*λ + cP[j]*one(λ)
     end
 
-    sM = function(λ, j::Integer)
+    sM = function(λ, j)
         return  1im*sqrt_schur_pos_imag(betaM(λ, j)) + d0*one(λ)
     end
-    sP = function(λ, j::Integer)
+    sP = function(λ, j)
         return  1im*sqrt_schur_pos_imag(betaP(λ, j)) + d0*one(λ)
     end
 
 
-    S = function(λ, j::Integer)
+    S = function(λ, j)
         if j <= nz
             return sM(λ,j)
         elseif j <= 2*nz
@@ -177,12 +177,12 @@ end
         return λ^2 .+ nep.b*λ + nep.cP
     end
 
-    function sM(nep,λ::Number)
+    function sM(nep,λ)
         bbeta = betaM(nep,λ)
         return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ nep.d0
     end
 
-    function sP(nep,λ::Number)
+    function sP(nep,λ)
         bbeta = betaP(nep,λ)
         return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ nep.d0
     end
@@ -203,12 +203,12 @@ Linear Algebra and its Applications''
         nz::Int64
         hx::Float64
         hz::Float64
-        Dxx
-        Dzz
-        Dz
-        Iz
-        C1
-        C2T
+        Dxx::SparseMatrixCSC{Float64,Int64}
+        Dzz::SparseMatrixCSC{Float64,Int64}
+        Dz::SparseMatrixCSC{Float64,Int64}
+        Iz::SparseMatrixCSC{Float64,Int64}
+        C1::SparseMatrixCSC{Float64,Int64}
+        C2T::SparseMatrixCSC{Float64,Int64}
         k_bar::ComplexF64
         K::Matrix{ComplexF64}
         p::Integer
@@ -317,7 +317,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
  Computes the linear combination of derivatives\\
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
-    function compute_Mlincomb(nep::WEP_FD, λ::Number, V::Union{AbstractMatrix,AbstractVector},
+    function compute_Mlincomb(nep::WEP_FD, λ::Number, V::AbstractVecOrMat,
                               a::Vector=ones(ComplexF64,size(V,2)))
         na = size(a,1)
         nv = size(V,1)
@@ -441,7 +441,6 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
 
-
     # Direct Backslash solver
     struct WEPBackslashLinSolver<:LinSolver
         schur_comp::SparseMatrixCSC{ComplexF64,Int64}
@@ -456,6 +455,23 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     function WEP_inner_lin_solve(solver::WEPBackslashLinSolver, rhs::Vector, tol)
         return solver.schur_comp \ rhs
+    end
+
+
+    # Direct pre-factorized solver
+    struct WEPFactorizedLinSolver<:LinSolver
+        schur_comp_fact
+        nep::WEP_FD
+        λ::ComplexF64
+
+        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{ComplexF64,Float64}, kwargs=())
+            schur_comp_fact = factorize(construct_WEP_schur_complement(nep, λ))
+            return new(schur_comp_fact, nep, λ)
+        end
+    end
+
+    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Vector, tol)
+        return solver.schur_comp_fact \ rhs
     end
 
 """
@@ -490,26 +506,6 @@ The `kwargs` keyword argument is passed to the solver.
             error("Unknown type of solver_type in linsolvercreator:$s");
         end
     end
-
-
-
-    # Direct pre-factorized solver
-    struct WEPFactorizedLinSolver<:LinSolver
-        schur_comp_fact
-        nep::WEP_FD
-        λ::ComplexF64
-
-        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{ComplexF64,Float64}, kwargs=())
-            schur_comp_fact = factorize(construct_WEP_schur_complement(nep, λ))
-            return new(schur_comp_fact, nep, λ)
-        end
-    end
-
-    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Vector, tol)
-        return solver.schur_comp_fact \ rhs
-    end
-
-
 
     # Helper functions for WEP LinSolvers. To avoid code repetition.
     # Assembls the full Schur-complement, used in both Backslash and LU solvers
