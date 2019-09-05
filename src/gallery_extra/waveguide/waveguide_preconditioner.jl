@@ -55,7 +55,7 @@
             error("This implementation requires nx = nz + 4. Provided NEP has nz = ", nep.nz, " and nx = ", nep.nx)
         end
         if( !isinteger(nep.nz/N) )
-            error("This implementation is uniform in the blocking and therefore requires nz/N tobe an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )
+            error("This implementation is uniform in the blocking and therefore requires nz/N to be an integer. Provided data is nz = ", nep.nz, " with N = ", N, " and hence nz/N = ", nep.nz/N, " which is not deemed to be numerically equal to an integer." )
         end
 
         nz::Integer = nep.nz
