@@ -56,8 +56,8 @@ julia> norm(compute_Mlincomb(nep,λ[2],v[:,2]))
   Sci. Comput., 36(6), A2842-A2864, 2014.
 - [NLEIGS Matlab toolbox](http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php)
 """
-nleigs_structure(nep, Σ; params...) = nleigs_structure(Float64, nep, Σ; params...)
-function nleigs_structure(
+nleigs_coefficients(nep, Σ; params...) = nleigs_coefficients(Float64, nep, Σ; params...)
+function nleigs_coefficients(
         ::Type{T},
         nep::NEP,
         Σ::AbstractVector{CT}=Vector{CT}([-1.0-1im,-1+1im,+1+1im,1-1im]);
