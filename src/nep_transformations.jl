@@ -222,6 +222,7 @@ end
 abstract type CorkLinearization end;
 
 struct DefaultCorkLinearization <: CorkLinearization end;
+# define default
 
 struct IarCorkLinearization <: CorkLinearization
     d::Int
