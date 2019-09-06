@@ -24,6 +24,10 @@ the helper types are more user friendly.
 Implementation of your own NEP-type is only
 advised if needed for efficiency reasons.
 
+!!! tip
+    Examples of usage of `Mder_NEP` and/or `Mder_Mlincomb_NEP` are available in
+    tutorials [3](bemtutorial.md), [5](tutorial_call_python.md),
+    [6](tutorial_matlab1.md), and [7](tutorial_fortran1.md).
 
 As a NEP-solver developer,
 `compute_Mlincomb`-calls are preferred over

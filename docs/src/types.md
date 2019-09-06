@@ -103,3 +103,8 @@ SPMFSumNEP
 ```@docs
 LowRankFactorizedNEP
 ```
+
+## Helper types
+There are also the helper types [`Mder_NEP`](@ref) and
+[`Mder_Mlincomb_NEP`](@ref). These are further described in
+the section about [Compute functions](compute_functions.md)
