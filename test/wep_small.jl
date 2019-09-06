@@ -38,21 +38,31 @@ import GalleryWaveguide.SchurMatVec
 
     @bench @testset "Linear solvers" begin
 
+        @info "WEP default linsolver"
         λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
-                     errmeasure=myerrmeasure,tol=1e-12,linsolvercreator=GalleryWaveguide.WEPLinSolverCreator()
+                     errmeasure=myerrmeasure,tol=1e-12,
+                     linsolvercreator=GalleryWaveguide.WEPLinSolverCreator()
                      );
         @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
+        @info "WEP backslash linsolver"
         λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
                      errmeasure=myerrmeasure,tol=1e-12,
                      linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:backslash)
                      );
         @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
 
+        @info "WEP gmres linsolver"
         precond = wep_generate_preconditioner(nep, 3*7, λ0)
         λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
                      errmeasure=myerrmeasure,tol=1e-12,
                      linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=((:Pl,precond),(:tol,1e-7)))
+                     );
+        @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
+
+        @info "NEP-PACK default linsolver (overloading)"
+        λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
+                     errmeasure=myerrmeasure,tol=1e-12
                      );
         @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
     end

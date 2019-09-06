@@ -489,10 +489,14 @@ The `kwargs` keyword argument is passed to the solver.
     struct WEPLinSolverCreator <: LinSolverCreator
         solver_type::Symbol
         kwargs;
-        function WEPLinSolverCreator(;solver_type=:backslash,kwargs=())
+        function WEPLinSolverCreator(;solver_type=:factorized,kwargs=())
             return new(solver_type,kwargs);
         end
     end
+
+    # Overload Backslash and Factorize lindsolvers to make small WEP examples work out-of-the-box
+    create_linsolver(creator::BackslashLinSolverCreator,nep::WEP,λ) = create_linsolver(WEPLinSolverCreator(solver_type=:backslash),nep, λ)
+    create_linsolver(creator::FactorizeLinSolverCreator,nep::WEP,λ) = create_linsolver(WEPLinSolverCreator(solver_type=:factorized),nep, λ)
 
     function create_linsolver(creator::WEPLinSolverCreator,nep,λ)
         if (!(nep isa WEP_FD))
