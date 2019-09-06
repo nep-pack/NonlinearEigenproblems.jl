@@ -9,15 +9,21 @@ W^HM(λ)Vz=0
 This is sometimes called a nonlinear Rayleigh-Ritz procedure,
 or a direct projection. These are *inner solvers* for many problems.
 
+
 NEP-PACK provides a framework to handle projected problems
-and inner solves.
-You can in principle use any of the NEP-solvers to
-solve a projected problem. As a user, this
-is specified in the `inner_solver_method`
-keyword argument in those NEP-solvers that use a direct projection.
+and inner solves and Rayleigh-Ritz projection. This is implemented
+into two separate components:
+
+* [Projection](@ref): As a user (or NEP-solver developer) you can create a new object corresponding to the projection. In NEP-PACK the projection is again an object of the type [`NEP`](@ref). More precisely, it is a [`Proj_NEP`](@ref) which you normally create with the function `create_proj_NEP`.
+* [Inner solvers](@ref): Since the projected problem is again a `NEP`, we can invoke in principle any of the NEP-solvers of this package. This is handled by the `InnerSolver` objects which are wrappers for corresponding NEP-solvers such that we can pass appropriate parameters to the inner soler. The inner solver is controlled by the `inner_solver_method` keyword in many NEP-solvers.
 By default [`DefaultInnerSolver`](@ref) is used.
 
-If you wish to use the infinite Arnoldi method
+
+
+As a NEP-user, you often do not need to care about how the
+projection is handled, e.g., if you use the type [`SPMF_NEP`](@ref)
+with only a few terms. For instance,
+if you wish to use the infinite Arnoldi method
 to handle the project solves in the nonlinear
 Arnoldi method, you can do the following:
 
@@ -34,6 +40,7 @@ iter 6 err:3.4499779767886924e-13 λ=-0.0005259682927702825 - 1.0404412824030558
 iter 7 err:5.365662696809372e-15 λ=-0.0005259682929434785 - 2.0247938561528697e-17im
 ****** 1 converged to eigenvalue: -0.0005259682929434785 - 2.0247938561528697e-17im errmeasure:5.365662696809372e-15
 ```
+
 The logging of the inner solver is controlled by the kwarg `inner_logger`.
 This produces very verbose output illustrating
 also the convergence of the inner solve:
@@ -65,6 +72,10 @@ iter 2 err:0.0008771218464072076 λ=-0.00065275394814732 - 0.0008601482370586537
 ---
 ...
 ```
+
+[Rayleigh-functional-computation](@ref), which corresponds to projection
+with $p=1$ is also handled with this framework.
+
 ## Inner solvers
 
 The inner solvers inherit from [`InnerSolver`](@ref).
@@ -121,14 +132,9 @@ InnerSolver
 inner_solve
 ```
 
-## Rayleigh functional computation
-
-```@docs
-compute_rf
-```
 
 
-## Projection types
+## Projection
 
 Several methods for NEPs are based on forming
 a smaller NEP, which we will refer to as a projection:
@@ -141,7 +147,7 @@ and the corresponding projected problem
 N(λ)u=0.
 ```
 
-## Types
+### Types
 NEPs for which this projection can be computed
 inherit from `ProjectableNEP`.
 
@@ -163,7 +169,7 @@ Proj_SPMF_NEP
 ```
 
 
-## Associated functions
+### Associated functions
 
 You can create a projected NEP with `create_proj_NEP`:
 
@@ -178,4 +184,12 @@ set_projectmatrices!
 
 ```@docs
 expand_projectmatrices!
+```
+
+
+## Rayleigh functional computation
+
+
+```@docs
+compute_rf
 ```

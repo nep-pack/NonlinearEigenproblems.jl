@@ -224,7 +224,7 @@ end;
 
 Solves the projected linear problem with solver specied with `is`. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
-to use. The most common choice is [`DefaultInnersolver`](@ref). The function returns
+to use. The most common choice is [`DefaultInnerSolver`](@ref). The function returns
 `(λv,V)` where `λv` is an array of eigenvalues and `V` a matrix with corresponding
 vectors.
 The struct `T_arit` defines the arithmetics used in the outer iteration and should prefereably
