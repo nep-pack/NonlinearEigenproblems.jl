@@ -2,8 +2,8 @@
 
 Most NEP-solvers require
 
-* [the solution of linear system of equations](linsolvers.md#Linear-system-of-equations), or
-* [the solution of a standard eigenvalue problem](linsolvers.md#Standard-eigenvalue-problems).
+* [the solution of linear system of equations](linsolvers.md#Linear-system-of-equations-1), or
+* [the solution of a standard eigenvalue problem](linsolvers.md#Standard-eigenvalue-problems-1).
 
 The user can specify which linear solver or eigenvalue solver
 he/she wants to use. It is also possible to use external solvers.
