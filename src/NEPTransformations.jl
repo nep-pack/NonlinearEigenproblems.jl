@@ -240,7 +240,7 @@ module NEPTransformations
     abstract type CorkLinearization end;
 
     struct DefaultCorkLinearization <: CorkLinearization end;
-    # define default
+    # TODO: define default
 
     struct IarCorkLinearization <: CorkLinearization
         d::Int
