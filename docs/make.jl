@@ -30,7 +30,7 @@ makedocs(
         "Tutorial 8 (gmsh + nanophotonics)" => "tutorial_nano1.md",
         "Tutorial 9 (New solver)" => "tutorial_newmethod.md",
         "Tutorial 10 (Linear solvers)" => "tutorial_linsolve.md",
-            "Tutorial 11 (Orr-Somerfeld)" => "hydrotutorial.md"
+            "Tutorial 11 (Orr--Somerfeld)" => "hydrotutorial.md"
             ]
     ]
 )
