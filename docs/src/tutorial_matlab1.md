@@ -49,7 +49,7 @@ is located in the current directory.
 
 The easiest way to create a NEP which is only defined by
 its derivative computation is by the helper type
-`Mder_NEP`.
+[`Mder_NEP`](@ref).
 ```julia
 using NonlinearEigenproblems, MATLAB
 nep=Mder_NEP(10,(s,der) -> mat"compute_derivative_k($s,double($der))");
@@ -76,7 +76,7 @@ from the Julia user) and requests a execution of
 MATLAB-call, the MATLAB-process sends the matrix back to Julia.
 In other words, we have coupled the derivative
 computation of the NEP with a call to MATLAB.
-More precisely, every call to the `compute_Mder` function
+More precisely, every call to the [`compute_Mder`](@ref) function
 leads to a call to the created MATLAB function. Compare:
 ```julia-repl
 julia> compute_Mder(nep,0.1+0.2im)
@@ -102,7 +102,7 @@ ans =
   -0.1778 - 0.3830i   1.4694 + 0.3750i   0.2180 + 0.1720i
 ```
 You can verify that the output of the
-call to the `contour_beyn`-method is a solution
+call to the [`contour_beyn`](@ref)-method is a solution
 directly in MATLAB:
 ```matlab
 >> s = 0.1547216302712358 - 0.16631220583083045i; % copied from the output above (remember: 1im -> 1i)
@@ -117,7 +117,7 @@ we describe in [NEPTypes](types.md)) and in this case we only defined
 the derivative computation function `compute_Mder`. Note that
 the `Mder_NEP`-type
 provides default implementations of
-`compute_Mlincomb` as well as `compute_MM` (by wrapping
+[`compute_Mlincomb`](@ref) as well as [`compute_MM`](@ref) (by wrapping
 calls to `compute_Mder`) in a
 way that is hidden from the
 user, such that we can still use algorithms

@@ -44,7 +44,7 @@ iter 70 err:5.055053391642266e-16 λ=-1.1989892137958578 + 0.0im
 iter 71 err:1.781530900695102e-17 λ=-1.1989892137958473 + 0.0im
 ```
 We will carry out some timing experiments, so let's
-use the `BenchmarkTools`-package and swith off printouts in
+use the [`BenchmarkTools`](https://github.com/JuliaCI/BenchmarkTools.jl)-package and swith off printouts in
 the NEP-solver:
 ```julia-repl
 julia> using BenchmarkTools
@@ -54,7 +54,7 @@ julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),tol=1e-16);
 The linear system that has to be solved in every iteration
 in `resinv` has a constant system matrix, and
 therefore a prefactorization (typically an LU-factorization)
-is useful. This is done with the `FactorizeLinSolveCreator`,
+is useful. This is done with the [`FactorizeLinSolverCreator`](@ref),
 which is actually the default behaviour, so we
 get no substantial difference when we specify
 a creator if the type `FactorizeLinSolverCreator`.
@@ -64,7 +64,7 @@ julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=crea
   8.332 ms (33704 allocations: 11.37 MiB)
 ```
 If we do not want to use a prefactorization, you can specify
-`BackslashLinSolverCreator` as your creator object.
+[`BackslashLinSolverCreator`](@ref) as your creator object.
 ```julia-repl
 julia> creator=BackslashLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
@@ -75,7 +75,7 @@ This does not use a prefactorization and is therefore slower.
 
 The above approach corresponded to direct methods for linear systems.
 You can also use iterative methods, e.g., the GMRES-method.
-The GMRES-method is available in the `GMRESLinSolverCreator`
+The GMRES-method is available in the [`GMRESLinSolverCreator`](@ref)
 function. Iterative methods in general need preconditioners.
 We continue the example and use a diagonal preconditioner:
 ```julia-repl

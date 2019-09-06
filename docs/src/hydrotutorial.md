@@ -1,7 +1,7 @@
 # Tutorial: Stability of parallel shear flows
 
 ## Background
-Stability analysis of flows is a very important problem in fluid mechanics.  Linearizing the Navier-Stokes equations around the mean flow and then eliminating pressure gives us the Orr-Sommerfeld and Squire equations, which are a system of fourth order PDEs describing the dynamics:
+Stability analysis of flows is a very important problem in fluid mechanics.  Linearizing the [Navier--Stokes equations](https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations) around the mean flow and then eliminating pressure gives us the Orr--Sommerfeld and Squire equations, which are a system of fourth order PDEs describing the dynamics:
 ```math
 \left(\Big(\dfrac{\partial }{\partial t}+U\dfrac{\partial }{\partial x}\Big)\nabla^2-U''\dfrac{\partial }{\partial x}-\frac{1}{Re}\nabla^4\right)v = 0\\
 \left(\dfrac{\partial }{\partial t}+U\dfrac{\partial }{\partial x}-\frac{1}{Re}\nabla^2\right)\eta = -U''\dfrac{\partial v}{\partial z}.
@@ -31,11 +31,11 @@ This is usually done by using a transformation of the form
 ```math
 \begin{pmatrix}\tilde{v}\\ \tilde{\eta}\end{pmatrix} = \begin{pmatrix}\tilde{V}\\ \tilde{E}\end{pmatrix}\exp(-\alpha y)
 ```
-which reduces the power of $$\alpha$$ from four to two. The problem is then discretized and solved as a quadratic eigenvalue problem. See Chapter 7 in Schmid-Henningson for details.  
+which reduces the power of $$\alpha$$ from four to two. The problem is then discretized and solved as a quadratic eigenvalue problem. See Chapter 7 in Schmid--Henningson for details.  
 
 Rather than using the transformation approach described in the
 book of
-Schmid-Henningson, we
+Schmid--Henningson, we
 simply discretize $$\mathcal{D}$$ to $$D$$ (using a suitable numerical discretization) which leads to a polynomial eigenvalue problem of fourth order.
 
 We define diagonal matrices $$U_0$$, $$U_1$$ and $$U_2$$  as follows
@@ -66,7 +66,7 @@ A_4 = \begin{pmatrix}-\frac{I}{Re}& 0\\0& 0\end{pmatrix}.
 ```
 The eigenvector is given by ``\begin{pmatrix}\tilde{v}^T & \tilde{\eta}\end{pmatrix}^T``
 ## Problem setup in NEP-PACK
-The tutorial uses the helper-functions `chebdif()` and `cheb4c()`, which are provided in [cheb4c.jl](https://nep-pack.github.io/NonlinearEigenproblems.jl/cheb4c.jl) and [chebdif.jl](https://nep-pack.github.io/NonlinearEigenproblems.jl/chebdif.jl).
+The tutorial uses the helper-functions `chebdif` and `cheb4c`, which are provided in [cheb4c.jl](https://nep-pack.github.io/NonlinearEigenproblems.jl/cheb4c.jl) and [chebdif.jl](https://nep-pack.github.io/NonlinearEigenproblems.jl/chebdif.jl).
 
 ```julia
 using NonlinearEigenproblems, Plots, ToeplitzMatrices;
@@ -74,14 +74,14 @@ include("cheb4c.jl");
 include("chebdif.jl");
 ```
 
-We begin by initializing the parameters to the values used to generate the data in Table 7.1 in Schmid-Henningson.
+We begin by initializing the parameters to the values used to generate the data in Table 7.1 in Schmid--Henningson.
 ```julia-repl
 N = 256;      # Number of interior points
 Re = 2000;    # Reynolds number
 ω  = 0.3;     # Input frequency
 β  = 0.0;     # Spanwise wavenumber
 ```
-To set up the matrices $$A_i$$, we need the discretized matrices corresponding to the operators $$\mathcal{D}^2$$ and $$\mathcal{D}^4$$. Here, we do this using Chebyshev nodes.
+To set up the matrices $$A_i$$, we need the discretized matrices corresponding to the operators $$\mathcal{D}^2$$ and $$\mathcal{D}^4$$. Here, we do this using [Chebyshev nodes](https://en.wikipedia.org/wiki/Chebyshev_nodes).
 ```julia
 # Çhebyshev discretization of differential operators
 yF,DM = chebdif(N+2, 4);    
@@ -95,7 +95,7 @@ Upp = -2;
 
 eye = Matrix{Float64}(I, N, N);  
 ```
-We can now set up the coefficient matrices and create a corresponding PEP object.
+We can now set up the coefficient matrices and create a corresponding [`PEP`](@ref) object.
 ```julia
 A4 = [-eye/Re zeros(N,N);zeros(N,N) zeros(N,N)];
 A3 = [-1im*diagm(0 => U) zeros(N,N);zeros(N,N) zeros(N,N)];
@@ -116,7 +116,7 @@ julia> norm.(get_Av(nep))
       9.817076958035932  
       0.008
 ```
-Fortunally we can get around this issue by scaling the PEP with NEP-PACK's `shift_and_scale()` , and solving the scaled problem $$T(\lambda) = M(100\lambda)$$ instead.
+Fortunally we can get around this issue by scaling the PEP with NEP-PACK's `shift_and_scale` , and solving the scaled problem $$T(\lambda) = M(100\lambda)$$ instead.
 ```julia
 sc=100;
 nep1 = shift_and_scale(nep,scale=sc);
@@ -133,7 +133,7 @@ julia> norm.(get_Av(nep2))
    12.271346197544913   
     1.0
 ```
-In this example, we are interested in computing several eigenvalues and our region of interest for the spectrum is in the first quadrant. We use the Tensor Infinite Arnoldi (TIAR) method implemented in [`tiar()`](methods.md#NonlinearEigenproblems.NEPSolver.tiar). The method is called twice with different shifts `σ`.
+In this example, we are interested in computing several eigenvalues and our region of interest for the spectrum is in the first quadrant. We use the Tensor Infinite Arnoldi (TIAR) method implemented in [`tiar`](@ref). The method is called twice with different shifts `σ`.
 ```julia-repl
 λ1,v1 = tiar(nep2,σ=0.006,v=ones(size(nep,1)),neigs=10,maxit=200,tol=1e-14);
 λ2,v2 = tiar(nep2,σ=0.005+0.005im,v=ones(size(nep,1)),neigs=10,maxit=200,tol=1e-14);
@@ -173,7 +173,7 @@ The resulting plot is:
 <br>
 <img src="https://nep-pack.github.io/NonlinearEigenproblems.jl/eigvals.png" height=450>
 ```
-This is in agreement with Figure 7.2 from Schmid-Henningson for the eigenvalues in the first quadrant.
+This is in agreement with Figure 7.2 from Schmid--Henningson for the eigenvalues in the first quadrant.
 ```@raw html
 <br>
 <img src="https://nep-pack.github.io/NonlinearEigenproblems.jl/henningson.png" height=450>

@@ -87,7 +87,7 @@ julia> mynep.compute_M(3+3im)
 
 ## Implementation in NEP-PACK (using `Mder_Mlincomb_NEP`)
 We can now use the Python interface to define a NEP in Julia.
-The type `Mder_Mlincomb_NEP` is a special type made for this situation.
+The type [`Mder_Mlincomb_NEP`](@ref) is a special type made for this situation.
 The required inputs are the size, called `n`; a function to compute
 $M(λ)$, called `fder`; and a function
 to compute $\sum_{i=1}^kM^{(k)}(λ)x_i$, called `flincomb`.
@@ -108,7 +108,7 @@ julia> compute_Mder(nep,3+3im)
  -16.8845+2.83447im  -12.8845+5.83447im
 ```
 We continue by computing some eigenvalues of the the NEP using the
-Infinite Arnoldi method ([`iar`](methods.md#NonlinearEigenproblems.NEPSolver.iar)).
+Infinite Arnoldi method ([`iar`](@ref)).
 ```julia-repl
 julia> (λ,v)=iar(nep,v=[1;1],σ=1,logger=0,neigs=3);
 julia> λ
@@ -166,7 +166,7 @@ julia> compute_Mder(pynep,3+3im)
 The behavior is the same as above.
 Since a NEP-object is defined by its compute functions,
 we can now use many NEP-solvers to solve this problem.
-We again use [`iar`](methods.md#NonlinearEigenproblems.NEPSolver.iar):
+We again use [`iar`](@ref):
 ```julia-repl
 julia> (λ2,v2)=iar(pynep,v=[1;1],σ=1,logger=0,neigs=3);
 julia> λ2
@@ -182,7 +182,5 @@ julia> norm(compute_Mlincomb(pynep,λ2[1],v2[:,1]))
 1.106424240899132e-15
 ```
 Residual is almost zero, so we have a solution.
-
-Note: The above functionality can also be achieved with  `Mder_NEP` in the development version of NEP-PACK
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_PYTHON1)
