@@ -18,10 +18,10 @@ export WEP
 export WEP_FD
 
 # We overload these
-import NonlinearEigenproblems.Gallery.nep_gallery
-import NonlinearEigenproblems.NEPCore.compute_Mlincomb
-import NonlinearEigenproblems.LinSolvers.lin_solve
-import NonlinearEigenproblems.LinSolvers.create_linsolver
+import ..Gallery.nep_gallery
+import ..NEPCore.compute_Mlincomb
+import ..LinSolvers.lin_solve
+import ..LinSolvers.create_linsolver
 
 import Base.size
 import SparseArrays.issparse
