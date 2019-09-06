@@ -7,7 +7,7 @@ we need to solve the (smaller) NEP
 W^HM(λ)Vz=0
 ```
 This is sometimes called a nonlinear Rayleigh-Ritz procedure,
-or a direct projection. These are *inner solvers* for many problems.
+or a direct projection. These are *inner solvers* for many NEP-solvers.
 
 
 NEP-PACK provides a framework to handle projected problems
