@@ -1,7 +1,6 @@
 using NonlinearEigenproblems, Random, LinearAlgebra, PyPlot, Revise
 
 nep=nep_gallery("dep0");
-unit_square = float([1+1im, 1-1im, -1-1im,-1+1im])
 
 r=5; θ=range(0,stop=2π,length=1000); Σ=r*cos.(θ) + 1im*r*sin.(θ); Ξ=[-10.0]
 # nleigs linearization
