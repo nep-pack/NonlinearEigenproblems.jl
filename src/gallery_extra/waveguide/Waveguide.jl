@@ -3,7 +3,7 @@
 # Waveguide eigenvalue problem (WEP)
 # Sum of products of matrices and functions (SPMF)
 """
- Waveguide eigenvalue problem (WEP)
+Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
 function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Matrix{ComplexF64},Matrix{Float64}}, Km, Kp, pre_Schur_fact::Bool)
@@ -107,7 +107,7 @@ end
 
 
 ###########################################################
-    """
+"""
     sqrt_schur_pos_imag(A::AbstractMatrix)
  Computes the matrix square root on the 'correct branch',
  that is, with positivt imaginary part. Similar to Schur method
@@ -139,7 +139,7 @@ function private_inner_loops_sqrt!(n, U, T)
     end
 end
 
-    """
+"""
     sqrt_pos_imag(a::ComplexF64) and sqrt_pos_imag(a::Float64)
  Helper function: Computes the scalar square root on the 'correct branch',
  that is, with positivt imaginary part.
@@ -191,7 +191,10 @@ end
 # Waveguide eigenvalue problem - WEP
 # A more optimized (native) implementation of the WEP with FD discretization
 """
-    Waveguide eigenvalue problem
+    WEP_FD
+
+Waveguide eigenvalue problem
+
 A more optimized implementation of the WEP for FD-discretization.\\
 Closer to what is done in the article:
 ''E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
@@ -311,8 +314,9 @@ Linear Algebra and its Applications''
 
 
 
-    """
+"""
     compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(ComplexF64,size(V,2)))
+
 Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\\\\
  Computes the linear combination of derivatives\\
  ``Σ_i a_i M^{(i)}(λ) v_i``
@@ -559,11 +563,12 @@ The `kwargs` keyword argument is passed to the solver.
 ###########################################################
 #Square root of second degree polynomial (Gegenbauer polynomials)
 #Jarlebring - Appendix C
-    """
+"""
     sqrt_derivative(a,b,c, d=0, x=0)
- Computes all d derivatives of sqrt(a*z^2 + b*z + c)
- in the point z = x.
- Returns a d+1 vector with all numerical values
+
+Computes all d derivatives of sqrt(a*z^2 + b*z + c)
+in the point z = x.
+Returns a d+1 vector with all numerical values
 """
 function sqrt_derivative(a,b,c, d=0, x=0)
     if(d<0)
