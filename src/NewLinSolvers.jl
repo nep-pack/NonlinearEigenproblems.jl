@@ -35,7 +35,7 @@ function create_linsolver(creator::BackslashLinSolverCreator,nep,λ)
 end
 
 """
-    FactorizeLinSolverCreator(;unfpack_refinements,max_factorizations,nep,precomp_values)
+    FactorizeLinSolverCreator(;umfpack_refinements,max_factorizations,nep,precomp_values)
 
 `FactorizeLinSolverCreator`-objects can instantiate `FactorizeLinSolver`
 objects via the `create_linsolver` function.
