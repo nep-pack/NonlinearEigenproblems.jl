@@ -58,18 +58,18 @@ julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=c
   x1=A\(b1+(B*(S\(C*(Ainvb1)))))-A\(B*(Sinvb2))
   x2=-S\(C*(Ainvb1))+Sinvb2;
   return [x1;x2];
-end</code></pre><p>Julia&#39;s efficiency stems partially from the extensive use of types. We need to defined new types to define our own linear solver and integrate it with NEP-PACK.</p><pre><code class="language-julia">struct MyLinSolverCreator &lt;: LinSolverCreator; end
+end</code></pre><p>Julia&#39;s efficiency stems partially from the extensive use of types. We need to define new types to specify our own linear solver and integrate it with NEP-PACK.</p><pre><code class="language-julia">struct MyLinSolverCreator &lt;: LinSolverCreator; end
 struct MyLinSolver &lt;: LinSolver;
   mynep
   myλ
-end</code></pre><p>NEP-solvers call the function <code>create_linsolver(creator,nep,λ)</code>, which should return a linear solver. We need to overload this function for our own creator-type. In general, this is to allow precomputation. However, in this example we do not have any precomputations and thus just return an instance of <code>MyLinSolver</code>.</p><pre><code class="language-julia">import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
+end</code></pre><p>NEP-solvers call the function <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.create_linsolver"><code>create_linsolver</code></a>(creator,nep,λ)<code>, which should return a linear solver. We need to overload this function for our own creator-type. In general, this is to allow precomputation. However, in this example we do not have any precomputations and thus just return an instance of</code>MyLinSolver`.</p><pre><code class="language-julia">import NonlinearEigenproblems.create_linsolver # Needed since we want overload it
 function create_linsolver(::MyLinSolverCreator,nep,λ)
    return MyLinSolver(nep,λ);
 end</code></pre><p>The rest of the implementation of the solver goes in the function <code>lin_solve</code>, where we utilize our function <code>schur_complement_lin_solve</code> from above.</p><pre><code class="language-julia">import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
 function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    n0=10;
    return schur_complement_lin_solve(compute_Mder(solver.mynep,solver.myλ),b,n0)
-end</code></pre><p>You can now solve the problem by passing a creator object of type <code>MyLinSolverCreator()</code> to a NEP-solver, e.g., <code>augnewton</code>:</p><pre><code class="language-julia-repl">julia&gt; dep=nep_gallery(&quot;dep0&quot;,50);
+end</code></pre><p>You can now solve the problem by passing a creator object of type <code>MyLinSolverCreator()</code> to a NEP-solver, e.g., <a href="../methods/#NonlinearEigenproblems.NEPSolver.augnewton"><code>augnewton</code></a>:</p><pre><code class="language-julia-repl">julia&gt; dep=nep_gallery(&quot;dep0&quot;,50);
 julia&gt; creator=MyLinSolverCreator();
 julia&gt; augnewton(dep,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
 iter 1 err:0.09618148118463332 λ=0.0 + 0.0im
@@ -79,4 +79,4 @@ iter 4 err:0.00449344510220487 λ=0.9306146373776565 + 0.0im
 iter 5 err:9.030138969728166e-5 λ=0.9176939995973337 + 0.0im
 iter 6 err:9.801547301302623e-7 λ=0.9205599293430545 + 0.0im
 iter 7 err:1.2125237229048776e-10 λ=0.9205883567517953 + 0.0im
-iter 8 err:4.3151896277593487e-16 λ=0.9205883602865768 + 0.0im</code></pre><footer><hr/><a class="previous" href="../tutorial_newmethod/"><span class="direction">Previous</span><span class="title">Tutorial 9 (New solver)</span></a><a class="next" href="../hydrotutorial/"><span class="direction">Next</span><span class="title">Tutorial 11 (Orr–Somerfeld)</span></a></footer></article></body></html>
+iter 8 err:4.3151896277593487e-16 λ=0.9205883602865768 + 0.0im</code></pre><p><img src="http://jarlebring.se/onepixel.png?NEPPACKDOC_LINSOLVE" alt="To the top"/></p><footer><hr/><a class="previous" href="../tutorial_newmethod/"><span class="direction">Previous</span><span class="title">Tutorial 9 (New solver)</span></a><a class="next" href="../hydrotutorial/"><span class="direction">Next</span><span class="title">Tutorial 11 (Orr–Somerfeld)</span></a></footer></article></body></html>
