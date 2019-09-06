@@ -140,7 +140,7 @@ julia> Matrix(A)
 ## Implementation in NEP-PACK: basic usage
 We saw above how to compute a derivative matrix with a fortran call.
 This is sufficient to define a NEP-object in NEP-PACK using
-the `Mder_NEP` type.
+the [`Mder_NEP`](@ref) type.
 
 ```julia
 n=100;
@@ -184,11 +184,11 @@ or may be very computationally expensive.
 Most NEP-algorithms in NEP-PACK do require the derivative
 (except for
 certain versions of
-[`nleigs`](methods.md#NonlinearEigenproblems.NEPSolver.nleigs),
-[`broyden`](methods.md#NonlinearEigenproblems.NEPSolver.resinv),
-[`contour_beyn`](methods.md#NonlinearEigenproblems.NEPSolver.contour_beyn)
+[`nleigs`](@ref),
+[`broyden`](@ref),
+[`contour_beyn`](@ref),
 and
-[`sgiter`](methods.md#NonlinearEigenproblems.NEPSolver.sgiter)).
+[`sgiter`](@ref)).
 However, many NEP-algorithms
 do not require a very accurate derivative.
 We now show how you can make a numerical
@@ -285,7 +285,7 @@ function my_matvec(λ,v)
    return x;
 end
 ```
-We can now create a `Mder_Mlincomb_NEP` which is defined from both
+We can now create a [`Mder_Mlincomb_NEP`](@ref) which is defined from both
 matrix derivative computations as well as matrix vector products (or more
 generally linear combinations of derivatives).
 ```julia-repl
@@ -293,7 +293,7 @@ julia> nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);
 ```
 The `1` and `0` specify the highest derivative available for the two functions.
 We can now solve the NEP with many methods, e.g.
-[`resinv`](methods.md#NonlinearEigenproblems.NEPSolver.resinv).
+[`resinv`](@ref).
 ```julia-repl
 julia> resinv(Float64,nep2,λ=-1.8,v=ones(n),logger=1);
 Precomputing linsolver
@@ -307,6 +307,6 @@ iter 8 err:2.989922602862964e-15 λ=-1.794056168678641
 When using NEP-solvers requiring higher derivatives,
 the above procedure can also be used to compute
 linear combinations of higher derivatives by implementing
-a `compute_Mlincomb` which takes a matrix as input.
+a [`compute_Mlincomb`](@ref) which takes a matrix as input.
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_FORTRAN1)

@@ -190,7 +190,10 @@ documentation, e.g., `?blocknewton`.
 
 ## Your own NEP nonlinearity
 
-As an application researcher, we recommend that you first try to
+As an application researcher, we recommend that you first
+see if your type fits into the
+[specialized classes natively supported by NEP-PACK](types.md).
+If it does not, we recommend you to try to
 express your problem in the following form since it
 gives access to several efficient routines associated with the NEP,
 in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) **S**um of **P**roducts of **M**atrices and **F**unctions
@@ -225,6 +228,9 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
  -4.1550357082583515e-14 + 0.0im
   -8.815768150428286e-15 + 0.0im
 ```
+If your problem is not naturally expressed as an SPMF, you
+want to try to use [`Mder_NEP`](@ref) or
+[`Mder_Mlincomb_NEP`](@ref).
 
 ## What now?
 

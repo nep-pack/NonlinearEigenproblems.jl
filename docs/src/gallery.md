@@ -1,8 +1,8 @@
 
-# Gallery 
+# Gallery
 
 We have created a gallery of problems in order to make examples easily accessible and reproducible.
-They are available in the function `nep_gallery`. We also have an interface which allows you 
+They are available in the function `nep_gallery`. We also have an interface which allows you
 to access problems for the [Berlin-Manchester problem collection](gallery.md#Berlin-Manchester-collection-1).
 
 ```julia-repl
@@ -14,12 +14,12 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 4.718447854656915e-16
 ```
 
-# `nep_gallery`
+## `nep_gallery`
 ```@docs
 nep_gallery
 ```
 
-# Berlin-Manchester collection
+## Berlin-Manchester collection
 If MATLAB and the [Berlin-Manchester collection](http://www.maths.manchester.ac.uk/our-research/research-groups/numerical-analysis-and-scientific-computing/numerical-analysis/software/nlevp/) are installed,
 we can access them with the GalleryNLEVP
 (which does MATLAB-access through Julia's MATLAB-package).
@@ -38,7 +38,7 @@ underlying MATLAB-session. Some problems in the Berlin-Manchester collection
 have native support in NEP-PACK, i.e., avoiding a MATLAB-access in every call;
 see `nep_gallery` above.
 
-# Other gallery examples
+## Other gallery examples
 Stand-alone implementation can be accessed in a similar way, e.g.,
 a native implementation of the Waveguide Eigenvalue Problem can be accessed as
 ```julia-repl

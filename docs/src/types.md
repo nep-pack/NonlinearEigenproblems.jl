@@ -1,4 +1,4 @@
-# NEP Types
+# Types & Data structures
 
 ## The basic type
 The basic class is the abstract class `NEP` which represents
@@ -97,3 +97,14 @@ GenericSumNEP
 ```@docs
 SPMFSumNEP
 ```
+
+## Low-rank NEPs
+
+```@docs
+LowRankFactorizedNEP
+```
+
+## Helper types
+There are also the helper types [`Mder_NEP`](@ref) and
+[`Mder_Mlincomb_NEP`](@ref). These are further described in
+the section about [Compute functions](compute_functions.md)
