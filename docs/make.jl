@@ -7,7 +7,7 @@ makedocs(
     doctest = false,
     sitename = "NEP-PACK",
     pages = Any[
-        "Home" => "index.md",
+        "Introduction" => "index.md",
         "Manual" => [
         "methods.md",
             "types.md",
