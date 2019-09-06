@@ -148,7 +148,7 @@ end
 ```
 
 Julia's efficiency stems partially from the extensive use of types.
-We need to defined new types to define our own linear solver
+We need to define new types to specify our own linear solver
 and integrate it with NEP-PACK.
 
 ```julia
@@ -158,7 +158,7 @@ struct MyLinSolver <: LinSolver;
   myλ
 end
 ```
-NEP-solvers call the function `create_linsolver(creator,nep,λ)`,
+NEP-solvers call the function [`create_linsolver`](@ref)(creator,nep,λ)`,
 which should return a linear solver. We need to overload this function
 for our own creator-type.
 In general, this is to allow precomputation.
@@ -180,7 +180,7 @@ function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
 end
 ```
 You can now solve the problem by passing a creator object of type `MyLinSolverCreator()` to a
-NEP-solver, e.g., `augnewton`:
+NEP-solver, e.g., [`augnewton`](@ref):
 ```julia-repl
 julia> dep=nep_gallery("dep0",50);
 julia> creator=MyLinSolverCreator();
@@ -194,3 +194,5 @@ iter 6 err:9.801547301302623e-7 λ=0.9205599293430545 + 0.0im
 iter 7 err:1.2125237229048776e-10 λ=0.9205883567517953 + 0.0im
 iter 8 err:4.3151896277593487e-16 λ=0.9205883602865768 + 0.0im
 ```
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_LINSOLVE)
