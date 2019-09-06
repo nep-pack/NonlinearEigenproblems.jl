@@ -9,6 +9,17 @@ using waveguide_debug
 using Test
 
 
+println("--------------------------")
+println("--------------------------")
+println("")
+println("  This tests a reference implementation of the WEP")
+println("  You need to download the reference MATLAB implementation to run it")
+println("")
+println("--------------------------")
+println("--------------------------")
+sleep(1.5)
+
+
 @testset "WEP_large" begin
 
 
