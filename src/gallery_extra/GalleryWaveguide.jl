@@ -53,6 +53,8 @@ Create the NEP associated with finite difference discretization of the **Wavegui
 * benchmark_problem = 'TAUSCH',    which waveguide (TAUSCH, JARLEBRING)
 * neptype::String = 'WEP',         NEP-format (SPMF, SPMF_PRE, WEP) later format recommended
 * delta = 0.1,                     Slack from the absorbing boundary conditions
+
+See also: [`WEPLinSolverCreator`](@ref)
 """
 function nep_gallery(::Type{T}; nx::Integer = 3*5*7, nz::Integer = 3*5*7, benchmark_problem::String = "TAUSCH", neptype::String = "WEP",  delta::Number = 0.1) where T<:WEP
 

@@ -59,12 +59,6 @@ import GalleryWaveguide.SchurMatVec
                      linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=((:Pl,precond),(:tol,1e-7)))
                      );
         @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
-
-        @info "NEP-PACK default linsolver (overloading)"
-        λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
-                     errmeasure=myerrmeasure,tol=1e-12
-                     );
-        @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
     end
 
     @bench @testset "NEP solvers" begin
