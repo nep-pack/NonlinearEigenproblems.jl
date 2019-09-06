@@ -31,7 +31,21 @@ module NEPCore
     import Base.size  # Overload for nonlinear eigenvalue problems
     import SparseArrays.issparse  # Overload for nonlinear eigenvalue problems
 
+#################### SHOULD WE JAVE THE LOGGER HERE? ####################
+    export @parse_logger_param!
+    """
+    @parse_logger_param!(l)
 
+If l is a number it canges l to a PrintLogger(l).
+"""
+    macro parse_logger_param!(l)
+       return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
+    end
+################################################################################
+
+
+
+    include("logger.jl");
 
 
     ############################################
