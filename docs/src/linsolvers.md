@@ -21,6 +21,12 @@ LinSolver
 lin_solve
 ```
 ```@docs
+create_linsolver
+```
+```@docs
+DefaultLinSolverCreator
+```
+```@docs
 FactorizeLinSolver
 ```
 ```@docs
@@ -30,7 +36,7 @@ FactorizeLinSolverCreator
 BackslashLinSolver
 ```
 ```@docs
-backslash_linsolvercreator
+BackslashLinSolverCreator
 ```
 ```@docs
 GMRESLinSolver
