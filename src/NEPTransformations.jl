@@ -250,12 +250,12 @@ module NEPTransformations
     end
 
     struct NleigsCorkLinearization <: CorkLinearization
-        Σ::Union{Vector,Symbol}
-        #Ξ::Union{Vector,Symbol} # add later
+        Σ::Vector
+        Ξ::Vector
         maxdgr::Int
         tollin::Float64;
-        function NleigsCorkLinearization(;Σ=[-1.0-1im,-1+1im,+1+1im,1-1im], maxdgr=100 , tollin=1e-6 )
-            return new(Σ,maxdgr,tollin);
+        function NleigsCorkLinearization(;Σ=[-1.0-1im,-1+1im,+1+1im,1-1im],Ξ = [Inf], maxdgr=100 , tollin=1e-6 )
+            return new(Σ,Ξ,maxdgr,tollin);
         end
     end
 
@@ -271,7 +271,7 @@ module NEPTransformations
     end
 
     function compute_CORK_pencil(nep,is::NleigsCorkLinearization)
-        D,β,ξ,σ=nleigs_coefficients(nep,is.Σ,tollin=is.tollin)
+        D,β,ξ,σ=nleigs_coefficients(nep,is.Σ,tollin=is.tollin,Ξ=is.Ξ)
         d=length(β)-1
         σ=σ[1:d+1]; β=β[1:d+1]; ξ=ξ[1:d+1]
         M=diagm( -1 => σ[1:d], 0 =>  β[1:d] )[2:end-1,1:end-1]
