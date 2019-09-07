@@ -17,8 +17,8 @@ module LinSolvers
     # Eigenvalue solvers
     export EigSolver
     export DefaultEigSolver
-    export NativeEigSolver
-    export NativeEigSSolver
+    export EigenEigSolver
+    export ArnoldiEigSolver
     export eig_solve
 
     import Base.eltype
