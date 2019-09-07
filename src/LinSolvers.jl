@@ -300,12 +300,12 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
     end
 
 """
-    struct NativeEigSSolver <: EigSolver
+    struct ArnoldiEigSolver <: EigSolver
 
-A linear eigenvalueproblem solver for large and sparse problems that calls
-Julia's in-built eigs()
+A linear eigenproblem solver for large and sparse problems that calls
+the Arnoldi method implemented in the Julia package ArnoldiMethod.jl.
 
-Constructed as `NativeEigSSolver(A, [B,])`, and solves the problem
+Constructed as `ArnoldiEigSolver(A, [B,])`, and solves the problem
 ```math
 Ax = λBx
 ```
@@ -314,26 +314,26 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    struct NativeEigSSolver{T_A,T_B} <: EigSolver
+    struct ArnoldiEigSolver{T_A,T_B} <: EigSolver
         A::T_A
         B::T_B
 
-        function NativeEigSSolver(A)
+        function ArnoldiEigSolver(A)
             return new{typeof(A),Missing}(A,missing)
         end
-        function NativeEigSSolver(A,B)
+        function ArnoldiEigSolver(A,B)
             return new{typeof(A),typeof(B)}(A,B)
         end
 
     end
 
 
-    function eig_solve(solver::NativeEigSSolver; nev=6, target=0)
+    function eig_solve(solver::ArnoldiEigSolver; nev=6, target=0)
         D,V = inner_eigs_solve(solver, nev, target)
         return D,V
     end
 
-    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
+    function inner_eigs_solve(solver::ArnoldiEigSolver{T_A,T_B}, nev, target) where {T_A, T_B}
         if (T_B <: Missing)
             C=target*I-solver.A;
             Cfact=factorize(C);
@@ -365,7 +365,7 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 A linear eigenvalueproblem solver that calls checks for sparsity and accordingly
 assigns an appropriate solver.
 
-See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`EigenEigSolver`](@ref), [`NativeEigSSolver`](@ref)
+See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`EigenEigSolver`](@ref), [`ArnoldiEigSolver`](@ref)
 """
     struct DefaultEigSolver{T_sub} <: EigSolver
         subsolver::T_sub
@@ -373,7 +373,7 @@ See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`EigenEigSolver`](@ref), [`
         function DefaultEigSolver(A,B)
             local subsolver
             if(issparse(A))
-                subsolver = NativeEigSSolver(A,B)
+                subsolver = ArnoldiEigSolver(A,B)
             else
                 subsolver = EigenEigSolver(A,B)
             end
@@ -382,7 +382,7 @@ See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`EigenEigSolver`](@ref), [`
         function DefaultEigSolver(A)
             local subsolver
             if(issparse(A))
-                subsolver = NativeEigSSolver(A)
+                subsolver = ArnoldiEigSolver(A)
             else
                 subsolver = EigenEigSolver(A)
             end

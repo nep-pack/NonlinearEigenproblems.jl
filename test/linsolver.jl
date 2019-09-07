@@ -153,14 +153,14 @@ using LinearAlgebra
             end
         end
 
-        @bench @testset "EigenEigSSolver" begin
+        @bench @testset "ArnoldiEigSolver" begin
             Random.seed!(0)
             n = 20
             A = sprand(ComplexF64, n, n, 0.25) + I
             B = sprand(ComplexF64, n, n, 0.25) + I
 
-            eigsolver1 = EigenEigSSolver(A,B)
-            eigsolver2 = EigenEigSSolver(sparse(Matrix(B)\Matrix(A)))
+            eigsolver1 = ArnoldiEigSolver(A,B)
+            eigsolver2 = ArnoldiEigSolver(sparse(Matrix(B)\Matrix(A)))
 
             λ1,v1 = eig_solve(eigsolver1, nev=3)
             λ2,v2 = eig_solve(eigsolver2, nev=3)
