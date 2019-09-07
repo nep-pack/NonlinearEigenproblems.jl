@@ -20,6 +20,7 @@ export WEP_FD
 # We overload these
 import ..Gallery.nep_gallery
 import ..NEPCore.compute_Mlincomb
+import ..NEPCore.compute_Mder
 import ..LinSolvers.lin_solve
 import ..LinSolvers.create_linsolver
 

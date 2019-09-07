@@ -378,6 +378,13 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return vcat(y1, y2)
     end
 
+"""
+    compute_Mder(nep::WEP,λ::Number,i::Integer=0)
+"""
+    function compute_Mder(nep::WEP,λ::Number,i::Integer=0)
+        error("The WEP does not implement this function. If this was called in a situation where you want to solve linear systems please look at `WEPLinSolverCreator`")
+    end
+
 
 ###########################################################
 # Linear Solvers for WEP
