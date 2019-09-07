@@ -153,3 +153,9 @@ end
 function create_linsolver(creator::GMRESLinSolverCreator,nep, λ)
     return GMRESLinSolver{typeof(λ)}(nep, λ, creator.kwargs)
 end
+
+
+
+
+
+## Eigenvalue linsolvers

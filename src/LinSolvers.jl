@@ -269,21 +269,21 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    struct NativeEigSolver{T_A,T_B} <: EigSolver
+    struct EigenEigSolver{T_A,T_B} <: EigSolver
         A::T_A
         B::T_B
 
-        function NativeEigSolver(A)
+        function EigenEigSolver(A)
             return new{typeof(A),Missing}(A,missing)
         end
-        function NativeEigSolver(A,B)
+        function EigenEigSolver(A,B)
             return new{typeof(A),typeof(B)}(A,B)
         end
     end
 
 
 
-    function eig_solve(solver::NativeEigSolver; nev = 1, target = 0)
+    function eig_solve(solver::EigenEigSolver; nev = 1, target = 0)
         D,V = inner_eig_solve(solver)
 
         #Sort the eigenvalues wrt distance from target, and permute
@@ -292,10 +292,10 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
         return D[1:nev],V[:,1:nev];
     end
 
-    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B}
+    function inner_eig_solve(solver::EigenEigSolver{T_A,T_B}) where {T_A, T_B}
         D,V = eigen(solver.A,solver.B)
     end
-    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B<:Missing}
+    function inner_eig_solve(solver::EigenEigSolver{T_A,T_B}) where {T_A, T_B<:Missing}
         D,V = eigen(solver.A)
     end
 
@@ -365,7 +365,7 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 A linear eigenvalueproblem solver that calls checks for sparsity and accordingly
 assigns an appropriate solver.
 
-See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [`NativeEigSSolver`](@ref)
+See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`EigenEigSolver`](@ref), [`NativeEigSSolver`](@ref)
 """
     struct DefaultEigSolver{T_sub} <: EigSolver
         subsolver::T_sub
@@ -375,7 +375,7 @@ See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [
             if(issparse(A))
                 subsolver = NativeEigSSolver(A,B)
             else
-                subsolver = NativeEigSolver(A,B)
+                subsolver = EigenEigSolver(A,B)
             end
             return new{typeof(subsolver)}(subsolver)
         end
@@ -384,7 +384,7 @@ See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [
             if(issparse(A))
                 subsolver = NativeEigSSolver(A)
             else
-                subsolver = NativeEigSolver(A)
+                subsolver = EigenEigSolver(A)
             end
             return new{typeof(subsolver)}(subsolver)
         end
@@ -409,6 +409,6 @@ way of solving linear eigenvalue problems. See [`EigSolver`](@ref) for examples.
         return eig_solve(solver.subsolver,nev=nev,target=target)
     end
 
-    include("NewLinSolvers.jl");
+    include("LinSolverCreators.jl");
 
 end

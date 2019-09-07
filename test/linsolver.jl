@@ -136,14 +136,14 @@ using LinearAlgebra
             end
         end
 
-        @bench @testset "NativeEigSolver" begin
+        @bench @testset "EigenEigSolver" begin
             Random.seed!(0)
             n = 20
             A = rand(ComplexF64, n, n)
             B = rand(ComplexF64, n, n)
 
-            eigsolver1 = NativeEigSolver(A,B)
-            eigsolver2 = NativeEigSolver(B\A)
+            eigsolver1 = EigenEigSolver(A,B)
+            eigsolver2 = EigenEigSolver(B\A)
 
             λ1,v1 = eig_solve(eigsolver1, nev=3)
             λ2,v2 = eig_solve(eigsolver2, nev=3)
@@ -153,14 +153,14 @@ using LinearAlgebra
             end
         end
 
-        @bench @testset "NativeEigSSolver" begin
+        @bench @testset "EigenEigSSolver" begin
             Random.seed!(0)
             n = 20
             A = sprand(ComplexF64, n, n, 0.25) + I
             B = sprand(ComplexF64, n, n, 0.25) + I
 
-            eigsolver1 = NativeEigSSolver(A,B)
-            eigsolver2 = NativeEigSSolver(sparse(Matrix(B)\Matrix(A)))
+            eigsolver1 = EigenEigSSolver(A,B)
+            eigsolver2 = EigenEigSSolver(sparse(Matrix(B)\Matrix(A)))
 
             λ1,v1 = eig_solve(eigsolver1, nev=3)
             λ2,v2 = eig_solve(eigsolver2, nev=3)
