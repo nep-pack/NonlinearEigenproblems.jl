@@ -9,10 +9,12 @@ Efficient compute functions are already implemented
 for many common and several general types.
 
 In the section [specific types](#Specific-types-1) below,
-we list a number of common classes. If your NEP does not
-fit into any of the specific types, we recommend that
+we list a number of common classes. As a user, first see
+if your problem fits to one of those classes, as NEP-PACK has
+very efficient compute functions for these classes.
+If your NEP does not fit into any of the specific types, we recommend that
 a user tries to specify the problem
-as an [`SPMF_NEP](@ref), which is described
+as an [`SPMF_NEP`](@ref), which is described
 in the section [general types](types.md#General-types-1).
 If your problem can be phrased as a sum of two specific
 or general types, it is recommended that you use the
@@ -70,9 +72,9 @@ Precomputing linsolver
 iter 1 err:3.4824421200567996e-12 λ=8.105873439472735 - 0.0001279450670266529im
 iter 2 err:2.05407750614131e-14 λ=8.105873440343123 - 0.00012794469925178411im
 ```
-The application of Chebyshev interpolation to problems stemming
-from the boundary element method is presented in
-[Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951](https://doi.org/10.1007/s10543-012-0381-5).
+
+!!! tip
+    The use of of Chebyshev interpolation in combination with the boundary element method (but with a companion linearization approach) was presented in  [Effenberger and Kressner. "Chebyshev interpolation for nonlinear eigenvalue problems." BIT Numerical Mathematics 52.4 (2012): 933-951](https://doi.org/10.1007/s10543-012-0381-5). See also [the tutorial on boundary element method](bemtutorial.md).
 
 
 ## Specific types
