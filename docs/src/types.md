@@ -1,6 +1,61 @@
 # Types & Data structures
 
-## The basic type
+
+*** TODO: Extend to describe that we have specific types, general types and composite types ***
+
+
+*** Maybe add an example with `ChebPEP` to illustrate how to move between types ***
+
+
+Many problems can be described in the class of SPMF.
+There might be more specialized and efficient implementations such as, e.g. `PEP`, `DEP` or `REP`.
+However, on an abstract level it may still be important to recognize the similarities.
+Hence there is an abstract class `AbstractSPMF`, which in itself inherits from [`ProjectableNEP`](transformations.md#NonlinearEigenproblems.NEPTypes.ProjectableNEP).
+
+
+The Delay Eigenvalue Problem is described by
+```math
+M(λ) = -λI + \sum_{i} A_i e^{-τ_i λ}.
+```
+
+A PEP is a matrix polynomial in `λ`:
+```math
+M(λ) = \sum_{i} A_i λ^i.
+```
+
+
+## Specific types
+
+
+```@docs
+DEP
+```
+
+There are two types to represent PEPs natively in
+NEP-PACK. You can use a monomial basis with
+`PEP` or a Chebyshev basis with `ChebPEP`.
+
+```@docs
+PEP(AA::Array)
+```
+```@docs
+ChebPEP
+```
+
+### REP
+The Rational Eigenvalue Problem is described by:
+
+```@docs
+REP
+```
+The constructor is called as:
+
+```@docs
+REP(AA,poles::Array{<:Number,1})
+```
+
+
+## General types
 The basic class is the abstract class `NEP` which represents
 a NEP. All other defined NEPs should inherit from `NEP`, or from a more
 specialized version; see, e.g., [`ProjectableNEP`](transformations.md#NonlinearEigenproblems.NEPTypes.ProjectableNEP) or [`AbstractSPMF`](types.md#NonlinearEigenproblems.NEPTypes.AbstractSPMF).
@@ -31,61 +86,21 @@ SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
                   align_sparsity_patterns=false)
 ```
 
-### Abstract SPMFs
-Many problems can be described in the class of SPMF.
-There might be more specialized and efficient implementations such as, e.g. `PEP`, `DEP` or `REP`.
-However, on an abstract level it may still be important to recognize the similarities.
-Hence there is an abstract class `AbstractSPMF`, which in itself inherits from [`ProjectableNEP`](transformations.md#NonlinearEigenproblems.NEPTypes.ProjectableNEP).
 ```@docs
 AbstractSPMF
 get_Av
 get_fv
 ```
 
+### Projectable NEP types
 
-## PEP
-A PEP is a matrix polynomial in `λ`:
-```math
-M(λ) = \sum_{i} A_i λ^i.
-```
-There are two types to represent PEPs natively in
-NEP-PACK. You can use a monomial basis with
-`PEP` or a Chebyshev basis with `ChebPEP`.
+There are also types associated with projection described on  [the projection manual page](projection.md):
+* [`ProjectableNEP`](@ref)
+* [`Proj_NEP`](@ref)
 
-```@docs
-PEP(AA::Array)
-```
-```@docs
-ChebPEP
-```
-
-
-## DEP
-The Delay Eigenvalue Problem is described by
-```math
-M(λ) = -λI + \sum_{i} A_i e^{-τ_i λ}.
-```
-
-```@docs
-DEP
-```
-
-## REP
-The Rational Eigenvalue Problem is described by:
-
-```@docs
-REP
-```
-The constructor is called as:
-
-```@docs
-REP(AA,poles::Array{<:Number,1})
-```
-
-
-## SumNEP
-It is also possible to consider NEPs that are summs of other NEPs. For such situations
-there are SumNEPs. Specifically `GenericSumNEP` and `SPMFSumNEP`. Both are constructed using
+### SumNEP
+It is also possible to consider NEPs that are sums of other NEPs.
+For such situations there are SumNEPs. Specifically `GenericSumNEP` and `SPMFSumNEP`. Both are constructed using
 the function `SumNEP`.
 
 ```@docs
@@ -98,7 +113,7 @@ GenericSumNEP
 SPMFSumNEP
 ```
 
-## Low-rank NEPs
+### Low-rank NEPs
 
 ```@docs
 LowRankFactorizedNEP
