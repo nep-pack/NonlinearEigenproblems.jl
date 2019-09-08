@@ -407,12 +407,17 @@ SPMF. The result will be stored in an  AbstractMatrix with eltype T.  """
 
     """
     type DEP <: AbstractSPMF
+    function DEP(AA::Vector{AbstractMatrix} [,tauv::Vector=[0,1.0]])
 
-A DEP (Delay Eigenvalue problem) is defined by
-the sum  ``-λI + Σ_i A_i exp(-\tau_i λ)`` where all
-of the matrices are of size ``n\times n``.\\
-Constructor: `DEP(AA,tauv)` where `AA` is an array of the
-matrices ``A_i``, and `tauv` is a vector of the values  ``\tau_i``.
+A `DEP` (Delay Eigenvalue problem) is a problem defined by
+the sum
+```math
+M(λ)=-λI + Σ_i A_i exp(-τ_i λ)
+```
+where all of the matrices are of size ``n×n``. This type of
+NEP describes the stability of time-delay systems.
+
+The construction takes the system matrices ``A_i``, and `tauv` is a vector of the values  ``τ_i``.
 
 # Example:
 ```julia-repl
@@ -520,24 +525,14 @@ julia> norm(M1-M2)
     # Rational eigenvalue problem - REP
 """
     struct REP <: AbstractSPMF
+    function REP(A,poles)
 
 A REP represents a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
 matrices are of size n times n and s_i and q_i are polynomials.
-"""
-    struct REP <: AbstractSPMF{AbstractMatrix}
-        n::Int
-        A::Array   # Monomial coefficients of REP
-        si::Array  # numerator polynomials
-        qi::Array  # demonimator polynomials
-    end
-    """
-    REP(A,poles)
 
-Creates a rational eigenvalue problem. The
-constructor takes the matrices A_i and a sequence of poles as input
+The constructor takes the matrices `A_i` and a sequence of poles as input
 (not complete).
-
 
 # Example
 ```julia-repl
@@ -548,6 +543,15 @@ julia> compute_Mder(nep,3)
  NaN  NaN
  NaN  NaN
 ```
+
+"""
+    struct REP <: AbstractSPMF{AbstractMatrix}
+        n::Int
+        A::Array   # Monomial coefficients of REP
+        si::Array  # numerator polynomials
+        qi::Array  # demonimator polynomials
+    end
+    """
 """
     function REP(AA,poles::Array{<:Number,1})
 
