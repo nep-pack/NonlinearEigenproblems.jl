@@ -1,15 +1,17 @@
 # Deflation
 
 Several NEP-algorithms are able to find one eigenvalue,
-but will have difficulties finding several eigenvalues.
+but may have difficulties finding several eigenvalues.
 Deflation is a transformation technique which can
 transform a NEP by effectively removing computed eigenvalues,
 and allowing several eigenvalues to be computed by repeated
-application of the same method.
+application of the same NEP-algorithm.
 
 NEP-PACK provides a solver-independent implementation of deflation
 which can be combined (essentially) with any NEP-solver.
- NEP-PACK also have some NEP-solver deflation techniques incoprorated in, e.g., in [the nonlinear Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.nlar) and [the Jacobi-Davidson method](methods.md#NonlinearEigenproblems.NEPSolver.jd_betcke).
+ NEP-PACK also have some NEP-solver deflation techniques incoprorated in, e.g., in the nonlinear Arnoldi method ([`nlar`](@ref)),
+the Jacobi-Davidson method ([`jd_betcke`](@ref))
+and Broyden's method ([`broyden`](@ref)).
 
 The technique takes a NEP and a solution and creates a bigger NEP
 with one dimension larger but where the eigenvalue is removed from the solution set. Due to the abstraction of NEP-objects
@@ -20,13 +22,10 @@ NEP-solver to the deflated NEP.
 * The transformation changes the eigenvectors such that the eigenvectors of `nep` and `dnep` will be different. To extract the eigenvectors (and the eigenvalues) you can call [`get_deflated_eigpairs`](@ref)`(dnep)`.
 
 !!! note
-    Further examples with use cases of deflation can be found in [the tutorial on deflation](deflate_tutorial.md).
+    More elaborate deflation examples can be found in [the tutorial on deflation](deflate_tutorial.md).
 
 
 
-The deflation transformation takes a NEP and creates a bigger
-NEP, whose
-and the main function consists of [`deflate_eigpair`](@ref).
 
 
 
@@ -63,6 +62,8 @@ the deflated NEP will be
 T(λ)=
 \begin{bmatrix}A_1&0\\0 & 0\end{bmatrix}f_1(λ)+\cdots+
 \begin{bmatrix}A_m&0\\0 & 0\end{bmatrix}f_m(λ)+
+```
+```math
 \begin{bmatrix}0&A_1x\\0 & 0\end{bmatrix}\frac{f_1(λ)}{s-λ}+\cdots+
 \begin{bmatrix}0&A_mx\\0 & 0\end{bmatrix}\frac{f_m(λ)}{s-λ}+
 \begin{bmatrix}0&0\\x^T & 0\end{bmatrix}
