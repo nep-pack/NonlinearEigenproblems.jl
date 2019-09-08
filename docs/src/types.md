@@ -1,8 +1,6 @@
 # Types & Data structures
 
-
 *** TODO: Extend to describe that we have specific types, general types and composite types ***
-
 
 *** Maybe add an example with `ChebPEP` to illustrate how to move between types ***
 
@@ -36,7 +34,7 @@ NEP-PACK. You can use a monomial basis with
 `PEP` or a Chebyshev basis with `ChebPEP`.
 
 ```@docs
-PEP(AA::Array)
+PEP
 ```
 ```@docs
 ChebPEP
@@ -80,10 +78,7 @@ which may increase performance or preserve underlying types.
 
 
 ```@docs
-SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
-                  Schur_fact = false,
-                  check_consistency=false,
-                  align_sparsity_patterns=false)
+SPMF_NEP
 ```
 
 ```@docs
@@ -94,7 +89,7 @@ get_fv
 
 ### Projectable NEP types
 
-There are also types associated with projection described on  [the projection manual page](projection.md):
+There are also types associated with projection described on  [the projection manual page](innersolvers.md):
 * [`ProjectableNEP`](@ref)
 * [`Proj_NEP`](@ref)
 
