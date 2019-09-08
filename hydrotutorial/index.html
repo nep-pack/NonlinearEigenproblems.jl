@@ -27,7 +27,7 @@ U   = 1 .-yF.^2;
 Up  = -2*yF;
 Upp = -2;
 
-eye = Matrix{Float64}(I, N, N);  </code></pre><p>We can now set up the coefficient matrices and create a corresponding <a href="../types/#NonlinearEigenproblems.NEPTypes.PEP-Tuple{Array}"><code>PEP</code></a> object.</p><pre><code class="language-julia">A4 = [-eye/Re zeros(N,N);zeros(N,N) zeros(N,N)];
+eye = Matrix{Float64}(I, N, N);  </code></pre><p>We can now set up the coefficient matrices and create a corresponding <a href="@ref"><code>PEP</code></a> object.</p><pre><code class="language-julia">A4 = [-eye/Re zeros(N,N);zeros(N,N) zeros(N,N)];
 A3 = [-1im*diagm(0 =&gt; U) zeros(N,N);zeros(N,N) zeros(N,N)];
 A2 = [(1im*ω-2β^2/Re)*eye+2D2/Re zeros(N,N);zeros(N,N) eye/Re];
 A1 = [1im*(diagm(0 =&gt; U)*(D2-eye*β^2)-Upp*eye) zeros(N,N);zeros(N,N) 1im*diagm(0=&gt;U)];
