@@ -26,7 +26,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
  0.0  0.0
 ```
 
-See also [`polyeig`](@ref), [`companion`](@ref), [`ChebPEP`](@ref).
+See also [`polyeig`](@ref), [`companion`](@ref), [`ChebPEP`](@ref), [`interpolate`](@ref).
 """
 struct PEP <: AbstractSPMF{AbstractMatrix}
     n::Int
@@ -100,8 +100,10 @@ end
 
 """
     interpolate([T=ComplexF64,] nep::NEP, intpoints::Array)
- Interpolates a NEP in the points `intpoints` and returns a `PEP`.\\
- `T` is the Type in which the matrices of the PEP should be defined.
+
+Interpolates a NEP in the points `intpoints` and returns a [`PEP`](@ref), i.e., a polynomial eigenvalue problem in a monomial basis. See [`ChebPEP`](@ref) for Chebyshev interpolation. The optional argument `T` is the type in which the matrices of the PEP should be defined.
+
+See also [`ChebPEP`](@ref).
 """
 interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
 function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}
