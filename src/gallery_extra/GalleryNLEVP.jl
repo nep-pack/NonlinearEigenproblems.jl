@@ -27,9 +27,6 @@ module GalleryNLEVP
             # Environment variables was not set
         end
 
-        if (!isfile(joinpath(nlevp_path,"nlevp.m")))
-            error("Unable to find NLEVP when looking in path=",nlevp_path," Try setting environment variable `NLEVP_PATH` to the directory containing nlevp.m from https://github.com/ftisseur/nlevp")
-        end
         return nlevp_path;
 
     end
@@ -43,15 +40,22 @@ module GalleryNLEVP
         n::Integer
         name::String
         Ai::Array
+        installation_path::String
         function NLEVP_NEP(name)
             nlevp_path=fetch_nlevp_path();
-            println("path:",nlevp_path);
+            return NLEVP_NEP(name,nlevp_path)
+        end
+        function NLEVP_NEP(name,nlevp_path)
+            if (!isfile(joinpath(nlevp_path,"nlevp.m")))
+                error("Unable to find NLEVP when looking in path=",nlevp_path,"  The directory containing  `nlevp.m` should be available in this path. Downloag from https://github.com/ftisseur/nlevp")
+            end
+
             mat"""
             addpath($nlevp_path);
             [$Ai,funs] = nlevp($name);
         """
 
-            this=new(size(Ai[1],1),name,Ai);
+            this=new(size(Ai[1],1),name,Ai,nlevp_path);
         end
     end
 
@@ -119,11 +123,16 @@ module GalleryNLEVP
     """
     nep_gallery(NLEVP_NEP, name)
     nep_gallery(NLEVP_NEP, name, nlevp_path)
+
 Loads a NEP from the Berlin-Manchester collection of nonlinear
 eigenvalue problems.
 """
     function nep_gallery(::Type{T},name::String) where {T<:NLEVP_NEP}
         nep=NLEVP_NEP(name)
+        return nep
+    end
+    function nep_gallery(::Type{T},name::String,nlevp_path::String) where {T<:NLEVP_NEP}
+        nep=NLEVP_NEP(name,nlevp_path)
         return nep
     end
 
