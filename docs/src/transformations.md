@@ -1,25 +1,36 @@
 # Transformations
 
-There are various ways to transform NEPs into other NEPs.
-The simplest example is the function `shift_and_scale()`.
+Due to the object oriented way of handle NEPs in NEP-PACK,
+a NEP-object can be transformed to another NEP-object
+in a number of ways. There is support
+for:
 
+* [variable transformations](transformations.md#Change-of-variables-1),
+* [expansions](transformations.md#Expansions-1), and
+* [deflation](transformations.md#Deflation-1).
+
+
+## Change of variables
 
 ```@docs
 shift_and_scale
 ```
 
-Similarly `mobius_transform()` is more general
-than `shift_and_scale` which transform
-the problem using a Möbius transformation. The function `taylor_exp`
-create new PEP by doing truncating a Taylor expansion.
-
-
 ```@docs
 mobius_transform
 ```
+## Expansions
 
 ** TODO: This should be renamed, e.g. taylor_exp **
 
 ```@docs
 transform_to_pep
 ```
+
+
+## Deflation
+
+A NEP can be transformed to another NEP by extending
+the problem in a way that it essentially removes
+eigenvalues. This type of deflation is described
+on [the manual page for deflation](deflation.md).
