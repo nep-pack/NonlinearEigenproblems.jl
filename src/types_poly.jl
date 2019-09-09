@@ -13,7 +13,7 @@ A polynomial eigenvalue problem (PEP) is defined by the sum the
 Σ_i A_i λ^i,
 ```
 where ``i = 0,1,2,``, and  all of the matrices are of size ``n×n``.
-The vector `AA` contains ``A_1,\ldots``.
+The vector `AA` contains ``A_1,...``.
 
 # Example
 
