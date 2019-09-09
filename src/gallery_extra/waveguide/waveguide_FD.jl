@@ -2,8 +2,10 @@
 
 ###########################################################
 # Generate discretization matrices for FINITE DIFFERENCE
-    """
- Genearate the discretization matrices for the interior for Finite Difference.
+"""
+    generate_fd_interior_mat
+
+Generate the discretization matrices for the interior for Finite Difference.
 """
 function generate_fd_interior_mat( nx, nz, hx, hz)
     ex = ones(nx)
@@ -32,8 +34,10 @@ function generate_fd_interior_mat( nx, nz, hx, hz)
 end
 
 
-    """
- Genearate the discretization matrices for the boundary for Finite Difference.
+"""
+    generate_fd_boundary_mat
+
+Generate the discretization matrices for the boundary for Finite Difference.
 """
 function generate_fd_boundary_mat( nx, nz, hx, hz)
     # BUILD THE SECOND BLOCK C1
@@ -62,8 +66,10 @@ end
 
 ###########################################################
 # Generate Wavenumber FINITE DIFFERENCE
-    """
- Genearate a wavenumber for Finite Difference.
+"""
+    generate_wavenumber_fd
+
+Generate a wavenumber for Finite Difference.
 """
 function generate_wavenumber_fd( nx::Integer, nz::Integer, wg::String, delta::Number)
     if wg == "TAUSCH"
@@ -76,8 +82,10 @@ function generate_wavenumber_fd( nx::Integer, nz::Integer, wg::String, delta::Nu
 end
 
 
-    """
- Genearate the wavenumber in FD discretization for the waveguide
+"""
+    generate_wavenumber_fd_tausch
+
+Generate the wavenumber in FD discretization for the waveguide
 described by TAUSCH.
 """
 function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
@@ -121,8 +129,10 @@ function generate_wavenumber_fd_tausch( nx::Integer, nz::Integer, delta::Number)
 end
 
 
-    """
- Genearate the wavenumber in FD discretization for the waveguide
+"""
+    generate_wavenumber_fd_jarlebring
+
+Generate the wavenumber in FD discretization for the waveguide
 described by JARLEBRING.
 """
 function generate_wavenumber_fd_jarlebring( nx::Integer, nz::Integer, delta::Number)

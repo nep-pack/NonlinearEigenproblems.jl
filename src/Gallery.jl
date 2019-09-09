@@ -156,20 +156,18 @@ The following list describes the NEP with a certain `name` and the associated pa
     Vol. 9. Delft University Press, 47–58, 1996.\\
     and\\
     W. Draijer, M. Steinbuch, and  O. H. Bosgra, Adaptive control of the radial servo system of a
-    compact disc player. Automatica 28, 3, 455–462. 1992.\\
+    compact disc player. Automatica 28, 3, 455–462. 1992.
 
-
-* `nlevp_native_fiber`\\
+* `nlevp_native_fiber`  \\
     The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format.
     One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark.
     L. Kaufman, Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117, 2006.\\
     and\\
     X. Huang, Z. Bai, and Y. Su, Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234, 2010
 
-
 * `nlevp_native_hadeler`\\
     The benchmark problem from the NLEVP-collection called "hadeler", represented in the native NEP-PACK format. The problem is of the form ``M(λ)=(e^λ-1)B+A0+A2λ^2``. \\
-    Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.\\
+    Hadeler K.  P.  1967.  Mehrparametrige  und  nichtlineare  Eigenwertaufgaben. Arch.  Rational  Mech. Anal. 27, 4, 306–328.
 
 * `nlevp_native_pdde_stability`\\
     The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format.
@@ -178,7 +176,7 @@ The following list describes the NEP with a certain `name` and the associated pa
     Numerical Methods, Stability and Perturbation, PhD thesis,
     TU Braunschweig, Institut Computational Mathematics, Germany, 2008 and \\
     H. Fassbender, N. Mackey, D. S. Mackey and C. Schroeder, Structured
-    Polynomial Eigenproblems Related to Time-Delay Systems, ETNA, 2008, vol 31, pp 306-330\\
+    Polynomial Eigenproblems Related to Time-Delay Systems, ETNA, 2008, vol 31, pp 306-330
 
 * `nlevp_native_loaded_string`\\
     The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format. The parameters are (n,kappa,m) where n is the size, and the NEP is a SPMF with rational terms and the coefficient matrices are rank one modifications of Toeplitz matrices.\\

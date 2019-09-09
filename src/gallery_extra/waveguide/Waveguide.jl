@@ -1,10 +1,9 @@
 
-import ..create_linsolver
 ###########################################################
 # Waveguide eigenvalue problem (WEP)
 # Sum of products of matrices and functions (SPMF)
 """
- Waveguide eigenvalue problem (WEP)
+Waveguide eigenvalue problem (WEP)
 Sum of products of matrices and functions (SPMF)
 """
 function assemble_waveguide_spmf_fd(nx::Integer, nz::Integer, hx, Dxx::SparseMatrixCSC, Dzz::SparseMatrixCSC, Dz::SparseMatrixCSC, C1::SparseMatrixCSC, C2T::SparseMatrixCSC, K::Union{Matrix{ComplexF64},Matrix{Float64}}, Km, Kp, pre_Schur_fact::Bool)
@@ -51,7 +50,7 @@ end
 # Generate R-matrix
 # Part of defining the P-matrix, see above, Jarlebring-(1.6) and Ringh-(2.8) and Remark 1
 # OBS: R' = nz * Rinv, as noted in Ringh between (2.8) and Remark 1
-function generate_R_matvecs(nz::Integer)
+function generate_R_matvecs(nz)
     # The scaled FFT-matrix R
     p = (nz-1)/2
     bb = exp.(-2im*pi*((1:nz).-1)*(-p)/nz)  # scaling to do after FFT
@@ -69,7 +68,7 @@ end
 ###########################################################
 # Generate S-function for matrix argument
 # Part of defining the P-matrix, see above, Jarlebring-(2.4) and Ringh-(2.8)(2.3)
-function generate_S_function(nz::Integer, hx, Km, Kp)
+function generate_S_function(nz, hx, Km, Kp)
     # Constants from the problem
     p = (nz-1)/2
     d0 = -3/(2*hx)
@@ -77,27 +76,27 @@ function generate_S_function(nz::Integer, hx, Km, Kp)
     cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
     cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
 
-    # Note: γ should be scalar or matrix (not vector)
-    betaM = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cM[j]*one(γ)
+    # Note: λ should be scalar or matrix (not vector)
+    betaM = function(λ, j)
+        return λ^2 + b[j]*λ + cM[j]*one(λ)
     end
-    betaP = function(γ, j::Integer)
-        return γ^2 + b[j]*γ + cP[j]*one(γ)
-    end
-
-    sM = function(γ, j::Integer)
-        return  1im*sqrt_schur_pos_imag(betaM(γ, j)) + d0*one(γ)
-    end
-    sP = function(γ, j::Integer)
-        return  1im*sqrt_schur_pos_imag(betaP(γ, j)) + d0*one(γ)
+    betaP = function(λ, j)
+        return λ^2 + b[j]*λ + cP[j]*one(λ)
     end
 
+    sM = function(λ, j)
+        return  1im*sqrt_schur_pos_imag(betaM(λ, j)) + d0*one(λ)
+    end
+    sP = function(λ, j)
+        return  1im*sqrt_schur_pos_imag(betaP(λ, j)) + d0*one(λ)
+    end
 
-    S = function(γ, j::Integer)
+
+    S = function(λ, j)
         if j <= nz
-            return sM(γ,j)
+            return sM(λ,j)
         elseif j <= 2*nz
-            return sP(γ,(j-nz))
+            return sP(λ,(j-nz))
         else
             error("The chosen j = ", j, "but the setup nz = ", nz, ". Hence j>2nz which is illegal.")
         end
@@ -108,7 +107,7 @@ end
 
 
 ###########################################################
-    """
+"""
     sqrt_schur_pos_imag(A::AbstractMatrix)
  Computes the matrix square root on the 'correct branch',
  that is, with positivt imaginary part. Similar to Schur method
@@ -140,7 +139,7 @@ function private_inner_loops_sqrt!(n, U, T)
     end
 end
 
-    """
+"""
     sqrt_pos_imag(a::ComplexF64) and sqrt_pos_imag(a::Float64)
  Helper function: Computes the scalar square root on the 'correct branch',
  that is, with positivt imaginary part.
@@ -157,31 +156,64 @@ function sqrt_pos_imag(a::Float64)
     return sqrt(a)
 end
 
+    function Pinv(nep,λ,x)
+        return vec(  [R(nep,Rinv(nep,x[1:Int64(end/2)]) ./ sM(nep,λ));
+                      R(nep,Rinv(nep,x[Int64(end/2)+1:end]) ./ sP(nep,λ))  ]  )
+    end
+
+    function R(nep,X) # Note! Only works for vectors or one-dim matrices
+        return reverse(nep.bb .* fft(vec(X)), dims = 1)
+    end
+
+    function Rinv(nep,X)
+        return ifft(nep.bbinv .* reverse(vec(X), dims = 1))
+    end
+
+    function betaM(nep,λ)
+        return λ^2 .+ nep.b*λ + nep.cM
+    end
+
+    function betaP(nep,λ)
+        return λ^2 .+ nep.b*λ + nep.cP
+    end
+
+    function sM(nep,λ)
+        bbeta = betaM(nep,λ)
+        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ nep.d0
+    end
+
+    function sP(nep,λ)
+        bbeta = betaP(nep,λ)
+        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ nep.d0
+    end
 
 ###########################################################
 # Waveguide eigenvalue problem - WEP
 # A more optimized (native) implementation of the WEP with FD discretization
-    """
-    Waveguide eigenvalue problem
-  A more optimized implementation of the WEP for FD-discretization.\\
-  Closer to what is done in the article:
-    ''E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
-      Sylvester-based preconditioning for the waveguide eigenvalue problem,
-      Linear Algebra and its Applications''
+"""
+    WEP_FD
+
+Waveguide eigenvalue problem
+
+A more optimized implementation of the WEP for FD-discretization.\\
+Closer to what is done in the article:
+''E. Ringh, and G. Mele, and J. Karlsson, and E. Jarlebring,
+Sylvester-based preconditioning for the waveguide eigenvalue problem,
+Linear Algebra and its Applications''
 """
     struct WEP_FD <: WEP
         nx::Int64
         nz::Int64
         hx::Float64
         hz::Float64
-        Dxx
-        Dzz
-        Dz
-        Iz
-        C1
-        C2T
-        k_bar
-        K
+        Dxx::SparseMatrixCSC{Float64,Int64}
+        Dzz::SparseMatrixCSC{Float64,Int64}
+        Dz::SparseMatrixCSC{Float64,Int64}
+        Iz::SparseMatrixCSC{Float64,Int64}
+        C1::SparseMatrixCSC{Float64,Int64}
+        C2T::SparseMatrixCSC{Float64,Int64}
+        k_bar::ComplexF64
+        K::Matrix{ComplexF64}
         p::Integer
         d0::Float64
         d1::Float64
@@ -189,9 +221,8 @@ end
         b::Vector{ComplexF64}
         cM::Vector{ComplexF64}
         cP::Vector{ComplexF64}
-        R::Function
-        Rinv::Function
-        Pinv::Function
+        bb::Vector{ComplexF64}
+        bbinv::Vector{ComplexF64}
 
         function WEP_FD(nx, nz, hx, hz, Dxx, Dzz, Dz, C1, C2T, K, Km, Kp)
             n = nx*nz + 2*nz
@@ -208,14 +239,12 @@ end
             cM = Km^2 .- 4*pi^2 * ((-p:p).^2)
             cP = Kp^2 .- 4*pi^2 * ((-p:p).^2)
 
-            R, Rinv = generate_R_matvecs(nz)
-            Pinv = generate_Pinv_matrix(nz, hx, Km, Kp)
+            bb = exp.(-2im*pi*((1:nz).-1)*(-p)/nz)  # scaling to do after FFT
+            bbinv = 1 ./ bb # scaling to do before inverse FFT
 
             Iz = sparse(ComplexF64(1)I, nz, nz)
 
-            this = new(nx, nz, hx, hz, Dxx, Dzz, Dz, Iz, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cM, cP, R, Rinv, Pinv)
-
-
+            return new(nx, nz, hx, hz, Dxx, Dzz, Dz, Iz, C1, C2T, k_bar, K_scaled, p, d0, d1, d2, b, cM, cP, bb, bbinv)
         end
     end
 
@@ -242,27 +271,28 @@ end
 
     #Inverses of the boundary operators, Ringh - (2.8)
     #To be used in the Schur-complement- and SMW-context.
-    function P_inv_m(nep::WEP_FD, σ, v)
+    function P_inv_m(nep::WEP_FD, λ, v)
         nz = nep.nz
         coeffs = zeros(ComplexF64, nz)
             aa = 1.0
         for j = 1:nz
             bb = nep.b[j]
             cc = nep.cM[j]
-            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, λ) + nep.d0
         end
-        return nep.R(nep.Rinv(v) ./ coeffs)
+        return R(nep,Rinv(nep,v) ./ coeffs)
     end
-    function P_inv_p(nep::WEP_FD, σ, v)
+
+    function P_inv_p(nep::WEP_FD, λ, v)
         nz = nep.nz
         coeffs = zeros(ComplexF64, nz)
             aa = 1.0
         for j = 1:nz
             bb = nep.b[j]
             cc = nep.cP[j]
-            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, σ) + nep.d0
+            coeffs[j] = 1im*sqrt_derivative(aa, bb, cc, 0, λ) + nep.d0
         end
-        return nep.R(nep.Rinv(v) ./ coeffs)
+        return R(nep,Rinv(nep,v) ./ coeffs)
     end
 
 
@@ -284,13 +314,14 @@ end
 
 
 
-    """
+"""
     compute_Mlincomb(nep::WEP_FD, λ::Number, V; a=ones(ComplexF64,size(V,2)))
+
 Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\\\\
  Computes the linear combination of derivatives\\
  ``Σ_i a_i M^{(i)}(λ) v_i``
 """
-    function compute_Mlincomb(nep::WEP_FD, λ::Number, V::Union{AbstractMatrix,AbstractVector},
+    function compute_Mlincomb(nep::WEP_FD, λ::Number, V::AbstractVecOrMat,
                               a::Vector=ones(ComplexF64,size(V,2)))
         na = size(a,1)
         nv = size(V,1)
@@ -333,18 +364,25 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
         #Multiplication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
         y2_temp::Vector{ComplexF64} =
-            (D[:,1] .+ nep.d0) .* [nep.Rinv(V2[1:nz,1]);
-                                   nep.Rinv(V2[nz+1:2*nz,1])]*a[1]
+            (D[:,1] .+ nep.d0) .* [Rinv(nep,V2[1:nz,1]);
+                                   Rinv(nep,V2[nz+1:2*nz,1])]*a[1]
         for jj = 2:na
             #Multiplication with diagonal matrix optimized by working "elementwise" Jarlebring-(4.6)
-            y2_temp[:] += D[:,jj] .* [nep.Rinv(V2[1:nz,jj]);
-                                   nep.Rinv(V2[nz+1:2*nz,jj])] *a[jj]
+            y2_temp[:] += D[:,jj] .* [Rinv(nep,V2[1:nz,jj]);
+                                      Rinv(nep,V2[nz+1:2*nz,jj])] *a[jj]
         end
-        y2::Vector{ComplexF64} = [nep.R(y2_temp[1:nz,1]);
-                                   nep.R(y2_temp[nz+1:2*nz,1])]
+        y2::Vector{ComplexF64} = [R(nep,y2_temp[1:nz,1]);
+                                  R(nep,y2_temp[nz+1:2*nz,1])]
         y2[:] += nep.C2T * V1[:,1]*a[1] #Action of C2T. OBS: Add last because of implcit storage in R*D_i*R^{-1}*v_i
 
         return vcat(y1, y2)
+    end
+
+"""
+    compute_Mder(nep::WEP,λ::Number,i::Integer=0)
+"""
+    function compute_Mder(nep::WEP,λ::Number,i::Integer=0)
+        error("The WEP does not implement this function. If this was called in a situation where you want to solve linear systems please look at `WEPLinSolverCreator`")
     end
 
 
@@ -364,7 +402,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         nep = M.nep
 
         X = reshape(v, nep.nz, nep.nx)
-        return vec(  vec( A(nep,λ)*X + X*B(nep,λ) + nep.K.*X ) - nep.C1 * nep.Pinv(λ, nep.C2T*v)  )
+        return vec(  vec( A(nep,λ)*X + X*B(nep,λ) + nep.K.*X ) - nep.C1 * Pinv(nep, λ, nep.C2T*v)  )
     end
 
     function (M::SchurMatVec)(v::AbstractVector) #Overload the ()-function so that a SchurMatVec struct can act and behave like a function
@@ -414,7 +452,6 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
     end
 
 
-
     # Direct Backslash solver
     struct WEPBackslashLinSolver<:LinSolver
         schur_comp::SparseMatrixCSC{ComplexF64,Int64}
@@ -431,6 +468,23 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
         return solver.schur_comp \ rhs
     end
 
+
+    # Direct pre-factorized solver
+    struct WEPFactorizedLinSolver<:LinSolver
+        schur_comp_fact
+        nep::WEP_FD
+        λ::ComplexF64
+
+        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{ComplexF64,Float64}, kwargs=())
+            schur_comp_fact = factorize(construct_WEP_schur_complement(nep, λ))
+            return new(schur_comp_fact, nep, λ)
+        end
+    end
+
+    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Vector, tol)
+        return solver.schur_comp_fact \ rhs
+    end
+
 """
     struct WEPLinSolverCreator <: LinSolverCreator
     function WEPLinSolverCreator(;solver_type=:backslash,kwargs=())
@@ -442,7 +496,7 @@ The `kwargs` keyword argument is passed to the solver.
     struct WEPLinSolverCreator <: LinSolverCreator
         solver_type::Symbol
         kwargs;
-        function WEPLinSolverCreator(;solver_type=:backslash,kwargs=())
+        function WEPLinSolverCreator(;solver_type=:factorized,kwargs=())
             return new(solver_type,kwargs);
         end
     end
@@ -463,26 +517,6 @@ The `kwargs` keyword argument is passed to the solver.
             error("Unknown type of solver_type in linsolvercreator:$s");
         end
     end
-
-
-
-    # Direct pre-factorized solver
-    struct WEPFactorizedLinSolver<:LinSolver
-        schur_comp_fact
-        nep::WEP_FD
-        λ::ComplexF64
-
-        function WEPFactorizedLinSolver(nep::WEP_FD, λ::Union{ComplexF64,Float64}, kwargs=())
-            schur_comp_fact = factorize(construct_WEP_schur_complement(nep, λ))
-            return new(schur_comp_fact, nep, λ)
-        end
-    end
-
-    function WEP_inner_lin_solve(solver::WEPFactorizedLinSolver, rhs::Vector, tol)
-        return solver.schur_comp_fact \ rhs
-    end
-
-
 
     # Helper functions for WEP LinSolvers. To avoid code repetition.
     # Assembls the full Schur-complement, used in both Backslash and LU solvers
@@ -524,69 +558,24 @@ The `kwargs` keyword argument is passed to the solver.
 
         x_int = x[1:(nep.nx*nep.nz)]
         x_ext = x[((nep.nx*nep.nz)+1):((nep.nx*nep.nz) + 2*nep.nz)]
-        rhs =  vec(  x_int - nep.C1*nep.Pinv(λ, x_ext))
+        rhs =  vec(  x_int - nep.C1*Pinv(nep, λ, x_ext))
 
         q = WEP_inner_lin_solve(solver, rhs, tol)
 
-        return [q; vec(nep.Pinv(λ, -nep.C2T * q + x_ext))]
+        return [q; vec(Pinv(nep, λ, -nep.C2T * q + x_ext))]
 
     end
-
-    # Overloads Defalut and Backslash LinSolvers
-    DefaultLinSolver(nep::WEP_FD, λ, umfpack_refinements) = WEPFactorizedLinSolver(nep, λ)
-    BackslashLinSolver(nep::WEP_FD, λ) = WEPBackslashLinSolver(nep, λ)
-
-
-###########################################################
-# Generate a function for mat-vecs with P^{-1}-matrix
-# P is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
-function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
-
-    R, Rinv = generate_R_matvecs(nz::Integer)
-    p = (nz-1)/2;
-
-    # Constants from the problem
-    d0 = -3/(2*hx);
-    a = ones(ComplexF64,nz);
-    b = 4*pi*1im * (-p:p);
-    cM = Km^2 .- 4*pi^2 * ((-p:p).^2);
-    cP = Kp^2 .- 4*pi^2 * ((-p:p).^2);
-
-    function betaM(γ)
-        return a*γ^2 + b*γ + cM
-    end
-    function betaP(γ)
-        return a*γ^2 + b*γ + cP
-    end
-
-    function sM(γ::Number)
-        bbeta = betaM(γ)
-        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ d0
-    end
-    function sP(γ::Number)
-        bbeta = betaP(γ)
-        return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ d0
-    end
-
-    # BUILD THE INVERSE OF THE FOURTH BLOCK P
-    function P(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
-        return vec(  [R(Rinv(x[1:Int64(end/2)]) ./ sM(γ));
-                      R(Rinv(x[Int64(end/2)+1:end]) ./ sP(γ))  ]  )
-    end
-
-
-    return P
-end
 
 
 ###########################################################
 #Square root of second degree polynomial (Gegenbauer polynomials)
 #Jarlebring - Appendix C
-    """
+"""
     sqrt_derivative(a,b,c, d=0, x=0)
- Computes all d derivatives of sqrt(a*z^2 + b*z + c)
- in the point z = x.
- Returns a d+1 vector with all numerical values
+
+Computes all d derivatives of sqrt(a*z^2 + b*z + c)
+in the point z = x.
+Returns a d+1 vector with all numerical values
 """
 function sqrt_derivative(a,b,c, d=0, x=0)
     if(d<0)
