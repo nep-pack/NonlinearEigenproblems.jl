@@ -2,8 +2,6 @@ push!(LOAD_PATH, string(@__DIR__, "/../src/gallery_extra"))
 using GalleryRand
 using Test
 using LinearAlgebra
-using Plots
-
 
 
 @testset "GalleryRand" begin

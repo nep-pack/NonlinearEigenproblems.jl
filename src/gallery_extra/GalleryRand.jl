@@ -48,11 +48,9 @@ export reset_rng!
     reset_rng!(seed::UInt128) = reset_rng!(GLOBAL_MSWS_RNG, seed);
     function reset_rng!(T::MSWS_RNG, seed::UInt128)
         base = 0x9ef09a97ac0f9ecaef01c4f2db0958c9; # Found by a random draw
-        # base = 0x0000000000000000b5ad4eceda1ce2a9; # Seed from paper for 32-bit
-        # base = 0x00000000000000000000000100000001; # Seed for reference sequence from paper
+        T.s = (seed << 1) + base; # Left-shift to make sure seed i even, then add to base which is odd (https://github.com/tidwall/weyl/issues/1)
         T.x = 0x1de568e1a1ca1b593cbf13f7407cf43e;
         T.w = 0xd4ac5c288559e14a5fafc1b7df9f9e0e;
-        T.s = (seed << 1) + base; # Left-shift to make sure seed i even, then add to base which is odd (https://github.com/tidwall/weyl/issues/1)
         return
     end
 
