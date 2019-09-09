@@ -47,7 +47,7 @@ size(nep::NEP,d)
 and at least one of the following
 
 * M = [`compute_Mder(nep::NEP,λ::Number,i::Integer=0)`](@ref)
-* V = [`compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)`](@ref)
+* V = [`compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector)`](@ref) (or `compute_Mlincomb!`)
 * MM = [`compute_MM(nep::NEP,S,V)`](@ref)
 
 
@@ -183,11 +183,17 @@ extensively used in:
 
 
     ## Helper functions
-    """
+"""
     compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)
-The function computes Mlincomb by a call to compute_MM. The relationship between Mlincomb and MM is described in issue #2 and #3
-Usage normally by overloading:
-    compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_MM(nep,λ,V,a)
+
+This function provides a `compute_Mlincomb`-function call
+ by invoking a call to `compute_MM`. The underlying mathematical relationship
+ is described in github issue #2 and #3.
+
+The standard usage is by the following command:
+```julia
+compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_MM(nep,λ,V,a)
+```
 """
     compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)=compute_Mlincomb_from_MM!(nep,λ,copy(V),copy(a))
     """
@@ -205,11 +211,15 @@ Same as [`compute_Mlincomb`](@ref), but modifies V and a.
         z=compute_MM(nep,S,V)[:,1];
         return a[1]*reshape(z,size(z,1))
     end
-    """
+"""
     compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a)
-The function computes Mlincomb by a call to compute_Mder. This function is slow since it requires the construction of the matrices.
-Usage normally by overloading:
+
+The function computes `Mlincomb` by a call to `compute_Mder`.
+This function is slow since it requires the construction of the matrices.
+Usage normally by overloading in this way
+```julia
     compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_Mder(nep,λ,V,a)
+```
 """
     function compute_Mlincomb_from_Mder(nep::NEP,λ::Number,V,a::Array{<:Number,1})
         #println("Using poor-man's compute_Mder -> compute_Mlincomb")
@@ -222,10 +232,11 @@ Usage normally by overloading:
         return z
     end
 
-    """
+"""
     compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
-Computes the Mder function from MM using the fact that MM of
-a jordan block becomes derivatives
+
+Computes the [`compute_Mder`](@ref) via a call [`compute_MM`](@ref)
+using the fact that MM of a jordan block becomes derivatives.
 """
     function compute_Mder_from_MM(nep::NEP,λ::Number,i::Integer=0)
         J=transpose(jordan_matrix(typeof(λ),i+1,λ))

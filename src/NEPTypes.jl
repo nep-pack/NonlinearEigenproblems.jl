@@ -114,8 +114,11 @@ Returns an Array of functions (that can be evaluated both as scalar and matrix f
 
 """
     struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
+    function SPMF_NEP(AA, fii [,check_consistency=true] [,Schur_fact = false]
+                      [,align_sparsity_patterns = false] [,Ftype=ComplexF64])
 
-An SPMF_NEP is a NEP defined by a Sum of Products of Matrices and Functions,
+An `SPMF_NEP` is a `NEP` defined by a *S*um of *P*roducts of
+*M*atrices and *F*unctions,
 i.e.,
 ```math
 M(λ)=∑_i A_i f_i(λ).
@@ -123,6 +126,38 @@ M(λ)=∑_i A_i f_i(λ).
 All of the matrices ``A_0,...`` are of size ``n×n``
 and ``f_i`` are a functions. The  functions ``f_i`` must be defined
 for matrices in the standard matrix function sense.
+The constructor creates a `SPMF_NEP` consisting
+of matrices `AA` and functions `fii`.
+
+# Parameters
+
+* `AA` is a `Vector` of matrices. The matrices have to be of the same type. If you need a NEP with different types you can use [`SumNEP`](@ref) to construct a sum of two `SPMF_NEP`.
+
+* `fii` is a `Vector` of functions. Each function takes one parameter `S`. The functions must be available both as a scalar valid function and a matrix function. If `S` is a square matrix, `fii[k](S)` musst also be a square matrix. If `S` is a scalar `fii[k](S)` is a scalar.
+
+* `check_consistency` (default `true`) determines if we should initiate by running tests to verify that the `fii` satisfies the conditions that every function is valid both for matrices and scalars. This is done by using `@code_typed` and the functions need to be type-stable in that sense.
+
+* `align_sparsity_patterns` (default `false`) has effect only for sparse matrices (`SparseMatrixCSC`). If `align_sparsity_patterns=true` the `SparseMatrixCSC` matrices will be replaced by equivalent `SparseMatrixCSC` matrices where the `colptr` and `rowval` are identical. This increases the speed of some functions, e.g., `compute_Mder`. If `align_sparsity_patterns=true` the matrices in the NEP should be considered read only. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false.
+
+* `Ftype` (default `ComplexF64`) determines an underlying type of the functions. The output of any function should be "smaller" than the promoted type of the input and `Ftype`. More precisely, if `F=fii[k]`, then the type logic is as follows `eltype(F(λ))=promote_type(eltype(λ),Ftype)`.
+
+* `Schur_fact` (default `false`) determines if the `compute_MM` function should triangularize the matrix before carrying out the computation. This can be faster for large matrices.
+
+
+
+
+# Example
+```julia-repl
+julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
+julia> id_op=S -> one(S) # Note: We use one(S) to be valid both for matrices and scalars
+julia> exp_op=S -> exp(S)
+julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
+julia> compute_Mder(nep,1)-(A0+A1*exp(1))
+2×2 Array{Float64,2}:
+ 0.0  0.0
+ 0.0  0.0
+```
+
 """
     struct SPMF_NEP{T<:AbstractMatrix,Ftype}  <: AbstractSPMF{T}
     # Logic behind Ftype:
@@ -140,49 +175,7 @@ for matrices in the standard matrix function sense.
     SPMF_NEP_sparse{T<:AbstractSparseMatrix,Ftype}=SPMF_NEP{T,Ftype}
 
 
-"""
-     SPMF_NEP(AA, fii, check_consistency, Schur_fact = false, align_sparsity_patterns = false, , Ftype)
-
-Creates a `SPMF_NEP` consisting of matrices `AA` and functions `fii`. The `SPMF_NEP` is defined by
-a sum of products of matrices and functions
-```math
-M(λ)=∑_i A_i f_i(λ).
-```
-All of the matrices ``A_0,...`` are of size ``n×n``
-and ``f_i`` are a functions. The  functions ``f_i`` must be defined
-for matrices in the standard matrix function sense.
-
-
-# Parameters
-
-* `AA` is a `Vector` of matrices. The matrices have to be of the same type. If you need a NEP with different types you can use [`SumNEP`](@ref) to construct a sum of two `SPMF_NEP`.
-
-* `fii` is a `Vector` of functions. Each function takes one parameter `S`. The functions must be available both as a scalar valid function and a matrix function. If `S` is a square matrix, `fii[k](S)` musst also be a square matrix. If `S` is a scalar `fii[k](S)` is a scalar.
-
-* `check_consistency` (default `true`) determines if we should initiate by running tests to verify that the `fii` satisfies the conditions that every function is valid both for matrices and scalars. This is done by using `@code_typed` and the functions need to be type-stable in that sense.
-
-* `align_sparsity_patterns` (default `false`) has effect only for sparse matrices (`SparseMatrixCSC`). If `align_sparsity_patterns=true` the `SparseMatrixCSC` matrices will be replaced by equivalent `SparseMatrixCSC` matrices where the `colptr` and `rowval` are identical. This increases the speed of some functions, e.g., `compute_Mder`. If `align_sparsity_patterns=true` the matrices in the NEP should be considered read only. If the sparsity patterns are completely or mostly distinct, it may be more efficient to set this flag to false.
-
-* `Ftype` (default `ComplexF64`) determines an underlying type of the functions. The output of any function should be "smaller" than the promoted type of the input and `Ftype`. More precisely, if `F=fii[k]`, then the type logic is as follows `eltype(F(λ))=promote_type(eltype(λ),Ftype)`.
-
-* `Schur_fact` (default `false`) determines if the `compute_MM` function should tridiagonalize the matrix before carrying out the computation. This can be faster for large matrices.
-
-
-
-
-# Example
-```julia-repl
-julia> A0=[1 3; 4 5]; A1=[3 4; 5 6];
-julia> id_op=S -> one(S) # Note: We use one(S) to be valid both for matrices and scalars
-julia> exp_op=S -> exp(S)
-julia> nep=SPMF_NEP([A0,A1],[id_op,exp_op]);
-julia> compute_Mder(nep,1)-(A0+A1*exp(1))
-2×2 Array{Float64,2}:
- 0.0  0.0
- 0.0  0.0
-```
-"""
-     function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
+    function SPMF_NEP(AA::Vector{<:AbstractMatrix}, fii::Vector{<:Function};
                        Schur_fact = false,
                        check_consistency=true, Ftype=ComplexF64,
                        align_sparsity_patterns=false)
@@ -407,12 +400,17 @@ SPMF. The result will be stored in an  AbstractMatrix with eltype T.  """
 
     """
     type DEP <: AbstractSPMF
+    function DEP(AA::Vector{AbstractMatrix} [,tauv::Vector=[0,1.0]])
 
-A DEP (Delay Eigenvalue problem) is defined by
-the sum  ``-λI + Σ_i A_i exp(-tau_i λ)`` where all
-of the matrices are of size n times n.\\
-Constructor: `DEP(AA,tauv)` where `AA` is an array of the
-matrices ``A_i``, and `tauv` is a vector of the values  ``tau_i``.
+A `DEP` (Delay Eigenvalue problem) is a problem defined by
+the sum
+```math
+M(λ)=-λI + Σ_i A_i exp(-τ_i λ)
+```
+where all of the matrices are of size ``n×n``. This type of
+NEP describes the stability of time-delay systems.
+
+The construction takes the system matrices ``A_i``, and `tauv` is a vector of the values  ``τ_i``.
 
 # Example:
 ```julia-repl
@@ -520,24 +518,14 @@ julia> norm(M1-M2)
     # Rational eigenvalue problem - REP
 """
     struct REP <: AbstractSPMF
+    function REP(A,poles)
 
 A REP represents a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
 matrices are of size n times n and s_i and q_i are polynomials.
-"""
-    struct REP <: AbstractSPMF{AbstractMatrix}
-        n::Int
-        A::Array   # Monomial coefficients of REP
-        si::Array  # numerator polynomials
-        qi::Array  # demonimator polynomials
-    end
-    """
-    REP(A,poles)
 
-Creates a rational eigenvalue problem. The
-constructor takes the matrices A_i and a sequence of poles as input
+The constructor takes the matrices `A_i` and a sequence of poles as input
 (not complete).
-
 
 # Example
 ```julia-repl
@@ -548,6 +536,15 @@ julia> compute_Mder(nep,3)
  NaN  NaN
  NaN  NaN
 ```
+
+"""
+    struct REP <: AbstractSPMF{AbstractMatrix}
+        n::Int
+        A::Array   # Monomial coefficients of REP
+        si::Array  # numerator polynomials
+        qi::Array  # demonimator polynomials
+    end
+    """
 """
     function REP(AA,poles::Array{<:Number,1})
 

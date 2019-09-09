@@ -26,7 +26,7 @@ f(λ)=\det(M(λ))=0
 ```
 The application of Halley's method to this nonlinear scalar equation
 will serve as an example solver, although it does, to our
-knowledge, not lead to a competive algorithm.
+knowledge, not lead to a competitive algorithm.
 Halley's method for the root-finding problem is
 defined as the
 ```math
@@ -47,7 +47,7 @@ estimate the derivatives, i.e.,
 Let us first define our solver function
 and introduce the function of which we wish to find the roots.
 The matrix ``M(λ)`` is obtained from the
-`compute_Mder`-function.
+[`compute_Mder`](@ref)-function.
 ```julia
 using NonlinearEigenproblems
 function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,tol=eps()*100)
@@ -55,7 +55,7 @@ function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,tol=eps()*100)
    # More code here
 end
 ```
-The main loop (which should go in *More code here*) can be implemented,
+The main loop (which should go in `# More code here`) can be implemented,
 in a way that does not involve many function
 evaluations, as follows:
 ```julia
@@ -167,7 +167,7 @@ julia> norm(compute_Mlincomb(nep,λ,x))
 5.613646650354486e-16
 ```
 If you now want to plot the error history,
-you can use the `ErrorLogger`:
+you can use the [`ErrorLogger`](@ref):
 ```julia-repl
 julia> mylogger=ErrorLogger()
 julia> (λ,x)=halley(nep,logger=mylogger);

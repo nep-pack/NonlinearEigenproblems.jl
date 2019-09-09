@@ -50,7 +50,8 @@ abstract type InnerSolver end;
     struct DefaultInnerSolver <: InnerSolver
 
 Dispatches a version of [`inner_solve`](@ref) based on the
-type of the NEP provided.
+type of the NEP provided. This function tries to automatically
+detect which solver is recommended.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -184,7 +185,7 @@ struct SGIterInnerSolver <: InnerSolver end;
 
 Uses [`contour_beyn`](@ref) to solve the inner problem, with radius and number
 of quadrature nodes, given by `radius` and `n`. If the variable `radius` is set
-to `:auto`, the integration radius will be automatically by
+to `:auto`, the integration radius will be automatically selected by
 using the eigenvalue approximations specified by the outer solver.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
@@ -224,7 +225,7 @@ end;
 
 Solves the projected linear problem with solver specied with `is`. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
-to use. The most common choice is [`DefaultInnersolver`](@ref). The function returns
+to use. The most common choice is [`DefaultInnerSolver`](@ref). The function returns
 `(λv,V)` where `λv` is an array of eigenvalues and `V` a matrix with corresponding
 vectors.
 The struct `T_arit` defines the arithmetics used in the outer iteration and should prefereably

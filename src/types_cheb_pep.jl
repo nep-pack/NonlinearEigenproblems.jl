@@ -157,7 +157,7 @@ interval `[a,b]`, i.e.,
 ```math
 M(λ)= B_0T_0(λ)+⋯+B_{k-1}T_{k-1}(λ)
 ```
-where `T_i` are the scaled and shifted Chebyshev polynomials.
+where ``T_i`` are the scaled and shifted Chebyshev polynomials.
 
 The creator `ChebPEP` takes `nep::NEP` as an input
 and interpolates this NEP in `k` Chebyshev nodes, resulting
@@ -188,7 +188,7 @@ julia> norm(compute_Mder(nep,0.3)-compute_Mder(chebpep,0.3))
 2.2782119183158333e-15
 ```
 
-See also: `polyeig`
+See also: [`polyeig`](@ref), [`PEP`](@ref)
 """
 function ChebPEP(orgspmf,k,a=-1,b=1;cosine_formula_cutoff=5)
     F=s-> compute_Mder(orgspmf,s);

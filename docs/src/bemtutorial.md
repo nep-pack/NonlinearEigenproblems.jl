@@ -6,7 +6,7 @@ you can define a NEP where the only way to access the NEP
 is a function to compute ``M^{(k)}(λ)``. We first show the manual way
 to do it, as it illustrates some of the workings of NEP-PACK.
 However, the use case is common enough to have native support
-in NEP-PACK. Hence, we also show how to use a special NEP-type called `Mder_NEP`.
+in NEP-PACK. Hence, we also show how to use a special NEP-type called [`Mder_NEP`](@ref).
 
 For this example we use a
 [boundary element method](https://en.wikipedia.org/wiki/Boundary_element_method)
@@ -69,7 +69,7 @@ end
 size (generic function with 143 methods)
 ```
 The function `assemble_BEM` computes the matrix defined by the integrals. Hence,
-we need to call this function for every call to `compute_Mder`:
+we need to call this function for every call to [`compute_Mder`](@ref):
 ```julia-repl
 julia> import NonlinearEigenproblems.NEPCore.compute_Mder # We overload the function
 julia> function compute_Mder(nep::BEM_NEP,λ::Number,der::Int=0)
@@ -78,7 +78,7 @@ end
 compute_Mder (generic function with 42 methods)
 ```
 In order to make other compute functions available to the methods,
-we can use the conversion functions. In particular, the `compute_Mlincomb` function
+we can use the conversion functions. In particular, the [`compute_Mlincomb`](@ref) function
 can be implemented by making several calls in `compute_Mder`. This
 is done in the NEP-PACK-provided helper function `compute_Mlincomb_from_Mder`.
 We make this the default behaviour for this NEP:
@@ -101,7 +101,7 @@ julia> nep=BEM_NEP(mymesh,gauss_order);
 ```
 ## Solving the NEP
 After creating the NEP, you can try to solve the problem with methods in the package, e.g.,
-[`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp) works quite well for this problem:
+[`mslp`](@ref) works quite well for this problem:
 ```julia-repl
 julia> (λ,v)=mslp(nep,λ=8,logger=1);
 iter 1 err:4.122635537095191e-6 λ=8.128272919317748 + 0.007584851218213724im

@@ -4,29 +4,35 @@
 
 """
     struct PEP <: AbstractSPMF
+    function PEP(AA::Vector{AbstractMatrix})
 
-A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
-"""
-struct PEP <: AbstractSPMF{AbstractMatrix}
-    n::Int
-    A::Array   # Monomial coefficients of PEP
-end
+The type `PEP` defines a polynomial eigenvalue
+ problem via its monomial coefficients.
+A polynomial eigenvalue problem (PEP) is defined by the sum the
+```math
+Σ_i A_i λ^i,
+```,
+where ``i = 0,1,2,``, and  all of the matrices are of size n times n.
+The argument `AA` defines the matrices.
 
-"""
-    PEP(AA::Array)
-
-Creates a polynomial eigenvalue problem with monomial matrices specified in
-AA, which is an array of matrices.
+# Example
 
 ```julia-repl
-julia> A0=[1 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
+julia> A0=[1.0 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
 julia> pep=PEP([A0,A1,A2])
 julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 2×2 Array{Float64,2}:
  0.0  0.0
  0.0  0.0
 ```
+
 """
+struct PEP <: AbstractSPMF{AbstractMatrix}
+    n::Int
+    A::Array   # Monomial coefficients of PEP
+end
+
+
 function PEP(AA::Array)
     n=size(AA[1],1)
     AA=reshape(AA,size(AA,1))

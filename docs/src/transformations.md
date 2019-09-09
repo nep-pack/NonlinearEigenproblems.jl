@@ -1,66 +1,36 @@
-# Transforming NEPs
+# Transformations
 
-There are various ways to transform NEPs into other NEPs.
-The simplest example is the function `shift_and_scale()`.
+Due to the object oriented way of handle NEPs in NEP-PACK,
+a NEP-object can be transformed to another NEP-object
+in a number of ways. There is support
+for:
 
+* [variable transformations](transformations.md#Change-of-variables-1),
+* [expansions](transformations.md#Expansions-1), and
+* [deflation](transformations.md#Deflation-1).
+
+
+## Change of variables
 
 ```@docs
 shift_and_scale
 ```
 
-Similarly `mobius_transform()` is more general
-than `shift_and_scale` which transform
-the problem using a Möbius transformation. The function `taylor_exp`
-create new PEP by doing truncating a Taylor expansion.
-
-# Projection
-
-Several methods for NEPs are based on forming
-a smaller NEP, which we will refer to as a projection:
-```math
-N(λ)=W^HM(λ)V,
+```@docs
+mobius_transform
 ```
-where $V,W\in\mathbb{C}^{n\times p}$
-and the corresponding projected problem
-```math
-N(λ)u=0.
-```
+## Expansions
 
-## Types
-NEPs for which this projection can be computed
-inherit from `ProjectableNEP`.
+** TODO: This should be renamed, e.g. taylor_exp **
 
 ```@docs
-ProjectableNEP
-```
-
-The result of the
-projection is represented in a `Proj_NEP`.
-
-```@docs
-Proj_NEP
-```
-
-One explicit instance is the `Proj_SPMF_NEP`.
-
-```@docs
-Proj_SPMF_NEP
+transform_to_pep
 ```
 
 
-## Associated functions
+## Deflation
 
-You can create a projected NEP with `create_proj_NEP`:
-
-```@docs
-create_proj_NEP
-```
-
-
-```@docs
-set_projectmatrices!
-```
-
-```@docs
-expand_projectmatrices!
-```
+A NEP can be transformed to another NEP by extending
+the problem in a way that it essentially removes
+eigenvalues. This type of deflation is described
+on [the manual page for deflation](deflation.md).
