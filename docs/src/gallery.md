@@ -1,9 +1,13 @@
 
 # Gallery
 
-We have created a gallery of problems in order to make examples easily accessible and reproducible.
-They are available in the function `nep_gallery`. We also have an interface which allows you
-to access problems for the [Berlin-Manchester problem collection](gallery.md#Berlin-Manchester-collection-1).
+NEP-PACK provides a way to access applications in order
+to easily improve and compare algorithms on realistic problems.
+Below you will find a description of:
+
+* [Standard native gallery](gallery.md#Standard-native-gallery-1). This gallery provides are accessed through the function call `nep=nep_gallery(str::String)` and returns a NEP-object with efficient compute-functions. The `str` is an identifier for the problem.
+* [Berlin-Manchester problem collection](gallery.md#Berlin-Manchester-collection-1). You can access problems from this MATLAB-collection by the call `nep=nep_gallery(NLEVP_NEP,str::String)`, where `str` is the identified in the MATLAB-package. This requires that you have MATLAB and the problem collection installed.
+* [Extra problems](gallery.md#Extra-gallery-problems-1). We provide careful implementations of certain large-scale problems which are too large to include in the main gallery.
 
 ```julia-repl
 julia> using Gallery
@@ -14,7 +18,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 4.718447854656915e-16
 ```
 
-## `nep_gallery`
+## Standard native gallery
 ```@docs
 nep_gallery
 ```
@@ -38,7 +42,7 @@ underlying MATLAB-session. Some problems in the Berlin-Manchester collection
 have native support in NEP-PACK, i.e., avoiding a MATLAB-access in every call;
 see `nep_gallery` above.
 
-## Other gallery examples
+## Extra gallery problems
 Stand-alone implementation can be accessed in a similar way, e.g.,
 a native implementation of the Waveguide Eigenvalue Problem can be accessed as
 ```julia-repl
