@@ -11,9 +11,9 @@ The type `PEP` defines a polynomial eigenvalue
 A polynomial eigenvalue problem (PEP) is defined by the sum the
 ```math
 Σ_i A_i λ^i,
-```,
-where ``i = 0,1,2,``, and  all of the matrices are of size n times n.
-The argument `AA` defines the matrices.
+```
+where ``i = 0,1,2,``, and  all of the matrices are of size ``n×n``.
+The vector `AA` contains ``A_1,\ldots``.
 
 # Example
 
@@ -26,6 +26,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
  0.0  0.0
 ```
 
+See also [`polyeig`](@ref), [`companion`](@ref), [`ChebPEP`](@ref).
 """
 struct PEP <: AbstractSPMF{AbstractMatrix}
     n::Int
