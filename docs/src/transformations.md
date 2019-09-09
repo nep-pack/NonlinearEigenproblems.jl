@@ -27,6 +27,9 @@ mobius_transform
 transform_to_pep
 ```
 
+```@docs
+interpolate
+```
 
 ## Deflation
 
