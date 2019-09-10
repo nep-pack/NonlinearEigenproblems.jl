@@ -135,7 +135,7 @@ using LinearAlgebra
             @test size(A) == (4,4)
             @test eltype(A) == Float64
 
-            A = gen_rng_mat(3,7, -3+1im, 1);
+            A = gen_rng_mat(3, 7, -3+1im, 1);
             @test size(A) == (3,7)
             @test eltype(A) == ComplexF64
             A = gen_rng_mat(3, -3+1im, 1.0-1im);
@@ -165,7 +165,7 @@ using LinearAlgebra
             @test eltype(A) == Float64
             @test issparse(A)
 
-            A = gen_rng_spmat(3,7, 0.4, -3+1im, 1);
+            A = gen_rng_spmat(3, 7, 0.4, -3+1im, 1);
             @test size(A) == (3,7)
             @test eltype(A) == ComplexF64
             @test issparse(A)
