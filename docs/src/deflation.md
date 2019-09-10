@@ -9,7 +9,7 @@ application of the same NEP-algorithm.
 
 NEP-PACK provides a solver-independent implementation of deflation
 which can be combined (essentially) with any NEP-solver.
- NEP-PACK also have some NEP-solver deflation techniques incoprorated in, e.g., in the nonlinear Arnoldi method ([`nlar`](@ref)),
+ NEP-PACK also has some NEP-solver deflation techniques and reconvergence avoidance techniques  incoprorated directly in the solver, e.g., in the nonlinear Arnoldi method ([`nlar`](@ref)),
 the Jacobi-Davidson method ([`jd_betcke`](@ref))
 and Broyden's method ([`broyden`](@ref)).
 
@@ -41,7 +41,7 @@ if ``(s,x)`` is an eigenpair, then the extended nonlinear eigenvalue problem
 ```math
 T(λ):=\begin{bmatrix}M(λ)&M(λ)x(s-λ)^{-1}\\ x^T & 0\end{bmatrix}
 ```
-has the same eigenvalues as the original problem, under certain quite general
+has the same eigenvalues as the original problem except for the eigenvalue ``s``, under certain quite general
 conditions which are assumed to be satisfied. More
 eigenpairs can be deflated with techniques of partial Schur
 factorizations, which the user does not need to be aware of, due to
@@ -68,8 +68,10 @@ T(λ)=
 \begin{bmatrix}0&A_mx\\0 & 0\end{bmatrix}\frac{f_m(λ)}{s-λ}+
 \begin{bmatrix}0&0\\x^T & 0\end{bmatrix}
 ```
-Clearly, the deflated NEP will have more SPMF-terms than the original `NEP`.
-When the parameter `mode=:SPMF` is set, the deflation method will explicitly construct an [`SPMF_NEP`](@ref). This is not recommended if you have many SPMF-terms in the original problem.
+Clearly, the deflated NEP has more SPMF-terms than the original `NEP`.
+When the parameter `mode=:SPMF` is set, the deflation method will explicitly construct an [`SPMF_NEP`](@ref). 
+This is not recommended if you have many SPMF-terms in the original problem, but can be efficient when you
+only have a few terms.
 (Some additional exploitation is however implemented, since we can use
 the fact that the introduced terms are of low rank, and
 therefore naturally represented as a `LowRankFactorizedNEP`.)
