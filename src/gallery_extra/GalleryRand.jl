@@ -36,6 +36,7 @@ export gen_rng_int
 export gen_rng_float
 export gen_rng_complex
 export gen_rng_mat
+export gen_rng_spmat
 export reset_rng!
 
 
@@ -142,11 +143,43 @@ export reset_rng!
         end
         return A
     end
+
+
     gen_rng_mat_inner(::Type{Int64},rng::MSWS_RNG,lower,upper) = gen_rng_int(rng,lower,upper)
     gen_rng_mat_inner(::Type{Float64},rng::MSWS_RNG,lower,upper) = gen_rng_float(rng,lower,upper)
     gen_rng_mat_inner(::Type{ComplexF64},rng::MSWS_RNG,lower,upper) = gen_rng_complex(rng,lower,upper)
     function gen_rng_mat_inner(::Type{T},rng::MSWS_RNG,lower,upper) where T
         error("This should not happen. Not implemented for type ", T)
+    end
+
+
+    gen_rng_spmat(n::Int64, m::Int64, p::Real, lower, upper) = gen_rng_spmat(GLOBAL_MSWS_RNG, n, m, p, lower, upper)
+    gen_rng_spmat(rng::MSWS_RNG, n::Int64, p::Real, lower, upper) = gen_rng_spmat(rng, n, n, p, lower, upper)
+    gen_rng_spmat(n::Int64, p::Real, lower, upper) = gen_rng_spmat(GLOBAL_MSWS_RNG, n, n, p, lower, upper)
+    function gen_rng_spmat(rng::MSWS_RNG, n::Int64, m::Int64, p::Real, lower::Tl, upper::Tu) where Tl where Tu
+        T = promote_type(Tl,Tu)
+        if (T<:Complex); T = ComplexF64; end;
+        gen_rng_spmat(rng, n, m, p, T(lower), T(upper))
+    end
+    function gen_rng_spmat(rng::MSWS_RNG, n::Int64, m::Int64, p::Real, lower::T, upper::T) where T <: Union{Int64,Float64,ComplexF64}
+        nonzeros = round(p*m*n)
+        dict = Dict{Tuple{Int64,Int64},T}()
+        for i = 1:nonzeros
+            r = gen_rng_int(n-1)+1
+            c = gen_rng_int(m-1)+1
+            dict[r,c] = gen_rng_mat_inner(T,rng,lower,upper)
+        end
+        idxes = collect(keys(dict))
+        nonzeros = length(idxes)
+        r = zeros(Int64,nonzeros)
+        c = zeros(Int64,nonzeros)
+        vals = zeros(T,nonzeros)
+        for i = 1:nonzeros
+            r[i] = idxes[i][1]
+            c[i] = idxes[i][2]
+            vals[i] = dict[idxes[i]]
+        end
+        return sparse(r,c,vals,n,m)
     end
 
 

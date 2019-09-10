@@ -104,29 +104,62 @@ using LinearAlgebra
     end
 
     @testset "Matrices" begin
-    @info "Testing interfaces for dense matrices"
-        reset_rng!()
+        @testset "Dense" begin
+        @info "Testing interfaces for dense matrices"
+            reset_rng!()
 
-        A = gen_rng_mat(4, 5, -3, 0);
-        @test size(A) == (4,5)
-        @test eltype(A) == Int64
-        A = gen_rng_mat(4, -1, 3);
-        @test size(A) == (4,4)
-        @test eltype(A) == Int64
+            A = gen_rng_mat(4, 5, -3, 0);
+            @test size(A) == (4,5)
+            @test eltype(A) == Int64
+            A = gen_rng_mat(4, -1, 3);
+            @test size(A) == (4,4)
+            @test eltype(A) == Int64
 
-        A = gen_rng_mat(4, 5, -3.0, 0);
-        @test size(A) == (4,5)
-        @test eltype(A) == Float64
-        A = gen_rng_mat(4, -1, 3.1);
-        @test size(A) == (4,4)
-        @test eltype(A) == Float64
+            A = gen_rng_mat(4, 5, -3.0, 0);
+            @test size(A) == (4,5)
+            @test eltype(A) == Float64
+            A = gen_rng_mat(4, -1, 3.1);
+            @test size(A) == (4,4)
+            @test eltype(A) == Float64
 
-        A = gen_rng_mat(3,7, -3+1im, 1);
-        @test size(A) == (3,7)
-        @test eltype(A) == ComplexF64
-        A = gen_rng_mat(3, -3+1im, 1.0-1im);
-        @test size(A) == (3,3)
-        @test eltype(A) == ComplexF64
+            A = gen_rng_mat(3,7, -3+1im, 1);
+            @test size(A) == (3,7)
+            @test eltype(A) == ComplexF64
+            A = gen_rng_mat(3, -3+1im, 1.0-1im);
+            @test size(A) == (3,3)
+            @test eltype(A) == ComplexF64
+        end
 
+        @testset "Sparse" begin
+        @info "Testing interfaces for sparse matrices"
+            reset_rng!()
+
+            A = gen_rng_spmat(4, 5, 0.4, -3, 0);
+            @test size(A) == (4,5)
+            @test eltype(A) == Int64
+            @test issparse(A)
+            A = gen_rng_spmat(4, 0.4, -1, 3);
+            @test size(A) == (4,4)
+            @test eltype(A) == Int64
+            @test issparse(A)
+
+            A = gen_rng_spmat(4, 5, 0.4, -3.0, 0);
+            @test size(A) == (4,5)
+            @test eltype(A) == Float64
+            @test issparse(A)
+            A = gen_rng_spmat(4, 0.4, -1, 3.1);
+            @test size(A) == (4,4)
+            @test eltype(A) == Float64
+            @test issparse(A)
+
+            A = gen_rng_spmat(3,7, 0.4, -3+1im, 1);
+            @test size(A) == (3,7)
+            @test eltype(A) == ComplexF64
+            @test issparse(A)
+            A = gen_rng_spmat(3, 0.4, -3+1im, 1.0-1im);
+            @test size(A) == (3,3)
+            @test eltype(A) == ComplexF64
+            @test issparse(A)
+        end
     end
 end
