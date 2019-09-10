@@ -29,6 +29,8 @@ module GalleryRand
 export MSWS_RNG
 export gen_rng_int
 export gen_rng_float
+export gen_rng_complex
+export gen_rng_mat
 export reset_rng!
 
     mutable struct MSWS_RNG
@@ -94,9 +96,68 @@ export reset_rng!
 
 
     gen_rng_float(lower::Real, upper::Real) = gen_rng_float(GLOBAL_MSWS_RNG, Float64(lower), Float64(upper))
-    gen_rng_float(lower::Float64, upper::Float64) = gen_rng_float(GLOBAL_MSWS_RNG, lower::Float64, upper::Float64)
+    gen_rng_float(lower::Float64, upper::Float64) = gen_rng_float(GLOBAL_MSWS_RNG, lower, upper)
+    gen_rng_float(rng::MSWS_RNG, lower::Real, upper::Real) = gen_rng_float(rng, Float64(lower), Float64(upper))
     function gen_rng_float(rng::MSWS_RNG, lower::Float64, upper::Float64)
         return upper - (upper-lower)*gen_rng_float(rng);
     end
+
+
+
+    gen_rng_complex(lower::Real, upper::Complex) = gen_rng_complex(GLOBAL_MSWS_RNG, ComplexF64(lower), ComplexF64(upper))
+    gen_rng_complex(lower::Complex, upper::Real) = gen_rng_complex(GLOBAL_MSWS_RNG, ComplexF64(lower), ComplexF64(upper))
+    gen_rng_complex(lower::Complex, upper::Complex) = gen_rng_complex(GLOBAL_MSWS_RNG, ComplexF64(lower), ComplexF64(upper))
+    gen_rng_complex(lower::ComplexF64, upper::ComplexF64) = gen_rng_complex(GLOBAL_MSWS_RNG, lower, upper)
+    gen_rng_complex(rng::MSWS_RNG, lower::Real, upper::Complex) = gen_rng_complex(rng, ComplexF64(lower), ComplexF64(upper))
+    gen_rng_complex(rng::MSWS_RNG, lower::Complex, upper::Real) = gen_rng_complex(rng, ComplexF64(lower), ComplexF64(upper))
+    gen_rng_complex(rng::MSWS_RNG, lower::Complex, upper::Complex) = gen_rng_complex(rng, ComplexF64(lower), ComplexF64(upper))
+    function gen_rng_complex(rng::MSWS_RNG, lower::ComplexF64, upper::ComplexF64)
+        # Defines a rectange in complex plane from which we draw real and imag uniformly
+        return gen_rng_float(rng, real(lower), real(upper)) + one(ComplexF64)im*gen_rng_float(rng, imag(lower), imag(upper))
+    end
+
+
+    gen_rng_mat(n::Int64, m::Int64, lower, upper) = gen_rng_mat(GLOBAL_MSWS_RNG, n, m, lower, upper)
+    gen_rng_mat(rng::MSWS_RNG, n::Int64, lower, upper) = gen_rng_mat(rng, n, n, lower, upper)
+    gen_rng_mat(n::Int64, lower, upper) = gen_rng_mat(GLOBAL_MSWS_RNG, n, n, lower, upper)
+    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::Tl, upper::Tu) where Tl where Tu
+        T = promote_type(Tl,Tu)
+        if (T<:Complex); T = ComplexF64; end;
+        gen_rng_mat(rng, n, m, T(lower), T(upper))
+    end
+
+
+    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::Float64, upper::Float64)
+        A = zeros(Float64,n,m)
+        for c = 1:m
+            for r = 1:n
+                A[r,c] = gen_rng_float(rng,lower,upper)
+            end
+        end
+        return A
+    end
+
+
+    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::ComplexF64, upper::ComplexF64)
+        A = zeros(ComplexF64,n,m)
+        for c = 1:m
+            for r = 1:n
+                A[r,c] = gen_rng_complex(rng,lower,upper)
+            end
+        end
+        return A
+    end
+
+
+    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::Int64, upper::Int64)
+        A = zeros(Int64,n,m)
+        for c = 1:m
+            for r = 1:n
+                A[r,c] = gen_rng_int(rng,lower,upper)
+            end
+        end
+        return A
+    end
+
 
 end

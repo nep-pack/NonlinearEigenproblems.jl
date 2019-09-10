@@ -10,7 +10,7 @@ using LinearAlgebra
         @testset "Interval" begin
         @info "Testing integers drawn in correct interval"
             reset_rng!()
-            n = 10000;
+            n = 100000;
             low = -7; upp = 22;
             isininterval = true;
             for i = 1:n
@@ -42,7 +42,7 @@ using LinearAlgebra
         @testset "Interval" begin
         @info "Testing floats drawn in correct interval"
             reset_rng!()
-            n = 10000;
+            n = 100000;
             low = -7.1; upp = 22;
             isininterval = true;
             for i = 1:n
@@ -80,5 +80,53 @@ using LinearAlgebra
             @test A[1]-low < 10/n
             @test upp-A[n] < 10/n
         end
+    end
+
+    @testset "Complex" begin
+        @testset "Interval" begin
+        @info "Testing complex drawn in correct interval"
+            reset_rng!()
+            n = 100000;
+            real_low = -7.1;
+            real_upp = 2.9;
+            imag_low = -4.0;
+            imag_upp = 1;
+            a = real_low + imag_upp*1im;
+            b = real_upp + imag_low*1im;
+            isininterval = true;
+            for i = 1:n
+                c = gen_rng_complex(a, b);
+                isininterval = isininterval && (real(c)>=real_low) && (real(c)<=real_upp) &&
+                                               (imag(c)>=imag_low) && (imag(c)<=imag_upp)
+            end
+            @test isininterval
+        end
+    end
+
+    @testset "Matrices" begin
+    @info "Testing interfaces for dense matrices"
+        reset_rng!()
+
+        A = gen_rng_mat(4, 5, -3, 0);
+        @test size(A) == (4,5)
+        @test eltype(A) == Int64
+        A = gen_rng_mat(4, -1, 3);
+        @test size(A) == (4,4)
+        @test eltype(A) == Int64
+
+        A = gen_rng_mat(4, 5, -3.0, 0);
+        @test size(A) == (4,5)
+        @test eltype(A) == Float64
+        A = gen_rng_mat(4, -1, 3.1);
+        @test size(A) == (4,4)
+        @test eltype(A) == Float64
+
+        A = gen_rng_mat(3,7, -3+1im, 1);
+        @test size(A) == (3,7)
+        @test eltype(A) == ComplexF64
+        A = gen_rng_mat(3, -3+1im, 1.0-1im);
+        @test size(A) == (3,3)
+        @test eltype(A) == ComplexF64
+
     end
 end
