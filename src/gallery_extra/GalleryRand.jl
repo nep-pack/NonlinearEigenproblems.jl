@@ -26,12 +26,18 @@ B. Widynski, Middle Square Weyl Sequence RNG, arXiv 1704.00358
 """
 module GalleryRand
 
+
+using LinearAlgebra
+using SparseArrays
+
+
 export MSWS_RNG
 export gen_rng_int
 export gen_rng_float
 export gen_rng_complex
 export gen_rng_mat
 export reset_rng!
+
 
     mutable struct MSWS_RNG
         x::UInt128
@@ -43,6 +49,7 @@ export reset_rng!
             return this
         end
     end
+
 
     reset_rng!() = reset_rng!(GLOBAL_MSWS_RNG, zero(UInt128));
     reset_rng!(rng::MSWS_RNG, seed::Integer) = reset_rng!(rng, unsigned(Int128(seed)));
@@ -82,6 +89,8 @@ export reset_rng!
     end
 
 
+    gen_rng_int(upper::Integer) = gen_rng_int(GLOBAL_MSWS_RNG, UInt64(unsigned(upper)));
+    gen_rng_int(rng::MSWS_RNG, upper::Integer) = gen_rng_int(rng, UInt64(unsigned(upper)));
     gen_rng_int(upper::Unsigned) = gen_rng_int(GLOBAL_MSWS_RNG, upper);
     gen_rng_int(rng::MSWS_RNG, upper::Unsigned) = gen_rng_int(rng, UInt64(upper));
     gen_rng_int(upper::UInt64) = gen_rng_int(GLOBAL_MSWS_RNG, lower, upper)
@@ -101,7 +110,6 @@ export reset_rng!
     function gen_rng_float(rng::MSWS_RNG, lower::Float64, upper::Float64)
         return upper - (upper-lower)*gen_rng_float(rng);
     end
-
 
 
     gen_rng_complex(lower::Real, upper::Complex) = gen_rng_complex(GLOBAL_MSWS_RNG, ComplexF64(lower), ComplexF64(upper))
@@ -125,38 +133,20 @@ export reset_rng!
         if (T<:Complex); T = ComplexF64; end;
         gen_rng_mat(rng, n, m, T(lower), T(upper))
     end
-
-
-    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::Float64, upper::Float64)
-        A = zeros(Float64,n,m)
+    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::T, upper::T) where T <: Union{Int64,Float64,ComplexF64}
+        A = zeros(T,n,m)
         for c = 1:m
             for r = 1:n
-                A[r,c] = gen_rng_float(rng,lower,upper)
+                A[r,c] = gen_rng_mat_inner(T,rng,lower,upper)
             end
         end
         return A
     end
-
-
-    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::ComplexF64, upper::ComplexF64)
-        A = zeros(ComplexF64,n,m)
-        for c = 1:m
-            for r = 1:n
-                A[r,c] = gen_rng_complex(rng,lower,upper)
-            end
-        end
-        return A
-    end
-
-
-    function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64, lower::Int64, upper::Int64)
-        A = zeros(Int64,n,m)
-        for c = 1:m
-            for r = 1:n
-                A[r,c] = gen_rng_int(rng,lower,upper)
-            end
-        end
-        return A
+    gen_rng_mat_inner(::Type{Int64},rng::MSWS_RNG,lower,upper) = gen_rng_int(rng,lower,upper)
+    gen_rng_mat_inner(::Type{Float64},rng::MSWS_RNG,lower,upper) = gen_rng_float(rng,lower,upper)
+    gen_rng_mat_inner(::Type{ComplexF64},rng::MSWS_RNG,lower,upper) = gen_rng_complex(rng,lower,upper)
+    function gen_rng_mat_inner(::Type{T},rng::MSWS_RNG,lower,upper) where T
+        error("This should not happen. Not implemented for type ", T)
     end
 
 
