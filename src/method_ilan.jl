@@ -141,7 +141,6 @@ function ilan(
     ermdata=init_errmeasure(errmeasure,nep);
 
     while (k <= m) && (conv_eig<neigs)
-
         # store all the (first blocks) vectors of the Arnoldi sequence. This is needed
         # for the extraction of Ritz vectors.
         if !proj_solve
@@ -194,7 +193,6 @@ function ilan(
             else
                 VV=view(V,:,1:k+1)
                 # Projected solve to extract eigenvalues (otw hessenberg matrix)
-                println("err=",norm(VV'*VV-I))
 
                 # create the projected NEP
                 mm=size(VV,2)
@@ -209,7 +207,7 @@ function ilan(
                                         inner_logger=inner_logger);
 
                 q=length(λproj)
-                if q>k q=k end
+                if q>m q=m end
                 mul!(view(W,:,1:q),VV,view(Wproj,:,1:q))
                 #ZZ=VV*Zproj[:,1:k];
                 λ=λproj[1:q];
@@ -233,7 +231,6 @@ function ilan(
                 end
             end
             push_info!(logger,"");
-
 
             # Sort the errors
             idx=sortperm(err[k,1:k]); # sort the error
@@ -261,7 +258,7 @@ function ilan(
     #     throw(NoConvergenceException(λ,W,err,msg))
     # end
 
-    return λ,W,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
+    return λ,W,err,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)

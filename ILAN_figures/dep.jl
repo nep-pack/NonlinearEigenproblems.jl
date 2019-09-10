@@ -1,11 +1,9 @@
 using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise, CSV
 import ..NEPSolver.ilan;
-import ..NEPSolver.ilan_benchmark;
 import ..NEPSolver.iar;
 
 
 include("../src/method_ilan.jl");
-include("../src/method_ilan_benchmark.jl");
 include("../src/method_iar.jl");
 
 
@@ -37,7 +35,7 @@ CSV.write("ILAN_figures/dep_eigs.csv", λ)
 # COMPUTE REFERENCE EIGENVALUES WITH ILAN (Beyn)
 println("RUNNING ILAN (BEYN)")
 λ2,v2=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=tol_used,check_error_every=Inf,v=v0,
-inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=1e-2,radius=3,N=1000),errmeasure=rel_err
+inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=-Inf,radius=6,N=1000),errmeasure=rel_err
 )
 CSV.write("ILAN_figures/dep_ilan_Beyn.csv", λ2)
 
@@ -52,13 +50,13 @@ CSV.write("ILAN_figures/dep_ilan_nleigs.csv", λ3)
 # COMPUTE REFERENCE EIGENVALUES WITH ILAN (iar)
 println("RUNNING ILAN (IAR)")
 λ4,v4=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=tol_used,check_error_every=Inf,v=v0,
-inner_solver_method=NEPSolver.IARInnerSolver(tol=1e-2),errmeasure=rel_err
+inner_solver_method=NEPSolver.IARInnerSolver(tol=1e-2,maxit=100),errmeasure=rel_err
 )
 CSV.write("ILAN_figures/dep_ilan_iar.csv", λ4)
 
 # COMPUTE REFERENCE EIGENVALUES EXTRACTING RITZ VALUES
 println("RUNNING ILAN (RITZ)")
-λ5,v5=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=Inf,check_error_every=Inf,v=v0,
+λ5,v5=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=100,tol=tol_used,check_error_every=Inf,v=v0,
 proj_solve=false,errmeasure=rel_err)
 
 CSV.write("ILAN_figures/dep_ilan_Ritz.csv", λ5)
