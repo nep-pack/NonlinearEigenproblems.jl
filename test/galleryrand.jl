@@ -12,12 +12,16 @@ using LinearAlgebra
             reset_rng!()
             n = 100000;
             low = -7; upp = 22;
-            isininterval = true;
+            isininterval_a = true;
+            isininterval_b = true;
             for i = 1:n
                 a = gen_rng_int(low, upp)
-                isininterval = isininterval && (a>=low) && (a<=upp)
+                b = gen_rng(low, upp)
+                isininterval_a = isininterval_a && (a>=low) && (a<=upp)
+                isininterval_b = isininterval_b && (b>=low) && (b<=upp)
             end
-            @test isininterval
+            @test isininterval_a
+            @test isininterval_b
         end
 
         @testset "Uniformity" begin
@@ -44,12 +48,16 @@ using LinearAlgebra
             reset_rng!()
             n = 100000;
             low = -7.1; upp = 22;
-            isininterval = true;
+            isininterval_a = true;
+            isininterval_b = true;
             for i = 1:n
                 a = gen_rng_float(low, upp);
-                isininterval = isininterval && (a>=low) && (a<=upp)
+                b = gen_rng(low, upp)
+                isininterval_a = isininterval_a && (a>=low) && (a<=upp)
+                isininterval_b = isininterval_b && (b>=low) && (b<=upp)
             end
-            @test isininterval
+            @test isininterval_a
+            @test isininterval_b
         end
 
         @testset "Uniformity" begin
@@ -93,13 +101,18 @@ using LinearAlgebra
             imag_upp = 1;
             a = real_low + imag_upp*1im;
             b = real_upp + imag_low*1im;
-            isininterval = true;
+            isininterval_c = true;
+            isininterval_d = true;
             for i = 1:n
                 c = gen_rng_complex(a, b);
-                isininterval = isininterval && (real(c)>=real_low) && (real(c)<=real_upp) &&
-                                               (imag(c)>=imag_low) && (imag(c)<=imag_upp)
+                d = gen_rng(a, b);
+                isininterval_c = isininterval_c && (real(c)>=real_low) && (real(c)<=real_upp) &&
+                                                   (imag(c)>=imag_low) && (imag(c)<=imag_upp)
+                isininterval_d = isininterval_d && (real(d)>=real_low) && (real(d)<=real_upp) &&
+                                                   (imag(d)>=imag_low) && (imag(d)<=imag_upp)
             end
-            @test isininterval
+            @test isininterval_c
+            @test isininterval_d
         end
     end
 

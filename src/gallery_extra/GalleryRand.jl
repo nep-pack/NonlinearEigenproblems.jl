@@ -32,6 +32,7 @@ using SparseArrays
 
 
 export MSWS_RNG
+export gen_rng
 export gen_rng_int
 export gen_rng_float
 export gen_rng_complex
@@ -126,6 +127,21 @@ export reset_rng!
     end
 
 
+    gen_rng(lower::Tl,upper::Tu) where {Tl,Tu} = gen_rng(Tl,GLOBAL_MSWS_RNG,lower,upper)
+    gen_rng(::Type{T},lower::Tl,upper::Tu) where {T,Tl,Tu} = gen_rng(T,GLOBAL_MSWS_RNG,lower,upper)
+    gen_rng(::Type{Int64},rng::MSWS_RNG,lower::Int64,upper::Int64) = gen_rng_int(rng,lower,upper)
+    gen_rng(::Type{Float64},rng::MSWS_RNG,lower::Float64,upper::Float64) = gen_rng_float(rng,lower,upper)
+    gen_rng(::Type{ComplexF64},rng::MSWS_RNG,lower::ComplexF64,upper::ComplexF64) = gen_rng_complex(rng,lower,upper)
+    function gen_rng(::Type{T},rng::MSWS_RNG,lower::T,upper::T) where T
+        error("This should not happen. Not implemented for type ", T)
+    end
+    function gen_rng(::Type{T},rng::MSWS_RNG,lower::Tl,upper::Tu) where {T,Tl,Tu}
+        TT = promote_type(Tl,Tu)
+        if (TT<:Complex); TT = ComplexF64; end;
+        gen_rng(TT, rng, TT(lower), TT(upper))
+    end
+
+
     gen_rng_mat(n::Int64, m::Int64, lower, upper) = gen_rng_mat(GLOBAL_MSWS_RNG, n, m, lower, upper)
     gen_rng_mat(rng::MSWS_RNG, n::Int64, lower, upper) = gen_rng_mat(rng, n, n, lower, upper)
     gen_rng_mat(n::Int64, lower, upper) = gen_rng_mat(GLOBAL_MSWS_RNG, n, n, lower, upper)
@@ -138,18 +154,10 @@ export reset_rng!
         A = zeros(T,n,m)
         for c = 1:m
             for r = 1:n
-                A[r,c] = gen_rng_mat_inner(T,rng,lower,upper)
+                A[r,c] = gen_rng(T,rng,lower,upper)
             end
         end
         return A
-    end
-
-
-    gen_rng_mat_inner(::Type{Int64},rng::MSWS_RNG,lower,upper) = gen_rng_int(rng,lower,upper)
-    gen_rng_mat_inner(::Type{Float64},rng::MSWS_RNG,lower,upper) = gen_rng_float(rng,lower,upper)
-    gen_rng_mat_inner(::Type{ComplexF64},rng::MSWS_RNG,lower,upper) = gen_rng_complex(rng,lower,upper)
-    function gen_rng_mat_inner(::Type{T},rng::MSWS_RNG,lower,upper) where T
-        error("This should not happen. Not implemented for type ", T)
     end
 
 
@@ -167,7 +175,7 @@ export reset_rng!
         for i = 1:nonzeros
             r = gen_rng_int(n-1)+1
             c = gen_rng_int(m-1)+1
-            dict[r,c] = gen_rng_mat_inner(T,rng,lower,upper)
+            dict[r,c] = gen_rng(T,rng,lower,upper)
         end
         idxes = collect(keys(dict))
         nonzeros = length(idxes)
