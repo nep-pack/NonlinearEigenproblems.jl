@@ -17,11 +17,11 @@ B. Widynski, Middle Square Weyl Sequence RNG, arXiv 1704.00358
         end
     end
 
-    function gen_rng_int(T::MSWS_RNG_32)
-        T.x *= T.x;
-        T.x += (T.w += T.s);
-        T.x = (T.x>>32) | (T.x<<32);
-        return UInt32(T.x & 0xFFFFFFFF)
+    function gen_rng_int(rng::MSWS_RNG_32)
+        rng.x *= rng.x;
+        rng.x += (rng.w += rng.s);
+        rng.x = (rng.x>>32) | (rng.x<<32);
+        return UInt32(rng.x & 0xFFFFFFFF)
     end
 """
 module GalleryRand
@@ -43,14 +43,14 @@ export reset_rng!
     end
 
     reset_rng!() = reset_rng!(GLOBAL_MSWS_RNG, 0x00000000000000000000000000000000);
-    reset_rng!(T::MSWS_RNG, seed::Integer) = reset_rng!(T, unsigned(Int128(seed)));
+    reset_rng!(rng::MSWS_RNG, seed::Integer) = reset_rng!(rng, unsigned(Int128(seed)));
     reset_rng!(seed::Integer) = reset_rng!(GLOBAL_MSWS_RNG, seed);
     reset_rng!(seed::UInt128) = reset_rng!(GLOBAL_MSWS_RNG, seed);
-    function reset_rng!(T::MSWS_RNG, seed::UInt128)
+    function reset_rng!(rng::MSWS_RNG, seed::UInt128)
         base = 0x9ef09a97ac0f9ecaef01c4f2db0958c9; # Found by a random draw
-        T.s = (seed << 1) + base; # Left-shift to make sure seed i even, then add to base which is odd (https://github.com/tidwall/weyl/issues/1)
-        T.x = 0x1de568e1a1ca1b593cbf13f7407cf43e;
-        T.w = 0xd4ac5c288559e14a5fafc1b7df9f9e0e;
+        rng.s = (seed << 1) + base; # Left-shift to make sure seed i even, then add to base which is odd (https://github.com/tidwall/weyl/issues/1)
+        rng.x = 0x1de568e1a1ca1b593cbf13f7407cf43e;
+        rng.w = 0xd4ac5c288559e14a5fafc1b7df9f9e0e;
         return
     end
 
@@ -60,31 +60,31 @@ export reset_rng!
 
 
 
-    function gen_rng_int(T::MSWS_RNG = GLOBAL_MSWS_RNG)
-        T.x *= T.x;
-        T.x += (T.w += T.s);
-        T.x = (T.x>>64) | (T.x<<64);
-        return UInt64(T.x & 0xFFFFFFFFFFFFFFFF)
+    function gen_rng_int(rng::MSWS_RNG = GLOBAL_MSWS_RNG)
+        rng.x *= rng.x;
+        rng.x += (rng.w += rng.s);
+        rng.x = (rng.x>>64) | (rng.x<<64);
+        return UInt64(rng.x & 0xFFFFFFFFFFFFFFFF)
     end
 
 
-    gen_rng_int(T::MSWS_RNG, upper::Integer) = gen_rng_int(T, unsigned(Int64(upper)));
+    gen_rng_int(rng::MSWS_RNG, upper::Integer) = gen_rng_int(rng, unsigned(Int64(upper)));
     gen_rng_int(upper::Integer) = gen_rng_int(GLOBAL_MSWS_RNG, upper);
     gen_rng_int(upper::UInt64) = gen_rng_int(GLOBAL_MSWS_RNG, upper)
-    function gen_rng_int(T::MSWS_RNG, upper::UInt64)
-        return mod(gen_rng_int(T), upper)
+    function gen_rng_int(rng::MSWS_RNG, upper::UInt64)
+        return mod(gen_rng_int(rng), upper)
     end
 
 
-    function gen_rng_float(T::MSWS_RNG = GLOBAL_MSWS_RNG)
-        return Float64(gen_rng_int(T)/0xFFFFFFFFFFFFFFFF);
+    function gen_rng_float(rng::MSWS_RNG = GLOBAL_MSWS_RNG)
+        return Float64(gen_rng_int(rng)/0xFFFFFFFFFFFFFFFF);
     end
 
 
     gen_rng_float(lower::Real, upper::Real) = gen_rng_float(GLOBAL_MSWS_RNG, Float64(lower), Float64(upper))
     gen_rng_float(lower::Float64, upper::Float64) = gen_rng_float(GLOBAL_MSWS_RNG, lower::Float64, upper::Float64)
-    function gen_rng_float(T::MSWS_RNG, lower::Float64, upper::Float64)
-        return upper - (upper-lower)*gen_rng_float(T);
+    function gen_rng_float(rng::MSWS_RNG, lower::Float64, upper::Float64)
+        return upper - (upper-lower)*gen_rng_float(rng);
     end
 
 end
