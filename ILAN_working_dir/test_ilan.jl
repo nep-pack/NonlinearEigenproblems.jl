@@ -19,6 +19,9 @@ LL=-kron(LL,LL)
 A=LL
 
 b=broadcast((x,y)->-x*sin(y-x),x,transpose(x))
+#b=broadcast((x,y)->-sin(y-x),x,transpose(x))
+#b=broadcast((x,y)->sin(x^(π-y)),x,transpose(x))
+
 B=sparse(1:n^2,1:n^2,b[:])
 
 nep=DEP([A,B],[0,1])
