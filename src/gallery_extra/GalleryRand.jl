@@ -56,7 +56,6 @@ export reset_rng!
     reset_rng!() = reset_rng!(GLOBAL_MSWS_RNG, zero(UInt128));
     reset_rng!(rng::MSWS_RNG, seed::Integer) = reset_rng!(rng, unsigned(Int128(seed)));
     reset_rng!(seed::Integer) = reset_rng!(GLOBAL_MSWS_RNG, seed);
-    reset_rng!(seed::UInt128) = reset_rng!(GLOBAL_MSWS_RNG, seed);
     function reset_rng!(rng::MSWS_RNG, seed::UInt128)
         base = 0x9ef09a97ac0f9ecaef01c4f2db0958c9; # Found by a random draw
         rng.s = (seed << 1) + base; # Left-shift to make sure seed i even, then add to base which is odd (https://github.com/tidwall/weyl/issues/1)
@@ -173,8 +172,8 @@ export reset_rng!
         nonzeros = round(p*m*n)
         dict = Dict{Tuple{Int64,Int64},T}()
         for i = 1:nonzeros
-            r = gen_rng_int(n-1)+1
-            c = gen_rng_int(m-1)+1
+            r = gen_rng_int(rng,n-1)+1
+            c = gen_rng_int(rng,m-1)+1
             dict[r,c] = gen_rng(T,rng,lower,upper)
         end
         idxes = collect(keys(dict))
