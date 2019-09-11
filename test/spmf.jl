@@ -247,10 +247,14 @@ using SparseArrays
         A2=randn(5,5)
         # Check that REP generates the
         # same values as an SPMF generated from the REP
-        d1::Float64=1;
-        d2::Float64=2;
-        d3::Float64=3.3;
-        nep0=REP([A0,A1,A2],[d1,d2,d3])
+        d1=1;
+        d2=2;
+        d3=3.3;
+        c1=1.5;
+        c2=2.4;
+        c3=9.0;
+        c4=-9.9
+        nep0=REP([A0,A1],[c1; c2; c3; c4], [d1; d2; d3])
         nep1=SPMF_NEP(get_Av(nep0),get_fv(nep0))
         for  λ in [3,10,-3,-100]
             M0=compute_Mder(nep0,λ)
