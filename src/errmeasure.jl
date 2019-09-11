@@ -143,7 +143,7 @@ end
 
 """
     struct BackwardErrmeasure <: Errmeasure
-    function BackwardErrmeasure(nep::NEP)
+    function BackwardErrmeasure(nep::AbstractSPMF)
 
 This `Errmeasure` provides a way to compute the backward error.
 The backward error estimate are only given for NEPs which are
@@ -160,9 +160,9 @@ See also: [`Errmeasure`](@ref)
 
 """
 struct BackwardErrmeasure{X<:Real} <: Errmeasure
-    nep::NEP
+    nep::AbstractSPMF
     coeffs::Vector{X};
-    function BackwardErrmeasure(nep::NEP)
+    function BackwardErrmeasure(nep::AbstractSPMF)
         Av=get_Av(nep);
         # Note: norm(A) is a the frobenius norm in Julia
         coeffs=map(i->norm(Av[i]),1:size(Av,1));
