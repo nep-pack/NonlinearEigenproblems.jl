@@ -1,7 +1,7 @@
 
 export estimate_error
 export Errmeasure
-export BackwardErrmeasure
+export StandardSPMFErrmeasure
 export ResidualErrmeasure
 export DefaultErrmeasure
 export EigvalReferenceErrmeasure
@@ -29,7 +29,7 @@ way to have user-defined error measures.
 See [`ErrmeasureType`](@ref).
 
 
-See also: [`ErrmeasureType`](@ref), [`DefaultErrmeasure`](@ref), [`ResidualErrmeasure`](@ref), [`BackwardErrmeasure`](@ref), [`estimate_error`](@ref), [`EigvalReferenceErrmeasure`](@ref).
+See also: [`ErrmeasureType`](@ref), [`DefaultErrmeasure`](@ref), [`ResidualErrmeasure`](@ref), [`StandardSPMFErrmeasure`](@ref), [`estimate_error`](@ref), [`EigvalReferenceErrmeasure`](@ref).
 
 """
 abstract type Errmeasure; end
@@ -91,7 +91,7 @@ struct DefaultErrmeasure{X<:Errmeasure}<:Errmeasure;
     errm::X
     function DefaultErrmeasure(nep::NEP)
         if (nep isa AbstractSPMF)
-            errm=BackwardErrmeasure(nep);
+            errm=StandardSPMFErrmeasure(nep);
         else
             errm=ResidualErrmeasure(nep);
         end
@@ -142,8 +142,8 @@ end
 
 
 """
-    struct BackwardErrmeasure <: Errmeasure
-    function BackwardErrmeasure(nep::AbstractSPMF)
+    struct StandardSPMFErrmeasure <: Errmeasure
+    function StandardSPMFErrmeasure(nep::AbstractSPMF)
 
 This `Errmeasure` provides a way to compute the backward error.
 The backward error estimate are only given for NEPs which are
@@ -154,15 +154,15 @@ norm.
 # Example
 ```julia
 julia> nep=nep_gallery("qdep0");
-julia> (λ,v)=quasinewton(nep,λ=-1,errmeasure=BackwardErrmeasure(nep),tol=1e-10);
+julia> (λ,v)=quasinewton(nep,λ=-1,errmeasure=StandardSPMFErrmeasure(nep),tol=1e-10);
 ```
 See also: [`Errmeasure`](@ref)
 
 """
-struct BackwardErrmeasure{X<:Real} <: Errmeasure
+struct StandardSPMFErrmeasure{X<:Real} <: Errmeasure
     nep::AbstractSPMF
     coeffs::Vector{X};
-    function BackwardErrmeasure(nep::AbstractSPMF)
+    function StandardSPMFErrmeasure(nep::AbstractSPMF)
         Av=get_Av(nep);
         # Note: norm(A) is a the frobenius norm in Julia
         coeffs=map(i->norm(Av[i]),1:size(Av,1));
@@ -171,7 +171,7 @@ struct BackwardErrmeasure{X<:Real} <: Errmeasure
 end
 
 
-function estimate_error(errm::BackwardErrmeasure, λ,v)
+function estimate_error(errm::StandardSPMFErrmeasure, λ,v)
     Av=get_Av(errm.nep);
     fv=get_fv(errm.nep);
     denom=mapreduce(i->errm.coeffs[i]*abs(fv[i](λ)), +, 1:size(Av,1));

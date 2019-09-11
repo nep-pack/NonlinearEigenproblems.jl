@@ -15,7 +15,7 @@ NEP-PACK comes with several ways to measure errors for many NEP-types.
 ```math
 \mathrm{err}=\frac{\|M(λ)v\|}{\|v\|}.
 ```
-* `errmeasure=`[`BackwardErrmeasure`](@ref)`(nep)`: The error is estimated by using the backward error bounds. This error measure will not work for all NEPs. An implementation is provided for any `AbstractSPMF`. If your NEP is an `AbstractSPMF` with terms:
+* `errmeasure=`[`StandardSPMFErrmeasure`](@ref)`(nep)`: The error is estimated by using the backward error bounds. This error measure will not work for all NEPs. An implementation is provided for any `AbstractSPMF`. If your NEP is an `AbstractSPMF` with terms:
   ```math
   M(λ)=A_1f_1(λ)+\cdots+A_mf_m(λ)
   ```
@@ -23,9 +23,9 @@ NEP-PACK comes with several ways to measure errors for many NEP-types.
   ```math
   \mathrm{err}=\frac{\|M(λ)v\|}{\|v\|}\frac{1}{\|A_1\|_F|f_1(λ)|+\cdots+\|A_m\|_F|f_m(λ)|}.
   ```
-  In other words, the `BackwardErrmeasure` is a weighting of
+  In other words, the `StandardSPMFErrmeasure` is a weighting of
   the `ResidualErrmeasure`.
-* `errmeasure=`[`DefaultErrmeasure`](@ref)`(nep)`: When this `errmeasure` is specified, NEP-PACK tries to determine a error measure for you. In general, `BackwardErrmeasure` will be preferred if possible. This behavior may change in future versions of NEP-PACK.
+* `errmeasure=`[`DefaultErrmeasure`](@ref)`(nep)`: When this `errmeasure` is specified, NEP-PACK tries to determine a error measure for you. In general, `StandardSPMFErrmeasure` will be preferred if possible. This behavior may change in future versions of NEP-PACK.
 
 * `errmeasure=`[`EigvalReferenceErrmeasure`](@ref)`(nep,λref)`: This errmeasure is used when an exact (or very accurate) eigenvalue is already known. Typically, if you wish to visualize the eigenvalue error of a specific method, you run the method twice and use the result of the first run as to instantiate this error measure and get real eigenvalue errors as output.
 
@@ -38,9 +38,9 @@ julia> # Solve the problem to residual norm 1e-8
 julia> (λ,v)=mslp(nep,errmeasure=ResidualErrmeasure(nep),tol=1e-8)
 julia> norm(compute_Mlincomb(nep,λ,v))/norm(v) # It's smaller than tol?
 3.503700819937386e-9
-julia> nep isa AbstractSPMF # Is it an AbstractSPMF so we can use BackwardErrmeasure?
+julia> nep isa AbstractSPMF # Is it an AbstractSPMF so we can use StandardSPMFErrmeasure?
 true
-julia> (λ,v)=mslp(nep,errmeasure=BackwardErrmeasure(nep),tol=1e-10)
+julia> (λ,v)=mslp(nep,errmeasure=StandardSPMFErrmeasure(nep),tol=1e-10)
 julia> factor=abs(fv[1](λ))*norm(Av[1])+
      abs(fv[2](λ))*norm(Av[2])+abs(fv[3](λ))*norm(Av[3]);
 julia> norm(compute_Mlincomb(nep,λ,v))/(norm(v)*factor)
@@ -148,7 +148,7 @@ Errmeasure
 DefaultErrmeasure
 ```
 ```@docs
-BackwardErrmeasure
+StandardSPMFErrmeasure
 ```
 ```@docs
 ResidualErrmeasure
