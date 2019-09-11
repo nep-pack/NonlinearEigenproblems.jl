@@ -23,7 +23,7 @@ to the authors of the paper, in particular
 Guillaume Demésy for providing the model files online.
 
 We will use the model files and onelab for that simulation and reproduce
-computational results using NEP-PACK. 
+computational results using NEP-PACK.
 
 ## Part 1: Setup the matrices
 
@@ -39,7 +39,7 @@ You need to modify the `NonLinearEVP.pro`:
 On the line before the EigenSolve specification
 for the `res_NEP_E`:
 ```
-Print[M1] // Add this line
+Print[M1]; // Add this line
 EigenSolve[M1,neig,eig_target_re,eig_target_im,EigFilter[],
      { {1}, {-eps_oo_1,gam_1*eps_oo_1, -om_d_1^2,0}, {-1,0,0} },
      { {1}, {1,-gam_1},                              {1} } ];
@@ -61,11 +61,13 @@ M(λ)=A_1+\frac{-\varepsilon_{\infty}λ^3+\varepsilon_{\infty}\gamma_d λ^2-\ome
 The constants are given in the project file and we
 set them in our julia code:
 ```julia
-a_lat=50;
-cel      = a_lat/(2*pi);
-nrm     = a_lat/(2*pi*cel);
-om_d_1         = om_d_1        / nrm;
-gam_1          = gam_1         / nrm;
+julia> a_lat=50;
+julia> cel=a_lat/(2*pi);
+julia> nrm=a_lat/(2*pi*cel);
+julia> om_d_1=1.1;
+julia> gam_1=0.05;
+julia> om_d_1=om_d_1/nrm;
+julia> gam_1=gam_1/nrm;
 ```
 The NEP in this example can be conveniently
 expressed as a [`SPMF_NEP`](@ref), where the first function
@@ -74,9 +76,9 @@ function and
 the third is a quadratic term.
 We define them in a matrix function sense:
 ```julia
-f1=s-> one(s) #
-f2=s-> (s-gam_1*one(s))\(-eps_oo_1*s^3+gam_1*eps_oo_1*s^2-om_d_1^2*s)
-f3=s-> -s^2
+julia> f1=s-> one(s) #
+julia> f2=s-> (s-gam_1*one(s))\(-eps_oo_1*s^3+gam_1*eps_oo_1*s^2-om_d_1^2*s)
+julia> f3=s-> -s^2
 ```
 If you have carried out Part 1, you should have
 the sparse discretization matrices available.
