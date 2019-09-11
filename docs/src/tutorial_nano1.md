@@ -60,7 +60,7 @@ M(λ)=A_1+\frac{-\varepsilon_{\infty}λ^3+\varepsilon_{\infty}\gamma_d λ^2-\ome
 ```
 The constants are given in the project file and we
 set them in our julia code:
-```julia
+```julia-repl
 julia> a_lat=50;
 julia> cel=a_lat/(2*pi);
 julia> nrm=a_lat/(2*pi*cel);
@@ -68,6 +68,7 @@ julia> om_d_1=1.1;
 julia> gam_1=0.05;
 julia> om_d_1=om_d_1/nrm;
 julia> gam_1=gam_1/nrm;
+julia> eps_oo_1=1.0;
 ```
 The NEP in this example can be conveniently
 expressed as a [`SPMF_NEP`](@ref), where the first function
@@ -75,7 +76,7 @@ is constant, the second term is a rational
 function and
 the third is a quadratic term.
 We define them in a matrix function sense:
-```julia
+```julia-repl
 julia> f1=s-> one(s) #
 julia> f2=s-> (s-gam_1*one(s))\(-eps_oo_1*s^3+gam_1*eps_oo_1*s^2-om_d_1^2*s)
 julia> f3=s-> -s^2
