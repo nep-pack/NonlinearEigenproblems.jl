@@ -25,12 +25,6 @@ NEP-solver to the deflated NEP.
     More elaborate deflation examples can be found in [the tutorial on deflation](deflate_tutorial.md).
 
 
-
-
-
-
-
-
 ## Theory
 
 The theory follows the presentation of the technique
