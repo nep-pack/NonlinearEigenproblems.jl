@@ -351,7 +351,7 @@ julia> dnep=deflate_eigpair(nep,λ,v)
 julia> (λ2,v2)=augnewton(dnep);  # this converges to different eigval
 julia> using LinearAlgebra;
 julia> minimum(svdvals(compute_Mder(nep,λ2)))
-9.323003321058995e-17
+5.184439961873709e-17
 ```
 The function [`get_deflated_eigpairs()`](@ref) extracts the eigenpairs that
 have been deflated. The returned pairs are eigenpairs of
@@ -360,9 +360,9 @@ the original NEP:
 julia> dnep=deflate_eigpair(dnep,λ2,v2)
 julia> (D,V)=get_deflated_eigpairs(dnep)
 julia> norm(compute_Mlincomb(nep,D[1],V[:,1]))
-6.164690797405912e-16
+1.6653345369377348e-16
 julia> norm(compute_Mlincomb(nep,D[2],V[:,2]))
-5.20740757162067e-16
+3.5168390058759065e-16
 ```
 
 # References
