@@ -45,5 +45,5 @@ using LinearAlgebra
     verify_lambdas(2, pnep, λv[1:2], V[:,1:2], sqrt(eps()))
 
     λv,V = inner_solve(NleigsInnerSolver(), ComplexF64, pnep; λv=[0,1,2,3] .+ 0.0im)
-    verify_lambdas(5, pnep, λv, V, sqrt(eps()))
+    verify_lambdas(4, pnep, λv, V, sqrt(eps()))
 end
