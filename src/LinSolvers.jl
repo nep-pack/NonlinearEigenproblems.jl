@@ -52,9 +52,9 @@ julia> nep=nep_gallery("qdep0");
 julia> using BenchmarkTools
 julia> v0=ones(size(nep,1));
 julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=DefaultLinSolverCreator());
-  199.540 ms (4929 allocations: 59.83 MiB)
+  181.017 ms (3779 allocations: 58.61 MiB)
 julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=BackslashLinSolverCreator());
-  1.632 s (6137 allocations: 702.85 MiB)
+  2.040 s (4510 allocations: 553.24 MiB)
 ```
 
 # Example
@@ -212,9 +212,9 @@ the [`DefaultEigSolver`](@ref) will use a dense or a sparse method depending on 
 However, this example shows how you can force `mslp` to use the sparse solver.
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
-julia> λ,v = mslp(nep, eigsolvertype=NativeEigSSolver);
+julia> λ,v = mslp(nep, eigsolvertype=ArnoldiEigSolver);
 julia> norm(compute_Mlincomb(nep,λ,v))
-1.0324139764567768e-15
+9.323110647141726e-16
 ```
 
 # Example
@@ -248,7 +248,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 
 See also: [`eig_solve`](@ref),
 [`DefaultEigSolver`](@ref), [`NativeEigSolver`](@ref),
-[`NativeEigSSolver`](@ref), [`eig_solve`](@ref)
+[`ArnoldiEigSolver`](@ref), [`eig_solve`](@ref)
 
 """
     abstract type EigSolver end

@@ -72,10 +72,10 @@ julia> projnep=create_proj_NEP(nep);
 julia> e1 = Matrix(1.0*I,size(nep,1),1);
 julia> set_projectmatrices!(projnep,e1,e1);
 julia> compute_Mder(nep,3.0)[1,1]
--2.315345215259418
+-2.942777908030041
 julia> compute_Mder(projnep,3.0)
 1×1 Array{Float64,2}:
- -2.315345215259418
+ -2.942777908030041 + 0.0im
 ```
 """
     abstract type ProjectableNEP <: NEP end
@@ -614,12 +614,12 @@ julia> pnep=create_proj_NEP(nep);
 julia> set_projectmatrices!(pnep,W,V);
 julia> compute_Mder(pnep,3.0)
 2×2 Array{Complex{Float64},2}:
- -2.03662+0.0im   13.9777+0.0im
- -1.35069+0.0im  -13.0975+0.0im
+  6.08082+0.0im  -5.47481+0.0im
+ 0.986559+0.0im  -6.98165+0.0im
 julia> W'*compute_Mder(nep,3.0)*V  # Gives the same result
 2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
+ 6.08082   -5.47481
+ 0.986559  -6.98165
 ```
 If you know that you will only use real projection matrices, you
 can specify this in at the creation:
@@ -628,8 +628,8 @@ julia> pnep=create_proj_NEP(nep,2,Float64);
 julia> set_projectmatrices!(pnep,W,V);
 julia> compute_Mder(pnep,3.0)
 2×2 Array{Float64,2}:
- -2.03662   13.9777
- -1.35069  -13.0975
+ 6.08082   -5.47481
+ 0.986559  -6.98165
 ```
 """
     function create_proj_NEP(orgnep::ProjectableNEP)
