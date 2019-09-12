@@ -49,7 +49,7 @@ using LinearAlgebra
         σ=-3+0.3im
         α=0.9;
         nep3_transf=shift_and_scale(nep3,shift=σ,scale=α);
-        @test norm(compute_Mlincomb(nep3_transf,(λ-σ)/α,v))<sqrt(eps())*100;
+        @test norm(compute_Mlincomb(nep3_transf,(λ-σ)/α,v))<sqrt(eps())*1000;
         λ,V=iar(nep3_transf,σ=0,neigs=2,maxit=60,v=ones(size(nep3_transf,1)))
         @test norm(compute_Mlincomb(nep3,α*λ[1]+σ,V[:,1]))<sqrt(eps())
         @test norm(compute_Mlincomb(nep3,α*λ[2]+σ,V[:,2]))<sqrt(eps())
