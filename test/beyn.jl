@@ -3,8 +3,10 @@
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
+using Random
 using LinearAlgebra
 
+Random.seed!(0);
 
 @testset "Beyn contour" begin
     nep=nep_gallery("dep0")

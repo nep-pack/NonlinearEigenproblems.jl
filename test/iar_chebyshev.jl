@@ -9,6 +9,7 @@ using IterativeSolvers
 #explicit import needed for overloading functions from packages
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 
+Random.seed!(0);
 
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
