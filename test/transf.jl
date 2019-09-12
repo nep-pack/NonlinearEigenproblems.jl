@@ -24,7 +24,7 @@ using LinearAlgebra
         σ=-0.4+0.01im; α=0.5
         nep2=shift_and_scale(orgnep,shift=σ,scale=α);
         λ2,v2=quasinewton(nep2)
-        @test abs((α*λ2+σ)-orgλ)<eps()*200
+        @test abs((α*λ2+σ)-orgλ)<eps()*1000
 
 
         # Check that PEP transformations correctly transform coefficients
@@ -32,7 +32,7 @@ using LinearAlgebra
         σ=1+0.3im;
         α=3;
         pep1=shift_and_scale(pep0,shift=σ,scale=α)
-        λ,v= quasinewton(pep0,λ=1+1im);
+        λ,v= quasinewton(pep0,λ=-0.3-0.7im);
         norm(compute_Mlincomb(pep0, λ, v))
         λv,V=polyeig(pep1);
         @test minimum(abs.(λv .- (λ-σ)/α)) < eps()*1000
