@@ -6,11 +6,12 @@ using Test
 using Random
 using LinearAlgebra
 
-Random.seed!(0);
 
 @testset "Beyn contour" begin
+
     nep=nep_gallery("dep0")
     @bench @testset "disk at origin" begin
+        Random.seed!(0);
 
         λ,v=contour_beyn(nep,logger=displaylevel,radius=1,neigs=1,sanity_check=false)
 
