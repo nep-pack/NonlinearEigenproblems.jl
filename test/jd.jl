@@ -15,12 +15,11 @@ using LinearAlgebra
 @info "Testing a PEP"
 nep = nep_gallery("pep0",60)
 TOL = 1e-11;
-λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 3, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure(nep))
+λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 2, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure(nep))
 @info " Smallest eigenvalue found: $λ"
 Dc,Vc = polyeig(nep,DefaultEigSolver)
 c = sortperm(abs.(Dc))
-@info " 6 smallest eigenvalues according to the absolute values: $(Dc[c[1:6]])"
-verify_lambdas(3, nep, λ, u, TOL)
+verify_lambdas(2, nep, λ, u, TOL)
 
 
 @info "Testing SG as inner solver"
