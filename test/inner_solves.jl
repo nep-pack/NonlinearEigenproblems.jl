@@ -2,9 +2,10 @@
 
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
-using Test
+using Test,Random
 using LinearAlgebra
 
+Random.seed!(0);
 @bench @testset "Inner Solves" begin
     dep=nep_gallery("dep0",200);
     n=size(dep,1);
