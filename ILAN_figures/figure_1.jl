@@ -1,4 +1,4 @@
-using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise, CSV
+using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise, CSV, DelimitedFiles
 import ..NEPSolver.ilan;
 import ..NEPSolver.ilan_benchmark;
 import ..NEPSolver.iar;
@@ -46,9 +46,7 @@ CSV.write("ILAN_figures/figure_1/dep_ilan_Beyn.csv", λ2)
 m,p=size(err);
 for i=1:size(err,1) for j=1:size(err,2)	if err[i,j]==1 err[i,j]=NaN end end end
 for j=1:p sort!(view(err,1:m,j);rev=true) end
-for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
 writedlm( "ILAN_figures/figure_1/dep_ilan_Beyn_err.csv", [1:m err], ',')
-#for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
 
 
 # RUN ILAN (PROJ)
