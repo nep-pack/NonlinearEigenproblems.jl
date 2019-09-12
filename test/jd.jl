@@ -1,6 +1,6 @@
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
-using Test
+using Test,Random
 using LinearAlgebra
 
 @testset "Jacobi–Davidson" begin
@@ -11,7 +11,7 @@ using LinearAlgebra
 @bench @testset "Betcke-Voss" begin
 @info "Test: Betcke-Voss"
 
-
+Random.seed!(0);
 @info "Testing a PEP"
 nep = nep_gallery("pep0",60)
 TOL = 1e-11;
@@ -61,7 +61,8 @@ end
 @bench @testset "Effenberger" begin
 @info "Test: Effenberger"
 
-TOL = 1e-10
+    Random.seed!(0);
+    TOL = 1e-10
 nep = nep_gallery("pep0",250)
 λ, u = jd_effenberger(nep, neigs=5, logger=displaylevel, tol=TOL, maxit=80, λ=0.82+0.9im, v=ones(ComplexF64,size(nep,1)))
 verify_lambdas(5, nep, λ, u, TOL)
