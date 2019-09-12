@@ -28,7 +28,7 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
         (λ,Q)=tiar(dep,σ=1.1,γ=3,neigs=Inf,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
-        verify_lambdas(2, dep, λ, Q, eps()*100)
+        verify_lambdas(7, dep, λ, Q, eps()*100)
     end
 
     @testset "orthogonalization" begin
@@ -59,9 +59,15 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
     # verify the equivalence numerically
     @bench @testset "equivalance with IAR" begin
         (λ_tiar,Q_tiar)=tiar(dep,σ=1.1,γ=3,neigs=2,v=ones(n),maxit=50,tol=eps()*100);
-        (λ_iar,Q_iar)=iar(dep,σ=1.1,γ=3,neigs=2,v=ones(n),maxit=50,tol=eps()*100);
-        @test norm(λ_tiar-λ_iar)<1e-6
-        @test norm(Q_tiar-Q_iar)<1e-6
+        (λ_iar,Q_iar)=   iar(dep,σ=1.1,γ=3,neigs=2,v=ones(n),maxit=50,tol=eps()*100);
+
+        # Relaxed to only test abs-values to avoid problems if iar / tiar finds
+        # the other conjugate solution
+        for k=1:size(λ_tiar,1);
+            @test minimum(abs.(abs(λ_iar[k]) .- abs.(λ_tiar))) < 1e-6
+            @test minimum(map(j-> norm(abs.(Q_tiar[:,k]/Q_tiar[1,k])-abs.(Q_iar[:,j]/Q_iar[1,k])),1:size(λ_iar,1)))<1e-6
+        end
+
     end
     @bench @testset "Solve by projection" begin
         np=1000;
