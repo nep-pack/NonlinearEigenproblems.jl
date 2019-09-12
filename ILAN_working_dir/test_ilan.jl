@@ -40,6 +40,7 @@ v0=ones(n^2)
 #
 #COMPUTE EIGENVALUES WITH ILAN
 λ2,v2,err,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-10,check_error_every=1,v=v0,errmeasure=rel_err,
+#proj_solve=false)
 inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=-Inf,radius=4,N=1000))
 #inner_solver_method=NEPSolver.IARInnerSolver(tol=1e2,maxit=50))
 #inner_solver_method=NEPSolver.NleigsInnerSolver(Σ=Σ,tol=1e-2))
@@ -49,11 +50,17 @@ inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=-Inf,radius=4,N=1000))
 #plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:black,linestyle=:none)
 
 err1=err
+
+for i=1:size(err,1)
+	for j=1:size(err,2)
+		if err[i,j]==1 err[i,j]=NaN end
+	end
+end
+
 pygui(true)
 m,p=size(err);
 for j=1:p sort!(view(err,1:m,j);rev=true) end
-for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
-ylim(ymax=10)
+for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end ylim(ymax=10)
 
 figure()
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)
