@@ -517,126 +517,53 @@ julia> norm(M1-M2)
     ###########################################################
     # Rational eigenvalue problem - REP
 """
-    struct REP <: AbstractSPMF
-    function REP(A,poles)
+    function REP(A,roots,poles)
 
-A REP represents a rational eigenvalue problem. The REP is defined by the
+A REP-call creates a rational eigenvalue problem. The REP is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
 matrices are of size n times n and s_i and q_i are polynomials.
-
-The constructor takes the matrices `A_i` and a sequence of poles as input
-(not complete).
+The creator takes the roots and poles as input of polynomials with
+normalized highest coefficient. The NEP is defined as
+```math
+-λI+A_1+A_1\frac{p(λ)}(q(λ)}
+```
+where `p` has the roots `roots` and `q` has the roots `poles`.
 
 # Example
 ```julia-repl
 julia> A0=[1 2; 3 4]; A1=[3 4; 5 6];
-julia> nep=REP([A0,A1],[1,3]);
+julia> nep=REP([A0,A1],[1,3], [4,5,6]);
 julia> compute_Mder(nep,3)
 2×2 Array{Float64,2}:
- NaN  NaN
- NaN  NaN
+ Inf  Inf
+ Inf  Inf
+julia> (λ,x)=quasinewton(nep,v=[1;0])
+(-0.3689603779201249 + 0.0im, Complex{Float64}[-2.51824+0.0im, 1.71283+0.0im])
+julia> -λ*x+A0*x+A1*x*(λ-1)*(λ-3)/((λ-4)*(λ-5)*(λ-6))
+2-element Array{Complex{Float64},1}:
+ -2.5055998942313806e-13 + 0.0im
+   1.318944953254686e-13 + 0.0im
 ```
-
 """
-    struct REP <: AbstractSPMF{AbstractMatrix}
-        n::Int
-        A::Array   # Monomial coefficients of REP
-        si::Array  # numerator polynomials
-        qi::Array  # demonimator polynomials
-    end
-    """
-"""
-    function REP(AA,poles::Array{<:Number,1})
+    function REP(AA::Vector,roots::Vector,poles::Vector)
 
         n=size(AA[1],1)
-        AA=reshape(AA,length(AA)) # allow for 1xn matrices
-        # numerators
-        si = Vector{Vector{Number}}(undef, length(poles))
-        for i =1:size(poles,1)
-            si[i]=[1];
-        end
-        # denominators
-        qi = Vector{Vector{Number}}(undef, length(poles))
-        for i =1:size(poles,1)
-            if poles[i]!=0
-                qi[i]=[1,-1/poles[i]];
-            else
-                qi[i]=[1];
-            end
-        end
-        return REP(n,AA,si,qi)
+        A=[one(AA[1]),AA[1],AA[2]];
+        roots_float=float.(roots);
+        poles_float=float.(poles);
+        nep=SPMF_NEP(A,
+                     [S-> -S,S->one(S),
+                     S-> root_eval(S,poles_float)\root_eval(S,roots_float)]);
+
+        return nep;
     end
 
 
-   function compute_MM(nep::REP,S,V)
-        local Z0;
-        if (issparse(nep))
-            Z=spzeros(size(V,1),size(V,2))
-            Si = SparseMatrixCSC{eltype(S)}(I, size(S))
-        else
-            Z = zero(V)
-            Si = Matrix{eltype(S)}(I, size(S))
-        end
-        # Sum all the elements
-        for i=1:size(nep.A,1)
-            # compute numerator
-            Snum=0*copy(Z);
-            Spowj=copy(Si);
-            for j=1:size(nep.si[i],1)
-                Snum+=Spowj*nep.si[i][j]
-                Spowj=Spowj*S;
-            end
-
-            # compute denominator
-            Sden=0*copy(Z);
-            Spowj=copy(Si);
-            for j=1:size(nep.qi[i],1)
-                Sden+=Spowj*nep.qi[i][j]
-                Spowj=Spowj*S;
-            end
-
-            # Sum it up
-            Z+=nep.A[i]*V*(Sden\Snum)
-        end
-        return Z
-    end
-    function compute_Mder(rep::REP,λ::Number,i::Integer=0)
-        if (i!=0) # Todo
-            error("Higher order derivatives of REP's not implemented")
-        end
-        S = SparseMatrixCSC(λ*I, rep.n, rep.n)
-        V = SparseMatrixCSC(1.0I, rep.n, rep.n)
-        return compute_MM(rep,S,V)  # This call can be slow
+    function root_eval(S,a::Vector)
+        F=mapreduce(i-> S-a[i]*I, (S1,S2) -> S1*S2, 1:size(a,1))
+        return F;
     end
 
-
-    #  Fetch the Av's, since they are not explicitly stored in REPs
-    function get_Av(nep::REP)
-        return nep.A;
-    end
-    #  Fetch the Fv's, since they are not explicitly stored in REPs
-    function get_fv(nep::REP)
-        fv = Vector{Function}(undef, size(nep.qi, 1))
-        for i=1:size(fv,1)
-            fv[i]=S->(lpolyvalm(nep.qi[i],S)\lpolyvalm(nep.si[i],S))::((S isa Number) ? Number : Matrix)
-        end
-        return fv
-    end
-
-    # Evaluation of matrix polynomial with coefficient a
-    function lpolyvalm(a::Array{<:Number,1},S::Union{Number,AbstractMatrix})
-        Sp = one(S)
-        Ssum = zero(S)
-        for j=1:size(a,1)
-            Ssum+= a[j]*Sp;
-            Sp=Sp*S;
-        end
-        return Ssum
-    end
-
-    function issparse(nep::REP)
-        return issparse(nep.A[1])
-    end
 
 
 
@@ -977,15 +904,15 @@ See also: [`SPMFSumNEP`](@ref), [`GenericSumNEP`](@ref)
 
    #
 """
-    size(nep::Union{DEP,PEP,REP,SPMF_NEP})
-    size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
+    size(nep::Union{DEP,PEP,SPMF_NEP})
+    size(nep::Union{DEP,PEP,SPMF_NEP},dim)
 
 Overloads the size functions for NEPs storing size in nep.n
 """
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP})
+    function size(nep::Union{DEP,PEP,SPMF_NEP})
         return (nep.n,nep.n)
     end
-    function size(nep::Union{DEP,PEP,REP,SPMF_NEP},dim)
+    function size(nep::Union{DEP,PEP,SPMF_NEP},dim)
         return nep.n
     end
 
@@ -993,12 +920,12 @@ Overloads the size functions for NEPs storing size in nep.n
     issparse(nep)
 Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
 """
-    function issparse(nep::Union{DEP,PEP,REP,SPMF_NEP})
+    function issparse(nep::Union{DEP,PEP,SPMF_NEP})
         return issparse(nep.A[1])
     end
 
 
-    function get_Av(nep::Union{SPMF_NEP,PEP,REP})
+    function get_Av(nep::Union{SPMF_NEP,PEP})
         return nep.A;
     end
     function get_fv(nep::SPMF_NEP)
