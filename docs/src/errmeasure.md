@@ -15,7 +15,7 @@ NEP-PACK comes with several ways to measure errors for many NEP-types.
 ```math
 \mathrm{err}=\frac{\|M(λ)v\|}{\|v\|}.
 ```
-* `errmeasure=`[`StandardSPMFErrmeasure`](@ref)`(nep)`: The error is estimated by using the backward error bounds. This error measure will not work for all NEPs. An implementation is provided for any `AbstractSPMF`. If your NEP is an `AbstractSPMF` with terms:
+* `errmeasure=`[`StandardSPMFErrmeasure`](@ref)`(nep)`: The error is estimated by using backward error theory. This error measure will not work for all NEPs. An implementation is provided for any `AbstractSPMF`. If your NEP is an `AbstractSPMF` with terms:
   ```math
   M(λ)=A_1f_1(λ)+\cdots+A_mf_m(λ)
   ```
