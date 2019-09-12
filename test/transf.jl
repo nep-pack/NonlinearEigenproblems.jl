@@ -14,9 +14,9 @@ using LinearAlgebra
         # check with residual of transformed nep.
         σ=-0.3+0.1im;
         nep1=shift_and_scale(orgnep,shift=σ);
-        orgλ,orgv=augnewton(orgnep)
+        orgλ,orgv=augnewton(orgnep,v=ones(size(orgnep,1)))
         @test norm(compute_Mlincomb(nep1,orgλ-σ,orgv))<100*eps()
-        λ1,v1=quasinewton(nep1)
+        λ1,v1=quasinewton(nep1,v=ones(size(orgnep,1)))
         @test abs(λ1+σ-orgλ)<eps()*100 # check that we get the same eigvals
 
 
@@ -24,7 +24,7 @@ using LinearAlgebra
         σ=-0.4+0.01im; α=0.5
         nep2=shift_and_scale(orgnep,shift=σ,scale=α);
         λ2,v2=quasinewton(nep2)
-        @test abs((α*λ2+σ)-orgλ)<eps()*100
+        @test abs((α*λ2+σ)-orgλ)<eps()*200
 
 
         # Check that PEP transformations correctly transform coefficients
@@ -70,7 +70,7 @@ using LinearAlgebra
         c=1;
         d=1-0.3im
         pep0_transf=mobius_transform(pep0,a=a,b=b,c=c,d=d)
-        λ,v= quasinewton(pep0_transf,λ=0,v=ones(size(pep0,1)));
+        λ,v= quasinewton(pep0_transf,λ=0.3im,v=ones(size(pep0,1)));
         λorg=(a*λ+b)/(c*λ+d)
         @test norm(compute_Mlincomb(pep0,λorg,v))<sqrt(eps());
 
