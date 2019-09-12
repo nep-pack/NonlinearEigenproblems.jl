@@ -3,16 +3,19 @@
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
+using Random
 using LinearAlgebra
 
 
 @testset "Beyn contour" begin
+
     nep=nep_gallery("dep0")
     @bench @testset "disk at origin" begin
+        Random.seed!(0);
 
-        λ,v=contour_beyn(nep,logger=displaylevel,radius=1,neigs=2,sanity_check=false)
+        λ,v=contour_beyn(nep,logger=displaylevel,radius=1,neigs=1,sanity_check=false)
 
-        for i = 1:2
+        for i = 1:size(λ,1)
             @info "$i: $(λ[i])"
             M=compute_Mder(nep,λ[i])
             minimum(svdvals(M))
@@ -21,7 +24,7 @@ using LinearAlgebra
         end
 
 
-        λ,v=contour_beyn(nep,logger=displaylevel,radius=1,k=2,N=100,sanity_check=false)
+        λ,v=contour_beyn(nep,logger=displaylevel,radius=0.4,k=2,N=100,sanity_check=false)
         M=compute_Mder(nep,λ[1])
         minimum(svdvals(M))
         @test minimum(svdvals(M))<eps()*1000
@@ -29,11 +32,11 @@ using LinearAlgebra
     end
     @bench @testset "shifted disk" begin
 
-        λ,v=contour_beyn(nep,logger=displaylevel,σ=-0.2,radius=1.5,
+        λ,v=contour_beyn(nep,logger=displaylevel,σ=0.2,radius=1.0,
                          neigs=4,sanity_check=false)
 
-        @test size(λ,1)==4
-        for i = 1:4
+        @test size(λ,1)==3
+        for i = 1:3
             @info "$i: $(λ[i])"
             M=compute_Mder(nep,λ[i])
             minimum(svdvals(M))

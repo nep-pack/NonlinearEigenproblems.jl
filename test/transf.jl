@@ -14,17 +14,17 @@ using LinearAlgebra
         # check with residual of transformed nep.
         σ=-0.3+0.1im;
         nep1=shift_and_scale(orgnep,shift=σ);
-        orgλ,orgv=augnewton(orgnep)
+        orgλ,orgv=augnewton(orgnep,v=ones(size(orgnep,1)))
         @test norm(compute_Mlincomb(nep1,orgλ-σ,orgv))<100*eps()
-        λ1,v1=quasinewton(nep1)
+        λ1,v1=quasinewton(nep1,v=ones(size(orgnep,1)))
         @test abs(λ1+σ-orgλ)<eps()*100 # check that we get the same eigvals
 
 
         # Test shift and scaling
         σ=-0.4+0.01im; α=0.5
         nep2=shift_and_scale(orgnep,shift=σ,scale=α);
-        λ2,v2=quasinewton(nep2)
-        @test abs((α*λ2+σ)-orgλ)<eps()*100
+        λ2,v2=quasinewton(nep2,v=ones(size(nep2,1)))
+        @test abs((α*λ2+σ)-orgλ)<eps()*1000
 
 
         # Check that PEP transformations correctly transform coefficients
@@ -32,7 +32,7 @@ using LinearAlgebra
         σ=1+0.3im;
         α=3;
         pep1=shift_and_scale(pep0,shift=σ,scale=α)
-        λ,v= quasinewton(pep0,λ=1+1im);
+        λ,v= quasinewton(pep0,λ=-0.3-0.7im,v=ones(size(pep0,1)));
         norm(compute_Mlincomb(pep0, λ, v))
         λv,V=polyeig(pep1);
         @test minimum(abs.(λv .- (λ-σ)/α)) < eps()*1000
@@ -45,17 +45,17 @@ using LinearAlgebra
 
 
         nep3=nep_gallery("qdep0")
-        λ,v= quasinewton(nep3,λ=1+1im);
+        λ,v= quasinewton(nep3,λ=1+1im,v=ones(size(nep3,1)));
         σ=-3+0.3im
         α=0.9;
         nep3_transf=shift_and_scale(nep3,shift=σ,scale=α);
-        @test norm(compute_Mlincomb(nep3_transf,(λ-σ)/α,v))<sqrt(eps())*10;
-        λ,V=iar(nep3_transf,σ=0,neigs=2,maxit=60)
+        @test norm(compute_Mlincomb(nep3_transf,(λ-σ)/α,v))<sqrt(eps())*100;
+        λ,V=iar(nep3_transf,σ=0,neigs=2,maxit=60,v=ones(size(nep3_transf,1)))
         @test norm(compute_Mlincomb(nep3,α*λ[1]+σ,V[:,1]))<sqrt(eps())
         @test norm(compute_Mlincomb(nep3,α*λ[2]+σ,V[:,2]))<sqrt(eps())
 
 
-        λ,V=iar(nep3_transf,σ=0,neigs=2,maxit=60)
+        λ,V=iar(nep3_transf,σ=0,neigs=2,maxit=60,v=ones(size(nep3_transf,1)))
         @test norm(compute_Mlincomb(nep3,α*λ[1]+σ,V[:,1]))<sqrt(eps())
         @test norm(compute_Mlincomb(nep3,α*λ[2]+σ,V[:,2]))<sqrt(eps())
         #
@@ -70,7 +70,7 @@ using LinearAlgebra
         c=1;
         d=1-0.3im
         pep0_transf=mobius_transform(pep0,a=a,b=b,c=c,d=d)
-        λ,v= quasinewton(pep0_transf,λ=0,v=ones(size(pep0,1)));
+        λ,v= quasinewton(pep0_transf,λ=0.3im,v=ones(size(pep0,1)));
         λorg=(a*λ+b)/(c*λ+d)
         @test norm(compute_Mlincomb(pep0,λorg,v))<sqrt(eps());
 

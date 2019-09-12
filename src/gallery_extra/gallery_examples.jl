@@ -106,8 +106,8 @@ end
 # A quadratic eigenvalue problem with chosen eigenvalues
 function qep_fixed_eig(n::Integer=5, E::AbstractVecOrMat=NaN*ones(2*n))
     if any(isnan.(E))
-        Random.seed!(0) # reset the random seed
-        E=randn(2*n)
+        msws_rng = MSWS_RNG()
+        E=vec(gen_rng_mat(msws_rng,2*n,1))
     end
     A1 = diagm(0 => E[1:n])
     A2 = diagm(0 => E[n+1:2*n])

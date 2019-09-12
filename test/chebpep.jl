@@ -6,6 +6,8 @@ using SparseArrays
 
 @testset "ChebPEP" begin
     nep=nep_gallery("dep0",5);
+    nep=DEP(nep.A./10);
+
     n=size(nep,1);
     chebpep=ChebPEP(nep,13,-1,1);
 

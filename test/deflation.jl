@@ -70,7 +70,7 @@ end
     n = size(nep,1)
     dnep = nep; dnep2 = nep; dnep3 = nep;
     for i = 0:3
-        (λ,v)=augnewton(dnep,v=ones(n+i),λ=1.65,tol=1e-11)
+        (λ,v)=augnewton(dnep,v=ones(n+i),λ=1.65,tol=1e-11,maxit=100;)
         dnep=deflate_eigpair(dnep,λ,v,mode=:Generic);
         dnep2=deflate_eigpair(dnep2,λ,v,mode=:SPMF);
         dnep3=deflate_eigpair(dnep3,λ,v,mode=:MM);

@@ -9,6 +9,7 @@ using IterativeSolvers
 #explicit import needed for overloading functions from packages
 import NonlinearEigenproblems.NEPCore.compute_Mlincomb
 
+Random.seed!(0);
 
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
@@ -210,6 +211,7 @@ end
         @bench @testset "PEP format with ComputeY0ChebSPMF_NEP" begin
             n=100; d=3;
             A = Array{Array{Float64}}(undef, d+1)
+            Random.seed!(0)
             for j=0:d
                 A[j+1]=rand(n,n)
             end

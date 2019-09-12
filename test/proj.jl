@@ -88,7 +88,6 @@ using Random
         Vnew=[Q ones(n)];
         Wnew=[Q ones(n)];
         expand_projectmatrices!(pnep,Wnew,Vnew);
-        println("λ_exact=",λ_exact)
         λ1,zz1=newton(pnep,λ=(λ_exact+0.0000001),logger=0,
                       v=Vnew'*x.+0.00001*ones(size(pnep,1)),maxit=30)
 
