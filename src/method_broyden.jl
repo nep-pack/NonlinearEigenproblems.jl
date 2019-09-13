@@ -540,18 +540,18 @@ See [`augnewton`](@ref) for other parameters.
 julia> nep=nep_gallery("dep0");
 julia> S,V=broyden(nep);
 julia> λ=S[1,1]
--0.3587189459686267 - 3.0010731412746105e-31im
+-0.15955391823299253 - 3.874865266487398e-19im
 julia> minimum(svdvals(compute_Mder(nep,λ)))
-1.6066157878930856e-16
+1.6293996560844023e-16
 julia> λ=S[2,2]
--0.04093521177097334 + 1.486011530941621im
+-0.5032087003825461 + 1.1969823800738464im
 julia> minimum(svdvals(compute_Mder(nep,λ)))
-4.159109513753696e-16
+1.1073470346550144e-15
 julia> λ=S[3,3]
-0.8347353572199486 + 1.5032076225139986e-14im
+1.2699713558173726 + 5.342786996459857e-16im
 julia> minimum(svdvals(compute_Mder(nep,λ)))
-1.296144276122994e-14
-julia> broyden(nep,logger=2,check_error_every=1);  % Prints out a lot more convergence info
+5.905315846211231e-16
+julia> broyden(nep,logger=2,check_error_every=1);  # Prints out a lot more convergence info
 ```
 
 # References
