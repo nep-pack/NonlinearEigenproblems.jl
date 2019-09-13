@@ -43,7 +43,6 @@ If l is a number it canges l to a PrintLogger(l).
     include("method_blocknewton.jl")
     include("method_broyden.jl")
     include("method_ilan.jl")
-    include("method_ilan_benchmark.jl")
     include("method_nleigs.jl")
 
 
