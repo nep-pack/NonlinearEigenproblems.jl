@@ -4,29 +4,36 @@
 
 """
     struct PEP <: AbstractSPMF
+    function PEP(AA::Vector{AbstractMatrix})
 
-A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
-"""
-struct PEP <: AbstractSPMF{AbstractMatrix}
-    n::Int
-    A::Array   # Monomial coefficients of PEP
-end
+The type `PEP` defines a polynomial eigenvalue
+ problem via its monomial coefficients.
+A polynomial eigenvalue problem (PEP) is defined by the sum the
+```math
+Σ_i A_i λ^i,
+```
+where ``i = 0,1,2,``, and  all of the matrices are of size ``n×n``.
+The vector `AA` contains ``A_1,...``.
 
-"""
-    PEP(AA::Array)
-
-Creates a polynomial eigenvalue problem with monomial matrices specified in
-AA, which is an array of matrices.
+# Example
 
 ```julia-repl
-julia> A0=[1 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
+julia> A0=[1.0 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
 julia> pep=PEP([A0,A1,A2])
 julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 2×2 Array{Float64,2}:
  0.0  0.0
  0.0  0.0
 ```
+
+See also [`polyeig`](@ref), [`companion`](@ref), [`ChebPEP`](@ref), [`interpolate`](@ref).
 """
+struct PEP <: AbstractSPMF{AbstractMatrix}
+    n::Int
+    A::Array   # Monomial coefficients of PEP
+end
+
+
 function PEP(AA::Array)
     n=size(AA[1],1)
     AA=reshape(AA,size(AA,1))
@@ -51,56 +58,6 @@ function compute_MM(nep::PEP,S,V)
     return Z
 end
 
-compute_rf(nep::PEP,x;params...) = compute_rf(ComplexF64,nep,x;params...)
-function compute_rf(::Type{T},nep::PEP,x; y=x, target=zero(T), λ0=target,
-                    TOL=eps(real(T))*1e3,max_iter=10) where T<:Real
-
-    a=zeros(T,size(nep.A,1))
-    for i=1:size(nep.A,1)
-        a[i]=dot(y,nep.A[i]*x);
-    end
-    m=size(nep.A,1);
-    # Build a bigfloat companion matrix
-    A=zeros(T,m-1,m-1);
-    for k=1:m-1
-        if (k<m-1)
-            A[k,k+1]=1;
-        end
-        A[end,k]=-a[k]/a[end]
-    end
-    pp=eigvals(A);
-    if (T <: Real) # If we specify real arithmetic, return real eigvals
-        pp=real(pp);
-    end
-
-    II=sortperm(abs.(pp .- target))
-    return pp[II];
-end
-
-# Overload a version of eigvals(::Matrix{BigFloat}) for compute_rf
-import LinearAlgebra.eigvals
-function eigvals(A::Union{Matrix{BigFloat},Matrix{Complex{BigFloat}}})
-    T=eltype(A);
-    Tfloat= (T <: Complex) ? (ComplexF64) : (Float64)
-    Afloat=Matrix{Tfloat}(A);
-    λv,X=eigen(Afloat);
-    local λv_bigfloat=Vector{Complex{BigFloat}}(λv);
-    # Some Rayleigh quotient iteration steps in bigfloat to improve accuracy:
-    for j=1:size(λv,1)
-        local s=λv_bigfloat[j];
-        z=Vector{Complex{BigFloat}}(X[:,j])
-        for f=1:3
-            z=(A-s*I)\z; normalize!(z);
-            s=z'*A*z;
-        end
-        λv_bigfloat[j]=s
-    end
-    if (maximum(abs.((λv_bigfloat-λv)./λv_bigfloat)) > eps()*100)
-        @warn("Correction iteration of eigvals for bigfloat, made the eigenvalues move considerably")
-    end
-
-    return λv_bigfloat
-end
 
 
 
@@ -143,8 +100,10 @@ end
 
 """
     interpolate([T=ComplexF64,] nep::NEP, intpoints::Array)
- Interpolates a NEP in the points `intpoints` and returns a `PEP`.\\
- `T` is the Type in which the matrices of the PEP should be defined.
+
+Interpolates a NEP in the points `intpoints` and returns a [`PEP`](@ref), i.e., a polynomial eigenvalue problem in a monomial basis. See [`ChebPEP`](@ref) for Chebyshev interpolation. The optional argument `T` is the type in which the matrices of the PEP should be defined.
+
+See also [`ChebPEP`](@ref).
 """
 interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
 function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}

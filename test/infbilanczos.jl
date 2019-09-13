@@ -13,7 +13,7 @@ using LinearAlgebra
     m=40;
     λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,neigs=3,σ=0,logger=displaylevel,
                          v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
-                         tol=1e-7, errmeasure=ResidualErrmeasure);
+                         tol=1e-7, errmeasure=ResidualErrmeasure(nep));
 
     # Produced with a different implementation
     Tstar=[  -1.665117675679600   5.780562035399026                   0                   0
@@ -34,7 +34,7 @@ using LinearAlgebra
         m=30;
         λ,V,T = infbilanczos(Float64,nep,nept,maxit=m,neigs=Inf,σ=0,logger=displaylevel,
                              v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
-                             tol=1e-7, errmeasure=ResidualErrmeasure);
+                             tol=1e-7, errmeasure=ResidualErrmeasure(nep));
         verify_lambdas(3, nep, λ, V, 1e-6)
     end
 
@@ -42,7 +42,7 @@ using LinearAlgebra
     @testset "Errors thrown" begin
         @test_throws NEPCore.NoConvergenceException λ,V,T = infbilanczos(Float64,nep,nept,maxit=9,neigs=8,σ=0,logger=displaylevel,
                              v=ones(Float64,n),u=ones(Float64,n),check_error_every=3,
-                             tol=1e-7, errmeasure=ResidualErrmeasure);
+                             tol=1e-7, errmeasure=ResidualErrmeasure(nep));
     end
 end
 

@@ -10,7 +10,7 @@ M(λ)v=0
 and ``v\neq 0``.
 
 
-# Getting started
+## Getting started
 
 Install it as a registered  package in Julia's REPL package mode by
 typing `] add Nonline...`:
@@ -30,9 +30,9 @@ M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 λ^2\begin{bmatrix}1&0\newline0&1\end{bmatrix}
 ```
 The following code creates this NEP, by constructing an object called
-[`PEP`](types.md#PEP-1), an abbreviation for polynomial eigenvalue problem.
+[`PEP`](@ref), an abbreviation for polynomial eigenvalue problem.
 It subsequencly solves it using the NEP solution method implemented
-in [`polyeig()`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig):
+in [`polyeig`](@ref):
 ```julia-repl
 julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia> nep=PEP([A0,A1,A2])
@@ -52,10 +52,10 @@ julia> norm(A0*v1+λ1*A1*v1+λ1^2*v1)/norm(v1)
 ```
 
 !!! tip
-    MATLAB users: If you have a NEP defined in MATLAB, you can solve NEPs with this package.  See [the MATLAB tutorial](tutorial_matlab1.md). We also have some MATLAB implementations of the solvers in NEP-PACK in a [separate repository](https://github.com/nep-pack/NEP-PACK-matlab-reference).
+    MATLAB users: Do you have a NEP defined in MATLAB? You can solve MATLAB-defined NEPs with this package.  See [the MATLAB tutorial](tutorial_matlab1.md). We also have some MATLAB implementations of the solvers in NEP-PACK in a [separate repository](https://github.com/nep-pack/NEP-PACK-matlab-reference).
 
 
-# Accessing more complicated applications
+## Accessing more complicated applications
 
 We have made benchmark examples available through the function [`nep_gallery`](gallery.md#NonlinearEigenproblems.nep_gallery):
 
@@ -87,13 +87,13 @@ tolerance for iteration termination.
     an example how to use `mslp` and that citation credit should go to *A. Ruhe,
     Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal.
     10 (1973) 674-689*. This documentation is the same as the online documentation
-    under the tab [NEP Methods](methods.md).
+    under the tab [NEP-solvers](methods.md).
 
 
 
-# A model of a neuron
+## A model of a neuron
 
-The following (delay) differential equation models a neuron
+The following (delay) differential equation models the interaction of two neurons
 ```math
 \dot{x}_1(t)=-\kappa x_1(t)+\beta\tanh(x_1(t-\tau_3))+a_1\tanh(x_2(t-\tau_2))
 ```
@@ -117,15 +117,15 @@ A1=a2*[0 0; 1 0];
 A2=a1*[0 1; 0 0];
 A3=beta*[1 0; 0 1];
 ```
-We can now create the nonlinear eigenvalue problem and compute the stability
+We can now create the nonlinear eigenvalue problem and determine the stability
 by first creating the problem
 ```julia-repl
 julia> tauv=[0;0.2;0.2;1.5];
 julia> dep=DEP([A0, A1,   A2, A3],tauv);
 ```
-The constructor  [`DEP`](types.md#DEP-1) is an abbreviation for a delay eigenvalue problem, which
+The constructor  [`DEP`](@ref) is an abbreviation for a delay eigenvalue problem, which
 is a NEP with exponential terms stemming from the stability
-analysis of a delay-differential equation. See [`types`](types.md) for other NEP-types.
+analysis of a delay-differential equation. See [Types and data-structures](types.md) for other NEP-types.
 You can now solve this NEP, for instance,
 with the [infinite Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.iar_chebyshev):
 ```julia-repl
@@ -150,7 +150,7 @@ savefig("neuron_eigvals.svg"); nothing # hide
 !!! tip
     This problem is also available in the `Gallery` by calling `dep=nep_gallery("neuron0")`. Most of the NEPs constructed in the tutorials are also available in corresponding gallery problems. See all gallery problems under [NEP Gallery](gallery.md). In particular, note that the problems in the Berlin-Manchester collection of problems NLEVP are also [directly available](gallery.md#Berlin-Manchester-collection-1).
 
-# The "gun" benchmark problem
+## The "gun" benchmark problem
 
 One of the most common benchmark problems for NEPs is the so-called "gun"-problem.
 It models an electromagnetic cavity, and it is directly available in the NEP-PACK
@@ -188,7 +188,7 @@ give the author of the algorithm credit by citiation. The
 recommended citation can be found in the function
 documentation, e.g., `?blocknewton`.
 
-# Your own NEP nonlinearity
+## Your own NEP nonlinearity
 
 As an application researcher, we recommend that you first try to
 express your problem in the following form since it
@@ -226,7 +226,7 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
   -8.815768150428286e-15 + 0.0im
 ```
 
-# What now?
+## What now?
 
 Now you are ready to try out
 one of our tutorials
@@ -237,7 +237,7 @@ or
 [deflation](deflate_tutorial.md).
 See also the other tutorials (in the side-bar),
 or have a look at the examples
-in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
+in [NEP-solvers](methods.md) and  [NEP Gallery](gallery.md).
 
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC)

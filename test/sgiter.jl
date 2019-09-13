@@ -25,7 +25,7 @@ using LinearAlgebra
                 logger = displaylevel,
                 tol = 1e-9,
                 maxit = 100,
-                errmeasure = ResidualErrmeasure)
+                errmeasure = ResidualErrmeasure(nep))
   @test norm(compute_Mlincomb(nep,λ,v)) < 1e-9
 
 end

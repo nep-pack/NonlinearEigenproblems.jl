@@ -32,7 +32,7 @@ The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolv
 The `target` is the center around which eiganvlues are computed.
 By default the method uses a Petrov-Galerkin framework, with a trial (left) and test (right) space, hence ``W^H T(λ) V`` is the projection considered. By specifying  `projtype` to be `:Galerkin` then `W=V`.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -57,7 +57,7 @@ function jd_betcke(::Type{T},
                    projtype::Symbol = :PetrovGalerkin,
                    inner_solver_method = DefaultInnerSolver(),
                    orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
-                   errmeasure::ErrmeasureType = DefaultErrmeasure,
+                   errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                    linsolvercreator=DefaultLinSolverCreator(),
                    tol::Number = eps(real(T))*100,
                    λ::Number = zero(T),
@@ -91,11 +91,9 @@ function jd_betcke(::Type{T},
     normalize!(u)
     conveig = 0
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     # Initial check for convergence
-    err = estimate_error(ermdata,λ,u)
+    err = estimate_error(errmeasure,λ,u)
     if (err < tol) #Frist check, no other eiganvalues can be converged
         conveig += 1
         λ_vec[conveig] = λ
@@ -143,7 +141,7 @@ function jd_betcke(::Type{T},
         u[:] = V*s
 
         # Check for convergence
-        err = estimate_error(ermdata,λ,u)
+        err = estimate_error(errmeasure,λ,u)
         push_iteration_info!(logger,k,λ=λ,err=err,continues=true)
         push_info!(logger," conveig=$conveig");
 
@@ -198,7 +196,7 @@ The function tries to compute `neigs` number of eigenvalues, and throws a `NoCon
 The value `λ` and the vector `v` are initial guesses for an eigenpair. `linsolvercreator` is a function which specifies how the linear system is created and solved.
 The `target` is the center around which eiganvalues are computed. For further specifications on the `deflation_mode`, see the function `deflate_eigpair`.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example

@@ -60,7 +60,8 @@ end
 pygui(true)
 m,p=size(err);
 for j=1:p sort!(view(err,1:m,j);rev=true) end
-for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end ylim(ymax=10)
+for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
+ylim(ymax=10)
 
 figure()
 plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:black,linestyle=:none)

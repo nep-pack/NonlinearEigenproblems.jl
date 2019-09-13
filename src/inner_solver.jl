@@ -13,6 +13,8 @@ export SGIterInnerSolver
 export ContourBeynInnerSolver
 export NleigsInnerSolver
 
+export compute_rf
+
 """
     abstract type InnerSolver
 
@@ -47,7 +49,9 @@ abstract type InnerSolver end;
 """
     struct DefaultInnerSolver <: InnerSolver
 
-Dispatches a version of [`inner_solve`](@ref) based on the type of the NEP provided.
+Dispatches a version of [`inner_solve`](@ref) based on the
+type of the NEP provided. This function tries to automatically
+detect which solver is recommended.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -63,12 +67,14 @@ Uses a Newton-like method to solve the inner problem, with tolerance,
 and maximum number of iterations given by
 `tol` and `maxit`. The starting vector can be `:ones`,
 `:randn`, or `:Vk`. The value `:Vk` specifies the use
-of the super NEP-solver keyword argument (`Vk`).
+of the outer NEP-solver keyword argument (`Vk`).
 This is typically the previous iterate in the outer method.
 
 The kwarg `newton_function`, specifies a `Function`
-which is called. We support `augnewton`, `newton`, `resinv`
-`quasinewton`, `newtonqr`. In principle it can be any
+which is called. The type supports [`augnewton`](@ref),
+[`newton`](@ref), [`resinv`](@ref)
+[`quasinewton`](@ref), [`newtonqr`](@ref).
+In principle it can be any
 method which takes the same keyword arguments as these methods.
 
 
@@ -88,9 +94,10 @@ end;
 
 """
     struct PolyeigInnerSolver <: InnerSolver
+    function PolyeigInnerSolver()
 
-For polynomial eigenvalue problems.
-Uses [`polyeig`](@ref) to solve the inner problem.
+Specifies the use of [`polyeig`](@ref) to solve the inner problem.
+This is intended for NEPs of the type [`PEP`](@ref).
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -99,13 +106,20 @@ struct PolyeigInnerSolver <: InnerSolver end;
 
 """
     struct IARInnerSolver
-    IARInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,normalize_DEPs=:auto)
+    function IARInnerSolver(;tol=1e-13,maxit=80,
+               starting_vector=:ones,normalize_DEPs=:auto,
+               iar_function=iar)
 
-Uses [`iar`](@ref) to solve the inner problem, with tolerance,
+Uses [`iar`](@ref), [`tiar`](@ref) or [`iar_chebyshev`](@ref)
+to solve the inner problem, with tolerance,
 and maximum number of iterations given by
 `tol` and `maxit`. The starting vector can be `:ones` or
-`:randn`. `normalize_DEPs` determines if the we should carry out
-precomputation of DEPs (can speed up performance).
+`:randn`.
+The `iar_function` can be `iar`, `tiar` or `iar_chebyshev`
+(or any function taking the same parameters as input).
+`normalize_DEPs` determines if the we should carry out
+precomputation and make sure the projection of a [`DEP`](@ref)
+ is again a `DEP` (which can speed up performance).
 It can take the value `true`, `false` or `:auto`. `:auto`
 sets it to true if we use the `iar_chebyshev` solver.
 
@@ -151,7 +165,6 @@ function IARChebInnerSolver(;tol=1e-13,maxit=80,starting_vector=:ones,
     return IARInnerSolver(tol=tol,maxit=maxit,starting_vector=starting_vector,
                           normalize_DEPs=normalize_DEPs,
                           iar_function=iar_chebyshev)
-
 end
 
 
@@ -167,11 +180,13 @@ struct SGIterInnerSolver <: InnerSolver end;
 
 """
     struct ContourBeynInnerSolver <: InnerSolver
+    function ContourBeynInnerSolver(;tol=sqrt(eps(real(Float64))),
+                                    radius=:auto,N=1000)
 
 Uses [`contour_beyn`](@ref) to solve the inner problem, with radius and number
 of quadrature nodes, given by `radius` and `n`. If the variable `radius` is set
-to `:auto`, the integration radius will be automatically by using the eigenvalues
-approximations.
+to `:auto`, the integration radius will be automatically selected by
+using the eigenvalue approximations specified by the outer solver.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -186,10 +201,12 @@ end;
 
 """
     struct NleigsInnerSolver <: InnerSolver
+    function NleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-6 )
 
 Uses [`nleigs`](@ref) to solve the inner problem, in the region `Σ` with shifts
 `nodes` and with tolerance `tol`. If the variable `Σ` is set to `:auto`, the
 region `Σ` will be set by using the eigenvalues approximations.
+See [`nleigs`](@ref) for description of parameters.
 
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
@@ -208,7 +225,7 @@ end;
 
 Solves the projected linear problem with solver specied with `is`. This is to be used
 as an inner solver in an inner-outer iteration. T specifies which method
-to use. The most common choice is [`DefaultInnersolver`](@ref). The function returns
+to use. The most common choice is [`DefaultInnerSolver`](@ref). The function returns
 `(λv,V)` where `λv` is an array of eigenvalues and `V` a matrix with corresponding
 vectors.
 The struct `T_arit` defines the arithmetics used in the outer iteration and should prefereably
@@ -255,7 +272,9 @@ function inner_solve(is::NewtonInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;
                 v0=V[:,k]; # Starting vector for projected problem
             end
 
-            projerrmeasure=(λ,v) -> norm(compute_Mlincomb(nep,λ,v))/opnorm(compute_Mder(nep,λ));
+            n=size(nep,1);
+
+            projerrmeasure=ResidualErrmeasure(nep);
             # Compute a solution to projected problem with Newton's method
             λ1,vproj=is.newton_function(
                 T_arit,nep,logger=inner_logger,λ=λv[k],

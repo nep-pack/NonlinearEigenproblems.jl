@@ -27,7 +27,7 @@ which is evaluated in `λ`. The type of the output is
 decided by dispatch and the type of the `LinSolverCreator`.
 
 See also: `LinSolver`, `FactorizeLinSolverCreator`,
-`BackslashLinSolvercreator`, `DefaultLinSolverCreator`,
+`BackslashLinSolverCreator`, `DefaultLinSolverCreator`,
 `GMRESLinSolverCreator`.
 """
 function create_linsolver(creator::BackslashLinSolverCreator,nep,λ)
@@ -35,7 +35,7 @@ function create_linsolver(creator::BackslashLinSolverCreator,nep,λ)
 end
 
 """
-    FactorizeLinSolverCreator(;unfpack_refinements,max_factorizations,nep,precomp_values)
+    FactorizeLinSolverCreator(;umfpack_refinements,max_factorizations,nep,precomp_values)
 
 `FactorizeLinSolverCreator`-objects can instantiate `FactorizeLinSolver`
 objects via the `create_linsolver` function.
@@ -98,7 +98,19 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
 
     end
 end
+
 # For the moment, Factorize is the default behaviour
+"""
+    DefaultLinSolverCreator
+
+This is the default linear solver if no other is specified (for most methods).
+It is a `FactorizeLinSolverCreator`.
+
+
+See also: [`LinSolver`](@ref), [`create_linsolver`](@ref),
+[`lin_solve`](@ref), [`FactorizeLinSolverCreator`](@ref), [`FactorizeLinSolver`](@ref)
+
+"""
 DefaultLinSolverCreator = FactorizeLinSolverCreator
 
 

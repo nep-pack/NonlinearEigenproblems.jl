@@ -1,10 +1,11 @@
-# NEP Methods
+# NEP-Solvers
 
 The NEP solver methods implemented in NEP-PACK, are accessed by
-the functions below. The functions all return ``λ,v,w`` where
+the functions below. The functions all return ``λ,v`` where
 ``λ`` is either a number (eigenvalue) a vector of eigenvalues
 ``v`` is either a vector containing an eigenvector
 or a matrix whose columns corresponding to the eigenvectors.
+Two-sided methods may return ``λ,v,w`` where ``w`` are the left eigenvectors.
 
 The first parameter optional parameter in all NEP solver methods
 is a type. This type specifies which arithmetic should be used
@@ -24,6 +25,13 @@ julia> typeof(λ)
 Float16
 ```
 
+The NEP-solvers can be separated into the following types (with some overlap):
+
+* [Newton type methods](methods.md#Newton-type-methods-1)
+* [Projection methods](methods.md#Projection-methods-1)
+* [Contour integral methods](methods.md#Contour-integral-methods-1)
+* [Arnoldi and Krylov based methods](methods.md#Arnoldi-and-Krylov-based-methods-1)
+* [Class specific methods](methods.md#Class-specific-methods-1)
 
 ## Newton type methods
 ```@docs
@@ -48,6 +56,9 @@ sgiter
 rfi
 ```
 ```@docs
+rfi_b
+```
+```@docs
 blocknewton
 ```
 ```@docs
@@ -65,6 +76,10 @@ nlar
 jd_betcke
 jd_effenberger
 ```
+The following NEP-solvers can also be seen as
+projection methods:
+* [`iar`](@ref), [`tiar`](@ref), [`iar_chebyshev`](@ref),
+* [`nleigs`](@ref).
 
 ## Contour integral methods
 
@@ -127,5 +142,3 @@ nleigs
 companion
 polyeig
 ```
-
-### Rational ?

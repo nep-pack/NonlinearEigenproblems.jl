@@ -5,8 +5,20 @@
 Julia is a great programming language,
 but your problem may not be easy to define in Julia code, e.g., for legacy reasons.
 Don't let that prevent you from using the package.
-We now show how a problem defined in python can be solved
+We now show how a problem defined in Python can be solved
 with NEP-PACK.
+
+One of the advantages of the Julia language is that it
+is reasonably easy to interface with code written in
+other languages. In this tutorial we work with Python, and the two
+following tutorials we interface [MATLAB](tutorial_matlab1.md) and
+[fortran](tutorial_fortran1.md).
+
+!!! note
+    To work with NEPs defined in [Python](https://www.python.org/) you
+    need to have Python installed on
+    your computer. With the pakcage [PyCall](https://github.com/JuliaPy/PyCall.jl)
+    it is possible to let Julia control execution of Python code.
 
 The following python code correspond to the NEP
 ```math
@@ -51,23 +63,17 @@ def compute_Mlincomb(s,X):
     return z
 ```
 
-## Implementation in NEP-PACK
-
-One of the advantages of the Julia language is that it
-is reasonably easy to interface with code written in
-other langauges. The Julia package [PyCall](https://github.com/JuliaPy/PyCall.jl)
-simplifies the use of Python code and Julia code.
-
+## Interfacing Python code
 
 We first initiate `PyCall` as follows. Note that the `pushfirst!` command
 is needed, otherwise the module defined in the file `mynep.py` we gave
-above will not be found. (`PyCall` does not include the current directory in the module search path by default.)
+above will not be found.
+(`PyCall` does not include the current directory in the module search path by default.)
 
 ```julia
-using PyCall
-pushfirst!(PyVector(pyimport("sys")["path"]), "")
-local mynep
-@pyimport mynep as mynep
+using PyCall;
+pushfirst!(PyVector(pyimport("sys")."path"), "");
+mynep = pyimport("mynep")
 ```
 This gives us direct access to the `compute_M`
 and `compute_Mlincomb` functions from python, e.g.,
@@ -79,19 +85,58 @@ julia> mynep.compute_M(3+3im)
  -16.8845+2.83447im  -12.8845+5.83447im
 ```
 
-We now just need to define a NEP which calls these routines.
-It is achieved by defining a new NEP-PACK type, for
-which we have define the `size`-function, which is
-hard-coded in this example.
-
+## Implementation in NEP-PACK (using `Mder_Mlincomb_NEP`)
+We can now use the Python interface to define a NEP in Julia.
+The type [`Mder_Mlincomb_NEP`](@ref) is a special type made for this situation.
+The required inputs are the size, called `n`; a function to compute
+$M(λ)$, called `fder`; and a function
+to compute $\sum_{i=1}^kM^{(k)}(λ)x_i$, called `flincomb`.
+The extra `0` passed in the definition defines that $M(λ)$ is available,
+but no higher derivatives.
 ```julia
 using NonlinearEigenproblems
-import NonlinearEigenproblems.size
+n=2;
+fder = (λ,der) -> mynep.compute_M(complex(λ));
+flincomb =  (λ,X) -> mynep.compute_Mlincomb(complex(λ),complex(reshape(X,size(X,1),size(X,2))));
+nep=Mder_Mlincomb_NEP(n,fder,0,flincomb);
+```
+We can compare the Python call with the NEP-PACK call
+```julia-repl
+julia> compute_Mder(nep,3+3im)
+2×2 Array{Complex{Float64},2}:
+ -18.8845+2.83447im  -17.8845+2.83447im
+ -16.8845+2.83447im  -12.8845+5.83447im
+```
+We continue by computing some eigenvalues of the the NEP using the
+Infinite Arnoldi method ([`iar`](@ref)).
+```julia-repl
+julia> (λ,v)=iar(nep,v=[1;1],σ=1,logger=0,neigs=3);
+julia> λ
+3-element Array{Complex{Float64},1}:
+  0.6748316143423988 + 7.336803319821954e-19im
+ 0.11742590291190791 - 3.649946317867008im    
+ 0.11742590291191168 + 3.6499463178670144im  
+```
+We can verify that we actually computed solutions as follows:
+```julia-repl
+julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
+1.106424240899132e-15
+```
+
+## Implementation in NEP-PACK  (using new type)
+The previous implementation utilizes the convenience type `Mder_Mlincomb_NEP`,
+and solves the problem in a satisfactory way. Nevertheless, to illustrate more
+of the inner workings of NEP-PACK we solve the problem in a second way,
+by defining our own type.
+The first thing we need to do is to define the `size`-function, which is
+hard-coded in this example.
+```julia
+import NonlinearEigenproblems.size # We will overload these functions
 import NonlinearEigenproblems.compute_Mlincomb;
 import NonlinearEigenproblems.compute_Mder;
 struct PyNEP <: NEP # Set up a dummy type for our specific NEP
 end
-size(::PyNEP) = (2,2)
+size(::PyNEP) = (2,2) # Trivial function definitions
 size(::PyNEP,::Int) = 2
 ```
 As explained in [NEPTypes](types.md), a NEP is defined by
@@ -112,51 +157,30 @@ end
 We now create an object of our newly created type and we can access the
 NEP with the NEP-PACK specific compute functions:
 ```julia-repl
-julia> pnep=PyNEP();
-julia> compute_Mder(pnep,3+3im)
+julia> pynep=PyNEP();
+julia> compute_Mder(pynep,3+3im)
 2×2 Array{Complex{Float64},2}:
  -18.8845+2.83447im  -17.8845+2.83447im
  -16.8845+2.83447im  -12.8845+5.83447im
 ```
-
-## Solving the NEP
-
+The behavior is the same as above.
 Since a NEP-object is defined by its compute functions,
 we can now use many NEP-solvers to solve this problem.
-Here we use IAR:
+We again use [`iar`](@ref):
 ```julia-repl
-
-julia> (λv,vv)=iar(pnep,v=[1;1],σ=1,logger=1,neigs=3);
-Iteration:1 conveig:0
-Iteration:2 conveig:0
-Iteration:3 conveig:0
-Iteration:4 conveig:0
-Iteration:5 conveig:0
-Iteration:6 conveig:0
-Iteration:7 conveig:0
-....
-Iteration:26 conveig:1
-Iteration:27 conveig:1
-Iteration:28 conveig:1
-julia>
+julia> (λ2,v2)=iar(pynep,v=[1;1],σ=1,logger=0,neigs=3);
+julia> λ2
+3-element Array{Complex{Float64},1}:
+  0.6748316143423988 + 7.336803319821954e-19im
+ 0.11742590291190791 - 3.649946317867008im    
+ 0.11742590291191168 + 3.6499463178670144im   
 ```
-We can verify that we actually computed solutions as follows:
+We can compare with the eigenvalues computed above and, again,
+verify that we actually computed solutions as follows:
 ```julia-repl
-julia> λ=λv[1]; # Take the first eigenpair
-julia> v=vv[:,1]
-2-element Array{Complex{Float64},1}:
- -0.7606536306084172 + 4.723354443026557e-18im
-   0.568748796395112 + 1.8318449036023953e-19im
-julia> A=[1 2 ; 3 4];
-julia> B=[0 0 ; 0 1];
-julia> C=[1 1 ; 1 1];
-julia> r=A*v+λ*B*v+exp(λ)*C*v;
-2-element Array{Complex{Float64},1}:
- -3.3306690738754696e-16 + 1.4448222154182884e-17im
- -1.0547118733938987e-15 + 2.4802198512062408e-17im
+julia> norm(compute_Mlincomb(pynep,λ2[1],v2[:,1]))
+1.106424240899132e-15
 ```
 Residual is almost zero, so we have a solution.
-
-Note: The above functionality can also be achieved with  `Mder_NEP` in the development version of NEP-PACK
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_PYTHON1)

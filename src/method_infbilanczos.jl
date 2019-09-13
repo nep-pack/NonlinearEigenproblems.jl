@@ -13,7 +13,7 @@ and `nept::NEP`. `nep:NEP` is the original nonlinear eigenvalue problem and
 The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
 However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example:
 ```julia-repl
@@ -39,7 +39,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                           u::Vector=randn(real(T),size(nep,1)),
                           tol::Real=1e-12,
                           neigs=5,
-                          errmeasure::ErrmeasureType = DefaultErrmeasure,
+                          errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                           σ::Number=0.0,
                           γ::Number=1,
                           logger=0,
@@ -95,8 +95,6 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
         normq=norm(q); normqt=norm(qt);
         push_info!(logger,2,"norm(q)=$normq  norm(qt)=$normqt");
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
 
         k=1;
@@ -189,7 +187,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
                 # compute the errors
 
                 err=
-                  map(s-> estimate_error(ermdata,λ[s],Q[:,s]), 1:size(λ,1))
+                  map(s-> estimate_error(errmeasure,λ[s],Q[:,s]), 1:size(λ,1))
                 # Log them and compute the converged
                 push_iteration_info!(logger,2, k,err=err,λ=λ,v=
                                      continues=true);

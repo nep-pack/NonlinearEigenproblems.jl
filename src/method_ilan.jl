@@ -39,7 +39,7 @@ The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
 However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
@@ -68,7 +68,7 @@ function ilan(
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
     neigs=6,
-    errmeasure::ErrmeasureType = DefaultErrmeasure,
+    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
     σ=zero(T),
     γ=one(T),
     v=randn(real(T),size(nep,1)),
@@ -137,8 +137,7 @@ function ilan(
     k=1; conv_eig=0;
     Av=get_Av(nep)
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
+
 
     while (k <= m) && (conv_eig<neigs)
         # store all the (first blocks) vectors of the Arnoldi sequence. This is needed
@@ -215,7 +214,7 @@ function ilan(
 
             end
             # compute the errors
-            err[k,1:size(λ,1)]=map(s->estimate_error(ermdata,λ[s],W[:,s]),1:size(λ,1))
+            err[k,1:size(λ,1)]=map(s->estimate_error(errmeasure,λ[s],W[:,s]),1:size(λ,1))
 
             # Log them and compute the converged
             push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,

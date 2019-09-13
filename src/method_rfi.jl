@@ -11,7 +11,7 @@ export rfi_b
 This is an implementation of the two-sided Rayleigh functional Iteration (RFI) to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -30,13 +30,14 @@ rfi(nep::NEP, nept::NEP; kwargs...) = rfi(ComplexF64,nep, nept,;kwargs...)
 function rfi(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
             linsolvercreator=BackslashLinSolverCreator(), # Note: Not default. It's better to use backslash
+            inner_solver=@default_compute_rf_inner_solver(nep),
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
@@ -47,11 +48,9 @@ function rfi(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err = estimate_error(ermdata,λ,u)
+            err = estimate_error(errmeasure,λ,u)
 
             if(err < tol)
                 return λ,u,v
@@ -69,7 +68,7 @@ function rfi(::Type{T},
             y = lin_solve(linsolver_t,compute_Mlincomb(nept,λ,v,[T(1)],1),tol = tol)
             v[:] = normalize(y)
 
-            λ_vec = compute_rf(nep, u, y=v)
+            λ_vec = compute_rf(T,nep, u, inner_solver, y=v)
             λ = closest_to(λ_vec,  λ)
         end
 
@@ -83,7 +82,7 @@ end
 This is an implementation of the two-sided Rayleigh functional Iteration(RFI)-Bordered version to compute an eigentriplet of the problem specified by `nep`.
 This method requires the transpose of the NEP, specified in `nept`.
 `λ`, `u` and `v` are initial guesses for the eigenvalue, the right eigenvector and the left eigenvector respectively.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 # Example
 ```julia-repl
@@ -104,12 +103,13 @@ rfi_b(nep::NEP, nept::NEP; kwargs...) = rfi_b(ComplexF64,nep, nept,;kwargs...)
 function rfi_b(::Type{T},
             nep::NEP,
             nept::NEP;
-            errmeasure::ErrmeasureType = DefaultErrmeasure,
+            errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*1000,
             maxit=100,
             λ::Number = zero(T),
             v::Vector = randn(T,size(nep,1)),
             u::Vector = randn(T,size(nep,1)),
+            inner_solver=@default_compute_rf_inner_solver(nep),
             logger=0) where {T <: Number}
 
         @parse_logger_param!(logger)
@@ -119,11 +119,9 @@ function rfi_b(::Type{T},
         normalize!(v)
         normalize!(u)
 
-        # Init errmeasure
-        ermdata=init_errmeasure(errmeasure,nep);
 
         for k=1:maxit
-            err = estimate_error(ermdata,λ,u)
+            err = estimate_error(errmeasure,λ,u)
 
             if(err < tol)
                 return λ,u,v
@@ -143,7 +141,7 @@ function rfi_b(::Type{T},
             t = l2[1:end-1]
             v[:] = normalize(v+t)
 
-            λ_vec = compute_rf(nep, u, y=v)
+            λ_vec = compute_rf(T,nep, u, inner_solver, y=v)
             λ = closest_to(λ_vec,  λ)
         end
 

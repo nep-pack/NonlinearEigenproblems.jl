@@ -1,6 +1,6 @@
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
-using Test
+using Test,Random
 using LinearAlgebra
 
 @testset "Jacobi–Davidson" begin
@@ -11,16 +11,15 @@ using LinearAlgebra
 @bench @testset "Betcke-Voss" begin
 @info "Test: Betcke-Voss"
 
-
+Random.seed!(0);
 @info "Testing a PEP"
 nep = nep_gallery("pep0",60)
 TOL = 1e-11;
-λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 3, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure)
+λ,u = jd_betcke(nep, tol=TOL, maxit=55, neigs = 2, logger=displaylevel, v=ones(size(nep,1)),errmeasure=ResidualErrmeasure(nep))
 @info " Smallest eigenvalue found: $λ"
 Dc,Vc = polyeig(nep,DefaultEigSolver)
 c = sortperm(abs.(Dc))
-@info " 6 smallest eigenvalues according to the absolute values: $(Dc[c[1:6]])"
-verify_lambdas(3, nep, λ, u, TOL)
+verify_lambdas(2, nep, λ, u, TOL)
 
 
 @info "Testing SG as inner solver"
@@ -62,7 +61,8 @@ end
 @bench @testset "Effenberger" begin
 @info "Test: Effenberger"
 
-TOL = 1e-10
+    Random.seed!(0);
+    TOL = 1e-10
 nep = nep_gallery("pep0",250)
 λ, u = jd_effenberger(nep, neigs=5, logger=displaylevel, tol=TOL, maxit=80, λ=0.82+0.9im, v=ones(ComplexF64,size(nep,1)))
 verify_lambdas(5, nep, λ, u, TOL)

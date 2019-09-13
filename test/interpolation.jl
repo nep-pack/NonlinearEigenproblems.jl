@@ -32,13 +32,13 @@ end
 @bench @testset "Random sparse dep" begin
 nep = nep_gallery("dep0_sparse", 30)
 
-λ1,x1 = newton(nep,logger=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
+λ1,x1 = newton(nep,logger=displaylevel,maxit=40, λ=0.2, v=ones(size(nep,1)),armijo_factor=0.5);
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 
 # Newton on interpolated sparse dep
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
-λ2,x2 = newton(pep,logger=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
+λ2,x2 = newton(pep,logger=displaylevel,maxit=40, λ=0.2, v=ones(size(nep,1)),armijo_factor=0.5);
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*1000
 
@@ -88,15 +88,15 @@ end
 @bench @testset "Random sparse pep (original pep of degree 2)" begin
 nep=nep_gallery("pep0_sparse")
 λ1,x1 =newton(nep,logger=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-@test compute_resnorm(nep,λ1,x1) < eps()*100
+@test compute_resnorm(nep,λ1,x1) < eps()*500
 
 
 #Newton on interpolated sparse pep
 intpoints = [λ1-1, λ1, λ1+1.5]
 pep = interpolate(nep, intpoints)
 λ2,x2 =newton(pep,logger=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
-@test compute_resnorm(pep,λ2,x2) < eps()*100
-@test abs(λ1-λ2)/abs(λ1) < eps()*100
+@test compute_resnorm(pep,λ2,x2) < eps()*500
+@test abs(λ1-λ2)/abs(λ1) < eps()*500
 
 @testset "Coefficient matrix differences (monomes) deg 2" begin
 for i = 1:3

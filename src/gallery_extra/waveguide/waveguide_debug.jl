@@ -1,7 +1,10 @@
-"
-   A module with an implementation of the waveguide functionality
-   using MATLAB callbacks
-"
+"""
+    waveguide_debug
+
+A module with an implementation of the waveguide functionality
+using MATLAB callbacks.
+Used as rerefence implementation to check that Julia implementation works.
+"""
 module waveguide_debug
 push!(LOAD_PATH, string(@__DIR__,"/../"))	# looks for modules in the current directory
 push!(LOAD_PATH, string(@__DIR__,"/../../"))	# looks for modules in the current directory
@@ -37,7 +40,6 @@ import GalleryWaveguide.generate_wavenumber_fd
 import GalleryWaveguide.generate_fd_interior_mat
 import GalleryWaveguide.generate_fd_boundary_mat
 import GalleryWaveguide.generate_R_matvecs
-import GalleryWaveguide.generate_Pinv_matrix
 import GalleryWaveguide.generate_S_function
 import GalleryWaveguide.sqrt_schur_pos_imag
 import GalleryWaveguide.sqrt_derivative
@@ -103,6 +105,46 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
     end
 
     return P, p_P
+end
+
+# Generate a function for mat-vecs with P^{-1}-matrix
+# P is the lower right part of the system matrix, from the DtN maps Jarlebring-(1.5)(1.6) and Ringh-(2.4)(2.8)
+function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
+
+   R, Rinv = generate_R_matvecs(nz::Integer)
+   p = (nz-1)/2;
+
+   # Constants from the problem
+   d0 = -3/(2*hx);
+   a = ones(ComplexF64,nz);
+   b = 4*pi*1im * (-p:p);
+   cM = Km^2 .- 4*pi^2 * ((-p:p).^2);
+   cP = Kp^2 .- 4*pi^2 * ((-p:p).^2);
+
+   function betaM(γ)
+       return a*γ^2 + b*γ + cM
+   end
+   function betaP(γ)
+       return a*γ^2 + b*γ + cP
+   end
+
+   function sM(γ::Number)
+       bbeta = betaM(γ)
+       return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ d0
+   end
+   function sP(γ::Number)
+       bbeta = betaP(γ)
+       return 1im*sign.(imag(bbeta)).*sqrt.(bbeta) .+ d0
+   end
+
+   # BUILD THE INVERSE OF THE FOURTH BLOCK P
+   function Pinv(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
+       return vec(  [R(Rinv(x[1:Int64(end/2)]) ./ sM(γ));
+                     R(Rinv(x[Int64(end/2)+1:end]) ./ sP(γ))  ]  )
+   end
+
+
+   return Pinv
 end
 
 
@@ -184,7 +226,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -221,7 +263,7 @@ function matlab_debug_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("Difference P_m(γ) - P_2(γ) = ", opnorm(P_m-P_j2))
         println("Relative difference opnorm(P_m(γ) - P_2(γ))/opnorm(P_2(γ)) = ", opnorm(P_m-P_j2)/opnorm(Matrix(P_j2)))
         v = rand(ComplexF64,2*nz)
-        println("Relative difference norm(v - Pinv_j((γ))*P_j(γ)*v)/opnorm(v) = ", norm(v - Pinv(γ,P(γ,v)) )/norm(v))
+        println("Relative difference norm(v - Pinv_j((γ))*P_j(γ)*v)/norm(v) = ", norm(v - Pinv(γ,P(γ,v)) )/norm(v))
     end
     println("\n--- End Matrices FD against MATLAB ---\n")
 end
@@ -243,7 +285,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         println("\n")
         println("Testing full matrix M for waveguide: ", waveguide)
 
-        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
+        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "SpmF", delta = delta)
         M_j = compute_Mder(nep_j,γ)
 
         if waveguide == "JARLEBRING"
@@ -253,7 +295,7 @@ function matlab_debug_full_matrix_WEP_FD_SPMF(nx::Integer, nz::Integer, delta::N
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -321,7 +363,7 @@ function debug_sqrt_derivative()
     d_vec = [0 1 2 3 4 11 19 20 21 22 30 35 45 60] #Factorial for Int64 overflows at 21!
     x = 25*rand()
 
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
         println("  -- Matlab printouts start --")
         mat"""
             addpath($WEP_path)
@@ -361,8 +403,8 @@ function debug_Mlincomb_FD_WEP(nx::Integer, nz::Integer, delta::Number)
         println("\n")
         println("Testing full matrix M for waveguide: ", waveguide)
 
-        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
-        nep_SPMF = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
+        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "WeP", delta = delta)
+        nep_SPMF = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "SpmF", delta = delta)
 
         for d = [0 1 2 5]
             M_j = zeros(ComplexF64, n, n)
@@ -410,7 +452,7 @@ function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         println("\n")
         println("Testing Schur-complement for waveguide: ", waveguide)
 
-        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WEp", delta = delta)
+        nep_j = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "WEp", delta = delta)
         Schur_fun = SchurMatVec(nep_j, γ)
         Schur_j = zeros(ComplexF64, n, n)
         for i = 1:n
@@ -428,7 +470,7 @@ function matlab_debug_Schur_WEP_FD(nx::Integer, nz::Integer, delta::Number)
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -472,7 +514,7 @@ function fft_debug_mateq(nx::Integer, nz::Integer, delta::Number)
             waveguide_str = waveguide
         end
         println("  -- Matlab printouts start --")
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
          mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -536,7 +578,7 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
         println("\n")
         println("Testing Sylvester SMW for waveguide: ", waveguide)
 
-        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "wEp", delta = delta)
+        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "wEp", delta = delta)
 
         println("  Generate SMW-matrix")
         M_j = @time generate_smw_matrix(nep, N, σ)
@@ -552,7 +594,7 @@ function debug_Sylvester_SMW_WEP(nx::Integer, nz::Integer, delta::Number, N::Int
         end
 
         println("  -- Matlab printouts start --")
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
         mat"""
             addpath($WEP_path)
             nxx = double($nx);
@@ -613,9 +655,9 @@ function debug_WEP_FD_preconditioner(delta::Number)
 
     for waveguide = ["TAUSCH", "JARLEBRING"]
         println("\n")
-        println("Testing eigenvalue computations for waveguide: ", waveguide)
+        println("Preconditioner in GMRES for waveguide: ", waveguide)
 
-        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
+        nep = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "WeP", delta = delta)
 
 
         bb = rand(ComplexF64, nx*nz)
@@ -635,8 +677,8 @@ function debug_WEP_FD_preconditioner(delta::Number)
             precond = @time wep_generate_preconditioner(nep, N, γ)
 
             gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:Pl,precond), (:tol, 1e-13), (:verbose,true))
-            wep_solver = wep_gmres_linsolvercreator(nep, γ, gmres_kwargs)
-
+            linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=gmres_kwargs)
+            wep_solver = create_linsolver(linsolvercreator, nep, γ)
             x = lin_solve(wep_solver, b)
 
             println("    Relative residual norm = ", norm(compute_Mlincomb(nep, gamma, x) - b)/norm(b))
@@ -660,9 +702,9 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         println("\n")
         println("Testing eigenvalue computations for waveguide: ", waveguide)
 
-        nep_j_WEPFD =    nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "WeP", delta = delta)
-        nep_j_SPMF  =    nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF", delta = delta)
-        nep_j_SPMF_pre = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, discretization = "fD", neptype = "SpmF_prE", delta = delta)
+        nep_j_WEPFD =    nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "WeP", delta = delta)
+        nep_j_SPMF  =    nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "SpmF", delta = delta)
+        nep_j_SPMF_pre = nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = waveguide, neptype = "SpmF_prE", delta = delta)
 
         if waveguide == "JARLEBRING"
             waveguide_str = "CHALLENGE"
@@ -676,17 +718,16 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
         println("    Generating preconditioner")
         precond = @time wep_generate_preconditioner(nep_j_WEPFD, N, γ)
-
         gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,false), (:Pl,precond), (:tol, 1e-13))
-        function my_wep_gmres_linsolvercreator(nep::NEP, λ)
-            return wep_gmres_linsolvercreator(nep, λ, gmres_kwargs)
-        end
 
         println("    Compute for WEP_FD")
         eigval_j_WEPFD = NaN
         eigvec_j_WEPFD = NaN
         try
-            eigval_j_WEPFD, eigvec_j_WEPFD = @time resinv(nep_j_WEPFD, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=zeros(ComplexF64,nx*nz+2*nz), linsolvercreator=my_wep_gmres_linsolvercreator)
+            eigval_j_WEPFD, eigvec_j_WEPFD = @time resinv(nep_j_WEPFD, logger=1, λ=γ, maxit = 30,
+                                                          tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=zeros(ComplexF64,nx*nz+2*nz),
+                                                          linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=gmres_kwargs)
+                                                          );
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -701,7 +742,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF = NaN
         eigvec_j_SPMF = NaN
         try
-            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=zeros(ComplexF64,nx*nz+2*nz))
+            eigval_j_SPMF, eigvec_j_SPMF = @time resinv(nep_j_SPMF, logger=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=zeros(ComplexF64,nx*nz+2*nz))
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -715,7 +756,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
         eigval_j_SPMF_pre = NaN
         eigvec_j_SPMF_pre = NaN
         try
-            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, displaylevel=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=zeros(ComplexF64,nx*nz+2*nz))
+            eigval_j_SPMF_pre, eigvec_j_SPMF_pre = @time resinv(nep_j_SPMF_pre, logger=1, λ=γ, maxit = 30, tol = 1e-10, v=ones(ComplexF64,nx*nz+2*nz), c=zeros(ComplexF64,nx*nz+2*nz))
         catch err
             # Only catch NoConvergence
             isa(err, NoConvergenceException) || rethrow(err)
@@ -727,7 +768,7 @@ function matlab_debug_eigval_comp_WEP_FD_and_SPMF(nz::Integer, N::Integer, delta
 
 
         println("  -- Matlab printouts start --")
-        WEP_path = string(@__DIR__, "/../../../matlab/WEP")
+        WEP_path = string(@__DIR__, "/WEP-ref")
         mat"""
             addpath($WEP_path)
 

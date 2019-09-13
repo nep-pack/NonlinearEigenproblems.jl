@@ -53,7 +53,7 @@ using Random
 
     λ,u = nlar(pepnep, tol=TOL, maxit=60, neigs=3, R=0.001, logger=displaylevel,
         λ=Dc[4]+1e-2, v=ones(size(pepnep,1)), eigval_sorter=residual_eigval_sorter,
-        inner_solver_method=IARInnerSolver(), qrfact_orth=false, errmeasure=ResidualErrmeasure)
+        inner_solver_method=IARInnerSolver(), qrfact_orth=false, errmeasure=ResidualErrmeasure(pepnep))
 
     verify_lambdas(3, pepnep, λ, u, TOL)
 

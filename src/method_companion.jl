@@ -6,7 +6,7 @@ export polyeig #Wrapper around the solver for a linearized PEP pencil
 
 
 """
-    E,A = companion(nep::Pep);
+    E,A = companion(nep::PEP);
 
 Linearizes a  polynomial eigenvalue problem (PEP) a to the companion form, as in the paper by Mehrmann and Voss.
 More precisely, for a k-th degree PEP with n-by-n coefficient matrices,
@@ -121,6 +121,8 @@ julia> # Actually, it's not a bad approx to the original NEP either
 julia> norm(compute_Mlincomb(nep,λ,v))
 4.326355966047557e-6
 ```
+
+See also [`ChebPEP`](@ref).
 
 # References:
 

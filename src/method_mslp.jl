@@ -10,14 +10,15 @@ export mslp
 Runs the method of successive linear problems. The  method requires the solution of a
 generalized eigenvalue problem in every iteration. The method used for the eigenvalue
 computation is specified in eigsolvertype.
-See [`newton`](@ref) for other parameters.
+See [`augnewton`](@ref) for other parameters.
 
 
 # Example
-Create a rational NEP with SPMFs.
+Create a rational NEP using a [`SPMF_NEP`](@ref).
 ```julia-repl
-julia> Av=[ones(3,3),eye(3,3),triu(ones(3,3))];
-julia> fv=[S-> S, S -> S^2, S::AbstractArray -> inv(Matrix(S)-eye(S)*10)]
+julia> eye=Matrix{Float64}(I,3,3);
+julia> Av=[ones(3,3),eye,triu(ones(3,3))];
+julia> fv=[S-> S, S -> S^2, S->inv(S-one(S)*10)]
 julia> nep=SPMF_NEP(Av,fv)
 julia> (λ,v)=mslp(nep)
 julia> compute_Mlincomb(nep,λ,v)
@@ -36,7 +37,7 @@ julia> compute_Mlincomb(nep,λ,v)
 mslp(nep::NEP;params...)=mslp(ComplexF64,nep;params...)
 function mslp(::Type{T},
                  nep::NEP;
-                 errmeasure::ErrmeasureType = DefaultErrmeasure,
+                 errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                  tol::Real=eps(real(T))*100,
                  maxit::Integer=100,
                  λ::Number=zero(T),
@@ -55,8 +56,6 @@ function mslp(::Type{T},
 
     err=Inf;
 
-    # Init errmeasure
-    ermdata=init_errmeasure(errmeasure,nep);
 
     # Main loop
     for k=1:maxit
@@ -74,7 +73,7 @@ function mslp(::Type{T},
         normalize!(v)
 
         # Checck for convergence
-        err=estimate_error(ermdata,λ,v)
+        err=estimate_error(errmeasure,λ,v)
         push_iteration_info!(logger,k,err=err,λ=λ);
 
         if (err< tol)
