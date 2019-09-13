@@ -65,11 +65,11 @@ julia> size(nep)
 (100, 100)
 julia> λ,v=mslp(nep,tol=1e-10);
 julia> λ
-0.23169217667341738 - 2.1866254654451488e-16im
+0.05046248970129549 - 7.60684247532422e-16im
 julia> size(v)
 (100,)
 julia> resnorm=norm(compute_Mlincomb(nep,λ,v))
-3.124042808475689e-14
+5.178780131881974e-13
 ```
 Information about the gallery can be found by typing `?nep_gallery`.
 The second arument in the call to `nep_gallery` is a problem parameter,
