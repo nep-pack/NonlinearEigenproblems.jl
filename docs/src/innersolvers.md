@@ -24,7 +24,7 @@ projection is handled, e.g., if you use the type [`SPMF_NEP`](@ref)
 with only a few terms. For instance,
 if you wish to use the infinite Arnoldi method ([`iar`](@ref))
 to handle the project solves in the nonlinear
-Arnoldi method ([`nlar`](@ref)), you can do the following:
+Arnoldi method ([`nlar`](@ref)), you can call `nlar` with the kwarg `inner_solver_method=`[`IARInnerSolver`](@ref)`()`:
 
 ```julia-repl
 julia> nep=nep_gallery("dep0_tridiag");
@@ -165,12 +165,13 @@ which are designed to be as efficient as possible.
 
 ### Projection functions
 
-You can create a projected NEP with `create_proj_NEP`:
+You can create a projected NEP with `create_proj_NEP`, and specify the
+projection space with 
+[`set_projectmatrices!`](@ref) and [`expand_projectmatrices!`](@ref).
 
 ```@docs
 create_proj_NEP
 ```
-
 
 ```@docs
 set_projectmatrices!
@@ -188,8 +189,7 @@ inherit from `ProjectableNEP`.
 ProjectableNEP
 ```
 
-The result of the
-projection is represented in a `Proj_NEP`.
+The result of the projection is represented in a `Proj_NEP`.
 
 ```@docs
 Proj_NEP
@@ -210,3 +210,5 @@ Proj_SPMF_NEP
 ```@docs
 compute_rf
 ```
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_INNERSOLVE)
