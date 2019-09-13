@@ -1,7 +1,7 @@
 # Transformations between types
 using SparseArrays
 
-export transform_to_pep
+export taylor_exp_pep
 export shift_and_scale
 export mobius_transform
 
@@ -195,13 +195,13 @@ end
 
 # consider renaming this function
 """
-    transform_to_pep(orgnep::NEP[,d=2])
+    taylor_exp_pep(orgnep::NEP[,d=2])
 
 Compute the truncated (with `d` terms) Taylor series of the NEP.
 The output is a [`PEP`](@ref).
 """
-function transform_to_pep(nep::NEP,d::Integer=2)
-    A=Array{Array{Float64, 2}}(d+1)
+function taylor_exp_pep(nep::NEP,d::Integer=2)
+    A=Vector{Matrix}(undef,d+1)
     for i=0:d
         A[i+1]=compute_Mder(nep,0,i)/factorial(i);
     end
