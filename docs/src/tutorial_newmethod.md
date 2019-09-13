@@ -11,13 +11,13 @@ helper functionality to combine with,
 and you will have to possibility to compare your method
 with other solvers.
 We now illustrate how to implement your
-own solver.
+own NEP-solver.
 
 ## Halley's method
 
 [Halley's method for root-finding of nonlinear scalar equations](https://en.wikipedia.org/wiki/Halley%27s_method)
 has fast local convergence - even faster
-than Newton's method in terms of iterations.
+than Newton's method in terms of iterations and convergence order.
 A NEP can be formulated as a
 root-finding problem since a solution will always
 satisfy
@@ -28,7 +28,7 @@ The application of Halley's method to this nonlinear scalar equation
 will serve as an example solver, although it does, to our
 knowledge, not lead to a competitive algorithm.
 Halley's method for the root-finding problem is
-defined as the
+defined by the iteration
 ```math
 λ_{k+1}=λ_k-\frac{2f(λ_k)f'(λ_k)}{2(f'(λ_k))^2-f(λ_k)f''(λ_k)}
 ```
@@ -45,7 +45,7 @@ estimate the derivatives, i.e.,
 ## Implementation in NEP-PACK (preliminary version)
 
 Let us first define our solver function
-and introduce the function of which we wish to find the roots.
+and introduce the function whose roots we wish to find.
 The matrix ``M(λ)`` is obtained from the
 [`compute_Mder`](@ref)-function.
 ```julia
@@ -73,20 +73,16 @@ evaluations, as follows:
        end
    end
 ```
-Let's test our code on a benchmark problem:
+Let us now test the code on a benchmark problem:
 ```julia
 julia> nep=nep_gallery("dep0");
 julia> λ=halley(nep)
-(i, λ) = (1, -0.08425238005323712)
-(i, λ) = (2, -0.14769529096609657)
-(i, λ) = (3, -0.443164132772242)
-(i, λ) = (4, -0.3653012970379835)
-(i, λ) = (5, -0.35874460050208345)
-(i, λ) = (6, -0.3587189462161427)
-(i, λ) = (7, -0.35871894596862675)
-(i, λ) = (8, -0.3587189459686267)
+(i, λ) = (1, -0.13876571372157542)
+(i, λ) = (2,  0.15938372556136426)
+(i, λ) = (3, -0.15955391446207692)
+(i, λ) = (4, -0.15955391823299248)
 ```
-Clearly, the algorithm terminates after 8 iterations.
+Clearly, the algorithm terminates after 4 iterations.
 We can verify that this is actually
 a solution easily if we also
 have an approximate eigenvector. An eigenvector
@@ -95,17 +91,17 @@ on the matrix ``M(λ)``:
 ```julia
 julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
 5-element Array{Float64,1}:
- -0.3170546135678643
-  0.15957983055370098
- -0.30996780934165974
-  0.5577415634513512
-  0.6832678503094953
+  0.14358324743994907 
+  0.9731847884093298  
+ -0.12527093093249475 
+  0.031821422867456914
+  0.12485915894832478 
 ```
 The residual norm  ``|M(λ)x|`` does indeed become almost zero
 so it seems we have a solution:
 ```julia
 julia> norm(compute_Mlincomb(nep,λ,x))
-6.735017818475343e-16
+7.093661646042283e-16
 ```
 
 ## Implementation in NEP-PACK (full version)
@@ -142,7 +138,7 @@ function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
         # Compute an eigenvector. This will not work if the
         # eigenvector is orthogonal to ones(n)
         x=normalize(compute_Mder(nep,λ)\ones(n));
-        err=estimate_error(ermdata,λ,x)  # Estimate the error
+        err=estimate_error(errmeasure,λ,x)  # Estimate the error
         push_iteration_info!(logger,i; λ=λ,err=err) # Put it into the log
         if (err<tol)
             return (λ,x)
@@ -151,22 +147,20 @@ function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
 end
 ```
 
-We can now run our new method using with a `logger=1` keyword
-argument
+We can now run our new method using 
+with a `logger=1` keyword argument
 so we get the standardized output of iteration info:
 ```julia-repl
 julia> (λ,x)=halley(nep,logger=1);
-iter 1 err:0.08492602120772309 λ=-0.08425238005323712
-iter 2 err:0.07450867012944977 λ=-0.14769529096609657
-iter 3 err:0.032639292900081246 λ=-0.443164132772242
-iter 4 err:0.00281602165251169 λ=-0.3653012970379835
-iter 5 err:1.1025990567599428e-5 λ=-0.35874460050208345
-iter 6 err:1.0638098128402615e-10 λ=-0.3587189462161427
-iter 7 err:4.942402279980973e-17 λ=-0.35871894596862675
+iter 1 err:0.010384216303530201 λ=-0.13876571372157542
+iter 2 err:8.082978338039669e-5 λ=-0.15938372556136426
+iter 3 err:1.7901681647471861e-9 λ=-0.15955391446207692
+iter 4 err:1.0389976569127096e-16 λ=-0.15955391823299248
 julia> norm(compute_Mlincomb(nep,λ,x))
-5.613646650354486e-16
+7.093661646042283e-16
 ```
-If you now want to plot the error history,
+The use of the NEP-PACK logging functionality makes it
+very easy to visualize the error. If you now want to plot the error history,
 you can use the [`ErrorLogger`](@ref):
 ```julia-repl
 julia> mylogger=ErrorLogger()
@@ -190,3 +184,6 @@ grid() # hide
 savefig("newmethod_convergence.svg"); nothing # hide
 ```
 ![](newmethod_convergence.svg)
+
+![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_NEWMETHOD)
+
