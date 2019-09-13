@@ -119,7 +119,7 @@ using LinearAlgebra
     @bench @testset "taylor exp" begin
         nep=nep_gallery("dep0");
         d=5;
-        pep=taylor_exp_pep(nep,d);
+        pep=taylor_expansion_pep(nep,d);
         s=0.1;
         @test norm(compute_Mder(pep,s)-compute_Mder(nep,s)) < abs(s)^d
     end

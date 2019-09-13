@@ -22,7 +22,7 @@ mobius_transform
 ## Expansions
 
 ```@docs
-taylor_exp_pep
+taylor_expansion_pep
 ```
 
 ```@docs
