@@ -21,7 +21,8 @@ NEP-solver to the deflated NEP.
 * Given a NEP (which can be a deflated NEP) `nep` and an eigenpair `(λ,v)` you can compute a deflated NEP by calling `dnep=`[`deflate_eigpair`](@ref)`(nep,λ,v)` and `dnep` will essentially have the same eigenvalues as `nep`, except `λ`.
 * The transformation changes the eigenvectors such that the eigenvectors of `nep` and `dnep` will be different. To extract the eigenvectors (and the eigenvalues) you can call [`get_deflated_eigpairs`](@ref)`(dnep)`.
 
-More elaborate deflation examples can be found in [the tutorial on deflation](deflate_tutorial.md).
+!!! note
+    More elaborate deflation examples can be found in [the tutorial on deflation](deflate_tutorial.md).
 
 
 

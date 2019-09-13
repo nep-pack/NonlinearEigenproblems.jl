@@ -166,6 +166,7 @@ if (mod(i,round(N/50))==1)
    print(".")
 end
 ```
+and `println()` in the second code insertion.
 In this way, we will print a progress bar, which
 prints in total (approximately) 50 dots.
 You will see dots gradually appearing as a progress
