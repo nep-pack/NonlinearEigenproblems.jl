@@ -240,4 +240,22 @@ or have a look at the examples
 in [NEP-solvers](methods.md) and  [NEP Gallery](gallery.md).
 
 
+## How to cite
+
+
+We have a preprint for this work. If you find this software useful please cite our 
+
+```bibtex
+@Misc{,
+  author = 	 {E. Jarlebring and M. Bennedich and G. Mele and E. Ringh and P. Upadhyaya},
+  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenproblems},
+  year = 	 {2018},
+  note = 	 {https://github.com/nep-pack},
+  eprint = {arXiv:1811.09592},
+}
+```
+If you use a specific method, please also give credit to the algorithm researcher.
+Reference to a corresponding algorithm paper can be found by in, e.g., by writing `?resinv`.
+
+
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC)
