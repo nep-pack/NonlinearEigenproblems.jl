@@ -166,8 +166,9 @@ function ilan(
         if k>1 mul_and_sub!(view(Qn,:,1:k),view(Qp,:,1:k),H[k-1,k]) end
 
         H[k+1,k]=norm(Qn);
-#        Qn[:,1:k+1] ./= H[k+1,k]
+        #Qn[:,1:k+1] ./= H[k+1,k]
         scal_mul!(view(Qn,:,1:k+1), 1/H[k+1,k])
+        #ldiv!(H[k+1,k],view(Qn,:,1:k+1))
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1

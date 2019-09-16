@@ -37,7 +37,7 @@ CSV.write("ILAN_figures/figure_1/dep_eigs.csv", λ)
 
 
 # RUN ILAN (BEYN)
-λ2,v2,err,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-10,check_error_every=1,v=v0,errmeasure=rel_err,
+λ2,v2,err,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-8,check_error_every=1,v=v0,errmeasure=rel_err,
 inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=-Inf,radius=4,N=1000))
 
 CSV.write("ILAN_figures/figure_1/dep_ilan_Beyn.csv", λ2)
@@ -50,7 +50,7 @@ writedlm( "ILAN_figures/figure_1/dep_ilan_Beyn_err.csv", [1:m err], ',')
 
 
 # RUN ILAN (PROJ)
-λ3,v3,err3,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-10,check_error_every=1,v=v0,errmeasure=rel_err,
+λ3,v3,err3,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-8,check_error_every=1,v=v0,errmeasure=rel_err,
 proj_solve=false)
 
 CSV.write("ILAN_figures/figure_1/dep_ilan_Ritz.csv", λ3)

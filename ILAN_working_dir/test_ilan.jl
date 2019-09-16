@@ -1,11 +1,9 @@
-using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Revise
+using NonlinearEigenproblems, Random, SparseArrays, Test, LinearAlgebra, PyPlot, Profile
 import ..NEPSolver.ilan;
-import ..NEPSolver.ilan_benchmark;
 import ..NEPSolver.iar;
 
 
 include("../src/method_ilan.jl");
-include("../src/method_ilan_benchmark.jl");
 include("../src/method_iar.jl");
 
 
@@ -39,7 +37,7 @@ v0=ones(n^2)
 # θ=range(0,stop=2π,length=1000); r=6; Σ=r*cos.(θ) + 1im*r*sin.(θ)
 #
 #COMPUTE EIGENVALUES WITH ILAN
-λ2,v2,err,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-10,check_error_every=1,v=v0,errmeasure=rel_err,
+@profile λ2,v2,err,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-10,check_error_every=1,v=v0,errmeasure=rel_err,
 #proj_solve=false)
 inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=-Inf,radius=4,N=1000))
 #inner_solver_method=NEPSolver.IARInnerSolver(tol=1e2,maxit=50))
