@@ -87,8 +87,8 @@ julia> compute_Mder(projnep,3.0)
     abstract  AbstractSPMF <: ProjectableNEP
 
 An AbstractSPMF is an abstract class representing NEPs which can be represented
-as a Sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,
-where i = 0,1,2,..., all of the matrices are of size n times n and f_i are functions.
+as a sum of products of matrices and functions ``M(λ)=Σ_i A_i f_i(λ)``,
+where i = 0,1,2,..., all of the matrices are of size ``n×n`` and ``f_i`` are functions.
 
 Any AbstractSPMF has to have implementations of [`get_Av()`](@ref) and [`get_fv()`](@ref) which return the
 functions and matrices.
@@ -519,10 +519,10 @@ julia> norm(M1-M2)
 """
     function REP(A,roots,poles)
 
-A REP-call creates a rational eigenvalue problem. The REP is defined by the
+A `REP`-call creates a rational eigenvalue problem. The `REP` is defined by the
 sum ``Σ_i A_i s_i(λ)/q_i(λ)``, where i = 0,1,2,..., all of the
-matrices are of size n times n and s_i and q_i are polynomials.
-The creator takes the roots and poles as input of polynomials with
+matrices are of size ``n×n`` and ``s_i`` and ``q_i`` are polynomials.
+The constructor takes the roots and poles as input of polynomials with
 normalized highest coefficient. The NEP is defined as
 ```math
 -λI+A_1+A_1\frac{p(λ)}(q(λ)}
@@ -572,7 +572,7 @@ julia> -λ*x+A0*x+A1*x*(λ-1)*(λ-3)/((λ-4)*(λ-5)*(λ-6))
 """
     abstract type Proj_NEP <: NEP
 
-`Proj_NEP` represents a projected NEP. The projection is defined
+`Proj_NEP` represents a projected `NEP`. The projection is defined
 as the NEP
 ```math
 N(λ)=W^HM(λ)V
@@ -594,7 +594,7 @@ Any `Proj_NEP` needs to implement two functions to manipulate the projection:
     pnep=create_proj_NEP(orgnep::ProjectableNEP[,maxsize [,T]])
 
 Create a NEP representing a projected problem ``N(λ)=W^HM(λ)V``,
- where the  base NEP is represented by `orgnep`.
+ where the base NEP is represented by `orgnep`.
 The optional parameter `maxsize::Int` determines how large the projected
 problem can be and `T` is the Number type used for the projection matrices
 (default `ComplexF64`).
@@ -702,7 +702,7 @@ This type represents the (generic) way to project NEPs which are
 
 """
     set_projectmatrices!(pnep::Proj_NEP,W,V)
-Set the projection matrices for the NEP to W and V, i.e.,
+Set the projection matrices for the NEP to `W` and `V`, i.e.,
 corresponding the NEP: ``N(λ)=W^HM(λ)V``. See also [`create_proj_NEP`](@ref).
 
 # Example
@@ -850,8 +850,8 @@ See also: [`SumNEP`](@ref), [`GenericSumNEP`](@ref)
     SumNEP{nep1::NEP,nep2::NEP}
     SumNEP{nep1::AbstractSPMF,nep2::AbstractSPMF}
 
-SumNEP is a function creating an object that corresponds to a sum of two NEPs,
-i.e., if nep is created by SumNEP it is defined by
+`SumNEP` is a function creating an object that corresponds to a sum of two NEPs,
+i.e., if nep is created by `SumNEP` it is defined by
 ```math
 M(λ)=M_1(λ)+M_2(λ)
 ```
@@ -907,7 +907,7 @@ See also: [`SPMFSumNEP`](@ref), [`GenericSumNEP`](@ref)
     size(nep::Union{DEP,PEP,SPMF_NEP})
     size(nep::Union{DEP,PEP,SPMF_NEP},dim)
 
-Overloads the size functions for NEPs storing size in nep.n
+Overloads the size functions for NEPs storing size in `nep.n`
 """
     function size(nep::Union{DEP,PEP,SPMF_NEP})
         return (nep.n,nep.n)
@@ -918,7 +918,7 @@ Overloads the size functions for NEPs storing size in nep.n
 
 """
     issparse(nep)
-Returns true/false if the NEP is sparse (if compute_Mder() returns sparse)
+Returns true/false if the NEP is sparse (if `compute_Mder()` returns sparse)
 """
     function issparse(nep::Union{DEP,PEP,SPMF_NEP})
         return issparse(nep.A[1])
