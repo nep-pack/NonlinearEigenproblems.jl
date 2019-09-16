@@ -48,39 +48,51 @@ iter 9 err:6.324560618281378e-11 λ=-0.10285416884505445 + 0.0im</code></pre><h2
 end</code></pre><h2><a class="nav-anchor" id="Methods-and-types-1" href="#Methods-and-types-1">Methods and types</a></h2><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.Errmeasure" href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>NonlinearEigenproblems.NEPTypes.Errmeasure</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">abstract type Errmeasure; end</code></pre><p>Concrete subtypes of <code>Errmeasure</code> represent specific ways of measuring the error of an eigenpair. NEP-solvers take such an object as input. As a NEP-solver user, you use the type as follows</p><pre><code class="language-julia">julia&gt; quasinewton(nep,errmeasure=ResidualErrmeasure(nep))</code></pre><p>User-specified ways of measuring error can be given by creating a new subtype of <code>Errmeasure</code> and using it as a <code>errmeasure</code> keyword. You need to specify the way to measure the error in the method <code>estimate_error</code>.</p><p>Note that in practice a <code>Function</code> can essentially be used instead of a <code>Errmeasure</code>-object, which is a simple way to have user-defined error measures. See <a href="#NonlinearEigenproblems.NEPTypes.ErrmeasureType"><code>ErrmeasureType</code></a>.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.ErrmeasureType"><code>ErrmeasureType</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.DefaultErrmeasure"><code>DefaultErrmeasure</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.ResidualErrmeasure"><code>ResidualErrmeasure</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.StandardSPMFErrmeasure"><code>StandardSPMFErrmeasure</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.estimate_error"><code>estimate_error</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.EigvalReferenceErrmeasure"><code>EigvalReferenceErrmeasure</code></a>.</p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.DefaultErrmeasure" href="#NonlinearEigenproblems.NEPTypes.DefaultErrmeasure"><code>NonlinearEigenproblems.NEPTypes.DefaultErrmeasure</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">struct DefaultErrmeasure &lt;: Errmeasure
 function DefaultErrmeasure(nep::NEP)</code></pre><p>When you specify this <code>Errmeasure</code>, NEP-PACK tries to determine a suitable <code>Errmeasure</code> based on the type of the <code>NEP</code>. Note that this behavior may change in future versions.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.StandardSPMFErrmeasure" href="#NonlinearEigenproblems.NEPTypes.StandardSPMFErrmeasure"><code>NonlinearEigenproblems.NEPTypes.StandardSPMFErrmeasure</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">struct StandardSPMFErrmeasure &lt;: Errmeasure
 function StandardSPMFErrmeasure(nep::AbstractSPMF)</code></pre><p>This <code>Errmeasure</code> provides a way to compute the backward error. The backward error estimate are only given for NEPs which are subtypes of  <code>AbstractSPMF</code>. We use the Frobenius norm as the matrix norm, since it is much cheaper to compute than the spectral norm.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; nep=nep_gallery(&quot;qdep0&quot;);
-julia&gt; (λ,v)=quasinewton(nep,λ=-1,errmeasure=StandardSPMFErrmeasure(nep),tol=1e-10);</code></pre><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.ResidualErrmeasure" href="#NonlinearEigenproblems.NEPTypes.ResidualErrmeasure"><code>NonlinearEigenproblems.NEPTypes.ResidualErrmeasure</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">struct ResidualErrmeasure &lt;: Errmeasure
+julia&gt; (λ,v)=quasinewton(nep,λ=-1,v=ones(size(nep,1)),errmeasure=StandardSPMFErrmeasure(nep),tol=1e-10,logger=1);
+Precomputing linsolver
+iter 1 err:0.022010375110869937 λ=-1.0 + 0.0im
+iter 2 err:0.002515422247048546 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.000892354247568813 λ=-0.8919579082730457 + 0.0im
+iter 4 err:5.445678793151584e-5 λ=-1.0097584042560848 + 0.0im
+iter 5 err:6.649967517409105e-7 λ=-1.0023823873044 + 0.0im
+iter 6 err:1.0557281809769784e-8 λ=-1.0024660870524031 + 0.0im
+iter 7 err:6.420125566431444e-9 λ=-1.0024677891861997 + 0.0im
+iter 8 err:3.181093707909799e-10 λ=-1.0024669496893164 + 0.0im
+iter 9 err:2.6368050026394416e-11 λ=-1.0024669918249076 + 0.0im
+</code></pre><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.ResidualErrmeasure" href="#NonlinearEigenproblems.NEPTypes.ResidualErrmeasure"><code>NonlinearEigenproblems.NEPTypes.ResidualErrmeasure</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">struct ResidualErrmeasure &lt;: Errmeasure
 function ResidualErrmeasure(nep::NEP)</code></pre><p>This <code>Errmeasure</code> species that the residual norm should be used to measure the error.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.EigvalReferenceErrmeasure" href="#NonlinearEigenproblems.NEPTypes.EigvalReferenceErrmeasure"><code>NonlinearEigenproblems.NEPTypes.EigvalReferenceErrmeasure</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">struct EigvalReferenceErrmeasure{X&lt;:Number} &lt;: Errmeasure
-function EigvalReferenceErrmeasure(λref,nep)</code></pre><p>Use the difference between a precomputed λ-value (reference solution) and the eigenvalue estimate as the error measure.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; using LinearAlgebra
+function EigvalReferenceErrmeasure(nep,λref)</code></pre><p>Use the difference between a precomputed λ-value (reference solution) and the eigenvalue estimate as the error measure.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; using LinearAlgebra
 julia&gt; nep=nep_gallery(&quot;qdep0&quot;);
 julia&gt; (λref,vref)=quasinewton(nep,λ=-1,v=ones(size(nep,1)));
-julia&gt; (λ,v)=quasinewton(nep,errmeasure=EigvalReferenceErrmeasure(nep,λref),λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)))
+julia&gt; (λ,v)=quasinewton(nep,errmeasure=EigvalReferenceErrmeasure(nep,λref),λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)));
 Precomputing linsolver
-iter 1 err:0.0024669885857651064 λ=-1.0 + 0.0im
-iter 2 err:0.2961339774298044 λ=-0.7063330111559607 + 0.0im
-iter 3 err:0.11050908031267426 λ=-0.8919579082730908 + 0.0im
-iter 4 err:0.007291415670313883 λ=-1.009758404256079 + 0.0im
-iter 5 err:8.460128136422718e-5 λ=-1.0023823873044009 + 0.0im
-iter 6 err:9.01533362851481e-7 λ=-1.0024660870524023 + 0.0im
-iter 7 err:8.006004341698514e-7 λ=-1.0024677891861993 + 0.0im
-iter 8 err:3.889644784038637e-8 λ=-1.0024669496893173 + 0.0im
-iter 9 err:3.2391431759037914e-9 λ=-1.0024669918249083 + 0.0im
-iter 10 err:2.418489852828998e-10 λ=-1.0024669883439161 + 0.0im
-iter 11 err:2.0229151687090052e-11 λ=-1.0024669886059943 + 0.0im
-iter 12 err:0.0 λ=-1.002466988585765 + 0.0im</code></pre><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.estimate_error" href="#NonlinearEigenproblems.NEPTypes.estimate_error"><code>NonlinearEigenproblems.NEPTypes.estimate_error</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function estimate_error(E::ErrmeasureType,λ,v)</code></pre><p>Returns the error estimate for the eigenpair <code>(λ,v)</code>. The way to measure the error is specified in <code>E</code>, which can be an <code>Errmeasure</code> or a <code>Function</code>.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.ErrmeasureType"><code>ErrmeasureType</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.ErrmeasureType" href="#NonlinearEigenproblems.NEPTypes.ErrmeasureType"><code>NonlinearEigenproblems.NEPTypes.ErrmeasureType</code></a> — <span class="docstring-category">Constant</span>.</div><div><div><pre><code class="language-julia">ErrmeasureType = Union{Type{&lt;:Errmeasure}, Function}</code></pre><p>The <code>ErrmeasureType</code> represents (essentially) what you can insert in the <code>errmeasure</code> keyword argument for most NEP-solvers. It can be a function or an  <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a> object. If it is a <code>Function</code> this function will be used to obtain error estimate.</p><p><strong>Example</strong></p><p>This shows how to compute a reference solution and then use this as a reference solution. The error in the second run will be effectively the eigenvector error (appropriately normalized).</p><pre><code class="language-julia">julia&gt; using LinearAlgebra
+iter 1 err:0.002466988585763996 λ=-1.0 + 0.0im
+iter 2 err:0.2961339774298033 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.11050908031271833 λ=-0.8919579082730457 + 0.0im
+iter 4 err:0.007291415670320767 λ=-1.0097584042560848 + 0.0im
+iter 5 err:8.460128136400513e-5 λ=-1.0023823873044 + 0.0im
+iter 6 err:9.015333608530796e-7 λ=-1.0024660870524031 + 0.0im
+iter 7 err:8.006004357241636e-7 λ=-1.0024677891861997 + 0.0im
+iter 8 err:3.889644761834177e-8 λ=-1.0024669496893164 + 0.0im
+iter 9 err:3.2391436199930013e-9 λ=-1.0024669918249076 + 0.0im
+iter 10 err:2.418474309706653e-10 λ=-1.0024669883439166 + 0.0im
+iter 11 err:2.0230705999324528e-11 λ=-1.0024669886059947 + 0.0im
+iter 12 err:0.0 λ=-1.002466988585764 + 0.0im</code></pre><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.estimate_error" href="#NonlinearEigenproblems.NEPTypes.estimate_error"><code>NonlinearEigenproblems.NEPTypes.estimate_error</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function estimate_error(E::ErrmeasureType,λ,v)</code></pre><p>Returns the error estimate for the eigenpair <code>(λ,v)</code>. The way to measure the error is specified in <code>E</code>, which can be an <code>Errmeasure</code> or a <code>Function</code>.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a>, <a href="#NonlinearEigenproblems.NEPTypes.ErrmeasureType"><code>ErrmeasureType</code></a></p></div></div></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="NonlinearEigenproblems.NEPTypes.ErrmeasureType" href="#NonlinearEigenproblems.NEPTypes.ErrmeasureType"><code>NonlinearEigenproblems.NEPTypes.ErrmeasureType</code></a> — <span class="docstring-category">Constant</span>.</div><div><div><pre><code class="language-julia">ErrmeasureType = Union{Type{&lt;:Errmeasure}, Function}</code></pre><p>The <code>ErrmeasureType</code> represents (essentially) what you can insert in the <code>errmeasure</code> keyword argument for most NEP-solvers. It can be a function or an  <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a> object. If it is a <code>Function</code> this function will be used to obtain error estimate.</p><p><strong>Example</strong></p><p>This shows how to compute a reference solution and then use this as a reference solution. The error in the second run will be effectively the eigenvector error (appropriately normalized).</p><pre><code class="language-julia">julia&gt; using LinearAlgebra
 julia&gt; nep=nep_gallery(&quot;qdep0&quot;);
 julia&gt; (λref,vref)=quasinewton(nep,λ=-1,v=ones(size(nep,1)));
-julia&gt; myerrmeasure=(λ,v) -&gt; norm(vref/vref[1]-v/v[1])
-julia&gt; (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)))
+julia&gt; myerrmeasure=(λ,v) -&gt; norm(vref/vref[1]-v/v[1]);
+julia&gt; (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)));
 Precomputing linsolver
-iter 1 err:0.0024669885857651064 λ=-1.0 + 0.0im
-iter 2 err:0.2961339774298044 λ=-0.7063330111559607 + 0.0im
-iter 3 err:0.11050908031267426 λ=-0.8919579082730908 + 0.0im
-iter 4 err:0.007291415670313883 λ=-1.009758404256079 + 0.0im
-iter 5 err:8.460128136422718e-5 λ=-1.0023823873044009 + 0.0im
-iter 6 err:9.01533362851481e-7 λ=-1.0024660870524023 + 0.0im
-iter 7 err:8.006004341698514e-7 λ=-1.0024677891861993 + 0.0im
-iter 8 err:3.889644784038637e-8 λ=-1.0024669496893173 + 0.0im
-iter 9 err:3.2391431759037914e-9 λ=-1.0024669918249083 + 0.0im
-iter 10 err:2.418489852828998e-10 λ=-1.0024669883439161 + 0.0im
-iter 11 err:2.0229151687090052e-11 λ=-1.0024669886059943 + 0.0im
-iter 12 err:0.0 λ=-1.002466988585765 + 0.0im</code></pre><p>The eigenvalue error can be measured with the <a href="#NonlinearEigenproblems.NEPTypes.EigvalReferenceErrmeasure"><code>EigvalReferenceErrmeasure</code></a>.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><footer><hr/><a class="previous" href="../innersolvers/"><span class="direction">Previous</span><span class="title">Projection</span></a><a class="next" href="../logger/"><span class="direction">Next</span><span class="title">Logger</span></a></footer></article></body></html>
+iter 1 err:46.40296482739195 λ=-1.0 + 0.0im
+iter 2 err:2.1592671533657883 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.17079231439255405 λ=-0.8919579082730457 + 0.0im
+iter 4 err:0.1633846991066227 λ=-1.0097584042560848 + 0.0im
+iter 5 err:0.003434042059262583 λ=-1.0023823873044 + 0.0im
+iter 6 err:0.0003182517281689052 λ=-1.0024660870524031 + 0.0im
+iter 7 err:2.0105257231740345e-5 λ=-1.0024677891861997 + 0.0im
+iter 8 err:1.618661190265619e-6 λ=-1.0024669496893164 + 0.0im
+iter 9 err:1.233489068442819e-7 λ=-1.0024669918249076 + 0.0im
+iter 10 err:9.44707811957546e-9 λ=-1.0024669883439166 + 0.0im
+iter 11 err:7.867601351698812e-10 λ=-1.0024669886059947 + 0.0im
+iter 12 err:0.0 λ=-1.002466988585764 + 0.0im
+</code></pre><p>The eigenvalue error can be measured with the <a href="#NonlinearEigenproblems.NEPTypes.EigvalReferenceErrmeasure"><code>EigvalReferenceErrmeasure</code></a>.</p><p>See also: <a href="#NonlinearEigenproblems.NEPTypes.Errmeasure"><code>Errmeasure</code></a></p></div></div></section><footer><hr/><a class="previous" href="../innersolvers/"><span class="direction">Previous</span><span class="title">Projection</span></a><a class="next" href="../logger/"><span class="direction">Next</span><span class="title">Logger</span></a></footer></article></body></html>
