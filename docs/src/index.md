@@ -240,11 +240,10 @@ or have a look at the examples
 in [NEP-solvers](methods.md) and  [NEP Gallery](gallery.md).
 
 
-## How to cite
+## How do I cite it? 
 
 
-We have a preprint for this work. If you find this software useful please cite our 
-
+We have a [preprint for this work](https://arxiv.org/abs/1811.09592). If you find this software useful please cite this preprint by using this citation data:
 ```bibtex
 @Misc{,
   author = 	 {E. Jarlebring and M. Bennedich and G. Mele and E. Ringh and P. Upadhyaya},
@@ -254,7 +253,7 @@ We have a preprint for this work. If you find this software useful please cite o
   eprint = {arXiv:1811.09592},
 }
 ```
-If you use a specific method, please also give credit to the algorithm researcher.
+If you use a specific NEP-solver, please also give credit to the algorithm researcher.
 Reference to a corresponding algorithm paper can be found by in, e.g., by writing `?resinv`.
 
 
