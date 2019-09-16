@@ -182,7 +182,7 @@ end
 
 """
     struct EigvalReferenceErrmeasure{X<:Number} <: Errmeasure
-    function EigvalReferenceErrmeasure(λref,nep)
+    function EigvalReferenceErrmeasure(nep,λref)
 
 Use the difference between a precomputed λ-value (reference solution)
 and the eigenvalue estimate
