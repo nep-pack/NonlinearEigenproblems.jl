@@ -188,7 +188,7 @@ julia> norm(compute_Mder(nep,0.3)-compute_Mder(chebpep,0.3))
 2.2782119183158333e-15
 ```
 
-See also: [`polyeig`](@ref), [`PEP`](@ref)
+See also: [`polyeig`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig), [`PEP`](@ref)
 """
 function ChebPEP(orgspmf,k,a=-1,b=1;cosine_formula_cutoff=5)
     F=s-> compute_Mder(orgspmf,s);
