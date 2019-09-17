@@ -390,8 +390,11 @@ function jd_effenberger_inner!(::Type{T},
         push_info!(logger," conveig=$conveig, subspace dim=$k");
 
         if (err < tol) #Frist check, no other eiganvalues can be converged
-            push_info!(logger,
-                       "One eigenvalue converged. Deflating and restarting.")
+            info_str = "One eigenvalue converged."
+            if conveig+1 < neigs
+                info_str = string(info_str, " Deflating and restarting.")
+            end
+            push_info!(logger, info_str)
 
             # TODO: Here one can implement a continuation with the same basis as in Effenberger section 4.2.5
             # What is here is only a light kind adapted to an "unknown" inner solver
