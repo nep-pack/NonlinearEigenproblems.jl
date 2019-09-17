@@ -12,7 +12,7 @@
      end
      Z=Z+(A1^k)*expm(s*A1);
 end</code></pre><p>The function which computes derivative <code>k</code> evaluted in the point <code>s</code>. We assume in the following that the file <code>compute_derivative_k.m</code> is located in the current directory.</p><h2><a class="nav-anchor" id="Approach-1:-Implementation-in-NEP-PACK-(using-Mder_NEP)-1" href="#Approach-1:-Implementation-in-NEP-PACK-(using-Mder_NEP)-1">Approach 1: Implementation in NEP-PACK (using <code>Mder_NEP</code>)</a></h2><p>The easiest way to create a NEP which is only defined by its derivative computation is by the helper type <a href="../compute_functions/#NonlinearEigenproblems.NEPTypes.Mder_NEP"><code>Mder_NEP</code></a>.</p><pre><code class="language-julia">using NonlinearEigenproblems, MATLAB
-nep=Mder_NEP(10,(s,der) -&gt; mat&quot;compute_derivative_k($s,double($der))&quot;);</code></pre><p>The NEP can now be approached with many of the methods in the package, e.g., with a contour integral method:</p><pre><code class="language-julia-repl">julia&gt; (λ,V)=contour_beyn(nep, radius=0.6, k=8);
+nep=Mder_NEP(10,(s,der) -&gt; mat&quot;compute_derivative_k($s,double($der))&quot;);</code></pre><p>The NEP can now be approached with many of the methods in the package, e.g., with a contour integral method (<a href="../methods/#NonlinearEigenproblems.NEPSolver.contour_beyn"><code>contour_beyn</code></a>):</p><pre><code class="language-julia-repl">julia&gt; (λ,V)=contour_beyn(nep, radius=0.6, k=8);
 julia&gt; λ
 2-element Array{Complex{Float64},1}:
  0.1711954796771912 - 6.401495587242332e-15im
