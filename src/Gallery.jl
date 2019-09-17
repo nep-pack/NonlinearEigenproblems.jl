@@ -46,6 +46,7 @@ The following list describes the NEP with a certain `name` and the associated pa
 * `dep0`
     Create a random delay eiganvalue problem with one delay tau = 1.\\
     One optional `params` determining the size (default = 5)
+
 * `dep0_sparse`\\
     Create a random delay eiganvalue problem with sparse matrices and one delay tau = 1.\\
     Two optional `params` determining the size (default = 5) and the fill (default = 0.25)
@@ -121,7 +122,8 @@ The following list describes the NEP with a certain `name` and the associated pa
     SIAM J. Applied Mathematics, 2000. It is also a benchmark example in DDE-BIFTOOL
 
 * `schrodinger_movebc` \\
-    This NEP stems from the discretization of a Schrödinger equation as described in the NEP-PACK online tutorial. The nonlinearity contains ``sinh()``, ``cosh()`` and ``sqrt()``. The optional parameters are size of discretization `n`  and domain and potential description `L0`,`L1`,`α` and `V0`.
+    This NEP stems from the discretization of a Schrödinger equation as described in the NEP-PACK online tutorial.
+    The nonlinearity contains ``sinh()``, ``cosh()`` and ``sqrt()``. The optional parameters are size of discretization `n`  and domain and potential description `L0`,`L1`,`α` and `V0`.
 
 * `beam`\\
     The DEP modelling a beam with delayed stabilizing feedback described in R. Van Beeumen, E. Jarlebring, and W. Michiels,
@@ -149,20 +151,20 @@ The following list describes the NEP with a certain `name` and the associated pa
     Y. Chahlaoui, and P. M. Van Dooren, Benchmark examples for model reduction of linear time-
     invariant dynamical systems. In Dimension Reduction of Large-Scale Systems, P. Benner, V. Mehrmann,
     and D. C. Sorensen, Eds. Lecture Notes in Computational Science and Engineering Series, vol. 45.
-    Springer-Verlag, Berlin, 380–392, 2005.\\
-    and\\
+    Springer-Verlag, Berlin, 380–392, 2005.
+    and
     P. M. R. Wortelboer, M. Steinbuch, and  O. H. Bosgra, Closed-loop balanced reduction with
     application to a compact disc mechanism. In Selected Topics in Identification, Modeling and Control.
-    Vol. 9. Delft University Press, 47–58, 1996.\\
-    and\\
+    Vol. 9. Delft University Press, 47–58, 1996.
+    and
     W. Draijer, M. Steinbuch, and  O. H. Bosgra, Adaptive control of the radial servo system of a
     compact disc player. Automatica 28, 3, 455–462. 1992.
 
 * `nlevp_native_fiber`  \\
     The benchmark problem from the NLEVP-collection called "fiber", represented in the native NEP-PACK format.
     One of terms in this problem is approximated by interpolation, and may not always coincide with the benchmark.
-    L. Kaufman, Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117, 2006.\\
-    and\\
+    L. Kaufman, Eigenvalue problems in fiber optic design. SIAM J. Matrix Anal. Appl. 28, 1, 105–117, 2006.
+    and
     X. Huang, Z. Bai, and Y. Su, Nonlinear rank-one modification of the symmetric eigenvalue problem. J. Comput. Math. 28, 2, 218–234, 2010
 
 * `nlevp_native_hadeler`\\
@@ -174,23 +176,28 @@ The following list describes the NEP with a certain `name` and the associated pa
     This problem is a quadratic eigenvalue with arbitrary given size `n`. See
     E. Jarlebring, The Spectrum of Delay-Differential Equations:
     Numerical Methods, Stability and Perturbation, PhD thesis,
-    TU Braunschweig, Institut Computational Mathematics, Germany, 2008 and \\
+    TU Braunschweig, Institut Computational Mathematics, Germany, 2008 and
     H. Fassbender, N. Mackey, D. S. Mackey and C. Schroeder, Structured
     Polynomial Eigenproblems Related to Time-Delay Systems, ETNA, 2008, vol 31, pp 306-330
 
 * `nlevp_native_loaded_string`\\
-    The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format. The parameters are (n,kappa,m) where n is the size, and the NEP is a SPMF with rational terms and the coefficient matrices are rank one modifications of Toeplitz matrices.\\
-   S. I. Solov"ev. Preconditioned iterative methods for a class of nonlinear eigenvalue problems. Linear Algebra Appl., 415 (2006), pp.210-229.
+    The benchmark problem from the NLEVP-collection called "pdde_stability", represented in the native NEP-PACK format.
+    The parameters are (n,kappa,m) where n is the size, and the NEP is a SPMF with rational terms and the coefficient
+    matrices are rank one modifications of Toeplitz matrices.\\
+    S. I. Solov"ev. Preconditioned iterative methods for a class of nonlinear eigenvalue problems. Linear Algebra Appl., 415 (2006), pp.210-229.
 
 * `bem_fichera`\\
     Represents a boundary element discretization of Helmholtz equation for a domain consisting of the unit cube, except one removed corner (Fichera corner). The mesh is hardcoded. The parameter N determines the size of the problem (default N = 5). The model stems from the model in these papers:\\
-   Steinlechner, A boundary element method for solving PDE eigenvalue problems, M. Steinlechner, bachelor thesis, ETH Zürich, 2010\\
-   Effenberger and Kressner, Chebyshev interpolation for nonlinear eigenvalue problems, BIT Numerical Mathematics, December 2012, Volume 52, Issue 4, pp 933–951
+    Steinlechner, A boundary element method for solving PDE eigenvalue problems, M. Steinlechner, bachelor thesis, ETH Zürich, 2010\\
+    Effenberger and Kressner, Chebyshev interpolation for nonlinear eigenvalue problems, BIT Numerical Mathematics, December 2012, Volume 52, Issue 4, pp 933–951
 
 * `dtn_dimer`\\
-   NEP described in J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018  (http://arxiv.org/pdf/1606.09547) where the nonlinearity stems from the application of Dirichlet-to-Neumann map. The problem contains quotients of Bessel functions and derivatives of Bessel functions. This NEP takes two parameters: `data_dir::String` and `l::Int`. The `data_dir` specifies the directory of the dowloaded FEM-matrices (available here https://umu.app.box.com/s/b52yux3z9rcl8y0l7la22k0vi062cvu5). The integer l specifies the number of DtN-terms: 2*l+1.   \\
-   J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018  (http://arxiv.org/pdf/1606.09547).
-
+    NEP described in J. Araujo-Cabarcas, C. Engström and E. Jarlebring, Efficient resonance computations for Helmholtz problems based on a Dirichlet-to-Neumann map, J. Comput. Appl. Math., 330:177-192, 2018
+    ([http://arxiv.org/pdf/1606.09547](http://arxiv.org/pdf/1606.09547)) where the nonlinearity stems
+    from the application of Dirichlet-to-Neumann map. The problem contains quotients of Bessel functions and derivatives of
+    Bessel functions. This NEP takes two parameters: `data_dir::String` and `l::Int`. The `data_dir` specifies the directory of
+    the dowloaded FEM-matrices (available here [https://umu.app.box.com/s/b52yux3z9rcl8y0l7la22k0vi062cvu5](https://umu.app.box.com/s/b52yux3z9rcl8y0l7la22k0vi062cvu5)).
+    The integer l specifies the number of DtN-terms: 2*l+1.
 
 # Example
 ```julia-repl
