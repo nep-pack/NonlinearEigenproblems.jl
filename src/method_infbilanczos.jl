@@ -19,10 +19,11 @@ See [`augnewton`](@ref) for other parameters.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> A=get_Av(nep); fv=get_fv(nep);
-julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')]
+julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')] 
 julia> nept=SPMF_NEP(At,fv); # Create the transposed NEP
-julia> λv,V=infbilanczos(nep,nept,neigs=3)
+julia> λv,V=infbilanczos(nep,nept,neigs=3,v=ones(size(nep,1)))
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
+9.907299130783851e-15
 ```
 
 # References:
