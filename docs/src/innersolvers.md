@@ -14,7 +14,7 @@ NEP-PACK provides a framework to handle projected problems
 and inner solves. This is implemented
 into two separate components:
 
-* [Projection](@ref): As a user (or NEP-solver developer) you can create a new object corresponding to the projection. In NEP-PACK, the projection is again an object of with type inheriting from [`NEP`](@ref). More precisely, it is a [`Proj_NEP`](@ref) which you normally create with the function [`create_proj_NEP`](@ref).
+* [Projection](#Projection-1): As a user (or NEP-solver developer) you can create a new object corresponding to the projection. In NEP-PACK, the projection is again an object of with type inheriting from [`NEP`](@ref). More precisely, it is a [`Proj_NEP`](@ref) which you normally create with the function [`create_proj_NEP`](@ref).
 * [Inner solvers](@ref): Since the projected problem is again a `NEP`, in principle any of the NEP-solvers of this package can be used. This is handled by the `InnerSolver` objects which are wrappers for corresponding NEP-solvers such that we can pass appropriate parameters to the inner soler. The inner solver is controlled by the `inner_solver_method` keyword in many NEP-solvers. By default [`DefaultInnerSolver`](@ref) is used.
 
 
