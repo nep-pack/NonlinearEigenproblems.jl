@@ -108,10 +108,10 @@ The following list describes the NEP with a certain `name` and the associated pa
 
 * `beam`: A [`DEP`](@ref) modelling a beam with delayed stabilizing feedback described. The A1-term is rank one.\\
    *Params:*  size of the matrix (defalut = 100)\\
-   *Reference:* [R. Van Beeumen, E. Jarlebring, and W. Michiels,  A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.]( https://doi.org/10.1002/nla.2043)
+   *Reference:* [R. Van Beeumen, E. Jarlebring, and W. Michiels,  A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.](https://doi.org/10.1002/nla.2043)
 
 * `sine`: A NEP formed by the sum of a polynomial and a sine-function. The sine-term has a rank-one matrix coefficient.\\
-   *Reference:*  [R. Van Beeumen, E. Jarlebring, and W. Michiels,  A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.]( https://doi.org/10.1002/nla.2043)
+   *Reference:*  [R. Van Beeumen, E. Jarlebring, and W. Michiels,  A rank-exploiting infinite Arnoldi algorithm for nonlinear eigenvalue problems, 2016.](https://doi.org/10.1002/nla.2043)
 
 * `bem_fichera`:  Represents a boundary element discretization of Helmholtz equation for a domain consisting of the unit cube, except one removed corner (Fichera corner). The mesh is hardcoded.
     *Params:* The parameter `N` determines the size of the problem (default `N = 5`).\\
