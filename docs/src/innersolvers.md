@@ -165,7 +165,7 @@ inner_solve
 ## Projection
 
 The NEP-PACK functionality for projected problems
-are represented by [projection types](@ref).
+are represented by [projection types](#Projection-types-1).
 Normally, the projection is created by
 [`create_proj_NEP`](@ref) from a standard NEP.
 After creating a projected NEP, you can set
@@ -195,7 +195,7 @@ which are designed to be as efficient as possible.
 ### Projection functions
 
 You can create a projected NEP with `create_proj_NEP`, and specify the
-projection space with 
+projection space with
 [`set_projectmatrices!`](@ref) and [`expand_projectmatrices!`](@ref).
 
 ```@docs
