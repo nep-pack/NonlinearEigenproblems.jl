@@ -33,15 +33,16 @@ julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),logger=1,tol=1e-16);
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
 iter 2 err:0.0012874946992780317 λ=-1.175478914232863 + 0.0im
-iter 3 err:0.016919177734890205 λ=-0.9045032212171923 + 0.0im
-iter 4 err:7.884718326366283e-5 λ=-1.1998094425367551 + 0.0im
-iter 5 err:9.586775788595438e-5 λ=-1.1974656536889654 + 0.0im
-iter 6 err:3.7870317997772634e-5 λ=-1.1994205846695276 + 0.0im
-iter 7 err:3.0752556063829646e-5 λ=-1.1985663733901704 + 0.0im
+iter 3 err:0.016919177734890222 λ=-0.9045032212171921 + 0.0im
+iter 4 err:7.884718326761425e-5 λ=-1.1998094425367554 + 0.0im
+iter 5 err:9.586775789527191e-5 λ=-1.1974656536888064 + 0.0im
+iter 6 err:3.78703180008048e-5 λ=-1.1994205846695527 + 0.0im
 ...
-iter 69 err:5.647660764089489e-16 λ=-1.1989892137958458 + 0.0im
-iter 70 err:5.055053391642266e-16 λ=-1.1989892137958578 + 0.0im
-iter 71 err:1.781530900695102e-17 λ=-1.1989892137958473 + 0.0im
+iter 69 err:3.785514223854239e-16 λ=-1.1989892137958453 + 0.0im
+iter 70 err:2.170893845294037e-16 λ=-1.198989213795854 + 0.0im
+iter 71 err:2.7459926096111223e-16 λ=-1.198989213795849 + 0.0im
+iter 72 err:4.2865411760984745e-17 λ=-1.1989892137958549 + 0.0im
+
 ```
 We will carry out some timing experiments, so let's
 use the [`BenchmarkTools`](https://github.com/JuliaCI/BenchmarkTools.jl)-package and swith off printouts in
@@ -49,7 +50,7 @@ the NEP-solver:
 ```julia-repl
 julia> using BenchmarkTools
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),tol=1e-16);
-  8.373 ms (33714 allocations: 11.37 MiB)
+  8.806 ms (35327 allocations: 11.89 MiB)
 ```
 The linear system that has to be solved in every iteration
 in `resinv` has a constant system matrix, and
@@ -61,14 +62,14 @@ a creator if the type `FactorizeLinSolverCreator`.
 ```julia-repl
 julia> creator=FactorizeLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  8.332 ms (33704 allocations: 11.37 MiB)
+  8.796 ms (35317 allocations: 11.89 MiB)
 ```
 If we do not want to use a prefactorization, you can specify
 [`BackslashLinSolverCreator`](@ref) as your creator object.
 ```julia-repl
 julia> creator=BackslashLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  20.640 ms (38251 allocations: 22.87 MiB)
+  21.320 ms (39926 allocations: 23.55 MiB)
 ```
 This does not use a prefactorization and is therefore slower.
 
@@ -76,11 +77,11 @@ This does not use a prefactorization and is therefore slower.
 The above approach corresponded to direct methods for linear systems.
 You can also use iterative methods, e.g., the GMRES-method.
 The GMRES-method is available in the [`GMRESLinSolverCreator`](@ref)
-function. Iterative methods in general need preconditioners.
+function. Iterative methods in general need [preconditioners](https://en.wikipedia.org/wiki/Preconditioner).
 We continue the example and use a diagonal preconditioner:
 ```julia-repl
 julia> D0=(Diagonal(compute_Mder(nep,λ0))); # Preconditioner
-julia> creator=GMRESLinSolverCreator(Pl=D0, tol=1e-10);
+julia> creator=GMRESLinSolverCreator(Pl=D0, tol=1e-2);
 ```
 All the keyword arguments in the call `GMRESLinSolverCreator`
 are passed to
@@ -91,31 +92,22 @@ and `Pl` specifies the left preconditioner, in this case just a diagonal matrix.
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16);
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
-iter 2 err:0.0012874946993129863 λ=-1.175478914232863 + 0.0im
-iter 3 err:0.01691917773640539 λ=-0.9045032211965017 + 0.0im
-iter 4 err:7.884718724884878e-5 λ=-1.1998094425350523 + 0.0im
-iter 5 err:9.586776747525804e-5 λ=-1.1974656535293027 + 0.0im
+iter 2 err:0.0012837854081047286 λ=-1.175478914232863 + 0.0im
+iter 3 err:0.012943949711442134 λ=-0.9675295912973538 + 0.0im
+iter 4 err:5.6699590570018006e-5 λ=-1.1998320040681159 + 0.0im
+iter 5 err:3.386002318926461e-5 λ=-1.1984551421732517 + 0.0im
 ...
-iter 69 err:7.114086177493848e-16 λ=-1.1989892137958427 + 0.0im
-iter 70 err:3.434521011774537e-16 λ=-1.1989892137958578 + 0.0im
-iter 71 err:1.1060298018746236e-16 λ=-1.1989892137958504 + 0.0im
-iter 72 err:1.1903842077731908e-16 λ=-1.1989892137958529 + 0.0im
-iter 73 err:3.82409101411086e-16 λ=-1.1989892137958553 + 0.0im
-iter 74 err:2.8385047264009487e-16 λ=-1.1989892137958476 + 0.0im
-iter 75 err:2.578560246193603e-16 λ=-1.1989892137958535 + 0.0im
-iter 76 err:3.8680157882039993e-16 λ=-1.198989213795848 + 0.0im
-iter 77 err:1.4633231742581634e-16 λ=-1.1989892137958562 + 0.0im
-iter 78 err:2.324747046412835e-16 λ=-1.198989213795853 + 0.0im
-iter 79 err:1.7053137640282208e-16 λ=-1.1989892137958487 + 0.0im
-iter 80 err:5.364097787291277e-17 λ=-1.1989892137958522 + 0.0im
+iter 47 err:5.889736908670774e-16 λ=-1.198989213795847 + 0.0im
+iter 48 err:7.322942517281224e-16 λ=-1.1989892137958593 + 0.0im
+iter 49 err:6.194807127197455e-16 λ=-1.198989213795844 + 0.0im
+iter 50 err:7.18910194205741e-17 λ=-1.1989892137958569 + 0.0im
 ```
-The printout reveals that we need more iterations, than with a
-direct method. In terms of computation
-time, this approach can however still be competitive:
+The printout reveals that we, for some reason, need fewer iterations, than with a
+direct method. However, in terms of computation
+time, this approach is not really competitive:
 ```julia-repl
-julia> creator=GMRESLinSolverCreator(Pl=D0, tol=1e-2);
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  12.734 ms (59414 allocations: 21.14 MiB)
+  15.536 ms (64079 allocations: 22.76 MiB)
 ```
 
 ## Your own linear solver
@@ -184,15 +176,19 @@ NEP-solver, e.g., [`augnewton`](@ref):
 ```julia-repl
 julia> dep=nep_gallery("dep0",50);
 julia> creator=MyLinSolverCreator();
-julia> augnewton(dep,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
-iter 1 err:0.09618148118463332 λ=0.0 + 0.0im
-iter 2 err:0.0413217667237937 λ=0.898990887813898 + 0.0im
-iter 3 err:0.02631955794084684 λ=1.4448248571934017 + 0.0im
-iter 4 err:0.00449344510220487 λ=0.9306146373776565 + 0.0im
-iter 5 err:9.030138969728166e-5 λ=0.9176939995973337 + 0.0im
-iter 6 err:9.801547301302623e-7 λ=0.9205599293430545 + 0.0im
-iter 7 err:1.2125237229048776e-10 λ=0.9205883567517953 + 0.0im
-iter 8 err:4.3151896277593487e-16 λ=0.9205883602865768 + 0.0im
+julia> augnewton(dep,λ=1,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
+iter 1 err:0.10615052208736536 λ=1.0 + 0.0im
+iter 2 err:0.04682362994161844 λ=3.004830719411172 + 0.0im
+iter 3 err:0.08148964717804698 λ=0.213140384062811 + 0.0im
+iter 4 err:0.03955381142282053 λ=0.47667949368248896 + 0.0im
+iter 5 err:0.06584371583464586 λ=2.985447356041631 + 0.0im
+iter 6 err:0.02262384918568079 λ=3.722422057973499 + 0.0im
+iter 7 err:0.0036373167693678717 λ=3.389502913018821 + 0.0im
+iter 8 err:0.00704620404184537 λ=3.2745554693864496 + 0.0im
+iter 9 err:0.0009450496517445758 λ=3.1652287152386758 + 0.0im
+iter 10 err:2.138372017573122e-5 λ=3.187725547526568 + 0.0im
+iter 11 err:1.0100960591678548e-8 λ=3.188230946035159 + 0.0im
+iter 12 err:2.801564990446382e-15 λ=3.1882313460682705 + 0.0im
 ```
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_LINSOLVE)
