@@ -10,43 +10,35 @@ nep= SPMF_NEP([A,B,C],[s-&gt;one(s),s-&gt;s,s-&gt;exp(s)],align_sparsity_pattern
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
 iter 2 err:0.0012874946992780317 λ=-1.175478914232863 + 0.0im
-iter 3 err:0.016919177734890205 λ=-0.9045032212171923 + 0.0im
-iter 4 err:7.884718326366283e-5 λ=-1.1998094425367551 + 0.0im
-iter 5 err:9.586775788595438e-5 λ=-1.1974656536889654 + 0.0im
-iter 6 err:3.7870317997772634e-5 λ=-1.1994205846695276 + 0.0im
-iter 7 err:3.0752556063829646e-5 λ=-1.1985663733901704 + 0.0im
+iter 3 err:0.016919177734890222 λ=-0.9045032212171921 + 0.0im
+iter 4 err:7.884718326761425e-5 λ=-1.1998094425367554 + 0.0im
+iter 5 err:9.586775789527191e-5 λ=-1.1974656536888064 + 0.0im
+iter 6 err:3.78703180008048e-5 λ=-1.1994205846695527 + 0.0im
 ...
-iter 69 err:5.647660764089489e-16 λ=-1.1989892137958458 + 0.0im
-iter 70 err:5.055053391642266e-16 λ=-1.1989892137958578 + 0.0im
-iter 71 err:1.781530900695102e-17 λ=-1.1989892137958473 + 0.0im</code></pre><p>We will carry out some timing experiments, so let&#39;s use the <a href="https://github.com/JuliaCI/BenchmarkTools.jl"><code>BenchmarkTools</code></a>-package and swith off printouts in the NEP-solver:</p><pre><code class="language-julia-repl">julia&gt; using BenchmarkTools
+iter 69 err:3.785514223854239e-16 λ=-1.1989892137958453 + 0.0im
+iter 70 err:2.170893845294037e-16 λ=-1.198989213795854 + 0.0im
+iter 71 err:2.7459926096111223e-16 λ=-1.198989213795849 + 0.0im
+iter 72 err:4.2865411760984745e-17 λ=-1.1989892137958549 + 0.0im
+</code></pre><p>We will carry out some timing experiments, so let&#39;s use the <a href="https://github.com/JuliaCI/BenchmarkTools.jl"><code>BenchmarkTools</code></a>-package and swith off printouts in the NEP-solver:</p><pre><code class="language-julia-repl">julia&gt; using BenchmarkTools
 julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),tol=1e-16);
-  8.373 ms (33714 allocations: 11.37 MiB)</code></pre><p>The linear system that has to be solved in every iteration in <code>resinv</code> has a constant system matrix, and therefore a prefactorization (typically an LU-factorization) is useful. This is done with the <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.FactorizeLinSolverCreator"><code>FactorizeLinSolverCreator</code></a>, which is actually the default behaviour, so we get no substantial difference when we specify a creator if the type <code>FactorizeLinSolverCreator</code>.</p><pre><code class="language-julia-repl">julia&gt; creator=FactorizeLinSolverCreator();
+  8.806 ms (35327 allocations: 11.89 MiB)</code></pre><p>The linear system that has to be solved in every iteration in <code>resinv</code> has a constant system matrix, and therefore a prefactorization (typically an LU-factorization) is useful. This is done with the <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.FactorizeLinSolverCreator"><code>FactorizeLinSolverCreator</code></a>, which is actually the default behaviour, so we get no substantial difference when we specify a creator if the type <code>FactorizeLinSolverCreator</code>.</p><pre><code class="language-julia-repl">julia&gt; creator=FactorizeLinSolverCreator();
 julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  8.332 ms (33704 allocations: 11.37 MiB)</code></pre><p>If we do not want to use a prefactorization, you can specify <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.BackslashLinSolverCreator"><code>BackslashLinSolverCreator</code></a> as your creator object.</p><pre><code class="language-julia-repl">julia&gt; creator=BackslashLinSolverCreator();
+  8.796 ms (35317 allocations: 11.89 MiB)</code></pre><p>If we do not want to use a prefactorization, you can specify <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.BackslashLinSolverCreator"><code>BackslashLinSolverCreator</code></a> as your creator object.</p><pre><code class="language-julia-repl">julia&gt; creator=BackslashLinSolverCreator();
 julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  20.640 ms (38251 allocations: 22.87 MiB)</code></pre><p>This does not use a prefactorization and is therefore slower.</p><p>The above approach corresponded to direct methods for linear systems. You can also use iterative methods, e.g., the GMRES-method. The GMRES-method is available in the <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.GMRESLinSolverCreator"><code>GMRESLinSolverCreator</code></a> function. Iterative methods in general need preconditioners. We continue the example and use a diagonal preconditioner:</p><pre><code class="language-julia-repl">julia&gt; D0=(Diagonal(compute_Mder(nep,λ0))); # Preconditioner
-julia&gt; creator=GMRESLinSolverCreator(Pl=D0, tol=1e-10);</code></pre><p>All the keyword arguments in the call <code>GMRESLinSolverCreator</code> are passed to <a href="https://juliamath.github.io/IterativeSolvers.jl/stable/linear_systems/gmres/"><code>gmres!</code></a>. Hence, the <code>tol</code> here  specifies a termination criteria for the GMRES-method, and <code>Pl</code> specifies the left preconditioner, in this case just a diagonal matrix.</p><pre><code class="language-julia-repl">julia&gt; (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16);
+  21.320 ms (39926 allocations: 23.55 MiB)</code></pre><p>This does not use a prefactorization and is therefore slower.</p><p>The above approach corresponded to direct methods for linear systems. You can also use iterative methods, e.g., the GMRES-method. The GMRES-method is available in the <a href="../linsolvers/#NonlinearEigenproblems.LinSolvers.GMRESLinSolverCreator"><code>GMRESLinSolverCreator</code></a> function. Iterative methods in general need <a href="https://en.wikipedia.org/wiki/Preconditioner">preconditioners</a>. We continue the example and use a diagonal preconditioner:</p><pre><code class="language-julia-repl">julia&gt; D0=(Diagonal(compute_Mder(nep,λ0))); # Preconditioner
+julia&gt; creator=GMRESLinSolverCreator(Pl=D0, tol=1e-2);</code></pre><p>All the keyword arguments in the call <code>GMRESLinSolverCreator</code> are passed to <a href="https://juliamath.github.io/IterativeSolvers.jl/stable/linear_systems/gmres/"><code>gmres!</code></a>. Hence, the <code>tol</code> here  specifies a termination criteria for the GMRES-method, and <code>Pl</code> specifies the left preconditioner, in this case just a diagonal matrix.</p><pre><code class="language-julia-repl">julia&gt; (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16);
 Precomputing linsolver
 iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
-iter 2 err:0.0012874946993129863 λ=-1.175478914232863 + 0.0im
-iter 3 err:0.01691917773640539 λ=-0.9045032211965017 + 0.0im
-iter 4 err:7.884718724884878e-5 λ=-1.1998094425350523 + 0.0im
-iter 5 err:9.586776747525804e-5 λ=-1.1974656535293027 + 0.0im
+iter 2 err:0.0012837854081047286 λ=-1.175478914232863 + 0.0im
+iter 3 err:0.012943949711442134 λ=-0.9675295912973538 + 0.0im
+iter 4 err:5.6699590570018006e-5 λ=-1.1998320040681159 + 0.0im
+iter 5 err:3.386002318926461e-5 λ=-1.1984551421732517 + 0.0im
 ...
-iter 69 err:7.114086177493848e-16 λ=-1.1989892137958427 + 0.0im
-iter 70 err:3.434521011774537e-16 λ=-1.1989892137958578 + 0.0im
-iter 71 err:1.1060298018746236e-16 λ=-1.1989892137958504 + 0.0im
-iter 72 err:1.1903842077731908e-16 λ=-1.1989892137958529 + 0.0im
-iter 73 err:3.82409101411086e-16 λ=-1.1989892137958553 + 0.0im
-iter 74 err:2.8385047264009487e-16 λ=-1.1989892137958476 + 0.0im
-iter 75 err:2.578560246193603e-16 λ=-1.1989892137958535 + 0.0im
-iter 76 err:3.8680157882039993e-16 λ=-1.198989213795848 + 0.0im
-iter 77 err:1.4633231742581634e-16 λ=-1.1989892137958562 + 0.0im
-iter 78 err:2.324747046412835e-16 λ=-1.198989213795853 + 0.0im
-iter 79 err:1.7053137640282208e-16 λ=-1.1989892137958487 + 0.0im
-iter 80 err:5.364097787291277e-17 λ=-1.1989892137958522 + 0.0im</code></pre><p>The printout reveals that we need more iterations, than with a direct method. In terms of computation time, this approach can however still be competitive:</p><pre><code class="language-julia-repl">julia&gt; creator=GMRESLinSolverCreator(Pl=D0, tol=1e-2);
-julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  12.734 ms (59414 allocations: 21.14 MiB)</code></pre><h2><a class="nav-anchor" id="Your-own-linear-solver-1" href="#Your-own-linear-solver-1">Your own linear solver</a></h2><p>There are many ways to solve linear systems in Julia, e.g., by using package such as <a href="https://github.com/Jutho/KrylovKit.jl">KrylovKit.jl</a>, <a href="https://github.com/JuliaSparse/Pardiso.jl">Pardiso.jl</a> or <a href="https://github.com/JuliaInv/KrylovMethods.jl">KrylovMethods.jl</a>. These are not natively supported by NEP-PACK, but due to the extendability of the <code>LinSolverCreator</code>-objects specified above, you can still use them. We illustrate the extendability by creating a linear solver based on solving a <a href="https://en.wikipedia.org/wiki/Schur_complement">Schur complement</a>. The following helper-function for the Schur complement solve will be used later.</p><pre><code class="language-julia">function schur_complement_lin_solve(AA,b,n0)
+iter 47 err:5.889736908670774e-16 λ=-1.198989213795847 + 0.0im
+iter 48 err:7.322942517281224e-16 λ=-1.1989892137958593 + 0.0im
+iter 49 err:6.194807127197455e-16 λ=-1.198989213795844 + 0.0im
+iter 50 err:7.18910194205741e-17 λ=-1.1989892137958569 + 0.0im</code></pre><p>The printout reveals that we, for some reason, need fewer iterations, than with a direct method. However, in terms of computation time, this approach is not really competitive:</p><pre><code class="language-julia-repl">julia&gt; @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
+  15.536 ms (64079 allocations: 22.76 MiB)</code></pre><h2><a class="nav-anchor" id="Your-own-linear-solver-1" href="#Your-own-linear-solver-1">Your own linear solver</a></h2><p>There are many ways to solve linear systems in Julia, e.g., by using package such as <a href="https://github.com/Jutho/KrylovKit.jl">KrylovKit.jl</a>, <a href="https://github.com/JuliaSparse/Pardiso.jl">Pardiso.jl</a> or <a href="https://github.com/JuliaInv/KrylovMethods.jl">KrylovMethods.jl</a>. These are not natively supported by NEP-PACK, but due to the extendability of the <code>LinSolverCreator</code>-objects specified above, you can still use them. We illustrate the extendability by creating a linear solver based on solving a <a href="https://en.wikipedia.org/wiki/Schur_complement">Schur complement</a>. The following helper-function for the Schur complement solve will be used later.</p><pre><code class="language-julia">function schur_complement_lin_solve(AA,b,n0)
   A=AA[1:n0,1:n0];
   B=AA[1:n0,(n0+1):end];
   C=AA[(n0+1):end,1:n0];
@@ -71,12 +63,16 @@ function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    return schur_complement_lin_solve(compute_Mder(solver.mynep,solver.myλ),b,n0)
 end</code></pre><p>You can now solve the problem by passing a creator object of type <code>MyLinSolverCreator()</code> to a NEP-solver, e.g., <a href="../methods/#NonlinearEigenproblems.NEPSolver.augnewton"><code>augnewton</code></a>:</p><pre><code class="language-julia-repl">julia&gt; dep=nep_gallery(&quot;dep0&quot;,50);
 julia&gt; creator=MyLinSolverCreator();
-julia&gt; augnewton(dep,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
-iter 1 err:0.09618148118463332 λ=0.0 + 0.0im
-iter 2 err:0.0413217667237937 λ=0.898990887813898 + 0.0im
-iter 3 err:0.02631955794084684 λ=1.4448248571934017 + 0.0im
-iter 4 err:0.00449344510220487 λ=0.9306146373776565 + 0.0im
-iter 5 err:9.030138969728166e-5 λ=0.9176939995973337 + 0.0im
-iter 6 err:9.801547301302623e-7 λ=0.9205599293430545 + 0.0im
-iter 7 err:1.2125237229048776e-10 λ=0.9205883567517953 + 0.0im
-iter 8 err:4.3151896277593487e-16 λ=0.9205883602865768 + 0.0im</code></pre><p><img src="http://jarlebring.se/onepixel.png?NEPPACKDOC_LINSOLVE" alt="To the top"/></p><footer><hr/><a class="previous" href="../tutorial_newmethod/"><span class="direction">Previous</span><span class="title">Tutorial 9 (New solver)</span></a><a class="next" href="../hydrotutorial/"><span class="direction">Next</span><span class="title">Tutorial 11 (Orr–Somerfeld)</span></a></footer></article></body></html>
+julia&gt; augnewton(dep,λ=1,v=ones(size(dep,1)),logger=1,linsolvercreator=creator);
+iter 1 err:0.10615052208736536 λ=1.0 + 0.0im
+iter 2 err:0.04682362994161844 λ=3.004830719411172 + 0.0im
+iter 3 err:0.08148964717804698 λ=0.213140384062811 + 0.0im
+iter 4 err:0.03955381142282053 λ=0.47667949368248896 + 0.0im
+iter 5 err:0.06584371583464586 λ=2.985447356041631 + 0.0im
+iter 6 err:0.02262384918568079 λ=3.722422057973499 + 0.0im
+iter 7 err:0.0036373167693678717 λ=3.389502913018821 + 0.0im
+iter 8 err:0.00704620404184537 λ=3.2745554693864496 + 0.0im
+iter 9 err:0.0009450496517445758 λ=3.1652287152386758 + 0.0im
+iter 10 err:2.138372017573122e-5 λ=3.187725547526568 + 0.0im
+iter 11 err:1.0100960591678548e-8 λ=3.188230946035159 + 0.0im
+iter 12 err:2.801564990446382e-15 λ=3.1882313460682705 + 0.0im</code></pre><p><img src="http://jarlebring.se/onepixel.png?NEPPACKDOC_LINSOLVE" alt="To the top"/></p><footer><hr/><a class="previous" href="../tutorial_newmethod/"><span class="direction">Previous</span><span class="title">Tutorial 9 (New solver)</span></a><a class="next" href="../hydrotutorial/"><span class="direction">Next</span><span class="title">Tutorial 11 (Orr–Somerfeld)</span></a></footer></article></body></html>
