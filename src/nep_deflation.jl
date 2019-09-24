@@ -238,7 +238,7 @@ function create_spmf_dnep(nep::AbstractSPMF,S0,V0)
     T=promote_type(eltype(V0),eltype(S0),eltype(Av_org[1]));
     local T_LowRankFactor;
     if (eltype(Av_org) <: SparseMatrixCSC)
-        T_LowRankFactor=SparseMatrixCSC{T,Int64};
+        T_LowRankFactor=SparseMatrixCSC{T,Int};
     else
         T_LowRankFactor=Matrix{T};
     end
