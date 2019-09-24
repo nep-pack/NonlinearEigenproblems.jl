@@ -91,10 +91,10 @@ The following list describes the NEP with a certain `name` and the associated pa
     ∘ `-1.677320660400946 + 7.496870451838560i`\\
     ∘ `-1.677320660400946 - 7.496870451838560i`
 
-* `qdep0`:  A quadratic [`DEP`](@ref).\\
+* `qdep0`:  A quadratic delay eigenvalue problem.\\
    *Reference:* [S. W. Gaaf and E. Jarlebring, The infinite Bi-Lanczos method for nonlinear eigenvalue problems, SIAM J. Sci. Comput., 2017](https://doi.org/10.1137/16M1084195)
 
-* `qdep1`:  A quadratic [`DEP`](@ref).\\
+* `qdep1`:  A quadratic delay eigenvalue problem.\\
    *Reference:* [E. Jarlebring and W. Michiels and K. Meerbergen, A linear eigenvalue algorithm for the  nonlinear eigenvalue problem, Numer. Math., 2011](https://doi.org/10.1007/s00211-012-0453-0)
 
 * `qep_fixed_eig`: A quadratic eigenvalue problem with chosen eigenvalues.\\
