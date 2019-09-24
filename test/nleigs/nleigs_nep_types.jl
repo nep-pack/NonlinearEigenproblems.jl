@@ -2,6 +2,7 @@
 
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
+using NonlinearEigenproblems.RKHelper
 using Test
 using SparseArrays
 
