@@ -169,7 +169,7 @@ The MATLAB-package "NLEVP: A Collection of Nonlinear Eigenvalue Problems, ACM Tr
 ```julia-repl
 julia> nep=nep_gallery("dep0",100);
 julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
-104.76153002802755
+57.498446538064954
 ```
 
 # See also the following galleries:
