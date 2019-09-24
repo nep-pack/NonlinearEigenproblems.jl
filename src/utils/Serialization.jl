@@ -16,15 +16,15 @@ module Serialization
     end
 
     # Reads and returns a sparse matrix written by write_sparse_matrix
-    function read_sparse_matrix(filename)
+    function read_sparse_matrix(filename, T=Int)
         data = open(filename) do f
             readlines(f)
         end
-        m = parse(Int, data[1])
-        n = parse(Int, data[2])
+        m = parse(T, data[1])
+        n = parse(T, data[2])
         c = Integer((length(data) - 2) / 3)
-        I = map(x -> parse(Int, x), data[3:3+c-1])
-        J = map(x -> parse(Int, x), data[3+c:3+2*c-1])
+        I = map(x -> parse(T, x), data[3:3+c-1])
+        J = map(x -> parse(T, x), data[3+c:3+2*c-1])
         V = map(x -> parse(Float64, x), data[3+2*c:3+3*c-1])
         return sparse(I, J, V, m, n)
     end
