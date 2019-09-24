@@ -94,7 +94,7 @@ function gen_rng_float(rng::MSWS_RNG)
     return Float64(gen_rng_int(rng)/typemax(UInt64))
 end
 
-function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64)
+function gen_rng_mat(rng::MSWS_RNG, n::Integer, m::Integer)
     A = zeros(Float64,n,m)
     for c = 1:m
         for r = 1:n
@@ -104,7 +104,9 @@ function gen_rng_mat(rng::MSWS_RNG, n::Int64, m::Int64)
     return A
 end
 
-function gen_rng_spmat(rng::MSWS_RNG, n::Int64, m::Int64, p::Real)
+function gen_rng_spmat(rng::MSWS_RNG, n::Integer, m::Integer, p::Real)
+    n=Int64(n)
+    m=Int64(m)
     nonzeros = round(p*m*n)
     dict = Dict{Tuple{Int64,Int64},Float64}()
     for i = 1:nonzeros
