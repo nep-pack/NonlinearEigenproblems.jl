@@ -157,8 +157,8 @@ function sqrt_pos_imag(a::Float64)
 end
 
     function Pinv(nep,λ,x)
-        return vec(  [R(nep,Rinv(nep,x[1:Int64(end/2)]) ./ sM(nep,λ));
-                      R(nep,Rinv(nep,x[Int64(end/2)+1:end]) ./ sP(nep,λ))  ]  )
+        return vec(  [R(nep,Rinv(nep,x[1:Int(end/2)]) ./ sM(nep,λ));
+                      R(nep,Rinv(nep,x[Int(end/2)+1:end]) ./ sP(nep,λ))  ]  )
     end
 
     function R(nep,X) # Note! Only works for vectors or one-dim matrices
@@ -202,16 +202,16 @@ Sylvester-based preconditioning for the waveguide eigenvalue problem,
 Linear Algebra and its Applications''
 """
     struct WEP_FD <: WEP
-        nx::Int64
-        nz::Int64
+        nx::Int
+        nz::Int
         hx::Float64
         hz::Float64
-        Dxx::SparseMatrixCSC{Float64,Int64}
-        Dzz::SparseMatrixCSC{Float64,Int64}
-        Dz::SparseMatrixCSC{Float64,Int64}
-        Iz::SparseMatrixCSC{Float64,Int64}
-        C1::SparseMatrixCSC{Float64,Int64}
-        C2T::SparseMatrixCSC{Float64,Int64}
+        Dxx::SparseMatrixCSC{Float64,Int}
+        Dzz::SparseMatrixCSC{Float64,Int}
+        Dz::SparseMatrixCSC{Float64,Int}
+        Iz::SparseMatrixCSC{Float64,Int}
+        C1::SparseMatrixCSC{Float64,Int}
+        C2T::SparseMatrixCSC{Float64,Int}
         k_bar::ComplexF64
         K::Matrix{ComplexF64}
         p::Integer
@@ -454,7 +454,7 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     # Direct Backslash solver
     struct WEPBackslashLinSolver<:LinSolver
-        schur_comp::SparseMatrixCSC{ComplexF64,Int64}
+        schur_comp::SparseMatrixCSC{ComplexF64,Int}
         nep::WEP_FD
         λ::ComplexF64
 
