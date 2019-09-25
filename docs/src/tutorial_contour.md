@@ -24,7 +24,7 @@ integral method and the block SS method
 of Asakura and Sakurai. We illustrate both of them.
 First set up a large and sparse problem:
 ```julia-repl
-julia> using SparseArrays;
+julia> using SparseArrays, LinearAlgebra;
 julia> n=1000;
 julia> A0=spdiagm(0 => ones(n))
 julia> A1=spdiagm(-2 => ones(n-2), 0 => 30*(n:-1:1)/n,  1 => 3*ones(n-1))/3
@@ -76,8 +76,8 @@ means that we numerically integrate  a circle of radius `0.5`.
 The center of the circle is given by the `σ`, argument and
 by default `σ=0`. We should expect the method to find
 eigenvalues (hopefully all eigenvalues) within that disk.
-(Our implementation also supports ellipses, by specifying
-`radius` as a length two vector with the two radii of the ellipse.)
+Our implementation also supports ellipses, by specifying
+`radius` as a length two vector with the two radii of the ellipse.
 The value `k=10` specifies how many columns the rectangular
 probe matrix has.
 In general, we do not obtain more `k` eigenvalues.
@@ -119,7 +119,7 @@ at the documtation of `MatrixIntegrator`:
 ```@docs
 MatrixIntegrator
 ```
-Let us now combine the `gauss`-method in an implementation
+Let us now combine the Gauss method in an implementation
 of a numerical quadrature to be used in the quadrature
 methods.
 
@@ -134,13 +134,12 @@ julia> function integrate_interval(ST::Type{GaussIntegrator},::Type{T},f,gv,a,b,
     # create the tensor and compute all quadratures
     S = zeros(T,size(f(t[1]))...,m)
     for i = 1:N
-        ## Extra code goes here 1
+        ## Extra code goes here
         temp = f(t[i]) # Only computed once for all g-functions
         for j=1:m
             S[:,:,j] += temp*(gv[j](t[i])*w[i]);
         end
     end
-    ## Extra code goes here 2
     return S
 end
 ```
@@ -168,7 +167,7 @@ if (mod(i,round(N/50))==1)
 end
 ```
 and `println()` in the second code insertion.
-This way, we will print a progress bar, which
+In this way, we will print a progress bar, which
 prints in total (approximately) 50 dots.
 You will see dots gradually appearing as a progress
 bar:
@@ -207,10 +206,10 @@ julia> function integrate_interval(ST::Type{ParallelIntegrator},::Type{T},f,gv,a
     t = range(a, stop = b-h, length = N)
     m = size(gv,1);
     S = @distributed (+) for i = 1:N
-        temp = f(t [i])
+        temp = f(t[i])
         Z=zeros(T,size(temp,1),size(temp,2),m);
         for j=1:m
-            Z[:,:,j]=temp*gv[j](t [i]);
+            Z[:,:,j]=temp*gv[j](t[i]);
         end
         Z
     end

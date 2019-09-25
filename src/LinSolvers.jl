@@ -17,8 +17,8 @@ module LinSolvers
     # Eigenvalue solvers
     export EigSolver
     export DefaultEigSolver
-    export NativeEigSolver
-    export NativeEigSSolver
+    export EigenEigSolver
+    export ArnoldiEigSolver
     export eig_solve
 
     import Base.eltype
@@ -52,9 +52,9 @@ julia> nep=nep_gallery("qdep0");
 julia> using BenchmarkTools
 julia> v0=ones(size(nep,1));
 julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=DefaultLinSolverCreator());
-  199.540 ms (4929 allocations: 59.83 MiB)
+  181.017 ms (3779 allocations: 58.61 MiB)
 julia> @btime λ,v=quasinewton(nep,λ=-1,v=v0, linsolvercreator=BackslashLinSolverCreator());
-  1.632 s (6137 allocations: 702.85 MiB)
+  2.040 s (4510 allocations: 553.24 MiB)
 ```
 
 # Example
@@ -212,9 +212,9 @@ the [`DefaultEigSolver`](@ref) will use a dense or a sparse method depending on 
 However, this example shows how you can force `mslp` to use the sparse solver.
 ```julia-repl
 julia> nep=nep_gallery("qdep0");
-julia> λ,v = mslp(nep, eigsolvertype=NativeEigSSolver);
+julia> λ,v = mslp(nep, eigsolvertype=ArnoldiEigSolver);
 julia> norm(compute_Mlincomb(nep,λ,v))
-1.0324139764567768e-15
+9.323110647141726e-16
 ```
 
 # Example
@@ -247,8 +247,8 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 ```
 
 See also: [`eig_solve`](@ref),
-[`DefaultEigSolver`](@ref), [`NativeEigSolver`](@ref),
-[`NativeEigSSolver`](@ref), [`eig_solve`](@ref)
+[`DefaultEigSolver`](@ref), [`EigenEigSolver`](@ref),
+[`ArnoldiEigSolver`](@ref), [`eig_solve`](@ref)
 
 """
     abstract type EigSolver end
@@ -256,11 +256,11 @@ See also: [`eig_solve`](@ref),
 
 ##############################################################################
 """
-    struct NativeEigSolver <: EigSolver
+    struct EigenEigSolver <: EigSolver
 
 A linear eigenvalueproblem solver that calls Julia's in-built eigen()
 
-Constructed as `NativeEigSolver(A, [B,])`, and solves the problem
+Constructed as `EigenEigSolver(A, [B,])`, and solves the problem
 ```math
 Ax = λBx
 ```
@@ -269,21 +269,21 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    struct NativeEigSolver{T_A,T_B} <: EigSolver
+    struct EigenEigSolver{T_A,T_B} <: EigSolver
         A::T_A
         B::T_B
 
-        function NativeEigSolver(A)
+        function EigenEigSolver(A)
             return new{typeof(A),Missing}(A,missing)
         end
-        function NativeEigSolver(A,B)
+        function EigenEigSolver(A,B)
             return new{typeof(A),typeof(B)}(A,B)
         end
     end
 
 
 
-    function eig_solve(solver::NativeEigSolver; nev = 1, target = 0)
+    function eig_solve(solver::EigenEigSolver; nev = 1, target = 0)
         D,V = inner_eig_solve(solver)
 
         #Sort the eigenvalues wrt distance from target, and permute
@@ -292,20 +292,20 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
         return D[1:nev],V[:,1:nev];
     end
 
-    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B}
+    function inner_eig_solve(solver::EigenEigSolver{T_A,T_B}) where {T_A, T_B}
         D,V = eigen(solver.A,solver.B)
     end
-    function inner_eig_solve(solver::NativeEigSolver{T_A,T_B}) where {T_A, T_B<:Missing}
+    function inner_eig_solve(solver::EigenEigSolver{T_A,T_B}) where {T_A, T_B<:Missing}
         D,V = eigen(solver.A)
     end
 
 """
-    struct NativeEigSSolver <: EigSolver
+    struct ArnoldiEigSolver <: EigSolver
 
-A linear eigenvalueproblem solver for large and sparse problems that calls
-Julia's in-built eigs()
+A linear eigenproblem solver for large and sparse problems that calls
+the Arnoldi method implemented in the Julia package ArnoldiMethod.jl.
 
-Constructed as `NativeEigSSolver(A, [B,])`, and solves the problem
+Constructed as `ArnoldiEigSolver(A, [B,])`, and solves the problem
 ```math
 Ax = λBx
 ```
@@ -314,26 +314,26 @@ eigenproblem is solved.
 
 See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 """
-    struct NativeEigSSolver{T_A,T_B} <: EigSolver
+    struct ArnoldiEigSolver{T_A,T_B} <: EigSolver
         A::T_A
         B::T_B
 
-        function NativeEigSSolver(A)
+        function ArnoldiEigSolver(A)
             return new{typeof(A),Missing}(A,missing)
         end
-        function NativeEigSSolver(A,B)
+        function ArnoldiEigSolver(A,B)
             return new{typeof(A),typeof(B)}(A,B)
         end
 
     end
 
 
-    function eig_solve(solver::NativeEigSSolver; nev=6, target=0)
+    function eig_solve(solver::ArnoldiEigSolver; nev=6, target=0)
         D,V = inner_eigs_solve(solver, nev, target)
         return D,V
     end
 
-    function inner_eigs_solve(solver::NativeEigSSolver{T_A,T_B}, nev, target) where {T_A, T_B}
+    function inner_eigs_solve(solver::ArnoldiEigSolver{T_A,T_B}, nev, target) where {T_A, T_B}
         if (T_B <: Missing)
             C=target*I-solver.A;
             Cfact=factorize(C);
@@ -365,7 +365,7 @@ See also: [`EigSolver`](@ref) and [`eig_solve`](@ref)
 A linear eigenvalueproblem solver that calls checks for sparsity and accordingly
 assigns an appropriate solver.
 
-See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [`NativeEigSSolver`](@ref)
+See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`EigenEigSolver`](@ref), [`ArnoldiEigSolver`](@ref)
 """
     struct DefaultEigSolver{T_sub} <: EigSolver
         subsolver::T_sub
@@ -373,18 +373,18 @@ See also: [`EigSolver`](@ref), [`eig_solve`](@ref), [`NativeEigSolver`](@ref), [
         function DefaultEigSolver(A,B)
             local subsolver
             if(issparse(A))
-                subsolver = NativeEigSSolver(A,B)
+                subsolver = ArnoldiEigSolver(A,B)
             else
-                subsolver = NativeEigSolver(A,B)
+                subsolver = EigenEigSolver(A,B)
             end
             return new{typeof(subsolver)}(subsolver)
         end
         function DefaultEigSolver(A)
             local subsolver
             if(issparse(A))
-                subsolver = NativeEigSSolver(A)
+                subsolver = ArnoldiEigSolver(A)
             else
-                subsolver = NativeEigSolver(A)
+                subsolver = EigenEigSolver(A)
             end
             return new{typeof(subsolver)}(subsolver)
         end
@@ -409,6 +409,6 @@ way of solving linear eigenvalue problems. See [`EigSolver`](@ref) for examples.
         return eig_solve(solver.subsolver,nev=nev,target=target)
     end
 
-    include("NewLinSolvers.jl");
+    include("LinSolverCreators.jl");
 
 end

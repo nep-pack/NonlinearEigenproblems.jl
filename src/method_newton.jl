@@ -30,10 +30,11 @@ orthogonalization vector.  If `c=0` the current approximation will be used for t
 
 # Example
 ```julia-repl
+julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
 julia> λ,v=newton(nep);
 julia> minimum(svdvals(compute_Mder(nep,λ)))
-1.6066157878930876e-16
+1.9997125567227177e-16
 ```
 
 # References
@@ -125,12 +126,12 @@ julia> λ,v=resinv(nep,λ=-2,v=ones(size(nep,1)))
 julia> typeof(λ)
 Complex{Float64}
 julia> norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14
+6.688224435370382e-12
 julia> λ,v=resinv(Float64,nep,λ=-2,v=ones(size(nep,1)))
 julia> typeof(λ)
 Float64
 julia> norm(compute_Mlincomb(nep,λ,v))
-1.817030659827106e-14
+5.939894690000396e-12
 ```
 
 # References
@@ -361,9 +362,9 @@ See [`augnewton`](@ref) for other parameters.
 # Example
 ```julia-repl
 julia> nep=nep_gallery("pep0")
-julia> λ,v=quasinewton(nep,v=ones(size(nep,1)));
+julia> λ,v=quasinewton(nep,λ=1.0,v=ones(size(nep,1)));
 julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
-6.301479387102376e-15
+5.448264607410413e-12
 ```
 
 # References
@@ -458,7 +459,7 @@ See [`augnewton`](@ref) for other parameters.
 julia> nep=nep_gallery("pep0")
 julia> λ,v=newtonqr(nep,v=ones(size(nep,1)));
 julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
-1.0442559980785471e-14
+8.440206093655014e-15
 ```
 
 # References
@@ -538,7 +539,7 @@ See [`augnewton`](@ref) for other parameters.
 julia> nep=nep_gallery("pep0")
 julia> λ,v=implicitdet(nep,v=ones(size(nep,1)));
 julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
-3.75723275262885e-14
+2.566371972986362e-14
 ```
 
 # References

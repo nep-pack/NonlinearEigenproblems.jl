@@ -21,7 +21,7 @@ julia> pep = nep_gallery("pep0");
 julia> E,A = companion(pep);
 julia> λ, V = eigen(A,E);
 julia> minimum(svd(compute_Mder(pep,λ[1])).S)
-2.703104679937224e-12
+2.4845217786736996e-12
 ```
 
 # References
@@ -78,9 +78,9 @@ is solved; see [`eig_solve`](@ref), and [`EigSolver`](@ref).
 julia> pep = nep_gallery("pep0");
 julia> λ,V = polyeig(pep);
 julia> minimum(svd(compute_Mder(pep,λ[1])).S)
-2.1724582040065456e-14
+1.2050763381899922e-14
 julia> norm(compute_Mlincomb(pep,λ[2],vec(V[:,2])))
-1.2210363164200074e-12
+1.0245470569036458e-12
 ```
 """
     polyeig(pep::PEP,vargs...)=polyeig(ComplexF64,pep,vargs...)

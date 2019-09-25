@@ -73,10 +73,10 @@ This uses `iar` to solve the (scalar) nonlinear problem.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> x=ones(size(nep,1));
-julia> s=compute_rf(ComplexF64,nep,x,IARInnerSolver())[1]; # Take just first element
-0.6812131933795565 + 0.0im
+julia> s=compute_rf(ComplexF64,nep,x,IARInnerSolver())[1] # Take just first element
+-1.186623627962043 - 1.5085094961223182im
 julia> x'*compute_Mlincomb(nep,s,x)
-1.7763568394002505e-15 + 0.0im
+-8.881784197001252e-16 + 1.0880185641326534e-14im
 ```
 """
     function compute_rf(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;

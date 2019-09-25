@@ -345,24 +345,23 @@ one is the most efficient based on the `orgnep`.
 # Example:
 ```julia-repl
 julia> nep=nep_gallery("dep0");
-julia> (λ,v)=newton(nep);
-julia> n=size(nep,1);
+julia> (λ,v)=newton(nep,v=ones(size(nep,1)));
 julia> dnep=deflate_eigpair(nep,λ,v)
-julia> (λ2,v2)=augnewton(dnep);  # this converges to different eigval
+julia> (λ2,v2)=augnewton(dnep,v=ones(size(dnep,1)));  # this converges to different eigval
 julia> using LinearAlgebra;
 julia> minimum(svdvals(compute_Mder(nep,λ2)))
-9.323003321058995e-17
+2.5161012836775824e-17
 ```
 The function [`get_deflated_eigpairs()`](@ref) extracts the eigenpairs that
 have been deflated. The returned pairs are eigenpairs of
 the original NEP:
-```
-julia> dnep=deflate_eigpair(dnep,λ2,v2)
+```julia-repl
+julia> dnep=deflate_eigpair(dnep,λ2,v2);
 julia> (D,V)=get_deflated_eigpairs(dnep)
 julia> norm(compute_Mlincomb(nep,D[1],V[:,1]))
-6.164690797405912e-16
+2.3970746442479104e-16
 julia> norm(compute_Mlincomb(nep,D[2],V[:,2]))
-5.20740757162067e-16
+8.101585801848734e-16
 ```
 
 # References

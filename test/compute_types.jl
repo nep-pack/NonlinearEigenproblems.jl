@@ -2,7 +2,7 @@
 
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
-using Test
+using Test,Random
 using LinearAlgebra
 using SpecialFunctions
 using SparseArrays
@@ -287,6 +287,7 @@ end
 
 
         # SPMF 1
+        Random.seed!(0);
         B0=randn(3,3); B1=randn(3,3);
         oneop= S-> S;
         sqrop= S-> S^2;

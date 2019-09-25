@@ -1,6 +1,6 @@
 name = "NonlinearEigenproblems"
 uuid = "067cfa3b-fa88-53b2-a873-5b23b3a16e31"
-version = "0.2.8"
+version = "0.3.0"
 
 [deps]
 ArnoldiMethod = "ec485272-7323-5ecc-a04f-4719b315124d"
@@ -18,3 +18,6 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 SuiteSparse = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
+
+[compat]
+julia = "1"

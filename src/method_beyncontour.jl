@@ -35,11 +35,11 @@ to extract accurate eigenvalues.
 julia> using LinearAlgebra
 julia> nep=nep_gallery("dep0");
 julia> # Look for two eigvals in unit disk
-julia> λv,V=contour_beyn(nep,radius=1,neigs=2);
+julia> λv,V=contour_beyn(nep,radius=1.1,neigs=3);
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1])) # Eigenpair 1
-5.778617503485546e-15
+1.7462847531404259e-15
 julia> norm(compute_Mlincomb(nep,λv[2],V[:,2])) # Eigenpair 2
-3.095638020248726e-14
+7.69695692032292e-15
 ```
 # References
 * Wolf-Jürgen Beyn, An integral method for solving nonlinear eigenvalue problems, Linear Algebra and its Applications 436 (2012) 3839–3863

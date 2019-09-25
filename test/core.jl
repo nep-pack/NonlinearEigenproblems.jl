@@ -3,7 +3,7 @@
 using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using LinearAlgebra
-using Test
+using Test,Random
 
 struct TestNEP <: NEP
    dummy
@@ -15,6 +15,7 @@ nep=nep_gallery("dep0");
 n=size(nep,1);
 
 ## Mlincomb_tests
+Random.seed!(0);
 V=complex(randn(n,3));
 λ=0.3+1im;
 T=typeof(λ);
@@ -60,6 +61,7 @@ end
 @bench @testset "compute_Mlincomb PEP" begin
     nep=nep_gallery("pep0");
     n=size(nep,1);
+    Random.seed!(0);
     λ = rand()+rand()*im; V=randn(n,3); a=rand(3);
     # test against another way to compute Mlincomb
     z=compute_Mlincomb(nep,λ,V,a)
@@ -76,6 +78,7 @@ end
 
 # compute_Mlincomb for DEPs
 @bench @testset "compute_Mlincomb DEP" begin
+    Random.seed!(0);
     n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
     tau1=0; tau2=1.3; tau3=.1;
     nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
@@ -102,6 +105,7 @@ end
     m=5; σ1=3.5; σ2=9;
     Dnep=DerSPMF(nep,σ1,m)
     DDnep=DerSPMF(Dnep,σ2,m)
+    Random.seed!(0);
     V=randn(2,5);
     @test norm( compute_Mlincomb(nep,0,V)-compute_Mlincomb(Dnep,0,V) )<sqrt(eps())*100
     @test norm( compute_Mlincomb(nep,σ1,V)-compute_Mlincomb(Dnep,σ1,V) )<sqrt(eps())*100

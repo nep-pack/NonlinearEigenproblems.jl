@@ -38,9 +38,9 @@ See [`augnewton`](@ref) for other parameters.
 # Example
 ```julia-repl
 julia> nep=nep_gallery("dep0",50);
-julia> λ,v=jd_betcke(nep,tol=1e-5,maxit=20);
+julia> λ,v=jd_betcke(nep,tol=1e-8,maxit=20);
 julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
-1.2277391762692744e-8
+1.9570222439914163e-10
 ```
 
 # References
@@ -204,7 +204,7 @@ See [`augnewton`](@ref) for other parameters.
 julia> nep=nep_gallery("dep0",100);
 julia> λ,v=jd_effenberger(nep,maxit=30,v=ones(size(nep,1)),λ=0);
 julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
-1.902783771915309e-14
+9.577305772525487e-15
 ```
 
 # References
@@ -390,8 +390,11 @@ function jd_effenberger_inner!(::Type{T},
         push_info!(logger," conveig=$conveig, subspace dim=$k");
 
         if (err < tol) #Frist check, no other eiganvalues can be converged
-            push_info!(logger,
-                       "One eigenvalue converged. Deflating and restarting.")
+            info_str = "One eigenvalue converged."
+            if conveig+1 < neigs
+                info_str = string(info_str, " Deflating and restarting.")
+            end
+            push_info!(logger, info_str)
 
             # TODO: Here one can implement a continuation with the same basis as in Effenberger section 4.2.5
             # What is here is only a light kind adapted to an "unknown" inner solver

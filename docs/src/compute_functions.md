@@ -7,7 +7,7 @@ The advised way NEP-solvers access the data is to do it
 through three main functions,
 which take the NEP-object as input.
 * [`compute_Mder`](@ref): Computes a given derivative of the matrix function $M(λ)$.
-* [`compute_Mlincomb!`](@ref) (or [`compute_Mlincomb`](@ref)): Computes a linear combination of derivatives $M(λ)$
+* [`compute_Mlincomb`](@ref) (or `compute_Mlincomb!`, with same documentation): Computes a linear combination of derivatives $M(λ)$
 * [`compute_MM`](@ref): Computes the block residual.
 
 The choice of these functions as the fundamental way
@@ -65,9 +65,6 @@ compute_Mder
 
 ```@docs
 compute_Mlincomb
-```
-```@docs
-compute_Mlincomb!
 ```
 
 ```@docs

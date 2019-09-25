@@ -43,6 +43,7 @@ Features and solvers (see documentation https://nep-pack.github.io/NonlinearEige
     * Jacobi-Davidson (jd_effenberger)
     * Jacobi-Davidson (jd_betcke)
     * Nonlinear Arnoldi method (nlar)
+    * Common Rayleigh-Ritz projection interface 
 * Contour integral methods
     * Beyn's contour integral method
     * Block SS (Higher moments) contour integral method of Asakura & Sakurai

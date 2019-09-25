@@ -24,9 +24,9 @@ julia> nep=nep_gallery("dep0",3);
 julia> (S,X)= blocknewton(nep)
 julia> compute_MM(nep,S,X)
 3×2 Array{Complex{Float64},2}:
- -2.22045e-16-1.0842e-19im  -2.08167e-17+0.0im
-  1.94289e-16-1.0842e-19im  -5.55112e-17-6.77626e-20im
-  7.63278e-17-1.0842e-19im   2.77556e-17-2.71051e-20im
+ -1.11022e-16+0.0im  1.11022e-16+0.0im
+          0.0+0.0im          0.0+0.0im
+  1.38778e-17+0.0im  2.77556e-17+0.0im
 ```
 This example solves the `gun` problem from the Berlin-Manchester collection
 ```julia-repl

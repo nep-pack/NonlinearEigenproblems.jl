@@ -30,9 +30,9 @@ M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 λ^2\begin{bmatrix}1&0\newline0&1\end{bmatrix}
 ```
 The following code creates this NEP, by constructing an object called
-[`PEP`](types.md#PEP-1), an abbreviation for polynomial eigenvalue problem.
-It subsequencly solves it using the NEP solution method implemented
-in [`polyeig()`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig):
+[`PEP`](@ref), an abbreviation for polynomial eigenvalue problem.
+It subsequently solves it using the NEP solution method implemented
+in the NEP-solver [`polyeig`](@ref):
 ```julia-repl
 julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia> nep=PEP([A0,A1,A2])
@@ -65,11 +65,11 @@ julia> size(nep)
 (100, 100)
 julia> λ,v=mslp(nep,tol=1e-10);
 julia> λ
-0.23169217667341738 - 2.1866254654451488e-16im
+0.05046248970129549 - 7.60684247532422e-16im
 julia> size(v)
 (100,)
 julia> resnorm=norm(compute_Mlincomb(nep,λ,v))
-3.124042808475689e-14
+5.178780131881974e-13
 ```
 Information about the gallery can be found by typing `?nep_gallery`.
 The second arument in the call to `nep_gallery` is a problem parameter,
@@ -87,13 +87,13 @@ tolerance for iteration termination.
     an example how to use `mslp` and that citation credit should go to *A. Ruhe,
     Algorithms for the nonlinear eigenvalue problem, SIAM J. Numer. Anal.
     10 (1973) 674-689*. This documentation is the same as the online documentation
-    under the tab [NEP Methods](methods.md).
+    under the tab [NEP-solvers](methods.md).
 
 
 
 ## A model of a neuron
 
-The following (delay) differential equation models a neuron
+The following (delay) differential equation models the interaction of two neurons
 ```math
 \dot{x}_1(t)=-\kappa x_1(t)+\beta\tanh(x_1(t-\tau_3))+a_1\tanh(x_2(t-\tau_2))
 ```
@@ -117,15 +117,15 @@ A1=a2*[0 0; 1 0];
 A2=a1*[0 1; 0 0];
 A3=beta*[1 0; 0 1];
 ```
-We can now create the nonlinear eigenvalue problem and compute the stability
+We can now create the nonlinear eigenvalue problem and determine the stability
 by first creating the problem
 ```julia-repl
 julia> tauv=[0;0.2;0.2;1.5];
 julia> dep=DEP([A0, A1,   A2, A3],tauv);
 ```
-The constructor  [`DEP`](types.md#DEP-1) is an abbreviation for a delay eigenvalue problem, which
+The constructor  [`DEP`](@ref) is an abbreviation for a delay eigenvalue problem, which
 is a NEP with exponential terms stemming from the stability
-analysis of a delay-differential equation. See [`types`](types.md) for other NEP-types.
+analysis of a delay-differential equation. See [Types and data-structures](types.md) for other NEP-types.
 You can now solve this NEP, for instance,
 with the [infinite Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.iar_chebyshev):
 ```julia-repl
@@ -190,10 +190,7 @@ documentation, e.g., `?blocknewton`.
 
 ## Your own NEP nonlinearity
 
-As an application researcher, we recommend that you first
-see if your type fits into the
-[specialized classes natively supported by NEP-PACK](types.md).
-If it does not, we recommend you to try to
+As an application researcher, we recommend that you first try to
 express your problem in the following form since it
 gives access to several efficient routines associated with the NEP,
 in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) **S**um of **P**roducts of **M**atrices and **F**unctions
@@ -228,9 +225,6 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
  -4.1550357082583515e-14 + 0.0im
   -8.815768150428286e-15 + 0.0im
 ```
-If your problem is not naturally expressed as an SPMF, you
-want to try to use [`Mder_NEP`](@ref) or
-[`Mder_Mlincomb_NEP`](@ref).
 
 ## What now?
 
@@ -243,7 +237,24 @@ or
 [deflation](deflate_tutorial.md).
 See also the other tutorials (in the side-bar),
 or have a look at the examples
-in [NEP methods](methods.md) and  [NEP Gallery](gallery.md).
+in [NEP-solvers](methods.md) and  [NEP Gallery](gallery.md).
+
+
+## How do I cite it? 
+
+
+We have a [preprint for this work](https://arxiv.org/abs/1811.09592). If you find this software useful please cite this preprint by using this citation data:
+```bibtex
+@Misc{,
+  author = 	 {E. Jarlebring and M. Bennedich and G. Mele and E. Ringh and P. Upadhyaya},
+  title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenproblems},
+  year = 	 {2018},
+  note = 	 {https://github.com/nep-pack},
+  eprint = {arXiv:1811.09592},
+}
+```
+If you use a specific NEP-solver, please also give credit to the algorithm researcher.
+Reference to a corresponding algorithm paper can be found by in, e.g., by writing `?resinv`.
 
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC)

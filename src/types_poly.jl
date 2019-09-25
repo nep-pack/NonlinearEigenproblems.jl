@@ -4,29 +4,36 @@
 
 """
     struct PEP <: AbstractSPMF
+    function PEP(AA::Vector{AbstractMatrix})
 
-A polynomial eigenvalue problem (PEP) is defined by the sum the sum ``Σ_i A_i λ^i``, where i = 0,1,2,..., and  all of the matrices are of size n times n.
-"""
-struct PEP <: AbstractSPMF{AbstractMatrix}
-    n::Int
-    A::Array   # Monomial coefficients of PEP
-end
+The type `PEP` defines a polynomial eigenvalue
+ problem via its monomial coefficients.
+A polynomial eigenvalue problem (PEP) is defined by the sum the
+```math
+Σ_i A_i λ^i,
+```
+where ``i = 0,1,2,``, and  all of the matrices are of size ``n×n``.
+The vector `AA` contains ``A_1,...``.
 
-"""
-    PEP(AA::Array)
-
-Creates a polynomial eigenvalue problem with monomial matrices specified in
-AA, which is an array of matrices.
+# Example
 
 ```julia-repl
-julia> A0=[1 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
+julia> A0=[1.0 3; 4 5]; A1=A0.+one(2); A2=ones(2,2);
 julia> pep=PEP([A0,A1,A2])
 julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
 2×2 Array{Float64,2}:
  0.0  0.0
  0.0  0.0
 ```
+
+See also [`polyeig`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig), [`companion`](methods.md#NonlinearEigenproblems.NEPSolver.companion), [`ChebPEP`](@ref), [`interpolate`](@ref).
 """
+struct PEP <: AbstractSPMF{AbstractMatrix}
+    n::Int
+    A::Array   # Monomial coefficients of PEP
+end
+
+
 function PEP(AA::Array)
     n=size(AA[1],1)
     AA=reshape(AA,size(AA,1))
@@ -93,8 +100,10 @@ end
 
 """
     interpolate([T=ComplexF64,] nep::NEP, intpoints::Array)
- Interpolates a NEP in the points `intpoints` and returns a `PEP`.\\
- `T` is the Type in which the matrices of the PEP should be defined.
+
+Interpolates a NEP in the points `intpoints` and returns a [`PEP`](@ref), i.e., a polynomial eigenvalue problem in a monomial basis. See [`ChebPEP`](@ref) for Chebyshev interpolation. The optional argument `T` is the type in which the matrices of the PEP should be defined.
+
+See also [`ChebPEP`](@ref).
 """
 interpolate(nep::NEP, intpoints::Array) = interpolate(ComplexF64, nep, intpoints)
 function interpolate(::Type{T}, nep::NEP, intpoints::Array) where {T<:Number}

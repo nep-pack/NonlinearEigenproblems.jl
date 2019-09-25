@@ -315,11 +315,11 @@ function periodic_dde_gallery(::Type{PeriodicDDE_NEP}; name::String="mathieu",n=
         # 5.73989+0.732386im
         # 5.73989-0.732386im
 
-        Random.seed!(0);
-        A0=sprandn(n,n,0.3)-one(TT)*I
-        A1=sprandn(n,n,0.3)-one(TT)*I
-        B0=sprandn(n,n,0.3)-one(TT)*I
-        B1=sprandn(n,n,0.3)-one(TT)*I
+        msws_rng = MSWS_RNG()
+        A0=gen_rng_spmat(msws_rng,n,n,0.3)-one(TT)*I
+        A1=gen_rng_spmat(msws_rng,n,n,0.3)-one(TT)*I
+        B0=gen_rng_spmat(msws_rng,n,n,0.3)-one(TT)*I
+        B1=gen_rng_spmat(msws_rng,n,n,0.3)-one(TT)*I
         tau=2;
         A=t-> A0+cos(pi*t)*A1;
         B=t-> B0+exp(0.01*sin(pi*t))*B1;

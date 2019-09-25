@@ -4,7 +4,7 @@
 
 A situation may arise where you  have to
 (or have the opportunity to) work with fortran code.
-This is not as uncommon as many think, mostly
+This is not as uncommon as many think, often
 due to the legacy software in many engineering disciplines.
 The Julia language is designed
 with interoperability in mind. Don't let some
@@ -16,7 +16,7 @@ in Julia and how to use it in NEP-PACK.
     To work with NEPs defined in fortran you need to compile your fortran code.
     This tutorial is written for Ubuntu Linux and
     [GNU fortran](https://gcc.gnu.org/wiki/GFortran).
-    However, it is possible also under the Windows OS.
+    However, the procedure is very similiar with other operating systems and compilers.
 
 We assume our NEP is defined in fortran code and
 defines the problem
@@ -96,7 +96,7 @@ Compile the code to a shared object file with the command `gfortran`:
 $ gfortran -shared -fPIC -o myproblem.so myproblem.f95
 ```
 (Under the Windows OS, you would want to compile the code to a dll-file.)
-In Julia, you can now call this routine using the `Libdl`
+In Julia, you can now call this routine using the [`Libdl`](https://docs.julialang.org/en/v1/stdlib/Libdl/)
 package:
 ```julia
 using NonlinearEigenproblems, Libdl;
@@ -187,6 +187,7 @@ certain versions of
 [`nleigs`](@ref),
 [`broyden`](@ref),
 [`contour_beyn`](@ref),
+[`contour_block_SS`](@ref),
 and
 [`sgiter`](@ref)).
 However, many NEP-algorithms
@@ -286,8 +287,7 @@ function my_matvec(λ,v)
 end
 ```
 We can now create a [`Mder_Mlincomb_NEP`](@ref) which is defined from both
-matrix derivative computations as well as matrix vector products (or more
-generally linear combinations of derivatives).
+matrix derivative computations as well as matrix vector products (or a linear combinations of derivatives).
 ```julia-repl
 julia> nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);
 ```

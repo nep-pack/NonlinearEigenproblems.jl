@@ -8,19 +8,20 @@ solutions are of interest. Let us first consider the trivial partial
 run an algorithm which computes one eigenvalue twice with
 different starting values, e.g., quasinewton as in this
 example:
-```julia
-julia> nep=nep_gallery("dep0");
-julia> (λ1,_)=quasinewton(nep,λ=0,v=ones(size(nep,1)))
-(-0.3587189459686377 + 0.0im, Complex{Float64}[4.41411+0.0im, -2.22171+0.0im, 4.31544+0.0im, -7.76501+0.0im, -9.51261+0.0im])
-julia> (λ2,_)=quasinewton(nep,λ=1im,v=ones(size(nep,1)))
-(-0.04093521177097875 + 1.4860115309416284im, Complex{Float64}[-3.28271+11.7399im, 5.08623-8.05479im, 7.16697-6.25547im, -2.69349+4.63954im, -9.91065+14.4678im])
+```julia-repl
+julia> using NonlinearEigenproblems
+julia> nep=nep_gallery("dep0",4);
+julia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)),maxit=500)
+(-0.2094378352960786 + 0.0im, Complex{Float64}[2.2479093650910866 + 0.0im, 3.208352895087154 + 0.0im, 0.6628450056308428 + 0.0im, 17.946407917249605 + 0.0im])
+julia> (λ2,v2)=quasinewton(nep,λ=1,v=ones(size(nep,1)),maxit=500)
+(0.2966714721676867 + 0.0im, Complex{Float64}[-0.8369951877176647 + 0.0im, -5.749143077718012 + 0.0im, 5.720770822961643 + 0.0im, 10.495353352793199 + 0.0im])
 ```
 This simple approach often suffers from the problem called *reconvergence* (we obtain the
 same solution again) or solutions of interest may be missed. In this case we get
 reconvergence when we use starting value `-1`:
-```julia
-julia> (λ3,_)=quasinewton(nep,λ=-1,v=ones(size(nep,1)))
-(-0.358718945968621 + 0.0im, Complex{Float64}[-6.65881+0.0im, 3.35151+0.0im, -6.50997+0.0im, 11.7137+0.0im, 14.3501+0.0im])
+```julia-repl
+julia> (λ3,v3)=quasinewton(nep,λ=-1,v=ones(size(nep,1)),maxit=500)
+(-0.20943783529618362 + 0.0im, Complex{Float64}[-0.6110572600894503 + 0.0im, -0.8721380674494782 + 0.0im, -0.18018353377334895 + 0.0im, -4.878436391013284 + 0.0im])
 ```
 Note that applying the algorithm with starting values `λ=0` and `λ=-1` lead to the same solution.
 Other solution methods do not suffer from this, e.g.,
@@ -30,7 +31,8 @@ and
 [nleigs](methods.md#NonlinearEigenproblems.NEPSolver.nleigs)
 since they compute several solutions at once.
 Another attempt to remedy reconvergence
-is to use the technique called *deflation*.
+is to use the technique called *deflation*. See also
+[the manual page on deflation](deflation.md).
 
 ## Deflation in NEP-PACK
 
@@ -48,33 +50,31 @@ It is implemented in the method [effenberger_deflation](transformations.md#Nonli
 
 In NEP-PACK, this type of deflation is implemented in the function `deflate_eigpair`,
 which takes a NEP and an eigenpair as input and returns a new NEP.
-```julia
-julia> # first compute a solution
-julia> (λ1,v1)=quasinewton(nep,λ=0,v=ones(size(nep,1)))
+```julia-repl
 julia> # Construct a deflated NEP where we remove (λ1,v1)
-julia> dnep=deflate_eigpair(nep,λ1,v1)
+julia> dnep=deflate_eigpair(nep,λ1,v1);
 julia> # The dnep is a new NEP but with dimension increased by one
 julia> size(nep)
-(5, 5)
+(4, 4)
 julia> size(dnep)
-(6, 6)
+(5, 5)
 ```
 We now illustrate that we can avoid reconvergence:
 ```julia
-julia> (λ4,v4)=quasinewton(dnep,λ=-1,v=ones(size(dnep,1)),maxit=1000)
-(0.8347353572199264 + 0.0im, Complex{Float64}[10.6614+0.0im, 0.351814+0.0im, -0.940539+0.0im, 1.10798+0.0im, 3.53392+0.0im, -0.447213+0.0im])
+julia> (λ4,v4)=quasinewton(dnep,λ=-1,v=ones(size(dnep,1)),maxit=500)
+(0.29667147216767376 + 0.0im, Complex{Float64}[-11.767671406737819 + 0.0im, -43.86197116968253 + 0.0im, 31.9938464980679 + 0.0im, 8.133682253178579 + 0.0im, -28.114795306465478 + 0.0im])
 ```
 Note: In contrast to the initial example, starting value `λ=-1` does *not* lead to converge to the eigenvalue we obtained from starting value `λ=0`.
 
-The computed solution is indeed a solution to the original NEP since `M(λ4)` is singular:
+The computed solution is indeed a solution to the original NEP since ``M(λ4)`` is singular:
 ```julia
 julia> minimum(svdvals(compute_Mder(nep,λ4)))
-1.2941045763733582e-14
+4.166120681513672e-14
 ```
 In fact, you can even start with the first starting value `λ=0`, and get a new solution
 ```julia
-julia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=1000)
-(0.8347353572199577 + 0.0im, Complex{Float64}[9.28596+0.0im, 0.306425+0.0im, -0.819196+0.0im, 0.965031+0.0im, 3.07799+0.0im, -0.389516+0.0im])
+julia> quasinewton(dnep,λ=0,v=ones(size(dnep,1)),maxit=500)
+(-1.3640414062700734 + 0.0im, Complex{Float64}[-1.0976664883572566e307 + 0.0im, -2.8870394809137054e307 + 0.0im, 2.1189933442957902e307 + 0.0im, 5.753536946292879e306 + 0.0im, -1.9207807191677339e307 + 0.0im])
 ```
 
 ## Repeated deflation
@@ -95,70 +95,24 @@ function multiple_deflation(nep,λ0,p)
       dnep=deflate_eigpair(dnep,λ2,v2)
    end
    return get_deflated_eigpairs(dnep);
-
 end
 ```
 
 We can now compute several solutions by calling `multiple_deflation`.
-Note that we use the same starting eigenvalue for all eigenvalues: `0.5im`. It has
-to be complex in this case, since if it was real, we would not find complex solution and this problem only has two real eigenvalues.
-```julia
-julia> nep=nep_gallery("dep0");
-julia> (Λ,VV)=multiple_deflation(nep,0.5im,3)
-(Complex{Float64}[-0.358719+1.33901e-14im, 0.834735+7.05729e-15im, -0.0409352+1.48601im], Complex{Float64}[-0.0148325-0.316707im -0.670282+0.268543im -0.41261+0.229832im; 0.00746549+0.159405im -0.0881321+0.0353094im 0.360381-0.0796982im; … ; 0.0260924+0.557131im -0.298976+0.119782im -0.201138+0.0524051im; 0.0319648+0.68252im -0.528234+0.211633im -0.668441+0.121828im])
+Note that we use the same starting guess, `1im`, for all eigenvalues.
+```julia-repl
+julia> (Λ,VV)=multiple_deflation(nep,1im,3)
+(Complex{Float64}[-0.20943783529608836 - 1.1876898672667347e-13im, 0.09916136114196937 + 1.5040449444406283im, 0.2966714721675515 - 1.1055942412512364e-13im], Complex{Float64}[0.08606692232135099 - 0.0868831949158175im -0.33250443251734496 + 0.6897411986346054im -0.04563655283979674 + 0.04339934493508566im; 0.12283994350000517 - 0.12400497736757769im 0.2101087999777705 - 0.18967830722177997im -0.31346783792781846 + 0.29810092957798906im; 0.025378705430330793 - 0.02561940117237799im 0.41435154273390934 + 0.36869913908327107im 0.31192086140711456 - 0.2966297893745159im; 0.6871238316577664 - 0.6936406250750684im -0.15130500943732544 - 0.05527070830243071im 0.5722514954516473 - 0.5441984219948924im])
 ```
 The values in `Λ` and `VV` are eigenpairs:
 ```julia
 julia> norm(compute_Mlincomb(nep,Λ[1],VV[:,1]))
-2.0521012310648373e-13
+1.7819713566771836e-13
 julia> norm(compute_Mlincomb(nep,Λ[2],VV[:,2]))
-2.8707903010898464e-13
+1.2888961114892419e-13
 julia> norm(compute_Mlincomb(nep,Λ[3],VV[:,3]))
-1.883394132275381e-13
+1.5058274131661697e-13
 ```
 
-## The theory in the background
-
-The deflation is based on a theory for NEP essentially stating that
-if ``(s,x)`` is an eigenpair, then the extended nonlinear eigenvalue problem
-```math
-T(λ):=\begin{bmatrix}M(λ)&M(λ)x(s-λ)^{-1}\\ x^T & 0\end{bmatrix}
-```
-has the same eigenvalues as the original problem (under certain quite general
-conditions which are assumed to be satisfied). More
-eigenpairs can be deflated with techniques of partial Schur
-factorizations (which the user does not need to use). When we create
-a deflated NEP, we create the NEP `T`.
-
-There are several ways to represent the ``T``, which is why deflation has several
-modes. If you run
-```julia
-julia> dnep=deflate_eigpair(nep,λ1,v1,mode=:SPMF)
-```
-the `dnep` will be of the type `AbstractSPMF`. More precisely, if
-```math
-M(λ)=A_1f_1(λ)+\cdots+A_mf_m(λ)
-```
-the deflated NEP will be
-```math
-T(λ)=
-\begin{bmatrix}A_1&0\\0 & 0\end{bmatrix}f_1(λ)+\cdots+
-\begin{bmatrix}A_m&0\\0 & 0\end{bmatrix}f_m(λ)+
-\begin{bmatrix}0&A_1x\\0 & 0\end{bmatrix}\frac{f_1(λ)}{s-λ}+\cdots+
-\begin{bmatrix}0&A_mx\\0 & 0\end{bmatrix}\frac{f_m(λ)}{s-λ}+
-\begin{bmatrix}0&0\\x^T & 0\end{bmatrix}
-```
-Clearly, the deflated NEP will have more SPMF-terms, and
-the `mode=:SPMF`, is not recommended if you have many SPMF-terms.
-(Some additional exploitation is however implemented, since we can use
-the fact that the introduced terms are of low rank, and
-therefore naturally represented as a `LowRankFactorizedNEP`.)
-
-If you select `mode=:Generic`, the compute functions are implemented
-without the use of SPMF, and can be more efficient
-if the NEP has many SPMF-terms.
-When `mode=:MM` the compute-functions are all implemented
-by calls to `compute_MM`. This will not be efficient if
-`compute_Mder(nep,λ,der)` where  `der>0` is needed.
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_DEFLATION)

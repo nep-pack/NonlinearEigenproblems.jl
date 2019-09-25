@@ -55,7 +55,7 @@ using NonlinearEigenproblems, MATLAB
 nep=Mder_NEP(10,(s,der) -> mat"compute_derivative_k($s,double($der))");
 ```
 The NEP can now be approached with many of the methods in the
-package, e.g., with a contour integral method:
+package, e.g., with a contour integral method ([`contour_beyn`](@ref)):
 ```julia-repl
 julia> (λ,V)=contour_beyn(nep, radius=0.6, k=8);
 julia> λ

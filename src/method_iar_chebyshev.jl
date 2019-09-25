@@ -53,9 +53,10 @@ julia> λ,v=iar_chebyshev(nep;v=v0,tol=1e-5,neigs=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
-  -0.1560621117389876 - 0.12273439561483537im
- -0.15606211173898707 + 0.12273439561483517im
-  0.23169252042880578 - 7.86196165647416e-17im
+julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
+ 0.050462487848960284 - 1.4289626573515395e-18im
+ -0.07708779190301127 + 7.703053374113074e-18im 
+   0.1503856540695659 - 1.662582577182149e-17im 
 ```
 
 # References

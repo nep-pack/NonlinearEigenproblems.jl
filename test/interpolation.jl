@@ -33,13 +33,13 @@ end
 @bench @testset "Random sparse dep" begin
 nep = nep_gallery("dep0_sparse", 30)
 
-λ1,x1 = newton(nep,logger=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
+λ1,x1 = newton(nep,logger=displaylevel,maxit=40, λ=0.2, v=ones(size(nep,1)),armijo_factor=0.5);
 @test compute_resnorm(nep,λ1,x1) < eps()*100
 
 # Newton on interpolated sparse dep
-intpoints = [λ1-1, λ1, λ1+1.5]
+intpoints = [λ1-.5, λ1, λ1+.5]
 pep = interpolate(nep, intpoints)
-λ2,x2 = newton(pep,logger=displaylevel,maxit=40, λ=λ1+0.5, v=ones(size(nep,1)));
+λ2,x2 = newton(pep,logger=displaylevel,maxit=40, λ=λ1+0.1, v=x1+0.1*ones(size(nep,1)));
 @test compute_resnorm(pep,λ2,x2) < eps()*1000000
 @test abs(λ1-λ2)/abs(λ1) < eps()*1000
 

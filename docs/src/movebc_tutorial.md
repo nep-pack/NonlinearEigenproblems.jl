@@ -164,9 +164,10 @@ A=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0),\;\;F=\frac{1}{2h}e_ne_{n-
 ```
 
 ## Implementation in NEP-PACK
-The above discretization can be expressed as a [`SPMF`](types.md#SPMF-1) with
+The above discretization can be expressed as a [`SPMF_NEP`](@ref) with
 four terms. Let us set up the matrices first
 ```julia
+using LinearAlgebra,SparseArrays;
 L0=1; L1=8; V0=10.0;
 xv=Vector(range(0,stop=L0,length=1000))
 h=xv[2]-xv[1];
@@ -188,7 +189,7 @@ hh=S-> sqrt(S+V0*one(S))
 g=S-> cosh((L1-L0)*hh(S))
 f=S-> inv(hh(S))*sinh((L1-L0)*hh(S))
 ```
-Note that when defining an SPMF all functions should be defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, `sinh(A)` and `cosh(A)` for matrix `A` are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the `SPMF`-creator and applying
+Note that when defining an SPMF, all functions should be defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, `sinh(A)` and `cosh(A)` for matrix `A` are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the `SPMF`-creator and applying
 a NEP-solver:
 ```julia
 using NonlinearEigenproblems
@@ -212,47 +213,51 @@ resulting in
 <img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450>
 ```
 
-## Measuring error
-
-For this application, the matrix ``M(λ)`` has very large elements if $n$ is large.
-This makes the default way to measure the error a bit misleading. We now
-show how to specify a better way to measure the error.
-
-The following function provides an estimate of the backward error
-```math
-e(\lambda,v)=\frac{\|M(\lambda)v\|}{\|v\|(\|D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0)\|_F+|λ|
-+|g(λ)|\|I\|_F+|f(λ)|\|F\|_F)}
-```
-This way to measure the error is used if you specify `errmeasure=BackwardErrmeasure(nep)`. See section [Error measure](errmeasure.md) for further details, and how you can
-specify a user defined error measurement function.
-The  `quasinewton` simulations above terminate in less iterations when this
-error measure is used. With this use of measuring the error other
-methods, e.g., infinite Arnoldi method terminate in a reasonable
-number of iterations:
+Rather than making several calls to a specific method,
+some NEP-solvers directly compute several solutions.
+The NEP-solver [`iar`](@ref) works quite well for this problem
+(see also the [deflation approach](deflation.md) to compute
+several solutions):
 ```julia-repl
-julia> (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,
-                 errmeasure=BackwardErrmeasure(nep),neigs=5,maxit=100);
-Iteration:1 conveig:0
-Iteration:2 conveig:0
-Iteration:3 conveig:0
-Iteration:4 conveig:0
-Iteration:5 conveig:0
-Iteration:6 conveig:0
-Iteration:7 conveig:0
-Iteration:8 conveig:0
-Iteration:9 conveig:1
-Iteration:10 conveig:1
-Iteration:11 conveig:1
-...
-Iteration:30 conveig:3
-Iteration:31 conveig:3
-Iteration:32 conveig:4
-Iteration:33 conveig:4
-Iteration:34 conveig:4
-Iteration:35 conveig:4
-Iteration:36 conveig:4
-Iteration:37 conveig:4
-Iteration:38 conveig:4
+julia> (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,neigs=5,maxit=100);
+-
+--
+---
+----
+-----
+------
+=------
++-------
++--------
++---------
++----------
++-----------
++=-----------
+++------------
+++-------------
+++--------------
+++---------------
+++----------------
++++----------------
+++=-----------------
+++=------------------
++++-------------------
++++--------------------
++++---------------------
++++----------------------
++++-----------------------
++++------------------------
++++-------------------------
++++=-------------------------
++++=--------------------------
+++++---------------------------
+++++----------------------------
+++++-----------------------------
+++++------------------------------
+++++-------------------------------
+++++--------------------------------
+++++=--------------------------------
++++++---------------------------------
 julia> λ
 5-element Array{Complex{Float64},1}:
   -34.93072323018405 + 4.272712516424266e-18im
@@ -261,6 +266,12 @@ julia> λ
   -43.66198303378091 - 4.3753274496659e-15im
  -27.537645678335437 + 4.8158177866759774e-15im
 ```
+The output of the logging of `iar` is a compact
+notation for how many eigenvalues have converged
+at a specific iteration. Every line corresponds
+to one iteration step. The signs corresponds to:
+`+`=a converged eigenvalue, `-`=not converged eigenvalue, `=`=almost converged eigenvalue in the sense that it almost (up to a factor 10)
+satisfies the convergence criteria.
 !!! tip
     The performance of many NEP-algorithms for this problem can be improved.
     One improvement is achieved with a simple variable transformation.
