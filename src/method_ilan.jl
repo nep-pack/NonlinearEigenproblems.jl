@@ -145,7 +145,7 @@ function ilan(
         if !proj_solve
             QQ[:,k]=Q[1:n,1];
         end
-
+        println("it=",k)
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);

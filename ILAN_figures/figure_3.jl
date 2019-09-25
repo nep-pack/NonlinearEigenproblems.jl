@@ -30,12 +30,12 @@ nep=DerSPMF(nep,0,2*m)
 
 println("SOLVING THE PROBLEM WITH ILAN")
 #Σ=float([.5+6im, .5-6im, -.5-6im,-.5+6im])
-Σ=float([2.0+0.0im, -3.0-0.0im, -3.0-2.0im,2.0-2.0im])
+Σ=float([0.5+0.5im, -1.5-0.5im, -1.5-1.5im,0.5-1.5im])
 
 v0=ones(size(nep,1))
 λ,W,err,_=ilan(nep;v=v0,neigs=Inf,logger=1,maxit=50,tol=1e-8,check_error_every=1,errmeasure=(λ,v)->rel_err(λ,v[n+1:end]),inner_solver_method=NEPSolver.NleigsInnerSolver(Σ=Σ,tol=1e-2))
 W = W[n+1:end,:]    # extract the eigenvectors
-CSV.write("ILAN_figures/figure_3/unsymm_eigvals_ilan.csv", λ1)
+CSV.write("ILAN_figures/figure_3/unsymm_eigvals_ilan.csv", λ)
 
 # EXPORT THE ERROR HIST
 m,p=size(err);

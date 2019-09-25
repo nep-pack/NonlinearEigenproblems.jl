@@ -38,7 +38,7 @@ CSV.write("ILAN_figures/figure_1/dep_eigs.csv", λ)
 
 # RUN ILAN (BEYN)
 λ2,v2,err,_=ilan(nep,σ=0,γ=1;neigs=100,logger=1,maxit=50,tol=1e-8,check_error_every=1,v=v0,errmeasure=rel_err,
-inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=-Inf,radius=4,N=1000))
+inner_solver_method=NEPSolver.ContourBeynInnerSolver(tol=1e-8,radius=4,N=1000))
 
 CSV.write("ILAN_figures/figure_1/dep_ilan_Beyn.csv", λ2)
 
