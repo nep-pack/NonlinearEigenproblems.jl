@@ -4,13 +4,13 @@ nep=nep_gallery("dep0");
 
 r=5; θ=range(0,stop=2π,length=1000); Σ=r*cos.(θ) + 1im*r*sin.(θ); Ξ=[-10.0]
 # nleigs linearization
-cp=compute_CORK_pencil(nep,NleigsCorkLinearization(Σ=Σ,Ξ=[-10.0]))
-AA,BB=build_CORK_pencil(cp)
+cp=compute_CORKPencil(nep,NleigsCorkLinearization(Σ=Σ,Ξ=[-10.0]))
+AA,BB=build_CORKPencil(cp)
 λ2=eigvals(Matrix(AA),Matrix(BB))
 
 # iar linearization
-cp=compute_CORK_pencil(nep,IarCorkLinearization(d=40))
-AA,BB=build_CORK_pencil(cp)
+cp=compute_CORKPencil(nep,IarCorkLinearization(d=40))
+AA,BB=build_CORKPencil(cp)
 λ3=eigvals(Matrix(AA),Matrix(BB))
 
 # reference eigenvalues

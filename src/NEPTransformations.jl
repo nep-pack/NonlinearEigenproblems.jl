@@ -9,9 +9,9 @@ module NEPTransformations
     export taylor_expansion_pep
     export shift_and_scale
     export mobius_transform
-    export CORK_pencil
-    export build_CORK_pencil
-    export compute_CORK_pencil
+    export CORKPencil
+    export build_CORKPencil
+    export compute_CORKPencil
     export CorkLinearization
     export DefaultCorkLinearization
     export IarCorkLinearization
@@ -229,7 +229,7 @@ module NEPTransformations
     end
 
     # representation of the structured linearizations used in the CORK framework
-    struct CORK_pencil{T<:AbstractMatrix}
+    struct CORKPencil{T<:AbstractMatrix}
         M::T
         N::T
         Av::Vector{T}   # Array of Array of matrices
@@ -258,7 +258,7 @@ module NEPTransformations
         end
     end
 
-    function compute_CORK_pencil(nep,is::IarCorkLinearization)
+    function compute_CORKPencil(nep,is::IarCorkLinearization)
         M=diagm( 0 =>  ones(is.d) )[2:end,:]
         N=diagm( -1 =>  1 ./ (1:is.d-1) )[2:end,:]
         Av=Array{AbstractMatrix,1}(undef, is.d)
@@ -266,10 +266,10 @@ module NEPTransformations
         Av[1]=-compute_Mder(nep,0,0)
         for j=2:is.d Av[j]=zero(Av[1])              end
         for j=1:is.d Bv[j]=compute_Mder(nep,0,j)/j  end
-        return CORK_pencil(M,N,Av,Bv)
+        return CORKPencil(M,N,Av,Bv)
     end
 
-    function compute_CORK_pencil(nep,is::NleigsCorkLinearization)
+    function compute_CORKPencil(nep,is::NleigsCorkLinearization)
         D,β,ξ,σ=nleigs_coefficients(nep,is.Σ,tollin=is.tollin,Ξ=is.Ξ)
         d=length(β)-1
         σ=σ[1:d+1]; β=β[1:d+1]; ξ=ξ[1:d+1]
@@ -279,11 +279,11 @@ module NEPTransformations
         Av[1:d-1]=D[1:d-1]; Av[d]=D[d]-σ[d]/β[d+1]*D[d+1]
         Bv=Array{AbstractMatrix,1}(undef, d)
         Bv[1:d-1]=D[1:d-1]/ξ[d+1]; Bv[d]=D[d]/ξ[d+1]-D[d+1]/β[d+1]
-        return CORK_pencil(M,N,Av,Bv)
+        return CORKPencil(M,N,Av,Bv)
     end
 
     # construct the linearization
-    function build_CORK_pencil(cp::CORK_pencil)
+    function build_CORKPencil(cp::CORKPencil)
         n=size(cp.Av[1],1)
         if issparse(cp.Av[1])   II=sparse(I, n, n)
         else                    II=Matrix(I, n, n)    end
