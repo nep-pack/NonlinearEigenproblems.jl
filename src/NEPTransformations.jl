@@ -229,11 +229,11 @@ module NEPTransformations
     end
 
     # representation of the structured linearizations used in the CORK framework
-    struct CORKPencil{T<:AbstractMatrix}
-        M::T
-        N::T
-        Av::Vector{T}   # Array of Array of matrices
-        Bv::Vector{T}   # Array of Array of matrices
+    struct CORKPencil{T1<:AbstractMatrix,T2<:AbstractMatrix}
+        M::T1
+        N::T1
+        Av::Vector{T2}   # Array of Array of matrices
+        Bv::Vector{T2}   # Array of Array of matrices
     end
 
     abstract type CorkLinearization end;
@@ -273,6 +273,7 @@ module NEPTransformations
         D,β,ξ,σ=nleigs_coefficients(nep,is.Σ,tollin=is.tollin,Ξ=is.Ξ)
         d=length(β)-1
         σ=σ[1:d+1]; β=β[1:d+1]; ξ=ξ[1:d+1]
+        σ,β,ξ=promote(σ,β,ξ) # be sure that M and N have the same type
         M=diagm( -1 => σ[1:d], 0 =>  β[1:d] )[2:end-1,1:end-1]
         N=diagm( -1 => ones(d), 0 =>  β[1:d]./ξ[1:d] )[2:end-1,1:end-1]
         Av=Array{AbstractMatrix,1}(undef, d)

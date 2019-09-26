@@ -327,7 +327,7 @@ julia> compute_Mder(nep,1)-(A0+A1*exp(1))
         # figure out the return type, as the greatest type of all input
         Tx = promote_typeof(x)
         TA = promote_eltype(AA) # Greatest type of all A-matrices
-        TZ=promote_type(TA,Tx)  # output type
+        TZ = promote_type(TA,Tx)  # output type
         return (TZ,x);
     end
 
