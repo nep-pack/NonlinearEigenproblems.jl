@@ -933,7 +933,6 @@ Returns true/false if the NEP is sparse (if `compute_Mder()` returns sparse)
     end
 
 
-    include("nep_transformations.jl")
     include("nep_deflation.jl")
     include("low_rank_nep.jl")
     include("errmeasure.jl")
