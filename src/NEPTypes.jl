@@ -74,7 +74,7 @@ julia> set_projectmatrices!(projnep,e1,e1);
 julia> compute_Mder(nep,3.0)[1,1]
 -2.942777908030041
 julia> compute_Mder(projnep,3.0)
-1×1 Array{Float64,2}:
+1×1 Array{Complex{Float64},2}:
  -2.942777908030041 + 0.0im
 ```
 """
@@ -933,7 +933,6 @@ Returns true/false if the NEP is sparse (if `compute_Mder()` returns sparse)
     end
 
 
-    include("nep_transformations.jl")
     include("nep_deflation.jl")
     include("low_rank_nep.jl")
     include("errmeasure.jl")

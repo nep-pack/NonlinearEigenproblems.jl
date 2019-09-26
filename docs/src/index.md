@@ -31,8 +31,8 @@ M(λ)=\begin{bmatrix}1&3\newline5&6\end{bmatrix}+
 ```
 The following code creates this NEP, by constructing an object called
 [`PEP`](@ref), an abbreviation for polynomial eigenvalue problem.
-It subsequencly solves it using the NEP solution method implemented
-in [`polyeig`](@ref):
+It subsequently solves it using the NEP solution method implemented
+in the NEP-solver [`polyeig`](@ref):
 ```julia-repl
 julia> A0=[1.0 3; 5 6]; A1=[3.0 4; 6 6]; A2=[1.0 0; 0 1.0];
 julia> nep=PEP([A0,A1,A2])

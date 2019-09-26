@@ -2,25 +2,13 @@ module NEPSolver
     using ..NEPCore
     using ..NEPTypes
     using ..LinSolvers
+    using ..NEPTransformations
     using LinearAlgebra
     using SparseArrays
     using Random
 
 
-    export @parse_logger_param!
-    """
-    @parse_logger_param!(l)
 
-If l is a number it canges l to a PrintLogger(l).
-"""
-    macro parse_logger_param!(l)
-       return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
-    end
-
-
-
-
-    include("logger.jl");
     include("inner_solver.jl");
     include("compute_rf_wrapper.jl");
 
