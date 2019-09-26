@@ -12,7 +12,7 @@ module Serialization
             for n = 1:2
                 foreach(x -> write(f, "$(T(x))\n"), nz[n])
             end
-            foreach(x -> write(f, "$x\n"), nz[3])
+            foreach(x -> write(f, "$(Float64(x))\n"), nz[3])
         end
     end
 
