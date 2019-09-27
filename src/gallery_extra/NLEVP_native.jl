@@ -4,10 +4,10 @@
 function nlevp_native_gun()
     gunbase=joinpath(dirname(@__FILE__()),
       "converted_nlevp", "gun_")
-    K=read_sparse_matrix(gunbase * "K.txt")
-    M=read_sparse_matrix(gunbase * "M.txt")
-    W1=read_sparse_matrix(gunbase * "W1.txt")
-    W2=read_sparse_matrix(gunbase * "W2.txt")
+    K=read_sparse_matrix(gunbase * "K.txt", Int64)
+    M=read_sparse_matrix(gunbase * "M.txt", Int64)
+    W1=read_sparse_matrix(gunbase * "W1.txt", Int64)
+    W2=read_sparse_matrix(gunbase * "W2.txt", Int64)
     # The gun problem is a sum of a PEP and a problem containing square roots.
     pep=PEP([K,-M])
     sqrt1op= S -> 1im*sqrt(S)
@@ -21,8 +21,8 @@ end
 function nlevp_native_cd_player()
     cdbase=joinpath(dirname(@__FILE__()),
       "converted_nlevp", "cd_player_")
-    K = Matrix(read_sparse_matrix(cdbase * "K.txt"))
-    C = Matrix(read_sparse_matrix(cdbase * "C.txt"))
+    K = Matrix(read_sparse_matrix(cdbase * "K.txt", Int64))
+    C = Matrix(read_sparse_matrix(cdbase * "C.txt", Int64))
     M = one(K)
     nep = PEP([K, C, M])
     return nep

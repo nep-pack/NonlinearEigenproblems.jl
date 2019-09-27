@@ -94,14 +94,14 @@ function generate_P_matrix(nz::Integer, hx, Km, Kp)
 
     # BUILD THE FOURTH BLOCK P
     function P(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
-        return vec( [R(Rinv(x[1:Int64(end/2)]) .* sM(γ));
-                     R(Rinv(x[Int64(end/2)+1:end]) .* sP(γ))  ])
+        return vec( [R(Rinv(x[1:Int(end/2)]) .* sM(γ));
+                     R(Rinv(x[Int(end/2)+1:end]) .* sP(γ))  ])
     end
 
     # BUILD THE DERIVATIVE OF P
     function p_P(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
-        return vec( [R(Rinv(x[1:Int64(end/2)]) .* p_sM(γ));
-                     R(Rinv(x[Int64(end/2)+1:end]) .* p_sP(γ))  ])
+        return vec( [R(Rinv(x[1:Int(end/2)]) .* p_sM(γ));
+                     R(Rinv(x[Int(end/2)+1:end]) .* p_sP(γ))  ])
     end
 
     return P, p_P
@@ -139,8 +139,8 @@ function generate_Pinv_matrix(nz::Integer, hx, Km, Kp)
 
    # BUILD THE INVERSE OF THE FOURTH BLOCK P
    function Pinv(γ,x::Union{Vector{ComplexF64}, Vector{Float64}})
-       return vec(  [R(Rinv(x[1:Int64(end/2)]) ./ sM(γ));
-                     R(Rinv(x[Int64(end/2)+1:end]) ./ sP(γ))  ]  )
+       return vec(  [R(Rinv(x[1:Int(end/2)]) ./ sM(γ));
+                     R(Rinv(x[Int(end/2)+1:end]) ./ sP(γ))  ]  )
    end
 
 

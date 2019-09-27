@@ -76,8 +76,8 @@ end
 function qdep0()
     qdepbase=joinpath(dirname(@__FILE__()),
                       "converted_misc" ,"qdep_infbilanczos_")
-    A0=read_sparse_matrix(qdepbase * "A0.txt")
-    A1=read_sparse_matrix(qdepbase * "A1.txt")
+    A0=read_sparse_matrix(qdepbase * "A0.txt", Int64)
+    A1=read_sparse_matrix(qdepbase * "A1.txt", Int64)
     tau::Float64 = 1
     quadfun = S -> S^2
     constfun = S -> one(S)
@@ -155,11 +155,11 @@ end
 
 function sine_nep()
     data_dir=joinpath(dirname(@__FILE__()),  "converted_sine")
-    A0=read_sparse_matrix(joinpath(data_dir,"sine_A0.txt"));
-    A1=read_sparse_matrix(joinpath(data_dir,"sine_A1.txt"));
-    A2=read_sparse_matrix(joinpath(data_dir,"sine_A2.txt"));
-    V=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_V.txt")));
-    Q=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_Q.txt")));
+    A0=read_sparse_matrix(joinpath(data_dir,"sine_A0.txt"), Int64);
+    A1=read_sparse_matrix(joinpath(data_dir,"sine_A1.txt"), Int64);
+    A2=read_sparse_matrix(joinpath(data_dir,"sine_A2.txt"), Int64);
+    V=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_V.txt"), Int64));
+    Q=Matrix(read_sparse_matrix(joinpath(data_dir,"sine_Q.txt"), Int64));
 
     n=size(A0,1);
     Z=spzeros(n,n);

@@ -67,7 +67,7 @@ function LowRankFactorizedNEP(Amf::AbstractVector{LowRankMatrixAndFunction{S}}) 
 end
 
 
-function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int64})
+function low_rank_lu_factors(A::SparseMatrixCSC{<:Number,Int})
     n = size(A, 1)
     idx = findall(!iszero, A)
     r = extrema(getindex.(idx, 1))
