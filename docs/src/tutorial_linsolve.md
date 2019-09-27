@@ -25,23 +25,20 @@ A=spdiagm(0=>ones(n),1=>α*ones(n-1),-3=>α*ones(n-3));
 B=spdiagm(0=>ones(n));
 C=spdiagm(0=>(1:n)/n);
 nep= SPMF_NEP([A,B,C],[s->one(s),s->s,s->exp(s)],align_sparsity_patterns=true);
-λ0=-1.2; # Starting guess
+λ0=-1.3; # Starting guess
 ```
 Let us first solve it with the  [`resinv`](@ref) method, using the default solver for the linear system:
 ```julia-repl
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),logger=1,tol=1e-16);
 Precomputing linsolver
-iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
-iter 2 err:0.0012874946992780317 λ=-1.175478914232863 + 0.0im
-iter 3 err:0.016919177734890222 λ=-0.9045032212171921 + 0.0im
-iter 4 err:7.884718326761425e-5 λ=-1.1998094425367554 + 0.0im
-iter 5 err:9.586775789527191e-5 λ=-1.1974656536888064 + 0.0im
-iter 6 err:3.78703180008048e-5 λ=-1.1994205846695527 + 0.0im
+iter 1 err:0.0066371687626530325 λ=-1.3 + 0.0im
+iter 2 err:0.005517924619612248 λ=-1.175478914232863 + 0.0im
+iter 3 err:0.002478390282482615 λ=-1.237914206446667 + 0.0im
+iter 4 err:0.0007175125397164684 λ=-1.2715354474842264 + 0.0im
 ...
-iter 69 err:3.785514223854239e-16 λ=-1.1989892137958453 + 0.0im
-iter 70 err:2.170893845294037e-16 λ=-1.198989213795854 + 0.0im
-iter 71 err:2.7459926096111223e-16 λ=-1.198989213795849 + 0.0im
-iter 72 err:4.2865411760984745e-17 λ=-1.1989892137958549 + 0.0im
+iter 68 err:1.9815836266850424e-16 λ=-1.2845622481786096 + 0.0im
+iter 69 err:1.2398848173585647e-16 λ=-1.28456224817861 + 0.0im
+iter 70 err:8.341032972349128e-17 λ=-1.2845622481786103 + 0.0im
 
 ```
 We will carry out some timing experiments, so let's
@@ -50,7 +47,7 @@ the NEP-solver:
 ```julia-repl
 julia> using BenchmarkTools
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),tol=1e-16);
-  8.806 ms (35327 allocations: 11.89 MiB)
+  8.170 ms (32457 allocations: 10.99 MiB)
 ```
 The linear system that has to be solved in every iteration
 in `resinv` has a constant system matrix, and
@@ -62,14 +59,14 @@ a creator if the type `FactorizeLinSolverCreator`.
 ```julia-repl
 julia> creator=FactorizeLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  8.796 ms (35317 allocations: 11.89 MiB)
+  8.104 ms (32447 allocations: 10.98 MiB)
 ```
 If we do not want to use a prefactorization, you can specify
 [`BackslashLinSolverCreator`](@ref) as your creator object.
 ```julia-repl
 julia> creator=BackslashLinSolverCreator();
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  21.320 ms (39926 allocations: 23.55 MiB)
+  19.985 ms (36932 allocations: 22.31 MiB)
 ```
 This does not use a prefactorization and is therefore slower.
 
@@ -91,23 +88,21 @@ and `Pl` specifies the left preconditioner, in this case just a diagonal matrix.
 ```julia-repl
 julia> (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,logger=1,tol=1e-16);
 Precomputing linsolver
-iter 1 err:0.003863455199119409 λ=-1.2 + 0.0im
-iter 2 err:0.0012837854081047286 λ=-1.175478914232863 + 0.0im
-iter 3 err:0.012943949711442134 λ=-0.9675295912973538 + 0.0im
-iter 4 err:5.6699590570018006e-5 λ=-1.1998320040681159 + 0.0im
-iter 5 err:3.386002318926461e-5 λ=-1.1984551421732517 + 0.0im
+iter 1 err:0.0066371687626530325 λ=-1.3 + 0.0im
+iter 2 err:0.005516840431746622 λ=-1.175478914232863 + 0.0im
+iter 3 err:0.002478456565315529 λ=-1.2379013065364441 + 0.0im
+iter 4 err:0.0007137260829914206 λ=-1.271604846382212 + 0.0im
 ...
-iter 47 err:5.889736908670774e-16 λ=-1.198989213795847 + 0.0im
-iter 48 err:7.322942517281224e-16 λ=-1.1989892137958593 + 0.0im
-iter 49 err:6.194807127197455e-16 λ=-1.198989213795844 + 0.0im
-iter 50 err:7.18910194205741e-17 λ=-1.1989892137958569 + 0.0im
+iter 69 err:1.4948517196633335e-16 λ=-1.2845622481786099 + 0.0im
+iter 70 err:1.0136830543996086e-16 λ=-1.28456224817861 + 0.0im
+iter 71 err:6.468407765141646e-17 λ=-1.2845622481786103 + 0.0im
+
 ```
-The printout reveals that we, for some reason, need fewer iterations, than with a
-direct method. However, in terms of computation
-time, this approach is not really competitive:
+The printout reveals that we need one more more iteration, than with a direct method.
+In terms of computation time, this approach can however still be competitive:
 ```julia-repl
 julia> @btime (λ,x)=resinv(nep,λ=λ0,v=ones(n),maxit=100,linsolvercreator=creator,tol=1e-16);
-  15.536 ms (64079 allocations: 22.76 MiB)
+  10.912 ms (49183 allocations: 18.95 MiB)
 ```
 
 ## Your own linear solver
