@@ -16,7 +16,9 @@ include(joinpath("utils", "Serialization.jl"))
 @include_export("NEPTypes.jl", NEPTypes)
 @include_export("LinSolvers.jl", LinSolvers)
 include(joinpath("rk_helper", "RKHelper.jl"))
+@include_export("NEPTransformations.jl", NEPTransformations)
 @include_export("NEPSolver.jl", NEPSolver)
 @include_export("Gallery.jl", Gallery)
+
 
 end

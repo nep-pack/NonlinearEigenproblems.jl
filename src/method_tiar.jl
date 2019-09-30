@@ -40,10 +40,9 @@ julia> λ,v=tiar(nep;v=v0,tol=1e-5,neigs=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
- -0.1560621147566685 + 0.12273439802763504im
- -0.1560621147566693 - 0.1227343980276357im
- 0.23169243065648332 - 4.699260229885766e-17im
-
+ 0.050462487743188206 - 3.4059600538119376e-18im
+ -0.07708769561361105 + 8.611006691570004e-19im 
+   0.1503916927814904 + 9.388210527944734e-18im 
 ```
 
 # References

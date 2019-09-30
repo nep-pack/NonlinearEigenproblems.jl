@@ -31,17 +31,32 @@ module NEPCore
     import Base.size  # Overload for nonlinear eigenvalue problems
     import SparseArrays.issparse  # Overload for nonlinear eigenvalue problems
 
+#################### SHOULD WE JAVE THE LOGGER HERE? ####################
+    export @parse_logger_param!
+    """
+    @parse_logger_param!(l)
 
+If l is a number it canges l to a PrintLogger(l).
+"""
+    macro parse_logger_param!(l)
+       return esc(:( if ($l isa Number) ; $l=PrintLogger($l); end ))
+    end
+################################################################################
+
+
+
+    include("logger.jl");
 
 
     ############################################
     # Default NEP functions
     #
 
-    """
+"""
     abstract NEP
+
 A `NEP` object represents a nonlinear eigenvalue problem. All NEPs should implement
-```julia-repl
+```julia
 size(nep::NEP,d)
 ```
 and at least one of the following
@@ -64,12 +79,11 @@ Computes the ith derivative of `nep` evaluated in `λ`.
 This example shows that `compute_Mder(nep,λ,1)` gives the first derivative.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
-julia> ϵ=1e-5;
-julia> Aminus=compute_Mder(nep,λ-ϵ);
+julia> ϵ=1e-5; λ=2.25;
 julia> Aminus=compute_Mder(nep,λ-ϵ);
 julia> Aplus=compute_Mder(nep,λ+ϵ);
 julia> opnorm((Aplus-Aminus)/(2ϵ)-compute_Mder(nep,λ,1))
-1.990970375089371e-11
+1.8783432885257602e-11
 ```
 """
     function compute_Mder(nep::NEP,λ::Number,i::Integer=0)
@@ -91,8 +105,7 @@ This example shows that `compute_Mder` gives a result consistent with `compute_M
 julia> nep=nep_gallery("dep0");
 julia> v=ones(size(nep,1)); λ=-1+1im;
 julia> norm(compute_Mder(nep,λ,1)*v-compute_Mlincomb(nep,λ,hcat(v,v),[0,1]))
-1.0778315928076987e-15
-
+0.0
 ```
 """
 compute_Mlincomb!(nep::NEP,λ::Number,V::AbstractVecOrMat,a::Vector), compute_Mlincomb(nep::NEP,λ::Number,V::AbstractVecOrMat, a::Vector)
@@ -160,13 +173,14 @@ julia> D=diagm(0 => [1,2])
 2×2 Array{Int64,2}:
  1  0
  0  2
-julia> V=ones(size(n,1),2);
+julia> V=ones(size(nep,1),2);
 julia> W=compute_MM(nep,D,V);
 julia> norm(W[:,1]-compute_Mlincomb(nep,D[1,1],V[:,1]))
-1.1102230246251565e-16
-julia> norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
 0.0
+julia> norm(W[:,2]-compute_Mlincomb(nep,D[2,2],V[:,2]))
+4.440892098500626e-16
 ```
+
 # Reference
 Properties of the quantity ``Σ_i M_i V f_i(S)`` for
 non-polynomial nonlinear eigenvalue problems were
@@ -196,8 +210,9 @@ compute_Mlincomb(nep::MyNEP,λ::Number,V,a)=compute_Mlincomb_from_MM(nep,λ,V,a)
 ```
 """
     compute_Mlincomb_from_MM(nep::NEP,λ::Number,V,a)=compute_Mlincomb_from_MM!(nep,λ,copy(V),copy(a))
-    """
+"""
     compute_Mlincomb_from_MM!(nep::NEP,λ::Number,V,a)
+
 Same as [`compute_Mlincomb`](@ref), but modifies V and a.
 """
     function compute_Mlincomb_from_MM!(nep::NEP,λ::Number,V,a::Array{<:Number,1})
@@ -248,8 +263,9 @@ using the fact that MM of a jordan block becomes derivatives.
     end
 
 
-    """
+"""
     compute_resnorm(nep::NEP,λ,v)
+
 Computes the residual norm of the `nep`, in the point `λ`, with the vector
 `v`, i.e., ``||M(λ)v||``.
 """
@@ -258,10 +274,11 @@ Computes the residual norm of the `nep`, in the point `λ`, with the vector
     end
 
 
-   """
+"""
     size(nep::NEP)
     size(nep::NEP,dim)
-Overloads the size functions for NEP.\\
+
+Overloads the size functions for NEP.
 Size returns the size of the matrix defining the NEP.
 
 Note: All NEPs must implement this function.
@@ -274,16 +291,17 @@ Note: All NEPs must implement this function.
     end
 
 
-   """
+"""
     issparse(nep::NEP)
-Overloads the issparse functions for NEP.\\
-Issparse returns `true` if the undelying type of the NEP is\\
-sparse, and `false` if it is dense.\\
-Default behaviour: Check sparsity of `compute_Mder(nep,0)`
 
+Overloads the issparse functions for NEP.
+Issparse returns `true` if the undelying type of the NEP is
+sparse, and `false` if it is dense.
+
+Default behaviour: Check sparsity of `compute_Mder(nep,0)`
 """
     function issparse(nep::NEP)
-        issparse(compute_Mder(nep,0.0)) # TODO: This might require a redesign when/if NEPs are parametric. Type of 0.0?
+        issparse(compute_Mder(nep,0.0))
     end
 
 
@@ -294,8 +312,9 @@ Default behaviour: Check sparsity of `compute_Mder(nep,0)`
     # Misc helpers
     #
 
-    """
+"""
     struct NoConvergenceException
+
 Exeption thrown in case an iterative method does not converge\\
 `λ` = current eigenvalue(s) approximation\\
 `v` = current eigenvector(s) approximation\\
@@ -324,7 +343,7 @@ Exeption thrown in case an iterative method does not converge\\
     end
 
 
-    """
+"""
     struct LostOrthogonalityException
 `msg`
 """

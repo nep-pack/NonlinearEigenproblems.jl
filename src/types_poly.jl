@@ -26,7 +26,7 @@ julia> compute_Mder(pep,3)-(A0+A1*3+A2*9)
  0.0  0.0
 ```
 
-See also [`polyeig`](@ref), [`companion`](@ref), [`ChebPEP`](@ref), [`interpolate`](@ref).
+See also [`polyeig`](methods.md#NonlinearEigenproblems.NEPSolver.polyeig), [`companion`](methods.md#NonlinearEigenproblems.NEPSolver.companion), [`ChebPEP`](@ref), [`interpolate`](@ref).
 """
 struct PEP <: AbstractSPMF{AbstractMatrix}
     n::Int

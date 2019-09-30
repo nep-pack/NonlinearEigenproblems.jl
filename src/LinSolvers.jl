@@ -247,7 +247,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
 ```
 
 See also: [`eig_solve`](@ref),
-[`DefaultEigSolver`](@ref), [`NativeEigSolver`](@ref),
+[`DefaultEigSolver`](@ref), [`EigenEigSolver`](@ref),
 [`ArnoldiEigSolver`](@ref), [`eig_solve`](@ref)
 
 """
@@ -256,11 +256,11 @@ See also: [`eig_solve`](@ref),
 
 ##############################################################################
 """
-    struct NativeEigSolver <: EigSolver
+    struct EigenEigSolver <: EigSolver
 
 A linear eigenvalueproblem solver that calls Julia's in-built eigen()
 
-Constructed as `NativeEigSolver(A, [B,])`, and solves the problem
+Constructed as `EigenEigSolver(A, [B,])`, and solves the problem
 ```math
 Ax = λBx
 ```

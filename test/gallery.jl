@@ -177,15 +177,15 @@ using Test
 
 
     @info "testing bem_fichera"
-    nep=nep_gallery("bem_fichera",2);
+    nep=nep_gallery("bem_fichera",1);
 
     λ_ref=8.790558462139456 - 0.010815457827738698im
     M=compute_Mder(nep,λ_ref);
     @test rank(M)<size(M,1)
     @onlybench @testset "bem_fichera + IAR" begin
        v=ones(size(nep,1));
-       (λ,vv)=iar(nep,σ=9,v=v,logger=displaylevel,neigs=4,maxit=50,tol=1e-6) # normally takes 30 iterations
-       @test norm(compute_Mlincomb(nep,λ[1],vv[:,1]))<sqrt(eps());
+       (λ,vv)=iar(nep,σ=9,v=v,logger=displaylevel,neigs=1,maxit=50,tol=1e-6) # normally takes 30 iterations
+       @test norm(compute_Mlincomb(nep,λ[1],vv[:,1]))<sqrt(eps())*100;
     end
     @info "non-existing example"
     @test_throws ErrorException nep_gallery("non-existing example")

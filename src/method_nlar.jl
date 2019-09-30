@@ -26,9 +26,9 @@ See [`augnewton`](@ref) for other parameters.
 # Example
 ```julia-repl
 julia> nep=nep_gallery("dep0_tridiag");
-julia> λ,v=nlar(nep,tol=1e-7,neigs=1,maxit=100);
+julia> λ,v=nlar(nep,tol=1e-7,neigs=1,maxit=100,v=ones(size(nep,1)));
 julia> norm(compute_Mlincomb(nep,λ[1],v))
-8.633038099084939e-7
+8.00192341259751e-7
 ```
 
 # References

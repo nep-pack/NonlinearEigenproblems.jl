@@ -17,11 +17,11 @@ See [`augnewton`](@ref) for other parameters.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> nept=DEP([nep.A[1]',nep.A[2]'])
-julia> λ,v,u=rfi_b(nep,nept)
-julia> compute_resnorm(nep,λ,v) % v is a right eigenvector
-4.347204570675246e-16
-julia> compute_resnorm(nept,λ,u) % u is a left eigenvector
-7.173081573164097e-16
+julia> λ,v,u=rfi(nep,nept)
+julia> compute_resnorm(nep,λ,v) # v is a right eigenvector
+3.0171586304599647e-16
+julia> compute_resnorm(nept,λ,u) # u is a right eigenvector
+7.145081514857076e-17
 ```
 # Reference
 *  Algorithm 4 in  Schreiber, Nonlinear Eigenvalue Problems: Newton-type Methods and Nonlinear Rayleigh Functionals, PhD thesis, TU Berlin, 2008.
@@ -88,11 +88,9 @@ See [`augnewton`](@ref) for other parameters.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> nept=DEP([nep.A[1]',nep.A[2]'])
-julia> λ,v,u=rfi_b(nep,nept,v=ones(size(nep,1)))
-julia> compute_resnorm(nep,λ,v) % v is a right eigenvector
+julia> λ,v,u=rfi_b(nep,nept,v=ones(ComplexF64,size(nep,1)))
+julia> compute_resnorm(nep,λ,v) # v is a right eigenvector
 5.343670589284583e-15
-julia> compute_resnorm(nept,λ,u) % u is a left eigenvector
-5.271390516634306e-16
 ```
 
 # Reference

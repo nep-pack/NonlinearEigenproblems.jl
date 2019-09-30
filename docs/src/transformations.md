@@ -21,10 +21,8 @@ mobius_transform
 ```
 ## Expansions
 
-** TODO: This should be renamed, e.g. taylor_exp **
-
 ```@docs
-transform_to_pep
+taylor_expansion_pep
 ```
 
 ```@docs

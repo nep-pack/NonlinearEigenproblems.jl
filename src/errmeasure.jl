@@ -53,21 +53,22 @@ eigenvector error (appropriately normalized).
 julia> using LinearAlgebra
 julia> nep=nep_gallery("qdep0");
 julia> (λref,vref)=quasinewton(nep,λ=-1,v=ones(size(nep,1)));
-julia> myerrmeasure=(λ,v) -> norm(vref/vref[1]-v/v[1])
-julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)))
+julia> myerrmeasure=(λ,v) -> norm(vref/vref[1]-v/v[1]);
+julia> (λ,v)=quasinewton(nep,errmeasure=myerrmeasure,λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)));
 Precomputing linsolver
-iter 1 err:0.0024669885857651064 λ=-1.0 + 0.0im
-iter 2 err:0.2961339774298044 λ=-0.7063330111559607 + 0.0im
-iter 3 err:0.11050908031267426 λ=-0.8919579082730908 + 0.0im
-iter 4 err:0.007291415670313883 λ=-1.009758404256079 + 0.0im
-iter 5 err:8.460128136422718e-5 λ=-1.0023823873044009 + 0.0im
-iter 6 err:9.01533362851481e-7 λ=-1.0024660870524023 + 0.0im
-iter 7 err:8.006004341698514e-7 λ=-1.0024677891861993 + 0.0im
-iter 8 err:3.889644784038637e-8 λ=-1.0024669496893173 + 0.0im
-iter 9 err:3.2391431759037914e-9 λ=-1.0024669918249083 + 0.0im
-iter 10 err:2.418489852828998e-10 λ=-1.0024669883439161 + 0.0im
-iter 11 err:2.0229151687090052e-11 λ=-1.0024669886059943 + 0.0im
-iter 12 err:0.0 λ=-1.002466988585765 + 0.0im
+iter 1 err:46.40296482739195 λ=-1.0 + 0.0im
+iter 2 err:2.1592671533657883 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.17079231439255405 λ=-0.8919579082730457 + 0.0im
+iter 4 err:0.1633846991066227 λ=-1.0097584042560848 + 0.0im
+iter 5 err:0.003434042059262583 λ=-1.0023823873044 + 0.0im
+iter 6 err:0.0003182517281689052 λ=-1.0024660870524031 + 0.0im
+iter 7 err:2.0105257231740345e-5 λ=-1.0024677891861997 + 0.0im
+iter 8 err:1.618661190265619e-6 λ=-1.0024669496893164 + 0.0im
+iter 9 err:1.233489068442819e-7 λ=-1.0024669918249076 + 0.0im
+iter 10 err:9.44707811957546e-9 λ=-1.0024669883439166 + 0.0im
+iter 11 err:7.867601351698812e-10 λ=-1.0024669886059947 + 0.0im
+iter 12 err:0.0 λ=-1.002466988585764 + 0.0im
+
 ```
 The eigenvalue error can be measured with the
 [`EigvalReferenceErrmeasure`](@ref).
@@ -154,7 +155,18 @@ norm.
 # Example
 ```julia
 julia> nep=nep_gallery("qdep0");
-julia> (λ,v)=quasinewton(nep,λ=-1,errmeasure=StandardSPMFErrmeasure(nep),tol=1e-10);
+julia> (λ,v)=quasinewton(nep,λ=-1,v=ones(size(nep,1)),errmeasure=StandardSPMFErrmeasure(nep),tol=1e-10,logger=1);
+Precomputing linsolver
+iter 1 err:0.022010375110869937 λ=-1.0 + 0.0im
+iter 2 err:0.002515422247048546 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.000892354247568813 λ=-0.8919579082730457 + 0.0im
+iter 4 err:5.445678793151584e-5 λ=-1.0097584042560848 + 0.0im
+iter 5 err:6.649967517409105e-7 λ=-1.0023823873044 + 0.0im
+iter 6 err:1.0557281809769784e-8 λ=-1.0024660870524031 + 0.0im
+iter 7 err:6.420125566431444e-9 λ=-1.0024677891861997 + 0.0im
+iter 8 err:3.181093707909799e-10 λ=-1.0024669496893164 + 0.0im
+iter 9 err:2.6368050026394416e-11 λ=-1.0024669918249076 + 0.0im
+
 ```
 See also: [`Errmeasure`](@ref)
 
@@ -182,7 +194,7 @@ end
 
 """
     struct EigvalReferenceErrmeasure{X<:Number} <: Errmeasure
-    function EigvalReferenceErrmeasure(λref,nep)
+    function EigvalReferenceErrmeasure(nep,λref)
 
 Use the difference between a precomputed λ-value (reference solution)
 and the eigenvalue estimate
@@ -194,20 +206,20 @@ as the error measure.
 julia> using LinearAlgebra
 julia> nep=nep_gallery("qdep0");
 julia> (λref,vref)=quasinewton(nep,λ=-1,v=ones(size(nep,1)));
-julia> (λ,v)=quasinewton(nep,errmeasure=EigvalReferenceErrmeasure(nep,λref),λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)))
+julia> (λ,v)=quasinewton(nep,errmeasure=EigvalReferenceErrmeasure(nep,λref),λ=-1.0 ,logger=1,tol=5e-13,v=ones(size(nep,1)));
 Precomputing linsolver
-iter 1 err:0.0024669885857651064 λ=-1.0 + 0.0im
-iter 2 err:0.2961339774298044 λ=-0.7063330111559607 + 0.0im
-iter 3 err:0.11050908031267426 λ=-0.8919579082730908 + 0.0im
-iter 4 err:0.007291415670313883 λ=-1.009758404256079 + 0.0im
-iter 5 err:8.460128136422718e-5 λ=-1.0023823873044009 + 0.0im
-iter 6 err:9.01533362851481e-7 λ=-1.0024660870524023 + 0.0im
-iter 7 err:8.006004341698514e-7 λ=-1.0024677891861993 + 0.0im
-iter 8 err:3.889644784038637e-8 λ=-1.0024669496893173 + 0.0im
-iter 9 err:3.2391431759037914e-9 λ=-1.0024669918249083 + 0.0im
-iter 10 err:2.418489852828998e-10 λ=-1.0024669883439161 + 0.0im
-iter 11 err:2.0229151687090052e-11 λ=-1.0024669886059943 + 0.0im
-iter 12 err:0.0 λ=-1.002466988585765 + 0.0im
+iter 1 err:0.002466988585763996 λ=-1.0 + 0.0im
+iter 2 err:0.2961339774298033 λ=-0.7063330111559607 + 0.0im
+iter 3 err:0.11050908031271833 λ=-0.8919579082730457 + 0.0im
+iter 4 err:0.007291415670320767 λ=-1.0097584042560848 + 0.0im
+iter 5 err:8.460128136400513e-5 λ=-1.0023823873044 + 0.0im
+iter 6 err:9.015333608530796e-7 λ=-1.0024660870524031 + 0.0im
+iter 7 err:8.006004357241636e-7 λ=-1.0024677891861997 + 0.0im
+iter 8 err:3.889644761834177e-8 λ=-1.0024669496893164 + 0.0im
+iter 9 err:3.2391436199930013e-9 λ=-1.0024669918249076 + 0.0im
+iter 10 err:2.418474309706653e-10 λ=-1.0024669883439166 + 0.0im
+iter 11 err:2.0230705999324528e-11 λ=-1.0024669886059947 + 0.0im
+iter 12 err:0.0 λ=-1.002466988585764 + 0.0im
 ```
 
 See also: [`Errmeasure`](@ref)
