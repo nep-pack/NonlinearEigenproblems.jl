@@ -121,13 +121,8 @@ function ilan(
     # only if the extraction of the eigenpairs is done with the Ritz pairs
     if !proj_solve QQ=zeros(T,n,m+1) end
 
-
-    # temp var for plot
-    conv_eig_hist=zeros(Int,m+1)
-
     # precomputation for exploiting the structure DEP, PEP, GENERAL
     precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
-
 
     # setting initial step
     Q[:,1]=v/norm(v)
@@ -136,7 +131,6 @@ function ilan(
 
     k=1; conv_eig=0;
     Av=get_Av(nep)
-
 
 
     while (k <= m) && (conv_eig<neigs)

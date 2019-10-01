@@ -54,9 +54,10 @@ using SparseArrays
         @test norm(H - H2)<1e-6
         @test norm(ω - ω2)<1e-6
         @test norm(HH - HH2)<1e-6
+        @test opnorm(V'*V - I) < 1e-6
+        @test opnorm(V2'*V2 - I) < 1e-6
 
 
 
     end
-    #TODO: add test orth
 end
