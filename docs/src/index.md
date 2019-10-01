@@ -193,8 +193,8 @@ documentation, e.g., `?blocknewton`.
 As an application researcher, we recommend that you first try to
 express your problem in the following form since it
 gives access to several efficient routines associated with the NEP,
-in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) **S**um of **P**roducts of **M**atrices and **F**unctions
-can be represented with the objects of type [`SPMF`](types.md#SPMF-1)
+in turn making it possible to use many NEP-solvers. A problem that can be expressed as a (short) **S** um of **P** roducts of **M** atrices and **F** unctions
+can be represented with the objects of type [`SPMF_NEP`](@ref)
 in NEP-PACK. For instance, a problem with three terms
 ```math
 M(λ) = A+λB+e^{\sin(λ/2)}C
@@ -204,26 +204,27 @@ can be created by
 julia> A=(1:4)*(1:4)'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);
 julia> f1= λ-> one(λ);
 julia> f2= λ-> λ;
-julia> f3= λ-> exp(sin(λ/2))
+julia> f3= λ-> exp(sin(λ/2));
 julia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);
 ```
 The NEP can now be solved with many algorithms, e.g.,
 ```julia-repl
-julia> λ,v=quasinewton(nep,λ=3)
-(3.176099007141426 + 0.0im, Complex{Float64}[37.1759+0.0im, -21.3016+0.0im, 0.0937992+0.0im, -1.15711+0.0im])
+julia> v0 = 0.1*[1,-1,1,-1];
+julia> λ,v=quasinewton(nep,λ=4,v=v0)
+(3.1760990071435193 + 0.0im, Complex{Float64}[2.892363187499394 + 0.0im, -1.6573097795628646 + 0.0im, 0.00729776922332883 + 0.0im, -0.09002519738673213 + 0.0im])
 ```
 Note that the functions `f1`,`f2` and `f3` have to be defined for scalar values
-and for matrices (in the matrix function sense, not elementwise sense). This is
+and for matrices (in the [matrix function](https://en.wikipedia.org/wiki/Matrix_function) sense, not elementwise sense). This is
 the reason `f1` needs to be defined as `one(λ)`, instead of just `1`.
 
 As usual, you can check that we computed a sensible solution:
 ```julia-repl
 julia> (A+B*λ+C*exp(sin(λ/2)))*v
 4-element Array{Complex{Float64},1}:
-  -6.586145128765412e-14 + 0.0im
-  2.8285461200559146e-14 + 0.0im
- -4.1550357082583515e-14 + 0.0im
-  -8.815768150428286e-15 + 0.0im
+  -3.489601657766542e-12 + 0.0im
+ -1.0118303586944344e-12 + 0.0im
+  -9.480334553029193e-13 + 0.0im
+  -5.912084880273861e-13 + 0.0im
 ```
 
 ## What now?
@@ -240,7 +241,7 @@ or have a look at the examples
 in [NEP-solvers](methods.md) and  [NEP Gallery](gallery.md).
 
 
-## How do I cite it? 
+## How do I cite it?
 
 
 We have a [preprint for this work](https://arxiv.org/abs/1811.09592). If you find this software useful please cite this preprint by using this citation data:
@@ -250,7 +251,7 @@ We have a [preprint for this work](https://arxiv.org/abs/1811.09592). If you fin
   title = 	 {{NEP-PACK}: A {Julia} package for nonlinear eigenproblems},
   year = 	 {2018},
   note = 	 {https://github.com/nep-pack},
-  eprint = {arXiv:1811.09592},
+  eprint = 	 {arXiv:1811.09592},
 }
 ```
 If you use a specific NEP-solver, please also give credit to the algorithm researcher.
