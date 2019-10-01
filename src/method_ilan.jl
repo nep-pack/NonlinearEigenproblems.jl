@@ -145,7 +145,6 @@ function ilan(
         if !proj_solve
             QQ[:,k]=Q[1:n,1];
         end
-        println("it=",k)
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
@@ -253,11 +252,20 @@ function ilan(
     end
 
     k=k-1
-    # if conv_eig<neigs && neigs != Inf
-    #     err=Missing; # TODO: Should an error be computed and added?
-    #     msg="Number of iterations exceeded. maxit=$(maxit)."
-    #     throw(NoConvergenceException(λ,W,err,msg))
-    # end
+
+    # NoConvergenceException
+    if conv_eig<neigs && neigs != Inf
+        # Sort the errors
+        idx=sortperm(err[end,:]); err=err[end,idx];
+
+        nrof_eigs = Int(min(conv_eig,neigs))
+        λ=λ[idx[1:nrof_eigs]]; W=W[:,idx[1:length(λ)]]; err=err[1:nrof_eigs];
+        msg="Number of iterations exceeded. maxit=$(maxit)."
+        if conv_eig<3
+            msg=string(msg, "Try to change the inner_solver_method for better performance.")
+        end
+        throw(NoConvergenceException(λ,W,err,msg))
+    end
 
     return λ,W,err,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
