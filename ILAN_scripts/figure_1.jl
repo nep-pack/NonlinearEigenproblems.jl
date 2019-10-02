@@ -1,7 +1,7 @@
 using NonlinearEigenproblems, Random, SparseArrays, LinearAlgebra, PyPlot
 
 
-n=20 # FIX TO 100
+n=100
 
 pygui(true)
 
@@ -21,7 +21,8 @@ rel_err=(λ,v)->compute_resnorm(nep,λ,v)/((abs(λ)+abs(exp(nep.tauv[1]))*nA1+ab
 
 v0=ones(n^2)
 
-# COMPUTE REFERENCE EIGENVALUES WITH IAR
+# COMPUTE REFERENCE EIGENVALUES WITH TIAR
+println("COMPUTE REFERENCE EIGENVALUES")
 λ,v=tiar(nep;maxit=200,tol=1e-14,neigs=Inf,logger=1,check_error_every=Inf)
 
 # RUN ILAN (BEYN)
@@ -33,6 +34,8 @@ m,p=size(err2);
 for i=1:size(err2,1) for j=1:size(err2,2)	if err2[i,j]==1 err2[i,j]=NaN end end end
 for j=1:p sort!(view(err2,1:m,j);rev=true) end
 for j=1:p semilogy(1:m,err2[1:m,j],color="black",linestyle="-") end
+semilogy(1:m,err2[1:m,1],color="black",linestyle="-",label="ILAN (Beyn)")
+
 
 # RUN ILAN (PROJ)
 λ3,v3,err3,_=ilan(nep,σ=0,γ=1;neigs=Inf,logger=1,maxit=50,tol=1e-8,check_error_every=1,v=v0,errmeasure=rel_err,
@@ -43,7 +46,15 @@ m,p=size(err3);
 for i=1:size(err3,1) for j=1:size(err3,2)	if err3[i,j]==1 err3[i,j]=NaN end end end
 for j=1:p sort!(view(err3,1:m,j);rev=true) end
 for j=1:p semilogy(1:m,err3[1:m,j],color="red",linestyle="--") end
-
+semilogy(1:m,err3[1:m,1],color="red",linestyle="--",label="ILAN (Ritz)")
+legend()
+ylim(top=1e-1)
+title("Convergence history")
 
 # PLOT THE SPECTRUM AND THE CONVERGED APPROXIMATIONS
-#plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:red,linestyle=:none)
+figure(2)
+plot(real(λ),imag(λ),marker="*",markerfacecolor=:none,c=:red,linestyle=:none,label="eigenvalues")
+plot(real(λ2),imag(λ2),marker="o",markerfacecolor=:none,c=:black,linestyle=:none,label="ILAN (Beyn)")
+plot(real(λ3),imag(λ3),marker="s",markerfacecolor=:none,c=:blue,linestyle=:none,label="ILAN (Ritz)")
+legend(numpoints = 1)	# display only one marker
+title("Spectrum and convergend eigenvalues")

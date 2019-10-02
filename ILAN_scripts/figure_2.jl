@@ -9,7 +9,7 @@ include("shift_and_scale_gun.jl");
 
 
 # COMPUTE REFERENCE EIGENVALUES
-#println("COMPUTE REFERENCE EIGENVALUES")
+println("COMPUTE REFERENCE EIGENVALUES")
 λ,_,err_iar=tiar(Dnep;neigs=Inf,logger=1,maxit=200,tol=1e-5,check_error_every=Inf,errmeasure=err_measure)
 CSV.write("ILAN_figures/figure_2/gun_eigs.csv", λ0.+α*λ)
 
@@ -33,21 +33,3 @@ m,p=size(err1);
 for i=1:size(err1,1) for j=1:size(err1,2)	if err1[i,j]==1 err1[i,j]=NaN end end end
 for j=1:p sort!(view(err1,1:m,j);rev=true) end
 writedlm( "ILAN_figures/figure_2/gun_ilan_iar200_err.csv", [1:m err1], ',')
-# increase maxit to 100 and save
-
-# pygui(true)
-# m,p=size(err);
-# for j=1:p sort!(view(err,1:m,j);rev=true) end
-# for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
-# ylim(ymax=10)
-
-# plot the spectrum
-#θ=range(0,stop=2*π,length=100); r=50000; c=250^2; plot(c.+r*cos.(θ),r*sin.(θ),label="region of interest")
-#plot(real(λ0.+α*λ1),imag(λ0.+α*λ1),marker="*",markerfacecolor=:none,c=:black,linestyle=:none,label="TIAR")
-#plot(real(λ0.+α*λ;),imag(λ0.+α*λ;),marker="o",markerfacecolor=:none,c=:green,linestyle=:none,label="INF. LAN.")
-#legend()
-
-#println("Number of computed eigenpairs: ", length(λ))
-#for j=1:length(λ)
-#    println("Residual of the eigepair ", j, "th = ",err_measure(λ[j],W[:,j]))
-#end
