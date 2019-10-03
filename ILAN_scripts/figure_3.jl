@@ -1,4 +1,6 @@
-using NonlinearEigenproblems, Random, SparseArrays, PyPlot, LinearAlgebra, CSV, DelimitedFiles
+using NonlinearEigenproblems, Random, SparseArrays, PyPlot, LinearAlgebra
+
+pygui(true)
 
 
 println("LOAD THE PROBLEM")
@@ -15,7 +17,6 @@ rel_err=(λ,z)->compute_resnorm(nep1,λ,z)/((nA1*abs(f1(λ))+nA2*abs(f2(λ))+nA3
 
 println("COMPUTE EIGENVALUES WITH TIAR")
 λ1,_,err_iar=tiar(nep1;neigs=Inf,logger=0,maxit=m,tol=1e-12,check_error_every=1,errmeasure=rel_err)
-CSV.write("ILAN_figures/figure_3/unsymm_eigvals.csv", λ1)
 
 
 println("CONSTRUCTING THE SYMMETRIZED PROBLEM")
@@ -34,25 +35,20 @@ println("SOLVING THE PROBLEM WITH ILAN")
 v0=ones(size(nep,1))
 λ,W,err,_=ilan(nep;v=v0,neigs=Inf,logger=1,maxit=50,tol=1e-8,check_error_every=1,errmeasure=(λ,v)->rel_err(λ,v[n+1:end]),inner_solver_method=NEPSolver.NleigsInnerSolver(Σ=Σ,tol=1e-2))
 W = W[n+1:end,:]    # extract the eigenvectors
-CSV.write("ILAN_figures/figure_3/unsymm_eigvals_ilan.csv", λ)
 
 # EXPORT THE ERROR HIST
 m,p=size(err);
 for i=1:size(err,1) for j=1:size(err,2)	if err[i,j]==1 err[i,j]=NaN end end end
 for j=1:p sort!(view(err,1:m,j);rev=true) end
-writedlm( "ILAN_figures/figure_3/unsymm_ilan_err.csv", [1:m err], ',')
 
-pygui(true)
+figure(1)
 m,p=size(err);
 for j=1:p semilogy(1:m,err[1:m,j],color="black",linestyle="-") end
 ylim(ymax=10)
 
-println("Number of computed eigenpairs: ", length(λ))
-for j=1:length(λ)
-    println("Residual of the eigepair ", j, "th = ",rel_err(λ[j],W[:,j]))
-end
-
-figure()
+figure(2)
 plot(real(λ1),imag(λ1),marker="*",markerfacecolor=:none,c=:black,linestyle=:none,label="eigenvalues (TIAR)")
-plot(real(λ),imag(λ),marker="o",markerfacecolor=:none,c=:red,linestyle=:none,label="INF. LAN.")
+plot(real(λ),imag(λ),marker="o",markerfacecolor=:none,c=:red,linestyle=:none,label="ILAN.")
+plot([-1.5,-1.5,0.5,0.5,-1.5],[-1.5,0.5,0.5,-1.5,-1.5],linestyle="-",color="black", linewidth=2.0,label="region of interest")
 legend()
+legend(numpoints = 1)	# display only one marker
