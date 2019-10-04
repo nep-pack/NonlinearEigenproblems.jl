@@ -242,13 +242,17 @@ These are standardized kwargs:
 """
 function inner_solve(is::DefaultInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
     if (typeof(nep.orgnep)==NEPTypes.PEP)
+        println("case 1")
         return inner_solve(PolyeigInnerSolver(),T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.DEP)
+        println("case 2")
         # Should be Cheb IAR
         return inner_solve(IARChebInnerSolver(),T_arit,nep;kwargs...);
     elseif (typeof(nep.orgnep)==NEPTypes.SPMF_NEP) # Default to IAR for SPMF
+        println("case 3")
         return inner_solve(IARInnerSolver(),T_arit,nep;kwargs...);
     else
+        println("case 4")
         return inner_solve(NewtonInnerSolver(),T_arit,nep;kwargs...);
     end
 end

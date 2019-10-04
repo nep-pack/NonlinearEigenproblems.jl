@@ -114,7 +114,6 @@ function ilan(
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
     local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
     err=ones(m,m);
-    λ=zeros(T,5m+1);
     W=zeros(T,n,m+1);
 
     # allocate extra memory for storing the first blocks of the Arnoldi sequence
@@ -191,19 +190,28 @@ function ilan(
                 mm=size(VV,2)
                 pnep=create_proj_NEP(nep,mm); # maxsize=mm
                 set_projectmatrices!(pnep,VV,VV);
+                println("pnep.orgnep is ",typeof(pnep.orgnep)  )
+                println("pnep.orgnep is DEP ",typeof(pnep.orgnep) == NEPTypes.DEP )
 
                 # solve the projected NEP
                 push_info!(logger,2,"Solving the projected problem",continues=true);
 
                 λproj,Wproj=inner_solve(inner_solver_method,T,pnep;
-                                        neigs=Inf,
-                                        inner_logger=inner_logger);
+                                        neigs=3,
+                                        inner_logger=inner_logger,
+                                        maxit=100,
+                                        tol=tol);
+
+                #println("λproj=",λproj)
+
 
                 q=length(λproj)
+                λ=λproj[1:q];
+
                 if q>m q=m end
                 mul!(view(W,:,1:q),VV,view(Wproj,:,1:q))
                 #ZZ=VV*Zproj[:,1:k];
-                λ=λproj[1:q];
+
 
 
             end

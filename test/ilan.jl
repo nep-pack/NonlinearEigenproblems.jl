@@ -22,6 +22,13 @@ using SparseArrays
         verify_lambdas(3, nep, λ, W, eps()*100)
     end
 
+    @testset "Compute eigenpairs via Ritz extraction" begin
+        nep=nep_gallery("dep_symm_double",10);
+        v0=ones(size(nep,1));
+        λ,W=ilan(nep;v=v0,tol=1e-5,neigs=3);
+        verify_lambdas(3, nep, λ, W, 1e-5)
+    end
+
     @testset "Errors thrown" begin
         n=100
         Random.seed!(1) # reset the random seed
