@@ -21,13 +21,13 @@ Random.seed!(0);
     Q = Matrix(Q)
     set_projectmatrices!(pnep,Q,Q)
 
-    logger=ErrorLogger(1,100,0);
+    logger=ErrorLogger(50,100,0);
     λv,V = inner_solve(DefaultInnerSolver(), ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, neigs=3, V=ones(k, 2), tol=eps()*100, inner_logger=logger)
     verify_lambdas(3, pnep, λv, V,eps()*10000)
     E=logger.errs[:,1]; E=E[(!isnan).(E)];
-    # THE FOLLOWING TWO TESTS ARE DISABLED: TO FIX
-    #@test length(E) > 5 #Has done more than 5 iterations
-    #@test E[end] <eps()*10000 # Error measure fulfills stopping criteria
+
+    @test length(E) > 5 #Has done more than 5 iterations
+    @test E[end] <eps()*10000 # Error measure fulfills stopping criteria
 
     logger=ErrorLogger(1,100,0);
     λv,V = inner_solve(NewtonInnerSolver(), ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, V=ones(k, 2), tol=eps()*100, inner_logger=logger)
