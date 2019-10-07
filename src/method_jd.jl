@@ -77,7 +77,7 @@ function jd_betcke(::Type{T},
     if (projtype != :Galerkin) && projtype != :PetrovGalerkin
         error("Only accepted values of 'projtype' are :Galerkin and :PetrovGalerkin.")
     end
-    if (projtype != :Galerkin) && (typeof(inner_solver_method) == SGIterInnerSolver)
+    if (projtype != :Galerkin) && isa(inner_solver_method,SGIterInnerSolver)
         error("Need to use 'projtype' :Galerkin in order to use SGITER as inner solver.")
     end
 
@@ -237,8 +237,8 @@ function jd_effenberger(::Type{T},
     if (maxit > n)
         error("maxit = ", maxit, " is larger than size of NEP = ", n,".")
     end
-    if (typeof(inner_solver_method) == SGIterInnerSolver)
-        error("_Method SGITER not accepted as inner solver since deflated problem not min-max.")
+    if isa(inner_solver_method,SGIterInnerSolver)
+        error("Inner solver 'SGIterInnerSolver' not accepted since deflated problem not min-max.")
     end
 
     # Allocations and preparations
