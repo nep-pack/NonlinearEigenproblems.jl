@@ -636,8 +636,7 @@ julia> compute_Mder(pnep,3.0)
          error("Not implemented. All ProjectableNEP have to implement create_proj_NEP.")
     end
     function create_proj_NEP(orgnep::AbstractSPMF,
-                             maxsize::Int=min(size(orgnep,1),
-                                              max(round(Int,size(orgnep,1)/10),10)),
+                             maxsize::Int=min(size(orgnep,1),201),
                              T::Type{<:Number}=ComplexF64)
         return Proj_SPMF_NEP(orgnep,maxsize,T);
     end
@@ -725,7 +724,7 @@ julia> sum(compute_Mder(nep,0),dims=[1,2])
     function set_projectmatrices!(nep::Proj_SPMF_NEP,W,V)
         ## Sets the left and right projected basis and computes
         ## the underlying projected NEP
-        m = size(nep.orgnep_Av,1);
+        m=size(nep.orgnep_Av,1);
         k=size(V,2);
         @assert(k <= size(nep.projnep_B_mem[1],1)) # Don't go outside the prealloc memory
         # For over all i: Compute the expanded matrices

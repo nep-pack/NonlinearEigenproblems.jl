@@ -241,12 +241,12 @@ These are standardized kwargs:
 - `inner_logger`: Determines how the inner solves are logged. See [`Logger`](@ref) for further references
 """
 function inner_solve(is::DefaultInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
-    if (typeof(nep.orgnep)==NEPTypes.PEP)
+    if isa(nep.orgnep,NEPTypes.PEP)
         return inner_solve(PolyeigInnerSolver(),T_arit,nep;kwargs...);
-    elseif (typeof(nep.orgnep)==NEPTypes.DEP)
+    elseif isa(nep.orgnep,NEPTypes.DEP)
         # Should be Cheb IAR
         return inner_solve(IARChebInnerSolver(),T_arit,nep;kwargs...);
-    elseif (typeof(nep.orgnep)==NEPTypes.SPMF_NEP) # Default to IAR for SPMF
+    elseif isa(nep.orgnep,NEPTypes.SPMF_NEP) # Default to IAR for SPMF
         return inner_solve(IARInnerSolver(),T_arit,nep;kwargs...);
     else
         return inner_solve(NewtonInnerSolver(),T_arit,nep;kwargs...);
@@ -296,7 +296,7 @@ end
 
 
 function inner_solve(is::PolyeigInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;kwargs...)
-    if (typeof(nep.orgnep)!=NEPTypes.PEP)
+    if !isa(nep.orgnep,NEPTypes.PEP)
         error("Wrong type. PolyeigInnerSolver only handles the PEP type.");
     end
     pep=NEPTypes.PEP(NEPTypes.get_Av(nep.nep_proj))
