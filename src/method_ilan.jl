@@ -51,9 +51,9 @@ julia> λ,v=ilan(nep;v=v0,tol=1e-5,neigs=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
- 0.04103537900075572 - 1.6342212662372832e-19im
- 0.04103537900077957 - 2.5916996904875994e-19im
- 0.04114919035623714 - 7.9738202040662040e-20im
+  0.03409997385842267 - 1.425205509434608e-19im
+ -0.03100798730589012 + 5.66201058098364e-20im
+  -0.0367653644764646 - 1.607494907684445e-19im
 ```
 
 # References
@@ -190,8 +190,6 @@ function ilan(
                 mm=size(VV,2)
                 pnep=create_proj_NEP(nep,mm); # maxsize=mm
                 set_projectmatrices!(pnep,VV,VV);
-                println("pnep.orgnep is ",typeof(pnep.orgnep)  )
-                println("pnep.orgnep is DEP ",typeof(pnep.orgnep) == NEPTypes.DEP )
 
                 # solve the projected NEP
                 push_info!(logger,2,"Solving the projected problem",continues=true);
