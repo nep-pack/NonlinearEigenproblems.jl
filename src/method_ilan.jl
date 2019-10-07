@@ -6,11 +6,11 @@ using Random
 using Statistics
 
 # Types specifying which way to B_prod in chebyshev iar
-abstract type Compute_Bmul_method end;
-abstract type Compute_Bmul_method_DEP <: Compute_Bmul_method end;
-abstract type Compute_Bmul_method_SPMF_NEP <: Compute_Bmul_method end;
-abstract type Compute_Bmul_method_DerSPMF <: Compute_Bmul_method end;
-abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
+abstract type compute_Bmul_method end;
+abstract type compute_Bmul_method_DEP <: compute_Bmul_method end;
+abstract type compute_Bmul_method_SPMF_NEP <: compute_Bmul_method end;
+abstract type compute_Bmul_method_DerSPMF <: compute_Bmul_method end;
+abstract type compute_Bmul_method_Auto <: compute_Bmul_method end;
 
 
 # Data collected in a precomputation phase.
@@ -75,10 +75,10 @@ function ilan(
     logger=0,
     check_error_every=30,
     inner_solver_method=DefaultInnerSolver(),
-    Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
+    compute_Bmul_method::Type{T_y0}=compute_Bmul_method_Auto,
     proj_solve=true,
     inner_logger=0
-    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
+    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:compute_Bmul_method}
 
     @parse_logger_param!(logger)
 
@@ -86,15 +86,15 @@ function ilan(
     σ=T(σ)
     v=Array{T,1}(v)
 
-    if (Compute_Bmul_method == Compute_Bmul_method_Auto)
+    if (compute_Bmul_method == compute_Bmul_method_Auto)
         if (isa(nep,DEP))
-            Compute_Bmul_method=Compute_Bmul_method_DEP
+            compute_Bmul_method=compute_Bmul_method_DEP
         elseif (isa(nep,DerSPMF))
-            Compute_Bmul_method=Compute_Bmul_method_DerSPMF
+            compute_Bmul_method=compute_Bmul_method_DerSPMF
         elseif (isa(nep,SPMF_NEP))
-            Compute_Bmul_method=Compute_Bmul_method_SPMF_NEP
+            compute_Bmul_method=compute_Bmul_method_SPMF_NEP
         else
-            println("Error in Compute_Bmul_method. You provided and invalid `nep` for which `Compute_Bmul_method` is not automatically supported. Provide the `nep` in a compatible format: `DEP`, `SPMF_NEP` or `DerSPMF`. Otherwise you can overload the function `Bmult` for your specif `nep`.")
+            println("Error in compute_Bmul_method. You provided and invalid `nep` for which `compute_Bmul_method` is not automatically supported. Provide the `nep` in a compatible format: `DEP`, `SPMF_NEP` or `DerSPMF`. Otherwise you can overload the function `Bmult` for your specif `nep`.")
         end
     end
 
@@ -121,7 +121,7 @@ function ilan(
     if !proj_solve QQ=zeros(T,n,m+1) end
 
     # precomputation for exploiting the structure DEP, PEP, GENERAL
-    precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
+    precomp=precompute_data(T,nep,compute_Bmul_method,n,m,σ,γ)
 
     # setting initial step
     Q[:,1]=v/norm(v)
@@ -143,7 +143,7 @@ function ilan(
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call Bmult
-        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp,γ)
+        Bmult!(compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp,γ)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=mat_sum(view(Z,:,1:k),view(Qp,:,1:k)) end
@@ -195,7 +195,7 @@ function ilan(
                 push_info!(logger,2,"Solving the projected problem",continues=true);
 
                 λproj,Wproj=inner_solve(inner_solver_method,T,pnep;
-                                        neigs=3,
+                                        neigs=m,
                                         inner_logger=inner_logger,
                                         maxit=100,
                                         tol=tol);
@@ -256,15 +256,14 @@ function ilan(
     # NoConvergenceException
     if conv_eig<neigs && neigs != Inf
         # Sort the errors
-        idx=sortperm(err[end,:]); err=err[end,idx];
-
-        nrof_eigs = Int(min(conv_eig,neigs))
-        λ=λ[idx[1:nrof_eigs]]; W=W[:,idx[1:length(λ)]]; err=err[1:nrof_eigs];
+        idx=sortperm(err[end,1:k]); err=err[end,idx];
+        kk=length(λ);
+        λ=λ[idx[1:kk]]; W=W[:,idx[1:kk]]; err=err[1:kk];
         msg="Number of iterations exceeded. maxit=$(maxit)."
         if conv_eig<3
             msg=string(msg, "Try to change the inner_solver_method for better performance.")
         end
-        throw(NoConvergenceException(λ,W,err,msg))
+        throw(NoConvergenceException(λ,Q,err,msg))
     end
 
     return λ,W,err,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
@@ -314,20 +313,20 @@ function mat_sum(V,W)
 end
 
 # Contructors for the precomputed data
-function PrecomputeDataInit(::Type{Compute_Bmul_method_DEP})
+function PrecomputeDataInit(::Type{compute_Bmul_method_DEP})
     return IlanPrecomputeDataDEP(0,0,0,0,0)
 end
-function PrecomputeDataInit(::Type{Compute_Bmul_method_DerSPMF})
+function PrecomputeDataInit(::Type{compute_Bmul_method_DerSPMF})
     return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
 end
-function PrecomputeDataInit(::Type{Compute_Bmul_method_SPMF_NEP})
+function PrecomputeDataInit(::Type{compute_Bmul_method_SPMF_NEP})
     return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
 end
 
 # functions that precompute datas
-function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m,σ,γ)
+function precompute_data(T,nep::NEPTypes.DEP,::Type{compute_Bmul_method_DEP},n,m,σ,γ)
     τ=nep.tauv
-    precomp=PrecomputeDataInit(Compute_Bmul_method_DEP)
+    precomp=PrecomputeDataInit(compute_Bmul_method_DEP)
     precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ2=zeros(T,n,m+1)      # aux matrix for pre-allocation
@@ -341,8 +340,8 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m
 end
 
 # functions that precompute datas
-function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPMF_NEP},n,m,σ,γ)
-    precomp=PrecomputeDataInit(Compute_Bmul_method_SPMF_NEP)
+function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{compute_Bmul_method_SPMF_NEP},n,m,σ,γ)
+    precomp=PrecomputeDataInit(compute_Bmul_method_SPMF_NEP)
     precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
 
@@ -364,8 +363,8 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPM
 end
 
 # functions that precompute datas
-function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{Compute_Bmul_method_DerSPMF},n,m,σ,γ)
-    precomp=PrecomputeDataInit(Compute_Bmul_method_DerSPMF)
+function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{compute_Bmul_method_DerSPMF},n,m,σ,γ)
+    precomp=PrecomputeDataInit(compute_Bmul_method_DerSPMF)
     precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
 
@@ -382,7 +381,7 @@ function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{Compute_Bmul_method_DerS
     return precomp
 end
 
-function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
+function Bmult!(::Type{compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
     # B-multiplication
     #Z[:,:]=zero(Z);
     mat_zero!(Z)
@@ -393,11 +392,11 @@ function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
     end
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp,γ)
-    Bmult!(Compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp,γ)
+function Bmult!(::Type{compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp,γ)
+    Bmult!(compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp,γ)
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
+function Bmult!(::Type{compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
     # B-multiplication
     T=eltype(Z)
     n=size(Z,1)
