@@ -22,7 +22,7 @@ Random.seed!(0);
     set_projectmatrices!(pnep,Q,Q)
 
     logger=ErrorLogger(50,100,0);
-    λv,V = inner_solve(DefaultInnerSolver(), ComplexF64, pnep; λv=[0.0,1.0] .+ 0im, neigs=3, V=ones(k, 2), tol=eps()*100, inner_logger=logger)
+    λv,V = inner_solve(DefaultInnerSolver(), ComplexF64, pnep; σ=0.0+0im, neigs=3, tol=eps()*100, inner_logger=logger)
     verify_lambdas(3, pnep, λv, V,eps()*10000)
     E=logger.errs[:,1]; E=E[(!isnan).(E)];
 
