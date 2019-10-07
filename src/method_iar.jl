@@ -43,6 +43,8 @@ julia> λ    # print the computed eigenvalues
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
+
+
 iar(nep::NEP;params...)=iar(ComplexF64,nep;params...)
 function iar(
     ::Type{T},
@@ -122,7 +124,7 @@ function iar(
                 # Make a call to the inner solve method
                 λproj,Qproj=inner_solve(inner_solver_method,T,pnep,
                                         V=RR*Z,λv=copy(λ),
-                                        neigs=size(λ,1)+3,
+                                        neigs=k,#size(λ,1)+3,
                                         σ=mean(λ),
                                         inner_logger=inner_logger);
 
@@ -163,14 +165,16 @@ function iar(
         k=k+1;
     end
     k=k-1
+
     # NoConvergenceException
     if conv_eig<neigs && neigs != Inf
-        err=err[end,1:neigs];
-        idx=sortperm(err); # sort the error
-        λ=λ[idx];  Q=Q[:,idx]; err=err[idx];
+        # Sort the errors
+        idx=sortperm(err[end,1:k]); err=err[end,idx];
+        kk=length(λ);
+        λ=λ[idx[1:kk]]; Q=Q[:,idx[1:kk]]; err=err[1:kk];
         msg="Number of iterations exceeded. maxit=$(maxit)."
         if conv_eig<3
-            msg=string(msg, " Check that σ is not an eigenvalue.")
+            msg=string(msg, "Try to change the inner_solver_method for better performance.")
         end
         throw(NoConvergenceException(λ,Q,err,msg))
     end
