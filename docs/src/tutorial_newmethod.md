@@ -3,10 +3,10 @@
 Although we try to provide state-of-the-art algorithms
 in NEP-PACK, you may want to implement a solver
 which is not available in NEP-PACK.
-By using the NEP-PACK data types and structures
+By using the NEP-PACK data types and structures when you implement your solver,
 you can make your life easier in several ways.
 You do not need to know the internals of NEP-PACK.
-Correct usage, will give you access to many applications,
+Correct usage will give you access to many applications,
 helper functionality to combine with,
 and you will have to possibility to compare your method
 with other solvers.
