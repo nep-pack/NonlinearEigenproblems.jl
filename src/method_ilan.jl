@@ -28,16 +28,10 @@ end
 """
     ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
 
-Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
+Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`. The current implementation supports only `nep`s in `SPMF` format.
 
-The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used
-to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged
-a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
-`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the
- Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
-The iteration is continued until `neigs` Ritz pairs have converged.
-This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
-However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration is continued until `neigs` Ritz pairs have converged.
+This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`augnewton`](@ref) for other parameters.
 
@@ -113,7 +107,7 @@ function ilan(
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
     local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
-    err=ones(m,m);
+    err=ones(m+1,m+1);
     W=zeros(T,n,m+1);
 
     # allocate extra memory for storing the first blocks of the Arnoldi sequence
@@ -247,8 +241,10 @@ function ilan(
 
         k=k+1;
         # shift the vectors
-        Qp=Q;   Q=Qn;
-        Qn=zero(Qn);
+        #Qp=Q;   Q=Qn;
+        #Qn=zero(Qn);
+
+        Qp[:]=Q; Q[:]=Qn; Qn[:] .=0;
     end
 
     k=k-1
