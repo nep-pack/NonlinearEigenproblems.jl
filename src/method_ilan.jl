@@ -75,6 +75,7 @@ function ilan(
     )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:compute_Bmul_method}
 
     @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
 
     # Ensure types σ and v are of type T
     σ=T(σ)
@@ -107,7 +108,7 @@ function ilan(
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
     local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
-    err=ones(m+1,m+1);
+    err=NaN*ones(m,m);
     W=zeros(T,n,m+1);
 
     # allocate extra memory for storing the first blocks of the Arnoldi sequence
@@ -153,6 +154,7 @@ function ilan(
 
         H[k+1,k]=norm(Qn);
         #Qn[:,1:k+1] ./= H[k+1,k]
+        #Qn[:] ./= H[k+1,k]
         scal_mul!(view(Qn,:,1:k+1), 1/H[k+1,k])
         #ldiv!(H[k+1,k],view(Qn,:,1:k+1))
 
@@ -167,7 +169,7 @@ function ilan(
 
 
         # extract eigenpair approximation
-        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
+        if ((rem(k,check_error_every)==0)||(k==m))
             if !proj_solve
 
                 # Extract eigenvalues from Hessenberg matrix
@@ -241,9 +243,6 @@ function ilan(
 
         k=k+1;
         # shift the vectors
-        #Qp=Q;   Q=Qn;
-        #Qn=zero(Qn);
-
         Qp[:]=Q; Q[:]=Qn; Qn[:] .=0;
     end
 
