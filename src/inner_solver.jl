@@ -387,6 +387,6 @@ function inner_solve(is::NleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;�
         nodes = is.nodes
     end
     tol = is.tol
-    λ,V = nleigs(nep,Σ;nodes=nodes,tol=tol)
+    λ,V = nleigs(nep,Σ;nodes=nodes,tol=tol,static=true)
     return λ,V
 end
