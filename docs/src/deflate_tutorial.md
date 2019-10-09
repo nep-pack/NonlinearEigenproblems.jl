@@ -46,9 +46,9 @@ the problem size.
 (There are also NEP-solver deflation techniques incoprorated in, e.g., in [the nonlinear Arnoldi method](methods.md#NonlinearEigenproblems.NEPSolver.nlar) and [the Jacobi-Davidson method](methods.md#NonlinearEigenproblems.NEPSolver.jd_betcke).)
 The solver independent technique is inspired by what is described in the [PhD thesis
 of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf).
-It is implemented in the method [effenberger_deflation](transformations.md#NonlinearEigenproblems.NEPTypes.effenberger_deflation).
 
-In NEP-PACK, this type of deflation is implemented in the function `deflate_eigpair`,
+
+In NEP-PACK, this type of deflation is implemented in the function [`deflate_eigpair`](@ref),
 which takes a NEP and an eigenpair as input and returns a new NEP.
 ```julia-repl
 julia> # Construct a deflated NEP where we remove (λ1,v1)
