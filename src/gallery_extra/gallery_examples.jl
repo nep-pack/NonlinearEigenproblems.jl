@@ -17,12 +17,11 @@ function dep_symm_double(n::Integer=100)
 
     x = range(0, stop = pi, length = n)
     h=x[2]-x[1];
-    h=pi
     LL=LL/(h^2)
     LL=kron(LL,LL)
 
-    b=broadcast((x,y)->100*abs(sin(x+y)),x,transpose(x))
-    a=broadcast((x,y)->-8*sin(x)*sin(y),x,transpose(x))
+    b=broadcast((x,y)->-100*abs(sin(x+y)),x,transpose(x))
+    a=broadcast((x,y)->8*sin(x)*sin(y),x,transpose(x))
     B=sparse(1:n^2,1:n^2,b[:])
     A=LL+sparse(1:n^2,1:n^2,a[:])
 

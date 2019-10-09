@@ -211,7 +211,7 @@ See [`nleigs`](@ref) for description of parameters.
 See also: [`InnerSolver`](@ref), [`inner_solve`](@ref)
 """
 struct NleigsInnerSolver <: InnerSolver
-    Σ::Union{Vector,Symbol}
+    Σ::Union{Vector,Symbol} #
     nodes::Union{Vector,Symbol}
     tol::Float64;
     function NleigsInnerSolver(;Σ= :auto,nodes =:auto, tol=1e-6 )
@@ -364,7 +364,7 @@ function inner_solve(is::ContourBeynInnerSolver,T_arit::Type,nep::NEPTypes.Proj_
         radius = is.radius
     end
     neigs = Int(min(neigs,size(nep,1)-1))
-    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger,tol=is.tol)
+    λ,V = contour_beyn(T_arit,nep,neigs=neigs,σ=σ,radius=radius,N=is.N,logger=inner_logger,tol=is.tol,sanity_check=false)
     return λ,V
 end
 
@@ -387,6 +387,6 @@ function inner_solve(is::NleigsInnerSolver,T_arit::Type,nep::NEPTypes.Proj_NEP;�
         nodes = is.nodes
     end
     tol = is.tol
-    λ,V = nleigs(nep,Σ;nodes=nodes,tol=tol)
+    λ,V = nleigs(nep,Σ;nodes=nodes,tol=tol,static=true)
     return λ,V
 end

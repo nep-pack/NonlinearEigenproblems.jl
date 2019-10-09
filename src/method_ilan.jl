@@ -6,11 +6,11 @@ using Random
 using Statistics
 
 # Types specifying which way to B_prod in chebyshev iar
-abstract type Compute_Bmul_method end;
-abstract type Compute_Bmul_method_DEP <: Compute_Bmul_method end;
-abstract type Compute_Bmul_method_SPMF_NEP <: Compute_Bmul_method end;
-abstract type Compute_Bmul_method_DerSPMF <: Compute_Bmul_method end;
-abstract type Compute_Bmul_method_Auto <: Compute_Bmul_method end;
+abstract type compute_Bmul_method end;
+abstract type compute_Bmul_method_DEP <: compute_Bmul_method end;
+abstract type compute_Bmul_method_SPMF_NEP <: compute_Bmul_method end;
+abstract type compute_Bmul_method_DerSPMF <: compute_Bmul_method end;
+abstract type compute_Bmul_method_Auto <: compute_Bmul_method end;
 
 
 # Data collected in a precomputation phase.
@@ -28,16 +28,10 @@ end
 """
     ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
 
-Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`.
+Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`. The current implementation supports only `nep`s in `SPMF` format.
 
-The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used
-to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged
-a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector
-`v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the
- Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`.
-The iteration is continued until `neigs` Ritz pairs have converged.
-This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
-However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
+The target `σ` is the center around which eiganvalues are computed. The kwarg `errmeasure` is a function handle which can be used to specify how the error is measured to be used in termination (default is absolute residual norm). A Ritz pair `λ` and `v` is flagged a as converged (to an eigenpair) if `errmeasure` is less than `tol`. The vector `v` is the starting vector for constructing the Krylov space. The orthogonalization method, used in contructing the orthogonal basis of the Krylov space, is specified by `orthmethod`, see the package `IterativeSolvers.jl`. The iteration is continued until `neigs` Ritz pairs have converged.
+This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations. However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
 
 See [`augnewton`](@ref) for other parameters.
 
@@ -51,9 +45,9 @@ julia> λ,v=ilan(nep;v=v0,tol=1e-5,neigs=3);
 julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
- 0.04103537900075572 - 1.6342212662372832e-19im
- 0.04103537900077957 - 2.5916996904875994e-19im
- 0.04114919035623714 - 7.9738202040662040e-20im
+  0.03409997385842267 - 1.425205509434608e-19im
+ -0.03100798730589012 + 5.66201058098364e-20im
+  -0.0367653644764646 - 1.607494907684445e-19im
 ```
 
 # References
@@ -75,24 +69,27 @@ function ilan(
     logger=0,
     check_error_every=30,
     inner_solver_method=DefaultInnerSolver(),
-    Compute_Bmul_method::Type{T_y0}=Compute_Bmul_method_Auto,
-    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:Compute_Bmul_method}
+    compute_Bmul_method::Type{T_y0}=compute_Bmul_method_Auto,
+    proj_solve=true,
+    inner_logger=0
+    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:compute_Bmul_method}
 
     @parse_logger_param!(logger)
+    @parse_logger_param!(inner_logger)
 
     # Ensure types σ and v are of type T
     σ=T(σ)
     v=Array{T,1}(v)
 
-    if (Compute_Bmul_method == Compute_Bmul_method_Auto)
+    if (compute_Bmul_method == compute_Bmul_method_Auto)
         if (isa(nep,DEP))
-            Compute_Bmul_method=Compute_Bmul_method_DEP
+            compute_Bmul_method=compute_Bmul_method_DEP
         elseif (isa(nep,DerSPMF))
-            Compute_Bmul_method=Compute_Bmul_method_DerSPMF
+            compute_Bmul_method=compute_Bmul_method_DerSPMF
         elseif (isa(nep,SPMF_NEP))
-            Compute_Bmul_method=Compute_Bmul_method_SPMF_NEP
+            compute_Bmul_method=compute_Bmul_method_SPMF_NEP
         else
-            println("Error in Compute_Bmul_method. You provided and invalid `nep` for which `Compute_Bmul_method` is not automatically supported. Provide the `nep` in a compatible format: `DEP`, `SPMF_NEP` or `DerSPMF`. Otherwise you can overload the function `Bmult` for your specif `nep`.")
+            println("Error in compute_Bmul_method. You provided and invalid `nep` for which `compute_Bmul_method` is not automatically supported. Provide the `nep` in a compatible format: `DEP`, `SPMF_NEP` or `DerSPMF`. Otherwise you can overload the function `Bmult` for your specif `nep`.")
         end
     end
 
@@ -111,16 +108,15 @@ function ilan(
     ω=zeros(T,m+1)
     a=Vector{T}(γ.^(0:2m+2)); a[1]=zero(T);
     local M0inv::LinSolver = create_linsolver(linsolvercreator,nep,σ)
-    err=ones(m,m);
-    λ=zeros(T,m+1);
+    err=NaN*ones(m,m);
     W=zeros(T,n,m+1);
 
-    # temp var for plot
-    conv_eig_hist=zeros(Int,m+1)
+    # allocate extra memory for storing the first blocks of the Arnoldi sequence
+    # only if the extraction of the eigenpairs is done with the Ritz pairs
+    if !proj_solve QQ=zeros(T,n,m+1) end
 
     # precomputation for exploiting the structure DEP, PEP, GENERAL
-    precomp=precompute_data(T,nep,Compute_Bmul_method,n,m,σ,γ)
-
+    precomp=precompute_data(T,nep,compute_Bmul_method,n,m,σ,γ)
 
     # setting initial step
     Q[:,1]=v/norm(v)
@@ -131,15 +127,18 @@ function ilan(
     Av=get_Av(nep)
 
 
-
     while (k <= m) && (conv_eig<neigs)
-
+        # store all the (first blocks) vectors of the Arnoldi sequence. This is needed
+        # for the extraction of Ritz vectors.
+        if !proj_solve
+            QQ[:,k]=Q[1:n,1];
+        end
         broadcast!(/,view(Qn,:,2:k+1),view(Q,:,1:k),(1:k)')
         Qn[:,1] = compute_Mlincomb!(nep,σ,view(Qn,:,1:k+1),a[1:k+1]);
         Qn[:,1] .= -lin_solve(M0inv,Qn[:,1]);
 
         # call Bmult
-        Bmult!(Compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp,γ)
+        Bmult!(compute_Bmul_method,k,view(Z,:,1:k+1),Qn,Av,precomp,γ)
 
         # orthogonalization (three terms recurrence)
         if k>1 β=mat_sum(view(Z,:,1:k),view(Qp,:,1:k)) end
@@ -154,8 +153,10 @@ function ilan(
         if k>1 mul_and_sub!(view(Qn,:,1:k),view(Qp,:,1:k),H[k-1,k]) end
 
         H[k+1,k]=norm(Qn);
-#        Qn[:,1:k+1] ./= H[k+1,k]
+        #Qn[:,1:k+1] ./= H[k+1,k]
+        #Qn[:] ./= H[k+1,k]
         scal_mul!(view(Qn,:,1:k+1), 1/H[k+1,k])
+        #ldiv!(H[k+1,k],view(Qn,:,1:k+1))
 
         ω[k+1]=η-2*α*H[k,k]+ω[k]*H[k,k]^2;
         if k>1
@@ -166,48 +167,101 @@ function ilan(
 
         orthogonalize_and_normalize!(view(V,:,1:k),view(V,:,k+1), view(HH,1:k,k), orthmethod)
 
+
         # extract eigenpair approximation
-        if ((rem(k,check_error_every)==0)||(k==m))&&(k>2)
-            VV=view(V,:,1:k+1)
+        if ((rem(k,check_error_every)==0)||(k==m))
+            if !proj_solve
 
-            # create the projected NEP
-            mm=size(VV,2)
-            pnep=create_proj_NEP(nep,mm); # maxsize=mm
-            set_projectmatrices!(pnep,VV,VV);
-            err_lifted=(λ,z)->estimate_error(errmeasure,λ,VV*z);
+                # Extract eigenvalues from Hessenberg matrix
+                D,W_Ritz = eigen(H[1:k,1:k])
 
-            # solve the projected NEP
-            push_info!(logger,2,"Solving the projected problem",continues=true);
-            λ,ZZ=iar(pnep;neigs=Inf,logger=0,maxit=150,tol=tol,check_error_every=Inf,errmeasure=err_lifted)
-            push_info!(logger,2,".");
-            W=VV*ZZ;
+                mul!(view(W,:,1:k),view(QQ,:,1:k),W_Ritz)
+                #ZZ = view(QQ,:,1:k)*Z_Ritz
+                λ = σ .+ γ ./ D
+            else
+                VV=view(V,:,1:k+1)
+                # Projected solve to extract eigenvalues (otw hessenberg matrix)
 
-            push_iteration_info!(logger,2,k,λ=λ);
-            push_info!(logger,"$k:conv_eig=$conv_eig");
+                # create the projected NEP
+                mm=size(VV,2)
+                pnep=create_proj_NEP(nep,mm); # maxsize=mm
+                set_projectmatrices!(pnep,VV,VV);
 
-            conv_eig=length(λ)
+                # solve the projected NEP
+                push_info!(logger,2,"Solving the projected problem",continues=true);
+
+                λproj,Wproj=inner_solve(inner_solver_method,T,pnep;
+                                        neigs=m,
+                                        inner_logger=inner_logger,
+                                        maxit=100,
+                                        tol=tol);
+
+                #println("λproj=",λproj)
+
+
+                q=length(λproj)
+                λ=λproj[1:q];
+
+                if q>m q=m end
+                mul!(view(W,:,1:q),VV,view(Wproj,:,1:q))
+                #ZZ=VV*Zproj[:,1:k];
+
+
+
+            end
+            # compute the errors
+            err[k,1:size(λ,1)]=map(s->estimate_error(errmeasure,λ[s],W[:,s]),1:size(λ,1))
+
+            # Log them and compute the converged
+            push_iteration_info!(logger,2, k,err=err[k,1:size(λ,1)], λ=λ,
+                                 continues=true);
+            conv_eig=0
+            for s=1:size(λ,1)
+                if err[k,s]<tol;
+                    conv_eig=conv_eig+1;
+                    push_info!(logger,"+", continues=true);
+                elseif err[k,s]<tol*10
+                    push_info!(logger,"=", continues=true);
+                else
+                    push_info!(logger,"-", continues=true);
+                end
+            end
+            push_info!(logger,"");
+
+            # Sort the errors
+            idx=sortperm(err[k,1:k]); # sort the error
+            err[k,1:k]=err[k,idx];
+
             # extract the converged Ritzpairs
             if (k==m)||(conv_eig>=neigs)
-                nrof_eigs = Int(min(length(λ),neigs))
-                λ=λ[1:nrof_eigs]
-                W=W[:,1:nrof_eigs]
+                nrof_eigs = Int(min(conv_eig,neigs))
+                λ=λ[idx[1:nrof_eigs]]
+                W=W[:,idx[1:length(λ)]]
             end
+
         end
 
         k=k+1;
         # shift the vectors
-        Qp=Q;   Q=Qn;
-        Qn=zero(Qn);
+        Qp[:]=Q; Q[:]=Qn; Qn[:] .=0;
     end
 
     k=k-1
+
+    # NoConvergenceException
     if conv_eig<neigs && neigs != Inf
-        err=Missing; # TODO: Should an error be computed and added?
+        # Sort the errors
+        idx=sortperm(err[end,1:k]); err=err[end,idx];
+        kk=length(λ);
+        λ=λ[idx[1:kk]]; W=W[:,idx[1:kk]]; err=err[1:kk];
         msg="Number of iterations exceeded. maxit=$(maxit)."
-        throw(NoConvergenceException(λ,W,err,msg))
+        if conv_eig<3
+            msg=string(msg, "Try to change the inner_solver_method for better performance.")
+        end
+        throw(NoConvergenceException(λ,Q,err,msg))
     end
 
-    return λ,W,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
+    return λ,W,err,V[:,1:k+1], H[1:k,1:k-1], ω[1:k], HH[1:k,1:k]
 end
 
 # this function computes V *= h avoiding allocations (overwrites V)
@@ -254,20 +308,20 @@ function mat_sum(V,W)
 end
 
 # Contructors for the precomputed data
-function PrecomputeDataInit(::Type{Compute_Bmul_method_DEP})
+function PrecomputeDataInit(::Type{compute_Bmul_method_DEP})
     return IlanPrecomputeDataDEP(0,0,0,0,0)
 end
-function PrecomputeDataInit(::Type{Compute_Bmul_method_DerSPMF})
+function PrecomputeDataInit(::Type{compute_Bmul_method_DerSPMF})
     return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
 end
-function PrecomputeDataInit(::Type{Compute_Bmul_method_SPMF_NEP})
+function PrecomputeDataInit(::Type{compute_Bmul_method_SPMF_NEP})
     return IlanPrecomputeDataSPMF_NEP(0,0,0,0)
 end
 
 # functions that precompute datas
-function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m,σ,γ)
+function precompute_data(T,nep::NEPTypes.DEP,::Type{compute_Bmul_method_DEP},n,m,σ,γ)
     τ=nep.tauv
-    precomp=PrecomputeDataInit(Compute_Bmul_method_DEP)
+    precomp=PrecomputeDataInit(compute_Bmul_method_DEP)
     precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ2=zeros(T,n,m+1)      # aux matrix for pre-allocation
@@ -281,8 +335,8 @@ function precompute_data(T,nep::NEPTypes.DEP,::Type{Compute_Bmul_method_DEP},n,m
 end
 
 # functions that precompute datas
-function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPMF_NEP},n,m,σ,γ)
-    precomp=PrecomputeDataInit(Compute_Bmul_method_SPMF_NEP)
+function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{compute_Bmul_method_SPMF_NEP},n,m,σ,γ)
+    precomp=PrecomputeDataInit(compute_Bmul_method_SPMF_NEP)
     precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
 
@@ -304,8 +358,8 @@ function precompute_data(T,nep::NEPTypes.SPMF_NEP,::Type{Compute_Bmul_method_SPM
 end
 
 # functions that precompute datas
-function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{Compute_Bmul_method_DerSPMF},n,m,σ,γ)
-    precomp=PrecomputeDataInit(Compute_Bmul_method_DerSPMF)
+function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{compute_Bmul_method_DerSPMF},n,m,σ,γ)
+    precomp=PrecomputeDataInit(compute_Bmul_method_DerSPMF)
     precomp.ZZ=zeros(T,n,m+1)       # aux matrix for pre-allocation
     precomp.QQ=zeros(T,n,m+1)       # aux matrix for pre-allocation
 
@@ -322,7 +376,7 @@ function precompute_data(T,nep::NEPTypes.DerSPMF,::Type{Compute_Bmul_method_DerS
     return precomp
 end
 
-function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
+function Bmult!(::Type{compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
     # B-multiplication
     #Z[:,:]=zero(Z);
     mat_zero!(Z)
@@ -333,11 +387,11 @@ function Bmult!(::Type{Compute_Bmul_method_SPMF_NEP},k,Z,Qn,Av,precomp,γ)
     end
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp,γ)
-    Bmult!(Compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp,γ)
+function Bmult!(::Type{compute_Bmul_method_DerSPMF},k,Z,Qn,Av,precomp,γ)
+    Bmult!(compute_Bmul_method_SPMF_NEP,k,Z,Qn,Av,precomp,γ)
 end
 
-function Bmult!(::Type{Compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
+function Bmult!(::Type{compute_Bmul_method_DEP},k,Z,Qn,Av,precomp,γ)
     # B-multiplication
     T=eltype(Z)
     n=size(Z,1)
