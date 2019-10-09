@@ -17,7 +17,8 @@ own NEP-solver.
 
 [Halley's method for root-finding of nonlinear scalar equations](https://en.wikipedia.org/wiki/Halley%27s_method)
 has fast local convergence - even faster
-than Newton's method in terms of iterations and convergence order.
+than Newton's method in terms convergence order, and
+often faster in terms of number of iterations.
 A NEP can be formulated as a
 root-finding problem since a solution will always
 satisfy
@@ -32,9 +33,9 @@ defined by the iteration
 ```math
 λ_{k+1}=λ_k-\frac{2f(λ_k)f'(λ_k)}{2(f'(λ_k))^2-f(λ_k)f''(λ_k)}
 ```
-Although there are formulas for the
+There are formulas for the
 derivatives of the determinant, we will here for
-simplicity just use finite difference to
+simplicity just use finite difference approximation to
 estimate the derivatives, i.e.,
 ```math
  f'(λ)\approx \frac{f(λ+δ)-f(λ-δ)}{2δ}
@@ -46,7 +47,7 @@ estimate the derivatives, i.e.,
 
 Let us first define our solver function
 and introduce the function whose roots we wish to find.
-The matrix ``M(λ)`` is obtained from the
+The matrix ``M(λ)`` is obtained by a call to the
 [`compute_Mder`](@ref)-function.
 ```julia
 using NonlinearEigenproblems
@@ -86,7 +87,7 @@ Clearly, the algorithm terminates after 4 iterations.
 We can verify that this is actually
 a solution easily if we also
 have an approximate eigenvector. An eigenvector
-can be computed by essentially one step of inverse iteration,
+can be computed/estimated by essentially one step of inverse iteration,
 on the matrix ``M(λ)``:
 ```julia
 julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
@@ -97,7 +98,7 @@ julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
   0.031821422867456914
   0.12485915894832478 
 ```
-The residual norm  ``|M(λ)x|`` does indeed become almost zero
+The residual norm  ``||M(λ)x||`` does indeed become almost zero
 so it seems we have a solution:
 ```julia
 julia> norm(compute_Mlincomb(nep,λ,x))
@@ -111,8 +112,9 @@ usage of the NEP-PACK method development:
 NEP-PACKs logging facility  and error estimation.
 See [`Logger`](logger.md) and [`Errmeasure`](errmeasure.md). This
 gives access
-to other ways to measure error as well as a logging
-which is the same for all solvers and simplifies
+to other ways to measure error as well as a logging and 
+inspection of error history in a way that is
+the same for all solvers and simplifies
 comparisons.
 
 ```julia
