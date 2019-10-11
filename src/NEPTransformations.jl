@@ -301,6 +301,7 @@ module NEPTransformations
     		AvLR::Vector{T3}
     		Bv::Vector{T2}
     		BvLR::Vector{T3}
+            Z::T3
     end
 
 end  # End Module
