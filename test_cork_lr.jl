@@ -1,12 +1,4 @@
-# representation of the structured linearizations used in the CORK framework
-struct CORKPencilLR{T1<:AbstractMatrix,T2<:AbstractMatrix,T3<:AbstractMatrix}
-		M::T1
-		N::T1
-		Av::Vector{T2}
-		AvLR::Vector{T3}
-		Bv::Vector{T2}
-		BvLR::Vector{T3}
-end
+using NonlinearEigenproblems
 
 A1=rand(2,2); A2=rand(2,2);
 B1=rand(2,2); B2=rand(2,2);

@@ -16,6 +16,8 @@ module NEPTransformations
     export DefaultCorkLinearization
     export IarCorkLinearization
     export NleigsCorkLinearization
+    export CORKPencilLR
+
 
     # We overload these
     import ..NEPCore.compute_Mder
@@ -292,6 +294,13 @@ module NEPTransformations
     end
 
     ########### WORK IN PROGRESS HERE ##############
-    
+    struct CORKPencilLR{T1<:AbstractMatrix,T2<:AbstractMatrix,T3<:AbstractMatrix}
+    		M::T1
+    		N::T1
+    		Av::Vector{T2}
+    		AvLR::Vector{T3}
+    		Bv::Vector{T2}
+    		BvLR::Vector{T3}
+    end
 
 end  # End Module
