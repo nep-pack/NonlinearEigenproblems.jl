@@ -291,4 +291,7 @@ module NEPTransformations
         return [hcat(cp.Av...); kron(cp.M,II)], [hcat(cp.Bv...); kron(cp.N,II)]
     end
 
+    ########### WORK IN PROGRESS HERE ##############
+    
+
 end  # End Module
