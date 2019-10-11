@@ -207,16 +207,12 @@ julia> f2= λ-> λ;
 julia> f3= λ-> exp(sin(λ/2));
 julia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);
 ```
-The NEP can now be solved with many algorithms, e.g.,
+The NEP is solved by using the NEP-object as a parameter in a call to an algorithm, e.g.,
 ```julia-repl
 julia> v0 = 0.1*[1,-1,1,-1];
 julia> λ,v=quasinewton(nep,λ=4,v=v0)
 (3.1760990071435193 + 0.0im, Complex{Float64}[2.892363187499394 + 0.0im, -1.6573097795628646 + 0.0im, 0.00729776922332883 + 0.0im, -0.09002519738673213 + 0.0im])
 ```
-Note that the functions `f1`,`f2` and `f3` have to be defined for scalar values
-and for matrices (in the [matrix function](https://en.wikipedia.org/wiki/Matrix_function) sense, not elementwise sense). This is
-the reason `f1` needs to be defined as `one(λ)`, instead of just `1`.
-
 As usual, you can check that we computed a sensible solution:
 ```julia-repl
 julia> (A+B*λ+C*exp(sin(λ/2)))*v
@@ -226,7 +222,10 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
   -9.480334553029193e-13 + 0.0im
   -5.912084880273861e-13 + 0.0im
 ```
+!!! note
+    The functions `f1`,`f2` and `f3` in the example above have to be defined for scalar values and for matrices (in the [matrix function](https://en.wikipedia.org/wiki/Matrix_function) sense, not elementwise sense). This is the reason `f1` needs to be defined as `one(λ)`, instead of just `1`. Fortunately, many elementary functions in Julia already have matrix function implementations, e.g., `exp([1 2 ; 3 4])` will return the matrix exponential of the given matrix.  
 
+    
 ## What now?
 
 Now you are ready to try out
