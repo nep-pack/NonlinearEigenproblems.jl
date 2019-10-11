@@ -81,14 +81,9 @@ julia> f3=s-> -s^2
 ```
 If you have carried out Part 1, you should have
 the sparse discretization matrices available.
-They are stored in the PETSc-binary format.
-NEP-PACK contains functionality to load
-some PETSc binary files
-(you may alternatively try to use
-[`PETScBinary`](https://github.com/tkonolige/PETScBinaryIO.jl)).
-Most importantly the
-function `Gallery.naive_petsc_read`
-loads a sparse matrix from file.
+They are stored in the PETSc-binary format.  
+NEP-PACK contains functionality to load the generated matrices using the function
+`Gallery.naive_petsc_read`.
 
 Suppose `gmsh_files` is a path to the bin-files generated in Part 1. These
 commands load the matrices
@@ -97,6 +92,10 @@ julia> A3=Gallery.naive_petsc_read(joinpath(gmsh_files,"file_mat_M15.m.bin")); #
 julia> A2=Gallery.naive_petsc_read(joinpath(gmsh_files,"file_mat_M16.m.bin"));
 julia> A1=Gallery.naive_petsc_read(joinpath(gmsh_files,"file_mat_M17.m.bin"));
 ```
+!!! tip
+    The function `Gallery.naive_petsc_read` is a partial implementation of the reading files in the PETSc binary file-format.  Another implementation which supports reading and writing is available in the package [`PETScBinaryIO`](https://github.com/tkonolige/PETScBinaryIO.jl).
+
+
 The SPMF is created directly
 ```julia-repl
 julia> nep=SPMF_NEP([A1,A2,A3], [f1,f2,f3]);
