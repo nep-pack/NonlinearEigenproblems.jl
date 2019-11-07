@@ -43,8 +43,6 @@ julia> λ    # print the computed eigenvalues
 # References
 * Algorithm 2 in Jarlebring, Michiels Meerbergen, A linear eigenvalue algorithm for the nonlinear eigenvalue problem, Numer. Math, 2012
 """
-
-
 iar(nep::NEP;params...)=iar(ComplexF64,nep;params...)
 function iar(
     ::Type{T},
