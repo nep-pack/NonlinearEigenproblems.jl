@@ -42,7 +42,7 @@ is also directly available in the gallery: `nep_gallery("schrodinger_movebc")`.
 The technique is based on moving the boundary condition at ``L_1``
 to ``L_0``. This can be done without doing any approximation,
 if we allow the new artificial boundary condition at ``L_0``
-to depend on ``λ``. We introduce what is called an *absorbing boundary condition*, also known as a artificial boundary condition.
+to depend on ``λ``. We introduce what is called an *absorbing boundary condition*, also known as an artificial boundary condition.
 
 
 
@@ -269,7 +269,7 @@ julia> λ
 The output of the logging of `iar` is a compact
 notation for how many eigenvalues have converged
 at a specific iteration. Every line corresponds
-to one iteration step. The signs corresponds to:
+to one iteration step. The signs correspond to:
 `+`=a converged eigenvalue, `-`=not converged eigenvalue, `=`=almost converged eigenvalue in the sense that it almost (up to a factor 10)
 satisfies the convergence criteria.
 !!! tip
