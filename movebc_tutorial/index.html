@@ -79,7 +79,7 @@ plot(xv,v1/norm(v1))
 plot!(xv,real(v2)/norm(v2))
 plot!(xv,real(v3)/norm(v3))
 plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
-<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><p>Rather than making several calls to a specific method, some NEP-solvers directly compute several solutions. The NEP-solver <a href="../methods/#NonlinearEigenproblems.NEPSolver.iar"><code>iar</code></a> works quite well for this problem (see also the <a href="../deflation/">deflation approach</a> to compute several solutions):</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,neigs=5,maxit=100);
+<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><p>Rather than making several calls to a specific method, some NEP-solvers directly compute several solutions. The NEP-solver <a href="@ref"><code>iar</code></a> works quite well for this problem (see also the <a href="../deflation/">deflation approach</a> to compute several solutions):</p><pre><code class="language-julia-repl">julia&gt; (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,neigs=5,maxit=100);
 -
 --
 ---
