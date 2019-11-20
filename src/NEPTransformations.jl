@@ -332,9 +332,8 @@ struct CORKPencil{T1<:AbstractMatrix,T2<:AbstractMatrix}
     (A,B)=buildPencil(cp)
 
 Constructs a pencil from a `CORKPencil` or `CORKPencilLR`. The returned
-matrices correspond to a generalized eigenvalue problem. See also [`CORKPencil`](@ref), [`CORKPencilLR`](@ref).
+matrices correspond to a generalized eigenvalue problem. See also [`CORKPencil`](@ref), [`CORKPencilLR`](@ref). See [`lowRankCompress`] for examples.
 
-# Example
 
 
 """
@@ -345,42 +344,41 @@ matrices correspond to a generalized eigenvalue problem. See also [`CORKPencil`]
         return [hcat(cp.Av...); kron(cp.M,II)], [hcat(cp.Bv...); kron(cp.N,II)]
     end
 
-    """
-        struct CORKPencilLR
-        function CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
+"""
+    struct CORKPencilLR
+    function CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
 
 Represents / constructs a low-rank CORK-pencil. `AvLR`, `BvLR`
 and `Z` correspond to the low-rank factorization of terms
 `Av` and `Bv`. See [`CORKPencil`](@ref) and reference below.
 
-    # Example:
+# Example
 
 The example illustrate a low-rank linearization of a Taylor expansion
 of the NEP ``A0-λI+vv^Te^{-λ}``.
 
-    ```julia-repl
-    julia> A0=[1.0 3.0; -1.0 2.0]/10;
-    julia> v=reshape([-1.0 ; 1]/sqrt(2),n,1);
+```julia-repl
+julia> A0=[1.0 3.0; -1.0 2.0]/10;
+julia> v=reshape([-1.0 ; 1]/sqrt(2),n,1);
 
-    julia> Av=[-A0-v*v']
-    julia> Bv=[-one(A0)-v*v']
-    julia> BvLR=[v/2, -v/3, v/4, -v/5, v/6, -v/7,  v/8, -v/9]
-    julia> AvLR=zero.(BvLR);
-    julia> Z=v;
-    julia> d=9;
-    julia> M=diagm( 0 =>  ones(d) )[2:end,:]
-    julia> N=diagm( -1 =>  1 ./ (1:d-1) )[2:end,:]
-    julia> cplr=CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
-    julia> (AA,BB)=build_CORKPencil(cplr2);
-    julia> λ=eigen(AA,BB).values[end];
-    julia> minimum(svdvals(A0-λ*I+v*v'*exp(-λ)))
-    8.870165379112754e-13
-    ```
+julia> Av=[-A0-v*v']
+julia> Bv=[-one(A0)-v*v']
+julia> BvLR=[v/2, -v/3, v/4, -v/5, v/6, -v/7,  v/8, -v/9]
+julia> AvLR=zero.(BvLR);
+julia> Z=v;
+julia> d=9;
+julia> M=diagm( 0 =>  ones(d) )[2:end,:]
+julia> N=diagm( -1 =>  1 ./ (1:d-1) )[2:end,:]
+julia> cplr=CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
+julia> (AA,BB)=buildPencil(cplr);
+julia> λ=eigen(AA,BB).values[end];
+julia> minimum(svdvals(A0-λ*I+v*v'*exp(-λ)))
+8.870165379112754e-13
+```
 
 # References:
 
-*  Section 7 in Compact rational Krylov methods for nonlinear eigenvalue problems
-SIAM Journal on Matrix Analysis and Applications, 36 (2), 820-838, 2015.
+*  Section 7 in Compact rational Krylov methods for nonlinear eigenvalue problems SIAM Journal on Matrix Analysis and Applications, 36 (2), 820-838, 2015.
 """
     struct CORKPencilLR
     	M::AbstractMatrix
@@ -396,14 +394,27 @@ SIAM Journal on Matrix Analysis and Applications, 36 (2), 820-838, 2015.
 """
     cplr=lowRankCompress(cp_org::CORKPencil,dtilde,rk)
 
-Constructs a `CORKPencilLR` from a `CORKPencil`. This is done by
+Constructs a [`CORKPencilLR`](@ref) from a [`CORKPencil`](@ref). This is done by
 assuming that terms higher than `dtilde` are of low rank, with rank `rk`.
 More precisely, all `A[j]` and `B[j]` for `j>dtilde` are assumed
 to be of the form ``C_jZ^T``.
 
-# Example:
+# Example
 
-** TODO
+This illustrates how to form a `CORKPencil` from a NEP, and
+subsequently form a smaller pencil using `CORKPencilLR`.
+
+```julia-repl
+julia> A0=[1.0 3.0; -1.0 2.0]/10;
+julia> v=[-1.0 ; 1]/sqrt(2);
+julia> nep=DEP([A0,v*v']);
+julia> cp_org=CORKPencil(nep,IarCorkLinearization(d=10));
+julia> cplr=lowRankCompress(cp_org::CORKPencil,1,1);
+julia> (AA,BB)=buildPencil(cplr);
+julia> λ=eigen(AA,BB).values[end];
+julia> minimum(svdvals(A0-λ*I+v*v'*exp(-λ))) # Check if it is an eigval
+2.7621446071952216e-14
+```
 
 """
 function lowRankCompress(cp_org::CORKPencil,dtilde,rk)
