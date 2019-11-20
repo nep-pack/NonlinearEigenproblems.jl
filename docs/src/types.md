@@ -24,7 +24,9 @@ low-rank NEPs via the [`LowRankFactorizedNEP`](@ref).
 
 If your NEP is not easily expressed as
 an [`SPMF_NEP`](@ref), you may want to use the
-[helper types](types.md#Helper-types-1).
+[helper types](types.md#Helper-types-1). The data types
+associated with compact certain pencils are also supported,
+as described in the [CORK data types](types.md#CORK-data-types-1).
 
 The types also have a number of associated
 operations and transformation functions.
