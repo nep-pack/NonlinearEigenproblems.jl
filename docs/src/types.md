@@ -164,6 +164,25 @@ SPMFSumNEP
 ```@docs
 LowRankFactorizedNEP
 ```
+## CORK types
+
+```@docs
+CORKPencil
+```
+
+```@docs
+buildPencil
+```
+```@docs
+CORKPencilLR
+```
+
+```@docs
+lowRankCompress
+```
+
+
+
 
 ## Helper types
 There are also the helper types [`Mder_NEP`](@ref) and
