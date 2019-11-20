@@ -10,12 +10,14 @@ module NEPTransformations
     export shift_and_scale
     export mobius_transform
     export CORKPencil
-    export build_CORKPencil
-    export compute_CORKPencil
+    export buildPencil
     export CorkLinearization
     export DefaultCorkLinearization
     export IarCorkLinearization
     export NleigsCorkLinearization
+    export CORKPencilLR
+    export lowRankCompress
+
 
     # We overload these
     import ..NEPCore.compute_Mder
@@ -228,8 +230,50 @@ module NEPTransformations
         return PEP(A)
     end
 
-    # representation of the structured linearizations used in the CORK framework
-    struct CORKPencil{T1<:AbstractMatrix,T2<:AbstractMatrix}
+"""
+    struct CORKPencil
+    function CORKPencil(M,N,Av,Bv,Z);
+    function CORKPencil(nep,is)
+
+The struct `CORKPencil` represents a pencil with a particular structure,
+as given in the reference. The data can either be constructed directly
+via the first constructor, or from a NEP in the second constructor.
+The second constructor takes a `NEP` and  `is` which specifies
+a CORK-structure as well as an approximation method. This can be objects
+of the type `IarCorkLinearization` or `NleigsCorkLinearization`,
+which are the CORK-linearizations equivalent to (certain versions of)
+[`iar`](@ref) and [`nleigs`](@ref).
+
+See [`buildPencil`](@ref) how to build standard pencil.
+
+
+# Example:
+
+The following example constructs a  `CORKPencil` from
+a general NEP and then computes approximations of NEPs
+by the interpolation approach of `nleigs`.
+
+```julia-repl
+julia> using LinearAlgebra
+julia> A=(1:4)*(1:4)'+I; B=diagm(1 => [1,2,3]); C=ones(4,4);
+julia> f1= λ-> one(λ);
+julia> f2= λ-> λ;
+julia> f3= λ-> exp(sin(λ/2));
+julia> nep=SPMF_NEP([A,B,C],[f1,f2,f3]);
+julia> cp=CORKPencil(nep,NleigsCorkLinearization());
+julia> (A,B)=buildPencil(cp) # Form the pencil
+julia> λv=eigen(A,B).values;
+julia> λ=λv[sortperm(abs.(λv))[1]]; # Smallest eigval
+julia> minimum(svdvals(compute_Mder(nep,λ))) # It's a solution
+2.4364382475487156e-11
+```
+
+# References:
+
+*  Compact rational Krylov methods for nonlinear eigenvalue problems SIAM Journal on Matrix Analysis and Applications, 36 (2), 820-838, 2015.
+
+    """
+struct CORKPencil{T1<:AbstractMatrix,T2<:AbstractMatrix}
         M::T1
         N::T1
         Av::Vector{T2}   # Array of Array of matrices
@@ -258,7 +302,7 @@ module NEPTransformations
         end
     end
 
-    function compute_CORKPencil(nep,is::IarCorkLinearization)
+    function CORKPencil(nep,is::IarCorkLinearization)
         M=diagm( 0 =>  ones(is.d) )[2:end,:]
         N=diagm( -1 =>  1 ./ (1:is.d-1) )[2:end,:]
         Av=Array{AbstractMatrix,1}(undef, is.d)
@@ -269,7 +313,7 @@ module NEPTransformations
         return CORKPencil(M,N,Av,Bv)
     end
 
-    function compute_CORKPencil(nep,is::NleigsCorkLinearization)
+    function CORKPencil(nep,is::NleigsCorkLinearization)
         D,β,ξ,σ=nleigs_coefficients(nep,is.Σ,tollin=is.tollin,Ξ=is.Ξ)
         d=length(β)-1
         σ=σ[1:d+1]; β=β[1:d+1]; ξ=ξ[1:d+1]
@@ -284,11 +328,169 @@ module NEPTransformations
     end
 
     # construct the linearization
-    function build_CORKPencil(cp::CORKPencil)
+"""
+    (A,B)=buildPencil(cp)
+
+Constructs a pencil from a `CORKPencil` or `CORKPencilLR`. The returned
+matrices correspond to a generalized eigenvalue problem. See also [`CORKPencil`](@ref), [`CORKPencilLR`](@ref). See [`lowRankCompress`] for examples.
+
+
+
+"""
+    function buildPencil(cp::CORKPencil)
         n=size(cp.Av[1],1)
         if issparse(cp.Av[1])   II=sparse(I, n, n)
         else                    II=Matrix(I, n, n)    end
         return [hcat(cp.Av...); kron(cp.M,II)], [hcat(cp.Bv...); kron(cp.N,II)]
     end
+
+"""
+    struct CORKPencilLR
+    function CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
+
+Represents / constructs a low-rank CORK-pencil. `AvLR`, `BvLR`
+and `Z` correspond to the low-rank factorization of terms
+`Av` and `Bv`. See [`CORKPencil`](@ref) and reference below.
+
+# Example
+
+The example illustrate a low-rank linearization of a Taylor expansion
+of the NEP ``A0-λI+vv^Te^{-λ}``.
+
+```julia-repl
+julia> A0=[1.0 3.0; -1.0 2.0]/10;
+julia> v=reshape([-1.0 ; 1]/sqrt(2),n,1);
+
+julia> Av=[-A0-v*v']
+julia> Bv=[-one(A0)-v*v']
+julia> BvLR=[v/2, -v/3, v/4, -v/5, v/6, -v/7,  v/8, -v/9]
+julia> AvLR=zero.(BvLR);
+julia> Z=v;
+julia> d=9;
+julia> M=diagm( 0 =>  ones(d) )[2:end,:]
+julia> N=diagm( -1 =>  1 ./ (1:d-1) )[2:end,:]
+julia> cplr=CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
+julia> (AA,BB)=buildPencil(cplr);
+julia> λ=eigen(AA,BB).values[end];
+julia> minimum(svdvals(A0-λ*I+v*v'*exp(-λ)))
+8.870165379112754e-13
+```
+
+# References:
+
+*  Section 7 in Compact rational Krylov methods for nonlinear eigenvalue problems SIAM Journal on Matrix Analysis and Applications, 36 (2), 820-838, 2015.
+"""
+    struct CORKPencilLR
+    	M::AbstractMatrix
+    	N::AbstractMatrix
+    	Av::Vector{AbstractMatrix}
+    	AvLR::Vector{AbstractMatrix} # In CORK-paper Avtilde
+    	Bv::Vector{AbstractMatrix}
+    	BvLR::Vector{AbstractMatrix} # In CORK-paper Bvtilde
+        Z::AbstractMatrix
+    end
+
+
+"""
+    cplr=lowRankCompress(cp_org::CORKPencil,dtilde,rk)
+
+Constructs a [`CORKPencilLR`](@ref) from a [`CORKPencil`](@ref). This is done by
+assuming that terms higher than `dtilde` are of low rank, with rank `rk`.
+More precisely, all `A[j]` and `B[j]` for `j>dtilde` are assumed
+to be of the form ``C_jZ^T``.
+
+# Example
+
+This illustrates how to form a `CORKPencil` from a NEP, and
+subsequently form a smaller pencil using `CORKPencilLR`.
+
+```julia-repl
+julia> A0=[1.0 3.0; -1.0 2.0]/10;
+julia> v=[-1.0 ; 1]/sqrt(2);
+julia> nep=DEP([A0,v*v']);
+julia> cp_org=CORKPencil(nep,IarCorkLinearization(d=10));
+julia> cplr=lowRankCompress(cp_org::CORKPencil,1,1);
+julia> (AA,BB)=buildPencil(cplr);
+julia> λ=eigen(AA,BB).values[end];
+julia> minimum(svdvals(A0-λ*I+v*v'*exp(-λ))) # Check if it is an eigval
+2.7621446071952216e-14
+```
+
+"""
+function lowRankCompress(cp_org::CORKPencil,dtilde,rk)
+    d=length(cp_org.Av);
+    # Only use the first low-rank term as a basis (this
+    # can cause if the first low-rank term has lower rank
+    # than the other ones).
+    Z=svd(cp_org.Bv[dtilde+1]).V[:,1:rk];
+
+    # Check that the M and N-matrices have the block triangular structure
+    if ((norm(cp_org.M[1:(dtilde-1),(dtilde+1):end]) > 0) ||
+        (norm(cp_org.N[1:(dtilde-1),(dtilde+1):end]) > 0))
+        error("The M-matrix does not have the required structure. Try increasing dtilde.");
+    end
+
+
+    # Manually extract the low-rank coefficients by
+    # multiplying by Z. Works since Z is orthogonal.
+    Bvtilde=map(i-> cp_org.Bv[i]*Z,  (dtilde+1):d);
+    Avtilde=map(i-> cp_org.Av[i]*Z,  (dtilde+1):d);
+
+    return CORKPencilLR(cp_org.M,cp_org.N,
+                        cp_org.Av[1:dtilde],Avtilde,
+                        cp_org.Bv[1:dtilde],Bvtilde,
+                        Z);
+end
+function buildPencil(cp::CORKPencilLR)
+
+    # Extract the variables
+    n=size(cp.Av[1],1)
+    dtilde=length(cp.Av); # Nof full rank terms
+    d=length(cp.Av)+length(cp.AvLR);
+    rk=size(cp.Z,2);
+
+    # Type logic. The pencil will be of the largest type of the eltypes
+    T=promote_type(eltype(cp.Z),
+                   eltype(cp.Av[1]),
+                   eltype(cp.AvLR[1]),
+                   eltype(cp.Bv[1]),
+                   eltype(cp.BvLR[1]),
+                   eltype(cp.M),
+                   eltype(cp.N));
+
+
+    In=Matrix{T}(I,n,n);
+    Idtilde=Matrix{T}(I,rk,rk);
+
+    ## Note: this info is not in CORK paper:
+    ##    M11: (dtilde-1) x (dtilde)
+    ##    M21: (d-dtilde) x (dtilde)
+    ##    M22: (d-dtilde) x (d-dtilde)
+    ## same for N
+
+    # Extract Mij and Nij:
+    M11=cp.M[1:(dtilde-1),1:dtilde];
+    M21=cp.M[(dtilde):end,1:dtilde]
+    M22=cp.M[(dtilde):end,(dtilde+1):end]
+
+    N11=cp.N[1:(dtilde-1),1:dtilde];
+    N21=cp.N[(dtilde):end,1:dtilde]
+    N22=cp.N[(dtilde):end,(dtilde+1):end]
+
+    # Build the B-matrix
+    Btilde1=[hcat(cp.Bv[1:dtilde]...) hcat(cp.BvLR...) ]
+    Btilde2=[kron(N11,In) zeros((dtilde-1)*n,(d-dtilde)*rk)]
+    Btilde3=[kron(N21,cp.Z') kron(N22,Idtilde)];
+    Btilde=vcat(Btilde1,Btilde2,Btilde3);
+
+
+    # Build the A-matrix
+    Atilde1=[hcat(cp.Av[1:dtilde]...) hcat(cp.AvLR...) ]
+    Atilde2=[kron(M11,In) zeros((dtilde-1)*n,(d-dtilde)*rk)]
+    Atilde3=[kron(M21,cp.Z') kron(M22,Idtilde)];
+    Atilde=vcat(Atilde1,Atilde2,Atilde3);
+
+    return (Atilde,Btilde);
+end
 
 end  # End Module
