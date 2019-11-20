@@ -164,7 +164,7 @@ SPMFSumNEP
 ```@docs
 LowRankFactorizedNEP
 ```
-## CORK types
+## CORK data types
 
 ```@docs
 CORKPencil
