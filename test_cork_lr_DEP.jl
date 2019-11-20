@@ -1,83 +1,105 @@
 using NonlinearEigenproblems, LinearAlgebra, Random
+#import NonlinearEigenproblems.build_CORKPencil
 
-
-    struct CORKPencilLR
-    	M::AbstractMatrix
-    	N::AbstractMatrix
-    	Av::Vector{AbstractMatrix}
-    	AvLR::Vector{AbstractMatrix} # In CORK-paper Avtilde
-    	Bv::Vector{AbstractMatrix}
-    	BvLR::Vector{AbstractMatrix} # In CORK-paper Bvtilde
-        Z::AbstractMatrix
-    end
-
-#function build_CORKPencil(cp::CORKPencilLR)
-#
-#
-#end
-
-function lowRankCompress(cp_org::CORKPencil,dtilde,rk)
-    d=length(cp_org.Av);
-    Z=svd(cp_org.Bv[dtilde+1]).V[:,1:rk];
-    Bvtilde=map(i-> cp_org.Bv[i]*Z,  (dtilde+1):d);
-    Avtilde=map(i-> cp_org.Av[i]*Z,  (dtilde+1):d);
-
-end
 
 
 # test on the following DEP
 # M(λ)=-λI+A0+exp(-λ)vv'
 Random.seed!(0);
 
-n=3;
+n=2;
 A0=rand(n,n)
-rk=2;
-v=rand(n,rk)
+A0=[1.0 3.0; -1.0 2.0];
+v=reshape([-1.0 ; 1]/sqrt(2),n,1);
 
-dep=DEP([A0,v*v']);
-cp_org=compute_CORKPencil(dep,IarCorkLinearization(d=5))
-
-
-d=length(cp_org.Av);
-dtilde=2;
-cp_org.Bv[dtilde+1]
-
-Z=svd(cp_org.Bv[dtilde+1]).V[:,1:rk];
-
-Bvtilde=map(i-> cp_org.Bv[i]*Z,  (dtilde+1):d);
-Avtilde=map(i-> cp_org.Av[i]*Z,  (dtilde+1):d);
-
-## Note info not in CORK paper:  (same for N)
-##    M11: (dtilde-1) x (dtilde)
-##    M21: (d-dtilde) x (dtilde)
-##    M22: (d-dtilde) x (d-dtilde)
-M11=cp_org.M[1:(dtilde-1),1:dtilde];
-M21=cp_org.M[(dtilde):end,1:dtilde]
-M22=cp_org.M[(dtilde):end,(dtilde+1):end]
-
-N11=cp_org.N[1:(dtilde-1),1:dtilde];
-N21=cp_org.N[(dtilde):end,1:dtilde]
-N22=cp_org.N[(dtilde):end,(dtilde+1):end]
-
-In=Matrix{Float64}(I,n,n);
-Idtilde=Matrix{Float64}(I,rk,rk);
-
-Btilde1=[hcat(cp_org.Bv[1:dtilde]...) hcat(Bvtilde...) ]
-Btilde2=[kron(N11,In) zeros((dtilde-1)*n,(d-dtilde)*rk)]
-Btilde3=[kron(N21,Z') kron(N22,Idtilde)];
-Btilde=vcat(Btilde1,Btilde2,Btilde3);
+#rk=1;
+#v=rand(n,1)
+#u=randn(n,1)
+dep=DEP([A0,v*v'],[0,1]);
+cp_org=compute_CORKPencil(dep,IarCorkLinearization(d=4))
 
 
-Atilde1=[hcat(cp_org.Av[1:dtilde]...) hcat(Avtilde...) ]
-Atilde2=[kron(M11,In) zeros((dtilde-1)*n,(d-dtilde)*rk)]
-Atilde3=[kron(M21,Z') kron(M22,Idtilde)];
-Atilde=vcat(Atilde1,Atilde2,Atilde3);
+cplr=lowRankCompress(cp_org,1,1);
 
-evps1=eigen(Atilde,Btilde);
-AA,BB=build_CORKPencil(cp_org);
-evps2=eigen(AA,BB);
 
-minimum(abs.(evps1.values[1] .- evps2.values))
+(AA_LR,BB_LR)=buildPencil(cplr);
+evps_lr=eigen(AA_LR,BB_LR).values;
+
+
+AA,BB=buildPencil(cp_org);
+evps=eigen(AA,BB).values;
+#
+
+evps_lr_small=evps_lr[findall(abs.(evps_lr) .<5)]
+for i = 1:length(evps_lr_small)
+    @show minimum(abs.(evps_lr_small[i] .- evps))
+end
+
+
+A0=[1.0 3.0; -1.0 2.0]/10;
+v=reshape([-1.0 ; 1]/sqrt(2),n,1);
+
+Av=[-A0-v*v']
+Bv=[-one(A0)-v*v']
+BvLR=[v/2, -v/3, v/4, -v/5, v/6, -v/7,  v/8, -v/9]
+AvLR=zero.(BvLR);
+Z=v;
+
+#
+d=9;
+M=diagm( 0 =>  ones(d) )[2:end,:]
+N=diagm( -1 =>  1 ./ (1:d-1) )[2:end,:]
+
+cplr2=CORKPencilLR(M,N,Av,AvLR,Bv,BvLR,Z);
+
+(AA,BB)=buildPencil(cplr2);
+λ=eigen(AA,BB).values[end];
+minimum(svdvals(A0-λ*I+v*v'*exp(-λ)))
+
+#
+#d=length(cp_org.Av);
+#dtilde=2;
+#cp_org.Bv[dtilde+1]
+#
+#Z=svd(cp_org.Bv[dtilde+1]).V[:,1:rk];
+#
+#Bvtilde=map(i-> cp_org.Bv[i]*Z,  (dtilde+1):d);
+#Avtilde=map(i-> cp_org.Av[i]*Z,  (dtilde+1):d);
+#
+### Note info not in CORK paper:  (same for N)
+###    M11: (dtilde-1) x (dtilde)
+###    M21: (d-dtilde) x (dtilde)
+###    M22: (d-dtilde) x (d-dtilde)
+#M11=cp_org.M[1:(dtilde-1),1:dtilde];
+#M21=cp_org.M[(dtilde):end,1:dtilde]
+#M22=cp_org.M[(dtilde):end,(dtilde+1):end]
+#
+#N11=cp_org.N[1:(dtilde-1),1:dtilde];
+#N21=cp_org.N[(dtilde):end,1:dtilde]
+#N22=cp_org.N[(dtilde):end,(dtilde+1):end]
+#
+#In=Matrix{Float64}(I,n,n);
+#Idtilde=Matrix{Float64}(I,rk,rk);
+#
+#Btilde1=[hcat(cp_org.Bv[1:dtilde]...) hcat(Bvtilde...) ]
+#Btilde2=[kron(N11,In) zeros((dtilde-1)*n,(d-dtilde)*rk)]
+#Btilde3=[kron(N21,Z') kron(N22,Idtilde)];
+#Btilde=vcat(Btilde1,Btilde2,Btilde3);
+#
+#
+#Atilde1=[hcat(cp_org.Av[1:dtilde]...) hcat(Avtilde...) ]
+#Atilde2=[kron(M11,In) zeros((dtilde-1)*n,(d-dtilde)*rk)]
+#Atilde3=[kron(M21,Z') kron(M22,Idtilde)];
+#Atilde=vcat(Atilde1,Atilde2,Atilde3);
+#
+#
+#
+#
+#evps1=eigen(Atilde,Btilde);
+#AA,BB=build_CORKPencil(cp_org);
+#evps2=eigen(AA,BB);
+#
+#minimum(abs.(evps1.values[1] .- evps2.values))
 
 
 
