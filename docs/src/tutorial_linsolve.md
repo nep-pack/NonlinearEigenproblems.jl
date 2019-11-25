@@ -1,4 +1,4 @@
-# Tutorial: Your own linear solver
+# Tutorial: Specifying linear solvers
 
 Many of the NEP-solvers are based on solving linear systems of
 the type
@@ -42,7 +42,7 @@ iter 70 err:8.341032972349128e-17 λ=-1.2845622481786103 + 0.0im
 
 ```
 We will carry out some timing experiments, so let's
-use the [`BenchmarkTools`](https://github.com/JuliaCI/BenchmarkTools.jl)-package and swith off printouts in
+use the [`BenchmarkTools`](https://github.com/JuliaCI/BenchmarkTools.jl)-package and switch off printouts in
 the NEP-solver:
 ```julia-repl
 julia> using BenchmarkTools
@@ -145,7 +145,7 @@ struct MyLinSolver <: LinSolver;
   myλ
 end
 ```
-NEP-solvers call the function [`create_linsolver`](@ref)(creator,nep,λ)`,
+NEP-solvers call the function [`create_linsolver`](@ref)(creator,nep,λ),
 which should return a linear solver. We need to overload this function
 for our own creator-type.
 In general, this is to allow precomputation.
@@ -157,7 +157,7 @@ function create_linsolver(::MyLinSolverCreator,nep,λ)
    return MyLinSolver(nep,λ);
 end
 ```
-The rest of the implementation of the solver goes in the function `lin_solve`, where we
+The rest of the implementation of the solver goes into the function `lin_solve`, where we
 utilize our function `schur_complement_lin_solve` from above.
 ```julia
 import NonlinearEigenproblems.LinSolvers.lin_solve # Needed since we want overload it
@@ -166,7 +166,7 @@ function lin_solve(solver::MyLinSolver,b::Vector;tol=eps())
    return schur_complement_lin_solve(compute_Mder(solver.mynep,solver.myλ),b,n0)
 end
 ```
-You can now solve the problem by passing a creator object of type `MyLinSolverCreator()` to a
+You can now solve the problem by passing a creator object `MyLinSolverCreator()` to a
 NEP-solver, e.g., [`augnewton`](@ref):
 ```julia-repl
 julia> dep=nep_gallery("dep0",50);
