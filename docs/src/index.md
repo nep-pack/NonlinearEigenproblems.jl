@@ -226,6 +226,71 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
     The functions `f1`,`f2` and `f3` in the example above have to be defined for scalar values and for matrices (in the [matrix function](https://en.wikipedia.org/wiki/Matrix_function) sense, not elementwise sense). This is the reason `f1` needs to be defined as `one(λ)`, instead of just `1`. Fortunately, many elementary functions in Julia already have matrix function implementations, e.g., `exp([1 2 ; 3 4])` will return the matrix exponential of the given matrix.  
 
     
+
+## Chebyshev interpolation
+
+Problems may arise where the NEP is quite complicated to implement.
+Directly using the SPMF where every function needs to be defined in a
+matrix function sense may require too much work, e.g., if the derivatives are not easily available.  
+In this case you may want to use an approximation method to
+get you a different NEP object for which the matrix functions are 
+easy (or directly available in the package). We illustrate this property with NEP-PACKs 
+Chebyshev interpolation feature.
+
+
+Suppose you have the following NEP, which requires a Bessel function.
+The Bessel function is analytic, but its matrix function is not
+easily available.
+```julia-repl
+julia> using SpecialFunctions; # for the besselj
+julia> fv=Vector{Function}(undef,m);
+julia> Av=Vector{Matrix{Float64}}(undef,3)
+julia> fv[1]=s->one(s);
+julia> Av[1]=[ -2.0  -1.0   8.0; -1.0  0  -1.0;   -2.0   -1.0  -2.0];
+julia> fv[2]=s->s;
+julia> Av[2]=[4.0 -7.0  14.0; 8.0  9.0 -13.0; -1.0 -1.0    10.0];
+julia> fv[3]=s->besselj(0, s);
+julia> Av[3]=[-7.0 -0.0 -9.0; 8.0  3.0 -3.0;  0.0 13.0  2.0]
+```
+We use `SPMF_NEP` again, but in order to suppress a warning message
+indicating that a derivative
+is not available we use the keyword `check_consistency=false`.
+```julia-repl
+julia> nep=SPMF_NEP(Av,fv,check_consistency=false);
+```
+
+Note that we cannot directly use the `nep` object with most NEP-solvers, since
+we did not provide a matrix function implementation for `besselj`. We will just
+get some error message that a matrix function is not defined.
+Let us now construct an interpolating Chebyshev polynomial,
+which we can use instead (since its matrix functions are trivial).
+The command [`ChebPEP`](@ref), by default  interpolates a NEP in
+            the interval `[-1,1]` using Chebyshev points and represent the approximation in a Chebyshev basis:
+```julia-repl
+julia> cheb=ChebPEP(nep,9,cosine_formula_cutoff=9);
+```
+
+We can now use an arbitrary method to try to solve this problem, e.g.,
+    the [`newtonqr`](@ref) method.
+```julia-repl
+julia> (λ,v)=newtonqr(cheb,λ=0.0,logger=1)
+iter 1 err:0.20552458291903797 λ=0.0 + 0.0im
+iter 2 err:0.10317368136012978 λ=-3.1180031985377803 + 0.0im
+iter 3 err:0.03898166871714645 λ=-0.5814386400379581 + 0.0im
+iter 4 err:0.001421286693333467 λ=-0.4572312118506711 + 0.0im
+iter 5 err:1.599526685190599e-6 λ=-0.46101438033594805 + 0.0im
+iter 6 err:1.9383172515233692e-12 λ=-0.4610101105535983 + 0.0im
+iter 7 err:2.1034235144362163e-17 λ=-0.4610101105484241 + 0.0im
+(-0.4610101105484241 + 0.0im, Complex{Float64}[-0.597958+0.0im, 0.322148+0.0im, 1.0+0.0im], Complex{Float64}[-0.257712+0.0im, -0.964465+0.0im, -0.0582387+0.0im])
+```
+This solved the interpolated problem quite accurately,
+which turns out to be a reasonable approximation
+of the original problem:
+```julia-repl
+julia> norm(compute_Mlincomb(nep,λ,v))
+1.148749763351579e-9
+```
+
 ## What now?
 
 Now you are ready to try out
