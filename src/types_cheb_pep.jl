@@ -17,8 +17,9 @@ function acos(S::LowerTriangular)
     #    https://github.com/JuliaLang/julia/issues/32721
     F=acos(Matrix(S));
     if (all(isreal.(acos.(diag(S)))))
-        F .= real(F);
+        F .= real(F); # Try to enforce realness
     end
+    return F 
 end
 function cheb_f_cosine_formula(a,b,x,k)
     x1=2*(x-a*one(x))/(b-a)-one(x);
