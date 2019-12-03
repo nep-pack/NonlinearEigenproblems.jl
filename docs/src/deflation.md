@@ -34,18 +34,18 @@ NEP-solver to the deflated NEP.
 ## Theory
 
 The theory follows the presentation of the technique
-in [the PhD thesis of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf). In a somewhat simplified form, it can be summarized as
+in [the PhD thesis of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf). In a somewhat simplified form. It can be summarized as
 follows (for the index one case).
-The deflation is based on a theory for NEP essentially stating that
-if ``(s,x)`` is an eigenpair, then the extended nonlinear eigenvalue problem
+The deflation is based on a theory for NEPs essentially stating that
+if ``(s,x)`` is an eigenpair, then under certain general conditions (which we implicitly assume are satisfied), 
+the extended nonlinear eigenvalue problem
 ```math
 T(λ):=\begin{bmatrix}M(λ)&M(λ)x(s-λ)^{-1}\\ x^T & 0\end{bmatrix}
 ```
-has the same eigenvalues as the original problem except for the eigenvalue ``s``, under certain quite general
-conditions which are assumed to be satisfied. More
+has the same eigenvalues as the original problem except for the eigenvalue ``s`` which is no longer part of the solution set. We have effectively removed (i.e. deflated) the eigenpair `(s,x)`. More
 eigenpairs can be deflated with techniques of partial Schur
 factorizations, which the user does not need to be aware of, due to
-the abstract provided by the functions below. When we create
+the abstraction provided by the functions below. When we create
 a deflated NEP, we create the NEP ``T``.
 
 There are several ways to represent the ``T``, which is why deflation has several
