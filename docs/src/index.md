@@ -2,7 +2,8 @@
 
 # NEP-PACK
 
-NEP-PACK is a package with implementations of methods to solve nonlinear eigenvalue problems of
+NEP-PACK is a package with implementations of methods to solve and to manipulate
+nonlinear eigenvalue problems of
 the type: Find ``(λ,v)\in\mathbb{C}\times\mathbb{C}^n`` such that
 ```math
 M(λ)v=0
@@ -229,13 +230,13 @@ julia> (A+B*λ+C*exp(sin(λ/2)))*v
 
 ## Chebyshev interpolation
 
-Problems may arise where the NEP is quite complicated to implement.
-Directly using the SPMF where every function needs to be defined in a
-matrix function sense may require too much work, e.g., if the derivatives are not easily available.  
+In applications, NEP-nonlinearities may be complicated to implement.
+Directly using the SPMF-functionality where every function needs to be defined in a
+matrix function sense may require too much work.
 In this case you may want to use an approximation method to
-get you a different NEP object for which the matrix functions are 
-easy (or directly available in the package). We illustrate this property with NEP-PACKs 
-Chebyshev interpolation feature.
+create a new different NEP object for which the matrix functions are 
+easy to implement (or directly available in the package). 
+We illustrate this property with NEP-PACKs Chebyshev interpolation feature.
 
 
 Suppose you have the following NEP, which requires a Bessel function.
@@ -253,25 +254,25 @@ julia> fv[3]=s->besselj(0, s);
 julia> Av[3]=[-7.0 -0.0 -9.0; 8.0  3.0 -3.0;  0.0 13.0  2.0]
 ```
 We use `SPMF_NEP` again, but in order to suppress a warning message
-indicating that a derivative
+indicating that evaluation with a  matrix function 
 is not available we use the keyword `check_consistency=false`.
 ```julia-repl
 julia> nep=SPMF_NEP(Av,fv,check_consistency=false);
 ```
 
 Note that we cannot directly use the `nep` object with most NEP-solvers, since
-we did not provide a matrix function implementation for `besselj`. We will just
-get some error message that a matrix function is not defined.
+we did not provide a matrix function implementation for `besselj`. Any method
+requiring a derivative will just throw an error message that a matrix function is not defined.
 Let us now construct an interpolating Chebyshev polynomial,
 which we can use instead (since its matrix functions are trivial).
 The command [`ChebPEP`](@ref), by default  interpolates a NEP in
-            the interval `[-1,1]` using Chebyshev points and represent the approximation in a Chebyshev basis:
+the interval `[-1,1]` using Chebyshev points and represent the approximation in a Chebyshev basis:
 ```julia-repl
 julia> cheb=ChebPEP(nep,9,cosine_formula_cutoff=9);
 ```
 
 We can now use an arbitrary method to try to solve this problem, e.g.,
-    the [`newtonqr`](@ref) method.
+the [`newtonqr`](@ref) method.
 ```julia-repl
 julia> (λ,v)=newtonqr(cheb,λ=0.0,logger=1)
 iter 1 err:0.20552458291903797 λ=0.0 + 0.0im
@@ -290,6 +291,8 @@ of the original problem:
 julia> norm(compute_Mlincomb(nep,λ,v))
 1.148749763351579e-9
 ```
+The function `compute_Mlincomb` returns the evaluation of `M(λ)*v`; see 
+[the manual section for compute functions](compute_functions.md).
 
 ## What now?
 
