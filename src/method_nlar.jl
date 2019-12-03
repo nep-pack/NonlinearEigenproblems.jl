@@ -130,7 +130,7 @@ function nlar(::Type{T},
 
             #Normalize and compute residual
             normalize!(u);
-            res = compute_Mlincomb(nep,nu,u);
+            res::AbstractVector = compute_Mlincomb(nep,nu,u);
 
 
             #Check for convergence of one of the eigenvalues

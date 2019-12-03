@@ -316,7 +316,7 @@ julia> λ1-λ2
             # tempvec =  (M(λ_k)^{-1})*M'(λ_k)*v_k
             # α = 1/(c'*(M(λ_k)^{-1})*M'(λ_k)*v_k);
 
-            z=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
+            z::AbstractVector=compute_Mlincomb(nep,λ,v,[T(1.0)],1)
 
             linsolver = create_linsolver(linsolvercreator,nep,λ)
             tempvec[:] = Vector{T}(lin_solve(linsolver, z, tol=tol));

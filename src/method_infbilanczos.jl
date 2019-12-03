@@ -19,7 +19,7 @@ See [`augnewton`](@ref) for other parameters.
 ```julia-repl
 julia> nep=nep_gallery("dep0");
 julia> A=get_Av(nep); fv=get_fv(nep);
-julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')] 
+julia> At=[copy(A[1]'),copy(A[2]'),copy(A[3]')]
 julia> nept=SPMF_NEP(At,fv); # Create the transposed NEP
 julia> λv,V=infbilanczos(nep,nept,neigs=3,v=ones(size(nep,1)))
 julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
@@ -122,14 +122,14 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
 
              # Step 1: Compute Z_{k+1}
             Dk=diagm(0 => 1 ./ (exp.(lfactorial.(1:k))));
-            b1_tmp=compute_Mlincomb(nep,σ,Q1[:,1:k]*Dk,ones(k),1);
+            b1_tmp::AbstractVector=compute_Mlincomb(nep,σ,Q1[:,1:k]*Dk,ones(k),1);
             b1=-lin_solve(M0inv,b1_tmp);
             Z2[:,k] = b1;
 
 
 
             # Step 2: Compute \til{Z}_{k+1}
-            bt1_tmp=compute_Mlincomb(nept,conj(σ),Qt1[:,1:k]*Dk,ones(k),1);
+            bt1_tmp::AbstractVector=compute_Mlincomb(nept,conj(σ),Qt1[:,1:k]*Dk,ones(k),1);
             bt1=-lin_solve(M0Tinv,bt1_tmp);
             Zt2[:,k] = bt1
 
@@ -239,7 +239,7 @@ julia> norm(compute_Mlincomb(nep,λv[1],V[:,1]))
             #XX=bsxfun(@times,B(:,1:mb),dd);  # Column scaling: Faster than constructing
 
             # compute Mlincomb starting from derivative j
-            z=-compute_Mlincomb(nep,σ,XX,ones(size(XX,2)),j);
+            z::AbstractVector=-compute_Mlincomb(nep,σ,XX,ones(size(XX,2)),j);
             c=c+dot(At[:,j],z);
         end
         return c
