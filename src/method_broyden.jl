@@ -451,7 +451,7 @@ function broyden_T(::Type{TT},nep::NEP;
 
         # Update Jacobian approximation
         vv=v+(X*((λ*II-S)\u));
-        rkp=compute_Mlincomb(nep,λ,vv);
+        rkp::AbstractVector=compute_Mlincomb(nep,λ,vv);
 
 
         ztilde=(rkp-(1-γ)*rk)/γ;

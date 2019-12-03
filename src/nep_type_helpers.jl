@@ -122,7 +122,12 @@ end
 
 function compute_Mlincomb(nep::Mder_Mlincomb_NEP,λ::Number,V::AbstractVecOrMat)
     if ((size(V,2)-1)<=nep.maxder_Mlincomb)
-        return nep.Mlincomb_fun(λ,V); # Call external routine
+        F=nep.Mlincomb_fun(λ,V); # Call external routine
+        if (F isa AbstractMatrix) # implicitly assume it is a matrix (with one column or one row) cf #231
+            return reshape(F,size(nep,1));
+        else  # Implicitly assume it is a vector
+            return F;
+        end
     else
         # Delegate to if we do not have implementation of Mlincomb
         return compute_Mlincomb_from_Mder(nep,λ,V,ones(eltype(V),size(V,2)))
