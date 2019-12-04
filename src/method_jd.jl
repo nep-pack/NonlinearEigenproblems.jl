@@ -384,7 +384,7 @@ function jd_effenberger_inner!(::Type{T},
         end
 
         # Compute residual and check for convergence
-        rk = compute_Mlincomb(target_nep, λ, u)
+        rk::AbstractVector = compute_Mlincomb(target_nep, λ, u)
         err = norm(rk) #Error measure, see (9)/(3.2) in Effenberger # TODO: Can we use another error measure?
         push_iteration_info!(logger,loop_counter,λ=λ,err=err,continues=true);
         push_info!(logger," conveig=$conveig, subspace dim=$k");
@@ -415,7 +415,7 @@ function jd_effenberger_inner!(::Type{T},
         # Solve for basis extension using comment on top of page 367 of Betcke
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
-        pk = compute_Mlincomb(target_nep, λ, u, [one(T)], 1)
+        pk[:] = compute_Mlincomb(target_nep, λ, u, [one(T)], 1)
         linsolver::LinSolver=create_linsolver(linsolvercreator,orgnep,λ)
         jd_inner_effenberger_linear_solver!(v, target_nep, λ, linsolver, pk, tol)
         newton_step = copy(v)
