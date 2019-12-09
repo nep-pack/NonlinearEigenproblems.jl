@@ -85,9 +85,6 @@ function broyden_T(::Type{TT},nep::NEP;
             γ=TT(threshold)/tt;
         end
 
-        #        if (abs(Δλ[end])>threshold)  # Avoid too big λ-steps
-        #            γ=TT(threshold)/abs(Δλ);
-        #        end
         v0=v; u0=u; λ0=λ;
 
         v=v+γ*Δv;
@@ -95,14 +92,6 @@ function broyden_T(::Type{TT},nep::NEP;
         λ=λ+γ*Δλ;
 
 
-        # Impose structure => This improves performance (at least for deflation)
-        #if (impose_normalization)
-        #    h=X'*v;
-        #    v=v-X*h;
-        #    α=CH[end,:].'*v[1:n];
-        #    v=v/α;
-        #    u=u/α;
-        #end
 
         # Update Jacobian approximation
         vv=v+(X*((λ*II-S)\u));
@@ -147,15 +136,10 @@ function broyden_T(::Type{TT},nep::NEP;
         if (mod(j,check_error_every)==0)
             errhist[j]=errmeasure(λ,v+(X/(λ*II-S))*u,rk);
             timehist[j]=Float64((time_ns()-time0)*1e-9);
-            #errhist[j]=opnorm(rkp);
-            #errhist[j]=opnorm(rk)/opnorm(v+(X/(λ*II-S))*u);
             if (mod(j,print_error_every)==0)
                 d = opnorm(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
             end
 
-            #if (d>1e-10)
-            #    println(CH*v - reverse(Matrix{TT}(I, 1+p, 1), dims = 1))
-            #end
 
 
             push_iteration_info!(logger,j,err=errhist[j],λ=λ);
@@ -167,11 +151,7 @@ function broyden_T(::Type{TT},nep::NEP;
     end
 
     push_info!(logger,"Too many iterations"); #" resnorm=",opnorm(rk));
-    #error("Too many iterations")
-    #return (λ,[v;u],zeros(n+1,n+1),j,errhist[1:j])
     return (λ,v,u,T,W,maxit,errhist,timehist)
-
-
 
 end
 
@@ -191,7 +171,7 @@ with an identity matrix, and a `Matrix` (of size ``n\times n``).
 Beside most of the standard kwargs as described in [`augnewton`](@ref),
 it supports `pmax` which is subspace used in deflation, essentially
 the number of eigenvalues, `add_nans::Bool`  which
-determines if `NaNs` should be added in the deflation.
+determines if `NaNs` should be added in book keeping.
 `eigmethod` which can be `:eig`, `:eigs` or
 `:invpow`. The `:invpow` is an implementation of the power method, which
 is slow but works well e.g. for `BigFloat`. The kwarg `recompute_U`
@@ -202,7 +182,11 @@ corresponds to outer iterations (deflation)
 and  `inner_logger` is the iterates in Broydens method.
 The kwarg `check_error_every` and `print_error_every`
   detemine how often errors should be check and how
-often they should be printed.
+often they should be printed. For real problems
+with complex conjugate symmetry, you may want
+to set the kwarg `addconj=true` in order
+to reduce computation by automatically adding the
+complex conjugate vectors.
 
 
 The method computes an invariant pair and can therefore find
@@ -312,7 +296,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
         if recompute_U
             i_start=1;
         else
-            i_start=p_U1+1;
+            i_start=p_U1+1; # In theory they are already satisfied
         end
         for i=i_start:k-1
             ei=zeros(TT,size(S,1)); ei[i]=1;
@@ -376,6 +360,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
         push_info!(logger,"Starting broyden n=$n")
         T=copy(T1);
 
+        # Main call to broyden_T
         (λm,vm,um,Tm,Wm,iter,errhist,timehist)=
         broyden_T(TT,nep,
                   v1=v0,u1=u0,λ1=σ,
@@ -395,8 +380,8 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
         else
             iterhist=(1:size(errhist,1))
         end
-        add_nans=true;
 
+        # Deflation book keeping
 
         if (add_nans && size(all_iterhist,1)>1)
             all_errhist=[all_errhist;NaN]
@@ -411,21 +396,13 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
         vm=vm/norm(vm[1:n]) # Normalize
 
         push_info!(logger,"Found an eigval $k:$λm");
-        #println("Quality of eigval guess:", abs(λ0-λ1)/abs(λ1))
-        #I=argmin(abs.(λv-λ1))
-        #println("Best guess distance:", abs(λv[I]-λ1)/abs(λ1))
-        #println("It was ",λv[I])
-        #println(" not   ",λ0)
 
 
         X=[X vm]
         S=[S um;zeros(1,k-1) λm]
 
-        #println("J=",[inv(Tm) Wm; CH zeros(k,k)]);
 
-        #println("opnorm(MM)=",opnorm(compute_MM(nep,S,X)));
-        #println("I-X'*X=",opnorm(Matrix(1.0I, k, k)-X'*X))
-
+        # Add conjugate?
         if (abs(imag(λm))>tol*10 && addconj)
 
 
