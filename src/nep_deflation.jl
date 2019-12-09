@@ -416,11 +416,12 @@ end
 
 
 """
+    (D,V)=get_deflated_eigpairs(S,V,n)
     (D,V)=get_deflated_eigpairs(dnep::DeflatedNEP [λ,v])
 
 Returns a vector of eigenvalues `D` and a matrix with corresponding
-eigenvectors `V`. The eigenpairs correspond to the
-original problem, underlying the `DeflatedNEP`.
+eigenvectors `V` of the invariant pair `S,V`.
+The eigenpairs correspond to the original problem, underlying the `DeflatedNEP`.
 The optional parameters `λ,v` allows the inclusion
 of an additional eigpair. Essentially, the optional parameters
 are the expanding the deflation and the running `get_deflated_eigpairs`
@@ -430,13 +431,13 @@ are the expanding the deflation and the running `get_deflated_eigpairs`
 ```
 See example in [`deflate_eigpair`](@ref).
 """
-function get_deflated_eigpairs(nep::DeflatedNEP)
-   V=nep.V0;
-   S=nep.S0;
-   (D,X)=eigen(S);
-   return D,V[1:size(nep.orgnep,1),:]*X;
+function get_deflated_eigpairs(S,V,n)
+    (D,X)=eigen(S);
+    return D,V[1:n,:]*X;
 end
-
+function get_deflated_eigpairs(nep::DeflatedNEP)
+    return get_deflated_eigpairs(nep.S0,nep.V0,size(nep.orgnep,1))
+end
 function get_deflated_eigpairs(nep::DeflatedNEP,λ,v)
    T=promote_type(typeof(λ),eltype(v),eltype(nep.V0),eltype(nep.S0));
    p0=size(nep.V0,2);

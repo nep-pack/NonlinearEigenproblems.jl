@@ -209,7 +209,8 @@ The method computes an invariant pair and can therefore find
 several eigenvalues. The
 retured value is (S,V) is an invariant pair and
 the eigenvalues are on the diagonal of S.
-
+Eigenpairs can be directly extracted with
+[`get_deflated_eigpairs`](@ref).
 
 
 
@@ -232,7 +233,14 @@ julia> minimum(svdvals(compute_Mder(nep,λ)))
 5.905315846211231e-16
 julia> broyden(nep,logger=2,check_error_every=1);  # Prints out a lot more convergence info
 ```
-
+In order to extract eigenpairs you can use the following:
+```julia-repl
+julia> (D,X)=get_deflated_eigpairs(S,V,size(nep,1));
+julia> for i=1:3; @show norm(compute_Mlincomb(nep,D[i],X[:,i])); end
+norm(compute_Mlincomb(nep, D[i], X[:, i])) = 8.459878994614521e-13
+norm(compute_Mlincomb(nep, D[i], X[:, i])) = 1.2102336671048442e-13
+norm(compute_Mlincomb(nep, D[i], X[:, i])) = 2.1012363973403225e-16
+```
 # References
 
 * Jarlebring, Broyden’s method for nonlinear eigenproblems, SIAM J. Sci. Comput., 41:A989–A1012, 2019, https://arxiv.org/pdf/1802.07322
