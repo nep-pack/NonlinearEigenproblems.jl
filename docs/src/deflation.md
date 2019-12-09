@@ -34,8 +34,7 @@ NEP-solver to the deflated NEP.
 ## Theory
 
 The theory follows the presentation of the technique
-in [the PhD thesis of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf). In a somewhat simplified form. It can be summarized as
-follows (for the index one case).
+in [the PhD thesis of Cedric Effenberger](http://sma.epfl.ch/~anchpcommon/students/effenberger.pdf). It can be summarized as follows, in a somewhat simplified form (for the index one case).
 The deflation is based on a theory for NEPs essentially stating that
 if ``(s,x)`` is an eigenpair, then under certain general conditions (which we implicitly assume are satisfied), 
 the extended nonlinear eigenvalue problem
