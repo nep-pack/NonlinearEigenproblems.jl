@@ -20,8 +20,9 @@ the final example below.
 
 The most popular methods contour
 integral methods are Beyn's contour
-integral method and the block SS method
-of Asakura and Sakurai. We illustrate both of them.
+integral method (implemented in [`contour_beyn`](@ref))
+and the block SS method
+of Asakura and Sakurai (implemented in [`contour_block_SS`](@ref)). We illustrate both of them.
 First set up a large and sparse problem:
 ```julia-repl
 julia> using SparseArrays, LinearAlgebra;
@@ -46,7 +47,7 @@ julia> norm(compute_Mlincomb(nep,λ[1],normalize(v[:,1])))
 julia> norm(compute_Mlincomb(nep,λ[2],normalize(v[:,2])))
 3.0028543096707394e-6
 ```
-For comparison we also use `contour_block_SS`
+For comparison we also use [`contour_block_SS`](@ref)
 ```julia-repl
 julia> (λ,v)= contour_block_SS(nep,radius=0.5,k=10);
 julia> julia> λ
@@ -70,7 +71,7 @@ norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 6.261761794674978e-8
 norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 1.7269388863226059e-9
 norm(compute_Mlincomb(nep, λ[j], normalize(v[:, j]))) = 2.994085882385125e-9
 ```
-The functions `contour_beyn` and `contour_block_SS`
+The functions [`contour_beyn`](@ref) and [`contour_block_SS`](@ref)
 have compatible keyword argumengs. The kwarg `radius=0.5`,
 means that we numerically integrate  a circle of radius `0.5`.
 The center of the circle is given by the `σ`, argument and
