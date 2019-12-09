@@ -196,10 +196,8 @@ determines if `NaNs` should be added in the deflation.
 `:invpow`. The `:invpow` is an implementation of the power method, which
 is slow but works well e.g. for `BigFloat`.
 
-The method computes an invariant pair and can therefore find several
-eigenvalues. The
-retured value is (S,V) is an invariant pair and the eigenvalues are
-on the diagonal of S.
+The method computes an invariant pair and can therefore find several eigenvalues. The
+retured value is (S,V) is an invariant pair and the eigenvalues are on the diagonal of S.
 
 See [`augnewton`](@ref) for other parameters.
 
@@ -262,7 +260,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
     # Step 1. Compute M0 and T0
     if (isa(approxnep,Matrix))
         M1=approxnep;
-    if (approxnep == :eye)
+    elseif (approxnep == :eye)
         M1=Matrix{TT}(I,n,n)
     else
         M1=compute_Mder(approxnep,σ);
