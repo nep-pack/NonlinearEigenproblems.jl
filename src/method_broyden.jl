@@ -6,36 +6,7 @@ import ..NEPCore.compute_Mlincomb;
 import Base.size;
 export broyden;
 
-abstract type NEPBroydenDeflated <: NEP  end
 
-
-function compute_Mder(nep::NEPBroydenDeflated,λ::Number,i::Integer=0)
-    if (i>0)
-        error("Not implemented");
-    end
-    M=zeros(typeof(λ),size(nep,1),size(nep,1));
-    for k=1:size(nep,1);
-        ek=zeros(typeof(λ),size(nep,1));
-        ek[k]=1;
-        M[:,k]=compute_Mlincomb(nep,λ,ek);
-    end
-    return M
-end
-
-function deflated_errmeasure(nep::NEP,λ,v)
-    return norm(compute_Mlincomb(nep,λ,v))/norm(v);
-end
-
-
-function size(nep::NEPBroydenDeflated,dim=-1)
-    n0=size(nep.orgnep,1);
-    n=n0+size(nep.S,1);
-    if (dim==-1)
-        return (n,n)
-    else
-        return n
-    end
-end
 
 
 
@@ -45,7 +16,8 @@ end
 
 
 
-
+# The internal Broyden method (without deflation)
+# which corresponds to version T in the paper below
 function broyden_T(::Type{TT},nep::NEP;
                    v1=0,u1=[],λ1=TT(0),
                    CH=0,T1=0,W1=0,
@@ -239,12 +211,12 @@ julia> broyden(nep,logger=2,check_error_every=1);  # Prints out a lot more conve
 
 # References
 
-* Jarlebring, Broyden’s method for nonlinear eigenproblems, 2018, https://arxiv.org/pdf/1802.07322
+* Jarlebring, Broyden’s method for nonlinear eigenproblems, SIAM J. Sci. Comput., 41:A989–A1012, 2019, https://arxiv.org/pdf/1802.07322
 
 """
-broyden(nep::NEP;params...)=broyden(ComplexF64,nep,nep;params...)
-broyden(nep::NEP,approxnep::NEP;params...)=broyden(ComplexF64,nep,approxnep;params...)
-function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
+broyden(nep::NEP;params...)=broyden(ComplexF64,nep,:eye;params...)
+broyden(nep::NEP,approxnep::Union{NEP,Symbol};params...)=broyden(ComplexF64,nep,approxnep;params...)
+function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol};σ::Number=0,
                  pmax::Integer=3,
                  c::Vector=ones(TT,size(nep,1)),
                  maxit::Integer=1000,addconj=false,
@@ -273,8 +245,12 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
 
 
     # Step 1. Compute M0 and T0
+    if (approxnep == :eye)
+        M1=Matrix{TT}(I,n,n)
+    else
+        M1=compute_Mder(approxnep,σ);
+    end
 
-    M1=compute_Mder(approxnep,σ);
     T1=inv(M1);
 
 
@@ -443,8 +419,8 @@ function broyden(::Type{TT},nep::NEP,approxnep::NEP;σ::Number=0,
         end
         k=k+1;
     end
-push_info!(logger,"Iterations:$sumiter")
-return S,X,T1,all_errhist,all_timehist,all_iterhist;
+    push_info!(logger,"Iterations:$sumiter")
+    return S,X,T1,all_errhist,all_timehist,all_iterhist;
 
 end
 
