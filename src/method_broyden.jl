@@ -158,7 +158,7 @@ function broyden_T(::Type{TT},nep::NEP;
             #end
 
 
-            push_iteration_info!(logger,j,err=errhist[j]);
+            push_iteration_info!(logger,j,err=errhist[j],λ=λ);
             if (errhist[j]<tol)
                 return (λ,v,u,T,W,j,errhist[1:j],timehist[1:j])
             end
@@ -194,12 +194,23 @@ the number of eigenvalues, `add_nans::Bool`  which
 determines if `NaNs` should be added in the deflation.
 `eigmethod` which can be `:eig`, `:eigs` or
 `:invpow`. The `:invpow` is an implementation of the power method, which
-is slow but works well e.g. for `BigFloat`.
+is slow but works well e.g. for `BigFloat`. The kwarg `recompute_U`
+determines if the `U`-matrix should be recomputed in every
+deflation (which can be more robust). The implementation
+has two loggers `logger` and `inner_logger`. The `logger`
+corresponds to outer iterations (deflation)
+and  `inner_logger` is the iterates in Broydens method.
+The kwarg `check_error_every` and `print_error_every`
+  detemine how often errors should be check and how
+often they should be printed.
 
-The method computes an invariant pair and can therefore find several eigenvalues. The
-retured value is (S,V) is an invariant pair and the eigenvalues are on the diagonal of S.
 
-See [`augnewton`](@ref) for other parameters.
+The method computes an invariant pair and can therefore find
+several eigenvalues. The
+retured value is (S,V) is an invariant pair and
+the eigenvalues are on the diagonal of S.
+
+
 
 
 # Example
@@ -229,6 +240,7 @@ julia> broyden(nep,logger=2,check_error_every=1);  # Prints out a lot more conve
 """
 broyden(nep::NEP;params...)=broyden(ComplexF64,nep,:eye;params...)
 broyden(nep::NEP,approxnep;params...)=broyden(ComplexF64,nep,approxnep;params...)
+broyden(T,nep::NEP;params...)=broyden(T,nep,:eye;params...)
 function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Number=0,
                  pmax::Integer=3,
                  c::Vector=ones(TT,size(nep,1)),
@@ -242,6 +254,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
                  include_restart_timing::Bool=true,
                  eigmethod::Symbol=:eig,
                  logger =0,
+                 recompute_U = false,
                  inner_logger = 0
                  ) where {TT<:Number}
 
@@ -288,8 +301,12 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
         ## Complete recomputation of U0
         p_U1=size(U1,2);
         U1=view(UU,1:n,1:k-1);
-        for i=(p_U1+1):k-1
-            #for i=1:k-1 # If you want to recompute
+        if recompute_U
+            i_start=1;
+        else
+            i_start=p_U1+1;
+        end
+        for i=i_start:k-1
             ei=zeros(TT,size(S,1)); ei[i]=1;
             f = (σ * Matrix(1.0I, k-1, k-1) - S) \ ei
             vv=X*f;
@@ -298,7 +315,7 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
 
         # Step 6
         MM::Matrix{TT}=[M1 U1; X' zeros(TT,k-1,k-1)];
-        push_info!(logger,"running eig",continues=true);
+        push_info!(logger,"running eigval comp for deflation",continues=true);
 
         local d,V;
         if (eigmethod==:eig)
@@ -321,7 +338,6 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
         end
 
 
-        # Not in MS yet:
         # Orthogonalize
         v0=x[1:n];
         u0=x[n+1:end];
@@ -337,7 +353,6 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Num
 
         if (!include_restart_timing)
             time0=time_ns();
-
         end
 
         # Step 7
