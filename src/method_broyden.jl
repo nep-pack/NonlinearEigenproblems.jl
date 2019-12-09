@@ -177,14 +177,29 @@ end
 
 ##################
 """
-    S,V = broyden([eltype,]nep::NEP[,approxnep::NEP];kwargs)
+    S,V = broyden([eltype,]nep::NEP[,approxnep];kwargs)
 
-Runs Broydens method (with deflation) for the nonlinear eigenvalue problem defined by nep.
-An approximate nep can be provided which is used as an initialization of starting
-matrix/vectors.
+Runs Broydens method (with deflation) for the nonlinear eigenvalue
+problem defined by nep.
+An approximate nep can be provided which is used as an
+initialization of starting
+matrix/vectors. The optional argument `approxnep` determines how
+ to initiate the
+algorithm. It can be an `NEP`, the symbol `:eye`
+corresponding to starting
+with an identity matrix, and a `Matrix` (of size ``n\times n``).
+Beside most of the standard kwargs as described in [`augnewton`](@ref),
+it supports `pmax` which is subspace used in deflation, essentially
+the number of eigenvalues, `add_nans::Bool`  which
+determines if `NaNs` should be added in the deflation.
+`eigmethod` which can be `:eig`, `:eigs` or
+`:invpow`. The `:invpow` is an implementation of the power method, which
+is slow but works well e.g. for `BigFloat`.
 
-The method computes an invariant pair and can therefore find several eigenvalues. The
-retured value is (S,V) is an invariant pair and the eigenvalues are on the diagonal of S.
+The method computes an invariant pair and can therefore find several
+eigenvalues. The
+retured value is (S,V) is an invariant pair and the eigenvalues are
+on the diagonal of S.
 
 See [`augnewton`](@ref) for other parameters.
 
@@ -215,8 +230,8 @@ julia> broyden(nep,logger=2,check_error_every=1);  # Prints out a lot more conve
 
 """
 broyden(nep::NEP;params...)=broyden(ComplexF64,nep,:eye;params...)
-broyden(nep::NEP,approxnep::Union{NEP,Symbol};params...)=broyden(ComplexF64,nep,approxnep;params...)
-function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol};σ::Number=0,
+broyden(nep::NEP,approxnep;params...)=broyden(ComplexF64,nep,approxnep;params...)
+function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol,Matrix};σ::Number=0,
                  pmax::Integer=3,
                  c::Vector=ones(TT,size(nep,1)),
                  maxit::Integer=1000,addconj=false,
@@ -245,6 +260,8 @@ function broyden(::Type{TT},nep::NEP,approxnep::Union{NEP,Symbol};σ::Number=0,
 
 
     # Step 1. Compute M0 and T0
+    if (isa(approxnep,Matrix))
+        M1=approxnep;
     if (approxnep == :eye)
         M1=Matrix{TT}(I,n,n)
     else
