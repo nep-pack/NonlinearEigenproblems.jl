@@ -25,7 +25,7 @@ $ python3
 ```
 
 
-## Using PyJulia and NEP-PACK (Basic)
+## Using PyJulia and NEP-PACK
 
 The [`Mder_NEP`](@ref)-function provides a convenient
 way to define NEPs by only
@@ -87,7 +87,10 @@ matrix([[1.71634841e-17-1.59872116e-14j],
 >>> norm(my_compute_M(s,0)*v)
 1.6479526251408437e-14
 ```
-## Using PyJulia and NEP-PACK (Improved)
+Note that in order to obtain better efficiency for
+large-scale problems, and reduce overhead,
+you may want to use [`Mder_Mlincomb_NEP`](@ref),
+as described in the [previous tutorial](tutorial_call_python.md).
 
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_PYTHON2)
