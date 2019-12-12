@@ -1,4 +1,3 @@
-export effenberger_deflation
 export DeflatedNEP
 export DeflatedNEPMM
 export DeflatedGenericNEP
