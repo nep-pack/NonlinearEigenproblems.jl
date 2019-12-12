@@ -43,7 +43,7 @@ and implement it with this python code:
 import numpy as np;
 import cmath as m;
 def my_compute_M(s,der):
-    """Compute the matrix M(s) for a given eigenvalue approximation"""
+    """Compute the matrix M^{(k)}(s) for a given eigenvalue approximation and derivative k"""
     A=np.matrix('3 2; 3 -1');  B=np.matrix('0 2; 0 1');   C=np.matrix('1 1; 1 1');
     tau=0.5;
     M=pow(tau,der)*m.exp(tau*s)*C
