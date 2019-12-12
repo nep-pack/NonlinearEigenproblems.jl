@@ -47,7 +47,7 @@ julia> norm(compute_Mder(nep,λ)*v)
 5.551115123125783e-17
 ```
 """
-function Mder_NEP(n,Mder_fun::Function; maxder=typemax(Int))
+function Mder_NEP(n,Mder_fun; maxder=typemax(Int))
     maxder_Mlincomb=-1; # This means we delegate every Mlincomb_call
     Mlincomb_fun=s->s; # Dummy function
     return Mder_Mlincomb_NEP(n,
@@ -104,12 +104,23 @@ julia> norm(compute_Mder(nep,λ)*v)
 ```
 """
 function Mder_Mlincomb_NEP(n,
-                           Mder_fun::Function, maxder_Mder,
-                           Mlincomb_fun::Function, maxder_Mlincomb::Int=typemax(Int))
-    return Mder_Mlincomb_NEP(n,Mder_fun,maxder,
-                             Mlincomb_fun,maxder_Mlincomb);
+                           Mder_fun, maxder_Mder,
+                           Mlincomb_fun, maxder_Mlincomb::Int=typemax(Int))
+    # Wrap the two functions to Function unless they are already Function
+    if !isa(Mder_fun,Function)
+        new_Mder_fun = (λ,der) -> Mder_fun(λ,der);
+    else
+        new_Mder_fun = Mder_fun;
+    end
+    if !isa(Mlincomb_fun,Function)
+        new_Mlincomb_fun = (λ,X) -> Mlincomb_fun(λ,X);
+    else
+        new_Mlincomb_fun = Mlincomb_fun;
+    end
+    return Mder_Mlincomb_NEP(n,new_Mder_fun,maxder_Mder,
+                             new_Mlincomb_fun,maxder_Mlincomb);
 end
-Mder_Mlincomb_NEP(n,Mder_fun::Function,Mlincomb_fun::Function) = Mder_Mlincomb_NEP(n,Mder_fun,typemax(Int),Mlincomb_fun);
+Mder_Mlincomb_NEP(n,Mder_fun,Mlincomb_fun) = Mder_Mlincomb_NEP(n,Mder_fun,typemax(Int),Mlincomb_fun);
 
 
 

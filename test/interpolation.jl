@@ -19,7 +19,6 @@ pep = interpolate(nep, intpoints)
 λ2,x2 = newton(pep,logger=displaylevel,maxit=40, λ=-0.75, v=ones(size(nep,1)));
 @test compute_resnorm(pep,λ2,x2) < eps()*100
 @test abs(λ1-λ2)/abs(λ1) < eps()*1000
-println("λ1",λ1,"λ2",λ2)
 
 # Newton on interpolated dep (interpolating pep of degree 8)
 intpoints = [λ1-5, λ1-1, λ1, λ1+5, λ1+1, λ1+5im, λ1+1im, λ1-5im, λ1-1im]

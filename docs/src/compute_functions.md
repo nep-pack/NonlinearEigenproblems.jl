@@ -26,8 +26,8 @@ advised if needed for efficiency reasons.
 
 !!! tip
     Examples of usage of `Mder_NEP` and/or `Mder_Mlincomb_NEP` are available in
-    tutorials [3](bemtutorial.md), [5](tutorial_call_python.md),
-    [6](tutorial_matlab1.md), and [7](tutorial_fortran1.md).
+    tutorials on [boundary element method](bemtutorial.md), [python](tutorial_call_python.md),
+    [matlab](tutorial_matlab1.md), and [fortran](tutorial_fortran1.md).
 
 As a NEP-solver developer,
 `compute_Mlincomb`-calls are preferred over

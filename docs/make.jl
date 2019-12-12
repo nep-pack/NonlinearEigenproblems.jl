@@ -24,13 +24,14 @@ makedocs(
         "Tutorial 2 (Contour)" => "tutorial_contour.md",
         "Tutorial 3 (BEM)" => "bemtutorial.md",
         "Tutorial 4 (Deflation)" => "deflate_tutorial.md",
-        "Tutorial 5 (Python)" => "tutorial_call_python.md",
-        "Tutorial 6 (MATLAB)" => "tutorial_matlab1.md",
-        "Tutorial 7 (FORTRAN)" => "tutorial_fortran1.md",
-        "Tutorial 8 (gmsh + nanophotonics)" => "tutorial_nano1.md",
-        "Tutorial 9 (New solver)" => "tutorial_newmethod.md",
-        "Tutorial 10 (Linear solvers)" => "tutorial_linsolve.md",
-            "Tutorial 11 (Orr--Somerfeld)" => "hydrotutorial.md"
+        "Tutorial 5 (Python 1)" => "tutorial_call_python.md",
+        "Tutorial 6 (Python 2)" => "tutorial_python_call.md",
+        "Tutorial 7 (MATLAB)" => "tutorial_matlab1.md",
+        "Tutorial 8 (FORTRAN)" => "tutorial_fortran1.md",
+        "Tutorial 9 (gmsh + nanophotonics)" => "tutorial_nano1.md",
+        "Tutorial 10 (New solver)" => "tutorial_newmethod.md",
+        "Tutorial 11 (Linear solvers)" => "tutorial_linsolve.md",
+            "Tutorial 12 (Orr--Somerfeld)" => "hydrotutorial.md"
             ]
     ]
 )
