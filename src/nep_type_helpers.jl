@@ -117,7 +117,7 @@ function Mder_Mlincomb_NEP(n,
     else
         new_Mlincomb_fun = Mlincomb_fun;
     end
-    return Mder_Mlincomb_NEP(n,new_Mder_fun,maxder,
+    return Mder_Mlincomb_NEP(n,new_Mder_fun,maxder_Mder,
                              new_Mlincomb_fun,maxder_Mlincomb);
 end
 Mder_Mlincomb_NEP(n,Mder_fun,Mlincomb_fun) = Mder_Mlincomb_NEP(n,Mder_fun,typemax(Int),Mlincomb_fun);
