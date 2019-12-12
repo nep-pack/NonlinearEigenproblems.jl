@@ -17,7 +17,7 @@ following tutorials we interface [MATLAB](tutorial_matlab1.md) and
 !!! note
     To work with NEPs defined in [Python](https://www.python.org/) you
     need to have Python installed on
-    your computer. With the pakcage [PyCall](https://github.com/JuliaPy/PyCall.jl)
+    your computer. With the package [PyCall](https://github.com/JuliaPy/PyCall.jl)
     it is possible to let Julia control execution of Python code.
 
 The following python code correspond to the NEP
