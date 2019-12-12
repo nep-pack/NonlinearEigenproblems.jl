@@ -52,7 +52,7 @@ function Mder_NEP(n,fun; maxder=typemax(Int))
     if !isa(fun,Function)
         Mder_fun = (λ,der) -> fun(λ,der);
     else
-        Mder_fun=Mder_fun;
+        Mder_fun = fun;
     end
     Mlincomb_fun=s->s; # Dummy function
     return Mder_Mlincomb_NEP(n,
