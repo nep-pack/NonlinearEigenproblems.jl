@@ -16,7 +16,7 @@ gives us that possibility. The installation of PyJulia on Ubuntu linux is simple
 $ python3 -m pip install julia # Only necessary first time you run it
 ...
 $ python3
->>> import julia
+>>> from julia.api import Julia
 >>> jl = Julia(compiled_modules=False) # compilation flag necessary on ubuntu
 >>> julia.install()               # Only necessary first time you run it
 >>> from julia import Base
@@ -56,8 +56,8 @@ def my_compute_M(s,der):
 An evaluation of the matrix function can be done by the call:
 ```
 >>> my_compute_M(0.3,0)
-matrix([[ 6.76183424+0.j,  3.16183424+0.j],
-        [ 4.16183424+0.j, -3.7       +0.j]])
+matrix([[4.16183424+0.j, 3.76183424+0.j],
+        [4.16183424+0.j, 0.46183424+0.j]])
 ```
 We instantiate a new NEP based with `Mder_NEP` which first must be imported
 ```
