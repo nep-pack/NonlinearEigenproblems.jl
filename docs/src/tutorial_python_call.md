@@ -11,9 +11,7 @@ it may be more convenient to call NEP-PACK
 from  python, rather than calling python code from julia.
 
 The python package [PyJulia](https://github.com/JuliaPy/pyjulia)
-gives us that possibility.
-
-Installation of PyJulia on Ubuntu linux is simple:
+gives us that possibility. The installation of PyJulia on Ubuntu linux is simple:
 ```
 $ python3 -m pip install julia # Only necessary first time you run it
 ...
@@ -29,7 +27,8 @@ $ python3
 
 ## Using PyJulia and NEP-PACK (Basic)
 
-The [`Mder_NEP`](@ref)-function provides a way to define NEPs by only
+The [`Mder_NEP`](@ref)-function provides a convenient
+way to define NEPs by only
 using a function that computes the matrix ``M(λ)``
 and its derivatives.
 Let us first define a function which does that in python. We consider
@@ -37,7 +36,7 @@ the problem
 ```math
 M(λ)=\begin{bmatrix}3&2\newline3&-1\end{bmatrix}+
 λ\begin{bmatrix}0&2\newline0&1\end{bmatrix}+
-e^{0.5 λ}\begin{bmatrix}1&1\newline1&1\end{bmatrix}```
+e^{0.5 λ}\begin{bmatrix}1&1\newline1&1\end{bmatrix}
 ```
 and implement it with this python code:
 ```python
@@ -66,8 +65,9 @@ We instantiate a new NEP based with `Mder_NEP` which first must be imported
 >>> n=2; # Size of the problem
 >>> nep=Mder_NEP(2,my_compute_M);
 ```
-and we can apply most of our solvers to this problem by first importing the corresponding function
+and we can apply most of our solvers to this problem by first importing the corresponding function, in this case we use [`contour_beyn`](@ref).
 ```
+>>> from julia.NonlinearEigenproblems import contour_beyn;
 >>> sol=contour_beyn(nep,logger=1,neigs=1,radius=3)
 Computing integrals
 NonlinearEigenproblems.NEPSolver.MatrixTrapezoidal: computing G...
@@ -75,8 +75,9 @@ NonlinearEigenproblems.NEPSolver.MatrixTrapezoidal: summing terms...............
 Computing SVD prepare for eigenvalue extraction  p=1
 Computing eigenvalues
 Computing eigenvectors
+>>>
 ```
-We can verify that it is a solution as follows
+We can verify that we computed a solution as follows
 ```
 >>> s=sol[0][0]; v=sol[1]
 >>> my_compute_M(s,0)*v
