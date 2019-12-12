@@ -1,19 +1,19 @@
-# Tutorial: Calling NEP-PACK from python
+# Tutorial: Using NEP-PACK from python
 
 ## PyJulia
 
 The previous tutorial illustrated how a NEP defined
 in python code can be solved with NEP-PACK.
-Python is a more mature (read: older) language than Julia,
+Python is currently a more mature language than Julia,
 and there are considerable packages and features
 in python not present in Julia. If you need these features,
 it may be more convenient to call NEP-PACK
-from  python, rather than calling python from julia.
+from  python, rather than calling python code from julia.
 
 The python package [PyJulia](https://github.com/JuliaPy/pyjulia)
 gives us that possibility.
 
-Installation on Ubuntu linux:
+Installation of PyJulia on Ubuntu linux is simple:
 ```
 $ python3 -m pip install julia # Only necessary first time you run it
 ...
@@ -27,20 +27,66 @@ $ python3
 ```
 
 
-## Using PyJulia and NEP-PACK
+## Using PyJulia and NEP-PACK (Basic)
 
+The [`Mder_NEP`](@ref)-function provides a way to define NEPs by only
+using a function that computes the matrix ``M(λ)``
+and its derivatives.
+Let us first define a function which does that in python. We consider
+the problem
+```math
+M(λ)=\begin{bmatrix}3&2\newline3&-1\end{bmatrix}+
+λ\begin{bmatrix}0&2\newline0&1\end{bmatrix}+
+e^{0.5 λ}\begin{bmatrix}1&1\newline1&1\end{bmatrix}```
+```
+and implement it with this python code:
+```python
 import numpy as np;
 import cmath as m;
-
 def my_compute_M(s,der):
     """Compute the matrix M(s) for a given eigenvalue approximation"""
-    A=np.matrix('1 2; 3 4');  B=np.matrix('2 0; 0 1');   C=np.matrix('1 1; 1 1');
-    M=m.exp(s)*C
+    A=np.matrix('3 2; 3 -1');  B=np.matrix('0 2; 0 1');   C=np.matrix('1 1; 1 1');
+    tau=0.5;
+    M=pow(tau,der)*m.exp(tau*s)*C
     if (der==0):
         M=M+A+s*B;
     elif (der==1):
         M=M+B;
     return M
+```
+An evaluation of the matrix function can be done by the call:
+```
+>>> my_compute_M(0.3,0)
+matrix([[ 6.76183424+0.j,  3.16183424+0.j],
+        [ 4.16183424+0.j, -3.7       +0.j]])
+```
+We instantiate a new NEP based with `Mder_NEP` which first must be imported
+```
+>>> from julia.NonlinearEigenproblems import Mder_NEP
+>>> n=2; # Size of the problem
+>>> nep=Mder_NEP(2,my_compute_M);
+```
+and we can apply most of our solvers to this problem by first importing the corresponding function
+```
+>>> sol=contour_beyn(nep,logger=1,neigs=1,radius=3)
+Computing integrals
+NonlinearEigenproblems.NEPSolver.MatrixTrapezoidal: computing G...
+NonlinearEigenproblems.NEPSolver.MatrixTrapezoidal: summing terms........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+Computing SVD prepare for eigenvalue extraction  p=1
+Computing eigenvalues
+Computing eigenvectors
+```
+We can verify that it is a solution as follows
+```
+>>> s=sol[0][0]; v=sol[1]
+>>> my_compute_M(s,0)*v
+matrix([[1.71634841e-17-1.59872116e-14j],
+        [9.55210099e-17-3.99680289e-15j]])
+>>> from numpy.linalg import norm
+>>> norm(my_compute_M(s,0)*v)
+1.6479526251408437e-14
+```
+## Using PyJulia and NEP-PACK (Improved)
 
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_PYTHON2)
