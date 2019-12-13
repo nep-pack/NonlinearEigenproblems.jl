@@ -7,7 +7,7 @@ the functions below. The functions all return ``λ,v`` where
 or a matrix whose columns corresponding to the eigenvectors.
 Two-sided methods may return ``λ,v,w`` where ``w`` are the left eigenvectors.
 
-The first parameter optional parameter in all NEP solver methods
+The first optional parameter in all NEP solver methods
 is a type. This type specifies which arithmetic should be used
 for the algorithm.
 
