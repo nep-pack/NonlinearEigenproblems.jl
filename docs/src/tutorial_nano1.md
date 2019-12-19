@@ -29,7 +29,7 @@ computational results using NEP-PACK.
 
 You need to download the code with the model
 of the frequency-dispersive media
-[here](https://gitlab.onelab.info/doc/models/blob/5dcff6bdd251aee26451b07af90c536f10bd7302/NonLinearEVP/NonLinearEVP.pro).
+[here](https://gitlab.onelab.info/doc/models/blob/5dcff6bdd251aee26451b07af90c536f10bd7302/NonLinearEVP).
 (Note that we have fixed the specific version of the the model code in the URL.)
 You also need to install ONELAB from [http://onelab.info/](http://onelab.info/).
 
