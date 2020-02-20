@@ -53,7 +53,8 @@ julia> norm(compute_Mlincomb(nep,λ[2],v[:,2]))
 - S. Guettel, R. Van Beeumen, K. Meerbergen, and W. Michiels. NLEIGS: A class
   of fully rational Krylov methods for nonlinear eigenvalue problems. SIAM J.
   Sci. Comput., 36(6), A2842-A2864, 2014.
-- [NLEIGS Matlab toolbox](http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php)
+- [NLEIGS Matlab toolbox](http://twr.cs.kuleuven.be/research/software/nleps/nleigs.php) (GPL License)
+- [NLEIGS Matlab toolbox](https://bitbucket.org/roelvb/nleigs) (MIT License)
 """
 nleigs(nep, Σ; params...) = nleigs(Float64, nep, Σ; params...)
 function nleigs(
