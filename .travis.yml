@@ -4,7 +4,7 @@ dist: trusty
 os:
   - linux
 julia:
-  - 1.2
+  - 1.4
 addons:
   apt:
     packages:
