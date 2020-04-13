@@ -162,7 +162,7 @@ version = "0.7.1"
 [[NonlinearEigenproblems]]
 deps = ["ArnoldiMethod", "Distributed", "FFTW", "InteractiveUtils", "IterativeSolvers", "LinearAlgebra", "LinearMaps", "Polynomials", "Printf", "Random", "Reexport", "SparseArrays", "SpecialFunctions", "Statistics", "SuiteSparse"]
 path = ".."
-uuid = "67991c06-a66a-11e8-39d6-6f5c0e02ffbd"
+uuid = "067cfa3b-fa88-53b2-a873-5b23b3a16e31"
 version = "1.0.2"
 
 [[OpenSpecFun_jll]]
