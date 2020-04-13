@@ -20,7 +20,7 @@ using Test
         A = compute_Mder(nep, 3.0)
         @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("dep0", 15, 8)
-        @test_throws ErrorException nep_gallery("dep0", 15, t=8)
+        @test_throws MethodError nep_gallery("dep0", 15, t=8)
 
         @info "Testing dep0_sparse"
         nep = nep_gallery("dep0_sparse")
@@ -29,7 +29,7 @@ using Test
         A = compute_Mder(nep, 3.0)
         @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("dep0_sparse", 20, 0.25, 8)
-        @test_throws ErrorException nep_gallery("dep0_sparse", 20, 0.25, n=8)
+        @test_throws MethodError nep_gallery("dep0_sparse", 20, 0.25, n=8)
 
         @info "Testing dep0_tridiag"
         nep = nep_gallery("dep0_tridiag")
@@ -37,7 +37,7 @@ using Test
         A = compute_Mder(nep, 3.0)
         @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("dep0", 15, 8)
-        @test_throws ErrorException nep_gallery("dep0", 15, t=8)
+        @test_throws MethodError nep_gallery("dep0", 15, t=8)
 
         @info "pep0"
         nep = nep_gallery("pep0")
@@ -45,7 +45,7 @@ using Test
         A = compute_Mder(nep, 3.0)
         @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("pep0", 15, 8)
-        @test_throws ErrorException nep_gallery("pep0", 15, t=8)
+        @test_throws MethodError nep_gallery("pep0", 15, t=8)
 
         @info "pep0_sym"
         nep = nep_gallery("pep0_sym")
@@ -53,7 +53,7 @@ using Test
         A = compute_Mder(nep, 3.0)
         @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("pep0_sym", 15, 8)
-        @test_throws ErrorException nep_gallery("pep0_sym", 15, t=8)
+        @test_throws MethodError nep_gallery("pep0_sym", 15, t=8)
 
         @info "Testing pep0_sparse"
         nep=nep_gallery("pep0_sparse")
@@ -62,7 +62,7 @@ using Test
         A=compute_Mder(nep,3.0)
         @test issparse(A) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery("pep0_sparse", 15, 0.12, 8)
-        @test_throws ErrorException nep_gallery("pep0_sparse", 15, 0.12, t=8)
+        @test_throws MethodError nep_gallery("pep0_sparse", 15, 0.12, t=8)
 
         @info "Testing pdde_stability"
         pep=nep_gallery("nlevp_native_pdde_stability",3);
@@ -77,21 +77,21 @@ using Test
     A = compute_Mder(nep, 3.0)
     @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
     @test_throws MethodError nep_gallery("dep_symm_double", 15, 8)
-    @test_throws ErrorException nep_gallery("dep_symm_double", 15, t=8)
+    @test_throws MethodError nep_gallery("dep_symm_double", 15, t=8)
 
     @info "Testing dep_double"
     nep = nep_gallery("dep_double")
     A = compute_Mder(nep, 3.0)
     @test isa(nep, DEP) # Not so sophisticated, but improves code coverage
     @test_throws MethodError nep_gallery("dep_double", 15)
-    @test_throws ErrorException nep_gallery("dep_double", t=15)
+    @test_throws MethodError nep_gallery("dep_double", t=15)
 
     @info "real_quadratic"
     nep = nep_gallery("real_quadratic")
     A = compute_Mder(nep, 3.0)
     @test isa(nep, PEP) # Not so sophisticated, but improves code coverage
     @test_throws MethodError nep_gallery("real_quadratic", 15)
-    @test_throws ErrorException nep_gallery("real_quadratic", t=15)
+    @test_throws MethodError nep_gallery("real_quadratic", t=15)
 
 
     for i = [0, 1]
@@ -101,7 +101,7 @@ using Test
         A = compute_Mder(nep, 3.0)
         @test isa(nep, SPMF_NEP) # Not so sophisticated, but improves code coverage
         @test_throws MethodError nep_gallery(nep_name, 15)
-        @test_throws ErrorException nep_gallery(nep_name, t=15)
+        @test_throws MethodError nep_gallery(nep_name, t=15)
     end
 
     @info "Testing sine"
@@ -116,7 +116,7 @@ using Test
     @test norm(compute_Mlincomb(nep,λ,v))<sqrt(tol)
     @test isa(nep,SPMFSumNEP)
     @test_throws MethodError nep_gallery("sine", 15)
-    @test_throws ErrorException nep_gallery("sine", t=15)
+    @test_throws MethodError nep_gallery("sine", t=15)
 
 
     @info "Testing dep_symm_double"
@@ -132,13 +132,13 @@ using Test
     λstar=5.0 # this problem is constructed such that this is an eigenvalue
     @test minimum(svdvals(compute_Mder(nep,λstar)))<100*eps()
     @test_throws MethodError nep_gallery("qep_fixed_eig",3,1:6, 8)
-    @test_throws ErrorException nep_gallery("qep_fixed_eig",3,1:6, t=8)
+    @test_throws MethodError nep_gallery("qep_fixed_eig",3,1:6, t=8)
 
     @info "Testing neuron0"
     nep=nep_gallery("neuron0")
     A=compute_Mder(nep,3.0)
     @test_throws MethodError nep_gallery("neuron0", 8)
-    @test_throws ErrorException nep_gallery("neuron0", t=8)
+    @test_throws MethodError nep_gallery("neuron0", t=8)
 
     @info "Testing schrodinger_movebc"
     n=5; λ=-3.0;
@@ -152,7 +152,7 @@ using Test
     nep=nep_gallery("beam", 15)
     A=compute_Mder(nep,3.0)
     @test_throws MethodError nep_gallery("beam", 15, 8)
-    @test_throws ErrorException nep_gallery("beam", 15, t=8)
+    @test_throws MethodError nep_gallery("beam", 15, t=8)
 
 
     @info "Testing hadeler"

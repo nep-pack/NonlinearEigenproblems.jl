@@ -63,6 +63,6 @@ myerrmeasure=(λ,v) -> minimum(abs.(λ .- dep_distributed_exact_eigvals) ./ abs(
 
     @testset "Errors thrown" begin
         @test_throws MethodError nep_gallery("dep_distributed", 15)
-        @test_throws ErrorException nep_gallery("dep_distributed", t=15)
+        @test_throws MethodError nep_gallery("dep_distributed", t=15)
     end
 end

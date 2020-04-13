@@ -34,6 +34,6 @@ using LinearAlgebra
 
     @testset "Errors thrown" begin
         @test_throws MethodError nep_gallery("nlevp_native_gun", 15)
-        @test_throws ErrorException nep_gallery("nlevp_native_gun", t=15)
+        @test_throws MethodError nep_gallery("nlevp_native_gun", t=15)
     end
 end
