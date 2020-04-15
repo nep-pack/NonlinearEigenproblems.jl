@@ -20,7 +20,7 @@ method, used in contructing the orthogonal basis of the Krylov space, is specifi
 The iteration is continued until `neigs` Ritz pairs have converged.
 This function throws a `NoConvergenceException` if the wanted eigenpairs are not computed after `maxit` iterations.
 However, if `neigs` is set to `Inf` the iteration is continued until `maxit` iterations without an error being thrown.
-The parameter `proj_solve` determines if the Ritz paris are extracted using the Hessenberg matrix (false),
+The parameter `proj_solve` determines if the Ritz pairs are extracted using the Hessenberg matrix (false),
 or as the solution to a projected problem (true). If `true`, the method is descided by `inner_solver_method`, and the
 logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
 
