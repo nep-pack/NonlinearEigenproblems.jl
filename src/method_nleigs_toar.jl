@@ -1,3 +1,5 @@
+export nleigs_toar
+
 include("nleigs_toar_creator.jl")
 include("nleigs_toar_aux.jl");
 include("nleigs_toar_tensor_compress.jl");

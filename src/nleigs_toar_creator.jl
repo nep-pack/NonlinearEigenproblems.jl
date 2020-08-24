@@ -4,6 +4,7 @@ import NonlinearEigenproblems.compute_Mder;
 import NonlinearEigenproblems.compute_Mlincomb;
 import Base.size;
 import NonlinearEigenproblems.AbstractSPMF
+export NLEIGS_NEP
 
 mutable struct NLEIGS_NEP{T} <: AbstractSPMF{T}
     org_nep::NEP
