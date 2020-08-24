@@ -77,11 +77,6 @@ function nleigs_toar(nep,rg;
     ## TODO: Improve breakdown in toar_extendbasis, run
 
 
-
-    ## Later:
-    ##   Move all assert to script files
-
-
     @status_nleigs_toar0()
 
 
