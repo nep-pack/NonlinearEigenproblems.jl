@@ -45,7 +45,7 @@ size(nep::NLEIGS_NEP,k)=size(nep.org_nep,k);
 function NLEIGS_NEP(orgnep,rg;ddmaxit=100,shifts=[1.1+1e-5*1im],nmat=NaN,
                     singularity_computation=nothing)
 
-    (beta,xi,s)=lejabagby(orgnep,rg,ddmaxit,singularity_computation);
+    (beta,xi,s)=lejabagby_toar(orgnep,rg,ddmaxit,singularity_computation);
     ddtol=1e-9
     (coeffD,cnmat)=divided_differences(orgnep,ddmaxit,beta,xi,s,ddtol)
     if (isnan(nmat))

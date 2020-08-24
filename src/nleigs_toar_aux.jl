@@ -172,7 +172,7 @@ end
 
 
 
-function lejabagby(nep::NEP,rg,ddmaxit,singularity_computation)
+function lejabagby_toar(nep::NEP,rg,ddmaxit,singularity_computation)
 
     @status_lejabagby0()
     ndptx=10000 # Default values
