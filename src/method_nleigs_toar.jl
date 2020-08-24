@@ -1,3 +1,7 @@
+include("nleigs_toar_creator.jl")
+include("nleigs_toar_aux.jl");
+include("nleigs_toar_tensor_compress.jl");
+
 function evalnrt(nep::NLEIGS_NEP,k,sigma,b::AbstractVector)
 # Evaluate the NLEIGS_NEP. Store evaluation in pre-allocated vector b
     beta=nep.beta;
