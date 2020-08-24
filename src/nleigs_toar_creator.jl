@@ -52,7 +52,7 @@ function NLEIGS_NEP(orgnep,rg;ddmaxit=100,shifts=[1.1+1e-5*1im],nmat=NaN,
     if (isnan(nmat))
         nmat=cnmat;
     end
-    return NLEIGS_NEP{ComplexF64}(nep,shifts,beta,s,xi,nmat,coeffD,ddmaxit)
+    return NLEIGS_NEP{ComplexF64}(orgnep,shifts,beta,s,xi,nmat,coeffD,ddmaxit)
 end
 compute_Mder(nleigs_nep::NLEIGS_NEP,s::Number)=compute_Mder(nleigs_nep,s,0)
 
