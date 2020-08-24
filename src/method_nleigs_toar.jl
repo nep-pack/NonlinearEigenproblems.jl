@@ -60,7 +60,7 @@ function nleigs_toar(nep,rg;
                      errmeasure=CheapKrylovErrmeasure(),
                      Vtensor=NaN,
                      maxit=10,tol=1e-13,keep_factor=0.5,
-                     ncv=(15+neigs),neigs=5,idxrk=0,mpd=ncv,nshiftsw=NaN,
+                     ncv=20,neigs=5,idxrk=0,mpd=ncv,nshiftsw=NaN,
                      lock=1,
                      linsolvercreator=DefaultLinSolverCreator(),
                      target=0.0,
