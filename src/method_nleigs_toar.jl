@@ -367,7 +367,7 @@ end
 
 ## Get a starting basis (random) in tensor form
 function init_basis(nep,deg,neigs,ncv)
-    m=ncv+nleigs_nep.nmat-1
+    m=ncv+nep.nmat-1
     Vtensor=Basis_tensor();
     Vtensor.U=Basis_standard(zeros(ComplexF64,size(nep,1),m),[],0);
     # From SLEPC documentation:The dimensions of S are d times m rows and m-d+1 columns, where m is the number of columns of U, so m should be at least d.
