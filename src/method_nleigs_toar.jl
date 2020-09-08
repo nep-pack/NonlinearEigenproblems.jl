@@ -87,7 +87,7 @@ function nleigs_toar(nep,rg;
     lsolvers=get_linsolvers(nep,linsolvercreator);
 
 
-    if (isnan(Vtensor))
+    if (Vtensor == NaN)
         Vtensor=init_basis(nep,deg,neigs,ncv)
         @status_nleigs_toar1()
     end
