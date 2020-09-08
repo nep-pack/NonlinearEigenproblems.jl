@@ -122,12 +122,13 @@ function nleigs_toar(nep,rg;
     # Initiate W from V0
     W=copy(V0);
     W.mat=W.mat[:,1:max(size(Av,1)-1,nep.nmat-1)]; # Resize
-    set_active_columns(W,min(size(W.active_mat,2),size(W.mat,2))); # reset active cols
-
+    #set_active_columns(W,min(size(W.active_mat,2),size(W.mat,2))); # reset active cols
+    set_active_columns(W,size(W.mat,2)); # reset active cols
     W.mat .= 0 # For comparison
 
 
     @status_nleigs_toar2()
+
 
     H=zeros(ComplexF64,ldds,ldds);
     K=zeros(ComplexF64,ldds,ldds);
@@ -194,13 +195,13 @@ function nleigs_toar(nep,rg;
             end,
             1:z)
         truevals=map(t->!isinf(Fvalues[t]), 1:size(Fvalues,1))
-        evps_ref1=region_target_sort(nep.shifts[1], rg,
+
+        evps_ref1=region_target_sort(target, rg,
                               Fvalues[truevals])
         evps_ref=[locked_evps;evps_ref1];
 
 
 
-        @status_nleigs_toar6()
         # Reorder according to evps_ref
         for k=1:nv
             t=falses(nv);
@@ -209,7 +210,7 @@ function nleigs_toar(nep,rg;
             t[i]=true;
             ordschur!(F,t)
         end
-
+        @status_nleigs_toar6()
 
         λv=F.values;
 
