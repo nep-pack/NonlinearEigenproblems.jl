@@ -127,8 +127,8 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
         end
 
 #
-        push_info!(logger,3,"$lds")
-        push_info!(logger,3,"$deg")
+        push_info!(logger,3,"lds=$lds")
+        push_info!(logger,3,"deg=$deg")
 
 
 
@@ -138,13 +138,13 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
 
 
 
+    @status_compress4()
 
 
     # Orthogonalize against pQ: next M should get rank nnc+d-1
     for i=0:deg-1
         pQ_view=view(pQ_offu_mat,1:nrow,1:newc);
-        push_info!(logger,3,"$newc")
-        push_info!(logger,3,"$size(SS_mat)")
+        push_info!(logger,3,"newc=$newc, size(SS_mat)="*string(size(SS_mat)))
 
 
 
@@ -189,9 +189,9 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
 @status_compress8()
 
 
-      push_info!(logger,3,"$nrow,nnctdeg")
-      push_info!(logger,3,"$size(M_mat)")
-      push_info!(logger,3,"$size(M)")
+      push_info!(logger,3,"nrow=$nrow,nnctdeg=$nnctdeg")
+      push_info!(logger,3,"size(M_mat)="*string(size(M_mat)))
+      #push_info!(logger,3,"size(M)="*string(size(M)))
 
 
       M_mat=view(M0_mat,1:nrow,1:nnctdeg)
@@ -221,24 +221,21 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
               rk += 1;
           end
       end
-rk = min(nnc+deg-1,rk);
-@status_compress10()
-
+      rk = min(nnc+deg-1,rk);
+      @status_compress10()
 
       rmul!(view(Z_mat,1:rk,1:nnctdeg)',Diagonal(sg[1:rk]))
 
 
 
-      # @optional_slepc_assert(ZX_mat,"Z_mat2","/tmp/iter$iter/compress_stage8_large.jl");
       mm=deg*cs1
 
-      push_info!(logger,3,"$size(Z_mat)")
-      push_info!(logger,3,"$V.m")
-      push_info!(logger,3,"$cs1")
-      push_info!(logger,3,"$lds")
+      push_info!(logger,3,"size(Z_mat)="*string(size(Z_mat)))
+      push_info!(logger,3,"V.m="*string(V.m))
+      push_info!(logger,3,"cs1=$cs1")
+      push_info!(logger,3,"lds=$lds")
 
-      #S[cs1*lds .+ (1:(V.m-cs1)*lds)] .= 0
-      S_mat[1,cs1 .+ (1:(V.m-cs1))] .= 0; # Tested?
+      S_mat[:,cs1 .+ (1:(V.m-cs1))] .= 0;
       k = ld-lock-newc-rk;
       for i=0:deg-1;
           jj=(lock+newc+1):(cs1)
@@ -249,7 +246,6 @@ rk = min(nnc+deg-1,rk);
       end
 
       @status_compress11()
-      #@optional_slepc_assert(S_mat,"S_mat","/tmp/iter$iter/compress_stage8_large.jl");
 
 
       if newc>0
@@ -273,7 +269,7 @@ rk = min(nnc+deg-1,rk);
 
 
       pQ_offu=view(reshape(view(pQ,offu .+ (1:(rs1*rk))),rs1,rk),1:nrow,1:rk);
-      push_info!(logger,3,"$size(pQ_offu)")
+      push_info!(logger,3,"size(pQ_offu)="*string(size(pQ_offu)))
 
       FF=qr(pQ_offu);
       for i=0:deg-1
