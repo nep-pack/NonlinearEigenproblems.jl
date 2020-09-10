@@ -45,6 +45,95 @@ function get_linsolvers(nep::NLEIGS_NEP,linsolvercreator)
     return lsolvers
 end
 
+# Restart using Schur form. Note: The matrices H and K are modified.
+function nleigs_toar_restart(nep,logger,H,K,nv,nconv,target,rg,errmeasure,iter)
+    # Only the (nv+1,nv) leading submatrix of the H and K matrices relevant
+    betah=abs(H[nv+1,nv]);
+    if (size(nep.shifts,1) > 0)
+        betak = K[nv+1,nv]
+    end
+
+
+
+    @status_nleigs_toar5()
+
+
+
+    push_info!(logger,2,"Solving the hessenberg GEP ");
+    # Solve the GEP:
+    F=schur(K[1:nv,1:nv],H[1:nv,1:nv]);
+    z=nconv;
+    # Pick the locked eigenvalues
+    locked_evps=diag(H[1:z,1:z]) .\ diag(K[1:z,1:z])
+
+    Fvalues=F.values;
+
+    map(s->begin
+        Fvalues[argmin(abs.(Fvalues .- locked_evps[s]))]=Inf
+        end,
+        1:z)
+    truevals=map(t->!isinf(Fvalues[t]), 1:size(Fvalues,1))
+
+    evps_ref1=region_target_sort(target, rg,
+                                 Fvalues[truevals])
+    evps_ref=[locked_evps;evps_ref1];
+
+
+
+    @status_nleigs_toar6()
+    # Reorder according to evps_ref
+    for k=1:nv
+        t=falses(nv);
+        t[1:(k-1)].=true;
+        i=argmin(abs.(F.values .- evps_ref[k]));
+        t[i]=true;
+        ordschur!(F,t)
+    end
+
+    λv=F.values;
+
+    Z1=copy(F.Q)
+    Q1=copy(F.Z)
+    T1=copy(F.T);
+    S1=copy(F.S);
+
+    D=I
+    @status_nleigs_toar7()
+
+
+    Z1=Z1*D;
+    T1=D'*T1*D;
+    S1=D'*S1*D;
+    Q1=Q1*D
+
+    set_errmeasure_info(errmeasure,:Z,Z1);
+    set_errmeasure_info(errmeasure,:T,T1);
+    set_errmeasure_info(errmeasure,:S,S1);
+    set_errmeasure_info(errmeasure,:Q,Q1);
+    set_errmeasure_info(errmeasure,:H,copy(H[1:nv,1:nv]));
+    set_errmeasure_info(errmeasure,:K,copy(K[1:nv,1:nv]));
+
+    T=T1;
+    S=S1;
+    Q=Q1;
+
+
+    @status_nleigs_toar8()
+
+
+    # To imitate the inplace in slepc
+    H[1:nv,1:nv]=T[1:nv,1:nv];
+    K[1:nv,1:nv]=S[1:nv,1:nv];
+
+    @status_nleigs_toar9()
+
+
+
+
+    return (betah,betak,λv,Q,Z1);
+
+
+end
 
 # keep_factor = ctx->keep: NEPNLEIGSSetRestart
 # ncv = slepc_nep.ncv: the largest dimension of the working subspace: dimension of the subspace  (default: 2*nev)
@@ -169,87 +258,8 @@ function nleigs_toar(nep,rg;
         @status_nleigs_toar4()
 
 
-        # Only the (nv+1,nv) leading submatrix of the H and K matrices relevant
-        betah=abs(H[nv+1,nv]);
-        if (size(nep.shifts,1) > 0)
-            betak = K[nv+1,nv]
-        end
 
-
-
-        @status_nleigs_toar5()
-
-
-
-        push_info!(logger,2,"Solving the hessenberg GEP ");
-        # Solve the GEP:
-        F=schur(K[1:nv,1:nv],H[1:nv,1:nv]);
-        z=nconv;
-        # Pick the locked eigenvalues
-        locked_evps=diag(H[1:z,1:z]) .\ diag(K[1:z,1:z])
-
-        Fvalues=F.values;
-
-        map(s->begin
-            Fvalues[argmin(abs.(Fvalues .- locked_evps[s]))]=Inf
-            end,
-            1:z)
-        truevals=map(t->!isinf(Fvalues[t]), 1:size(Fvalues,1))
-
-        evps_ref1=region_target_sort(target, rg,
-                              Fvalues[truevals])
-        evps_ref=[locked_evps;evps_ref1];
-
-
-
-        @status_nleigs_toar6()
-        # Reorder according to evps_ref
-        for k=1:nv
-            t=falses(nv);
-            t[1:(k-1)].=true;
-            i=argmin(abs.(F.values .- evps_ref[k]));
-            t[i]=true;
-            ordschur!(F,t)
-        end
-
-        λv=F.values;
-
-        Z1=copy(F.Q)
-        Q1=copy(F.Z)
-        T1=copy(F.T);
-        S1=copy(F.S);
-
-        D=I
-        @status_nleigs_toar7()
-
-
-        Z1=Z1*D;
-        T1=D'*T1*D;
-        S1=D'*S1*D;
-        Q1=Q1*D
-
-        set_errmeasure_info(errmeasure,:Z,Z1);
-        set_errmeasure_info(errmeasure,:T,T1);
-        set_errmeasure_info(errmeasure,:S,S1);
-        set_errmeasure_info(errmeasure,:Q,Q1);
-        set_errmeasure_info(errmeasure,:H,copy(H[1:nv,1:nv]));
-        set_errmeasure_info(errmeasure,:K,copy(K[1:nv,1:nv]));
-
-        T=T1;
-        S=S1;
-        Q=Q1;
-
-
-        @status_nleigs_toar8()
-
-
-        # To imitate the inplace in slepc
-        H[1:nv,1:nv]=T[1:nv,1:nv];
-        K[1:nv,1:nv]=S[1:nv,1:nv];
-
-        @status_nleigs_toar9()
-
-
+        (betah,betak,λv,Q,Z1)=nleigs_toar_restart(nep,logger,H,K,nv,nconv,target,rg,errmeasure,iter)
 
 
 

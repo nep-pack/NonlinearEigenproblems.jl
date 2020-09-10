@@ -542,7 +542,7 @@ function compute_convergence(nep::NEP,errmeasure::ErrmeasureType,kini,nits,betah
         end
 
         s=(λv[k+1],e)
-        push_info!(logger,2,"(λ,rnorm)=$s");
+        push_info!(logger,1,"(λ,rnorm)=$s");
         if (marker==-1 && e >= tol)
             marker = k;
         end
