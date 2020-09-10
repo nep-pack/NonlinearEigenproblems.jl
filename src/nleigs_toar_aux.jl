@@ -278,6 +278,7 @@ function compute_RKcontinuation(nep, ini,endd,K,H,ld,sigma,
         @status_rkcont1()
         QRfact=qr(W)
 
+        # This is only tested for a single shift
 
         t[1:endd]=zeros(ComplexF64,endd); t[endd+1]=1;
         t2=t[1:endd+1]

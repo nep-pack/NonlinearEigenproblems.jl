@@ -202,6 +202,7 @@ function nleigs_toar(nep,rg;
 
 
 
+        @status_nleigs_toar6()
         # Reorder according to evps_ref
         for k=1:nv
             t=falses(nv);
@@ -210,7 +211,6 @@ function nleigs_toar(nep,rg;
             t[i]=true;
             ordschur!(F,t)
         end
-        @status_nleigs_toar6()
 
         λv=F.values;
 
@@ -221,7 +221,6 @@ function nleigs_toar(nep,rg;
 
         D=I
         @status_nleigs_toar7()
-
 
 
         Z1=Z1*D;
