@@ -20,9 +20,7 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
 
     lwa=6*ld*lds+2*cs1;
 
-    push_info!(logger,3,"$lds,rs1,ld")
-    push_info!(logger,3,"$lwa")
-    push_info!(logger,3,"$deg")
+    push_info!(logger,3,"lds=$lds,rs1=$rs1,ld=$ld,lwa=$lwa,deg=$deg")
 
     n=min(rs1,deg*cs1)
     lock=V.U.l;
@@ -66,7 +64,7 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
     if (newc>0)
 
         push_info!(logger,3,"newc>0")
-        push_info!(logger,3,"$size(S_mat,2)")
+        push_info!(logger,3,"size(S_mat,2)"*string(size(S_mat)))
 
 
         # copy part of S-matrix to M0_mat: truncate columns associated with new converged eigenpairs
@@ -88,21 +86,18 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
 
         sg[1:size(F.S,1)]=F.S;
 
-        push_info!(logger,3,"$F.S[1:5]")
-        push_info!(logger,3,"$size(F.U)")
-        push_info!(logger,3,"$size(F.V'),  (n,newctdeg)")
-        push_info!(logger,3,"$min(nrow,newctdeg)")
-        push_info!(logger,3,"$size(F.V')")
+        push_info!(logger,3,"F.S[1:5]="*string(F.S[1:min(5,end)]));
+        push_info!(logger,3,"size(F.U)="*string(size(F.U)))
+        push_info!(logger,3,"size(F.V')="*string(size(F.V'))*", n=$n, newctdeg=$newctdeg")
+        push_info!(logger,3,"min(nrow,newctdeg)="*string(min(nrow,newctdeg)))
         Z_mat[1:min(nrow,newctdeg),1:newc*deg]=F.V';
 
 
 
         pQ_offu_mat_active=view(pQ_offu_mat,1:nrow,:);
 
-        push_info!(logger,3,"$rs1")
-        push_info!(logger,3,"$nrow,newctdeg")
-        push_info!(logger,3,"$size(F.U)")
-        push_info!(logger,3,"$size(pQ_offu_mat)")
+        push_info!(logger,3,"rs1=$rs1")
+        push_info!(logger,3,"nrow=$nrow,newctdeg=$newctdeg")
 
         pQ_offu_mat_active[:,:]=F.U;
 
@@ -110,7 +105,7 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
         @status_compress3()
 
 
-        push_info!(logger,3,"($newc,$nrow)")
+        push_info!(logger,3,"newc=$newc,nrow=$nrow")
 
         rk=min(newc,nrow);
         rmul!(view(Z_mat,1:rk,1:newctdeg)',Diagonal(sg[1:rk]))
@@ -142,9 +137,9 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
 
 
     # Orthogonalize against pQ: next M should get rank nnc+d-1
+    push_info!(logger,3,"newc=$newc, size(SS_mat)="*string(size(SS_mat)))
     for i=0:deg-1
         pQ_view=view(pQ_offu_mat,1:nrow,1:newc);
-        push_info!(logger,3,"newc=$newc, size(SS_mat)="*string(size(SS_mat)))
 
 
 
@@ -299,9 +294,9 @@ function tensor_compress(V::Basis_tensor,newc::Int,logger;iter=0)
 
       map(i-> pQ[i+i*rs1+1]=1, 0:(lock-1)); # Make diagonal one of locked part
 
-      push_info!(logger,3,"$rs1")
-      push_info!(logger,3,"$V.U.l")
-      push_info!(logger,3,"$size(V.U.active_mat)")
+      push_info!(logger,3,"rs1=$rs1")
+      push_info!(logger,3,"V.U.l="*string(V.U.l))
+      push_info!(logger,3,"size(V.U.active_mat)"*string(size(V.U.active_mat)))
 
       set_active_columns(V.U,rs1); # V.U.k=rs1;
 
