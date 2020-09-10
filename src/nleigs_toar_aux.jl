@@ -4,13 +4,13 @@ import Base.copy;
 import NonlinearEigenproblems.Errmeasure
 import NonlinearEigenproblems.estimate_error;
 
-mutable struct Basis_standard
-    mat
-    active_mat
+mutable struct Basis_standard{M1<:AbstractMatrix}
+    mat::M1
+    active_mat::SubArray
     # n=size(mat,1);
     # m=size(mat,2);
     # l=not available
-    l # locked
+    l::Int # locked
     # nqt=k= size(active_mat,2) # active columns
 end
 
@@ -47,24 +47,24 @@ function orthogonalize(B::Basis_standard,j)
     return (H,beta);
 end
 
-
-mutable struct Basis_tensor
-    U
-    S
-    m     # size
-    l     # locked columns
-    nqt   # active cols (aka k)
-    d     # degree
+# Represents U\otimes S . U is represented as a Basis_standard
+mutable struct Basis_tensor{M<:AbstractMatrix}
+    U::Basis_standard{M}
+    S::M
+    m::Int     # size
+    l::Int     # locked columns
+    nqt::Int   # active cols (aka k)
+    d::Int     # degree
 end
-function Basis_tensor()
-    return Basis_tensor([],[],0,0,0,0);
-end
+#function Basis_tensor()
+#    return Basis_tensor([],[],0,0,0,0);
+#end
 
 
 function copy(B::Basis_tensor)
     U1=copy(B.U);
     S1=copy(B.S);
-    return Basis_tensor(U1,S1,B.m,B.l,B.nqt,B.d);
+    return Basis_tensor{typeof(S1)}(U1,S1,B.m,B.l,B.nqt,B.d);
 end
 
 
