@@ -379,24 +379,27 @@ end
 ## Get a starting basis (random) in tensor form
 function init_basis(nep,deg,neigs,ncv)
     m=ncv+nep.nmat-1
-    Vtensor=Basis_tensor();
-    Vtensor.U=Basis_standard(zeros(ComplexF64,size(nep,1),m),[],0);
+    tensor_U=Basis_standard(zeros(ComplexF64,size(nep,1),m),0,0);
+
     # From SLEPC documentation:The dimensions of S are d times m rows and m-d+1 columns, where m is the number of columns of U, so m should be at least d.
     pp=m-deg+1
 
-    Vtensor.l=0;
-    Vtensor.d=deg;
-    Vtensor.m=pp
-    Vtensor.nqt=pp
+    tensor_l=0;
+    tensor_d=deg;
+    tensor_m=pp
+    tensor_nqt=pp
 
-    set_active_columns(Vtensor.U,deg);
+
+    set_active_columns(tensor_U,deg);
     # Random initialization of the basis. Two levels of orthogonality must be imposed
-    RR=randn(size(Vtensor.U.mat,1),deg); normalize!(vec(RR));
+    RR=randn(size(tensor_U.mat,1),deg); normalize!(vec(RR));
     F=qr(RR);
-    Vtensor.U.mat[:,1:deg]=Matrix(F.Q);
-    Vtensor.S=zeros(ComplexF64,deg*m,pp);
+    tensor_U.mat[:,1:deg]=Matrix(F.Q);
+    tensor_S=zeros(ComplexF64,deg*m,pp);
     S1=[F.R[1:deg,1:deg];zeros(m-deg,deg)]; s1=vec(S1);
-    Vtensor.S[:,1]=s1/norm(vec(Vtensor.U.mat*S1)) # Same but faster
+    tensor_S[:,1]=s1/norm(vec(tensor_U.mat*S1)) # Same but faster
+    Vtensor=Basis_tensor(tensor_U,tensor_S,tensor_m,
+                         tensor_l,tensor_nqt,tensor_d);
     return Vtensor
 end
 

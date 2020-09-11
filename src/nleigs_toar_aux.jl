@@ -1,3 +1,4 @@
+## Auxiliary routines for nleigs toar
 
 ## Basis operations
 import Base.copy;
@@ -47,7 +48,7 @@ function orthogonalize(B::Basis_standard,j)
     return (H,beta);
 end
 
-# Represents U\otimes S . U is represented as a Basis_standard
+# Represents (I otimes U) S . U is represented as a Basis_standard
 mutable struct Basis_tensor{M<:AbstractMatrix}
     U::Basis_standard{M}
     S::M
