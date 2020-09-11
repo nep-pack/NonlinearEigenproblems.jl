@@ -23,5 +23,5 @@ exp(A::LowerTriangular)=exp(Matrix(A)); # Only needed for the delay example. Mat
     nleigs_nep=NLEIGS_NEP(nep,prg,shifts=pshifts);  ## Create an approximate NEP
     neigs=1
     (λv,VV)=nleigs_toar(nleigs_nep,prg,neigs=neigs,target=ptarget,logger=displaylevel)
-    @test minimum(svdvals(compute_Mder(nep,λv[1])))<1e-8
+    @test norm(compute_Mlincomb(nep,λv[1],VV[:,1]))<1e-5
 end
