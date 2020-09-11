@@ -366,7 +366,7 @@ function nleigs_toar(nep,rg;
 
     # Pick out the eigenvectors
     kk=size(Vtensor.U.active_mat,2)
-    pp=Int(ceil(size(Vtensor.U.mat,1)*Vtensor.d/n));
+    pp=Int(ceil(size(Vtensor.U.mat,1)*Vtensor.d/size(nep,1)));
     II2=Matrix{Float64}(I,pp,pp);
     VV=(kron(II2,Vtensor.U.active_mat)*Vtensor.S[1:(pp*kk),1:nconv])[1:n,:]
 
