@@ -228,6 +228,7 @@ function nleigs_toar(nep,rg;
 
 
 
+    VV=[];
     k=0;
 
     while (reason_symb == :CONVERGED_ITERATING)
@@ -358,15 +359,20 @@ function nleigs_toar(nep,rg;
 
         end
 
-
-       nconv=k;
-       @status_nleigs_toar14()
+        nconv=k;
+        @status_nleigs_toar14()
     end
 
 
+    # Pick out the eigenvectors
+    kk=size(Vtensor.U.active_mat,2)
+    pp=Int(ceil(size(Vtensor.U.mat,1)*Vtensor.d/n));
+    II2=Matrix{Float64}(I,pp,pp);
+    VV=(kron(II2,Vtensor.U.active_mat)*Vtensor.S[1:(pp*kk),1:nconv])[1:n,:]
+
     push_info!(logger,2,"nconv=$nconv");
 
-    return (evps,[]);
+    return (evps,VV);
 end
 
 
