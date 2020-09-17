@@ -381,6 +381,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
                          ws::Vector=v,
                          logger=0,
                          linsolvercreator=DefaultLinSolverCreator(),
+                         damping=:none,
                          armijo_factor::Real=1,
                          armijo_max::Int=5) where T
 
@@ -433,6 +434,11 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             else
                 push_info!(logger,"");
             end
+
+            if (damping isa Function)
+                (Δλ,Δv)=damping(nep,errmeasure,err,λ,v,Δλ,Δv)
+            end
+
 
             # Update eigenpair
             λ += Δλ
