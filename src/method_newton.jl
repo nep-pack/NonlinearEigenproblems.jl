@@ -436,7 +436,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
             end
 
             if (damping isa Function)
-                (Δλ,Δv)=damping(nep,errmeasure,err,λ,v,Δλ,Δv)
+                (Δλ,Δv)=damping(j,λ,v,Δλ,Δv,err)
             end
 
 
