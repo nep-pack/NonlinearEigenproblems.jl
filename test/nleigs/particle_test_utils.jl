@@ -27,8 +27,7 @@ function particle_init(interval)
     Σ = [xmin + 0im, xmax + 0im]
 
     # options
-    Random.seed!(5)
-    v = randn(size(nep, 1)) .+ 0im
+    temp_pep=nep_gallery("pep0",size(nep,1)); v=complex(temp_pep.A[1][:,1]) # Ugly but gives stability over versions. Stable "random" vector v.
     nodes = range(xmin + 0im, stop = xmax + 0im, length = 11)
     nodes = collect(nodes[2:2:end])
 
