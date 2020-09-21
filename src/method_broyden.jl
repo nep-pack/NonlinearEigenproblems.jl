@@ -85,7 +85,6 @@ function broyden_T(::Type{TT},nep::NEP;
             γ=TT(threshold)/tt;
         end
 
-        v0=v; u0=u; λ0=λ;
 
         v=v+γ*Δv;
         u=u+γ*Δu;
