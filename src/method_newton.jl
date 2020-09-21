@@ -199,7 +199,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))
             end
 
             # Compute eigenvalue update
-            λ_vec = compute_rf(T, nep, v, inner_solver, y=c, λ0=λ, target=σ)
+            λ_vec = compute_rf(T, nep, v, inner_solver, y=c, λ=λ, target=σ)
             local λ1::T = closest_to(λ_vec,  λ)
             Δλ=λ1-λ
 
@@ -390,7 +390,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
         # Ensure types λ and v are of type T
         λ=T(λ)
         v=Vector{T}(v)
-        ws=Vector{T}(ws) # Left vector such that c'=w'M(λ0) where c normalization
+        ws=Vector{T}(ws) # Left vector such that c'=w'M(λ) where c normalization
 
         n = size(nep,1)
         u = zeros(T,n)
