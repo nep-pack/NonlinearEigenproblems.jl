@@ -12,6 +12,7 @@ import GalleryWaveguide.SchurMatVec
 @bench @testset "WEP" begin
 
     @bench @testset "SPMF - NEP, and Preconditioner" begin
+        @info "Compare SPFM and native format, and test Preconditioner"
         nx = 11
         nz = 7
         nep_spmf=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "SPMF")
@@ -62,6 +63,7 @@ import GalleryWaveguide.SchurMatVec
     end
 
     @bench @testset "NEP solvers" begin
+        @info "WEP NEP solvers"
         λ,v = quasinewton(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
                           errmeasure=myerrmeasure,tol=1e-12,
                           linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
