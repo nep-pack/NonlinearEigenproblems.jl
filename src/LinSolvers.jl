@@ -187,7 +187,7 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
 
     function lin_solve(solver::GMRESLinSolver{T_num,T_kwargs}, b::Vector{T_num}; tol=eps(real(T_num))) where {T_num,T_kwargs}
         v = zero(b)
-        retval=gmres!(v, solver.A, b; tol=tol, solver.kwargs...)
+        retval=gmres!(v, solver.A, b; reltol=tol, solver.kwargs...)
         return v
     end
 
