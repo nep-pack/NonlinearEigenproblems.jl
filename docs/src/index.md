@@ -73,7 +73,7 @@ julia> resnorm=norm(compute_Mlincomb(nep,λ,v))
 5.178780131881974e-13
 ```
 Information about the gallery can be found by typing `?nep_gallery`.
-The second arument in the call to `nep_gallery` is a problem parameter,
+The second argument in the call to `nep_gallery` is a problem parameter,
 in this case specifying that the  size of the problem should be `100`.
 The example solves the problem with the NEP-algorithm [`MSLP`](methods.md#NonlinearEigenproblems.NEPSolver.mslp).
 The parameter `tol` specifies the
