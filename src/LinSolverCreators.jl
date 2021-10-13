@@ -3,6 +3,7 @@
 export LinSolverCreator, BackslashLinSolverCreator;
 export FactorizeLinSolverCreator, DefaultLinSolverCreator;
 export GMRESLinSolverCreator;
+export DeflatedNEPLinSolverCreator
 
 export create_linsolver;
 
@@ -152,4 +153,28 @@ end
 
 function create_linsolver(creator::GMRESLinSolverCreator,nep, λ)
     return GMRESLinSolver{typeof(λ)}(nep, λ, creator.kwargs)
+end
+
+
+"""
+    DeflatedNEPLinSolverCreator(orglinsolvercreator)
+
+This is the creator for case of a deflated NEP.
+The argument `orglinsolvercreator` is the `LinSolverCreator` for the original NEP.
+This solver will be reused in the solver, and hence pre-computed entities such as, e.g.,
+factorizations and preconditioners can be reused.
+
+See also: [`DeflatedNEPLinSolver`](@ref), [`create_linsolver`](@ref),
+[`deflate_eigpair`](@ref)
+
+# References
+* C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
+"""
+struct DeflatedNEPLinSolverCreator{T_origcreator} <: LinSolverCreator where {T_origcreator <: LinSolverCreator}
+    orglinsolvercreator::T_origcreator
+end
+
+function create_linsolver(creator::DeflatedNEPLinSolverCreator, nep::DeflatedNEP, λ)
+    orglinsolver = create_linsolver(creator.orglinsolvercreator, nep.orgnep, λ)
+    return DeflatedNEPLinSolver(nep, λ, orglinsolver)
 end
