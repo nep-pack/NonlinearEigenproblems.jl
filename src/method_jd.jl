@@ -6,7 +6,6 @@ using IterativeSolvers
 using LinearAlgebra
 using Random
 using ..NEPTypes:DeflatedNEP
-using ..NEPTypes:deflated_nep_compute_Q
 
 
 
