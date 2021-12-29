@@ -2,6 +2,7 @@ using Random;
 
 
 export contour_block_SS
+export just_test
 
 """
     contour_block_SS([eltype,] nep [,mintegrator];[tol,][logger,][σ,][radius,][linsolvercreator,][N,][neigs,][k,][L])
@@ -65,6 +66,7 @@ function contour_block_SS(
 
     @parse_logger_param!(logger)
 
+    @printf "This is the HPC version"
 
     n = size(nep,1);
 
@@ -212,4 +214,10 @@ function contour_block_SS(
     λ=σ .+ factor*xi
 
     return λ,V
+end
+
+function just_test()
+
+    x = 10
+    return x
 end
