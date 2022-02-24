@@ -10,11 +10,11 @@ function doubleGS_function!(VV, vv, h)
     h[:] = h[:]+g[:]; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
-abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
+struct DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import IterativeSolvers.orthogonalize_and_normalize!
-function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
+function orthogonalize_and_normalize!(V,v,h,::DoubleGS)
     doubleGS_function!(V, v, h) end
 
 @testset "IAR" begin
@@ -43,22 +43,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
         # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
 
         @bench @testset "DGKS" begin
-            (λ,Q,V)=iar(dep,orthmethod=DGKS,σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=DGKS(),σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "User provided doubleGS" begin
-            (λ,Q,V)=iar(dep,orthmethod=DoubleGS,σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=DoubleGS(),σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "ModifiedGramSchmidt" begin
-            (λ,Q,V)=iar(dep,orthmethod=ModifiedGramSchmidt,σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=ModifiedGramSchmidt(),σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
 
         @bench @testset "ClassicalGramSchmidt" begin
-            (λ,Q,V)=iar(dep,orthmethod=ClassicalGramSchmidt,σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
+            (λ,Q,V)=iar(dep,orthmethod=ClassicalGramSchmidt(),σ=1.1,neigs=5,v=ones(n),maxit=100,tol=eps()*100)
             @test opnorm(V'*V - I) < 1e-6
         end
     end
