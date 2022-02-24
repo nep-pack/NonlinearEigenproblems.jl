@@ -22,7 +22,7 @@ end
 
 
 """
-    jd_betcke([eltype]], nep::ProjectableNEP; [neigs=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS],  [errmeasure], [linsolvercreator=DefaultLinSolverCreator()], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver()], [projtype=:PetrovGalerkin], [target=zero(T)])
+    jd_betcke([eltype]], nep::ProjectableNEP; [neigs=1], [tol=eps(real(T))*100], [maxit=100], [λ=zero(T)], [orthmethod=DGKS()],  [errmeasure], [linsolvercreator=DefaultLinSolverCreator()], [v = randn(size(nep,1))], [logger=0], [inner_logger=0], [inner_solver_method=DefaultInnerSolver()], [projtype=:PetrovGalerkin], [target=zero(T)])
 The function computes eigenvalues using Jacobi-Davidson method, which is a projection method.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
 The logging of the inner solvers are descided by `inner_logger`, which works in the same way as `logger`.
@@ -56,7 +56,7 @@ function jd_betcke(::Type{T},
                    neigs::Int = 1,
                    projtype::Symbol = :PetrovGalerkin,
                    inner_solver_method = DefaultInnerSolver(),
-                   orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                   orthmethod = DGKS(),
                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                    linsolvercreator=DefaultLinSolverCreator(),
                    tol::Number = eps(real(T))*100,
@@ -64,7 +64,7 @@ function jd_betcke(::Type{T},
                    v::Vector = randn(size(nep,1)),
                    target::Number = zero(T),
                    logger = 0,
-                   inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                   inner_logger = 0) where {T<:Number}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
@@ -186,7 +186,7 @@ end
 
 
 """
-    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver()], [orthmethod=DGKS], [linsolvercreator=DefaultLinSolverCreator()], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver()], [orthmethod=DGKS()], [linsolvercreator=DefaultLinSolverCreator()], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
@@ -219,7 +219,7 @@ function jd_effenberger(::Type{T},
                         maxit::Int = 100,
                         neigs::Int = 1,
                         inner_solver_method = DefaultInnerSolver(),
-                        orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                        orthmethod = DGKS(),
                         linsolvercreator=DefaultLinSolverCreator(),
                         tol::Number = eps(real(T))*100,
                         λ::Number = rand(T),
@@ -227,7 +227,7 @@ function jd_effenberger(::Type{T},
                         target::Number = zero(T),
                         deflation_mode = :Auto,
                         logger = 0,
-                        inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                        inner_logger = 0) where {T<:Number}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
@@ -328,7 +328,7 @@ function jd_effenberger_inner!(::Type{T},
                               nrof_its::Int,
                               conveig::Int,
                               inner_solver_method,
-                              orthmethod::Type,
+                              orthmethod,
                               linsolvercreator,
                               tol::Number,
                               target::Number,

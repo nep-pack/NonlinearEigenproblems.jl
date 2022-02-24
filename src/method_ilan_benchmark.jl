@@ -12,7 +12,7 @@ ilan_benchmark(nep::NEP;params...)=ilan_benchmark(ComplexF64,nep;params...)
 function ilan_benchmark(
     ::Type{T},
     nep::NEP;
-    orthmethod::Type{T_orth}=DGKS,
+    orthmethod=DGKS(),
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,

@@ -10,7 +10,7 @@ export threshold_eigval_sorter
 
 
 """
-    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[0=0],[v=randn(T,size(nep,1))],[logger=0],[linsolvercreator=DefaultLinSolverCreator()],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
+    function nlar([eltype],nep::ProjectableNEP,[orthmethod=ModifiedGramSchmidt()],[neigs=10],[errmeasure],[tol=eps(real(T))*100],[maxit=100],[0=0],[v=randn(T,size(nep,1))],[logger=0],[linsolvercreator=DefaultLinSolverCreator()],[R=0.01],[eigval_sorter=residual_eigval_sorter],[qrfact_orth=false],[max_subspace=100],[num_restart_ritz_vecs=8],[inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
 
 The function implements the Nonlinear Arnoldi method, which finds `neigs` eigenpairs (or throws a `NoConvergenceException`) by projecting the problem to a subspace that is expanded in the course  of the algorithm.
 The basis is orthogonalized either by using the QR method if `qrfact_orth` is `true` or else by an orthogonalization method `orthmethod`).
@@ -38,7 +38,7 @@ julia> norm(compute_Mlincomb(nep,λ[1],v))
 nlar(nep::NEP;params...) = nlar(ComplexF64,nep::NEP;params...)
 function nlar(::Type{T},
             nep::ProjectableNEP;
-            orthmethod::Type{T_orth} = ModifiedGramSchmidt,
+            orthmethod = ModifiedGramSchmidt(),
             neigs::Int=10,                                     #Number of eigenvalues required
             errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
             tol = eps(real(T))*100,
@@ -53,7 +53,7 @@ function nlar(::Type{T},
             max_subspace::Int = 100,                           #Maximum subspace size before we implement restarting
             num_restart_ritz_vecs::Int=8,
             inner_solver_method = DefaultInnerSolver(),
-            inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+            inner_logger = 0) where {T<:Number}
 
         @parse_logger_param!(logger)
         @parse_logger_param!(inner_logger)

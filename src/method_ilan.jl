@@ -26,7 +26,7 @@ mutable struct IlanPrecomputeDataDerSPMF <: IlanAbstractPrecomputeData
 end
 
 """
-    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS])
+    ilan(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=30,][orthmethod=DGKS()])
 
 Run the infinite Lanczos method on the symmetric nonlinear eigenvalue problem stored in `nep`. The current implementation supports only `nep`s in `SPMF` format.
 
@@ -57,7 +57,7 @@ ilan(nep::NEP;params...)=ilan(ComplexF64,nep;params...)
 function ilan(
     ::Type{T},
     nep::NEP;
-    orthmethod::Type{T_orth}=DGKS,
+    orthmethod=DGKS(),
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
@@ -72,7 +72,7 @@ function ilan(
     compute_Bmul_method::Type{T_y0}=compute_Bmul_method_Auto,
     proj_solve=true,
     inner_logger=0
-    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:compute_Bmul_method}
+    )where{T<:Number,T_y0<:compute_Bmul_method}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)

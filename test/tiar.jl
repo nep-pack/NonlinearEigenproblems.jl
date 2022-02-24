@@ -10,11 +10,11 @@ function doubleGS_function!(VV, vv, h)
     h[] = h[]+g[]; β=opnorm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
-abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
+struct DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import IterativeSolvers.orthogonalize_and_normalize!
-function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
+function orthogonalize_and_normalize!(V,v,h,::DoubleGS)
     doubleGS_function!(V, v, h) end
 
 @testset "TIAR" begin
@@ -35,22 +35,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
+        (λ,Q,Z)=tiar(dep,orthmethod=DGKS(),σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
         @test opnorm(Z'*Z - I) < 1e-6
      end
 
      @bench @testset "User provided doubleGS" begin
-         (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
+         (λ,Q,Z)=tiar(dep,orthmethod=DoubleGS(),σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
          @test opnorm(Z'*Z - I) < 1e-6
       end
 
       @bench @testset "ModifiedGramSchmidt" begin
-          (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
+          (λ,Q,Z)=tiar(dep,orthmethod=ModifiedGramSchmidt(),σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
           @test opnorm(Z'*Z - I) < 1e-6
       end
 
        @bench @testset "ClassicalGramSchmidt" begin
-           (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
+           (λ,Q,Z)=tiar(dep,orthmethod=ClassicalGramSchmidt(),σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
            @test opnorm(Z'*Z - I) < 1e-6
        end
     end
