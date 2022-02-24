@@ -57,7 +57,7 @@ import GalleryWaveguide.SchurMatVec
         precond = wep_generate_preconditioner(nep, 3*7, λ0)
         λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
                      errmeasure=myerrmeasure,tol=1e-12,
-                     linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=((:Pl,precond),(:tol,1e-7)))
+                     linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=((:Pl,precond),(:reltol,1e-7)))
                      );
         @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
     end
