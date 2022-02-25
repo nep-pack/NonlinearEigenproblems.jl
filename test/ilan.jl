@@ -10,33 +10,24 @@ using SparseArrays
 @testset "ILAN" begin
 
     @testset "Compute as many eigenpairs as possible (neigs=Inf)" begin
-        n=100
-        Random.seed!(1) # reset the random seed
-        K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
-        A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
-        A2 = sparse(K, J, rand(3*n-2)); A2 = A2+A2';
-        A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
-        nep=DEP([A1,A2,A3],[0,1,0.8])
-        v0=rand(n)
-        λ,W=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=30,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure(nep),inner_solver_method=NEPSolver.IARInnerSolver(tol=1e2,maxit=50))
-        verify_lambdas(3, nep, λ, W, eps()*100)
+        nep = nep=nep_gallery("dep0_sparse_symmetric",111)
+        n = size(nep,1)
+        v0 = ones(n)
+        λ,W=ilan(nep,σ=0.5,γ=1;neigs=Inf,logger=0,maxit=60,tol=eps()*10000,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure(nep),inner_solver_method=NEPSolver.IARInnerSolver(tol=1e2,maxit=50))
+        verify_lambdas(2, nep, λ, W, eps()*10000)
+        println(λ)
     end
 
     @testset "Compute eigenpairs via Ritz extraction" begin
-        nep=nep_gallery("dep_symm_double",10);
-        v0=ones(size(nep,1));
-        λ,W=ilan(nep;v=v0,tol=1e-5,neigs=3);
+        nep=nep_gallery("dep_symm_double",10)
+        v0=ones(size(nep,1))
+        λ,W=ilan(nep;v=v0,tol=1e-5,neigs=3)
         verify_lambdas(3, nep, λ, W, 1e-5)
     end
 
     @testset "Errors thrown" begin
-        n=100
-        Random.seed!(1) # reset the random seed
-        K = [1:n;2:n;1:n-1]; J=[1:n;1:n-1;2:n]
-        A1 = sparse(K, J, rand(3*n-2)); A1 = A1+A1';
-        A2 = sparse(K, J, rand(3*n-2)); A2 = A2+A2';
-        A3 = sparse(K, J, rand(3*n-2)); A3 = A3+A3';
-        nep=DEP([A1,A2,A3],[0,1,0.8])
+        nep = nep=nep_gallery("dep0_sparse_symmetric")
+        n = size(nep,1)
         v0=rand(n)
         @test_throws NEPCore.NoConvergenceException λ,W,V2,H2,ω2,HH2=ilan(nep,σ=0,γ=1;neigs=2,logger=0,maxit=3,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure(nep))
     end

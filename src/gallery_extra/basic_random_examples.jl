@@ -19,6 +19,21 @@ function dep0_sparse(n::Integer=100, p::Real=0.25)
     return nep
 end
 
+# A delay eigenvalue problem with sparse matrices
+function dep0_sparse_symmetric(n::Integer=100, p::Real=0.15)
+    msws_rng = MSWS_RNG()
+    A0 = sparse(1:n,1:n,vec(gen_rng_mat(msws_rng,n,1)))+gen_rng_spmat(msws_rng,n,n,p)
+    A0 = A0+A0'
+    A1 = sparse(1:n,1:n,vec(gen_rng_mat(msws_rng,n,1)))+gen_rng_spmat(msws_rng,n,n,p)
+    A1 = A1+A1'
+    A2 = sparse(1:n,1:n,vec(gen_rng_mat(msws_rng,n,1)))+gen_rng_spmat(msws_rng,n,n,p)
+    A2 = A2+A2';
+    tau = 1.0
+    tau2 = 0.8
+    nep = DEP([A0,A1,A2],[0,tau,tau2])
+    return nep
+end
+
 
 # A delay eigenvalue problem with sparse tridiagonal matrices
 function dep0_tridiag(n::Integer=100)

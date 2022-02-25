@@ -47,7 +47,10 @@ The following list describes the NEP with a certain `name` and the associated pa
     *params:* size (default = 5)
 
 * `dep0_sparse`: A random [`DEP`](@ref) with sparse matrices and one delay tau = 1,  generated with a pseudorandom number generator.\\
-    *Params:* Two optional params determining the size (default = 5) and the fill (default = 0.25)
+    *Params:* Two optional params determining the size (default = 100) and the fill (default = 0.25)
+
+* `dep0_sparse_symmetric`: A random [`DEP`](@ref) with sparse and symmetric matrices, and two delays tau = 1 and tau2 = 0.8,  generated with a pseudorandom number generator.\\
+        *Params:* Two optional params determining the size (default = 100) and the fill (default = 0.25)
 
 * `dep0_tridiag`: A random [`DEP`](@ref) with sparse tridiagonal matrices and one delay tau = 1, generated with a pseudorandom number generator.\\
     *Params:* size (default = 100)
@@ -194,6 +197,7 @@ julia> norm(compute_Mlincomb(nep,1.0+1.0im,ones(size(nep,1))))
         "dep0" => dep0,
         "dep1" => dep1,
         "dep0_sparse" => dep0_sparse,
+        "dep0_sparse_symmetric" => dep0_sparse_symmetric,
         "dep0_tridiag" => dep0_tridiag,
         "dep_symm_double" => dep_symm_double,
         "dep_double" => dep_double,
