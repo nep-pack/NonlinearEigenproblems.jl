@@ -125,12 +125,7 @@ end
     # Other types
     @testset "compute_y0_method for different types" begin
         @bench @testset "PEP" begin
-            n=100; d=3;
-            A = Array{Array{Float64}}(undef, d+1)
-            for j=0:d
-                A[j+1]=rand(n,n)
-            end
-            nep=PEP(A)
+            nep = nep=nep_gallery("pep0",200)
             (λ,Q)=iar_chebyshev(nep,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
@@ -148,9 +143,8 @@ end
         end
 
         @bench @testset "DEP WITH DELAYS>1" begin
-            n=100; A1=rand(n,n); A2=rand(n,n); A3=rand(n,n);
-            tau1=0; tau2=1.1; tau3=.2;
-            nep=DEP([A1,A2,A3],[tau1,tau2,tau3])
+            nep = nep=nep_gallery("dep2",100)
+            n = size(nep,1)
             (λ,Q)=iar_chebyshev(nep,σ=0,neigs=3,logger=0,maxit=90,tol=eps()*100,v=ones(size(nep,1)))
 
             verify_lambdas(3, nep, λ, Q, n*sqrt(eps()))
@@ -163,12 +157,8 @@ end
         end
 
         @bench @testset "PEP SHIFTED AND SCALED" begin
-            n=100; d=3;
-            A = Array{Array{Float64}}(undef, d+1)
-            for j=0:d
-                A[j+1]=rand(n,n)
-            end
-            nep=PEP(A)
+            nep = nep=nep_gallery("pep0",100)
+            n = size(nep,1)
             (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))

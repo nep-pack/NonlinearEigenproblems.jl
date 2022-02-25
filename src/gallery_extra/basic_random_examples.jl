@@ -9,6 +9,19 @@ function dep0(n::Int=5)
 end
 
 
+# A delay eigenvalue problem
+function dep2(n::Int=5)
+    msws_rng = MSWS_RNG()
+    A0 = gen_rng_mat(msws_rng,n,n)
+    A1 = gen_rng_mat(msws_rng,n,n)
+    A2 = gen_rng_mat(msws_rng,n,n)
+    tau = 1.1
+    tau2 = 0.4
+    nep = DEP([A0,A1,A2],[0,tau,tau2])
+    return nep
+end
+
+
 # A delay eigenvalue problem with sparse matrices
 function dep0_sparse(n::Integer=100, p::Real=0.25)
     msws_rng = MSWS_RNG()
