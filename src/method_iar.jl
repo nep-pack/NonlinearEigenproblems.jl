@@ -47,7 +47,7 @@ iar(nep::NEP;params...)=iar(ComplexF64,nep;params...)
 function iar(
     ::Type{T},
     nep::NEP;
-    orthmethod::Type{T_orth}=DGKS,
+    orthmethod::IterativeSolvers.OrthogonalizationMethod=DGKS,
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
@@ -60,7 +60,7 @@ function iar(
     check_error_every=1,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver(),
-    inner_logger=0)where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_logger=0)where{T<:Number}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
