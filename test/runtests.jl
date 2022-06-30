@@ -19,7 +19,9 @@ benchmark_duration_seconds = 1.0
 set_benchmark_duration_seconds(duration) = global benchmark_duration_seconds = duration
 
 run_benchmark = false
-#enable_benchmark(enabled = true) = global run_benchmark = enabled
+enable_benchmark(enabled = true) = global run_benchmark = enabled
+
+enable_benchmark(false)
 
 benchmark_results = Dict()
 
