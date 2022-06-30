@@ -47,7 +47,7 @@ iar(nep::NEP;params...)=iar(ComplexF64,nep;params...)
 function iar(
     ::Type{T},
     nep::NEP;
-    orthmethod::IterativeSolvers.OrthogonalizationMethod=DGKS,
+    orthmethod=DGKS(),
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
