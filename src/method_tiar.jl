@@ -5,7 +5,7 @@ using LinearAlgebra
 using Random
 
 """
-    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS,][proj_solve=false,][inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
+    tiar(nep,[maxit=30,][σ=0,][γ=1,][linsolvecreator=DefaultLinSolverCreator(),][tolerance=eps()*10000,][neigs=6,][errmeasure,][v=rand(size(nep,1),1),][logger=0,][check_error_every=1,][orthmethod=DGKS(),][proj_solve=false,][inner_solver_method=DefaultInnerSolver(),][inner_logger=0])
 
 Run the tensor infinite Arnoldi method on the nonlinear eigenvalue problem stored in `nep`. This is equivalent to `iar`, but handles orthogonalization with
 a tensor representation.
@@ -41,8 +41,8 @@ julia> norm(compute_Mlincomb!(nep,λ[1],v[:,1])) # Is it an eigenvalue?
 julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
  0.050462487743188206 - 3.4059600538119376e-18im
- -0.07708769561361105 + 8.611006691570004e-19im 
-   0.1503916927814904 + 9.388210527944734e-18im 
+ -0.07708769561361105 + 8.611006691570004e-19im
+   0.1503916927814904 + 9.388210527944734e-18im
 ```
 
 # References
@@ -53,7 +53,7 @@ tiar(nep::NEP;params...)=tiar(ComplexF64,nep;params...)
 function tiar(
     ::Type{T},
     nep::NEP;
-    orthmethod::Type{T_orth}=DGKS,
+    orthmethod=DGKS(),
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
@@ -66,7 +66,7 @@ function tiar(
     check_error_every=1,
     proj_solve=false,
     inner_solver_method=DefaultInnerSolver(),
-    inner_logger=0)where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+    inner_logger=0)where{T}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
