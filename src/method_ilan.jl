@@ -57,7 +57,7 @@ ilan(nep::NEP;params...)=ilan(ComplexF64,nep;params...)
 function ilan(
     ::Type{T},
     nep::NEP;
-    orthmethod::Type{T_orth}=DGKS,
+    orthmethod=DGKS(),
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
@@ -72,7 +72,7 @@ function ilan(
     compute_Bmul_method::Type{T_y0}=compute_Bmul_method_Auto,
     proj_solve=true,
     inner_logger=0
-    )where{T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:compute_Bmul_method}
+    )where{T<:Number,T_y0<:compute_Bmul_method}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)

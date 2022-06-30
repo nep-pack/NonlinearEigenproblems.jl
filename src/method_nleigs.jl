@@ -290,7 +290,7 @@ function nleigs(
 
             # orthogonalization
             Vview = view(V, 1:kn, 1:l)
-            H[l+1,l] = orthogonalize_and_normalize!(Vview, w, view(H, 1:l,l), DGKS)
+            H[l+1,l] = orthogonalize_and_normalize!(Vview, w, view(H, 1:l,l), DGKS())
             K[1:l,l] .= view(H, 1:l, l) .* σ[k+1] .+ t
             K[l+1,l] = H[l+1,l] * σ[k+1]
             V[1:kn,l+1] = w

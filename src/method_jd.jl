@@ -56,7 +56,7 @@ function jd_betcke(::Type{T},
                    neigs::Int = 1,
                    projtype::Symbol = :PetrovGalerkin,
                    inner_solver_method = DefaultInnerSolver(),
-                   orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                   orthmethod = IterativeSolvers.DGKS(),
                    errmeasure::ErrmeasureType = DefaultErrmeasure(nep),
                    linsolvercreator=DefaultLinSolverCreator(),
                    tol::Number = eps(real(T))*100,
@@ -64,7 +64,7 @@ function jd_betcke(::Type{T},
                    v::Vector = randn(size(nep,1)),
                    target::Number = zero(T),
                    logger = 0,
-                   inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                   inner_logger = 0) where {T<:Number}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
@@ -186,7 +186,7 @@ end
 
 
 """
-    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver()], [orthmethod=DGKS], [linsolvercreator=DefaultLinSolverCreator()], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
+    jd_effenberger([eltype]], nep::ProjectableNEP; [maxit=100], [neigs=1], [inner_solver_method=DefaultInnerSolver()], [orthmethod=DGKS()], [linsolvercreator=DefaultLinSolverCreator()], [tol=eps(real(T))*100], [λ=zero(T)], [v = rand(T,size(nep,1))], [target=zero(T)],  [logger=0], [inner_logger=0])
 The function computes eigenvalues using the Jacobi-Davidson method, which is a projection method.
 Repreated eigenvalues are avoided by using deflation, as presented in the reference by Effenberger.
 The projected problems are solved using a solver spcified through the type `inner_solver_method`.
@@ -219,7 +219,7 @@ function jd_effenberger(::Type{T},
                         maxit::Int = 100,
                         neigs::Int = 1,
                         inner_solver_method = DefaultInnerSolver(),
-                        orthmethod::Type{T_orth} = IterativeSolvers.DGKS,
+                        orthmethod = IterativeSolvers.DGKS(),
                         linsolvercreator=DefaultLinSolverCreator(),
                         tol::Number = eps(real(T))*100,
                         λ::Number = rand(T),
@@ -227,7 +227,7 @@ function jd_effenberger(::Type{T},
                         target::Number = zero(T),
                         deflation_mode = :Auto,
                         logger = 0,
-                        inner_logger = 0) where {T<:Number,T_orth<:IterativeSolvers.OrthogonalizationMethod}
+                        inner_logger = 0) where {T<:Number}
 
     @parse_logger_param!(logger)
     @parse_logger_param!(inner_logger)
