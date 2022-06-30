@@ -21,3 +21,14 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
+
+
+[compat]
+ArnoldiMethod = "^0"
+FFTW = "^1"
+IterativeSolvers = "^0"
+LinearMaps = "^2"
+Polynomials = "^0, 3"
+Reexport = "^0, 1"
+SpecialFunctions = "^0"
+julia = "^1"
