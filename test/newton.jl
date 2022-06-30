@@ -1,6 +1,5 @@
 # Run tests on Newton methods & rfi methods
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

@@ -1,6 +1,5 @@
 # Unit  tests for bigfloats. Type stability of methods.
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

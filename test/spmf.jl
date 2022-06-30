@@ -1,6 +1,5 @@
 # Tests for SPMF-code
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

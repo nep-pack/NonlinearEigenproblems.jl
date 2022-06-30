@@ -1,6 +1,5 @@
 # Run tests for the inner solves
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test,Random
 using LinearAlgebra

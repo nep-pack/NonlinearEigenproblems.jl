@@ -1,7 +1,6 @@
 # Unit test for the Nonlinear Arnoldi method (in src/method_nlar.jl)
 # The "Gun" problem form gun_native.jl
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

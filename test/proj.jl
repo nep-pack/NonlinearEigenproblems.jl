@@ -1,6 +1,5 @@
 #  Tests for the projected NEPs
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

@@ -1,6 +1,5 @@
 # Test of companion linearization
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test,Random
 using LinearAlgebra

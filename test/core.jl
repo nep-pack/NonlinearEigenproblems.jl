@@ -1,6 +1,5 @@
 # Tests for core functionality
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using LinearAlgebra
 using Test,Random

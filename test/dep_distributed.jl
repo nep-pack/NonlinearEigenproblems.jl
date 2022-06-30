@@ -1,6 +1,5 @@
 # Run tests for the dep_distributed example
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

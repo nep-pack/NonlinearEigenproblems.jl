@@ -1,6 +1,5 @@
 # Run tests for the waveguide eigenvalue problem
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
