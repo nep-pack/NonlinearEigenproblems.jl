@@ -9,7 +9,7 @@ function doubleGS_function!(VV, vv, h)
     h[:] = h[:]+g[:]; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
-abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
+struct DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import IterativeSolvers.orthogonalize_and_normalize!
