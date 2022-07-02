@@ -6,12 +6,15 @@ module LinSolvers
     using IterativeSolvers
     using LinearMaps
     using ArnoldiMethod
+    using ..NEPTypes:DeflatedNEP
+    using ..NEPTypes:deflated_nep_compute_Q
 
     # Linear system of equation solvers
     export LinSolver
     export FactorizeLinSolver
     export BackslashLinSolver
     export GMRESLinSolver
+    export DeflatedNEPLinSolver
     export lin_solve
 
     # Eigenvalue solvers
@@ -191,6 +194,61 @@ See also: [`LinSolver`](@ref), [`GMRESLinSolverCreator`](@ref)
         return v
     end
 
+
+
+##############################################################################
+"""
+    struct DeflatedNEPLinSolver <: LinSolver
+
+This represents a solver for a deflated NEP.
+
+See also: [`LinSolver`](@ref), [`DeflatedNEPLinSolverCreator`](@ref),
+[`deflate_eigpair`](@ref)
+"""
+        struct DeflatedNEPLinSolver{T_NEP, T_num, T_LinSolver} <: LinSolver
+            deflated_nep::T_NEP
+            λ::T_num
+            orglinsolver::T_LinSolver
+        end
+
+
+        function DeflatedNEPLinSolver(nep::DeflatedNEP, λ, orglinsolver::LinSolver)
+            DeflatedNEPLinSolver{typeof(nep), typeof(λ), typeof(orglinsolver)}(nep, λ, orglinsolver)
+        end
+
+
+        function lin_solve(solver::DeflatedNEPLinSolver, b; tol=0)
+            deflated_nep = solver.deflated_nep
+            λ = solver.λ
+            orglinsolver = solver.orglinsolver
+            orgnep = deflated_nep.orgnep
+
+            X = deflated_nep.V0
+            Λ = deflated_nep.S0
+
+            n = size(orgnep,1)
+            m = size(Λ,1)
+            T = eltype(b)
+            v = zeros(T,n+m)
+
+            v1 = view(v, 1:n)
+            v2 = view(v, (n+1):(n+m))
+            b1 = b[1:n]
+            b2 = b[(n+1):(n+m)]
+            U = deflated_nep_compute_Q(deflated_nep, λ, 0)
+
+            # Precompute some reused entities
+            b1tilde = lin_solve(orglinsolver, b1, tol=tol) # b1tilde = M^{-1}b1
+            Z::Matrix{T} = zeros(T,n,m)
+            for i = 1:m
+                Z[:,i] = lin_solve(orglinsolver, vec(U[:,i]), tol=tol) # Z = M^{-1}U
+            end
+            S = -X'*Z #Schur complement
+            v2[:] = S\(b2 - X'*b1tilde)
+            v1[:] = b1tilde - Z*v2
+
+            return v
+        end
 
 
 

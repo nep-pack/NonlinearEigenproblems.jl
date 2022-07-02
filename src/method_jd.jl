@@ -6,7 +6,6 @@ using IterativeSolvers
 using LinearAlgebra
 using Random
 using ..NEPTypes:DeflatedNEP
-using ..NEPTypes:deflated_nep_compute_Q
 
 
 
@@ -281,12 +280,13 @@ function jd_effenberger(::Type{T},
             return λ_vec, u_vec
         end
 
+        deflated_linsolvercreator = DeflatedNEPLinSolverCreator(linsolvercreator)
         V_memory = view(V_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
         W_memory = view(W_memory_base, 1:(n+conveig), tot_nrof_its+1:(maxit+1))
         λ, u, tot_nrof_its, u_init, λ_init = dispatch_inner!(T, V_memory, W_memory,
                                                           deflated_nep, maxit, tot_nrof_its,
                                                           conveig, inner_solver_method, orthmethod,
-                                                          linsolvercreator, tol, target, logger,
+                                                          deflated_linsolvercreator, tol, target, logger,
                                                           neigs, u_init, λ_init, inner_logger)
         conveig += 1 #OBS: minimality index = 1, hence only exapnd by one
 
@@ -416,8 +416,8 @@ function jd_effenberger_inner!(::Type{T},
         # and Voss, to avoid matrix access. Orthogonalization to u comes anyway
         # since u in V. OBS: Non-standard in JD-literature
         pk[:] = compute_Mlincomb(target_nep, λ, u, [one(T)], 1)
-        linsolver::LinSolver=create_linsolver(linsolvercreator,orgnep,λ)
-        jd_inner_effenberger_linear_solver!(v, target_nep, λ, linsolver, pk, tol)
+        linsolver::LinSolver=create_linsolver(linsolvercreator, target_nep, λ)
+        v[:] = lin_solve(linsolver, pk, tol=tol)
         newton_step = copy(v)
         orthogonalize_and_normalize!(V, v, view(dummy_vector, 1:k), orthmethod)
         w[:] = rk
@@ -435,42 +435,4 @@ function jd_effenberger_inner!(::Type{T},
     u_vec = X * uv
     throw(NoConvergenceException([λ_vec; λ], [u_vec u[1:n]], err, msg))
 
-end
-
-
-function jd_inner_effenberger_linear_solver!(v, deflated_nep::DeflatedNEP, λ::T, linsolver, pk::Vector{T}, tol) where{T}
-    # If it is a deflated NEP we solve with a Schur complement strategy such that
-    # the user specified solve of M can be used.
-    # (M, U; X^T, 0)(v1;v2) = (pk1;pk2)
-    # OBS: Assume minimality index = 1
-    # OBS: Forms the Schur complement. Assume that only a few eigenvalues are deflated
-
-    X = deflated_nep.V0
-    Λ = deflated_nep.S0
-    orgnep = deflated_nep.orgnep
-    n = size(orgnep,1)
-    m = size(Λ,1)
-
-    v1 = view(v, 1:n)
-    v2 = view(v, (n+1):(n+m))
-    pk1 = pk[1:n]
-    pk2 = pk[(n+1):(n+m)]
-    U = deflated_nep_compute_Q(deflated_nep, λ, 0)
-
-    # Precompute some reused entities
-    pk1tilde = lin_solve(linsolver, pk1, tol=tol) # pk1tilde = M^{-1}pk1
-    Z::Matrix{T} = zeros(T,n,m)
-    for i = 1:m
-        Z[:,i] = lin_solve(linsolver, vec(U[:,i]), tol=tol) # Z = M^{-1}U
-    end
-    S = -X'*Z #Schur complement
-    v2[:] = S\(pk2 - X'*pk1tilde)
-    v1[:] = pk1tilde - Z*v2
-
-    return v
-end
-
-function jd_inner_effenberger_linear_solver!(v, nep::NEP, λ::T, linsolver, pk::Vector{T}, tol) where{T}
-    v[:] = lin_solve(linsolver, pk, tol=tol)
-    return v
 end
