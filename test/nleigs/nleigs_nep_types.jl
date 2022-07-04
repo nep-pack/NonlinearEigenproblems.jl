@@ -1,6 +1,6 @@
 # Solves a basic eigenvalue problem defined through different NEP types through NLEIGS
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using NonlinearEigenproblems.RKHelper
 using Test

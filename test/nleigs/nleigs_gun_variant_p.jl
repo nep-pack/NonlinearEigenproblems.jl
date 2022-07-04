@@ -1,6 +1,6 @@
 # Gun: variant P (polynomial case; only repeated nodes)
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 

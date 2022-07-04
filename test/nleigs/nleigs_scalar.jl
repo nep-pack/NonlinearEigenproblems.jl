@@ -2,7 +2,7 @@
 # A(λ) = 0.2*sqrt(λ) - 0.6*sin(2*λ) with both a polynomial
 # and fully rational approach
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 

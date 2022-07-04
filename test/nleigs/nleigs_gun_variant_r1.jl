@@ -1,6 +1,6 @@
 # Gun: variant R1 (fully rational case; only repeated nodes)
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 
