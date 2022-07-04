@@ -168,7 +168,7 @@ end
                 A[j+1]=rand(n,n)
             end
             nep=PEP(A)
-            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*1000,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end

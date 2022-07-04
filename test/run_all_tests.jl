@@ -12,7 +12,6 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "deflation2.jl", # under development
     "infbilanczos.jl",
     "wep_small.jl", # Due to changes in gmres
-    "iar_chebyshev.jl", # no convergence
     "runtests.jl",
     "NonlinearEigenproblemsTest.jl"
 ]))
