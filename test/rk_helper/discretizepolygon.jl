@@ -1,4 +1,4 @@
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using Test
 using NonlinearEigenproblems.RKHelper
 
