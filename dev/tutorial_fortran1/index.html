@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 8 (FORTRAN) · NEP-PACK</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">NEP-PACK</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../methods/">NEP-Solvers</a></li><li><a class="tocitem" href="../types/">Types &amp; Data structures</a></li><li><a class="tocitem" href="../compute_functions/">Compute functions</a></li><li><a class="tocitem" href="../linsolvers/">Linear solvers</a></li><li><a class="tocitem" href="../innersolvers/">Projection</a></li><li><a class="tocitem" href="../errmeasure/">Measuring the error</a></li><li><a class="tocitem" href="../logger/">Logger</a></li><li><a class="tocitem" href="../transformations/">Transformations</a></li><li><a class="tocitem" href="../deflation/">Deflation</a></li><li><a class="tocitem" href="../gallery/">Gallery</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../movebc_tutorial/">Tutorial 1 (ABC)</a></li><li><a class="tocitem" href="../tutorial_contour/">Tutorial 2 (Contour)</a></li><li><a class="tocitem" href="../bemtutorial/">Tutorial 3 (BEM)</a></li><li><a class="tocitem" href="../deflate_tutorial/">Tutorial 4 (Deflation)</a></li><li><a class="tocitem" href="../tutorial_call_python/">Tutorial 5 (Python 1)</a></li><li><a class="tocitem" href="../tutorial_python_call/">Tutorial 6 (Python 2)</a></li><li><a class="tocitem" href="../tutorial_matlab1/">Tutorial 7 (MATLAB)</a></li><li class="is-active"><a class="tocitem" href>Tutorial 8 (FORTRAN)</a><ul class="internal"><li><a class="tocitem" href="#A-problem-defined-in-fortran"><span>A problem defined in fortran</span></a></li><li><a class="tocitem" href="#Compile-and-call-the-code"><span>Compile and call the code</span></a></li><li><a class="tocitem" href="#Implementation-in-NEP-PACK:-basic-usage"><span>Implementation in NEP-PACK: basic usage</span></a></li><li><a class="tocitem" href="#Implementation-in-NEP-PACK:-basic-usage,-no-derivatives"><span>Implementation in NEP-PACK: basic usage, no derivatives</span></a></li><li><a class="tocitem" href="#Implementation-in-NEP-PACK:-advanced-usage"><span>Implementation in NEP-PACK: advanced usage</span></a></li></ul></li><li><a class="tocitem" href="../tutorial_nano1/">Tutorial 9 (gmsh + nanophotonics)</a></li><li><a class="tocitem" href="../tutorial_newmethod/">Tutorial 10 (New solver)</a></li><li><a class="tocitem" href="../tutorial_linsolve/">Tutorial 11 (Linear solvers)</a></li><li><a class="tocitem" href="../hydrotutorial/">Tutorial 12 (Orr–Somerfeld)</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Tutorial 8 (FORTRAN)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial 8 (FORTRAN)</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/tutorial_fortran1.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial:-Solving-a-NEP-defined-in-fortran"><a class="docs-heading-anchor" href="#Tutorial:-Solving-a-NEP-defined-in-fortran">Tutorial: Solving a NEP defined in fortran</a><a id="Tutorial:-Solving-a-NEP-defined-in-fortran-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial:-Solving-a-NEP-defined-in-fortran" title="Permalink"></a></h1><h2 id="A-problem-defined-in-fortran"><a class="docs-heading-anchor" href="#A-problem-defined-in-fortran">A problem defined in fortran</a><a id="A-problem-defined-in-fortran-1"></a><a class="docs-heading-anchor-permalink" href="#A-problem-defined-in-fortran" title="Permalink"></a></h2><p>A situation may arise where you  have to (or have the opportunity to) work with fortran code. This is not as uncommon as many think, often due to the legacy software in many engineering disciplines. The Julia language is designed with interoperability in mind. Don&#39;t let some fortran code scare you. The following tutorial illustrates interoperability in Julia and how to use it in NEP-PACK.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>To work with NEPs defined in fortran you need to compile your fortran code. This tutorial is written for Ubuntu Linux and <a href="https://gcc.gnu.org/wiki/GFortran">GNU fortran</a>. However, the procedure is very similiar with other operating systems and compilers.</p></div></div><p>We assume our NEP is defined in fortran code and defines the problem</p><p class="math-container">\[M(\lambda)=A_0+\lambda^3e_ne_1^T-\exp(\lambda)e_1e_n^T.\]</p><p>where <span>$A_0$</span> is a finite difference approximation of a scaled Laplacian matrix. The problem can be naturally represented in sparse format, which we will also take advantage of.</p><p>The fortran implementation of the problem is given in the following subroutine which computes three vectors <code>I</code>, <code>J</code> and <code>F</code>, where <code>I</code> and <code>J</code> correspond to row and column pointers and <code>F</code> the value of the sparse matrix. The variable <code>s</code> is <span>$λ$</span>, i.e., the evaluation point. The input <code>der</code> determines which derivative of <span>$M(λ)$</span> should be computed.</p><div class="admonition is-success"><header class="admonition-header">Tip</header><div class="admonition-body"><p>Later in this tutorial we look at what can be done if the <a href="#Implementation-in-NEP-PACK:-basic-usage,-no-derivatives-1">derivatives are not easily available</a>.</p></div></div><p>This is the implementation which we put in <code>myproblem.f95</code>:</p><pre><code class="language-fortran hljs">subroutine mder(s,n,der,I,J,F)
+  real*8, intent(in) :: s
+  integer*8, intent(in) :: n
+  integer*8, intent(in) :: der
+  integer*8, intent(out), dimension(3*n):: I
+  integer*8, intent(out), dimension(3*n):: J
+  real*8, intent(out), dimension(3*n):: F
+  integer*8 :: p
+  real*8 :: factor
+  if (der==0) then
+     factor=1;
+  else
+     factor=0;
+  end if
+  do p = 1, n
+     I(p) = p
+     J(p) = p
+     F(p) = 2.0*factor;
+  end do
+  do p = 1, n-1
+     I(n+p) = p
+     J(n+p) = p+1
+     F(n+p) = -1.0*factor;
+     I(2*n+p) = p+1
+     J(2*n+p) = p
+     F(2*n+p) = -1.0*factor;
+  end do
+  I(2*n)=n;
+  J(2*n)=1;
+  if (der == 0) then
+     F(2*n)=s*s*s;
+  else if (der == 1) then
+     F(2*n)=3*s*s;
+  else if (der == 2) then
+     F(2*n)=3*2*s;
+  else if (der == 3) then
+     F(2*n)=3*2;
+  else
+     F(2*n)=0;
+  end if
+  I(3*n)=1;
+  J(3*n)=n;
+  F(3*n)=-exp(s);
+end subroutine mder</code></pre><h2 id="Compile-and-call-the-code"><a class="docs-heading-anchor" href="#Compile-and-call-the-code">Compile and call the code</a><a id="Compile-and-call-the-code-1"></a><a class="docs-heading-anchor-permalink" href="#Compile-and-call-the-code" title="Permalink"></a></h2><p>Compile the code to a shared object file with the command <code>gfortran</code>:</p><pre><code class="language-bash hljs">$ gfortran -shared -fPIC -o myproblem.so myproblem.f95</code></pre><p>(Under the Windows OS, you would want to compile the code to a dll-file.) In Julia, you can now call this routine using the <a href="https://docs.julialang.org/en/v1/stdlib/Libdl/"><code>Libdl</code></a> package:</p><pre><code class="language-julia hljs">using NonlinearEigenproblems, Libdl;
+mylib=Libdl.dlopen(&quot;./myproblem.so&quot;);
+λ=0.3;
+der=0;
+n=3; # Problem size
+I=Vector{Int}(undef,3*n); # 3*n nnz elements in matrix
+J=Vector{Int}(undef,3*n); # 3*n nnz elements in matrix
+F=Vector{Float64}(undef,3*n); # 3*n nnz elements in matrix
+# This is the call to the fortran code
+# Note that :mder_ is a reference to a fortran subroutine:
+# it must be lower-case and  a _ should be appended
+ccall(Libdl.dlsym(mylib,:mder_), Nothing,
+   (Ref{Float64}, Ref{Int},Ref{Int},  Ptr{Int}, Ptr{Int}, Ptr{Float64}),
+   λ, n, der, I, J, F)</code></pre><p>The above code sets vectors <code>I</code>, <code>J</code> and <code>F</code> such that they represent a sparse matrix. The sparse matrix can be constructed with the <code>sparse</code> command:</p><pre><code class="language-julia-repl hljs">julia&gt; using SparseArrays
+julia&gt; A=sparse(I,J,F)
+3×3 SparseMatrixCSC{Float64,Int64} with 9 stored entries:
+  [1, 1]  =  2.0
+  [2, 1]  =  -1.0
+  [3, 1]  =  0.027
+  [1, 2]  =  -1.0
+  [2, 2]  =  2.0
+  [3, 2]  =  -1.0
+  [1, 3]  =  -1.34986
+  [2, 3]  =  -1.0
+  [3, 3]  =  2.0
+julia&gt; Matrix(A)
+3×3 Array{Float64,2}:
+  2.0    -1.0  -1.34986
+ -1.0     2.0  -1.0
+  0.027  -1.0   2.0</code></pre><h2 id="Implementation-in-NEP-PACK:-basic-usage"><a class="docs-heading-anchor" href="#Implementation-in-NEP-PACK:-basic-usage">Implementation in NEP-PACK: basic usage</a><a id="Implementation-in-NEP-PACK:-basic-usage-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-in-NEP-PACK:-basic-usage" title="Permalink"></a></h2><p>We saw above how to compute a derivative matrix with a fortran call. This is sufficient to define a NEP-object in NEP-PACK using the <a href="../compute_functions/#NonlinearEigenproblems.NEPTypes.Mder_NEP"><code>Mder_NEP</code></a> type.</p><pre><code class="language-julia hljs">n=100;
+# A function which allocates vectors and calls fortran,
+# and returns a sparse matrix
+function my_Mder(λ::Float64,der::Int=0)
+  # Index vectors: Length 3*n since we have 3n nnz elements in matrix
+  I=Vector{Int}(undef,3*n);
+  J=Vector{Int}(undef,3*n);
+  F=Vector{Float64}(undef,3*n);
+  ccall(Libdl.dlsym(mylib,:mder_), Nothing,
+     (Ref{Float64}, Ref{Int},Ref{Int},  Ptr{Int}, Ptr{Int}, Ptr{Float64}),
+     λ, n, der, I, J, F)
+  return sparse(I,J,F);
+end
+nep=Mder_NEP(n,my_Mder);</code></pre><p>With the NEP defined, we can use, e.g., <a href="../methods/#NonlinearEigenproblems.NEPSolver.quasinewton"><code>quasinewton</code></a>, to solve it:</p><pre><code class="language-julia-repl hljs">julia&gt; quasinewton(Float64,nep,λ=-1.8,v=ones(n), logger=1);
+Precomputing linsolver
+Iteration:  1 errmeasure:4.903565024143569095e-01, λ=-1.8
+Iteration:  2 errmeasure:8.776860766232853772e-02, λ=-1.3816406142423465
+Iteration:  3 errmeasure:6.109070850428219984e-02, λ=-2.0060080798679913
+...
+Iteration: 11 errmeasure:5.305001776886219717e-12, λ=-1.7940561686588974
+Iteration: 12 errmeasure:2.895637837297152945e-14, λ=-1.7940561686787597
+Iteration: 13 errmeasure:3.874312247075750238e-16, λ=-1.7940561686786516</code></pre><h2 id="Implementation-in-NEP-PACK:-basic-usage,-no-derivatives"><a class="docs-heading-anchor" href="#Implementation-in-NEP-PACK:-basic-usage,-no-derivatives">Implementation in NEP-PACK: basic usage, no derivatives</a><a id="Implementation-in-NEP-PACK:-basic-usage,-no-derivatives-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-in-NEP-PACK:-basic-usage,-no-derivatives" title="Permalink"></a></h2><p>In the above example, all the derivatives of <span>$M(λ)$</span> were easy to compute by hand and made available in the fortran subroutine. In many applications, the nonlinearity is not so simple, and its derivatives may require man-hours to analyze and implement, or may be very computationally expensive.</p><p>Most NEP-algorithms in NEP-PACK do require the derivative (except for certain versions of <a href="../methods/#NonlinearEigenproblems.NEPSolver.nleigs"><code>nleigs</code></a>, <a href="../methods/#NonlinearEigenproblems.NEPSolver.broyden"><code>broyden</code></a>, <a href="../methods/#NonlinearEigenproblems.NEPSolver.contour_beyn"><code>contour_beyn</code></a>, <a href="../methods/#NonlinearEigenproblems.NEPSolver.contour_block_SS"><code>contour_block_SS</code></a>, and <a href="../methods/#NonlinearEigenproblems.NEPSolver.sgiter"><code>sgiter</code></a>). However, many NEP-algorithms do not require a very accurate derivative. We now show how you can make a numerical approximation of the derivative available, if you do not want to compute the exact derivative. The example below uses finite differences, but any numerical differentiation procedure may be used. (The code does not use derivatives in <code>mder</code>, since all calls are done with <code>der=0</code>.)</p><pre><code class="language-julia hljs">n=100;
+function my_Mder_FD(λ::Float64,der::Int=0)
+  if (der&gt;1)
+   error(&quot;Higher derivatives not supported&quot;);
+  end
+  # 3*n nnz elements in matrix
+  I=Vector{Int}(undef,3*n);
+  J=Vector{Int}(undef,3*n);
+  F1=Vector{Float64}(undef,3*n);
+  ccall(Libdl.dlsym(mylib,:mder_), Nothing,
+     (Ref{Float64}, Ref{Int},Ref{Int},  Ptr{Int}, Ptr{Int}, Ptr{Float64}),
+     λ, n, 0, I, J, F1)
+  if (der==0)
+     return sparse(I,J,F1);
+  end
+
+  if (der==1)
+     # Make another fortran call to make a finite difference approximation
+     ee=sqrt(eps());
+     F2=Vector{Float64}(undef,3*n);
+     ccall(Libdl.dlsym(mylib,:mder_), Nothing,
+          (Ref{Float64}, Ref{Int},Ref{Int},  Ptr{Int}, Ptr{Int}, Ptr{Float64}),
+          λ-ee, n, 0, I, J, F2)
+     # We exploit the fact that the sparsity pattern is independent of λ
+     Fder=(F1-F2)/ee;
+     return sparse(I,J,Fder);
+  end
+end</code></pre><p>Create the NEP and call a solver, in this case <a href="../methods/#NonlinearEigenproblems.NEPSolver.mslp"><code>MSLP</code></a>.</p><pre><code class="language-julia hljs">julia&gt; nep=Mder_NEP(n,my_Mder_FD,maxder=1);
+julia&gt; mslp(Float64,nep,λ=-1.8,logger=1);
+iter 1 err:5.14547949525844e-6 λ=-1.7941228234498503
+iter 2 err:6.60477516490422e-10 λ=-1.7940561772509709
+iter 3 err:5.617933513637005e-16 λ=-1.794056168678654</code></pre><h2 id="Implementation-in-NEP-PACK:-advanced-usage"><a class="docs-heading-anchor" href="#Implementation-in-NEP-PACK:-advanced-usage">Implementation in NEP-PACK: advanced usage</a><a id="Implementation-in-NEP-PACK:-advanced-usage-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-in-NEP-PACK:-advanced-usage" title="Permalink"></a></h2><p>The above procedure requires that sparse matrices are created every time the NEP is accessed. This may be computationally demanding. A common call in NEP-PACK, is to compute the matrix vector product <span>$M(λ)*v$</span>. If the creation of the matrix <span>$M(λ)$</span> requires considerable computation or storage, you may want to implement the function which directly computes the matrix vector product. This is made available to the NEP-PACK object as follows.</p><p>Add the following to your <code>myproblem.f95</code>:</p><pre><code class="language-fortran hljs">subroutine matvec(s,n,v,x)
+  real*8, intent(in) :: s
+  integer*8, intent(in) :: n
+  real*8, intent(in), dimension(n):: v
+  real*8, intent(out), dimension(n):: x
+  integer*8 :: p
+  do p = 1, n
+      x(p)=2*v(p)
+  end do
+  do p = 1, n-1
+      x(p)= x(p) - v(p+1)
+      x(p+1)= x(p+1) - v(p)
+  end do
+  x(n)=x(n)+v(1)*s*s*s;
+  x(1)=x(1)-v(n)*exp(s);
+end subroutine matvec</code></pre><p>After recompilation of the library file <code>myproblem.so</code>, restarting Julia, and loading again <code>myproblem.so</code>, we can make a matvec function available.</p><pre><code class="language-julia hljs">function my_matvec(λ,v)
+   v=vec(v);  # It has to be a vector
+   x=copy(v); # Allocate a vector for storage of result
+   ccall(Libdl.dlsym(mylib,:matvec_), Nothing,
+      (Ref{Float64}, Ref{Int}, Ptr{Float64},  Ptr{Float64}),
+      λ, n, v, x)
+   return x;
+end</code></pre><p>We can now create a <a href="../compute_functions/#NonlinearEigenproblems.NEPTypes.Mder_Mlincomb_NEP"><code>Mder_Mlincomb_NEP</code></a> which is defined from both matrix derivative computations as well as matrix vector products (or a linear combinations of derivatives).</p><pre><code class="language-julia-repl hljs">julia&gt; nep2=Mder_Mlincomb_NEP(n,my_Mder,1,my_matvec,0);</code></pre><p>The <code>1</code> and <code>0</code> specify the highest derivative available for the two functions. We can now solve the NEP with many methods, e.g. <a href="../methods/#NonlinearEigenproblems.NEPSolver.resinv"><code>resinv</code></a>.</p><pre><code class="language-julia-repl hljs">julia&gt; resinv(Float64,nep2,λ=-1.8,v=ones(n),logger=1);
+Precomputing linsolver
+iter 1 err:0.4903565024143571 λ=-1.8
+iter 2 err:0.11453605256493624 λ=-1.1926857650225988
+...
+iter 7 err:5.834331567428063e-13 λ=-1.7940561686808254
+iter 8 err:2.989922602862964e-15 λ=-1.794056168678641</code></pre><p>When using NEP-solvers requiring higher derivatives, the above procedure can also be used to compute linear combinations of higher derivatives by implementing a <a href="../compute_functions/#NonlinearEigenproblems.NEPCore.compute_Mlincomb"><code>compute_Mlincomb</code></a> which takes a matrix as input.</p><p><img src="http://jarlebring.se/onepixel.png?NEPPACKDOC_FORTRAN1" alt="To the top"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_matlab1/">« Tutorial 7 (MATLAB)</a><a class="docs-footer-nextpage" href="../tutorial_nano1/">Tutorial 9 (gmsh + nanophotonics) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Monday 4 July 2022 17:52">Monday 4 July 2022</span>. Using Julia version 1.6.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
