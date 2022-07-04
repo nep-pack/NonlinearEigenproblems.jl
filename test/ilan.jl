@@ -18,7 +18,7 @@ using SparseArrays
         nep=DEP([A1,A2,A3],[0,1,0.8])
         v0=rand(n)
         λ,W=ilan(nep,σ=0,γ=1;neigs=Inf,logger=0,maxit=30,tol=eps()*100,check_error_every=Inf,v=v0,errmeasure=ResidualErrmeasure(nep),inner_solver_method=NEPSolver.IARInnerSolver(tol=1e2,maxit=50))
-        verify_lambdas(3, nep, λ, W, eps()*100)
+        verify_lambdas(7, nep, λ, W, eps()*100)
     end
 
     @testset "Compute eigenpairs via Ritz extraction" begin

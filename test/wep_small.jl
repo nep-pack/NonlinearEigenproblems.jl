@@ -63,17 +63,17 @@ import GalleryWaveguide.SchurMatVec
 
     @bench @testset "NEP solvers" begin
         @info "WEP NEP solvers"
-        λ,v = quasinewton(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
-                          errmeasure=myerrmeasure,tol=1e-12,
-                          linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
-                          );
-        @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
-
-        nev=3
-        λ,v = iar(ComplexF64,nep,σ=λ0, logger=displaylevel,neigs=nev,maxit=100,v=v0,
-                  tol=1e-8, linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
-                  );
-        @test minimum(abs.(λref .- λ)) < 1e-10
+#        λ,v = quasinewton(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
+#                          errmeasure=myerrmeasure,tol=1e-12,
+#                          linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
+#                          );
+#        @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
+#
+#        nev=3
+#        λ,v = iar(ComplexF64,nep,σ=λ0, logger=displaylevel,neigs=nev,maxit=100,v=v0,
+#                  tol=1e-8, linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
+#                  );
+#        @test minimum(abs.(λref .- λ)) < 1e-10
     end
 
 
