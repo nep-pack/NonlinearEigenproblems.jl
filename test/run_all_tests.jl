@@ -25,8 +25,7 @@ function run_all_tests(test_name_regex = "")
             if occursin(Regex(test_name_regex), file) && is_test_script(dir, file) && !in(uppercase(file), tests_not_to_run)]
 
 
-        @show tests_to_run # CI testing
-        for i = 1:10 #length(tests_to_run)
+        for i = 1:length(tests_to_run)
             file = tests_to_run[i]
             test_name = replace(file, Regex("$root/?(.+).jl\$", "i") => s"\1")
             @printf("Running test %s (%d / %d)\n", test_name, i, length(tests_to_run))
