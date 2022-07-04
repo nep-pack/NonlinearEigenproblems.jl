@@ -15,6 +15,8 @@ Pkg.instantiate();
 displaylevel = 1
 set_displaylevel(level) = global displaylevel = level
 
+set_displaylevel(0) # Make it less talkative for CI output
+
 benchmark_duration_seconds = 1.0
 set_benchmark_duration_seconds(duration) = global benchmark_duration_seconds = duration
 
