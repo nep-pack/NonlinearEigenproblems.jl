@@ -13,7 +13,7 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "infbilanczos.jl",
     "wep_small.jl", # Due to changes in gmres
     "iar_chebyshev.jl", # no convergence
-    "iar.jl", # Custom orthogonalization fails
+    "tiar.jl", # Custom orthogonalization fails
     "runtests.jl"
 ]))
 
