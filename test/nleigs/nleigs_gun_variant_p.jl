@@ -14,7 +14,7 @@ include(joinpath("..", "rk_helper", "gun_test_utils.jl"))
     # solve nlep
     lambda, X, res, solution_info = nleigs(nep, Σ, logger=verbose > 0 ? 1 : 0, maxit=100, v=v, leja=0, nodes=nodes, reusefact=2, errmeasure=funres, return_details=verbose > 1)
 
-    verify_lambdas(17, nep, lambda, X)
+    verify_lambdas(18, nep, lambda, X)
 
     if verbose > 1
         include("nleigs_residual_plot.jl")
