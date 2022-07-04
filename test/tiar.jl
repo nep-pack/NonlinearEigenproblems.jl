@@ -6,7 +6,7 @@ using IterativeSolvers
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
     h[:]=VV'*vv; vv[:]=vv-VV*h; g=VV'*vv; vv[:]=vv-VV*g;
-    h[] = h[]+g[]; β=norm(vv); vv[:]=vv/β; return β
+    h[:] = h+g; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
 struct DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
