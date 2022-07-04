@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 10 (New solver) · NEP-PACK</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">NEP-PACK</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../methods/">NEP-Solvers</a></li><li><a class="tocitem" href="../types/">Types &amp; Data structures</a></li><li><a class="tocitem" href="../compute_functions/">Compute functions</a></li><li><a class="tocitem" href="../linsolvers/">Linear solvers</a></li><li><a class="tocitem" href="../innersolvers/">Projection</a></li><li><a class="tocitem" href="../errmeasure/">Measuring the error</a></li><li><a class="tocitem" href="../logger/">Logger</a></li><li><a class="tocitem" href="../transformations/">Transformations</a></li><li><a class="tocitem" href="../deflation/">Deflation</a></li><li><a class="tocitem" href="../gallery/">Gallery</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../movebc_tutorial/">Tutorial 1 (ABC)</a></li><li><a class="tocitem" href="../tutorial_contour/">Tutorial 2 (Contour)</a></li><li><a class="tocitem" href="../bemtutorial/">Tutorial 3 (BEM)</a></li><li><a class="tocitem" href="../deflate_tutorial/">Tutorial 4 (Deflation)</a></li><li><a class="tocitem" href="../tutorial_call_python/">Tutorial 5 (Python 1)</a></li><li><a class="tocitem" href="../tutorial_python_call/">Tutorial 6 (Python 2)</a></li><li><a class="tocitem" href="../tutorial_matlab1/">Tutorial 7 (MATLAB)</a></li><li><a class="tocitem" href="../tutorial_fortran1/">Tutorial 8 (FORTRAN)</a></li><li><a class="tocitem" href="../tutorial_nano1/">Tutorial 9 (gmsh + nanophotonics)</a></li><li class="is-active"><a class="tocitem" href>Tutorial 10 (New solver)</a><ul class="internal"><li><a class="tocitem" href="#Halley&#39;s-method"><span>Halley&#39;s method</span></a></li><li><a class="tocitem" href="#Implementation-in-NEP-PACK-(preliminary-version)"><span>Implementation in NEP-PACK (preliminary version)</span></a></li><li><a class="tocitem" href="#Implementation-in-NEP-PACK-(full-version)"><span>Implementation in NEP-PACK (full version)</span></a></li></ul></li><li><a class="tocitem" href="../tutorial_linsolve/">Tutorial 11 (Linear solvers)</a></li><li><a class="tocitem" href="../hydrotutorial/">Tutorial 12 (Orr–Somerfeld)</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Tutorial 10 (New solver)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial 10 (New solver)</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/tutorial_newmethod.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial:-Implementing-your-own-method"><a class="docs-heading-anchor" href="#Tutorial:-Implementing-your-own-method">Tutorial: Implementing your own method</a><a id="Tutorial:-Implementing-your-own-method-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial:-Implementing-your-own-method" title="Permalink"></a></h1><p>Although we try to provide state-of-the-art algorithms in NEP-PACK, you may want to implement a solver which is not available in NEP-PACK. By using the NEP-PACK data types and structures when you implement your solver, you can make your life easier in several ways. You do not need to know the internals of NEP-PACK. Correct usage will give you access to many applications, helper functionality to combine with, and you will have to possibility to compare your method with other solvers. We now illustrate how to implement your own NEP-solver.</p><h2 id="Halley&#39;s-method"><a class="docs-heading-anchor" href="#Halley&#39;s-method">Halley&#39;s method</a><a id="Halley&#39;s-method-1"></a><a class="docs-heading-anchor-permalink" href="#Halley&#39;s-method" title="Permalink"></a></h2><p><a href="https://en.wikipedia.org/wiki/Halley%27s_method">Halley&#39;s method for root-finding of nonlinear scalar equations</a> has fast local convergence - even faster than Newton&#39;s method in terms convergence order, and often faster in terms of number of iterations. A NEP can be formulated as a root-finding problem since a solution will always satisfy</p><p class="math-container">\[f(λ)=\det(M(λ))=0\]</p><p>The application of Halley&#39;s method to this nonlinear scalar equation will serve as an example solver, although it does, to our knowledge, not lead to a competitive algorithm. Halley&#39;s method for the root-finding problem is defined by the iteration</p><p class="math-container">\[λ_{k+1}=λ_k-\frac{2f(λ_k)f&#39;(λ_k)}{2(f&#39;(λ_k))^2-f(λ_k)f&#39;&#39;(λ_k)}\]</p><p>There are formulas for the derivatives of the determinant, we will here for simplicity just use finite difference approximation to estimate the derivatives, i.e.,</p><p class="math-container">\[ f&#39;(λ)\approx \frac{f(λ+δ)-f(λ-δ)}{2δ}\]</p><p class="math-container">\[ f&#39;&#39;(λ)\approx \frac{f(λ+δ)-2f(λ)+f(λ-δ)}{δ^2}\]</p><h2 id="Implementation-in-NEP-PACK-(preliminary-version)"><a class="docs-heading-anchor" href="#Implementation-in-NEP-PACK-(preliminary-version)">Implementation in NEP-PACK (preliminary version)</a><a id="Implementation-in-NEP-PACK-(preliminary-version)-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-in-NEP-PACK-(preliminary-version)" title="Permalink"></a></h2><p>Let us first define our solver function and introduce the function whose roots we wish to find. The matrix <span>$M(λ)$</span> is obtained by a call to the <a href="../compute_functions/#NonlinearEigenproblems.NEPCore.compute_Mder"><code>compute_Mder</code></a>-function.</p><pre><code class="language-julia hljs">using NonlinearEigenproblems
+function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,tol=eps()*100)
+   f=s-&gt; det(compute_Mder(nep,s)); # The objective function
+   # More code here
+end</code></pre><p>The main loop (which should go in <code># More code here</code>) can be implemented, in a way that does not involve many function evaluations, as follows:</p><pre><code class="language-julia hljs">   for i=1:maxit
+       fλ=f(λ)
+       fλp=f(λ+δ)
+       fλm=f(λ-δ)
+       fp=(fλp-fλm)/(2δ)
+       fpp=(fλp-2*fλ+fλm)/(δ^2)
+       Δλ=2*fλ*fp/(2*fp^2-fλ*fpp);
+       λ=λ-Δλ;
+       @show (i,λ)
+       if (abs(Δλ)&lt;tol)
+          return λ
+       end
+   end</code></pre><p>Let us now test the code on a benchmark problem:</p><pre><code class="language-julia hljs">julia&gt; nep=nep_gallery(&quot;dep0&quot;);
+julia&gt; λ=halley(nep)
+(i, λ) = (1, -0.13876571372157542)
+(i, λ) = (2,  0.15938372556136426)
+(i, λ) = (3, -0.15955391446207692)
+(i, λ) = (4, -0.15955391823299248)</code></pre><p>Clearly, the algorithm terminates after 4 iterations. We can verify that this is actually a solution easily if we also have an approximate eigenvector. An eigenvector can be computed/estimated by essentially one step of inverse iteration, on the matrix <span>$M(λ)$</span>:</p><pre><code class="language-julia hljs">julia&gt; x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
+5-element Array{Float64,1}:
+  0.14358324743994907 
+  0.9731847884093298  
+ -0.12527093093249475 
+  0.031821422867456914
+  0.12485915894832478 </code></pre><p>The residual norm  <span>$||M(λ)x||$</span> does indeed become almost zero so it seems we have a solution:</p><pre><code class="language-julia hljs">julia&gt; norm(compute_Mlincomb(nep,λ,x))
+7.093661646042283e-16</code></pre><h2 id="Implementation-in-NEP-PACK-(full-version)"><a class="docs-heading-anchor" href="#Implementation-in-NEP-PACK-(full-version)">Implementation in NEP-PACK (full version)</a><a id="Implementation-in-NEP-PACK-(full-version)-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-in-NEP-PACK-(full-version)" title="Permalink"></a></h2><p>In the following we illustrate a more advanced usage of the NEP-PACK method development: NEP-PACKs logging facility  and error estimation. See <a href="../logger/"><code>Logger</code></a> and <a href="../errmeasure/"><code>Errmeasure</code></a>. This gives access to other ways to measure error as well as a logging and  inspection of error history in a way that is the same for all solvers and simplifies comparisons.</p><pre><code class="language-julia hljs">using NonlinearEigenproblems, LinearAlgebra, Plots
+function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
+                tol=eps()*100,logger=0,
+                errmeasure = DefaultErrmeasure(nep))
+    # Setup the logger.
+    @parse_logger_param!(logger);
+
+    n=size(nep,1);
+    f=s-&gt; det(compute_Mder(nep,s)); # The objective function
+
+
+    for i=1:maxit
+        fλ=f(λ)
+        fλp=f(λ+δ)
+        fλm=f(λ-δ)
+        fp=(fλp-fλm)/(2δ)
+        fpp=(fλp-2*fλ+fλm)/(δ^2)
+        Δλ=2*fλ*fp/(2*fp^2-fλ*fpp);
+        λ=λ-Δλ;
+        # Compute an eigenvector. This will not work if the
+        # eigenvector is orthogonal to ones(n)
+        x=normalize(compute_Mder(nep,λ)\ones(n));
+        err=estimate_error(errmeasure,λ,x)  # Estimate the error
+        push_iteration_info!(logger,i; λ=λ,err=err) # Put it into the log
+        if (err&lt;tol)
+            return (λ,x)
+        end
+    end
+end</code></pre><p>We can now run our new method using  with a <code>logger=1</code> keyword argument so we get the standardized output of iteration info:</p><pre><code class="language-julia-repl hljs">julia&gt; (λ,x)=halley(nep,logger=1);
+iter 1 err:0.010384216303530201 λ=-0.13876571372157542
+iter 2 err:8.082978338039669e-5 λ=-0.15938372556136426
+iter 3 err:1.7901681647471861e-9 λ=-0.15955391446207692
+iter 4 err:1.0389976569127096e-16 λ=-0.15955391823299248
+julia&gt; norm(compute_Mlincomb(nep,λ,x))
+7.093661646042283e-16</code></pre><p>The use of the NEP-PACK logging functionality makes it very easy to visualize the error. If you now want to plot the error history, you can use the <a href="../logger/#NonlinearEigenproblems.NEPCore.ErrorLogger"><code>ErrorLogger</code></a>:</p><pre><code class="language-julia-repl hljs">julia&gt; mylogger=ErrorLogger()
+julia&gt; (λ,x)=halley(nep,logger=mylogger);
+julia&gt; plot(mylogger.errs[1:10,1],yaxis=:log)</code></pre><p>We clearly observe the superlinear convergence:</p><pre><code class="language- hljs">using PyPlot # hide
+clf(); # hide
+z=[ 0.08492602120772309   # hide
+        0.07450867012944977 # hide
+        0.032639292900081246 # hide
+        0.00281602165251169 # hide
+        1.1025990567599428e-5 # hide
+        1.0638098128402615e-10 # hide
+        4.942402279980973e-17 # hide
+       ]; # hide
+semilogy(z) # hide
+grid() # hide
+savefig(&quot;newmethod_convergence.svg&quot;); nothing # hide</code></pre><p><img src="newmethod_convergence.svg" alt/></p><p><img src="http://jarlebring.se/onepixel.png?NEPPACKDOC_NEWMETHOD" alt="To the top"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../tutorial_nano1/">« Tutorial 9 (gmsh + nanophotonics)</a><a class="docs-footer-nextpage" href="../tutorial_linsolve/">Tutorial 11 (Linear solvers) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Monday 4 July 2022 15:06">Monday 4 July 2022</span>. Using Julia version 1.6.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial 1 (ABC) · NEP-PACK</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">NEP-PACK</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../methods/">NEP-Solvers</a></li><li><a class="tocitem" href="../types/">Types &amp; Data structures</a></li><li><a class="tocitem" href="../compute_functions/">Compute functions</a></li><li><a class="tocitem" href="../linsolvers/">Linear solvers</a></li><li><a class="tocitem" href="../innersolvers/">Projection</a></li><li><a class="tocitem" href="../errmeasure/">Measuring the error</a></li><li><a class="tocitem" href="../logger/">Logger</a></li><li><a class="tocitem" href="../transformations/">Transformations</a></li><li><a class="tocitem" href="../deflation/">Deflation</a></li><li><a class="tocitem" href="../gallery/">Gallery</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li class="is-active"><a class="tocitem" href>Tutorial 1 (ABC)</a><ul class="internal"><li><a class="tocitem" href="#A-Schrödinger-equation"><span>A Schrödinger equation</span></a></li><li><a class="tocitem" href="#Derivation-of-reduced-domain-differential-equation"><span>Derivation of reduced domain differential equation</span></a></li><li><a class="tocitem" href="#Discretization-of-the-λ-dependent-boundary-value-problem"><span>Discretization of the λ-dependent boundary value problem</span></a></li><li><a class="tocitem" href="#Implementation-in-NEP-PACK"><span>Implementation in NEP-PACK</span></a></li><li><a class="tocitem" href="#Verifying-the-solution"><span>Verifying the solution</span></a></li></ul></li><li><a class="tocitem" href="../tutorial_contour/">Tutorial 2 (Contour)</a></li><li><a class="tocitem" href="../bemtutorial/">Tutorial 3 (BEM)</a></li><li><a class="tocitem" href="../deflate_tutorial/">Tutorial 4 (Deflation)</a></li><li><a class="tocitem" href="../tutorial_call_python/">Tutorial 5 (Python 1)</a></li><li><a class="tocitem" href="../tutorial_python_call/">Tutorial 6 (Python 2)</a></li><li><a class="tocitem" href="../tutorial_matlab1/">Tutorial 7 (MATLAB)</a></li><li><a class="tocitem" href="../tutorial_fortran1/">Tutorial 8 (FORTRAN)</a></li><li><a class="tocitem" href="../tutorial_nano1/">Tutorial 9 (gmsh + nanophotonics)</a></li><li><a class="tocitem" href="../tutorial_newmethod/">Tutorial 10 (New solver)</a></li><li><a class="tocitem" href="../tutorial_linsolve/">Tutorial 11 (Linear solvers)</a></li><li><a class="tocitem" href="../hydrotutorial/">Tutorial 12 (Orr–Somerfeld)</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Tutorial 1 (ABC)</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Tutorial 1 (ABC)</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/nep-pack/NonlinearEigenproblems.jl/blob/master/docs/src/movebc_tutorial.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial:-Application-to-absorbing-boundary-conditions"><a class="docs-heading-anchor" href="#Tutorial:-Application-to-absorbing-boundary-conditions">Tutorial: Application to absorbing boundary conditions</a><a id="Tutorial:-Application-to-absorbing-boundary-conditions-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial:-Application-to-absorbing-boundary-conditions" title="Permalink"></a></h1><h2 id="A-Schrödinger-equation"><a class="docs-heading-anchor" href="#A-Schrödinger-equation">A Schrödinger equation</a><a id="A-Schrödinger-equation-1"></a><a class="docs-heading-anchor-permalink" href="#A-Schrödinger-equation" title="Permalink"></a></h2><p>We consider the  Schrödinger type eigenvalue problem on the interval <span>$[0,L_1]$</span>,</p><p class="math-container">\[\begin{eqnarray*}
+ \left(
+ \frac{\partial^2}{\partial x^2}
+-V(x)-\lambda
+\right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_1]\\
+   \psi(0)&amp;=&amp;0\\
+   \psi(L_1)&amp;=&amp;0.
+\end{eqnarray*}\]</p><p>We wish to compute eigenvalue <span>$λ$</span> and eigenfunction <span>$\psi$</span>. Moreover, we assume that the potential function <span>$V(x)$</span> is benign in the domain <span>$[L_0,L_1]$</span>, in our case for simplicity it is constant, such that we can later solve the problem in that domain analytically. In the simulations we will consider this function</p><p class="math-container">\[  V(x)=
+\begin{cases}
+1+\sin(\alpha x)  &amp; x\in[0,L_0]=[0,1]\\
+V_0 &amp; x\in(L_0,L_1)=(1,8)
+\end{cases}\]</p><p>where <span>$α$</span> is large, i.e., the potential has high frequency oscillations in one part of the domain.</p><br>
+<img src="https://user-images.githubusercontent.com/11163595/49676288-62c71080-fa79-11e8-8542-3b7857720473.png" height=300><p>This tutorial illustrates how we can avoid a discretization of the domain <span>$[L_0,L_1]$</span> and only discretize <span>$[0,L_0]$</span>, by solving a NEP. The implementation described below is also directly available in the gallery: <code>nep_gallery(&quot;schrodinger_movebc&quot;)</code>.</p><h2 id="Derivation-of-reduced-domain-differential-equation"><a class="docs-heading-anchor" href="#Derivation-of-reduced-domain-differential-equation">Derivation of reduced domain differential equation</a><a id="Derivation-of-reduced-domain-differential-equation-1"></a><a class="docs-heading-anchor-permalink" href="#Derivation-of-reduced-domain-differential-equation" title="Permalink"></a></h2><p>The technique is based on moving the boundary condition at <span>$L_1$</span> to <span>$L_0$</span>. This can be done without doing any approximation, if we allow the new artificial boundary condition at <span>$L_0$</span> to depend on <span>$λ$</span>. We introduce what is called an <em>absorbing boundary condition</em>, also known as an artificial boundary condition.</p><p>We first note that we can transform the problem to first order form</p><p class="math-container">\[  \frac{d}{dx}
+\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
+=
+\begin{bmatrix}
+0 &amp; 1\\
+\lambda+V(x) &amp; 0
+\end{bmatrix}
+\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}.\]</p><p>The potential <span>$V(x)$</span> is constant in the domain <span>$[L_0,L_1]$</span>. This  allows us to directly express the solution using the matrix exponential</p><p class="math-container">\[\begin{bmatrix}\psi(x)\\\psi&#39;(x)\end{bmatrix}
+=\exp\left((x-L_0)
+\begin{bmatrix}
+0 &amp; 1\\
+\lambda+V_0 &amp; 0
+\end{bmatrix}
+\right)
+\begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</p><p>when <span>$x\in[L_0,L_1]$</span>. The boundary condition <span>$\psi(L_1)=0$</span> can be imposed as</p><p class="math-container">\[0=\psi(L_1)=\begin{bmatrix}1 &amp; 0\end{bmatrix}
+\begin{bmatrix}\psi(L_1)\\\psi&#39;(L_1)\end{bmatrix}
+=\begin{bmatrix}1 &amp; 0\end{bmatrix}\exp\left((L_1-L_0)
+\begin{bmatrix}
+0 &amp; 1\\
+\lambda+V_0 &amp; 0
+\end{bmatrix}
+\right)
+\begin{bmatrix}\psi(L_0)\\\psi&#39;(L_0)\end{bmatrix}.\]</p><p>By explicitly using <a href="https://math.stackexchange.com/q/3030982">the hyperbolic functions formula for the matrix exponential of an antidiagonal two-by-two matrix</a> we obtain the relation</p><p class="math-container">\[0=
+g(λ)\psi(L_0)+
+f(λ)\psi&#39;(L_0).\]</p><p>where</p><p class="math-container">\[g(λ):=\cosh\left((L_1-L_0)\sqrt{λ+V_0}\right)\]</p><p class="math-container">\[f(λ):=\frac{\sinh\left((L_1-L_0)\sqrt{λ+V_0}\right)}{\sqrt{λ+V_0}}.\]</p><p>Note that a solution to the original boundary value problem will satisfy the condition <span>$0=g(λ)\psi(L_0)+f(λ)\psi&#39;(L_0)$</span>, which involves only the point <span>$x=L_0$</span>, i.e., the middle of the domain. We can now disconnect the problem and only consider only the domain <span>$[0,L_0]$</span> by using this condition instead, since a solution to the original boundary value problem satisfies</p><p class="math-container">\[\begin{eqnarray*}
+ \left(
+ \frac{\partial^2}{\partial x^2}
+-V(x)-\lambda
+\right)\psi(x)&amp;=&amp;0,\,\; x\in[0,L_0]\\
+   \psi(0)&amp;=&amp;0\\
+   g(λ)\psi(L_0)+f(λ)\psi&#39;(L_0)&amp;=&amp;0.
+\end{eqnarray*}\]</p><p>which is a boundary value problem on the reduced domain <span>$[0,L_0]$</span>. The boundary condition is a <a href="https://en.wikipedia.org/wiki/Robin_boundary_condition">Robin boundary condition</a> (also called mixed boundary condition) at <span>$x=L_0$</span>, since it contains both <span>$\psi(L_0)$</span> and <span>$\psi&#39;(L_0)$</span>. It can be shown that the solutions to the original problem are the same as the solutions on the reduced domain, except for some unintresting special cases.</p><h2 id="Discretization-of-the-λ-dependent-boundary-value-problem"><a class="docs-heading-anchor" href="#Discretization-of-the-λ-dependent-boundary-value-problem">Discretization of the λ-dependent boundary value problem</a><a id="Discretization-of-the-λ-dependent-boundary-value-problem-1"></a><a class="docs-heading-anchor-permalink" href="#Discretization-of-the-λ-dependent-boundary-value-problem" title="Permalink"></a></h2><p>The boundary condition in the reduced domain boundary value problem is λ-dependent. Therefore a standard discretization the domain <span>$[0,L_0]$</span>, e.g., finite difference, will lead to a nonlinear eigenvalue problem. More precisely, we discretize the problem as follows.</p><p>Let <span>$x_k=hk$</span>, <span>$k=1,\ldots n$</span> and <span>$h=1/n$</span> such that <span>$x_1=h$</span> and <span>$x_n=1=L_0$</span>. An approximation of the <span>$\lambda$</span>-dependent boundary condition can be found with the one-sided second order difference scheme</p><p class="math-container">\[   0=g(λ)\psi(L_0)+f(λ)\frac{1}{h}\left(\frac32 \psi(L_0)
+-2\psi(x_{n-1})
++\frac12\psi(x_{n-2})\right)+O(h^2).\]</p><p>Let</p><p class="math-container">\[  D_n=
+\frac1{h^2}
+\begin{bmatrix}
+-2  &amp; 1 &amp; 0 &amp;\\
+1 &amp; \ddots &amp;1&amp; \\
+0 &amp; 1 &amp;-2 &amp; 1\\
+0 &amp; \cdots &amp; 0 &amp; 0
+\end{bmatrix}\;\textrm{ and }\;
+\underline{I}_n=\begin{bmatrix}1 &amp;\\ &amp;\ddots\\ &amp;&amp;1 \\  &amp; &amp;&amp;0\end{bmatrix}\]</p><p>Then the boundary value problem can expressed as</p><p class="math-container">\[M(λ)v=0\]</p><p>where</p><p class="math-container">\[M(λ)=A-λ\underline{I}_n
++g(λ)e_ne_n^T+f(λ)F,\]</p><p>and</p><p class="math-container">\[A=D_n-\operatorname{diag}(V(x_1),\ldots,V(x_{n-1}),0),\;\;F=\frac{1}{2h}e_ne_{n-2}^T-\frac{2}{h}e_ne_{n-1}^T+\frac{3}{2h}e_ne_n^T.\]</p><h2 id="Implementation-in-NEP-PACK"><a class="docs-heading-anchor" href="#Implementation-in-NEP-PACK">Implementation in NEP-PACK</a><a id="Implementation-in-NEP-PACK-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation-in-NEP-PACK" title="Permalink"></a></h2><p>The above discretization can be expressed as a <a href="../types/#NonlinearEigenproblems.NEPTypes.SPMF_NEP"><code>SPMF_NEP</code></a> with four terms. Let us set up the matrices first</p><pre><code class="language-julia hljs">using LinearAlgebra,SparseArrays;
+L0=1; L1=8; V0=10.0;
+xv=Vector(range(0,stop=L0,length=1000))
+h=xv[2]-xv[1];
+n=size(xv,1);
+α=25*pi/2;
+V=x-&gt;1+sin(α*x);
+Dn=spdiagm(-1 =&gt; [ones(n-2);0]/h^2, 0 =&gt; -2*ones(n-1)/h^2, 1 =&gt; ones(n-1)/h^2)
+Vn=spdiagm(0 =&gt; [V.(xv[1:end-1]);0]);
+A=Dn-Vn;
+In=spdiagm(0 =&gt; [ones(n-1);0])
+F=sparse([n, n, n],[n-2, n-1, n],[1/(2*h), -2/h, 3/(2*h)])
+G=sparse([n],[n],[1]);</code></pre><p>The corresponding functions in the SPMF are defined as follows</p><pre><code class="language-julia hljs">f1=S-&gt;one(S);
+f2=S-&gt;-S;
+hh=S-&gt; sqrt(S+V0*one(S))
+g=S-&gt; cosh((L1-L0)*hh(S))
+f=S-&gt; inv(hh(S))*sinh((L1-L0)*hh(S))</code></pre><p>Note that when defining an SPMF, all functions should be defined in a matrix function sense (not element-wise sence). Fortunately, in Julia, <code>sinh(A)</code> and <code>cosh(A)</code> for matrix <code>A</code> are interpreted as matrix functions. The NEP can now be created and solved by directly invoking the <code>SPMF</code>-creator and applying a NEP-solver:</p><pre><code class="language-julia hljs">using NonlinearEigenproblems
+nep=SPMF_NEP([Dn-Vn,In,G,F],[f1,f2,g,f]);
+(λ1,v1)=quasinewton(Float64,nep,logger=1,λ=-5,v=ones(n),tol=1e-9);
+(λ2,v2)=quasinewton(nep,logger=1,λ=-11,v=ones(n),tol=1e-9)
+(λ3,v3)=quasinewton(nep,logger=1,λ=-20,v=ones(n),tol=1e-9)
+(λ4,v4)=quasinewton(nep,logger=1,λ=-35,v=ones(n),tol=1e-9)</code></pre><p>We can easily do a sanity check of the solution by visualizing it in this way</p><pre><code class="language-julia hljs">using Plots
+plot(xv,v1/norm(v1))
+plot!(xv,real(v2)/norm(v2))
+plot!(xv,real(v3)/norm(v3))
+plot!(xv,real(v4)/norm(v4))</code></pre><p>resulting in</p><br>
+<img src="https://user-images.githubusercontent.com/11163595/49675575-96ed0200-fa76-11e8-8341-b3faef1e800b.png" height=450><p>Rather than making several calls to a specific method, some NEP-solvers directly compute several solutions. The NEP-solver <a href="../methods/#NonlinearEigenproblems.NEPSolver.iar"><code>iar</code></a> works quite well for this problem (see also the <a href="../deflation/">deflation approach</a> to compute several solutions):</p><pre><code class="language-julia-repl hljs">julia&gt; (λ,v)=iar(nep,logger=1,σ=-36,v=ones(n),tol=1e-9,neigs=5,maxit=100);
+-
+--
+---
+----
+-----
+------
+=------
++-------
++--------
++---------
++----------
++-----------
++=-----------
+++------------
+++-------------
+++--------------
+++---------------
+++----------------
++++----------------
+++=-----------------
+++=------------------
++++-------------------
++++--------------------
++++---------------------
++++----------------------
++++-----------------------
++++------------------------
++++-------------------------
++++=-------------------------
++++=--------------------------
+++++---------------------------
+++++----------------------------
+++++-----------------------------
+++++------------------------------
+++++-------------------------------
+++++--------------------------------
+++++=--------------------------------
++++++---------------------------------
+julia&gt; λ
+5-element Array{Complex{Float64},1}:
+  -34.93072323018405 + 4.272712516424266e-18im
+  -39.14039540604307 + 2.054980381709175e-16im
+ -31.057106551809486 - 3.2616991503097867e-15im
+  -43.66198303378091 - 4.3753274496659e-15im
+ -27.537645678335437 + 4.8158177866759774e-15im</code></pre><p>The output of the logging of <code>iar</code> is a compact notation for how many eigenvalues have converged at a specific iteration. Every line corresponds to one iteration step. The signs correspond to: <code>+</code>=a converged eigenvalue, <code>-</code>=not converged eigenvalue, <code>=</code>=almost converged eigenvalue in the sense that it almost (up to a factor 10) satisfies the convergence criteria.</p><div class="admonition is-success"><header class="admonition-header">Tip</header><div class="admonition-body"><p>The performance of many NEP-algorithms for this problem can be improved. One improvement is achieved with a simple variable transformation. If we let <span>$\mu=\sqrt{\lambda+V_0}$</span> we have <span>$\lambda=\mu^2-V_0$</span>. Therefore the NEP can be transformed in a way that it does not contain square roots. Square roots are undesirable, since they can limit convergence in many methods due to the fact that they are not entire functions. The <span>$\sinh$</span> and <span>$\cosh$</span> can be merged to a <span>$\tanh$</span>-expression, leading to less nonlinear terms (but possibly more difficult singularities).</p></div></div><h2 id="Verifying-the-solution"><a class="docs-heading-anchor" href="#Verifying-the-solution">Verifying the solution</a><a id="Verifying-the-solution-1"></a><a class="docs-heading-anchor-permalink" href="#Verifying-the-solution" title="Permalink"></a></h2><p>Let us verify the solution with a direct discretization of the domain. The <a href="https://github.com/JuliaApproximation/ApproxFun.jl"><code>ApproxFun.jl</code></a> package provides tools to solve differential equations in one dimension. We use this package to discretize the entire domain <span>$[0,L_1]$</span>, whereas only a discretization of <span>$[0,L_0]$</span> is necessary in the NEP-approach.</p><p>The eigenvalues of the operator can be computed as follows (where we approximate the singular point of the potential with a regularized heaviside function).</p><pre><code class="language-julia hljs">julia&gt; using LinearAlgebra, ApproxFun;
+julia&gt; x = Fun(0 .. 8)
+julia&gt; V0 = 10;
+julia&gt; α = 25*pi/2;
+julia&gt; # Let Ha be an approximation of H(x-1) where H is a Heaviside function
+julia&gt; kk=10; Ha = 1 ./(1+exp(-2*kk*(x .- 1.0)));
+julia&gt; VV=V0*Ha + (1-Ha) * sin(α*x)
+julia&gt; L = 𝒟^2-VV
+julia&gt; S = space(x)
+julia&gt; B = Dirichlet(S)
+julia&gt; ee= eigvals(B, L, 500,tolerance=1E-10);</code></pre><p>We obtain approximations of the same eigenvalues as with the NEP-approach</p><pre><code class="language-julia hljs">julia&gt; ee[sortperm(abs.(ee.+36))[1:5]]
+ -34.85722089717211
+ -39.051578662445074
+ -30.984470654329677
+ -43.54933251507695
+ -27.450712883781343</code></pre><p><img src="http://jarlebring.se/onepixel.png?NEPPACKDOC_MOVEBC" alt="To the top"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../gallery/">« Gallery</a><a class="docs-footer-nextpage" href="../tutorial_contour/">Tutorial 2 (Contour) »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Monday 4 July 2022 15:06">Monday 4 July 2022</span>. Using Julia version 1.6.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
