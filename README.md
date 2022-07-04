@@ -1,7 +1,7 @@
 # NEP-PACK
 
 [![CI](https://github.com/nep-pack/NonlinearEigenproblems.jl/workflows/CI/badge.svg)](https://github.com/nep-pack/NonlinearEigenproblems.jl/actions?query=workflow%3ACI)
-[![Codecov](https://codecov.io/gh/invenia/NonlinearEigenproblems.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nep-pack/NonlinearEigenproblems.jl)
+[![Codecov](https://codecov.io/gh/nep-pack/NonlinearEigenproblems.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nep-pack/NonlinearEigenproblems.jl)
 
 
 A nonlinear eigenvalue problem is the problem to determine a scalar *λ* and a vector *v* such that
