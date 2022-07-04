@@ -92,11 +92,11 @@ on the matrix ``M(λ)``:
 ```julia
 julia> x=normalize(compute_Mder(nep,λ)\ones(size(nep,1)))
 5-element Array{Float64,1}:
-  0.14358324743994907 
-  0.9731847884093298  
- -0.12527093093249475 
+  0.14358324743994907
+  0.9731847884093298
+ -0.12527093093249475
   0.031821422867456914
-  0.12485915894832478 
+  0.12485915894832478
 ```
 The residual norm  ``||M(λ)x||`` does indeed become almost zero
 so it seems we have a solution:
@@ -112,7 +112,7 @@ usage of the NEP-PACK method development:
 NEP-PACKs logging facility  and error estimation.
 See [`Logger`](logger.md) and [`Errmeasure`](errmeasure.md). This
 gives access
-to other ways to measure error as well as a logging and 
+to other ways to measure error as well as a logging and
 inspection of error history in a way that is
 the same for all solvers and simplifies
 comparisons.
@@ -149,7 +149,7 @@ function halley(nep::NEP;λ=0.0,δ=sqrt(eps()),maxit=100,
 end
 ```
 
-We can now run our new method using 
+We can now run our new method using
 with a `logger=1` keyword argument
 so we get the standardized output of iteration info:
 ```julia-repl
@@ -171,8 +171,7 @@ julia> plot(mylogger.errs[1:10,1],yaxis=:log)
 ```
 We clearly observe the superlinear convergence:
 ```@example
-using PyPlot # hide
-clf(); # hide
+using Gadfly # hide
 z=[ 0.08492602120772309   # hide
         0.07450867012944977 # hide
         0.032639292900081246 # hide
@@ -181,11 +180,7 @@ z=[ 0.08492602120772309   # hide
         1.0638098128402615e-10 # hide
         4.942402279980973e-17 # hide
        ]; # hide
-semilogy(z) # hide
-grid() # hide
-savefig("newmethod_convergence.svg"); nothing # hide
+plot(y=z, Scale.y_log10()) # hide
 ```
-![](newmethod_convergence.svg)
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_NEWMETHOD)
-

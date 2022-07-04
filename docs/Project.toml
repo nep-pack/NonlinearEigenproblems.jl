@@ -2,4 +2,3 @@
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
 NonlinearEigenproblems = "067cfa3b-fa88-53b2-a873-5b23b3a16e31"
-PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"

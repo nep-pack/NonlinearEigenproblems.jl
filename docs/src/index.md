@@ -137,7 +137,7 @@ The figure in a demo of DDE-BIFTOOL <http://ddebiftool.sourceforge.net/demos/neu
 
 ```@setup neuron
 using Gadfly
-set_default_plot_size(14cm, 8cm)
+set_default_plot_size(12cm, 12cm)
 ```
 
 ```@example neuron
