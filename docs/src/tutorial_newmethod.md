@@ -180,7 +180,7 @@ z=[ 0.08492602120772309   # hide
         1.0638098128402615e-10 # hide
         4.942402279980973e-17 # hide
        ]; # hide
-plot(y=z, Scale.y_log10()) # hide
+plot(y=z, Scale.y_log10(), Geom.line) # hide
 ```
 
 ![To the top](http://jarlebring.se/onepixel.png?NEPPACKDOC_NEWMETHOD)
