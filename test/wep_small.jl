@@ -14,8 +14,8 @@ import GalleryWaveguide.SchurMatVec
         @info "Compare SPFM and native format, and test Preconditioner"
         nx = 11
         nz = 7
-        nep_spmf=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "SPMF")
-        nep=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "WEP")
+        nep_spmf=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "SPMF");
+        nep=nep_gallery(WEP, nx = nx, nz = nz, benchmark_problem = "TAUSCH", neptype = "WEP");
         λ = -1.3-0.31im
         v1 = compute_Mlincomb(nep_spmf, λ, ones(size(nep_spmf,1)))
         v2 = compute_Mlincomb(nep     , λ, ones(size(nep     ,1)))
@@ -56,24 +56,24 @@ import GalleryWaveguide.SchurMatVec
         precond = wep_generate_preconditioner(nep, 3*7, λ0)
         λ,v = resinv(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
                      errmeasure=myerrmeasure,tol=1e-12,
-                     linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=((:Pl,precond),(:reltol,1e-7)))
+                     linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=((:Pl,precond),(:tol,1e-7)))
                      );
         @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
     end
 
     @bench @testset "NEP solvers" begin
         @info "WEP NEP solvers"
-#        λ,v = quasinewton(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
-#                          errmeasure=myerrmeasure,tol=1e-12,
-#                          linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
-#                          );
-#        @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
-#
-#        nev=3
-#        λ,v = iar(ComplexF64,nep,σ=λ0, logger=displaylevel,neigs=nev,maxit=100,v=v0,
-#                  tol=1e-8, linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
-#                  );
-#        @test minimum(abs.(λref .- λ)) < 1e-10
+        λ,v = quasinewton(ComplexF64,nep,logger=displaylevel,λ=λ0,v=v0,
+                          errmeasure=myerrmeasure,tol=1e-12,
+                          linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
+                          );
+        @test  norm(compute_Mlincomb(nep,λ,v))/norm(v)  < 1e-10
+
+        nev=3
+        λ,v = iar(ComplexF64,nep,σ=λ0, logger=displaylevel,neigs=nev,maxit=100,v=v0,
+                  tol=1e-8, linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:factorized)
+                  );
+        @test minimum(abs.(λref .- λ)) < 1e-10
     end
 
 

@@ -10,7 +10,6 @@ const tests_not_to_run = Set{String}(map(uppercase, [
     "wep_large.jl", #  Extensive test for used during development. Needs MATLAB
     "dtn_dimer.jl", #  Needs additional files
     "deflation2.jl", # under development
-    "wep_small.jl", # Due to changes in gmres
     "runtests.jl",
     "NonlinearEigenproblemsTest.jl"
 ]))
