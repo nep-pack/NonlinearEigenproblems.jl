@@ -676,7 +676,7 @@ function debug_WEP_FD_preconditioner(delta::Number)
             println("    Testing for n = ", nz, " and N = ", N)
             precond = @time wep_generate_preconditioner(nep, N, γ)
 
-            gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:Pl,precond), (:tol, 1e-13), (:verbose,true))
+            gmres_kwargs = ((:maxiter,100), (:restart,100), (:log,true), (:Pl,precond), (:reltol, 1e-13), (:verbose,true))
             linsolvercreator=GalleryWaveguide.WEPLinSolverCreator(solver_type=:gmres,kwargs=gmres_kwargs)
             wep_solver = create_linsolver(linsolvercreator, nep, γ)
             x = lin_solve(wep_solver, b)
