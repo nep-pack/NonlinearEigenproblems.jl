@@ -1,8 +1,3 @@
-using NonlinearEigenproblems
-using LinearAlgebra
-using Random, Distributions
-using SparseArrays
-using IterativeSolvers
 import SparseArrays: findnz
 
 
@@ -26,7 +21,7 @@ struct AAACorkLinearization{T<:Number} <: CorkLinearization
             logger=0,
             weighted::Bool=false) where {T<:Number}
 
-        @parse_logger_param!(logger)    
+        @parse_logger_param!(logger)
         return new{T}(Z, mmax, tol, cleanup, tol_cln, return_details, logger, weighted)
     end
 end
@@ -51,7 +46,7 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
     end
 
     # Polynomial eigenvalue problem
-    if isa(nep, PEP) 
+    if isa(nep, PEP)
         Av = get_Av(nep)
         d = length(Av)-1
         if d < 2 # Linear eigenvalue problem
@@ -84,10 +79,10 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
         ppff = [get_fv(nep.nep1)[NNZ] ; get_fv(nep.nep2)]
         NNZ .-= 1
         s = length(Av_f)
-        z, fz, ω, err, pol, rsd, zer = svAAA(nep.nep2, is.Z, 
+        z, fz, ω, err, pol, rsd, zer = svAAA(nep.nep2, is.Z,
             mmax=is.mmax, tol=is.tol, cleanup=is.cleanup, tol_cln=is.tol_cln, return_details=is.return_details, logger=is.logger, weighted=is.weighted)
         m = length(z)
-    
+
     # Nonlinear + polynomial eigenvalue problem
     elseif isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF)
         Av_p = get_Av(nep.nep2)
@@ -102,10 +97,10 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
         ppff = [get_fv(nep.nep2)[NNZ] ; get_fv(nep.nep1)]
         NNZ .-= 1
         s = length(Av_f)
-        z, fz, ω, err, pol, rsd, zer = svAAA(nep.nep1, is.Z, 
+        z, fz, ω, err, pol, rsd, zer = svAAA(nep.nep1, is.Z,
             mmax=is.mmax, tol=is.tol, cleanup=is.cleanup, tol_cln=is.tol_cln, return_details=is.return_details, logger=is.logger, weighted=is.weighted)
         m = length(z)
-    
+
     # Completely nonlinear eigenvalue problem
     else
         NNZ = Vector{Int}()
@@ -113,14 +108,14 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
         ppff = get_fv(nep)
         d = 0
         s = length(PPCC)
-        z, fz, ω, err, pol, rsd, zer = svAAA(nep, is.Z, 
+        z, fz, ω, err, pol, rsd, zer = svAAA(nep, is.Z,
             mmax=is.mmax, tol=is.tol, cleanup=is.cleanup, tol_cln=is.tol_cln, return_details=is.return_details, logger=is.logger, weighted=is.weighted)
         m = length(z)
     end
 
     zfω = [z, fz, ω]
     prz = [pol, rsd, zer]
-  
+
     # Form [P_A^T M^T] and [P_B^T N^T] using AAA-information
     compactA, compactB = get_compact_pencil(d, s, m, z, fz, ω, NNZ)
     push_info!(is.logger, "AAAPencil: Pencil is built with d=$d, s=$s and m=$m.")
@@ -138,7 +133,7 @@ function get_compact_pencil(d::Int, s::Int, m::Int, z::AbstractVector{T}, fz::Ab
         compactB = [ spzeros(m,s)  spdiagm(m,m-1, 0=>-ω[2:end], -1=>ω[1:end-1]) ]
 
     # Only constant term in polynomial part
-    elseif d == 0 
+    elseif d == 0
         compactA = [ spzeros(1,1+s+m) ;
                      spzeros(m,1) fz spdiagm(m,m-1, 0=> -ω[2:end].*z[1:end-1], -1=>ω[1:end-1].*z[2:end]) ones(m,1)]
         compactA[1,1] = 1 ; compactA[1,end] = -1
@@ -151,7 +146,7 @@ function get_compact_pencil(d::Int, s::Int, m::Int, z::AbstractVector{T}, fz::Ab
         compactA = [ sparse(NNZ[1:end-1].+1,1:dt-1,ones(dt-1),d,dt-1) spzeros(d,1) spdiagm(d,d-1, -1=>ones(d-1))]
 
         compactB = [ spzeros(d,dt) spdiagm(d,d-1, 0=>ones(d-1))]
-        compactB[d,dt] = -1 
+        compactB[d,dt] = -1
 
     # General case: polynomial + nonlinear part
     else
@@ -161,7 +156,7 @@ function get_compact_pencil(d::Int, s::Int, m::Int, z::AbstractVector{T}, fz::Ab
 
         compactB = [ spzeros(d,dt+s) spdiagm(d,d-1, 0=>ones(d-1)) spzeros(d,m) ;
                      spzeros(m,dt+s+d-1)                          spdiagm(m,m-1, 0=>-ω[2:end], -1=>ω[1:end-1]) spzeros(m,1)]
-        compactB[d,dt] = -1 
+        compactB[d,dt] = -1
     end
 
     return compactA, compactB
@@ -188,7 +183,7 @@ Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using
 - `tol_cln`: Tolerance for cleanup of spurious poles.
 - `return_details`: Whether to return solution details (see `AAASolutionDetails`).
 - `check_error_every`: Check for convergence / termination every this number of iterations.
-- `inner_logger`: Works in the same way as logger but for the AAA rational approximation (see `svAAA`) 
+- `inner_logger`: Works in the same way as logger but for the AAA rational approximation (see `svAAA`)
 
 See [`augnewton`](@ref) for other parameters.
 
@@ -226,7 +221,7 @@ julia> [norm(compute_Mlincomb(nep,λ[i],X[:,i]))/norm(X[:,i]) for i=1:length(λ)
   methods for nonlinear eigenvalue problems. SIAM Journal on Matrix Analysis
   and Applications, 36(2):820-838, 2015.
 """
-AAAeigs(nep::NEP, Z::AbstractArray{T}; params...) where T<:Number = 
+AAAeigs(nep::NEP, Z::AbstractArray{T}; params...) where T<:Number =
     AAAeigs(T, nep, Z; params...)
 function AAAeigs(
         ::Type{T},
@@ -237,7 +232,7 @@ function AAAeigs(
         neigs::Real = 6,
         maxit::Int = min(max(10*neigs,30),100),
         shifts::Vector{T} = Vector{T}(),
-        linsolvercreator = FactorizeLinSolverCreator(max_factorizations=min(length(unique(shifts)),10)), 
+        linsolvercreator = FactorizeLinSolverCreator(max_factorizations=min(length(unique(shifts)),10)),
         tol::Real = eps(real(T))*1e6,
         tol_appr::Real = eps(real(T))*1e3,
         v0::Vector{T} = Vector{T}(),
@@ -270,11 +265,11 @@ function AAAeigs(
     is = AAACorkLinearization(Z, mmax=mmax, tol=tol_appr, weighted=weighted, cleanup=cleanup_appr, tol_cln=tol_cln, return_details=return_details, logger=inner_logger)
     L, zfω, err_appr, prz = AAAPencil(nep, is)
     #   Set (combinations of) size parameters
-    d = L.d 
+    d = L.d
     dt = length(L.NNZ)
-    m = L.m 
+    m = L.m
     k = d + m
-    if d == 0 && dt != 0; 
+    if d == 0 && dt != 0;
         k = k + 1; # d = 0/1 involves the same size linearization
     end
     s = L.s
@@ -282,9 +277,9 @@ function AAAeigs(
 
     # Initializations
     #   Extended '(M-λN)'-matrix and dictionary for factorizations
-    max_factorizations = min(length(unique(shifts)),10) 
+    max_factorizations = min(length(unique(shifts)),10)
     MλN_factorizations = Dict{T, Any}()
-    MλNext = spzeros(T,k,k) 
+    MλNext = spzeros(T,k,k)
     #   Intermediate matrices/vectors
     Y = zeros(T,k,l)
     Uhat = 0 # Otherwise scope Uhat in try-catch is wrong
@@ -296,7 +291,7 @@ function AAAeigs(
     Q = Matrix{T}(undef,n,min(50,rmax+1))
     Q[:,1] .= v0./norm(v0)
     U = zeros(T,rmax+1,k,jmax+1)
-    u0 = [1; zeros(k-1)] 
+    u0 = [1; zeros(k-1)]
     U[1,:,1] .= u0./norm(u0)
     H = UpperHessenberg(Matrix{T}(undef,jmax+1,jmax))
     K = UpperHessenberg(Matrix{T}(undef,jmax+1,jmax))
@@ -327,8 +322,8 @@ function AAAeigs(
         Y .= @views ( σ[it].*L.compactB[:,1:l] .- L.compactA[:,1:l])
         Y = MλNfact\Y
         #   Compute new vector for Q using Uc and 'in-place'-summation
-        u_c = @views ( U[1:r,1:k,j]*(L.compactB*[ sparse(I,l,l) ; 
-                                                  Y[2:end,:]    ]) ) 
+        u_c = @views ( U[1:r,1:k,j]*(L.compactB*[ sparse(I,l,l) ;
+                                                  Y[2:end,:]    ]) )
         v1_hat = zeros(T, n)
         for i = 1:l
             mul!(qq, ( @view Q[:,1:r] ), ( @view u_c[:,i]) )
@@ -368,7 +363,7 @@ function AAAeigs(
 
         # Level 2 orthogonalization
         #   Compute W and solve system with MλNext
-        W = zeros(T,rnew,k) 
+        W = zeros(T,rnew,k)
         W .= u1_hat
         mul!( (@view W[:,2:end]), (@view U[1:rnew,1:k,j]), (@view L.compactB[:,l+1:end]) )
         try
@@ -378,7 +373,7 @@ function AAAeigs(
         end
         #   Gram-Schmidt-orthogonalization
         U_rs = reshape(( @view U[1:rnew,:,1:j] ), rnew*k, j)
-        uhat_rs = reshape(Uhat,rnew*k) 
+        uhat_rs = reshape(Uhat,rnew*k)
         nu = norm(uhat_rs)
         mul!((@view H[1:j,j]), U_rs', uhat_rs)
         mul!(uhat_rs, U_rs, (@view H[1:j,j]), -one(T), one(T))
@@ -404,7 +399,7 @@ function AAAeigs(
             # Compute Ritz pairs
             Λ, S = eigen!(K[1:j,1:j],H[1:j,1:j])
             X = @views( Q[:,1:rnew]*( U[1:rnew,1,1:j+1]*( H[1:j+1,1:j]*S ) ) )
-      
+
             # Compute residues
             res = map(i -> estimate_error(errmeasure, Λ[i], (@view X[:,i])), 1:length(Λ))
             conv = abs.(res) .< tol
@@ -459,7 +454,7 @@ function sort_eig!(Lam, Res)
     it = size(Res,2)
     for col = 1:it-1
         # Find the indices that sort the residues for the current column
-        idx_sor = sortperm(@view Res[1:col,col]) 
+        idx_sor = sortperm(@view Res[1:col,col])
         idx = Vector{Int}(1:col+1)
         idx_comb = zeros(Int,col+1)
         for row in idx_sor
@@ -526,14 +521,14 @@ julia> err[end]
 - Y. Nakatsukasa, O. Sète, and L. N. Trefethen. The AAA algorithm for rational
   approximation. SIAM journal on scientific computing, 40(3):A1494-A1522, 2018.
 """
-svAAA(nep::AbstractSPMF, Z::AbstractArray{T}; params...) where T<:Number = 
+svAAA(nep::AbstractSPMF, Z::AbstractArray{T}; params...) where T<:Number =
     svAAA(ComplexF64, nep, Z; params...)
 function svAAA(
         ::Type{T},
-        nep::AbstractSPMF, 
-        Z::AbstractArray{T}; 
-        mmax::Int = 100, 
-        tol::Real = eps(real(T))*1e3, 
+        nep::AbstractSPMF,
+        Z::AbstractArray{T};
+        mmax::Int = 100,
+        tol::Real = eps(real(T))*1e3,
         cleanup::Bool = true,
         tol_cln::Real = min(eps(real(T)),tol),
         return_details::Bool = false,
@@ -555,14 +550,14 @@ function svAAA(
         n = size(nep,1)
         rng = copy(Random.default_rng())
         Random.seed!(1)
-        u = randn(T,n) 
+        u = randn(T,n)
         copy!(Random.default_rng(),rng)
         u = u/norm(u)
         uj = Matrix{T}(undef,n,s)
         for j = 1:s
             mul!((@view uj[:,j]),Av[j],u)
         end
-        beta = 0 
+        beta = 0
         for i = 1:M
             beta = max(beta, norm(uj*( @view F[i,:] )))
         end
@@ -586,7 +581,7 @@ function svAAA(
     ind = Vector{Int}(undef,0)
 
     H = UpperTriangular(Matrix{T}(undef,mmax,mmax))
-    S = UpperTriangular(Matrix{T}(undef,mmax,mmax)) 
+    S = UpperTriangular(Matrix{T}(undef,mmax,mmax))
 
     Q = Matrix{T}(undef,M*s,min(50,mmax))
     C = Matrix{T}(undef,M,min(50,mmax))
@@ -598,10 +593,10 @@ function svAAA(
     D = Vector{T}(undef,M)
     R = Matrix{T}(undef,M,s)
     R .= mean(F,dims=1) # Initial value for residuals
-    
+
     for m = 1:mmax
         # Finding new support point
-        res .= abs.(F.-R) 
+        res .= abs.(F.-R)
         maxres, idx = findmax(res,dims=1)
         loc = idx[argmax(maxres)]
         locz = loc[1]
@@ -617,7 +612,7 @@ function svAAA(
 
         # Find new column of Loewner matrix
         #   expansion of Cauchy matrix
-        if size(C,2) < m 
+        if size(C,2) < m
             resized = zeros(T,M,min(2*(m-1),mmax))
             resized[1:end, 1:(m-1)] = C
             C = resized
@@ -650,16 +645,16 @@ function svAAA(
         ii = 0
         while (ii < 3) && (real(H[m,m]) < 1/sqrt(2)*nv)
             mul!(HH, ( @view Q[:,1:m-1])', v)
-            HH = @views ( S[1:m-1,1:m-1]'*HH )       
+            HH = @views ( S[1:m-1,1:m-1]'*HH )
             H[1:m-1,m] .= ( @view H[1:m-1,m] ) .+ HH
             HH = @views ( S[1:m-1,1:m-1]*HH )
-            mul!(v, ( @view Q[:,1:m-1] ), HH, -one(T), one(T))           
+            mul!(v, ( @view Q[:,1:m-1] ), HH, -one(T), one(T))
             nv = real(H[m,m])
             H[m,m] = norm(v)
             ii = ii+1
         end
         #   expansion of Q-matrix
-        if size(Q,2) < m 
+        if size(Q,2) < m
             resized = zeros(T, M*s, min(2*(m-1),mmax))
             resized[1:end, 1:(m-1)] = Q
             Q = resized
@@ -695,15 +690,15 @@ function svAAA(
                 rsd[:,i] = reshape((@view rvals[:,i]), (length(pol), 4) )*dz./4
             end
 
-            # Check criterium for spurious poles 
+            # Check criterium for spurious poles
             if weighted
                 maxRsd = maximum(abs, rsd./maxF, dims=2)
             else # If SV-AAA is used, functions are already of the same scale
-                maxRsd = maximum(abs, rsd, dims=2) 
+                maxRsd = maximum(abs, rsd, dims=2)
             end
             idx = findall(maxRsd.< tol_cln)
             nb_sp = length(idx)
-            
+
             # Remove support points closest to spurious poles (if any)
             if nb_sp > 0
                 loc_sp = Vector{Int}(undef,nb_sp)
@@ -721,20 +716,20 @@ function svAAA(
 
                 # Find new weights using SVD of Loewner matrix
                 C[ind_sp,loc_z] .= @views ( 1 ./ (Z[ind_sp] .- transpose(z)) ) # These values were zero
-                Cview = @view C[ind_Z, loc_z] 
+                Cview = @view C[ind_Z, loc_z]
                 L = Matrix{T}(undef,(M-m+nb_sp)*s,m-nb_sp)
-                for j=1:s 
+                for j=1:s
                     L[1+(j-1)*(M-m+nb_sp):j*(M-m+nb_sp),:] .= Cview.*(F[ind_Z,j] .- transpose(fz[loc_z,j]))
                 end
                 SVD = svd!(L)
                 ω = SVD.V[:,end]
-        
+
                 # Update values in sample set
                 N .= @views ( C[:,loc_z]*(ω.*fz[loc_z,:]) )
                 D .= ( @view C[:,loc_z] )*ω
                 R .= N./D
                 R[ind,:] .= @view F[ind,:]
-        
+
                 # Compute last error and exit for-loop
                 res = abs.(F.-R)
                 maxres, idx = findmax(res,dims=1)
@@ -812,7 +807,7 @@ end
 
 # Return poles, residues and zeros of rational interpolant(s) defined by (z, fz and ω)
 function get_prz(z::AbstractVector{T}, fz::AbstractArray{T}, ω::AbstractVector{T}) where T<:Number
-    m, s = size(fz) 
+    m, s = size(fz)
 
     # Compute poles via generalized eigenvalue problem
     B = Matrix{T}(I,m+1,m+1)
@@ -845,7 +840,7 @@ end
 # Struct compiling optional output of AAAeigs
 struct AAASolutionDetails{T<:Number}
     m_appr::Int
-    zfω::AbstractArray 
+    zfω::AbstractArray
     prz::AbstractArray
     err_appr::AbstractVector
     Lam::AbstractArray{T}
@@ -855,9 +850,9 @@ end
 
 # Empty constructor
 AAASolutionDetails{T}() where T<:Number = AAASolutionDetails(
-    0, 
-    Vector{AbstractMatrix{T}}(), 
-    Vector{AbstractMatrix{T}}(), 
+    0,
+    Vector{AbstractMatrix{T}}(),
+    Vector{AbstractMatrix{T}}(),
     Vector{Real}(),
     Matrix{T}(undef,0,0),
     Matrix{Real}(undef,0,0),
