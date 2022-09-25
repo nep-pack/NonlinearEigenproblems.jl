@@ -1,5 +1,5 @@
 import SparseArrays: findnz
-
+export AAAeigs
 
 # Struct holding information for invoking svAAA in AAAPencil
 struct AAACorkLinearization{T<:Number} <: CorkLinearization
