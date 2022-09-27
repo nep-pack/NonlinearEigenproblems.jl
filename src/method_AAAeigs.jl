@@ -300,6 +300,10 @@ function AAAeigs(
         Lam = Matrix{T}(undef,maxit,maxit)
         Res = Matrix{real(T)}(undef,maxit,maxit)
     end
+    if dt == 0
+        phi0 = Vector{T}(undef,m)
+    end
+
 
     # Perform CORK iterations
     r = 1
@@ -332,6 +336,11 @@ function AAAeigs(
         #   Solve system with NEP's matrix function
         solver = create_linsolver(linsolvercreator,nep,σ[it])
         v1_hat = lin_solve(solver,v1_hat)
+        if dt == 0 # No polynomial part i.e. first basis function phi0(λ) != 1
+            phi0 .= zfω[3]./(σ[it].-zfω[1])
+            α = phi0[1]/sum(phi0)
+            v1_hat .= α.*v1_hat
+        end
         #   Gram-Schmidt-orthogonalization
         nv = norm(v1_hat)
         u1_hat = ( @view Q[:,1:r] )'*v1_hat
