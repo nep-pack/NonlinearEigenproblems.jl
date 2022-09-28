@@ -68,8 +68,8 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
     # Polynomial + nonlinear eigenvalue problem
     # or
     # Nonlinear eigenvalue problem + polynomial
-    elseif isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
-        || isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF)
+    elseif (isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
+          | isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF))
 
         nep_pep=isa(nep.nep1,PEP)?nep.nep1:nep.nep2
         nep_nep=isa(nep.nep1,PEP)?nep.nep2:nep.nep1
@@ -157,7 +157,7 @@ end
 Find a few eigenvalues and eigenvectors of a nonlinear eigenvalue problem, using the `AAAeigs` algorithm.
 
 # Arguments
-- `nep`: An instance of a nonlinear eigenvalue problem.
+- `nep`: An instance of a nonlinear eigenvalue problem has to be of type `AbstractSPMF`
 - `Z`: An array containing the sample domain of the nep, given as a series of points.
 - `mmax`: Max degree of AAA-approximation.
 - `neigs`: Number of eigenvalues to find.
@@ -209,11 +209,11 @@ julia> [norm(compute_Mlincomb(nep,λ[i],X[:,i]))/norm(X[:,i]) for i=1:length(λ)
   methods for nonlinear eigenvalue problems. SIAM Journal on Matrix Analysis
   and Applications, 36(2):820-838, 2015.
 """
-AAAeigs(nep::NEP, Z::AbstractArray{T}; params...) where T<:Number =
+AAAeigs(nep::AbstractSPMF, Z::AbstractArray{T}; params...) where T<:Number =
     AAAeigs(T, nep, Z; params...)
 function AAAeigs(
         ::Type{T},
-        nep::NEP,
+        nep::AbstractSPMF,
         Z::AbstractArray{T};
         logger = 0,
         mmax::Int = 100,
