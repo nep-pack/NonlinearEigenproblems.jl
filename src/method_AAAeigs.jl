@@ -66,27 +66,15 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
         err = Vector{real(T)}(); pol = Vector{T}(); rsd = Vector{T}(); zer = Vector{T}()
 
     # Polynomial + nonlinear eigenvalue problem
+    # or
+    # Nonlinear eigenvalue problem + polynomial
     elseif isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
-        Av_p = get_Av(nep.nep1)
-        Av_f = get_Av(nep.nep2)
-        d = length(Av_p)-1
-        NNZ = findall(x->!x, map(iszero,Av_p))
-        while NNZ[end] != d+1
-            pop!(NNZ)
-            d = d-1
-        end
-        PPCC = [Av_p[NNZ]             ; Av_f]
-        ppff = [get_fv(nep.nep1)[NNZ] ; get_fv(nep.nep2)]
-        NNZ .-= 1
-        s = length(Av_f)
-        z, fz, ω, err, pol, rsd, zer = svAAA(nep.nep2, is.Z,
-            mmax=is.mmax, tol=is.tol, cleanup=is.cleanup, tol_cln=is.tol_cln, return_details=is.return_details, logger=is.logger, weighted=is.weighted)
-        m = length(z)
+        || isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF)
 
-    # Nonlinear + polynomial eigenvalue problem
-    elseif isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF)
-        Av_p = get_Av(nep.nep2)
-        Av_f = get_Av(nep.nep1)
+        nep_pep=isa(nep.nep1,PEP)?nep.nep1:nep.nep2
+        nep_nep=isa(nep.nep1,PEP)?nep.nep2:nep.nep1
+        Av_p = get_Av(nep_pep)
+        Av_f = get_Av(nep_nep)
         d = length(Av_p)-1
         NNZ = findall(x->!x, map(iszero,Av_p))
         while NNZ[end] != d+1
@@ -94,10 +82,10 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
             d = d-1
         end
         PPCC = [Av_p[NNZ]             ; Av_f]
-        ppff = [get_fv(nep.nep2)[NNZ] ; get_fv(nep.nep1)]
+        ppff = [get_fv(nep_pep)[NNZ] ; get_fv(nep_nep)]
         NNZ .-= 1
         s = length(Av_f)
-        z, fz, ω, err, pol, rsd, zer = svAAA(nep.nep1, is.Z,
+        z, fz, ω, err, pol, rsd, zer = svAAA(nep_nep, is.Z,
             mmax=is.mmax, tol=is.tol, cleanup=is.cleanup, tol_cln=is.tol_cln, return_details=is.return_details, logger=is.logger, weighted=is.weighted)
         m = length(z)
 
