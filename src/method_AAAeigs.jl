@@ -693,7 +693,7 @@ function svAAA(
             # Compute residues via discretized Cauchy integral
             dz = 1e-5*[im, -1, -im, 1]
             pp = pol .+ transpose(dz)
-            rvals = reval(reshape(pp,(m-1)*4), z, (@view fz[1:m,:]), ω)
+            rvals = reval(reshape(pp,length(pol)*4), z, (@view fz[1:m,:]), ω)
             rsd = Matrix{T}(undef,length(pol),s)
             for i = 1:s
                 rsd[:,i] = reshape((@view rvals[:,i]), (length(pol), 4) )*dz./4
