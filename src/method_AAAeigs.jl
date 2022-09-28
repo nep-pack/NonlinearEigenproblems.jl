@@ -542,7 +542,9 @@ function svAAA(
         tol_cln::Real = min(eps(real(T)),tol),
         return_details::Bool = false,
         logger = 0,
-        weighted::Bool = false) where T<:Number
+        weighted::Bool = false,
+        u0_weight=ones(T,size(nep,1))
+        ) where T<:Number
 
     @parse_logger_param!(logger)
 
@@ -557,11 +559,7 @@ function svAAA(
     if weighted
         Av = get_Av(nep)
         n = size(nep,1)
-        rng = copy(Random.default_rng())
-        Random.seed!(1)
-        u = randn(T,n)
-        copy!(Random.default_rng(),rng)
-        u = u/norm(u)
+        u = normalize(u0_weight)
         uj = Matrix{T}(undef,n,s)
         for j = 1:s
             mul!((@view uj[:,j]),Av[j],u)
