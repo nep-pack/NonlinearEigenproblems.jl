@@ -41,30 +41,10 @@ end
 # Constructor for AAAPencil using the svAAA-function
 function AAAPencil(nep::AbstractSPMF, is::AAACorkLinearization{T}) where T<:Number
 
-    # Polynomial eigenvalue problem
-    if isa(nep, PEP)
-        Av = get_Av(nep)
-        d = length(Av)-1
-        if d < 2 # Linear eigenvalue problem
-            error("AAAPencil: The given nep is a simple Av=λBv, solve with an appropriate linear eigensolver (e.g. `eigen(L,B)`)")
-        end
-        NNZ = findall(x->!x, map(iszero,Av))
-        while NNZ[end] != d+1
-            pop!(NNZ)
-            d = d-1
-        end
-        PPCC = Av[NNZ]
-        ppff = get_fv(nep)[NNZ]
-        NNZ .-= 1
-        s = 0
-        m = 0
-        z = Vector{T}(); fz = Matrix{T}(undef,0,0); ω = Vector{T}()
-        err = Vector{real(T)}(); pol = Vector{T}(); rsd = Vector{T}(); zer = Vector{T}()
-
     # Polynomial + nonlinear eigenvalue problem
     # or
     # Nonlinear eigenvalue problem + polynomial
-    elseif (isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
+    if (isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
           | isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF))
 
         # Point nep_pep and nep_nep to NEP or PEP
