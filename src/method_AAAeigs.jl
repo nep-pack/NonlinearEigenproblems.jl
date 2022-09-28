@@ -39,11 +39,7 @@ struct AAAPencil{S<:AbstractVector{<:AbstractMatrix{<:Number}}}
 end
 
 # Constructor for AAAPencil using the svAAA-function
-function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
-    # If no access to coefficient matrices and scalar functions, AAA-approximation is not possible
-    if !isa(nep, AbstractSPMF)
-        error("AAAPencil: The given nep must be a sum of products of matrices and functions (i.e. `AbstractSPMF`)")
-    end
+function AAAPencil(nep::AbstractSPMF, is::AAACorkLinearization{T}) where T<:Number
 
     # Polynomial eigenvalue problem
     if isa(nep, PEP)
