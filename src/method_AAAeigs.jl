@@ -71,8 +71,8 @@ function AAAPencil(nep::NEP, is::AAACorkLinearization{T}) where T<:Number
     elseif (isa(nep, SPMFSumNEP{PEP,S} where S<:AbstractSPMF)
           | isa(nep, SPMFSumNEP{S,PEP} where S<:AbstractSPMF))
 
-        nep_pep=isa(nep.nep1,PEP)?nep.nep1:nep.nep2
-        nep_nep=isa(nep.nep1,PEP)?nep.nep2:nep.nep1
+        # Point nep_pep and nep_nep to NEP or PEP
+        (nep_pep, nep_nep)=isa(nep.nep1,PEP) ? (nep.nep1,nep.nep2) : (nep.nep2,nep.nep1)
         Av_p = get_Av(nep_pep)
         Av_f = get_Av(nep_nep)
         d = length(Av_p)-1
