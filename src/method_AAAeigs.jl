@@ -105,13 +105,6 @@ function get_compact_pencil(d::Int, s::Int, m::Int, z::AbstractVector{T}, fz::Ab
         compactB = [ spzeros(1,1+s+m) ;
                      spzeros(m,1+s)  spdiagm(m,m-1, 0=>-ω[2:end], -1=>ω[1:end-1]) spzeros(m,1)]
 
-    # No nonlinear part
-    elseif m == 0
-        compactA = [ sparse(NNZ[1:end-1].+1,1:dt-1,ones(dt-1),d,dt-1) spzeros(d,1) spdiagm(d,d-1, -1=>ones(d-1))]
-
-        compactB = [ spzeros(d,dt) spdiagm(d,d-1, 0=>ones(d-1))]
-        compactB[d,dt] = -1
-
     # General case: polynomial + nonlinear part
     else
         compactA = [ sparse(NNZ[1:end-1].+1,1:dt-1,ones(dt-1),d,dt-1) spzeros(d,s+1) spdiagm(d,d-1, -1=>ones(d-1)) spzeros(d,m) ;
