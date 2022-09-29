@@ -3,7 +3,7 @@ using Test
 using LinearAlgebra
 using IterativeSolvers
 @testset "AAAeigs" begin
-    dep=nep_gallery("dep0");
+    nep=nep_gallery("dep0");
     circ=exp.(1im*(0:0.01:2)*pi); circ=circ[1:end-1];
     Z=2*circ;
 
