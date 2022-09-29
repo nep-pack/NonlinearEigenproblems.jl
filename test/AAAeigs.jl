@@ -7,7 +7,7 @@ using IterativeSolvers
     circ=exp.(1im*(0:0.01:2)*pi); circ=circ[1:end-1];
     Z=2*circ;
 
-    v0=normalize(ones(size(nep,1))); # No random
+    v0=complex.(normalize(ones(size(nep,1)))); # No random
 
     # Test general nonlinear problem
     (λ,v)=AAAeigs(nep,Z,v0=v0);
