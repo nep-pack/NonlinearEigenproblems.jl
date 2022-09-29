@@ -15,7 +15,7 @@ using IterativeSolvers
     # Test SumNEP
     Av=get_Av(nep);
     nep2=SumNEP(PEP([Av[2],-Av[1]]),SPMF_NEP([Av[3]],[s->exp(-s)]));
-    (λ,v)=AAAeigs(nep2,Z);
+    (λ,v)=AAAeigs(nep2,Z,weighted=true);
     @test length(λ) == 6
     @test count(map(i -> norm(compute_Mlincomb(nep,λ[i],normalize(v[:,i]))),1:6) .< sqrt(eps())) == 6
 
