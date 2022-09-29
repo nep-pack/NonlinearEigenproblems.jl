@@ -415,29 +415,6 @@ function AAAeigs(
     return Λ, X, res, details
 end
 
-# Sort given Ritz values Lam, according to their residue Res
-function sort_eig!(Lam, Res)
-    it = size(Res,2)
-    for col = 1:it-1
-        # Find the indices that sort the residues for the current column
-        idx_sor = sortperm(@view Res[1:col,col])
-        idx = Vector{Int}(1:col+1)
-        idx_comb = zeros(Int,col+1)
-        for row in idx_sor
-            # Find the new ritz value that is closest to the previous in each row in order of smallest residue
-            loc = argmin(abs.( @views (Lam[row,col].-Lam[idx,col+1] )))
-            # Couple both entries in idx_comb
-            idx_comb[row] = idx[loc]
-            # The new ritz value that is selected is removed as index
-            deleteat!(idx, findall(x->x.==idx[loc],idx))
-        end
-        # remaining new ritz value is placed at the end (not corresponding to any previous)
-        idx_comb[end] = idx[end]
-        # Sort the new column (of the ritz values and their residues)
-        Lam[1:col+1,col+1] = Lam[idx_comb,col+1]
-        Res[1:col+1,col+1] = Res[idx_comb,col+1]
-    end
-end
 
 """
     svAAA([eltype,] nep::AbstractSPMF, Z::AbstractArray{T}; [mmax=100,][tol=eps(real(T))*1e3,][cleanup=true,][tol_cln=min(eps(real(T),tol)),][return_details=false,][logger=0,][weighted=false])
