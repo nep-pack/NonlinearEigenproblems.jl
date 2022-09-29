@@ -246,10 +246,10 @@ function AAAeigs(
         v0 = randn(T,n)
     end
     Q = Matrix{T}(undef,n,min(50,rmax+1))
-    Q[:,1] .= v0./norm(v0)
+    Q[:,1] .= normalize(v0)
     U = zeros(T,rmax+1,k,jmax+1)
     u0 = [1; zeros(k-1)]
-    U[1,:,1] .= u0./norm(u0)
+    U[1,:,1] .= normalize(u0)
     H = UpperHessenberg(Matrix{T}(undef,jmax+1,jmax))
     K = UpperHessenberg(Matrix{T}(undef,jmax+1,jmax))
     #   Matrices for eigenvalues and residues of all iterations
