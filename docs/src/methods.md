@@ -130,11 +130,16 @@ The Infinite Lanczos method, for symmetric NEPs
 ilan
 ```
 
+
 ### NLEIGS
 ```@docs
 nleigs
 ```
 
+### AAA-EIGS
+```@docs
+AAAeigs
+```
 
 ## Class specific methods
 
