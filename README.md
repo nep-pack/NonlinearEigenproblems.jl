@@ -11,7 +11,7 @@ where *M* is an *nxn*-matrix depending on a parameter. This package aims to prov
 
 # How to use it?
 
-On Julia 1.X and Julia 0.7, install it as a registered package by typing `] add ...` at the REPL-prompt:
+On Julia 1.X, install it as a registered package by typing `] add ...` at the REPL-prompt:
 ```
 julia> ]
 (v1.0) pkg> add NonlinearEigenproblems
@@ -40,6 +40,7 @@ Features and solvers (see documentation https://nep-pack.github.io/NonlinearEige
     * Tensor infinite Arnoldi method  (tiar)
     * Infinite bi-Lanczos (infbilanczos)
     * Infinite Lanczos (ilan)
+    * AAA CORK (AAAeigs)
 * Projection methods
     * Jacobi-Davidson (jd_effenberger)
     * Jacobi-Davidson (jd_betcke)
