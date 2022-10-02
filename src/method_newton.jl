@@ -448,7 +448,7 @@ julia> norm(compute_Mlincomb(nep,λ,v))/norm(v)
 """
     λ,v = newtonqr([eltype],nep::NEP;[errmeasure,][tol,][maxit,][λ,][v,][c,][logger])
 
-This function implements the Newton-QR method as formulated in the reference. The method ivolves the computation of a rank-revealing QR factorization
+This function implements the Newton-QR method as formulated in the reference. The method involves the computation of a rank-revealing QR factorization
 of ``M(λ)``, with the idea that on convergence the the last diagonal element ``R[n,n]`` of the upper-triangular matrix ``R`` becomes zero as a result of ``M(λ)``
 becoming singular. Since the computation of a QR factorization is expensive, it is advisable to use this method for problems of small size or problems with
 a certain structure that makes the QR computation less expensive.
