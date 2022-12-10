@@ -484,7 +484,7 @@ function svAAA(
 
     fv = get_fv(nep)
     Z = Z[:]
-    Z = deleteat!(Z,isinf.(Z) .|| isnan.(Z))
+    Z = deleteat!(Z,isinf.(Z) .| isnan.(Z))
     M = length(Z)
     s = length(fv)
     F = [fi(z) for z in Z, fi in fv]
