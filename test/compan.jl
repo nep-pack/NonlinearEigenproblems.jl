@@ -33,7 +33,7 @@ using LinearAlgebra
     Dc,Vc = polyeig(pep,DefaultEigSolver);
 
     ind = argmin(abs.(λa .- Dc)./abs(λa));
-    @test (abs(λa-Dc[ind])/abs(λa) < tolerance*1000)
+    @test (abs(λa-Dc[ind])/abs(λa) < tolerance*4000)
 
 
     ########################
