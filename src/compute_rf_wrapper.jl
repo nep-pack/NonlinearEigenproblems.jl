@@ -23,9 +23,9 @@ struct ScalarNewtonInnerSolver <: InnerSolver
 end
 
 function compute_rf(T0::Type{T}, nep::NEP, x, inner_solver::ScalarNewtonInnerSolver;
-                        y=x, target=zero(T), λ0=target,
+                        y=x, target=zero(T), λ=target,
                         kwargs...) where T
-    λ_iter = T(λ0);
+    λ_iter = T(λ);
     Δλ = T(Inf)
     count = 0
     while (abs(Δλ)>inner_solver.tol) & (count<inner_solver.maxit)
@@ -56,7 +56,7 @@ end
 
 """
     compute_rf(eltype::Type,nep::NEP,x,inner_solver::InnerSolver;
-               y=x, target=zero(T), λ0=target,TOL=eps(real(T))*1e3,max_iter=10)
+               y=x, target=zero(T), λ=target,TOL=eps(real(T))*1e3,max_iter=10)
 
 Computes the Rayleigh functional of the `nep`, i.e., computes a vector
 ``Λ`` of values ``λ``
@@ -80,7 +80,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
 ```
 """
     function compute_rf(T0::Type{T}, nep::NEP, x, inner_solver::InnerSolver;
-                        y=x, target=zero(T), λ0=target,
+                        y=x, target=zero(T), λ=target,
                         TOL=eps(real(T))*1e3, max_iter=30,kwargs...) where T
 
 
@@ -90,7 +90,7 @@ julia> x'*compute_Mlincomb(nep,s,x)
 
         local λv
         try
-            (λv,xv)=inner_solve(inner_solver,T0,pnep,σ=target,λv=[λ0]);
+            (λv,xv)=inner_solve(inner_solver,T0,pnep,σ=target,λv=[λ]);
         catch e
             # Even return the approximation upon failure
             if (e isa NoConvergenceException)
@@ -109,10 +109,9 @@ julia> x'*compute_Mlincomb(nep,s,x)
 
 
 
-function compute_rf(::Type{T},nep::NEP,x, inner_solver::PolyeigInnerSolver; y=x, target=zero(T), λ0=target,
+function compute_rf(::Type{T},nep::NEP,x, inner_solver::PolyeigInnerSolver; y=x, target=zero(T), λ=target,
                     TOL=eps(real(T))*1e3,max_iter=10) where T
 
-    @show λ0
     a=zeros(T,size(nep.A,1))
     for i=1:size(nep.A,1)
         a[i]=dot(y,nep.A[i]*x);

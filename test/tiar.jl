@@ -1,4 +1,3 @@
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -7,14 +6,14 @@ using IterativeSolvers
 # The user can create his own orthogonalization function to use in IAR
 function doubleGS_function!(VV, vv, h)
     h[:]=VV'*vv; vv[:]=vv-VV*h; g=VV'*vv; vv[:]=vv-VV*g;
-    h[] = h[]+g[]; β=opnorm(vv); vv[:]=vv/β; return β
+    h[:] = h+g; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
-abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
+struct DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import IterativeSolvers.orthogonalize_and_normalize!
-function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
+function orthogonalize_and_normalize!(V,v,h,::DoubleGS)
     doubleGS_function!(V, v, h) end
 
 @testset "TIAR" begin
@@ -35,22 +34,22 @@ function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep));
+        (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,errmeasure=ResidualErrmeasure(dep),orthmethod=DGKS());
         @test opnorm(Z'*Z - I) < 1e-6
      end
 
      @bench @testset "User provided doubleGS" begin
-         (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
+         (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,orthmethod=DoubleGS());
          @test opnorm(Z'*Z - I) < 1e-6
       end
 
       @bench @testset "ModifiedGramSchmidt" begin
-          (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
+          (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,orthmethod=ModifiedGramSchmidt());
           @test opnorm(Z'*Z - I) < 1e-6
       end
 
        @bench @testset "ClassicalGramSchmidt" begin
-           (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100);
+           (λ,Q,Z)=tiar(dep,σ=1.1,γ=3,neigs=4,v=ones(n),maxit=50,tol=eps()*100,orthmethod=ClassicalGramSchmidt());
            @test opnorm(Z'*Z - I) < 1e-6
        end
     end

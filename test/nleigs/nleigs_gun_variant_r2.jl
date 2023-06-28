@@ -1,6 +1,6 @@
 # Gun: variant R2 (fully rational case; leja + repeated nodes + freeze)
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 

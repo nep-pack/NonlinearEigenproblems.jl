@@ -3,6 +3,7 @@
 export LinSolverCreator, BackslashLinSolverCreator;
 export FactorizeLinSolverCreator, DefaultLinSolverCreator;
 export GMRESLinSolverCreator;
+export DeflatedNEPLinSolverCreator
 
 export create_linsolver;
 
@@ -99,20 +100,6 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
     end
 end
 
-# For the moment, Factorize is the default behaviour
-"""
-    DefaultLinSolverCreator
-
-This is the default linear solver if no other is specified (for most methods).
-It is a `FactorizeLinSolverCreator`.
-
-
-See also: [`LinSolver`](@ref), [`create_linsolver`](@ref),
-[`lin_solve`](@ref), [`FactorizeLinSolverCreator`](@ref), [`FactorizeLinSolver`](@ref)
-
-"""
-DefaultLinSolverCreator = FactorizeLinSolverCreator
-
 
 function create_linsolver(creator::FactorizeLinSolverCreator,nep,λ)
     # Let's see if we find it in recycled_factorizations
@@ -153,3 +140,54 @@ end
 function create_linsolver(creator::GMRESLinSolverCreator,nep, λ)
     return GMRESLinSolver{typeof(λ)}(nep, λ, creator.kwargs)
 end
+
+
+"""
+    DeflatedNEPLinSolverCreator(orglinsolvercreator)
+
+This is the creator for case of a deflated NEP.
+The argument `orglinsolvercreator` is the `LinSolverCreator` for the original NEP.
+The extended linear system
+
+```math
+[M, U; X^T, 0][v1; v2] = [b1; b2]
+```
+
+is solved with a Schur complement strategy, recycling
+the linear solver of the original NEP. Hence, pre-computed entities such as, e.g.,
+factorizations and preconditioners can be reused.
+
+
+NB1: The implementation assumes minimality index = 1.
+NB2: The Schur complement is explicitly formed. Hence it is only efficient for a
+few deflated eigenvalues.
+
+See also: [`DeflatedNEPLinSolver`](@ref), [`create_linsolver`](@ref),
+[`deflate_eigpair`](@ref)
+
+# References
+* C. Effenberger, Robust successive computation of eigenpairs for nonlinear eigenvalue problems. SIAM J. Matrix Anal. Appl. 34, 3 (2013), pp. 1231-1256.
+"""
+struct DeflatedNEPLinSolverCreator{T_origcreator} <: LinSolverCreator where {T_origcreator <: LinSolverCreator}
+    orglinsolvercreator::T_origcreator
+end
+
+function create_linsolver(creator::DeflatedNEPLinSolverCreator, nep::DeflatedNEP, λ)
+    orglinsolver = create_linsolver(creator.orglinsolvercreator, nep.orgnep, λ)
+    return DeflatedNEPLinSolver(nep, λ, orglinsolver)
+end
+
+
+# For the moment, Factorize is the default behaviour
+"""
+    DefaultLinSolverCreator
+
+This is the default linear solver if no other is specified (for most methods).
+It is a `FactorizeLinSolverCreator`.
+
+
+See also: [`LinSolver`](@ref), [`create_linsolver`](@ref),
+[`lin_solve`](@ref), [`FactorizeLinSolverCreator`](@ref), [`FactorizeLinSolver`](@ref)
+
+"""
+DefaultLinSolverCreator = FactorizeLinSolverCreator

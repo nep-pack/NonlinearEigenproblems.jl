@@ -51,6 +51,12 @@ GMRESLinSolverCreator
 ```@docs
 DefaultLinSolverCreator
 ```
+```@docs
+DeflatedNEPLinSolver
+```
+```@docs
+DeflatedNEPLinSolverCreator
+```
 
 ### Advanced usage
 

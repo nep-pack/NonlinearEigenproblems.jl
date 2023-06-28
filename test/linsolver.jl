@@ -1,7 +1,6 @@
 # Unit test for the lin-solve mehtods (in src/LinSolver.jl)
 # The "Gun" problem form gun_native.jl
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

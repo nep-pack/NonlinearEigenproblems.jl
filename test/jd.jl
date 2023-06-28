@@ -1,4 +1,3 @@
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test,Random
 using LinearAlgebra
@@ -45,7 +44,7 @@ verify_lambdas(1, nep, λ, u, TOL)
 
 
 @info "Testing errors thrown"
-nep = nep_gallery("pep0",4)
+nep = nep_gallery("pep0",10)
 # Throw error if iterating more than the size of the NEP
 @test_throws ErrorException λ,u=jd_betcke(nep, tol=TOL, maxit=60, logger = displaylevel, v=ones(size(nep,1)))
 # SG requires Galerkin projection type to keep Hermitian
@@ -53,7 +52,7 @@ nep = nep_gallery("pep0",4)
 # An undefined projection type
 @test_throws ErrorException λ,u=jd_betcke(nep, tol=TOL, maxit=4, projtype = :MYNOTDEFINED, v=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ,u=jd_betcke(nep, tol=TOL, maxit=4, neigs=1000, v=ones(size(nep,1)))
+@test_throws NEPCore.NoConvergenceException λ,u=jd_betcke(nep, tol=TOL, maxit=4, λ=10.0, neigs=1000, v=ones(size(nep,1)))
 
 end
 
@@ -86,7 +85,7 @@ nep = nep_gallery("pep0",50)
 # SG not possible with Effenberger
 @test_throws ErrorException λ, u = jd_effenberger(nep, tol=TOL, maxit=40, inner_solver_method = SGIterInnerSolver(), v=ones(size(nep,1)))
 # Too many required eigenvalues, will not converge and hence throw an exception
-@test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, neigs=1000, tol=TOL, maxit=20, v=ones(size(nep,1)))
+@test_throws NEPCore.NoConvergenceException λ, u = jd_effenberger(nep, neigs=1000, tol=TOL, maxit=4, v=ones(size(nep,1)), λ=10.0)
 
 end
 

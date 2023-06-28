@@ -1,6 +1,5 @@
 # Run tests for the deflation
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

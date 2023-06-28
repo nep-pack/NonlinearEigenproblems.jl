@@ -1,6 +1,5 @@
 # Run tests on nep_gallery (not tested elsewhere)
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using LinearAlgebra
 using SparseArrays

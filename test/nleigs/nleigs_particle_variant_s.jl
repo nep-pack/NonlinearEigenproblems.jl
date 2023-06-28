@@ -1,6 +1,6 @@
 # Particle: variant S
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 

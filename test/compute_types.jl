@@ -1,6 +1,5 @@
 # Run tests for the compute type tests
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test,Random
 using LinearAlgebra

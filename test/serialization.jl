@@ -1,4 +1,3 @@
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems.Serialization
 using Test
 using SparseArrays

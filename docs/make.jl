@@ -37,7 +37,7 @@ makedocs(
 )
 
 
-#deploydocs(
-#    repo = "github.com/nep-pack/NonlinearEigenproblems.jl.git",
+deploydocs(
+    repo = "github.com/nep-pack/NonlinearEigenproblems.jl.git",
 #    target = "build",
-#)
+)

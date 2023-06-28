@@ -1,4 +1,3 @@
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using Random
@@ -17,11 +16,11 @@ function doubleGS_function!(VV, vv, h)
     h[:] = h[:]+g[:]; β=norm(vv); vv[:]=vv/β; return β
 end
 # Then it is needed to create a type to access to this function
-abstract type DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
+struct DoubleGS <: IterativeSolvers.OrthogonalizationMethod end
 # And then introduce a function dispatch for this new type in order to use
 # the defined orthogonalization function
 import IterativeSolvers.orthogonalize_and_normalize!
-function orthogonalize_and_normalize!(V,v,h,::Type{DoubleGS})
+function orthogonalize_and_normalize!(V,v,h,::DoubleGS)
     doubleGS_function!(V, v, h) end
 
 
@@ -102,22 +101,22 @@ end
 
     # NOW TEST DIFFERENT ORTHOGONALIZATION METHODS
     @bench @testset "DGKS" begin
-        (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
+        (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DGKS(),σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
         @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
      end
 
      @bench @testset "User provided doubleGS" begin
-         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
+         (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=DoubleGS(),σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
          @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
       end
 
       @bench @testset "ModifiedGramSchmidt" begin
-          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
+          (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ModifiedGramSchmidt(),σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
           @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
       end
 
        @bench @testset "ClassicalGramSchmidt" begin
-           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt,σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
+           (λ,Q,err,V)=iar_chebyshev(dep,orthmethod=ClassicalGramSchmidt(),σ=0,neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(dep,1)))
            @test opnorm(V'*V - Matrix(1.0I, size(V,2), size(V,2))) < n*sqrt(eps())
        end
     end
@@ -169,7 +168,7 @@ end
                 A[j+1]=rand(n,n)
             end
             nep=PEP(A)
-            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*100,v=ones(size(nep,1)))
+            (λ,Q)=iar_chebyshev(nep,σ=-1,γ=2;neigs=5,logger=0,maxit=100,tol=eps()*1000,v=ones(size(nep,1)))
 
             verify_lambdas(5, nep, λ, Q, n*sqrt(eps()))
         end

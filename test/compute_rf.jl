@@ -1,4 +1,3 @@
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
@@ -12,13 +11,13 @@ using SparseArrays
     nep=DEP([A0,A1]);
     x=ones(5);
     s=compute_rf(ComplexF64,nep,x,
-                 NonlinearEigenproblems.NEPSolver.ScalarNewtonInnerSolver(),λ0=-0.5+3im)[1];
+                 NonlinearEigenproblems.NEPSolver.ScalarNewtonInnerSolver(),λ=-0.5+3im)[1];
 
     @test abs(x'*compute_Mlincomb(nep,s,x)) < eps()*100;
 
     y=zeros(5); y[1]=3;
     s=compute_rf(ComplexF64,nep,x,
-                 NonlinearEigenproblems.NEPSolver.ScalarNewtonInnerSolver(),λ0=-0.5+3im,
+                 NonlinearEigenproblems.NEPSolver.ScalarNewtonInnerSolver(),λ=-0.5+3im,
                  y=y)[1];
 
     @test abs(y'*compute_Mlincomb(nep,s,x)) < eps()*100;

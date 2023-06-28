@@ -1,6 +1,6 @@
 # Solves a few basic eigenvalue problems to test various aspects of NLEIGS
 
-using NonlinearEigenproblemsTest
+#using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using NonlinearEigenproblems.RKHelper
 using Test

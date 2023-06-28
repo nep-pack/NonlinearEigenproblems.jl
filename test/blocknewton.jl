@@ -1,6 +1,5 @@
 # Run tests on block Newton
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

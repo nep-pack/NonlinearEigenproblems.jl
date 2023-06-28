@@ -55,8 +55,8 @@ julia> λ    # print the computed eigenvalues
 3-element Array{Complex{Float64},1}:
 julia> norm(compute_Mlincomb(nep,λ[1],v[:,1]))
  0.050462487848960284 - 1.4289626573515395e-18im
- -0.07708779190301127 + 7.703053374113074e-18im 
-   0.1503856540695659 - 1.662582577182149e-17im 
+ -0.07708779190301127 + 7.703053374113074e-18im
+   0.1503856540695659 - 1.662582577182149e-17im
 ```
 
 # References
@@ -66,7 +66,7 @@ iar_chebyshev(nep::NEP;params...)=iar_chebyshev(ComplexF64,nep;params...)
 function iar_chebyshev(
     ::Type{T},
     nep::NEP;
-    orthmethod::Type{T_orth}=DGKS,
+    orthmethod=DGKS(),
     maxit=30,
     linsolvercreator=DefaultLinSolverCreator(),
     tol=eps(real(T))*10000,
@@ -80,7 +80,7 @@ function iar_chebyshev(
     compute_y0_method::Type{T_y0}=ComputeY0ChebAuto,
     a = isa(nep,DEP) ? -maximum(nep.tauv) : -1.0,
     b = isa(nep,DEP) ? 0.0 : 1.0
-    )where{T,T_orth<:IterativeSolvers.OrthogonalizationMethod,T_y0<:ComputeY0Cheb}
+    )where{T,T_y0<:ComputeY0Cheb}
 
     @parse_logger_param!(logger)
 

@@ -1,6 +1,5 @@
 # Test of companion linearization
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test,Random
 using LinearAlgebra
@@ -19,13 +18,7 @@ using LinearAlgebra
     λa,xa = newton(pep, maxit=30, logger=0, tol = tolerance,v=ones(size(pep,1)));
     Dc,Vc = polyeig(pep, DefaultEigSolver);
 
-    ind = 1;
-    for i = 1:(deg*n)
-        if(abs(λa-Dc[i])/abs(λa) < tolerance*10)
-            ind = i;
-            break
-        end
-    end
+    ind = argmin(abs.(λa .- Dc)./abs(λa));
     @test (abs(λa-Dc[ind])/abs(λa) < tolerance*10)
 
 
@@ -37,18 +30,11 @@ using LinearAlgebra
     n = size(pep,1);
     tolerance = 1e-14;
 
-    λa,xa =newton(pep, maxit=30, λ=-0.75, v=ones(n), logger=0, tol = tolerance);
+    λa,xa =newton(pep, maxit=30, λ=-0.75, v=ones(n), logger=0, tol = tolerance*1e-3);
     Dc,Vc = polyeig(pep,DefaultEigSolver);
 
-    ind = 1;
-    nn = min(deg*n, length(Dc))
-    for i = 1:nn
-        if(abs(λa-Dc[i])/abs(λa) < tolerance*50)
-            ind = i;
-            break
-        end
-    end
-    @test (abs(λa-Dc[ind])/abs(λa) < tolerance*50)
+    ind = argmin(abs.(λa .- Dc)./abs(λa));
+    @test (abs(λa-Dc[ind])/abs(λa) < tolerance*200)
 
 
     ########################

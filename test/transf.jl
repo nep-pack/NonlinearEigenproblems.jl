@@ -1,6 +1,5 @@
 # Run tests for the NEP transformations
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

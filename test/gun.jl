@@ -1,6 +1,5 @@
 # Run tests on Beyns contour integral method
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

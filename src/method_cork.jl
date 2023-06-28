@@ -10,12 +10,12 @@ module NEPSolver_CORK # Will change later
     export TargetType
     export CORKInputType
 
-    type TargetType
-        Sigma::Complex64
-        shift::Complex64
+    struct TargetType
+        Sigma::ComplexF64
+        shift::ComplexF64
     end
 
-    type CORKInputType
+    struct CORKInputType
         A # Length d array with n x n matrices
         B # Length d array with n x n matrices
         M # (d-1) x d matrix
@@ -36,7 +36,6 @@ module NEPSolver_CORK # Will change later
 #    function cork(L,k::Integer,sigma::AbstractFloat)
 #
 #    end
-
     function cork(L::CORKInputType,k::Integer,target::TargetType)
 
         #
@@ -191,10 +190,10 @@ module NEPSolver_CORK # Will change later
             U[rnew,:,:] = 0;
             u1 = [u1;q'*v1];
         end
-        tmp=broadcast(*,MsN1inv0.',u1)
+        tmp=broadcast(*,transpose(MsN1inv0),u1)
 
         println("size(u1)=",size(u1))
-        u2=reshape(U[1:rnew,j,1:d],rnew,d)*MsN1invN.'-tmp
+        u2=reshape(U[1:rnew,j,1:d],rnew,d)*transpose(MsN1invN)-tmp
 
         println("*************** tmp=", tmp)
         println(" u2 =",u2)
@@ -241,7 +240,7 @@ module NEPSolver_CORK # Will change later
         println(d)
 
         ## intermediate x used in yt
-        x = y*MsN1invN.';
+        x = y*transpose(MsN1invN);
 
         ## build yt
         yt = L.B[1]*y[:,1];

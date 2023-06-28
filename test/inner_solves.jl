@@ -1,6 +1,5 @@
 # Run tests for the inner solves
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test,Random
 using LinearAlgebra
@@ -17,8 +16,7 @@ Random.seed!(0);
     pnep=create_proj_NEP(dep);
 
     k = 5
-    Q,R=qr(randn(n,k));
-    Q = Matrix(Q)
+    temp_pep=nep_gallery("pep0",200); Q,R=qr(temp_pep.A[1][:,8:12]);  Q = Matrix(Q) # Ugly but gives stability over versions. Stable "random" projection space Q.
     set_projectmatrices!(pnep,Q,Q)
 
     logger=ErrorLogger(50,100,0);

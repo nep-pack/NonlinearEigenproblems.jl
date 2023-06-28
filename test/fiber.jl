@@ -1,6 +1,5 @@
 # Run tests on the fiber problem in NLEVP (bessel function nonlinearity)
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

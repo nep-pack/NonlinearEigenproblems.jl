@@ -444,9 +444,9 @@ Specialized for Waveguide Eigenvalue Problem discretized with Finite Difference\
 
     function WEP_inner_lin_solve(solver::WEPGMRESLinSolver, rhs::Vector, tol)
         if( solver.gmres_log )
-            q, convhist = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
+            q, convhist = gmres(solver.schur_comp, rhs; reltol=tol, solver.kwargs...)
         else
-            q = gmres(solver.schur_comp, rhs; tol=tol, solver.kwargs...)
+            q = gmres(solver.schur_comp, rhs; reltol=tol, solver.kwargs...)
         end
         return q
     end

@@ -1,6 +1,5 @@
 # Tests for NEP types functionality
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 

@@ -525,7 +525,7 @@ matrices are of size ``n×n`` and ``s_i`` and ``q_i`` are polynomials.
 The constructor takes the roots and poles as input of polynomials with
 normalized highest coefficient. The NEP is defined as
 ```math
--λI+A_1+A_1\\frac{p(λ)}{q(λ)}
+-λI+A_0+A_1\\frac{p(λ)}{q(λ)}
 ```
 where `p` has the roots `roots` and `q` has the roots `poles`.
 

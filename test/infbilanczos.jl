@@ -1,6 +1,5 @@
 # Test for infinite Bi-Lanczos
 
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra

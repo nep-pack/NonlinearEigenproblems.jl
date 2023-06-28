@@ -1,5 +1,4 @@
 # Test for nep helper creators
-using NonlinearEigenproblemsTest
 using NonlinearEigenproblems
 using Test
 using LinearAlgebra
