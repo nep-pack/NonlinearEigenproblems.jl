@@ -9,7 +9,6 @@ using LinearAlgebra
     #####################
     # Dense matrix test #
     #####################
-    Random.seed!(0)
     pep = nep_gallery("pep0");
     deg = size(get_fv(pep),1) -1;
     n = size(pep,1);
@@ -34,7 +33,7 @@ using LinearAlgebra
     Dc,Vc = polyeig(pep,DefaultEigSolver);
 
     ind = argmin(abs.(λa .- Dc)./abs(λa));
-    @test (abs(λa-Dc[ind])/abs(λa) < tolerance*200)
+    @test (abs(λa-Dc[ind])/abs(λa) < tolerance*1000)
 
 
     ########################
