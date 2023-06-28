@@ -83,8 +83,8 @@ using LinearAlgebra
         # do a warmup-solve to force JIT compilation to get accurate memory measurements
         lin_solve(c0, x)
 
-        r0 = @timed lin_solve(c0, x)
-        r2 = @timed lin_solve(c2, x)
+        r0 = lin_solve(c0, x)
+        r2 = lin_solve(c2, x)
 
         # test that the norm is at least 10 times bigger with no iterative refinements
         norm0 = norm(M*r0 - x)
