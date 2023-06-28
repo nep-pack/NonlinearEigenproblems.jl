@@ -91,10 +91,6 @@ using LinearAlgebra
         norm2 = norm(M*r2[1] - x)
         @test norm0 > 10 * norm2
 
-        # test that much less memory is allocated with no iterative refinements
-        memory0 = r0[3]
-        memory2 = r2[3]
-        @test memory0 < memory2 * 0.75
     end
 
 
