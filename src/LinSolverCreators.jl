@@ -63,7 +63,7 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
     umfpack_refinements::Int;
     recycled_factorizations::Dict{T_values,T_factor};
     max_factorizations::Int
-    function FactorizeLinSolverCreator(;umfpack_refinements::Int=2,
+    function FactorizeLinSolverCreator(;umfpack_refinements=10,
                                        max_factorizations=0,
                                        nep=nothing,
                                        precomp_values=[]
@@ -95,6 +95,8 @@ struct FactorizeLinSolverCreator{T_values,T_factor} <: LinSolverCreator
         for i=1:size(precomp_values,1)
             dict[precomp_values[i]]=precomp_factorizations[i];
         end
+
+
 
         return new{T_from,T_to}(umfpack_refinements,dict,max_factorizations)
 
