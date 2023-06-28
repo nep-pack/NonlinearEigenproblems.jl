@@ -110,6 +110,11 @@ See [`LinSolver`](@ref) and [`FactorizeLinSolverCreator`](@ref) for examples.
     function FactorizeLinSolver(nep::NEP, λ, umfpack_refinements)
         A=compute_Mder(nep,λ)
         Afact=factorize(A)
+        # Only activate umfpack_refiments on julia >= 1.9  cf #265
+        if (Afact isa SparseArrays.UMFPACK.UmfpackLU &
+            isdefined(Afact,:control))
+            Afact.control[8]=umfpack_refinements # Set the maximum number of refiments
+        end
         return FactorizeLinSolver(Afact, umfpack_refinements)
     end
 
@@ -125,19 +130,7 @@ This function must be overloaded if a user wants to define their own
 way of solving linear systems. See [`LinSolver`](@ref) for examples.
 """
     function lin_solve(solver::FactorizeLinSolver, x::Array; tol = 0)
-        with_umfpack_refinements(solver.umfpack_refinements) do
-            solver.Afact \ x
-        end
-    end
-
-    function with_umfpack_refinements(f::Function, refinements)
-        current_refinements = SuiteSparse.UMFPACK.umf_ctrl[8]
-        try
-            SuiteSparse.UMFPACK.umf_ctrl[8] = refinements
-            f()
-        finally
-            SuiteSparse.UMFPACK.umf_ctrl[8] = current_refinements
-        end
+        solver.Afact \ x
     end
 
 
