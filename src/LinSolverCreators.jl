@@ -6,6 +6,7 @@ export GMRESLinSolverCreator;
 export DeflatedNEPLinSolverCreator
 
 export create_linsolver;
+using ..NEPTypes
 
 abstract type LinSolverCreator ; end
 
