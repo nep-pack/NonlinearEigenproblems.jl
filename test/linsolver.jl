@@ -87,8 +87,8 @@ using LinearAlgebra
         r2 = @timed lin_solve(c2, x)
 
         # test that the norm is at least 10 times bigger with no iterative refinements
-        norm0 = norm(M*r0[1] - x)
-        norm2 = norm(M*r2[1] - x)
+        norm0 = norm(M*r0 - x)
+        norm2 = norm(M*r2 - x)
         @test norm0 > 10 * norm2
 
     end
