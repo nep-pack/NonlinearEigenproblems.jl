@@ -111,7 +111,7 @@ See [`LinSolver`](@ref) and [`FactorizeLinSolverCreator`](@ref) for examples.
         A=compute_Mder(nep,λ)
         Afact=factorize(A)
         # Only activate umfpack_refiments on julia >= 1.9  cf #265
-        if (Afact isa SparseArrays.UMFPACK.UmfpackLU &
+        if ((Afact isa SparseArrays.UMFPACK.UmfpackLU) &
             isdefined(Afact,:control))
             Afact.control[8]=umfpack_refinements # Set the maximum number of refiments
         end
