@@ -134,12 +134,16 @@ way of solving linear systems. See [`LinSolver`](@ref) for examples.
     end
 
     function with_umfpack_refinements(f::Function, refinements)
-        current_refinements = SuiteSparse.UMFPACK.umf_ctrl[8]
-        try
-            SuiteSparse.UMFPACK.umf_ctrl[8] = refinements
+        if isdefined(SuiteSparse.UMFPACK, :umf_ctrl) # Temp workaround to disable refinements on julia 1.9 #265
+            current_refinements = SuiteSparse.UMFPACK.umf_ctrl[8]
+            try
+                SuiteSparse.UMFPACK.umf_ctrl[8] = refinements
+                f()
+            finally
+                SuiteSparse.UMFPACK.umf_ctrl[8] = current_refinements
+            end
+        else
             f()
-        finally
-            SuiteSparse.UMFPACK.umf_ctrl[8] = current_refinements
         end
     end
 
