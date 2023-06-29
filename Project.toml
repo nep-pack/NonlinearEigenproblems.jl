@@ -1,6 +1,6 @@
 name = "NonlinearEigenproblems"
 uuid = "067cfa3b-fa88-53b2-a873-5b23b3a16e31"
-version = "1.1.4"
+version = "1.1.1"
 
 [deps]
 ArnoldiMethod = "ec485272-7323-5ecc-a04f-4719b315124d"
@@ -21,3 +21,6 @@ SuiteSparse = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 IterativeSolvers = "^0.9"
 LinearMaps = "^2, ^3"
 julia = "^1"
+Reexport = "^1.2"
+ArnoldiMethod = "^0.2"
+SpecialFunctions = "^2"
