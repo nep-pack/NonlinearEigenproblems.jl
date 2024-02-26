@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:gadfly="http://www.gadflyjl.org/ns"
+     version="1.2"
+     width="120mm" height="120mm" viewBox="0 0 120 120"
+     stroke="none"
+     fill="#000000"
+     stroke-width="0.3"
+     font-size="3.88"
+>
+<defs>
+  <marker id="arrow" markerWidth="15" markerHeight="7" refX="5" refY="3.5" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L15,3.5 L0,7 z" stroke="context-stroke" fill="context-stroke"/>
+  </marker>
+</defs>
+<g class="plotroot xscalable yscalable" id="img-767ec048-1">
+  <g font-size="3.88" font-family="'PT Sans','Helvetica Neue','Helvetica',sans-serif" fill="#564A55" stroke="#000000" stroke-opacity="0.000" id="img-767ec048-2">
+    <g transform="translate(66.2,108.39)">
+      <g class="primitive">
+        <text text-anchor="middle" dy="0.6em">real(λ)</text>
+      </g>
+    </g>
+  </g>
+  <g class="guide xlabels" font-size="2.82" font-family="'PT Sans Caption','Helvetica Neue','Helvetica',sans-serif" fill="#6C606B" id="img-767ec048-3">
+    <g transform="translate(19.4,101.72)">
+      <g class="primitive">
+        <text text-anchor="middle" dy="0.6em">-1.0</text>
+      </g>
+    </g>
+    <g transform="translate(50.6,101.72)">
+      <g class="primitive">
+        <text text-anchor="middle" dy="0.6em">-0.5</text>
+      </g>
+    </g>
+    <g transform="translate(81.8,101.72)">
+      <g class="primitive">
+        <text text-anchor="middle" dy="0.6em">0.0</text>
+      </g>
+    </g>
+    <g transform="translate(113,101.72)">
+      <g class="primitive">
+        <text text-anchor="middle" dy="0.6em">0.5</text>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#img-767ec048-4)">
+    <g id="img-767ec048-5">
+      <g pointer-events="visible" stroke-width="0.3" fill="#000000" fill-opacity="0.000" stroke="#000000" stroke-opacity="0.000" class="guide background" id="img-767ec048-6">
+        <g transform="translate(66.2,52.86)" id="img-767ec048-7">
+          <path d="M-48.8,-47.86 L48.8,-47.86 48.8,47.86 -48.8,47.86  z" class="primitive"/>
+        </g>
+      </g>
+      <g class="guide ygridlines xfixed" stroke-dasharray="0.5,0.5" stroke-width="0.2" stroke="#D0D0E0" id="img-767ec048-8">
+        <g transform="translate(66.2,98.72)" id="img-767ec048-9">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+        <g transform="translate(66.2,83.43)" id="img-767ec048-10">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+        <g transform="translate(66.2,68.14)" id="img-767ec048-11">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+        <g transform="translate(66.2,52.86)" id="img-767ec048-12">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+        <g transform="translate(66.2,37.57)" id="img-767ec048-13">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+        <g transform="translate(66.2,22.29)" id="img-767ec048-14">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+        <g transform="translate(66.2,7)" id="img-767ec048-15">
+          <path fill="none" d="M-48.8,0 L48.8,0 " class="primitive"/>
+        </g>
+      </g>
+      <g class="guide xgridlines yfixed" stroke-dasharray="0.5,0.5" stroke-width="0.2" stroke="#D0D0E0" id="img-767ec048-16">
+        <g transform="translate(19.4,52.86)" id="img-767ec048-17">
+          <path fill="none" d="M0,-47.86 L0,47.86 " class="primitive"/>
+        </g>
+        <g transform="translate(50.6,52.86)" id="img-767ec048-18">
+          <path fill="none" d="M0,-47.86 L0,47.86 " class="primitive"/>
+        </g>
+        <g transform="translate(81.8,52.86)" id="img-767ec048-19">
+          <path fill="none" d="M0,-47.86 L0,47.86 " class="primitive"/>
+        </g>
+        <g transform="translate(113,52.86)" id="img-767ec048-20">
+          <path fill="none" d="M0,-47.86 L0,47.86 " class="primitive"/>
+        </g>
+      </g>
+      <g class="plotpanel" id="img-767ec048-21">
+        <metadata>
+          <boundingbox value="17.398333333333326mm 5.0mm 97.60166666666667mm 95.715mm"/>
+          <unitbox value="-1.0320507113477324 6.261680204982827 1.5641014226954648 -12.523360409965655"/>
+        </metadata>
+        <g class="geometry" stroke-width="0.3" id="img-767ec048-22">
+          <g class="color_RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" id="img-767ec048-23">
+            <g fill-opacity="1" stroke="#FFFFFF" fill="#00BFFF" class="marker" id="img-767ec048-24">
+              <g transform="translate(26.68,93.56)" id="img-767ec048-25">
+                <circle cx="0" cy="0" r="0.9" class="primitive"/>
+              </g>
+            </g>
+            <g fill-opacity="0" ilabel="6RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" class="datatip" id="img-767ec048-26">
+              <g transform="translate(26.68,93.56)" id="img-767ec048-27">
+                <g class="primitive">
+                  <text dy="-1.2em">-0.8832708076887288<tspan x="0" dy="1.1000em">-5.3250505752875625</tspan></text>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g class="color_RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" id="img-767ec048-28">
+            <g fill-opacity="1" stroke="#FFFFFF" fill="#00BFFF" class="marker" id="img-767ec048-29">
+              <g transform="translate(26.68,12.16)" id="img-767ec048-30">
+                <circle cx="0" cy="0" r="0.9" class="primitive"/>
+              </g>
+            </g>
+            <g fill-opacity="0" ilabel="5RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" class="datatip" id="img-767ec048-31">
+              <g transform="translate(26.68,12.16)" id="img-767ec048-32">
+                <g class="primitive">
+                  <text dy="-1.2em">-0.8832708076887316<tspan x="0" dy="1.1000em">5.325050575287575</tspan></text>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g class="color_RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" id="img-767ec048-33">
+            <g fill-opacity="1" stroke="#FFFFFF" fill="#00BFFF" class="marker" id="img-767ec048-34">
+              <g transform="translate(53.35,65.76)" id="img-767ec048-35">
+                <circle cx="0" cy="0" r="0.9" class="primitive"/>
+              </g>
+            </g>
+            <g fill-opacity="0" ilabel="4RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" class="datatip" id="img-767ec048-36">
+              <g transform="translate(53.35,65.76)" id="img-767ec048-37">
+                <g class="primitive">
+                  <text dy="-1.2em">-0.4558476548652613<tspan x="0" dy="1.1000em">-1.6884551234089418</tspan></text>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g class="color_RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" id="img-767ec048-38">
+            <g fill-opacity="1" stroke="#FFFFFF" fill="#00BFFF" class="marker" id="img-767ec048-39">
+              <g transform="translate(53.35,39.95)" id="img-767ec048-40">
+                <circle cx="0" cy="0" r="0.9" class="primitive"/>
+              </g>
+            </g>
+            <g fill-opacity="0" ilabel="3RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" class="datatip" id="img-767ec048-41">
+              <g transform="translate(53.35,39.95)" id="img-767ec048-42">
+                <g class="primitive">
+                  <text dy="-1.2em">-0.45584765486526174<tspan x="0" dy="1.1000em">1.6884551234089458</tspan></text>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g class="color_RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" id="img-767ec048-43">
+            <g fill-opacity="1" stroke="#FFFFFF" fill="#00BFFF" class="marker" id="img-767ec048-44">
+              <g transform="translate(101.07,52.86)" id="img-767ec048-45">
+                <circle cx="0" cy="0" r="0.9" class="primitive"/>
+              </g>
+            </g>
+            <g fill-opacity="0" ilabel="2RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" class="datatip" id="img-767ec048-46">
+              <g transform="translate(101.07,52.86)" id="img-767ec048-47">
+                <g class="primitive">
+                  <text dy="-1.2em">0.30886599775839135<tspan x="0" dy="1.1000em">4.146563548756125e-18</tspan></text>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g class="color_RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" id="img-767ec048-48">
+            <g fill-opacity="1" stroke="#FFFFFF" fill="#00BFFF" class="marker" id="img-767ec048-49">
+              <g transform="translate(75.74,52.86)" id="img-767ec048-50">
+                <circle cx="0" cy="0" r="0.9" class="primitive"/>
+              </g>
+            </g>
+            <g fill-opacity="0" ilabel="1RGBA{Float32}(0.0f0,0.74736935f0,1.0f0,1.0f0)" class="datatip" id="img-767ec048-51">
+              <g transform="translate(75.74,52.86)" id="img-767ec048-52">
+                <g class="primitive">
+                  <text dy="-1.2em">-0.09712795241565722<tspan x="0" dy="1.1000em">2.612885243197631e-19</tspan></text>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+  <g class="guide ylabels" font-size="2.82" font-family="'PT Sans Caption','Helvetica Neue','Helvetica',sans-serif" fill="#6C606B" id="img-767ec048-53">
+    <g transform="translate(16.4,98.72)" id="img-767ec048-54">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">-6</text>
+      </g>
+    </g>
+    <g transform="translate(16.4,83.43)" id="img-767ec048-55">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">-4</text>
+      </g>
+    </g>
+    <g transform="translate(16.4,68.14)" id="img-767ec048-56">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">-2</text>
+      </g>
+    </g>
+    <g transform="translate(16.4,52.86)" id="img-767ec048-57">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">0</text>
+      </g>
+    </g>
+    <g transform="translate(16.4,37.57)" id="img-767ec048-58">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">2</text>
+      </g>
+    </g>
+    <g transform="translate(16.4,22.29)" id="img-767ec048-59">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">4</text>
+      </g>
+    </g>
+    <g transform="translate(16.4,7)" id="img-767ec048-60">
+      <g class="primitive">
+        <text text-anchor="end" dy="0.35em">6</text>
+      </g>
+    </g>
+  </g>
+  <g font-size="3.88" font-family="'PT Sans','Helvetica Neue','Helvetica',sans-serif" fill="#564A55" stroke="#000000" stroke-opacity="0.000" id="img-767ec048-61">
+    <g transform="translate(8.81,50.86)" id="img-767ec048-62">
+      <g class="primitive">
+        <text text-anchor="middle" dy="0.35em" transform="rotate(-90,0, 2)">imag(λ)</text>
+      </g>
+    </g>
+  </g>
+</g>
+<defs>
+  <clipPath id="img-767ec048-4">
+    <path d="M17.4,5 L115,5 115,100.72 17.4,100.72 " />
+  </clipPath>
+</defs>
+</svg>
